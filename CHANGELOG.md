@@ -1,7 +1,4 @@
-# Change log for esp-who
+# Change log for esp-face
 
 ## 0.1.0
-Initial commit, esp-who appear in the world.
-- Elementry functions such as image processing and matrix computing
-- Face detection
-- Components such as camera
+Initial commit, esp-face appear in the world.
