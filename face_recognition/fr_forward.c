@@ -72,14 +72,14 @@ int8_t align_face(box_array_t *onet_boxes,
 
     ne_ratio = (pow(no_x - le_x, 2) + pow(no_y - le_y, 2)) / (pow(no_x - re_x, 2) + pow(no_y - re_y, 2));
 
-    ESP_LOGI(TAG, "Left-eye  : (%f,%f)", le_x, le_y);
-    ESP_LOGI(TAG, "Right-eye : (%f,%f)", re_x, re_y);
-    ESP_LOGI(TAG, "Nose      : (%f,%f)", no_x, no_y);
-    ESP_LOGI(TAG, "Angle     : %f", angle);
-    ESP_LOGI(TAG, "Eye_dist  : %f", eye_dist);
-    ESP_LOGI(TAG, "Ratio     : %f", ratio);
-    ESP_LOGI(TAG, "Center    : (%f,%f)", center[0], center[1]);
-    ESP_LOGI(TAG, "ne_ratio  : %f", ne_ratio);
+    ESP_LOGD(TAG, "Left-eye  : (%f,%f)", le_x, le_y);
+    ESP_LOGD(TAG, "Right-eye : (%f,%f)", re_x, re_y);
+    ESP_LOGD(TAG, "Nose      : (%f,%f)", no_x, no_y);
+    ESP_LOGD(TAG, "Angle     : %f", angle);
+    ESP_LOGD(TAG, "Eye_dist  : %f", eye_dist);
+    ESP_LOGD(TAG, "Ratio     : %f", ratio);
+    ESP_LOGD(TAG, "Center    : (%f,%f)", center[0], center[1]);
+    ESP_LOGD(TAG, "ne_ratio  : %f", ne_ratio);
 
     if (ratio > RATIO_THRES && NOSE_EYE_RATIO_THRES_MIN < ne_ratio && ne_ratio < NOSE_EYE_RATIO_THRES_MAX) //RATIO_THRES is to avoid small faces and NOSE_EYE_RATIO_THRES is to keep the face front
     {
@@ -161,190 +161,90 @@ void add_face_id(dl_matrix3d_t *dest_id,
     }
 }
 
-void devide_face_id(dl_matrix3d_t *id,
-                    uint16_t n)
+void devide_face_id(dl_matrix3d_t *id)
 {
     fptp_t *in1 = id->item;
     for (int i = 0; i < id->c; i++)
     {
-        (*in1++) /= n;
+        (*in1++) /= ENROLL_CONFIRM_TIMES;
     }
 }
 
-uint16_t recognize_face(dl_matrix3du_t *algined_face,
-                        dl_matrix3d_t **id_list,
-                        fptp_t threshold,
-                        uint16_t enrolled_id_number)
+int8_t recognize_face(face_id_list *l,
+                        dl_matrix3du_t *algined_face)
 {
     fptp_t similarity = 0;
     fptp_t max_similarity = -1;
-    uint16_t matched_id = 0;
+    int8_t matched_id = -1;
     dl_matrix3d_t *face_id = NULL;
 
     face_id = get_face_id(algined_face);
 
-    for (uint16_t i = 0; i < enrolled_id_number; i++)
+    for (uint16_t i = 0; i < l->count; i++)
     {
-        similarity = cos_distance(id_list[i], face_id);
+        uint8_t head = (l->head + i) % FACE_ID_SAVE_NUMBER;
+        similarity = cos_distance(l->id_list[head], face_id);
 
-        ESP_LOGI(TAG, "Similarity: %.6f", similarity);
-
-        if ((similarity > threshold) && (similarity > max_similarity))
+        if ((similarity > FACE_REC_THRESHOLD) && (similarity > max_similarity))
         {
             max_similarity = similarity;
-            matched_id = i + 1;
+            matched_id = head;
         }
     }
 
     dl_matrix3d_free(face_id);
 
+    ESP_LOGI(TAG, "\nSimilarity: %.6f, id: %d", max_similarity, matched_id);
+
     return matched_id;
 }
 
-int8_t enroll(dl_matrix3du_t *aligned_face,
-              dl_matrix3d_t *dest_id,
-              int8_t enroll_confirm_times)
+int8_t enroll_face(face_id_list *l, 
+                dl_matrix3du_t *aligned_face)
 {
-    if (enroll_confirm_times < 0)
-    {
-        ESP_LOGE(TAG, "[enroll_confirm_times] should be set to >= 1");
-        return -1;
-    }
-
     static int8_t confirm_counter = 0;
 
     // add new_id to dest_id
-    dl_matrix3d_t *new_id = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
-    new_id = get_face_id(aligned_face);
-    add_face_id(dest_id, new_id);
+    dl_matrix3d_t *new_id = get_face_id(aligned_face);
+
+    if (l->count < FACE_ID_SAVE_NUMBER)
+        l->id_list[l->tail] = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
+
+    add_face_id(l->id_list[l->tail], new_id);
     dl_matrix3d_free(new_id);
 
     confirm_counter++;
 
-    if (confirm_counter == enroll_confirm_times)
+    if (confirm_counter == ENROLL_CONFIRM_TIMES)
     {
-        devide_face_id(dest_id, enroll_confirm_times);
+        devide_face_id(l->id_list[l->tail]);
         confirm_counter = 0;
 
+        l->tail = (l->tail + 1) % FACE_ID_SAVE_NUMBER;
+        l->count++;
+        // Overlap head
+        if (l->count > FACE_ID_SAVE_NUMBER)
+        {
+            l->head = (l->head + 1) % FACE_ID_SAVE_NUMBER;
+            l->count = FACE_ID_SAVE_NUMBER;
+        }
+
         return 0;
     }
 
-    return enroll_confirm_times - confirm_counter;
+    return ENROLL_CONFIRM_TIMES - confirm_counter;
 }
 
-int8_t enroll_to_flash(dl_matrix3du_t *aligned_face,
-              dl_matrix3d_t *dest_id,
-              int8_t enroll_confirm_times,
-              uint16_t enrolled_id_number)
+uint8_t delete_face(face_id_list *l)
 {
-    if (enroll_confirm_times < 0)
-    {
-        ESP_LOGE(TAG, "[enroll_confirm_times] should be set to >= 1");
-        return -1;
-    }
-
-    static int8_t confirm_counter = 0;
-
-    // add new_id to dest_id
-    dl_matrix3d_t *new_id = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
-    new_id = get_face_id(aligned_face);
-    add_face_id(dest_id, new_id);
-    dl_matrix3d_free(new_id);
-
-    confirm_counter++;
-
-    if (confirm_counter == enroll_confirm_times)
-    {
-        devide_face_id(dest_id, enroll_confirm_times);
-        confirm_counter = 0;
-
-        const esp_partition_t *pt = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_NVS, FLASH_PARTITION_NAME);
-        if (pt == NULL){
-            ESP_LOGE("Pt", "Not found");
-            return -2;
-        }
-        float mat[FACE_ID_SIZE] = {0};
-        int flash_info_flag = FLASH_INFO_FLAG;
-        int id_number = enrolled_id_number;
-        if(id_number%2 == 1){
-            esp_partition_read(pt, 4096+(id_number-1)*2048, mat, 2048);
-            esp_partition_erase_range(pt, 4096+(id_number-1)*2048, 4096);
-            esp_partition_write(pt, 4096+(id_number-1)*2048, mat, 2048);
-            esp_partition_write(pt, 4096+id_number*2048, dest_id->item, 2048); 
-        }else{
-            esp_partition_erase_range(pt, 4096+id_number*2048, 4096);
-            esp_partition_write(pt, 4096+id_number*2048, dest_id->item, 2048);
-        }
-        id_number++;
-        esp_partition_erase_range(pt, 0, 4096);
-        esp_partition_write(pt, 0, &flash_info_flag, sizeof(int));
-        esp_partition_write(pt, sizeof(int), &id_number, sizeof(int));
-
-
+    if (l->count == 0)
         return 0;
-    }
 
-    return enroll_confirm_times - confirm_counter;
+    if (l->id_list[l->head])
+        dl_matrix3d_free(l->id_list[l->head]);
+
+    l->head = (l->head + 1) % FACE_ID_SAVE_NUMBER;
+    l->count--;
+    return l->count;
 }
-
-uint16_t read_id_from_flash(dl_matrix3d_t **id_list)
-{
-    const esp_partition_t *pt = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_NVS, FLASH_PARTITION_NAME);
-    if (pt == NULL){
-        ESP_LOGE("Pt", "Not found");
-        return 0;
-    }
-
-    int flash_info_flag = 0;
-    int enrolled_id_number = 0;
-    esp_partition_read(pt, 0, &flash_info_flag, sizeof(int));
-    if((flash_info_flag != FLASH_INFO_FLAG)){
-        ESP_LOGE("Read", "No ID Infomation");
-        return 0;
-    }else{
-        esp_partition_read(pt, sizeof(int), &enrolled_id_number, sizeof(int));
-        if(enrolled_id_number > 0){
-            for(int i=0;i<enrolled_id_number;i++){
-                id_list[i] = dl_matrix3d_alloc(1,1,1,FACE_ID_SIZE);
-                esp_partition_read(pt, 4096+i*2048, id_list[i]->item, 2048);
-            }
-            return (uint16_t)enrolled_id_number;
-        }else{
-            return 0;
-        }
-    } 
-}
-
-uint16_t delete_id_in_flash(int delte_number)
-{
-    const esp_partition_t *pt = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_NVS, FLASH_PARTITION_NAME);
-    if (pt == NULL){
-        ESP_LOGE("Pt", "Not found");
-        return -1;
-    }
-
-    int flash_info_flag = 0;
-    int enrolled_id_number = 0;
-    esp_partition_read(pt, 0, &flash_info_flag, sizeof(int));
-    if((flash_info_flag != FLASH_INFO_FLAG)){
-        ESP_LOGE("Read", "No ID Infomation");
-        return 0;
-    }else{
-        esp_partition_read(pt, sizeof(int), &enrolled_id_number, sizeof(int));
-        if(enrolled_id_number > 0){
-            if((delte_number == -1)||(delte_number > enrolled_id_number)){
-                enrolled_id_number = 0;
-            }else{
-                enrolled_id_number -= delte_number;
-            }
-            esp_partition_erase_range(pt, 0, 4096);
-            esp_partition_write(pt, 0, &flash_info_flag, sizeof(int));
-            esp_partition_write(pt, sizeof(int), &enrolled_id_number, sizeof(int));
-            return (uint16_t)enrolled_id_number;
-        }else{
-            return 0;
-        }
-    } 
-}
-
 

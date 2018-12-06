@@ -29,6 +29,16 @@ extern "C"
 #define FLASH_INFO_FLAG 12138
 #define FLASH_PARTITION_NAME "fr"
 
+#define FACE_ID_SAVE_NUMBER 10
+#define ENROLL_CONFIRM_TIMES 3
+
+    typedef struct
+    {
+        uint8_t head;
+        uint8_t tail;
+        uint8_t count;
+        dl_matrix3d_t *id_list[FACE_ID_SAVE_NUMBER];
+    } face_id_list;
 
     /**
      * @brief Alloc memory for aligned face.
@@ -64,62 +74,31 @@ extern "C"
      * 
      * @param algined_face          An aligned face
      * @param id_list               An ID list
-     * @param threshold             The threshold of recognition
-     * @param enrolled_id_number    The number of enrolled id
-     * @return uint16_t             Matched face id
+     * @return int8_t               Matched face id
      */
-    uint16_t recognize_face(dl_matrix3du_t *algined_face,
-                            dl_matrix3d_t **id_list,
-                            fptp_t threshold,
-                            uint16_t enrolled_id_number);
+    int8_t recognize_face(face_id_list *l,
+                            dl_matrix3du_t *algined_face);
 
     /**
      * @brief Produce face id according to the input aligned face, and save it to dest_id.
      * 
+     * @param l                     face id list
      * @param aligned_face          An aligned face
-     * @param dest_id               Saves final face id or accumulation id in process
      * @param enroll_confirm_times  Confirm times for each face id enrollment
      * @return -1                   Wrong input enroll_confirm_times
      * @return 0                    Enrollment finish
      * @return >=1                  The left piece of aligned faces should be input
      */
-    int8_t enroll(dl_matrix3du_t *aligned_face,
-                  dl_matrix3d_t *dest_id,
-                  int8_t enroll_confirm_times);
+    int8_t enroll_face(face_id_list *l, 
+                    dl_matrix3du_t *aligned_face);
 
     /**
-     * @brief Produce face id according to the input aligned face, and save it to dest_id and flash.
+     * @brief Alloc memory for aligned face.
      * 
-     * @param aligned_face          An aligned face
-     * @param dest_id               Saves final face id or accumulation id in process
-     * @param enroll_confirm_times  Confirm times for each face id enrollment
-     * @enrolled_id_number          The number of enrolled id
-     * @return -2                   Flash partition not found
-     * @return -1                   Wrong input enroll_confirm_times
-     * @return 0                    Enrollment finish
-     * @return >=1                  The left piece of aligned faces should be input
+     * @param l                     face id list
+     * @return uint8_t              left count
      */
-    int8_t enroll_to_flash(dl_matrix3du_t *aligned_face,
-              dl_matrix3d_t *dest_id,
-              int8_t enroll_confirm_times,
-              uint16_t enrolled_id_number);
-
-    /**
-     * @brief Read the enrolled face IDs from the flash.
-     * 
-     * @param id_list               An ID list which stores the IDs read from the flash
-     * @return uint16_t             The number of enrolled face IDs
-     */
-    uint16_t read_id_from_flash(dl_matrix3d_t **id_list);
-
-    /**
-     * @brief Delete the enrolled face IDs in the flash.
-     * 
-     * @param delte_number          The Number of IDs to be deleted in flash
-     * @return uint16_t             The number of IDs remaining in flash
-     */
-    uint16_t delete_id_in_flash(int delte_number);
-
+    uint8_t delete_face(face_id_list *l);
 #if __cplusplus
 }
 #endif
