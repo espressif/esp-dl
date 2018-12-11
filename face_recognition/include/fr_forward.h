@@ -20,11 +20,10 @@ extern "C"
 #define RIGHT_EYE_Y 7
 #define NOSE_X 4
 #define NOSE_Y 5
-#define EYE_DIST_SET 19.5f
-#define CENTER_OFFSET 1.5f
-#define RATIO_THRES 2.0f
-#define NOSE_EYE_RATIO_THRES_MIN 0.8f
-#define NOSE_EYE_RATIO_THRES_MAX 1.25f
+
+#define EYE_DIST_SET 16.5f
+#define NOSE_EYE_RATIO_THRES_MIN 0.49f
+#define NOSE_EYE_RATIO_THRES_MAX 2.04f
 
 #define FLASH_INFO_FLAG 12138
 #define FLASH_PARTITION_NAME "fr"

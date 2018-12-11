@@ -47,7 +47,6 @@ int8_t align_face(box_array_t *onet_boxes,
     fptp_t ratio;
     fptp_t ne_ratio;
     fptp_t eye_dist;
-    fptp_t center_offset;
     fptp_t le_x;
     fptp_t le_y;
     fptp_t re_x;
@@ -63,14 +62,19 @@ int8_t align_face(box_array_t *onet_boxes,
     no_x = onet_boxes->landmark[0].landmark_p[NOSE_X];
     no_y = onet_boxes->landmark[0].landmark_p[NOSE_Y];
 
+    ne_ratio = (pow(no_x - le_x, 2) + pow(no_y - le_y, 2)) / (pow(no_x - re_x, 2) + pow(no_y - re_y, 2));
+    if (ne_ratio <= NOSE_EYE_RATIO_THRES_MIN || ne_ratio >= NOSE_EYE_RATIO_THRES_MAX) //RATIO_THRES is to avoid small faces and NOSE_EYE_RATIO_THRES is to keep the face front
+    {
+        ESP_LOGI(TAG, "ne_ratio  : %f", ne_ratio);
+        return ESP_FAIL;
+    }
+
     angle = -atan((re_y - le_y) / (re_x - le_x));
     eye_dist = sqrt(pow(re_y - le_y, 2) + pow(re_x - le_x, 2));
     ratio = eye_dist / EYE_DIST_SET;
-    center_offset = ratio * CENTER_OFFSET;
-    center[0] = (re_x + le_x) / 2.0f + center_offset * sin(angle);
-    center[1] = (re_y + le_y) / 2.0f + center_offset * cos(angle);
 
-    ne_ratio = (pow(no_x - le_x, 2) + pow(no_y - le_y, 2)) / (pow(no_x - re_x, 2) + pow(no_y - re_y, 2));
+    center[0] = (re_x + le_x + no_x + no_x) * 0.25;
+    center[1] = (re_y + le_y + no_y + no_y) * 0.25;
 
     ESP_LOGD(TAG, "Left-eye  : (%f,%f)", le_x, le_y);
     ESP_LOGD(TAG, "Right-eye : (%f,%f)", re_x, re_y);
@@ -81,17 +85,12 @@ int8_t align_face(box_array_t *onet_boxes,
     ESP_LOGD(TAG, "Center    : (%f,%f)", center[0], center[1]);
     ESP_LOGD(TAG, "ne_ratio  : %f", ne_ratio);
 
-    if (ratio > RATIO_THRES && NOSE_EYE_RATIO_THRES_MIN < ne_ratio && ne_ratio < NOSE_EYE_RATIO_THRES_MAX) //RATIO_THRES is to avoid small faces and NOSE_EYE_RATIO_THRES is to keep the face front
-    {
-        image_cropper(dest,
-                      src,
-                      angle,
-                      ratio,
-                      center);
-        return ESP_OK;
-    }
-    else
-        return ESP_FAIL;
+    image_cropper(dest,
+            src,
+            angle,
+            ratio,
+            center);
+    return ESP_OK;
 }
 
 dl_matrix3d_t *get_face_id(dl_matrix3du_t *aligned_face)
