@@ -24,7 +24,7 @@ int8_t enroll_face_id_to_flash(face_id_list *l,
         const int block_num = (4096 + block_len - 1) / block_len;
         float *backup_buf = (float *)calloc(1, block_len);
         int flash_info_flag = FR_FLASH_INFO_FLAG;
-        uint8_t enroll_id_idx = (l->tail - 1) % FACE_ID_SAVE_NUMBER;
+        uint8_t enroll_id_idx = (l->tail - 1) % l->size;
 
         if(enroll_id_idx % block_num == 0)
         {
@@ -74,15 +74,24 @@ int8_t read_face_id_from_flash(face_id_list *l)
         return -2;
     }
 
+    uint8_t size = l->size;
+    uint8_t confirm_times = l->confirm_times;
+    dl_matrix3d_t **id_list = l->id_list;
+
     esp_partition_read(pt, sizeof(int), l, sizeof(face_id_list));
     const int block_len = FACE_ID_SIZE * sizeof(float);
 
+    assert(l->size == size);
+    assert(l->confirm_times == confirm_times);
+
     for(int i = 0; i < l->count; i++)
     {
-        uint8_t head = (l->head + i) % FACE_ID_SAVE_NUMBER;
-        l->id_list[head] = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
-        esp_partition_read(pt, 4096 + head * block_len, l->id_list[head]->item, block_len);
+        uint8_t head = (l->head + i) % size;
+        id_list[head] = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
+        esp_partition_read(pt, 4096 + head * block_len, id_list[head]->item, block_len);
     }
+
+    l->id_list = id_list;
 
     return l->count;
 }

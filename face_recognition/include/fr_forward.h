@@ -28,16 +28,26 @@ extern "C"
 #define FLASH_INFO_FLAG 12138
 #define FLASH_PARTITION_NAME "fr"
 
-#define FACE_ID_SAVE_NUMBER 10
-#define ENROLL_CONFIRM_TIMES 3
-
     typedef struct
     {
         uint8_t head;
         uint8_t tail;
         uint8_t count;
-        dl_matrix3d_t *id_list[FACE_ID_SAVE_NUMBER];
+        uint8_t size;
+        uint8_t confirm_times;
+        dl_matrix3d_t **id_list;
     } face_id_list;
+
+
+    /**
+     * @brief Initialize face id list
+     * 
+     * @param l                 Face id list
+     * @param size              Size of list, one list contains one vector
+     * @param confirm_times     Enroll times for one id
+     * @return dl_matrix3du_t*          Size: 1xFACE_WIDTHxFACE_HEIGHTx3
+     */
+    void face_id_init(face_id_list *l, uint8_t size, uint8_t confirm_times);
 
     /**
      * @brief Alloc memory for aligned face.

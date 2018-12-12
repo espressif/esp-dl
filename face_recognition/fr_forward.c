@@ -9,6 +9,16 @@
 
 static const char *TAG = "face_recognition";
 
+void face_id_init(face_id_list *l, uint8_t size, uint8_t confirm_times)
+{
+    l->head = 0;
+    l->tail = 0;
+    l->count = 0;
+    l->size = size;
+    l->confirm_times = confirm_times;
+    l->id_list = (dl_matrix3d_t **)calloc(size, sizeof(dl_matrix3d_t *));
+}
+
 dl_matrix3dq_t *transform_frmn_input(dl_matrix3du_t *image)
 {
     dl_matrix3d_t *image_3d = dl_matrix3d_alloc(image->n,
@@ -160,12 +170,12 @@ void add_face_id(dl_matrix3d_t *dest_id,
     }
 }
 
-void devide_face_id(dl_matrix3d_t *id)
+void devide_face_id(dl_matrix3d_t *id, uint8_t num)
 {
     fptp_t *in1 = id->item;
     for (int i = 0; i < id->c; i++)
     {
-        (*in1++) /= ENROLL_CONFIRM_TIMES;
+        (*in1++) /= num;
     }
 }
 
@@ -181,7 +191,7 @@ int8_t recognize_face(face_id_list *l,
 
     for (uint16_t i = 0; i < l->count; i++)
     {
-        uint8_t head = (l->head + i) % FACE_ID_SAVE_NUMBER;
+        uint8_t head = (l->head + i) % l->size;
         similarity = cos_distance(l->id_list[head], face_id);
 
         if ((similarity > FACE_REC_THRESHOLD) && (similarity > max_similarity))
@@ -206,7 +216,7 @@ int8_t enroll_face(face_id_list *l,
     // add new_id to dest_id
     dl_matrix3d_t *new_id = get_face_id(aligned_face);
 
-    if (l->count < FACE_ID_SAVE_NUMBER)
+    if (l->count < l->size)
         l->id_list[l->tail] = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
 
     add_face_id(l->id_list[l->tail], new_id);
@@ -214,24 +224,24 @@ int8_t enroll_face(face_id_list *l,
 
     confirm_counter++;
 
-    if (confirm_counter == ENROLL_CONFIRM_TIMES)
+    if (confirm_counter == l->confirm_times)
     {
-        devide_face_id(l->id_list[l->tail]);
+        devide_face_id(l->id_list[l->tail], l->confirm_times);
         confirm_counter = 0;
 
-        l->tail = (l->tail + 1) % FACE_ID_SAVE_NUMBER;
+        l->tail = (l->tail + 1) % l->size;
         l->count++;
         // Overlap head
-        if (l->count > FACE_ID_SAVE_NUMBER)
+        if (l->count > l->size)
         {
-            l->head = (l->head + 1) % FACE_ID_SAVE_NUMBER;
-            l->count = FACE_ID_SAVE_NUMBER;
+            l->head = (l->head + 1) % l->size;
+            l->count = l->size;
         }
 
         return 0;
     }
 
-    return ENROLL_CONFIRM_TIMES - confirm_counter;
+    return l->confirm_times - confirm_counter;
 }
 
 uint8_t delete_face(face_id_list *l)
@@ -242,7 +252,7 @@ uint8_t delete_face(face_id_list *l)
     if (l->id_list[l->head])
         dl_matrix3d_free(l->id_list[l->head]);
 
-    l->head = (l->head + 1) % FACE_ID_SAVE_NUMBER;
+    l->head = (l->head + 1) % l->size;
     l->count--;
     return l->count;
 }
