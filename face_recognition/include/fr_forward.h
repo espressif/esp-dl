@@ -28,14 +28,17 @@ extern "C"
 #define FLASH_INFO_FLAG 12138
 #define FLASH_PARTITION_NAME "fr"
 
+/**
+ * @brief      HTTP Client events data
+ */
     typedef struct
     {
-        uint8_t head;
-        uint8_t tail;
-        uint8_t count;
-        uint8_t size;
-        uint8_t confirm_times;
-        dl_matrix3d_t **id_list;
+        uint8_t head;               /*!< head index of the id list */
+        uint8_t tail;               /*!< tail index of the id list */
+        uint8_t count;              /*!< number of enrolled ids */
+        uint8_t size;               /*!< max len of id list */
+        uint8_t confirm_times;      /*!< images needed for one enrolling */
+        dl_matrix3d_t **id_list;    /*!< stores face id vectors */
     } face_id_list;
 
 
