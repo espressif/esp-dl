@@ -107,7 +107,11 @@ dl_matrix3d_t *get_face_id(dl_matrix3du_t *aligned_face)
 {
     dl_matrix3d_t *face_id = NULL;
     dl_matrix3dq_t *mobileface_in = transform_frmn_input(aligned_face);
-    dl_matrix3dq_t *face_id_q = frmn_q(mobileface_in);
+#if CONFIG_XTENSA_IMPL
+    dl_matrix3dq_t *face_id_q = frmn_q(mobileface_in, DL_XTENSA_IMPL);
+#else
+    dl_matrix3dq_t *face_id_q = frmn_q(mobileface_in, DL_C_IMPL);
+#endif
     face_id = dl_matrix3d_from_matrixq(face_id_q);
     dl_matrix3dq_free(face_id_q);
     return face_id;
@@ -194,13 +198,17 @@ int8_t recognize_face(face_id_list *l,
         uint8_t head = (l->head + i) % l->size;
         similarity = cos_distance(l->id_list[head], face_id);
 
-        if ((similarity > FACE_REC_THRESHOLD) && (similarity > max_similarity))
+        if (similarity > max_similarity)
         {
             max_similarity = similarity;
             matched_id = head;
         }
     }
 
+    if (max_similarity < FACE_REC_THRESHOLD)
+    {
+        matched_id = -1;
+    }
     dl_matrix3d_free(face_id);
 
     ESP_LOGI(TAG, "\nSimilarity: %.6f, id: %d", max_similarity, matched_id);

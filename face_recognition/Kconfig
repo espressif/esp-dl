@@ -1,0 +1,11 @@
+choice CONV_IMPL
+    bool "Convolution Implementation"
+    default XTENSA_IMPL
+      
+config C_IMPL
+	bool "ANSI Implementation for general platforms"
+
+config XTENSA_IMPL
+	bool "Xtensa Implementation for ESP"
+	
+endchoice
