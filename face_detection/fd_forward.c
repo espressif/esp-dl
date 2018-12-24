@@ -40,57 +40,51 @@ box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid
     int width = round(image->w * scale);
     int height = round(image->h * scale);
 
+    dl_matrix3du_t *in = dl_matrix3du_alloc(1, width, height, image->c);
     for (int i = 0; i < 4; i++)
     {
         if (DL_IMAGE_MIN(width, height) <= config->w)
             break;
 
-        dl_matrix3du_t *in = dl_matrix3du_alloc(1, width, height, image->c);
         image_resize_linear(in->item, image->item, width, height, in->c, image->w, image->h);
 
         out = pnet(in);
 
         if (out)
         {
-            do
+            origin_head[i] = image_get_valid_boxes(out->category->item,
+                    out->offset->item,
+                    out->category->w,
+                    out->category->h,
+                    config->w,
+                    config->threshold.score,
+                    scale);
+
+            if (origin_head[i])
             {
-                origin_head[i] = image_get_valid_boxes(out->category->item,
-                                                       out->offset->item,
-                                                       out->category->w,
-                                                       out->category->h,
-                                                       config->w,
-                                                       config->threshold.score,
-                                                       scale);
-
-                dl_matrix3d_free(out->category);
-                dl_matrix3d_free(out->offset);
-                dl_matrix3d_free(out->landmark);
-                free(out);
-
-                if (NULL == origin_head[i])
-                    break;
-
                 image_sort_insert_by_score(&sorted_list[i], origin_head[i]);
 
                 image_nms_process(&sorted_list[i], 0.5, true);
-            } while (0);
+            }
+
+            dl_matrix3d_free(out->category);
+            dl_matrix3d_free(out->offset);
+            dl_matrix3d_free(out->landmark);
+            free(out);
         }
-        dl_matrix3du_free(in);
 
         scale *= pyramid;
         width = round(image->w * scale);
         height = round(image->h * scale);
     }
+    dl_matrix3du_free(in);
 
     for (int i = 0; i < 4; i++)
         image_sort_insert_by_score(&all_box_list, &sorted_list[i]);
 
-    do
+    image_nms_process(&all_box_list, config->threshold.nms, false);
+    if (all_box_list.len)
     {
-        image_nms_process(&all_box_list, config->threshold.nms, false);
-        if (0 == all_box_list.len)
-            break;
-
         image_calibrate_by_offset(&all_box_list);
 
         pnet_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
@@ -104,8 +98,7 @@ box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid
 
         pnet_box_list->box = pnet_box;
         pnet_box_list->len = all_box_list.len;
-
-    } while (0);
+    }
 
     for (int i = 0; i < 4; i++)
     {
@@ -123,7 +116,8 @@ box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_c
     int valid_count = 0;
     image_list_t valid_list = {NULL};
     image_list_t sorted_list = {NULL};
-    dl_matrix3du_t *resize_image[2];
+    dl_matrix3du_t *resized_image;
+    dl_matrix3du_t *sliced_image;
     image_box_t valid_box[4] = {NULL};
     box_t *net_box = NULL;
     landmark_t *net_landmark = NULL;
@@ -132,6 +126,8 @@ box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_c
     if (NULL == net_boxes)
         return NULL;
 
+    resized_image = dl_matrix3du_alloc(1, config->w, config->h, image->c);
+
     image_rect2sqr(net_boxes, image->w, image->h);
     for (int i = 0; i < net_boxes->len; i++)
     {
@@ -139,20 +135,19 @@ box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_c
         int y = round(net_boxes->box[i].box_p[1]);
         int w = round(net_boxes->box[i].box_p[2]) - x + 1;
         int h = round(net_boxes->box[i].box_p[3]) - y + 1;
-        resize_image[0] = dl_matrix3du_alloc(1, w, h, image->c);
-        resize_image[1] = dl_matrix3du_alloc(1, config->w, config->h, image->c);
+        sliced_image = dl_matrix3du_alloc(1, w, h, image->c);
 
-        dl_matrix3du_slice_copy(resize_image[0], image, x, y, w, h);
+        dl_matrix3du_slice_copy(sliced_image, image, x, y, w, h);
 
-        image_resize_linear(resize_image[1]->item, resize_image[0]->item, config->w, config->h, image->c, w, h);
+        image_resize_linear(resized_image->item, sliced_image->item, config->w, config->h, image->c, w, h);
         mtmn_net_t *out = NULL;
         if (RNET == config->net_type)
         {
-            out = rnet_with_score_verify(resize_image[1], config->threshold.score);
+            out = rnet_with_score_verify(resized_image, config->threshold.score);
         }
         else if (ONET == config->net_type)
         {
-            out = onet_with_score_verify(resize_image[1], config->threshold.score);
+            out = onet_with_score_verify(resized_image, config->threshold.score);
         }
         if (out)
         {
@@ -178,26 +173,25 @@ box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_c
             dl_matrix3d_free(out->landmark);
             free(out);
         }
-        dl_matrix3du_free(resize_image[0]);
-        dl_matrix3du_free(resize_image[1]);
+        dl_matrix3du_free(sliced_image);
 
         if (valid_count > config->threshold.candidate_number - 1)
             break;
     }
+
+    dl_matrix3du_free(resized_image);
 
     valid_box[valid_count - 1].next = NULL;
     valid_list.head = valid_box;
     valid_list.len = valid_count;
     image_sort_insert_by_score(&sorted_list, &valid_list);
 
-    do
+    image_nms_process(&sorted_list, config->threshold.nms, false);
+    if (sorted_list.len)
     {
-        image_nms_process(&sorted_list, config->threshold.nms, false);
-        if (0 == sorted_list.len)
-            break;
-
         if (ONET == config->net_type)
             image_landmark_calibrate(&sorted_list);
+
         image_calibrate_by_offset(&sorted_list);
 
         net_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
@@ -217,8 +211,7 @@ box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_c
         net_box_list->box = net_box;
         net_box_list->landmark = net_landmark;
         net_box_list->len = sorted_list.len;
-
-    } while (0);
+    }
 
     return net_box_list;
 } /*}}}*/
@@ -233,9 +226,9 @@ box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
     pnet_config.threshold = config->p_threshold;
 
     box_array_t *pnet_boxes = pnet_forward(image_matrix,
-                                           config->min_face,
-                                           config->pyramid,
-                                           &pnet_config);
+            config->min_face,
+            config->pyramid,
+            &pnet_config);
     if (NULL == pnet_boxes)
         return NULL;
 
@@ -247,8 +240,8 @@ box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
     rnet_config.threshold = config->r_threshold;
 
     box_array_t *rnet_boxes = ro_net_forward(image_matrix,
-                                             pnet_boxes,
-                                             &rnet_config);
+            pnet_boxes,
+            &rnet_config);
 
     free(pnet_boxes->box);
     free(pnet_boxes);
@@ -264,8 +257,8 @@ box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
     onet_config.threshold = config->o_threshold;
 
     box_array_t *onet_boxes = ro_net_forward(image_matrix,
-                                             rnet_boxes,
-                                             &onet_config);
+            rnet_boxes,
+            &onet_config);
 
     free(rnet_boxes->box);
     free(rnet_boxes);
