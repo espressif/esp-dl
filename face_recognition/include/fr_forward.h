@@ -12,7 +12,7 @@ extern "C"
 #define FACE_WIDTH 56
 #define FACE_HEIGHT 56
 #define FACE_ID_SIZE 512
-#define FACE_REC_THRESHOLD 0.7
+#define FACE_REC_THRESHOLD 0.5
 
 #define LEFT_EYE_X 0
 #define LEFT_EYE_Y 1
