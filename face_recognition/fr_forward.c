@@ -224,7 +224,7 @@ int8_t enroll_face(face_id_list *l,
     // add new_id to dest_id
     dl_matrix3d_t *new_id = get_face_id(aligned_face);
 
-    if (l->count < l->size)
+    if ((l->count < l->size)&&(confirm_counter == 0))
         l->id_list[l->tail] = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
 
     add_face_id(l->id_list[l->tail], new_id);
