@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include "esp_log.h"
 #include "fr_forward.h"
@@ -17,6 +18,14 @@ void face_id_init(face_id_list *l, uint8_t size, uint8_t confirm_times)
     l->size = size;
     l->confirm_times = confirm_times;
     l->id_list = (dl_matrix3d_t **)calloc(size, sizeof(dl_matrix3d_t *));
+}
+
+void face_id_name_init(face_id_name_list *l, uint8_t size, uint8_t confirm_times)
+{
+    l->head = NULL;
+    l->tail = NULL;
+    l->count = 0;
+    l->confirm_times = confirm_times;
 }
 
 dl_matrix3dq_t *transform_frmn_input(dl_matrix3du_t *image)
@@ -95,11 +104,7 @@ int8_t align_face(box_array_t *onet_boxes,
     ESP_LOGD(TAG, "Center    : (%f,%f)", center[0], center[1]);
     ESP_LOGD(TAG, "ne_ratio  : %f", ne_ratio);
 
-    image_cropper(dest,
-            src,
-            angle,
-            ratio,
-            center);
+    image_cropper(dest->item, src->item, dest->w, dest->h, dest->c, src->w, src->h, angle, ratio, center);
     return ESP_OK;
 }
 
@@ -263,5 +268,120 @@ uint8_t delete_face(face_id_list *l)
     l->head = (l->head + 1) % l->size;
     l->count--;
     return l->count;
+}
+
+face_id_node *recognize_face_with_name(face_id_name_list *l,
+                        dl_matrix3du_t *algined_face)
+{
+    fptp_t similarity = 0;
+    fptp_t max_similarity = -1;
+    dl_matrix3d_t *face_id = NULL;
+
+    face_id = get_face_id(algined_face);
+
+    face_id_node *head = l->head;
+
+    for (face_id_node *p = head; p != NULL; p = p->next)
+    {
+        similarity = cos_distance(p->id_vec, face_id);
+
+        if (similarity > max_similarity)
+        {
+            max_similarity = similarity;
+            head = p;
+        }
+    }
+
+    dl_matrix3d_free(face_id);
+
+    if (max_similarity < FACE_REC_THRESHOLD)
+    {
+        head = NULL;
+    }
+    else
+    {
+        ESP_LOGI(TAG, "\nSimilarity: %.6f, name: %s", max_similarity, head->id_name);
+    }
+
+    return head;
+}
+
+int8_t enroll_face_with_name(face_id_name_list *l, 
+                dl_matrix3du_t *aligned_face,
+                char *name)
+{
+    static int8_t confirm_counter = 0;
+
+    // add new_id to dest_id
+    dl_matrix3d_t *new_id = get_face_id(aligned_face);
+
+
+    if (confirm_counter == 0)
+    {
+        face_id_node *new_node = (face_id_node *)malloc(sizeof(face_id_node));
+        new_node->next = NULL;
+        new_node->id_vec = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
+        if (NULL == l->tail)
+        {
+            l->head = new_node;
+            l->tail = new_node;
+        }
+        l->tail->next = new_node;
+    }
+
+    face_id_node *new_tail = l->tail->next;
+
+    add_face_id(new_tail->id_vec, new_id);
+    dl_matrix3d_free(new_id);
+
+    confirm_counter++;
+
+    if (confirm_counter == l->confirm_times)
+    {
+        devide_face_id(new_tail->id_vec, l->confirm_times);
+        memcpy(new_tail->id_name, name, strlen(name) + 1);
+
+        confirm_counter = 0;
+
+        l->tail = new_tail;
+        l->tail->next = NULL;
+        l->count++;
+
+        return 0;
+    }
+
+    return l->confirm_times - confirm_counter;
+}
+
+int8_t delete_face_with_name(face_id_name_list *l, char *name)
+{
+    if (l->count == 0)
+        return -1;
+
+    face_id_node *p = l->head;
+    face_id_node *q = p;
+    for (int8_t i = 0; i < l->count; i++)
+    {
+        if (strcmp(q->id_name, name) == 0)
+        {
+            dl_matrix3d_free(q->id_vec);
+            p->next = q->next;
+            if (q == l->head)
+            {
+                l->head = q->next;
+            }
+            else if (q == l->tail)
+            {
+                l->tail = p;
+            }
+            free(q);
+            l->count--;
+            return i;
+        }
+        p = q;
+        q = q->next;
+    }
+    // not found
+    return -1;
 }
 
