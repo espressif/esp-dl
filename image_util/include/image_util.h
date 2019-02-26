@@ -233,7 +233,7 @@ extern "C"
      * @param ratio 
      * @param center 
      */
-    void image_cropper(dl_matrix3du_t *corp_image, dl_matrix3du_t *src_image, float rotate_angle, float ratio, float *center);
+    void image_cropper(uint8_t *corp_image, uint8_t *src_image, int dst_w, int dst_h, int dst_c, int src_w, int src_h, float rotate_angle, float ratio, float *center);
 
     /**
      * @brief 

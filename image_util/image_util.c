@@ -28,9 +28,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
-#include "dl_lib.h"
 #include "image_util.h"
-#include "freertos/FreeRTOS.h"
 
 void image_resize_linear(uint8_t *dst_image, uint8_t *src_image, int dst_w, int dst_h, int dst_c, int src_w, int src_h)
 { /*{{{*/
@@ -75,13 +73,9 @@ void image_resize_linear(uint8_t *dst_image, uint8_t *src_image, int dst_w, int 
     }
 } /*}}}*/
 
-void image_cropper(dl_matrix3du_t *corp_image, dl_matrix3du_t *src_image, float rotate_angle, float ratio, float *center)
-{
-    int rot_w = (int)corp_image->w;
-    int rot_h = (int)corp_image->h;
-    int rot_c = src_image->c;
+void image_cropper(uint8_t *rot_data, uint8_t *src_data, int rot_w, int rot_h, int rot_c, int src_w, int src_h, float rotate_angle, float ratio, float *center)
+{/*{{{*/
     int rot_stride = rot_w * rot_c;
-    uint8_t *rot_data = corp_image->item;
     float rot_w_start = 0.5f - (float)rot_w / 2;
     float rot_h_start = 0.5f - (float)rot_h / 2;
 
@@ -89,11 +83,7 @@ void image_cropper(dl_matrix3du_t *corp_image, dl_matrix3du_t *src_image, float 
     float si = sin(rotate_angle);
     float co = cos(rotate_angle);
 
-    uint8_t *src_data = src_image->item;
-    int src_w = src_image->w;
-    int src_h = src_image->h;
-    int src_c = src_image->c;
-    int src_stride = src_image->stride;
+    int src_stride = src_w * rot_c;
 
     for (int y = 0; y < rot_h; y++)
     {
@@ -132,11 +122,11 @@ void image_cropper(dl_matrix3du_t *corp_image, dl_matrix3du_t *src_image, float 
 
             for (int c = 0; c < rot_c; c++)
             {
-                rot_data[y * rot_stride + x * rot_c + c] = round(src_data[src_y * src_stride + src_x * src_c + c] * fx[1] * fy[1] + src_data[src_y * src_stride + (src_x + 1) * src_c + c] * fx[0] * fy[1] + src_data[(src_y + 1) * src_stride + src_x * src_c + c] * fx[1] * fy[0] + src_data[(src_y + 1) * src_stride + (src_x + 1) * src_c + c] * fx[0] * fy[0]);
+                rot_data[y * rot_stride + x * rot_c + c] = round(src_data[src_y * src_stride + src_x * rot_c + c] * fx[1] * fy[1] + src_data[src_y * src_stride + (src_x + 1) * rot_c + c] * fx[0] * fy[1] + src_data[(src_y + 1) * src_stride + src_x * rot_c + c] * fx[1] * fy[0] + src_data[(src_y + 1) * src_stride + (src_x + 1) * rot_c + c] * fx[0] * fy[0]);
             }
         }
     }
-}
+}/*}}}*/
 
 void image_sort_insert_by_score(image_list_t *image_sorted_list, const image_list_t *insert_list)
 { /*{{{*/
@@ -453,3 +443,4 @@ void draw_rectangle_rgb888(uint8_t *buf, box_array_t *boxes, int width)
         }
     }
 } /*}}}*/
+
