@@ -444,3 +444,137 @@ void draw_rectangle_rgb888(uint8_t *buf, box_array_t *boxes, int width)
     }
 } /*}}}*/
 
+void image_abs_diff(uint8_t *dst, uint8_t *src1, uint8_t *src2, int count)
+{
+    while (count > 0)
+    {
+        *dst = (uint8_t)abs((int)*src1 - (int)*src2);
+        dst++;
+        src1++;
+        src2++;
+        count--;
+    }
+}
+
+void image_threshold(uint8_t *dst, uint8_t *src, int threshold, int value, int count, en_threshold_mode mode)
+{
+    int l_val = 0;
+    int r_val = 0;
+    switch (mode)
+    {
+        case BINARY:
+            r_val = value;
+            break;
+        default:
+            break;
+    }
+    while (count > 0)
+    {
+        *dst = (*src > threshold) ? r_val : l_val;
+
+        dst++;
+        src++;
+        count--;
+    }
+}
+
+void image_kernel_get_min(uint8_t *dst, uint8_t *src, int w, int h, int c, int stride)
+{
+    uint8_t min1 = 255;
+    uint8_t min2 = 255;
+    uint8_t min3 = 255;
+
+    if (c == 3)
+    {
+        for (int j = 0; j < h; j++)
+        {
+            for (int i = 0; i < w; i++)
+            {
+                if (src[0] < min1)
+                    min1 = src[0];
+                if (src[1] < min2)
+                    min2 = src[1];
+                if (src[2] < min3)
+                    min3 = src[2];
+                src += 3;
+            }
+            src += stride - w * 3;
+        }
+        dst[0] = min1;
+        dst[1] = min2;
+        dst[2] = min3;
+    }
+    else if (c == 1)
+    {
+        for (int j = 0; j < h; j++)
+        {
+            for (int i = 0; i < w; i++)
+            {
+                if (src[0] < min1)
+                    min1 = src[0];
+                src += 1;
+            }
+            src += stride - w;
+        }
+        dst[0] = min1;
+    }
+    else
+    {}
+}
+/*
+ * By default 3x3 Kernel, so padding is 2
+ */
+void image_erode(uint8_t *dst, uint8_t *src, int src_w, int src_h, int src_c)
+{
+    int stride = src_w * src_c;
+
+    // 1st row, 1st col
+    image_kernel_get_min(dst, src, 2, 2, src_c, stride);
+    dst += src_c;
+
+    // 1st row
+    for (int i = 1; i < src_w - 1; i++)
+    {
+        image_kernel_get_min(dst, src, 3, 2, src_c, stride);
+        dst += src_c;
+        src += src_c;
+    }
+
+    // 1st row, last col
+    image_kernel_get_min(dst, src, 2, 2, src_c, stride);
+    dst += src_c;
+    src -= src_c * (src_w - 2);
+
+    for (int j = 1; j < src_h - 1; j++)
+    {
+        // 1st col
+        image_kernel_get_min(dst, src, 2, 3, src_c, stride);
+        dst += src_c;
+
+        for (int i = 1; i < src_w - 1; i++)
+        {
+            image_kernel_get_min(dst, src, 3, 3, src_c, stride);
+            dst += src_c;
+            src += src_c;
+        }
+
+        // last col
+        image_kernel_get_min(dst, src, 2, 3, src_c, stride);
+        dst += src_c;
+        src += src_c * 2;
+    }
+
+    // last row
+    image_kernel_get_min(dst, src, 2, 2, src_c, stride);
+    dst += src_c;
+
+    for (int i = 1; i < src_w - 1; i++)
+    {
+        image_kernel_get_min(dst, src, 3, 2, src_c, stride);
+        dst += src_c;
+        src += src_c;
+    }
+
+    // last row, last col
+    image_kernel_get_min(dst, src, 2, 2, src_c, stride);
+}

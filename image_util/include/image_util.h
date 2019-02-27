@@ -41,6 +41,10 @@ extern "C"
 #define RGB565_MASK_GREEN 0x07E0
 #define RGB565_MASK_BLUE 0x001F
 
+    typedef enum
+    {
+        BINARY,
+    } en_threshold_mode;
     typedef struct
     {
         fptp_t landmark_p[10];
@@ -270,6 +274,9 @@ extern "C"
      * @param width 
      */
     void draw_rectangle_rgb888(uint8_t *buf, box_array_t *boxes, int width);
+    void image_abs_diff(uint8_t *dst, uint8_t *src1, uint8_t *src2, int count);
+    void image_threshold(uint8_t *dst, uint8_t *src, int threshold, int value, int count, en_threshold_mode mode);
+    void image_erode(uint8_t *dst, uint8_t *src, int src_w, int src_h, int src_c);
 #ifdef __cplusplus
 }
 #endif
