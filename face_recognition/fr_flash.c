@@ -305,7 +305,7 @@ void delete_face_all_in_flash_with_name(face_id_name_list *l)
     const esp_partition_t *pt = esp_partition_find_first(FR_FLASH_TYPE, FR_FLASH_SUBTYPE, FR_FLASH_PARTITION_NAME);
     if (pt == NULL){
         ESP_LOGE(TAG, "Not found");
-        return -1;
+        return;
     }
 
     int flash_info_flag = 0;
@@ -313,7 +313,7 @@ void delete_face_all_in_flash_with_name(face_id_name_list *l)
     if((flash_info_flag != FR_FLASH_INFO_FLAG))
     {
         ESP_LOGE(TAG, "No ID Infomation");
-        return -2;
+        return;
     }
     esp_partition_erase_range(pt, 0, 4096 * (l->count + 1));
 
