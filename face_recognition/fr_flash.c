@@ -299,3 +299,23 @@ int8_t delete_face_id_in_flash_with_name(face_id_name_list *l, char *name)
 
     return l->count;
 }
+
+void delete_face_all_in_flash_with_name(face_id_name_list *l)
+{
+    const esp_partition_t *pt = esp_partition_find_first(FR_FLASH_TYPE, FR_FLASH_SUBTYPE, FR_FLASH_PARTITION_NAME);
+    if (pt == NULL){
+        ESP_LOGE(TAG, "Not found");
+        return -1;
+    }
+
+    int flash_info_flag = 0;
+    esp_partition_read(pt, 0, &flash_info_flag, sizeof(int));
+    if((flash_info_flag != FR_FLASH_INFO_FLAG))
+    {
+        ESP_LOGE(TAG, "No ID Infomation");
+        return -2;
+    }
+    esp_partition_erase_range(pt, 0, 4096 * (l->count + 1));
+
+    delete_face_all_with_name(l);
+}

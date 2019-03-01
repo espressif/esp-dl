@@ -132,6 +132,7 @@ extern "C"
      */
     uint8_t delete_face(face_id_list *l);
 	int8_t delete_face_with_name(face_id_name_list *l, char *name);
+    void delete_face_all_with_name(face_id_name_list *l);
 #if __cplusplus
 }
 #endif

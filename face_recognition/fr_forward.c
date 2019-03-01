@@ -385,3 +385,19 @@ int8_t delete_face_with_name(face_id_name_list *l, char *name)
     return -1;
 }
 
+void delete_face_all_with_name(face_id_name_list *l)
+{
+    if (l->count == 0)
+        return;
+
+    face_id_node *p = l->head;
+    for (int8_t i = 0; i < l->count; i++)
+    {
+        dl_matrix3d_free(p->id_vec);
+        l->head = p->next;
+        free(p);
+        p = l->head;
+    }
+    l->count = 0;
+    l->tail = NULL;
+}
