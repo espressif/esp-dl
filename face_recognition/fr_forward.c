@@ -271,13 +271,10 @@ uint8_t delete_face(face_id_list *l)
 }
 
 face_id_node *recognize_face_with_name(face_id_name_list *l,
-                        dl_matrix3du_t *algined_face)
+                        dl_matrix3d_t *face_id)
 {
     fptp_t similarity = 0;
     fptp_t max_similarity = -1;
-    dl_matrix3d_t *face_id = NULL;
-
-    face_id = get_face_id(algined_face);
 
     face_id_node *head = l->head;
 
@@ -292,8 +289,6 @@ face_id_node *recognize_face_with_name(face_id_name_list *l,
         }
     }
 
-    dl_matrix3d_free(face_id);
-
     if (max_similarity < FACE_REC_THRESHOLD)
     {
         head = NULL;
@@ -307,14 +302,10 @@ face_id_node *recognize_face_with_name(face_id_name_list *l,
 }
 
 int8_t enroll_face_with_name(face_id_name_list *l, 
-                dl_matrix3du_t *aligned_face,
+                dl_matrix3d_t *new_id,
                 char *name)
 {
     static int8_t confirm_counter = 0;
-
-    // add new_id to dest_id
-    dl_matrix3d_t *new_id = get_face_id(aligned_face);
-
 
     if (confirm_counter == 0)
     {
@@ -332,7 +323,6 @@ int8_t enroll_face_with_name(face_id_name_list *l,
     face_id_node *new_tail = l->tail->next;
 
     add_face_id(new_tail->id_vec, new_id);
-    dl_matrix3d_free(new_id);
 
     confirm_counter++;
 

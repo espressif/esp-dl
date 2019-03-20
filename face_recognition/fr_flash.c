@@ -122,10 +122,10 @@ int8_t delete_face_id_in_flash(face_id_list *l)
 }
 
 int8_t enroll_face_id_to_flash_with_name(face_id_name_list *l,
-                                dl_matrix3du_t *aligned_face,
+                                dl_matrix3d_t *face_id,
                                 char *name)
 {
-    int8_t left_sample = enroll_face_with_name(l, aligned_face, name);
+    int8_t left_sample = enroll_face_with_name(l, face_id, name);
     if (left_sample)
         return left_sample;
 
