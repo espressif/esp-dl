@@ -1,5 +1,9 @@
 # Change log for esp-face
 
+## 0.3.5
+Make candidate number for p/r/onet configurable.
+Change enrollment and recognition interface.
+
 ## 0.3.4
 Add some basic image functions.
 Add deleting all data in flash.
