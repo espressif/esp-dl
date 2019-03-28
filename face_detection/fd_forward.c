@@ -118,7 +118,7 @@ box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid
     return pnet_box_list;
 } /*}}}*/
 
-box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_config_t *config)
+box_array_t *r_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_config_t *config)
 { /*{{{*/
     int valid_count = 0;
     image_list_t valid_list = {NULL};
@@ -134,6 +134,7 @@ box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_c
         return NULL;
 
     valid_box = (image_box_t *)calloc(config->threshold.candidate_number, sizeof(image_box_t));
+    printf("start: %p", valid_box);
     resized_image = dl_matrix3du_alloc(1, config->w, config->h, image->c);
 
     image_rect2sqr(net_boxes, image->w, image->h);
@@ -148,15 +149,9 @@ box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_c
         dl_matrix3du_slice_copy(sliced_image, image, x, y, w, h);
 
         image_resize_linear(resized_image->item, sliced_image->item, config->w, config->h, image->c, w, h);
-        mtmn_net_t *out = NULL;
-        if (RNET == config->net_type)
-        {
-            out = rnet_with_score_verify(resized_image, config->threshold.score);
-        }
-        else if (ONET == config->net_type)
-        {
-            out = onet_with_score_verify(resized_image, config->threshold.score);
-        }
+
+        mtmn_net_t *out = rnet_with_score_verify(resized_image, config->threshold.score);
+
         if (out)
         {
             assert(out->category->stride == 2);
@@ -168,11 +163,6 @@ box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_c
             valid_box[valid_count].offset.box_p[1] = out->offset->item[1];
             valid_box[valid_count].offset.box_p[2] = out->offset->item[2];
             valid_box[valid_count].offset.box_p[3] = out->offset->item[3];
-            if (ONET == config->net_type)
-            {
-                assert(out->landmark->stride == 10);
-                memcpy(&(valid_box[valid_count].landmark), out->landmark->item, sizeof(landmark_t));
-            }
             valid_box[valid_count].next = &(valid_box[valid_count + 1]);
             valid_count++;
 
@@ -194,31 +184,20 @@ box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_c
     valid_list.len = valid_count;
     image_sort_insert_by_score(&sorted_list, &valid_list);
 
-    if (RNET == config->net_type)
-        image_nms_process(&sorted_list, config->threshold.nms, false);
+    image_nms_process(&sorted_list, config->threshold.nms, false);
 
     if (sorted_list.len)
     {
-        if (ONET == config->net_type)
-            image_landmark_calibrate(&sorted_list);
-
         image_calibrate_by_offset(&sorted_list);
-
-        if (ONET == config->net_type)
-            image_nms_process(&sorted_list, config->threshold.nms, false);
 
         net_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
         net_box = (box_t *)calloc(sorted_list.len, sizeof(box_t));
-        if (ONET == config->net_type)
-            net_landmark = (landmark_t *)calloc(sorted_list.len, sizeof(landmark_t));
 
         image_box_t *t = sorted_list.head;
 
         for (int i = 0; i < sorted_list.len; i++, t = t->next)
         {
             net_box[i] = t->box;
-            if (ONET == config->net_type)
-                net_landmark[i] = t->landmark;
         }
 
         net_box_list->box = net_box;
@@ -226,16 +205,113 @@ box_array_t *ro_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_c
         net_box_list->len = sorted_list.len;
     }
 
+    printf("\tend: %p\n", valid_box);
     free(valid_box);
 
     return net_box_list;
 } /*}}}*/
 
+box_array_t *o_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_config_t *config)
+{ /*{{{*/
+    int valid_count = 0;
+    image_list_t valid_list = {NULL};
+    image_list_t sorted_list = {NULL};
+    dl_matrix3du_t *resized_image;
+    dl_matrix3du_t *sliced_image;
+    image_box_t *valid_box = NULL;
+    box_t *net_box = NULL;
+    landmark_t *net_landmark = NULL;
+    box_array_t *net_box_list = NULL;
+
+    if (NULL == net_boxes)
+        return NULL;
+
+    valid_box = (image_box_t *)calloc(config->threshold.candidate_number, sizeof(image_box_t));
+    printf("start: %p", valid_box);
+    resized_image = dl_matrix3du_alloc(1, config->w, config->h, image->c);
+
+    image_rect2sqr(net_boxes, image->w, image->h);
+    for (int i = 0; i < net_boxes->len; i++)
+    {
+        int x = round(net_boxes->box[i].box_p[0]);
+        int y = round(net_boxes->box[i].box_p[1]);
+        int w = round(net_boxes->box[i].box_p[2]) - x + 1;
+        int h = round(net_boxes->box[i].box_p[3]) - y + 1;
+        sliced_image = dl_matrix3du_alloc(1, w, h, image->c);
+
+        dl_matrix3du_slice_copy(sliced_image, image, x, y, w, h);
+
+        image_resize_linear(resized_image->item, sliced_image->item, config->w, config->h, image->c, w, h);
+
+        mtmn_net_t *out = onet_with_score_verify(resized_image, config->threshold.score);
+
+        if (out)
+        {
+            assert(out->category->stride == 2);
+            assert(out->offset->stride == 4);
+            assert(out->offset->c == 4);
+            valid_box[valid_count].score = out->category->item[1];
+            valid_box[valid_count].box = net_boxes->box[i];
+            valid_box[valid_count].offset.box_p[0] = out->offset->item[0];
+            valid_box[valid_count].offset.box_p[1] = out->offset->item[1];
+            valid_box[valid_count].offset.box_p[2] = out->offset->item[2];
+            valid_box[valid_count].offset.box_p[3] = out->offset->item[3];
+            assert(out->landmark->stride == 10);
+            memcpy(&(valid_box[valid_count].landmark), out->landmark->item, sizeof(landmark_t));
+            valid_box[valid_count].next = &(valid_box[valid_count + 1]);
+            valid_count++;
+
+            dl_matrix3d_free(out->category);
+            dl_matrix3d_free(out->offset);
+            dl_matrix3d_free(out->landmark);
+            free(out);
+        }
+        dl_matrix3du_free(sliced_image);
+
+        if (valid_count > config->threshold.candidate_number - 1)
+            break;
+    }
+
+    dl_matrix3du_free(resized_image);
+
+    valid_box[valid_count - 1].next = NULL;
+    valid_list.head = valid_box;
+    valid_list.len = valid_count;
+    image_sort_insert_by_score(&sorted_list, &valid_list);
+
+    if (sorted_list.len)
+    {
+        image_landmark_calibrate(&sorted_list);
+
+        image_calibrate_by_offset(&sorted_list);
+
+        image_nms_process(&sorted_list, config->threshold.nms, false);
+
+        net_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
+        net_box = (box_t *)calloc(sorted_list.len, sizeof(box_t));
+        net_landmark = (landmark_t *)calloc(sorted_list.len, sizeof(landmark_t));
+
+        image_box_t *t = sorted_list.head;
+
+        for (int i = 0; i < sorted_list.len; i++, t = t->next)
+        {
+            net_box[i] = t->box;
+            net_landmark[i] = t->landmark;
+        }
+
+        net_box_list->box = net_box;
+        net_box_list->landmark = net_landmark;
+        net_box_list->len = sorted_list.len;
+    }
+
+    printf("\tend: %p\n", valid_box);
+    free(valid_box);
+
+    return net_box_list;
+} /*}}}*/
 box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
 { /*{{{*/
     net_config_t pnet_config = {0};
-    pnet_config.net_type = PNET;
-    pnet_config.file_name = "pnet_in";
     pnet_config.w = 12;
     pnet_config.h = 12;
     pnet_config.threshold = config->p_threshold;
@@ -248,13 +324,11 @@ box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
         return NULL;
 
     net_config_t rnet_config = {0};
-    rnet_config.net_type = RNET;
-    rnet_config.file_name = "rnet_in";
     rnet_config.w = 24;
     rnet_config.h = 24;
     rnet_config.threshold = config->r_threshold;
 
-    box_array_t *rnet_boxes = ro_net_forward(image_matrix,
+    box_array_t *rnet_boxes = r_net_forward(image_matrix,
                                              pnet_boxes,
                                              &rnet_config);
 
@@ -265,13 +339,11 @@ box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
         return NULL;
 
     net_config_t onet_config = {0};
-    onet_config.net_type = ONET;
-    onet_config.file_name = "onet_in";
     onet_config.w = 48;
     onet_config.h = 48;
     onet_config.threshold = config->o_threshold;
 
-    box_array_t *onet_boxes = ro_net_forward(image_matrix,
+    box_array_t *onet_boxes = o_net_forward(image_matrix,
                                              rnet_boxes,
                                              &onet_config);
 
