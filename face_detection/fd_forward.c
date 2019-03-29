@@ -134,7 +134,6 @@ box_array_t *r_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_co
         return NULL;
 
     valid_box = (image_box_t *)calloc(config->threshold.candidate_number, sizeof(image_box_t));
-    printf("start: %p", valid_box);
     resized_image = dl_matrix3du_alloc(1, config->w, config->h, image->c);
 
     image_rect2sqr(net_boxes, image->w, image->h);
@@ -205,7 +204,6 @@ box_array_t *r_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_co
         net_box_list->len = sorted_list.len;
     }
 
-    printf("\tend: %p\n", valid_box);
     free(valid_box);
 
     return net_box_list;
@@ -227,7 +225,6 @@ box_array_t *o_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_co
         return NULL;
 
     valid_box = (image_box_t *)calloc(config->threshold.candidate_number, sizeof(image_box_t));
-    printf("start: %p", valid_box);
     resized_image = dl_matrix3du_alloc(1, config->w, config->h, image->c);
 
     image_rect2sqr(net_boxes, image->w, image->h);
@@ -304,7 +301,6 @@ box_array_t *o_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_co
         net_box_list->len = sorted_list.len;
     }
 
-    printf("\tend: %p\n", valid_box);
     free(valid_box);
 
     return net_box_list;
