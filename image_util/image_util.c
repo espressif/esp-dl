@@ -81,7 +81,7 @@ void image_resize_linear(uint8_t *dst_image, uint8_t *src_image, int dst_w, int 
     int dst_stride = dst_c * dst_w;
     int src_stride = dst_c * src_w;
 
-    if ((scale_x - 2) <= 1e-6 && (scale_y - 2) <= 1e-6)
+    if (fabs(scale_x - 2) <= 1e-6 && fabs(scale_y - 2) <= 1e-6)
     {
         image_zoom_in_twice(
             dst_image,
