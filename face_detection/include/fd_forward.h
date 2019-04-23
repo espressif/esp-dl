@@ -29,7 +29,7 @@ extern "C"
 #endif
 
 #include "image_util.h"
-#include "dl_lib.h"
+#include "dl_lib_matrix3d.h"
 #include "mtmn.h"
 
     static inline mtmn_config_t mtmn_init_config()

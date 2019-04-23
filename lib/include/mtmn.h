@@ -27,14 +27,7 @@
 extern "C"
 {
 #endif
-#include "dl_lib.h"
-
-    typedef enum
-    {
-        PNET = 0, /// P-Net
-        RNET = 1, /// R-Net
-        ONET = 2, /// O-Net
-    } net_type_en;
+#include "dl_lib_matrix3d.h"
 
     typedef struct
     {
@@ -45,8 +38,6 @@ extern "C"
 
     typedef struct
     {
-        net_type_en net_type;         /// net type
-        char *file_name;              /// net name
         int w;                        /// net width
         int h;                        /// net height
         threshold_config_t threshold; /// threshold of net

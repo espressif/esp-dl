@@ -85,6 +85,8 @@ dl_matrix3dq_t *dl_matrix3dq_conv (dl_matrix3dq_t *in, dl_matrix3dq_t *filter, d
 dl_matrix3dq_t *dl_matrix3dq_conv_normal (dl_matrix3dq_t *in, dl_matrix3dq_t *filter, dl_matrix3dq_t *bias,
                                     int stride_x, int stride_y, int padding, int exponent, int mode);
 
+void dl_matrix3dq_conv_1x1 (dl_matrix3dq_t *out, dl_matrix3dq_t *in, dl_matrix3dq_t *f, dl_conv_mode mode);
+
 /**
  * @brief Print the matrix3d items
  *

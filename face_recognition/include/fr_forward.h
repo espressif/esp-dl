@@ -6,7 +6,7 @@ extern "C"
 #endif
 
 #include "image_util.h"
-#include "dl_lib.h"
+#include "dl_lib_matrix3d.h"
 #include "frmn.h"
 
 #define FACE_WIDTH 56
