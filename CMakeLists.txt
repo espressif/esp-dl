@@ -19,7 +19,7 @@ register_component()
 target_link_libraries(esp-face "-L ${CMAKE_CURRENT_SOURCE_DIR}/lib")
 target_link_libraries(esp-face
     dl_lib
-    face_detection
-    face_recognition
+    fd
+    fr
     )
 
