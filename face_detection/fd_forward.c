@@ -50,6 +50,7 @@ box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid
 
         in->h = height;
         in->w = width;
+        in->stride = in->w * in->c;
 
         out = pnet(in);
 
@@ -325,8 +326,8 @@ box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
     rnet_config.threshold = config->r_threshold;
 
     box_array_t *rnet_boxes = r_net_forward(image_matrix,
-                                             pnet_boxes,
-                                             &rnet_config);
+                                            pnet_boxes,
+                                            &rnet_config);
 
     free(pnet_boxes->box);
     free(pnet_boxes);
@@ -340,8 +341,8 @@ box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
     onet_config.threshold = config->o_threshold;
 
     box_array_t *onet_boxes = o_net_forward(image_matrix,
-                                             rnet_boxes,
-                                             &onet_config);
+                                            rnet_boxes,
+                                            &onet_config);
 
     free(rnet_boxes->box);
     free(rnet_boxes);
