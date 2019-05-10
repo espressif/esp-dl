@@ -43,23 +43,6 @@ extern "C"
         threshold_config_t threshold; /// threshold of net
     } net_config_t;
 
-    typedef enum
-    {
-        FAST = 0,
-        NORMAL = 1,
-    } mtmn_resize_type;
-
-    typedef struct
-    {
-        float min_face;                 /// the minimum size of face can be detected
-        float pyramid;                  /// the pyramid scale
-        int pyramid_times;              /// the pyramid resizing times
-        threshold_config_t p_threshold; /// score, nms and candidate threshold of pnet
-        threshold_config_t r_threshold; /// score, nms and candidate threshold of rnet
-        threshold_config_t o_threshold; /// score, nms and candidate threshold of onet
-        mtmn_resize_type type;          /// image resize type. 'pyramid' will lose efficacy, when 'type'==FAST.
-    } mtmn_config_t;
-
     typedef struct
     {
         dl_matrix3d_t *category;
