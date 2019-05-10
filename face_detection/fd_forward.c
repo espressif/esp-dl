@@ -25,10 +25,14 @@
 #include <math.h>
 #include "esp_system.h"
 #include "fd_forward.h"
+#include "esp_log.h"
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
 
 box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid, net_config_t *config)
 { /*{{{*/
-
     mtmn_net_t *out;
     fptp_t scale = 1.0f * config->w / min_face;
     image_list_t sorted_list[4] = {NULL};
@@ -116,10 +120,281 @@ box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid
             free(origin_head[i]);
         }
     }
+
     return pnet_box_list;
 } /*}}}*/
 
-box_array_t *r_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_config_t *config)
+box_array_t *pnet_forward2(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid, int pyramid_times, net_config_t *config)
+{ /*{{{*/
+    mtmn_net_t *out;
+    fptp_t scale = 1.0f * config->w / min_face;
+    image_list_t *sorted_list = (image_list_t *)calloc(pyramid_times, sizeof(image_list_t));
+    image_list_t **origin_head = (image_list_t **)calloc(pyramid_times, sizeof(image_list_t *)); // store original point to free
+    image_list_t all_box_list = {NULL};
+    box_array_t *pnet_box_list = NULL;
+    box_t *pnet_box = NULL;
+
+    int width = round(image->w * scale);
+    int height = round(image->h * scale);
+
+    dl_matrix3du_t *in = dl_matrix3du_alloc(1, width, height, image->c);
+    for (int i = 0; i < pyramid_times; i++)
+    {
+        if (DL_IMAGE_MIN(width, height) <= config->w)
+            break;
+
+        image_resize_linear(in->item, image->item, width, height, in->c, image->w, image->h);
+
+        in->h = height;
+        in->w = width;
+        in->stride = in->w * in->c;
+
+        out = pnet(in);
+
+        if (out)
+        {
+            origin_head[i] = image_get_valid_boxes(out->category->item,
+                                                   out->offset->item,
+                                                   out->category->w,
+                                                   out->category->h,
+                                                   config->w,
+                                                   config->threshold.score,
+                                                   scale);
+
+            if (origin_head[i])
+            {
+                image_sort_insert_by_score(&sorted_list[i], origin_head[i]);
+
+                image_nms_process(&sorted_list[i], 0.5, true);
+            }
+
+            dl_matrix3d_free(out->category);
+            dl_matrix3d_free(out->offset);
+            dl_matrix3d_free(out->landmark);
+            free(out);
+        }
+
+        scale *= pyramid;
+        width = round(image->w * scale);
+        height = round(image->h * scale);
+    }
+    dl_matrix3du_free(in);
+
+    for (int i = 0; i < pyramid_times; i++)
+        image_sort_insert_by_score(&all_box_list, &sorted_list[i]);
+
+    image_nms_process(&all_box_list, config->threshold.nms, false);
+    if (all_box_list.len)
+    {
+        if (all_box_list.len > config->threshold.candidate_number)
+            all_box_list.len = config->threshold.candidate_number;
+
+        image_calibrate_by_offset(&all_box_list);
+
+        pnet_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
+
+        pnet_box = (box_t *)calloc(all_box_list.len, sizeof(box_t));
+
+        image_box_t *t = all_box_list.head;
+
+        // no need to store landmark
+        for (int i = 0; i < all_box_list.len; i++, t = t->next)
+            pnet_box[i] = t->box;
+
+        pnet_box_list->box = pnet_box;
+        pnet_box_list->len = all_box_list.len;
+    }
+
+    for (int i = 0; i < pyramid_times; i++)
+    {
+        if (origin_head[i])
+        {
+            free(origin_head[i]->origin_head);
+            free(origin_head[i]);
+        }
+    }
+
+    free(sorted_list);
+    free(origin_head);
+
+    return pnet_box_list;
+} /*}}}*/
+
+box_array_t *pnet_forward_fast(dl_matrix3du_t *image, fptp_t min_face, int pyramid_times, net_config_t *config)
+{ /*{{{*/
+    mtmn_net_t *out;
+    fptp_t origin_scale = 1.0f * config->w / min_face;
+    fptp_t pyramid = 0.707106781; // sqrt(0.5)
+    image_list_t *sorted_list = (image_list_t *)calloc(pyramid_times, sizeof(image_list_t));
+    image_list_t **origin_head = (image_list_t **)calloc(pyramid_times, sizeof(image_list_t *));
+    image_list_t all_box_list = {NULL};
+    box_array_t *pnet_box_list = NULL;
+    box_t *pnet_box = NULL;
+
+    int resized_w = round(image->w * origin_scale);
+    int resized_h = round(image->h * origin_scale);
+    fptp_t resized_scale = origin_scale;
+    dl_matrix3du_t *resized_image = dl_matrix3du_alloc(1, resized_w, resized_h, image->c);
+
+    for (size_t i = 0; i < (pyramid_times + 1) / 2; i++)
+    {
+        if (DL_IMAGE_MIN(resized_w, resized_h) < config->w)
+        {
+            break;
+        }
+
+        if (0 == i)
+            image_resize_linear(resized_image->item,
+                                image->item,
+                                resized_w,
+                                resized_h,
+                                resized_image->c,
+                                image->w,
+                                image->h);
+        else
+            image_zoom_in_twice(resized_image->item,
+                                resized_w,
+                                resized_h,
+                                resized_image->c,
+                                resized_image->item,
+                                resized_image->w,
+                                resized_image->c);
+
+        resized_image->w = resized_w;
+        resized_image->h = resized_h;
+        resized_image->stride = resized_image->w * resized_image->c;
+
+        out = pnet(resized_image);
+
+        if (out)
+        {
+            origin_head[i] = image_get_valid_boxes(out->category->item,
+                                                   out->offset->item,
+                                                   out->category->w,
+                                                   out->category->h,
+                                                   config->w,
+                                                   config->threshold.score,
+                                                   resized_scale);
+
+            if (origin_head[i])
+            {
+                image_sort_insert_by_score(&sorted_list[i], origin_head[i]);
+
+                image_nms_process(&sorted_list[i], 0.5, true);
+            }
+
+            dl_matrix3d_free(out->category);
+            dl_matrix3d_free(out->offset);
+            dl_matrix3d_free(out->landmark);
+            free(out);
+        }
+
+        resized_w /= 2;
+        resized_h /= 2;
+        resized_scale /= 2;
+    }
+
+    resized_w = round(image->w * origin_scale * pyramid);
+    resized_h = round(image->h * origin_scale * pyramid);
+    resized_scale = origin_scale * pyramid;
+    for (int i = (pyramid_times + 1) / 2; i < pyramid_times; i++)
+    {
+        if (DL_IMAGE_MIN(resized_w, resized_h) < config->w)
+            break;
+
+        if ((pyramid_times + 1) / 2 == i)
+            image_resize_linear(resized_image->item,
+                                image->item,
+                                resized_w,
+                                resized_h,
+                                resized_image->c,
+                                image->w,
+                                image->h);
+        else
+            image_zoom_in_twice(resized_image->item,
+                                resized_w,
+                                resized_h,
+                                resized_image->c,
+                                resized_image->item,
+                                resized_image->w,
+                                resized_image->c);
+
+        resized_image->w = resized_w;
+        resized_image->h = resized_h;
+        resized_image->stride = resized_image->w * resized_image->c;
+
+        out = pnet(resized_image);
+
+        if (out)
+        {
+            origin_head[i] = image_get_valid_boxes(out->category->item,
+                                                   out->offset->item,
+                                                   out->category->w,
+                                                   out->category->h,
+                                                   config->w,
+                                                   config->threshold.score,
+                                                   resized_scale);
+
+            if (origin_head[i])
+            {
+                image_sort_insert_by_score(&sorted_list[i], origin_head[i]);
+
+                image_nms_process(&sorted_list[i], 0.5, true);
+            }
+
+            dl_matrix3d_free(out->category);
+            dl_matrix3d_free(out->offset);
+            dl_matrix3d_free(out->landmark);
+            free(out);
+        }
+
+        resized_w /= 2;
+        resized_h /= 2;
+        resized_scale /= 2;
+    }
+    dl_matrix3du_free(resized_image);
+
+    for (int i = 0; i < pyramid_times; i++)
+        image_sort_insert_by_score(&all_box_list, &sorted_list[i]);
+
+    image_nms_process(&all_box_list, config->threshold.nms, false);
+    if (all_box_list.len)
+    {
+        if (all_box_list.len > config->threshold.candidate_number)
+            all_box_list.len = config->threshold.candidate_number;
+
+        image_calibrate_by_offset(&all_box_list);
+
+        pnet_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
+
+        pnet_box = (box_t *)calloc(all_box_list.len, sizeof(box_t));
+
+        image_box_t *t = all_box_list.head;
+
+        // no need to store landmark
+        for (int i = 0; i < all_box_list.len; i++, t = t->next)
+            pnet_box[i] = t->box;
+
+        pnet_box_list->box = pnet_box;
+        pnet_box_list->len = all_box_list.len;
+    }
+
+    for (int i = 0; i < pyramid_times; i++)
+    {
+        if (origin_head[i])
+        {
+            free(origin_head[i]->origin_head);
+            free(origin_head[i]);
+        }
+    }
+
+    free(sorted_list);
+    free(origin_head);
+
+    return pnet_box_list;
+} /*}}}*/
+
+box_array_t *rnet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_config_t *config)
 { /*{{{*/
     int valid_count = 0;
     image_list_t valid_list = {NULL};
@@ -210,7 +485,7 @@ box_array_t *r_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_co
     return net_box_list;
 } /*}}}*/
 
-box_array_t *o_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_config_t *config)
+box_array_t *onet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_config_t *config)
 { /*{{{*/
     int valid_count = 0;
     image_list_t valid_list = {NULL};
@@ -219,6 +494,7 @@ box_array_t *o_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_co
     dl_matrix3du_t *sliced_image;
     image_box_t *valid_box = NULL;
     box_t *net_box = NULL;
+    fptp_t *net_score = NULL;
     landmark_t *net_landmark = NULL;
     box_array_t *net_box_list = NULL;
 
@@ -287,6 +563,7 @@ box_array_t *o_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_co
 
         net_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
         net_box = (box_t *)calloc(sorted_list.len, sizeof(box_t));
+        net_score = (fptp_t *)calloc(sorted_list.len, sizeof(fptp_t));
         net_landmark = (landmark_t *)calloc(sorted_list.len, sizeof(landmark_t));
 
         image_box_t *t = sorted_list.head;
@@ -294,14 +571,15 @@ box_array_t *o_net_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_co
         for (int i = 0; i < sorted_list.len; i++, t = t->next)
         {
             net_box[i] = t->box;
+            net_score[i] = t->score;
             net_landmark[i] = t->landmark;
         }
 
+        net_box_list->score = net_score;
         net_box_list->box = net_box;
         net_box_list->landmark = net_landmark;
         net_box_list->len = sorted_list.len;
     }
-
     free(valid_box);
 
     return net_box_list;
@@ -313,10 +591,19 @@ box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
     pnet_config.h = 12;
     pnet_config.threshold = config->p_threshold;
 
-    box_array_t *pnet_boxes = pnet_forward(image_matrix,
-                                           config->min_face,
-                                           config->pyramid,
-                                           &pnet_config);
+    box_array_t *pnet_boxes = NULL;
+    if (FAST == config->type)
+        pnet_boxes = pnet_forward_fast(image_matrix,
+                                       config->min_face,
+                                       config->pyramid_times,
+                                       &pnet_config);
+    else if (NORMAL == config->type)
+        pnet_boxes = pnet_forward2(image_matrix,
+                                   config->min_face,
+                                   config->pyramid,
+                                   config->pyramid_times,
+                                   &pnet_config);
+
     if (NULL == pnet_boxes)
         return NULL;
 
@@ -325,9 +612,9 @@ box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
     rnet_config.h = 24;
     rnet_config.threshold = config->r_threshold;
 
-    box_array_t *rnet_boxes = r_net_forward(image_matrix,
-                                            pnet_boxes,
-                                            &rnet_config);
+    box_array_t *rnet_boxes = rnet_forward(image_matrix,
+                                           pnet_boxes,
+                                           &rnet_config);
 
     free(pnet_boxes->box);
     free(pnet_boxes);
@@ -340,9 +627,9 @@ box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config)
     onet_config.h = 48;
     onet_config.threshold = config->o_threshold;
 
-    box_array_t *onet_boxes = o_net_forward(image_matrix,
-                                            rnet_boxes,
-                                            &onet_config);
+    box_array_t *onet_boxes = onet_forward(image_matrix,
+                                           rnet_boxes,
+                                           &onet_config);
 
     free(rnet_boxes->box);
     free(rnet_boxes);
