@@ -108,6 +108,56 @@ int8_t align_face(box_array_t *onet_boxes,
     return ESP_OK;
 }
 
+int8_t align_face2(fptp_t *landmark,
+                   dl_matrix3du_t *src,
+                   dl_matrix3du_t *dest)
+{
+    fptp_t angle;
+    fptp_t ratio;
+    fptp_t ne_ratio;
+    fptp_t eye_dist;
+    fptp_t le_x;
+    fptp_t le_y;
+    fptp_t re_x;
+    fptp_t re_y;
+    fptp_t no_x;
+    fptp_t no_y;
+    fptp_t center[2]; // some params of face align
+
+    le_x = landmark[LEFT_EYE_X];
+    le_y = landmark[LEFT_EYE_Y];
+    re_x = landmark[RIGHT_EYE_X];
+    re_y = landmark[RIGHT_EYE_Y];
+    no_x = landmark[NOSE_X];
+    no_y = landmark[NOSE_Y];
+
+    ne_ratio = (pow(no_x - le_x, 2) + pow(no_y - le_y, 2)) / (pow(no_x - re_x, 2) + pow(no_y - re_y, 2));
+    if (ne_ratio <= NOSE_EYE_RATIO_THRES_MIN || ne_ratio >= NOSE_EYE_RATIO_THRES_MAX) //RATIO_THRES is to avoid small faces and NOSE_EYE_RATIO_THRES is to keep the face front
+    {
+        ESP_LOGI(TAG, "ne_ratio  : %f", ne_ratio);
+        return ESP_FAIL;
+    }
+
+    angle = -atan((re_y - le_y) / (re_x - le_x));
+    eye_dist = sqrt(pow(re_y - le_y, 2) + pow(re_x - le_x, 2));
+    ratio = eye_dist / EYE_DIST_SET;
+
+    center[0] = (re_x + le_x + no_x + no_x) * 0.25;
+    center[1] = (re_y + le_y + no_y + no_y) * 0.25;
+
+    ESP_LOGD(TAG, "Left-eye  : (%f,%f)", le_x, le_y);
+    ESP_LOGD(TAG, "Right-eye : (%f,%f)", re_x, re_y);
+    ESP_LOGD(TAG, "Nose      : (%f,%f)", no_x, no_y);
+    ESP_LOGD(TAG, "Angle     : %f", angle);
+    ESP_LOGD(TAG, "Eye_dist  : %f", eye_dist);
+    ESP_LOGD(TAG, "Ratio     : %f", ratio);
+    ESP_LOGD(TAG, "Center    : (%f,%f)", center[0], center[1]);
+    ESP_LOGD(TAG, "ne_ratio  : %f", ne_ratio);
+
+    image_cropper(dest->item, src->item, dest->w, dest->h, dest->c, src->w, src->h, angle, ratio, center);
+    return ESP_OK;
+}
+
 dl_matrix3d_t *get_face_id(dl_matrix3du_t *aligned_face)
 {
     dl_matrix3d_t *face_id = NULL;
@@ -189,7 +239,7 @@ void devide_face_id(dl_matrix3d_t *id, uint8_t num)
 }
 
 int8_t recognize_face(face_id_list *l,
-                        dl_matrix3du_t *algined_face)
+                      dl_matrix3du_t *algined_face)
 {
     fptp_t similarity = 0;
     fptp_t max_similarity = -1;
@@ -221,15 +271,14 @@ int8_t recognize_face(face_id_list *l,
     return matched_id;
 }
 
-int8_t enroll_face(face_id_list *l, 
-                dl_matrix3du_t *aligned_face)
+int8_t enroll_face(face_id_list *l, dl_matrix3du_t *aligned_face)
 {
     static int8_t confirm_counter = 0;
 
     // add new_id to dest_id
     dl_matrix3d_t *new_id = get_face_id(aligned_face);
 
-    if ((l->count < l->size)&&(confirm_counter == 0))
+    if ((l->count < l->size) && (confirm_counter == 0))
         l->id_list[l->tail] = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
 
     add_face_id(l->id_list[l->tail], new_id);
@@ -271,7 +320,7 @@ uint8_t delete_face(face_id_list *l)
 }
 
 face_id_node *recognize_face_with_name(face_id_name_list *l,
-                        dl_matrix3d_t *face_id)
+                                       dl_matrix3d_t *face_id)
 {
     fptp_t similarity = 0;
     fptp_t max_similarity = -1;
@@ -301,9 +350,9 @@ face_id_node *recognize_face_with_name(face_id_name_list *l,
     return head;
 }
 
-int8_t enroll_face_with_name(face_id_name_list *l, 
-                dl_matrix3d_t *new_id,
-                char *name)
+int8_t enroll_face_with_name(face_id_name_list *l,
+                             dl_matrix3d_t *new_id,
+                             char *name)
 {
     static int8_t confirm_counter = 0;
 
