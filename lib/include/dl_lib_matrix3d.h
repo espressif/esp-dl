@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 typedef float fptp_t;
 typedef uint8_t uc_t;
 
