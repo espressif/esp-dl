@@ -403,7 +403,6 @@ box_array_t *rnet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
     dl_matrix3du_t *sliced_image;
     image_box_t *valid_box = NULL;
     box_t *net_box = NULL;
-    landmark_t *net_landmark = NULL;
     box_array_t *net_box_list = NULL;
 
     if (NULL == net_boxes)
@@ -443,7 +442,6 @@ box_array_t *rnet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
 
             dl_matrix3d_free(out->category);
             dl_matrix3d_free(out->offset);
-            dl_matrix3d_free(out->landmark);
             free(out);
         }
         dl_matrix3du_free(sliced_image);
@@ -476,7 +474,6 @@ box_array_t *rnet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
         }
 
         net_box_list->box = net_box;
-        net_box_list->landmark = net_landmark;
         net_box_list->len = sorted_list.len;
     }
 

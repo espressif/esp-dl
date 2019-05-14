@@ -129,7 +129,7 @@ dl_matrix3dq_t *dl_matrix3dq_global_pool (dl_matrix3dq_t *in);
 void dl_matrix3dq_batch_normalize (dl_matrix3dq_t *m, dl_matrix3dq_t *scale, dl_matrix3dq_t *offset);
 dl_matrix3dq_t *dl_matrix3dq_add (dl_matrix3dq_t *in_1, dl_matrix3dq_t *in_2, int exponent);
 void dl_matrix3dq_relu_std (dl_matrix3dq_t *m);
-dl_matrix3dq_t *dl_matrix3dq_mobilefaceblock (void *in, dl_matrix3dq_t *pw, dl_matrix3dq_t *pw_bn_scale,dl_matrix3dq_t *pw_bn_offset,
+dl_matrix3dq_t *dl_matrix3dq_mobilefaceblock (dl_matrix3dq_t *in, dl_matrix3dq_t *pw, dl_matrix3dq_t *pw_bn_scale,dl_matrix3dq_t *pw_bn_offset,
                                         dl_matrix3dq_t *dw, dl_matrix3dq_t *dw_bn_scale,dl_matrix3dq_t *dw_bn_offset,
                                         dl_matrix3dq_t *pw_linear, dl_matrix3dq_t *pw_linear_bn_scale,dl_matrix3dq_t *pw_linear_bn_offset,
                                         int pw_exponent,int dw_exponent,int pw_linear_exponent,int stride_x, int stride_y, int padding, int mode, int shortcut);
@@ -138,7 +138,7 @@ dl_matrix3dq_t *dl_matrix3dq_concat(dl_matrix3dq_t *in_1, dl_matrix3dq_t *in_2);
 dl_matrix3dq_t *dl_matrix3dq_concat_4(dl_matrix3dq_t *in_1, dl_matrix3dq_t *in_2, dl_matrix3dq_t *in_3, dl_matrix3dq_t *in_4);
 dl_matrix3dq_t *dl_matrix3dq_concat_8(dl_matrix3dq_t *in_1, dl_matrix3dq_t *in_2, dl_matrix3dq_t *in_3, dl_matrix3dq_t *in_4, dl_matrix3dq_t *in_5, dl_matrix3dq_t *in_6, dl_matrix3dq_t *in_7, dl_matrix3dq_t *in_8);
 
-dl_matrix3dq_t *dl_matrix3dq_mobilefaceblock_split (void *in, dl_matrix3dq_t *pw_1, dl_matrix3dq_t *pw_2, dl_matrix3dq_t *pw_bn_scale,dl_matrix3dq_t *pw_bn_offset,
+dl_matrix3dq_t *dl_matrix3dq_mobilefaceblock_split (dl_matrix3dq_t *in, dl_matrix3dq_t *pw_1, dl_matrix3dq_t *pw_2, dl_matrix3dq_t *pw_bn_scale,dl_matrix3dq_t *pw_bn_offset,
                                         dl_matrix3dq_t *dw, dl_matrix3dq_t *dw_bn_scale,dl_matrix3dq_t *dw_bn_offset,
                                         dl_matrix3dq_t *pw_linear_1, dl_matrix3dq_t *pw_linear_2, dl_matrix3dq_t *pw_linear_bn_scale,dl_matrix3dq_t *pw_linear_bn_offset,
                                         int pw_exponent,int dw_exponent,int pw_linear_exponent,int stride_x, int stride_y, int padding, int mode, int shortcut);
