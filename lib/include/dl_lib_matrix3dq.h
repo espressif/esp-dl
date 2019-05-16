@@ -86,6 +86,8 @@ dl_matrix3dq_t *dl_matrix3dq_conv_normal (dl_matrix3dq_t *in, dl_matrix3dq_t *fi
                                     int stride_x, int stride_y, int padding, int exponent, int mode);
 
 void dl_matrix3dq_conv_1x1 (dl_matrix3dq_t *out, dl_matrix3dq_t *in, dl_matrix3dq_t *f, dl_conv_mode mode);
+void dl_matrix3dq_conv_1x1_with_bn (dl_matrix3dq_t *out, dl_matrix3dq_t *in, dl_matrix3dq_t *f, dl_matrix3dq_t *scale, dl_matrix3dq_t *offset);
+void dl_matrix3dq_conv_1x1_with_bn_relu (dl_matrix3dq_t *out, dl_matrix3dq_t *in, dl_matrix3dq_t *f, dl_matrix3dq_t *scale, dl_matrix3dq_t *offset);
 
 void dl_matrix3dq_conv_3x3_normal (dl_matrix3dq_t *out,
                                     dl_matrix3dq_t *in,
@@ -117,6 +119,14 @@ dl_matrix3dq_t *dl_matrix3dq_depthwise_conv_3x3_with_bn(dl_matrix3dq_t *in,
                                             dl_matrix3dq_t *offset,
                                             int step_x,
                                             int step_y,
+                                            int padding,
+                                            int exponent,
+                                            int relu);
+
+dl_matrix3dq_t *dl_matrix3dq_depthwise_conv_3x3s1_with_bn(dl_matrix3dq_t *in,
+                                            dl_matrix3dq_t *f,
+                                            dl_matrix3dq_t *scale,
+                                            dl_matrix3dq_t *offset,
                                             int padding,
                                             int exponent,
                                             int relu);
