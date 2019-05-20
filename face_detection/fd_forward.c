@@ -452,7 +452,11 @@ box_array_t *rnet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
 
     dl_matrix3du_free(resized_image);
 
-    valid_box[valid_count - 1].next = NULL;
+    if (valid_count)
+        valid_box[valid_count - 1].next = NULL;
+    else
+        valid_box[0].next = NULL;
+
     valid_list.head = valid_box;
     valid_list.len = valid_count;
     image_sort_insert_by_score(&sorted_list, &valid_list);
@@ -545,7 +549,11 @@ box_array_t *onet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
 
     dl_matrix3du_free(resized_image);
 
-    valid_box[valid_count - 1].next = NULL;
+    if (valid_count)
+        valid_box[valid_count - 1].next = NULL;
+    else
+        valid_box[0].next = NULL;
+
     valid_list.head = valid_box;
     valid_list.len = valid_count;
     image_sort_insert_by_score(&sorted_list, &valid_list);
