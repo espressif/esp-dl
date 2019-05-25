@@ -1,5 +1,11 @@
 # Change log for esp-face
 
+## 0.4.0
+- Move to cmake
+- Bugfix in detection
+- Fast pnet process with resize to half
+- Accelerate face detection and recognition process
+
 ## 0.3.5
 Make candidate number for p/r/onet configurable.
 Change enrollment and recognition interface.
