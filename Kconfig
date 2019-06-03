@@ -9,3 +9,20 @@ config XTENSA_IMPL
 	bool "Xtensa Implementation for ESP"
 	
 endchoice
+
+
+
+menu "ESP-FACE Configuration"
+
+    choice DETECTION_MODEL
+        bool "Detection Model"
+        default MTMN_LITE_QUANT
+
+        config MTMN_LITE_QUANT
+            bool "MTMN lite in quantization"
+        
+        config MTMN_LITE_FLOAT
+            bool "MTMN lite in float"
+    endchoice
+    
+endmenu
