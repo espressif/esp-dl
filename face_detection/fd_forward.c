@@ -26,6 +26,7 @@
 #include "esp_system.h"
 #include "fd_forward.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -56,7 +57,13 @@ box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid
         in->w = width;
         in->stride = in->w * in->c;
 
-        out = pnet(in);
+#if CONFIG_MTMN_LITE_FLOAT
+        out = pnet_lite_f(in);
+#endif
+
+#if CONFIG_MTMN_LITE_QUANT
+        out = pnet_lite_q(in, DL_XTENSA_IMPL);
+#endif
 
         if (out)
         {
@@ -149,7 +156,13 @@ box_array_t *pnet_forward2(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyrami
         in->w = width;
         in->stride = in->w * in->c;
 
-        out = pnet(in);
+#if CONFIG_MTMN_LITE_FLOAT
+        out = pnet_lite_f(in);
+#endif
+
+#if CONFIG_MTMN_LITE_QUANT
+        out = pnet_lite_q(in, DL_XTENSA_IMPL);
+#endif
 
         if (out)
         {
@@ -264,7 +277,13 @@ box_array_t *pnet_forward_fast(dl_matrix3du_t *image, fptp_t min_face, int pyram
         resized_image->h = resized_h;
         resized_image->stride = resized_image->w * resized_image->c;
 
-        out = pnet(resized_image);
+#if CONFIG_MTMN_LITE_FLOAT
+        out = pnet_lite_f(resized_image);
+#endif
+
+#if CONFIG_MTMN_LITE_QUANT
+        out = pnet_lite_q(resized_image, DL_XTENSA_IMPL);
+#endif
 
         if (out)
         {
@@ -323,7 +342,13 @@ box_array_t *pnet_forward_fast(dl_matrix3du_t *image, fptp_t min_face, int pyram
         resized_image->h = resized_h;
         resized_image->stride = resized_image->w * resized_image->c;
 
-        out = pnet(resized_image);
+#if CONFIG_MTMN_LITE_FLOAT
+        out = pnet_lite_f(resized_image);
+#endif
+
+#if CONFIG_MTMN_LITE_QUANT
+        out = pnet_lite_q(resized_image, DL_XTENSA_IMPL);
+#endif
 
         if (out)
         {
@@ -424,7 +449,13 @@ box_array_t *rnet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
 
         image_resize_linear(resized_image->item, sliced_image->item, config->w, config->h, image->c, w, h);
 
-        mtmn_net_t *out = rnet_with_score_verify(resized_image, config->threshold.score);
+#if CONFIG_MTMN_LITE_FLOAT
+        mtmn_net_t *out = rnet_lite_f_with_score_verify(resized_image, config->threshold.score);
+#endif
+
+#if CONFIG_MTMN_LITE_QUANT
+        mtmn_net_t *out = rnet_lite_q_with_score_verify(resized_image, config->threshold.score, DL_XTENSA_IMPL);
+#endif
 
         if (out)
         {
@@ -518,7 +549,13 @@ box_array_t *onet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
 
         image_resize_linear(resized_image->item, sliced_image->item, config->w, config->h, image->c, w, h);
 
-        mtmn_net_t *out = onet_with_score_verify(resized_image, config->threshold.score);
+#if CONFIG_MTMN_LITE_FLOAT
+        mtmn_net_t *out = onet_lite_f_with_score_verify(resized_image, config->threshold.score);
+#endif
+
+#if CONFIG_MTMN_LITE_QUANT
+        mtmn_net_t *out = onet_lite_q_with_score_verify(resized_image, config->threshold.score, DL_XTENSA_IMPL);
+#endif
 
         if (out)
         {
