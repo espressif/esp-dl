@@ -42,6 +42,31 @@ Please see the flowchart of face recognition below:
 
 - `FLASH_PARTITION_NAME`: Stores the name of the flash partition that stores **Face IDs**, which shares the same names used in the partitions.csv file.
 
+## Recognition Model Selection
+
+4 versions of FRMN models are available by now:
+- FRMN1
+- FRMN2C
+- FRMN2
+- FRMN2P
+
+Accuracy: FRMN2P > FRMN2 > FRMN2C > FRMN1
+
+### Details
+|Model|FRMN1|FRMN2C|FRMN2|FRMN2P|
+| ----- |:-----:|:-----:|:-----:|:-----:|
+|Function|frmn_q|frmn2c_q|frmn2_q|frmn2p_q|
+|Size| 1.2M |1.3M|1.6M|2.6M|
+|Time| 335ms|347ms|506ms|620ms|
+
+
+### Selection
+
+Models can be selected through `idf.py menuconfig` or `make menuconfig`. Select **Component config** >> **ESP-FACE Configuration** >> **Recognition Model** sequentially, you'll see options below.
+
+![Recognition model selection](../img/recognition_model_selection.png)
+
+
 ## Precautions
 
 Please note the followings when using our **Face Recognition Lib**:
