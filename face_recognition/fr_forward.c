@@ -163,9 +163,25 @@ dl_matrix3d_t *get_face_id(dl_matrix3du_t *aligned_face)
     dl_matrix3d_t *face_id = NULL;
     dl_matrix3dq_t *mobileface_in = transform_frmn_input(aligned_face);
 #if CONFIG_XTENSA_IMPL
-    dl_matrix3dq_t *face_id_q = frmn_q(mobileface_in, DL_XTENSA_IMPL);
+    #if CONFIG_FRMN1_QUANT
+        dl_matrix3dq_t *face_id_q = frmn_q(mobileface_in, DL_XTENSA_IMPL);
+    #elif CONFIG_FRMN2_QUANT
+        dl_matrix3dq_t *face_id_q = frmn2_q(mobileface_in, DL_XTENSA_IMPL);
+    #elif CONFIG_FRMN2P_QUANT
+        dl_matrix3dq_t *face_id_q = frmn2p_q(mobileface_in, DL_XTENSA_IMPL);
+    #else
+        dl_matrix3dq_t *face_id_q = frmn2c_q(mobileface_in, DL_XTENSA_IMPL);
+    #endif
 #else
-    dl_matrix3dq_t *face_id_q = frmn_q(mobileface_in, DL_C_IMPL);
+    #if CONFIG_FRMN1_QUANT
+        dl_matrix3dq_t *face_id_q = frmn_q(mobileface_in, DL_C_IMPL);
+    #elif CONFIG_FRMN2_QUANT
+        dl_matrix3dq_t *face_id_q = frmn2_q(mobileface_in, DL_C_IMPL);
+    #elif CONFIG_FRMN2P_QUANT
+        dl_matrix3dq_t *face_id_q = frmn2p_q(mobileface_in, DL_C_IMPL);
+    #else
+        dl_matrix3dq_t *face_id_q = frmn2c_q(mobileface_in, DL_C_IMPL);
+    #endif
 #endif
     face_id = dl_matrix3d_from_matrixq(face_id_q);
     dl_matrix3dq_free(face_id_q);

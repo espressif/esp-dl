@@ -24,5 +24,19 @@ menu "ESP-FACE Configuration"
         config MTMN_LITE_FLOAT
             bool "MTMN lite in float"
     endchoice
+
+    choice RECOGNITION_MODEL
+        bool "Recognition Model"
+        default FRMN1_QUANT
+
+        config FRMN1_QUANT
+            bool "FRMN1"
+        config FRMN2_QUANT
+            bool "FRMN2"
+        config FRMN2P_QUANT
+            bool "FRMN2P"
+        config FRMN2C_QUANT
+            bool "FRMN2C"
+    endchoice
     
 endmenu
