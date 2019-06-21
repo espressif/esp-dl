@@ -22,8 +22,11 @@ typedef struct
 
 #ifndef DL_QTP_SHIFT
 #define DL_QTP_SHIFT 15
-#define DL_QTP_RANGE ((1 << DL_QTP_SHIFT) - 1)
 #define DL_ITMQ(m, x, y) m->itemq[(y)+(x)*m->stride]
+#define DL_QTP_RANGE ((1<<DL_QTP_SHIFT)-1)
+#define DL_QTP_MAX 32767
+#define DL_QTP_MIN -32768
+
 #define DL_QTP_EXP_NA 255 //non-applicable exponent because matrix is null
 
 #define DL_SHIFT_AUTO 32
@@ -187,6 +190,13 @@ dl_matrix3dq_t *dl_matrix3dqq_conv_3x3_with_bn(dl_matrix3dq_t *in,
                                                int exponent,
                                                int relu);
 
+dl_matrix3dq_t *dl_matrix3dqq_conv_3x3(dl_matrix3dq_t *in,
+                                      dl_matrix3dq_t *filter,
+                                      int stride_x,
+                                      int stride_y,
+                                      int padding,
+                                      int exponent);
+
 //
 // Conv common
 //
@@ -322,7 +332,7 @@ void dl_matrix3dqq_fc_with_bias(dl_matrix3dq_t *out,
 // Mobilefaceblock
 //
 
-dl_matrix3dq_t *dl_matrix3dq_mobilefaceblock_split(dl_matrix3dq_t *in,
+dl_matrix3dq_t *dl_matrix3dqq_mobilefaceblock_split(dl_matrix3dq_t *in,
                                                    dl_matrix3dq_t *pw_1,
                                                    dl_matrix3dq_t *pw_2,
                                                    dl_matrix3dq_t *pw_bn_scale,
@@ -343,7 +353,7 @@ dl_matrix3dq_t *dl_matrix3dq_mobilefaceblock_split(dl_matrix3dq_t *in,
                                                    dl_conv_mode mode,
                                                    int shortcut);
 
-dl_matrix3dq_t *dl_matrix3dq_mobilefaceblock(dl_matrix3dq_t *in,
+dl_matrix3dq_t *dl_matrix3dqq_mobilefaceblock(dl_matrix3dq_t *in,
                                              dl_matrix3dq_t *pw,
                                              dl_matrix3dq_t *pw_bn_scale,
                                              dl_matrix3dq_t *pw_bn_offset,

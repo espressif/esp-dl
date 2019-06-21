@@ -14,26 +14,67 @@ The following diagram shows the workflow of MTNM.
 
 ![The workflow of MTMN](../img/mtmn-workflow-2.png)
 
+## Detection Model Selection
+
+Two versions of MTMN are available by now:
+
+- MTMN lite in quantization
+- MTMN lite in float
+
+### Performance
+
+We evaluate both models in the same configuration shown below.
+
+```c
+mtmn_config.type = FAST;
+mtmn_config.pyramid = 0.707;
+mtmn_config.min_face = 80;
+mtmn_config.pyramid_times = 4;
+mtmn_config.p_threshold.score = 0.6;
+mtmn_config.p_threshold.nms = 0.7;
+mtmn_config.p_threshold.candidate_number = 100;
+mtmn_config.r_threshold.score = 0.7;
+mtmn_config.r_threshold.nms = 0.7;
+mtmn_config.r_threshold.candidate_number = 100;
+mtmn_config.o_threshold.score = 0.7;
+mtmn_config.o_threshold.nms = 0.7;
+mtmn_config.o_threshold.candidate_number = 1;
+```
+
+|                               | MTMN lite in quantization | MTMN lite in float |
+| :---------------------------: | :-----------------------: | :----------------: |
+| Average Time Consumption (ms) |          143.19           |       178.45       |
+
+### Selection
+
+Models can be selected through `idf.py menuconfig` or `make menuconfig`. Select <u>Component config</u> >> <u>ESP-FACE Configuration</u> >> <u>Detection Model</u> sequentially, you'll see options below.
+
+![detection model selection](../img/detection_model_selection.png)
+
 ## Advance Configuration
 
 `detect_face` provides the `config` parameter for users' customized definition.
 
-```
+```c
 box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config);
 ```
 
 The definition of `mtmn_config_t`:
 
-```
+```c
 typedef struct
 {
     float min_face;                 /// The minimum size of a detectable face
     float pyramid;                  /// The scale of the gradient scaling for the input images
+    int pyramid_times;              /// The pyramid resizing times
     threshold_config_t p_threshold; /// The thresholds for P-Net. For details, see the definition of threshold_config_t
     threshold_config_t r_threshold; /// The thresholds for R-Net. For details, see the definition of threshold_config_t
     threshold_config_t o_threshold; /// The thresholds for O-Net. For details, see the definition of threshold_config_t
+    mtmn_resize_type type;          /// The image resize type. 'pyramid' will lose efficacy, when 'type'==FAST.
 } mtmn_config_t;
+```
 
+```c
 typedef struct
 {
     float score;          /// The threshold of confidence coefficient. The candidate bounding boxes with a confidence coefficient lower than the threshold will be filtered out.
@@ -49,7 +90,6 @@ typedef struct
 		- the smaller the minimum size of a detectable face is;
 		- the longer the processing takes
 	- and vice versa.
-
 - **pyramid**
 	- Specifies the scale that controls the generated pyramids. 
 	- Range: (0,1)
@@ -58,43 +98,51 @@ typedef struct
 		- the higher the detection ratio is;
 		- the longer the processing takes
 	- and vice versa.
-
+- **pyramid_times**
+  - Specifies the number that controls the generated pyramids.
+  - Range: [1,+inf)
+  - Together with **pyramid** and **min_face**, the main detectable face size could be determined at range [min_face, min_face/pyramid^pyramid_times] and min_face/pyramid^pyramid_times < the length of the shortest edge of the original input image.
+- **type**
+  - options: `FAST` or `NORMAL`
+    - `FAST`: **pyramid** equals to `0.707106781` in default. At the same **pyramid** value, `FAST` type is faster than `NORMAL` type.
+    - `NORMAL`: If you would like to customize **pyramid** value, set the type to `NORMAL` please.
 - **score threshold**
 	- Range: (0,1)
 	- For an original input image of a fixed size, the larger the `score` is,
 		- the larger the number of filtered out candidate bounding boxes is
 		- the lower the detection ratio is
 	- and vice versa.
-
 - **nms threshold**
 	- Range: (0,1)
 	- For an original input image of a fixed size, the larger the `nms` is,
 		- the higher the possibility that an overlapped face can be detected is;
 		- the larger the number of detected candidate bounding boxes of a same face is
 	- and vice versa.
-
 - **candidate number**
 	- Specifies the number of the output candidate boxes of each network. 
 	- Range
-		- R-Net: [1,4]
-		- O-Net: [1,2]
-		- P-Net: 4, which indicates only four scaling images are used. Note that the `candidate_number` for P-Net is not open for user configuration now.
-	- For an original input image of a fixed size, the larger the `candidate_number` is,
-		- the larger the number of detected faces is;
-		- the longer the processing takes
+		- P-Net: [1, 200]
+		- R-Net: [1, 100]
+		- O-Net: [1, 10]
+	- For an original input image of a fixed size, 
+		- the larger the `candidate_number` is, the longer the processing takes;
+		- the larger the `condidate_number` of O-Net is, the larger number of detected faces is
 	- and vice versa.
 
-Users can configure these parameters based on their actual requirements. Please also see the recommended configuration for general-purpose scenarios below:
+Users can configure these parameters based on their actual requirements. Please also see the recommended configuration for general-purpose scenarios(one face detection) below:
 
-```
+```c
+mtmn_config.type = FAST;
 mtmn_config.min_face = 80;
-mtmn_config.pyramid = 0.7;
+mtmn_config.pyramid = 0.707;
+mtmn_config.pyramid_times = 4;
 mtmn_config.p_threshold.score = 0.6;
 mtmn_config.p_threshold.nms = 0.7;
+mtmn_config.p_threshold.candidate_number = 20;
 mtmn_config.r_threshold.score = 0.7;
 mtmn_config.r_threshold.nms = 0.7;
-mtmn_config.r_threshold.candidate_number = 4;
+mtmn_config.r_threshold.candidate_number = 10;
 mtmn_config.o_threshold.score = 0.7;
-mtmn_config.o_threshold.nms = 0.4;
+mtmn_config.o_threshold.nms = 0.7;
 mtmn_config.o_threshold.candidate_number = 1;
 ```
