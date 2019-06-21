@@ -23,6 +23,7 @@ extern "C"
      * @return dl_matrix3dq_t* 
      */
     dl_matrix3dq_t *frmn_q(dl_matrix3dq_t *in, dl_conv_mode mode);
+
     dl_matrix3dq_t *frmn2_q(dl_matrix3dq_t *in, dl_conv_mode mode);
     dl_matrix3dq_t *frmn2p_q(dl_matrix3dq_t *in, dl_conv_mode mode);
     dl_matrix3dq_t *frmn2c_q(dl_matrix3dq_t *in, dl_conv_mode mode);
