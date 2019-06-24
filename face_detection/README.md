@@ -14,46 +14,26 @@ The following diagram shows the workflow of MTNM.
 
 ![The workflow of MTMN](../img/mtmn-workflow-2.png)
 
-## Detection Model Selection
-
-Two versions of MTMN are available by now:
-
-- MTMN lite in quantization
-- MTMN lite in float
-
-### Performance
-
-We evaluate both models in the same configuration shown below.
+## API Introduction
 
 ```c
-mtmn_config.type = FAST;
-mtmn_config.pyramid = 0.707;
-mtmn_config.min_face = 80;
-mtmn_config.pyramid_times = 4;
-mtmn_config.p_threshold.score = 0.6;
-mtmn_config.p_threshold.nms = 0.7;
-mtmn_config.p_threshold.candidate_number = 100;
-mtmn_config.r_threshold.score = 0.7;
-mtmn_config.r_threshold.nms = 0.7;
-mtmn_config.r_threshold.candidate_number = 100;
-mtmn_config.o_threshold.score = 0.7;
-mtmn_config.o_threshold.nms = 0.7;
-mtmn_config.o_threshold.candidate_number = 1;
+box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config);
 ```
 
-|                               | MTMN lite in quantization | MTMN lite in float |
-| :---------------------------: | :-----------------------: | :----------------: |
-| Average Time Consumption (ms) |          143.19           |       178.45       |
+This `face_detect()` handles the whole face detection mission.
 
-### Selection
+The inputs are:
 
-Models can be selected through `idf.py menuconfig` or `make menuconfig`. Select <u>Component config</u> >> <u>ESP-FACE Configuration</u> >> <u>Detection Model</u> sequentially, you'll see options below.
+- **image_matrix**: an image in `dl_matrix3du_t` type
+- **config**: the configuration of MTMN. More details could be found in **Advance Configuration** section.
 
-![detection model selection](../img/detection_model_selection.png)
+The output is:
+
+- A `box_array_t` type value contains face boxes, as well as score and landmark of each box.
 
 ## Advance Configuration
 
-`detect_face` provides the `config` parameter for users' customized definition.
+`face_detect()` provides the `config` parameter for users' customized definition.
 
 ```c
 box_array_t *face_detect(dl_matrix3du_t *image_matrix, mtmn_config_t *config);
@@ -126,7 +106,7 @@ typedef struct
 		- O-Net: [1, 10]
 	- For an original input image of a fixed size, 
 		- the larger the `candidate_number` is, the longer the processing takes;
-		- the larger the `condidate_number` of O-Net is, the larger number of detected faces is
+		- the larger the `candidate_number` of O-Net is, the larger number of detected faces is
 	- and vice versa.
 
 Users can configure these parameters based on their actual requirements. Please also see the recommended configuration for general-purpose scenarios(one face detection) below:
@@ -146,3 +126,42 @@ mtmn_config.o_threshold.score = 0.7;
 mtmn_config.o_threshold.nms = 0.7;
 mtmn_config.o_threshold.candidate_number = 1;
 ```
+
+### Model Selection
+
+Two versions of MTMN are available by now:
+
+- MTMN lite in quantization (*default*)
+- MTMN lite in float
+
+#### Performance
+
+We evaluate both models in the same configuration shown below.
+
+```c
+mtmn_config.type = FAST;
+mtmn_config.pyramid = 0.707;
+mtmn_config.min_face = 80;
+mtmn_config.pyramid_times = 4;
+mtmn_config.p_threshold.score = 0.6;
+mtmn_config.p_threshold.nms = 0.7;
+mtmn_config.p_threshold.candidate_number = 100;
+mtmn_config.r_threshold.score = 0.7;
+mtmn_config.r_threshold.nms = 0.7;
+mtmn_config.r_threshold.candidate_number = 100;
+mtmn_config.o_threshold.score = 0.7;
+mtmn_config.o_threshold.nms = 0.7;
+mtmn_config.o_threshold.candidate_number = 1;
+```
+
+|                               | MTMN lite in quantization | MTMN lite in float |
+| :---------------------------: | :-----------------------: | :----------------: |
+| Average Time Consumption (ms) |          143.19           |       178.45       |
+
+#### How to select
+
+Models can be selected through `idf.py menuconfig` or `make menuconfig`. Select <u>Component config</u> >> <u>ESP-FACE Configuration</u> >> <u>Detection Model</u> sequentially, you'll see options below.
+
+![detection model selection](../img/detection_model_selection.png)
+
+## 
