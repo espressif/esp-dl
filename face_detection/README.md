@@ -155,11 +155,11 @@ mtmn_config.o_threshold.nms = 0.7;
 mtmn_config.o_threshold.candidate_number = 1;
 ```
 
-|                            | Average Time Consumption (ms) |   AP   |
-| :------------------------: | :---------------------------: | :----: |
-| MTMN lite in quantization  |            143.19             | 0.8553 |
-|     MTMN lite in float     |            178.45             | 0.8575 |
-| MTMN heavy in quantization |            242.84             | 0.9258 |
+|                            | Average Time Consumption (ms) |
+| :------------------------: | :---------------------------: |
+| MTMN lite in quantization  |            143.19             |
+|     MTMN lite in float     |            178.45             |
+| MTMN heavy in quantization |            242.84             |
 
 #### How to select
 
