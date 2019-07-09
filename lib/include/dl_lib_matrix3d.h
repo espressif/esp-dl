@@ -11,6 +11,12 @@ typedef uint8_t uc_t;
 
 typedef enum
 {
+    DL_SUCCESS = 0,
+    DL_FAIL = 1,
+} dl_error_type;
+
+typedef enum
+{
     PADDING_VALID = 0,
     PADDING_SAME = 1,
 } dl_padding_type;

@@ -96,6 +96,32 @@ extern "C"
      */
     mtmn_net_t *onet_lite_q_with_score_verify(dl_matrix3du_t *in, float threshold, dl_conv_mode mode);
 
+    /**
+     * @brief Forward the pnet process, coarse detection. Calculate in quantization.
+     *
+     * @param in        Image matrix, rgb888 format, size is 320x240
+     * @return          Scores for every pixel, and box offset with respect.
+     */
+    mtmn_net_t *pnet_heavy_q(dl_matrix3du_t *in, dl_conv_mode mode);
+
+    /**
+     * @brief Forward the rnet process, fine determine the boxes from pnet. Calculate in quantization.
+     *
+     * @param in        Image matrix, rgb888 format
+     * @param threshold Score threshold to detect human face
+     * @return          Scores for every box, and box offset with respect.
+     */
+    mtmn_net_t *rnet_heavy_q_with_score_verify(dl_matrix3du_t *in, float threshold, dl_conv_mode mode);
+
+    /**
+     * @brief Forward the onet process, fine determine the boxes from rnet. Calculate in quantization.
+     *
+     * @param in        Image matrix, rgb888 format
+     * @param threshold Score threshold to detect human face
+     * @return          Scores for every box, box offset, and landmark with respect.
+     */
+    mtmn_net_t *onet_heavy_q_with_score_verify(dl_matrix3du_t *in, float threshold, dl_conv_mode mode);
+
 #ifdef __cplusplus
 }
 #endif

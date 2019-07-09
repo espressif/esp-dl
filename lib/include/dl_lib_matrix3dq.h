@@ -22,8 +22,8 @@ typedef struct
 
 #ifndef DL_QTP_SHIFT
 #define DL_QTP_SHIFT 15
-#define DL_ITMQ(m, x, y) m->itemq[(y)+(x)*m->stride]
-#define DL_QTP_RANGE ((1<<DL_QTP_SHIFT)-1)
+#define DL_ITMQ(m, x, y) m->itemq[(y) + (x)*m->stride]
+#define DL_QTP_RANGE ((1 << DL_QTP_SHIFT) - 1)
 #define DL_QTP_MAX 32767
 #define DL_QTP_MIN -32768
 
@@ -38,7 +38,6 @@ typedef enum
     DL_XTENSA_IMPL = 1
 } dl_conv_mode;
 
-
 typedef struct
 {
     int stride_x;
@@ -49,7 +48,6 @@ typedef struct
     int depthwise_exponent;
     int compress_exponent;
 } dl_matrix3dq_mobilenet_config_t;
-
 
 //
 // Utility
@@ -143,21 +141,28 @@ void dl_matrix3dqq_conv_1x1(dl_matrix3dq_t *out,
                             dl_conv_mode mode);
 
 void dl_matrix3dqq_conv_1x1_with_relu(dl_matrix3dq_t *out,
-                            dl_matrix3dq_t *in,
-                            dl_matrix3dq_t *filter,
-                            dl_conv_mode mode);
+                                      dl_matrix3dq_t *in,
+                                      dl_matrix3dq_t *filter,
+                                      dl_conv_mode mode);
 
 void dl_matrix3dqq_conv_1x1_with_bias(dl_matrix3dq_t *out,
                                       dl_matrix3dq_t *in,
                                       dl_matrix3dq_t *filter,
                                       dl_matrix3dq_t *bias,
-                                      dl_conv_mode mode);
+                                      dl_conv_mode mode,
+                                      char *name);
+
+void dl_matrix3dqq_conv_1x1_with_prelu(dl_matrix3dq_t *out,
+                                       dl_matrix3dq_t *in,
+                                       dl_matrix3dq_t *filter,
+                                       dl_matrix3dq_t *prelu,
+                                       dl_conv_mode mode);
 
 void dl_matrix3dqq_conv_1x1_with_bias_relu(dl_matrix3dq_t *out,
-                                      dl_matrix3dq_t *in,
-                                      dl_matrix3dq_t *filter,
-                                      dl_matrix3dq_t *bias,
-                                      dl_conv_mode mode);
+                                           dl_matrix3dq_t *in,
+                                           dl_matrix3dq_t *filter,
+                                           dl_matrix3dq_t *bias,
+                                           dl_conv_mode mode);
 
 void dl_matrix3duq_conv_1x1(dl_matrix3dq_t *out,
                             dl_matrix3du_t *in,
@@ -179,21 +184,40 @@ void dl_matrix3dqq_conv_3x3_op(dl_matrix3dq_t *out,
                                int stride_x,
                                int stride_y);
 
-dl_matrix3dq_t *dl_matrix3dqq_conv_3x3_with_bias(dl_matrix3dq_t *in,
-                                               dl_matrix3dq_t *f,
-                                               dl_matrix3dq_t *bias,
-                                               int stride_x,
-                                               int stride_y,
-                                               dl_padding_type padding,
-                                               int exponent,
-                                               int relu);
-
 dl_matrix3dq_t *dl_matrix3dqq_conv_3x3(dl_matrix3dq_t *in,
-                                      dl_matrix3dq_t *filter,
-                                      int stride_x,
-                                      int stride_y,
-                                      int padding,
-                                      int exponent);
+                                       dl_matrix3dq_t *filter,
+                                       int stride_x,
+                                       int stride_y,
+                                       dl_padding_type padding,
+                                       int exponent);
+
+dl_matrix3dq_t *dl_matrix3dqq_conv_3x3_with_bias(dl_matrix3dq_t *in,
+                                                 dl_matrix3dq_t *f,
+                                                 dl_matrix3dq_t *bias,
+                                                 int stride_x,
+                                                 int stride_y,
+                                                 dl_padding_type padding,
+                                                 int exponent,
+                                                 int relu);
+
+dl_matrix3dq_t *dl_matrix3duq_conv_3x3_with_bias(dl_matrix3du_t *in,
+                                                 dl_matrix3dq_t *filter,
+                                                 dl_matrix3dq_t *bias,
+                                                 int stride_x,
+                                                 int stride_y,
+                                                 dl_padding_type padding,
+                                                 int exponent,
+                                                 char *name);
+
+dl_matrix3dq_t *dl_matrix3duq_conv_3x3_with_bias_prelu(dl_matrix3du_t *in,
+                                                       dl_matrix3dq_t *filter,
+                                                       dl_matrix3dq_t *bias,
+                                                       dl_matrix3dq_t *prelu,
+                                                       int stride_x,
+                                                       int stride_y,
+                                                       dl_padding_type padding,
+                                                       int exponent,
+                                                       char *name);
 
 //
 // Conv common
@@ -264,20 +288,28 @@ dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_3(dl_matrix3dq_t *in,
 #endif
 
 dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_with_bias(dl_matrix3dq_t *in,
-                                                         dl_matrix3dq_t *f,
-                                                         dl_matrix3dq_t *bias,
-                                                         int stride_x,
-                                                         int stride_y,
-                                                         dl_padding_type padding,
-                                                         int exponent,
-                                                         int relu);
-
-dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3s1_with_bias(dl_matrix3dq_t *in,
                                                            dl_matrix3dq_t *f,
                                                            dl_matrix3dq_t *bias,
+                                                           int stride_x,
+                                                           int stride_y,
                                                            dl_padding_type padding,
                                                            int exponent,
                                                            int relu);
+
+dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_with_prelu(dl_matrix3dq_t *in,
+                                                            dl_matrix3dq_t *filter,
+                                                            dl_matrix3dq_t *prelu,
+                                                            int stride_x,
+                                                            int stride_y,
+                                                            dl_padding_type padding,
+                                                            int exponent);
+
+dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3s1_with_bias(dl_matrix3dq_t *in,
+                                                             dl_matrix3dq_t *f,
+                                                             dl_matrix3dq_t *bias,
+                                                             dl_padding_type padding,
+                                                             int exponent,
+                                                             int relu);
 
 //
 // Depthwise Common
@@ -322,45 +354,46 @@ void dl_matrix3dqq_fc_with_bias(dl_matrix3dq_t *out,
                                 dl_matrix3dq_t *in,
                                 dl_matrix3dq_t *filter,
                                 dl_matrix3dq_t *bias,
-                                dl_conv_mode mode);
+                                dl_conv_mode mode,
+                                char *name);
 
 //
 // Mobilefaceblock
 //
 
 dl_matrix3dq_t *dl_matrix3dqq_mobilefaceblock_split(dl_matrix3dq_t *in,
-                                                   dl_matrix3dq_t *pw_1,
-                                                   dl_matrix3dq_t *pw_2,
-                                                   dl_matrix3dq_t *pw_bias,
-                                                   dl_matrix3dq_t *dw,
-                                                   dl_matrix3dq_t *dw_bias,
-                                                   dl_matrix3dq_t *pw_linear_1,
-                                                   dl_matrix3dq_t *pw_linear_2,
-                                                   dl_matrix3dq_t *pw_linear_bias,
-                                                   int pw_exponent,
-                                                   int dw_exponent,
-                                                   int pw_linear_exponent,
-                                                   int stride_x,
-                                                   int stride_y,
-                                                   dl_padding_type padding,
-                                                   dl_conv_mode mode,
-                                                   int shortcut);
+                                                    dl_matrix3dq_t *pw_1,
+                                                    dl_matrix3dq_t *pw_2,
+                                                    dl_matrix3dq_t *pw_bias,
+                                                    dl_matrix3dq_t *dw,
+                                                    dl_matrix3dq_t *dw_bias,
+                                                    dl_matrix3dq_t *pw_linear_1,
+                                                    dl_matrix3dq_t *pw_linear_2,
+                                                    dl_matrix3dq_t *pw_linear_bias,
+                                                    int pw_exponent,
+                                                    int dw_exponent,
+                                                    int pw_linear_exponent,
+                                                    int stride_x,
+                                                    int stride_y,
+                                                    dl_padding_type padding,
+                                                    dl_conv_mode mode,
+                                                    int shortcut);
 
 dl_matrix3dq_t *dl_matrix3dqq_mobilefaceblock(dl_matrix3dq_t *in,
-                                             dl_matrix3dq_t *pw,
-                                             dl_matrix3dq_t *pw_bias,
-                                             dl_matrix3dq_t *dw,
-                                             dl_matrix3dq_t *dw_bias,
-                                             dl_matrix3dq_t *pw_linear,
-                                             dl_matrix3dq_t *pw_linear_bias,
-                                             int pw_exponent,
-                                             int dw_exponent,
-                                             int pw_linear_exponent,
-                                             int stride_x,
-                                             int stride_y,
-                                             dl_padding_type padding,
-                                             dl_conv_mode mode,
-                                             int shortcut);
+                                              dl_matrix3dq_t *pw,
+                                              dl_matrix3dq_t *pw_bias,
+                                              dl_matrix3dq_t *dw,
+                                              dl_matrix3dq_t *dw_bias,
+                                              dl_matrix3dq_t *pw_linear,
+                                              dl_matrix3dq_t *pw_linear_bias,
+                                              int pw_exponent,
+                                              int dw_exponent,
+                                              int pw_linear_exponent,
+                                              int stride_x,
+                                              int stride_y,
+                                              dl_padding_type padding,
+                                              dl_conv_mode mode,
+                                              int shortcut);
 
 //
 // Mobilenet
@@ -373,7 +406,8 @@ dl_matrix3dq_t *dl_matrix3dqq_mobilenet(dl_matrix3dq_t *in,
                                         dl_matrix3dq_t *depth_prelu,
                                         dl_matrix3dq_t *compress,
                                         dl_matrix3dq_t *bias,
-                                        dl_matrix3dq_mobilenet_config_t config);
+                                        dl_matrix3dq_mobilenet_config_t config,
+                                        char *name);
 
 dl_matrix3dq_t *dl_matrix3duq_mobilenet(dl_matrix3du_t *in,
                                         dl_matrix3dq_t *dilate,
@@ -382,20 +416,30 @@ dl_matrix3dq_t *dl_matrix3duq_mobilenet(dl_matrix3du_t *in,
                                         dl_matrix3dq_t *depth_prelu,
                                         dl_matrix3dq_t *compress,
                                         dl_matrix3dq_t *bias,
-                                        dl_matrix3dq_mobilenet_config_t config);
+                                        dl_matrix3dq_mobilenet_config_t config,
+                                        char *name);
 
 //
 // Padding
 //
 
-#if CONFIG_DEVELOPING_CODE
-dl_matrix3dq_t *dl_matrix3dqq_padding(dl_matrix3dq_t *in,
-                                      dl_matrix3dq_t *filter,
-                                      int stride_x,
-                                      int stride_y,
-                                      dl_padding_type padding,
-                                      int exponent);
-#endif
+dl_error_type dl_matrix3dqq_padding(dl_matrix3dq_t **padded_in,
+                                    dl_matrix3dq_t **out,
+                                    dl_matrix3dq_t *in,
+                                    int out_c,
+                                    int stride_x,
+                                    int stride_y,
+                                    int padding,
+                                    int exponent);
+
+dl_error_type dl_matrix3duq_padding(dl_matrix3du_t **padded_in,
+                                    dl_matrix3dq_t **out,
+                                    dl_matrix3du_t *in,
+                                    int out_c,
+                                    int stride_x,
+                                    int stride_y,
+                                    int padding,
+                                    int exponent);
 
 //
 // Pooling

@@ -133,10 +133,11 @@ Two versions of MTMN are available by now:
 
 - MTMN lite in quantization (*default*)
 - MTMN lite in float
+- MTMN heavy in quantization
 
 #### Performance
 
-We evaluate both models in the same configuration shown below.
+We evaluate all models with the same configuration and our own test set. The results are shown below.
 
 ```c
 mtmn_config.type = FAST;
@@ -154,9 +155,11 @@ mtmn_config.o_threshold.nms = 0.7;
 mtmn_config.o_threshold.candidate_number = 1;
 ```
 
-|                               | MTMN lite in quantization | MTMN lite in float |
-| :---------------------------: | :-----------------------: | :----------------: |
-| Average Time Consumption (ms) |          143.19           |       178.45       |
+|                            | Average Time Consumption (ms) |   AP   |
+| :------------------------: | :---------------------------: | :----: |
+| MTMN lite in quantization  |            143.19             | 0.8553 |
+|     MTMN lite in float     |            178.45             | 0.8575 |
+| MTMN heavy in quantization |            242.84             | 0.9258 |
 
 #### How to select
 
@@ -164,4 +167,4 @@ Models can be selected through `idf.py menuconfig` or `make menuconfig`. Select 
 
 ![detection model selection](../img/detection_model_selection.png)
 
-## 
+ 

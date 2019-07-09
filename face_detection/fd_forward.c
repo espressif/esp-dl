@@ -65,6 +65,10 @@ box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid
         out = pnet_lite_q(in, DL_XTENSA_IMPL);
 #endif
 
+#if CONFIG_MTMN_HEAVY_QUANT
+        out = pnet_heavy_q(in, DL_XTENSA_IMPL);
+#endif
+
         if (out)
         {
             origin_head[i] = image_get_valid_boxes(out->category->item,
@@ -162,6 +166,10 @@ box_array_t *pnet_forward2(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyrami
 
 #if CONFIG_MTMN_LITE_QUANT
         out = pnet_lite_q(in, DL_XTENSA_IMPL);
+#endif
+
+#if CONFIG_MTMN_HEAVY_QUANT
+        out = pnet_heavy_q(in, DL_XTENSA_IMPL);
 #endif
 
         if (out)
@@ -285,6 +293,10 @@ box_array_t *pnet_forward_fast(dl_matrix3du_t *image, fptp_t min_face, int pyram
         out = pnet_lite_q(resized_image, DL_XTENSA_IMPL);
 #endif
 
+#if CONFIG_MTMN_HEAVY_QUANT
+        out = pnet_heavy_q(resized_image, DL_XTENSA_IMPL);
+#endif
+
         if (out)
         {
             origin_head[i] = image_get_valid_boxes(out->category->item,
@@ -348,6 +360,10 @@ box_array_t *pnet_forward_fast(dl_matrix3du_t *image, fptp_t min_face, int pyram
 
 #if CONFIG_MTMN_LITE_QUANT
         out = pnet_lite_q(resized_image, DL_XTENSA_IMPL);
+#endif
+
+#if CONFIG_MTMN_HEAVY_QUANT
+        out = pnet_heavy_q(resized_image, DL_XTENSA_IMPL);
 #endif
 
         if (out)
@@ -457,6 +473,10 @@ box_array_t *rnet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
         mtmn_net_t *out = rnet_lite_q_with_score_verify(resized_image, config->threshold.score, DL_XTENSA_IMPL);
 #endif
 
+#if CONFIG_MTMN_HEAVY_QUANT
+        mtmn_net_t *out = rnet_heavy_q_with_score_verify(resized_image, config->threshold.score, DL_XTENSA_IMPL);
+#endif
+
         if (out)
         {
             assert(out->category->stride == 2);
@@ -555,6 +575,10 @@ box_array_t *onet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
 
 #if CONFIG_MTMN_LITE_QUANT
         mtmn_net_t *out = onet_lite_q_with_score_verify(resized_image, config->threshold.score, DL_XTENSA_IMPL);
+#endif
+
+#if CONFIG_MTMN_HEAVY_QUANT
+        mtmn_net_t *out = onet_heavy_q_with_score_verify(resized_image, config->threshold.score, DL_XTENSA_IMPL);
 #endif
 
         if (out)
