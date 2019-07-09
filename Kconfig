@@ -23,6 +23,9 @@ menu "ESP-FACE Configuration"
         
         config MTMN_LITE_FLOAT
             bool "MTMN lite in float"
+
+        config MTMN_HEAVY_QUANT
+            bool "MTMN heavy in quantization"
     endchoice
 
     choice RECOGNITION_MODEL
