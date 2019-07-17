@@ -4,7 +4,11 @@ FRMN is a lightweight **Human Face Recognition Model**, which is built around [a
 
 ## Overview
 
-FRMN is built on MobileNetV2. In our training, we use the ArcFace Algorithm, instead of the traditional Softmax Function, and the Cross-Entropy Loss function.
+Model FRMN1 is built on MobileNetV2.
+
+Model FRMN2/2C/2P is built on ShuffleNetV2.
+
+In our training, we use the ArcFace Algorithm, instead of the traditional Softmax Function, and the Cross-Entropy Loss function.
 
 To reduce the computation complexity, we use images of smaller size (56x56) in our training.
 
@@ -13,10 +17,10 @@ To reduce the computation complexity, we use images of smaller size (56x56) in o
 
 The steps below list the whole process of a **Face Recognition**:
 
-1. Obtain the input images.
-2. Start the **Face Detection** and obtain the `position` and `landmark` coordinates of the face.
-3. Align the face by using the `landmark` coordinates and obtain a face image of required size.
-4. Input the aligned face image to the face recognition algorithm and generate a **Face ID**.
+1. Obtain the input images, typecally 320x240 resolution.
+2. Start the **Face Detection** and obtain the `landmark` coordinates of the face.
+3. Align the face by using the `landmark` coordinates and obtain a face image of required size. `align_face`
+4. Input the aligned face image to the face recognition algorithm and generate a **Face ID**. `get_face_id` and `recognize_face`
 5. Compare the newly generated **Face ID** against the existing **Face IDs** and obtain the distance between these two **Face IDs** (normally in Euclidean distance or Cosine distance).
 6. Determine if the two **Face IDs** are from a same person by comparing the distance between these two **Face IDs** and the specified threshold.
 
@@ -83,3 +87,8 @@ Please note the followings when using our **Face Recognition Lib**:
         - The larger the Euclidean distance between two **Face IDs** is, the more similar these two **Face IDs** are.
     - Note that, the Cosine distance is used in this example.
 - To store your **Face ID** in the flash, instead of the RAM, please firstly configure your partitions.csv file.
+- The data stored in ram is in `face_id_list` format, while in flash is in the format:
+1. 0-31B Info, to check the content in the flash
+2. 32-39B Len, to indicate the number of ids in flash
+3. 40-4095B Reserved
+4. Each id needs 2KB, begins at 4096B

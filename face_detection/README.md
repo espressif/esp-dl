@@ -31,6 +31,18 @@ The output is:
 
 - A `box_array_t` type value contains face boxes, as well as score and landmark of each box.
 
+This structure is defined as follows:
+```c
+typedef struct tag_box_list
+{
+    fptp_t *score;
+    box_t *box;
+    landmark_t *landmark;
+    int len;
+} box_array_t;
+```
+The structure contains heads of arrays, each array has a same length, which is the number of faces in the image.
+
 ## Advance Configuration
 
 `face_detect()` provides the `config` parameter for users' customized definition.
