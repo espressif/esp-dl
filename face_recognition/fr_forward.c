@@ -424,6 +424,11 @@ int8_t delete_face_with_name(face_id_name_list *l, char *name)
             if (q == l->head)
             {
                 l->head = q->next;
+                if (q == l->tail)
+                {
+                    l->head = NULL;
+                    l->tail = NULL;
+                }
             }
             else if (q == l->tail)
             {
