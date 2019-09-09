@@ -16,10 +16,9 @@ set(COMPONENT_REQUIRES spi_flash)
 
 register_component()
 
-target_link_libraries(esp-face "-L ${CMAKE_CURRENT_SOURCE_DIR}/lib")
-target_link_libraries(esp-face
+target_link_libraries(${COMPONENT_NAME} "-L ${CMAKE_CURRENT_SOURCE_DIR}/lib")
+target_link_libraries(${COMPONENT_NAME}
     dl_lib
     fd
     fr
     )
-
