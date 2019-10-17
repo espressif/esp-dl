@@ -107,7 +107,7 @@ box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid
         if (all_box_list.len > config->threshold.candidate_number)
             all_box_list.len = config->threshold.candidate_number;
 
-        image_calibrate_by_offset(&all_box_list);
+        image_calibrate_by_offset(&all_box_list, image->h, image->w);
 
         pnet_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
 
@@ -210,7 +210,7 @@ box_array_t *pnet_forward2(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyrami
         if (all_box_list.len > config->threshold.candidate_number)
             all_box_list.len = config->threshold.candidate_number;
 
-        image_calibrate_by_offset(&all_box_list);
+        image_calibrate_by_offset(&all_box_list, image->h, image->w);
 
         pnet_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
 
@@ -404,7 +404,7 @@ box_array_t *pnet_forward_fast(dl_matrix3du_t *image, fptp_t min_face, int pyram
         if (all_box_list.len > config->threshold.candidate_number)
             all_box_list.len = config->threshold.candidate_number;
 
-        image_calibrate_by_offset(&all_box_list);
+        image_calibrate_by_offset(&all_box_list, image->h, image->w);
 
         pnet_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
 
@@ -516,7 +516,7 @@ box_array_t *rnet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
 
     if (sorted_list.len)
     {
-        image_calibrate_by_offset(&sorted_list);
+        image_calibrate_by_offset(&sorted_list, image->h, image->w);
 
         net_box_list = (box_array_t *)calloc(1, sizeof(box_array_t));
         net_box = (box_t *)calloc(sorted_list.len, sizeof(box_t));
@@ -623,7 +623,7 @@ box_array_t *onet_forward(dl_matrix3du_t *image, box_array_t *net_boxes, net_con
     {
         image_landmark_calibrate(&sorted_list);
 
-        image_calibrate_by_offset(&sorted_list);
+        image_calibrate_by_offset(&sorted_list, image->h, image->w);
 
         image_nms_process(&sorted_list, config->threshold.nms, false);
 
