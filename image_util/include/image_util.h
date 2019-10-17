@@ -302,6 +302,20 @@ extern "C"
     void image_abs_diff(uint8_t *dst, uint8_t *src1, uint8_t *src2, int count);
     void image_threshold(uint8_t *dst, uint8_t *src, int threshold, int value, int count, en_threshold_mode mode);
     void image_erode(uint8_t *dst, uint8_t *src, int src_w, int src_h, int src_c);
+
+    typedef float matrixType;
+    typedef struct
+    {
+        int w;
+        int h;
+        matrixType **array;
+    } Matrix;
+
+    Matrix *matrix_alloc(int h,int w);
+    void matrix_free(Matrix *m);
+    Matrix *get_similarity_matrix(float *srcx, float *srcy, float *dstx, float *dsty, int num);
+    void warp_affine(dl_matrix3du_t *img, dl_matrix3du_t *crop, Matrix *M);
+
 #ifdef __cplusplus
 }
 #endif

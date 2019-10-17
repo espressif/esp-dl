@@ -10,6 +10,9 @@
 
 static const char *TAG = "face_recognition";
 
+static float dst_ldk_x[5] = {19.1473,36.7659,28.0126,20.77465,35.36495};
+static float dst_ldk_y[5] = {25.84815,25.7507,35.8683,46.18275,46.10205};
+
 void face_id_init(face_id_list *l, uint8_t size, uint8_t confirm_times)
 {
     l->head = 0;
@@ -58,7 +61,7 @@ dl_matrix3du_t *aligned_face_alloc()
                               3);
 }
 
-int8_t align_face(box_array_t *onet_boxes,
+int8_t align_face_rot(box_array_t *onet_boxes,
                   dl_matrix3du_t *src,
                   dl_matrix3du_t *dest)
 {
@@ -155,6 +158,34 @@ int8_t align_face2(fptp_t *landmark,
     ESP_LOGD(TAG, "ne_ratio  : %f", ne_ratio);
 
     image_cropper(dest->item, src->item, dest->w, dest->h, dest->c, src->w, src->h, angle, ratio, center);
+    return ESP_OK;
+}
+
+int8_t align_face_sim(box_array_t *onet_boxes,
+                   dl_matrix3du_t *src,
+                   dl_matrix3du_t *dest)
+{
+    float src_ldk_x[5] = {0};
+    float src_ldk_y[5] = {0};
+
+    src_ldk_x[0] = onet_boxes->landmark[0].landmark_p[LEFT_EYE_X];
+    src_ldk_y[0] = onet_boxes->landmark[0].landmark_p[LEFT_EYE_Y];
+    src_ldk_x[1] = onet_boxes->landmark[0].landmark_p[RIGHT_EYE_X];
+    src_ldk_y[1] = onet_boxes->landmark[0].landmark_p[RIGHT_EYE_Y];
+    src_ldk_x[2] = onet_boxes->landmark[0].landmark_p[NOSE_X];
+    src_ldk_y[2] = onet_boxes->landmark[0].landmark_p[NOSE_Y];
+    src_ldk_x[3] = onet_boxes->landmark[0].landmark_p[LEFT_MOUTH_X];
+    src_ldk_y[3] = onet_boxes->landmark[0].landmark_p[LEFT_MOUTH_Y];
+    src_ldk_x[4] = onet_boxes->landmark[0].landmark_p[RIGHT_MOUTH_X];
+    src_ldk_y[4] = onet_boxes->landmark[0].landmark_p[RIGHT_MOUTH_Y];
+
+    Matrix *M = get_similarity_matrix(src_ldk_x,src_ldk_y,dst_ldk_x,dst_ldk_y, 5);
+    if(M == NULL){
+        return ESP_FAIL;
+    }
+    warp_affine(src,dest,M);
+    matrix_free(M);
+
     return ESP_OK;
 }
 
