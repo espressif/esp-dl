@@ -23,9 +23,9 @@ int8_t enroll_face_id_to_flash(face_id_list *l,
 
         const int block_len = FACE_ID_SIZE * sizeof(float);
         const int block_num = (4096 + block_len - 1) / block_len;
-        float *backup_buf = (float *)calloc(1, block_len);
+        float *backup_buf = (float *)dl_lib_calloc(1, block_len, 0);
         int flash_info_flag = FR_FLASH_INFO_FLAG;
-        uint8_t enroll_id_idx = (l->tail - 1) % l->size;
+        uint8_t enroll_id_idx = l->tail == 0 ? (l->size - 1) : (l->tail - 1) % l->size;
 
         if(enroll_id_idx % block_num == 0)
         {
@@ -47,6 +47,8 @@ int8_t enroll_face_id_to_flash(face_id_list *l,
             esp_partition_write(pt, 4096 + (enroll_id_idx - 1) * block_len, backup_buf, block_len);
             esp_partition_write(pt, 4096 + enroll_id_idx * block_len, l->id_list[enroll_id_idx]->item, block_len); 
         }
+
+        dl_lib_free(backup_buf);
 
         esp_partition_erase_range(pt, 0, 4096);
         esp_partition_write(pt, 0, &flash_info_flag, sizeof(int));
@@ -116,8 +118,11 @@ int8_t delete_face_id_in_flash(face_id_list *l)
     }
 
     esp_partition_erase_range(pt, 0, 4096);
-    esp_partition_write(pt, 0, &flash_info_flag, sizeof(int));
-    esp_partition_write(pt, sizeof(int), l, sizeof(face_id_list));
+    if (l->count)
+    {
+        esp_partition_write(pt, 0, &flash_info_flag, sizeof(int));
+        esp_partition_write(pt, sizeof(int), l, sizeof(face_id_list));
+    }
     return l->count;
 }
 
@@ -152,18 +157,18 @@ int8_t enroll_face_id_to_flash_with_name(face_id_name_list *l,
     else
     {
         // save the other block TODO: if block != 2
-        float *backup_buf = (float *)calloc(1, block_len);
+        float *backup_buf = (float *)dl_lib_calloc(1, block_len, 0);
         esp_partition_read(pt, 4096 + (enroll_id_idx - 1) * block_len, backup_buf, block_len);
 
         esp_partition_erase_range(pt, 4096 + (enroll_id_idx - 1) * block_len, 4096);
 
         esp_partition_write(pt, 4096 + (enroll_id_idx - 1) * block_len, backup_buf, block_len);
         esp_partition_write(pt, 4096 + enroll_id_idx * block_len, l->tail->id_vec->item, block_len); 
-        free(backup_buf);
+        dl_lib_free(backup_buf);
     }
 
     const int name_len = ENROLL_NAME_LEN * sizeof(char);
-    char *backup_name = (char *)calloc(l->count, name_len);
+    char *backup_name = (char *)dl_lib_calloc(l->count, name_len, 0);
     esp_partition_read(pt, sizeof(int) + sizeof(uint8_t), backup_name, name_len * (l->count - 1));
     memcpy(backup_name + (l->count - 1) * name_len, l->tail->id_name, name_len);
     esp_partition_erase_range(pt, 0, 4096);
@@ -171,7 +176,7 @@ int8_t enroll_face_id_to_flash_with_name(face_id_name_list *l,
     esp_partition_write(pt, 0, &flash_info_flag, sizeof(int));
     esp_partition_write(pt, sizeof(int), &l->count, sizeof(uint8_t));
     esp_partition_write(pt, sizeof(int) + sizeof(uint8_t), backup_name, name_len * l->count);
-    free(backup_name);
+    dl_lib_free(backup_name);
 
     return 0;
 }
@@ -200,8 +205,8 @@ int8_t read_face_id_from_flash_with_name(face_id_name_list *l)
 
     esp_partition_read(pt, offset, &count, sizeof(uint8_t));
     offset += sizeof(uint8_t);
-    const int name_len = count * ENROLL_NAME_LEN * sizeof(char);
-    char *name = (char *)malloc(name_len);
+    const int name_len = count * ENROLL_NAME_LEN;
+    char *name = (char *)dl_lib_calloc(name_len, sizeof(char), 0);
 
     esp_partition_read(pt, offset, name, name_len);
     offset += name_len;
@@ -209,7 +214,7 @@ int8_t read_face_id_from_flash_with_name(face_id_name_list *l)
     const int block_len = FACE_ID_SIZE * sizeof(float);
     for (int i = 0; i < count; i++)
     {
-        face_id_node *new_node = (face_id_node *)malloc(sizeof(face_id_node));
+        face_id_node *new_node = (face_id_node *)dl_lib_calloc(1, sizeof(face_id_node), 0);
         new_node->next = NULL;
         memcpy(new_node->id_name, name + i * ENROLL_NAME_LEN * sizeof(char), ENROLL_NAME_LEN * sizeof(char));
         new_node->id_vec = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
@@ -225,6 +230,8 @@ int8_t read_face_id_from_flash_with_name(face_id_name_list *l)
             l->tail = new_node;
         }
     }
+
+    dl_lib_free(name);
 
     l->count = count;
 
@@ -286,7 +293,7 @@ int8_t delete_face_id_in_flash_with_name(face_id_name_list *l, char *name)
         }
         else
         {
-            float *backup_buf = (float *)calloc(1, block_len);
+            float *backup_buf = (float *)dl_lib_calloc(1, block_len, 0);
             esp_partition_read(pt, 4096 + (i - 1) * block_len, backup_buf, block_len);
             esp_partition_erase_range(pt, 4096 + (i - 1) * block_len, 4096);
 
@@ -294,6 +301,7 @@ int8_t delete_face_id_in_flash_with_name(face_id_name_list *l, char *name)
             esp_partition_write(pt, 4096 + i * block_len, f->id_vec->item, block_len);
             esp_partition_write(pt, sizeof(int) + sizeof(uint8_t) + i * ENROLL_NAME_LEN * sizeof(char), f->id_name, ENROLL_NAME_LEN * sizeof(char));
             i += 1;
+            dl_lib_free(backup_buf);
         }
     }
 

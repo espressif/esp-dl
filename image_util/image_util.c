@@ -255,7 +255,7 @@ image_list_t *image_get_valid_boxes(fptp_t *score,
         short valid_y;
         int valid_idx;
     } valid_index_t;
-    valid_index_t *valid_indexes = (valid_index_t *)calloc(width * height, sizeof(valid_index_t));
+    valid_index_t *valid_indexes = (valid_index_t *)dl_lib_calloc(width * height, sizeof(valid_index_t), 0);
     int valid_count = 0;
     int index = 0;
     for (int y = 0; y < height; y++)
@@ -273,12 +273,12 @@ image_list_t *image_get_valid_boxes(fptp_t *score,
 
     if (0 == valid_count)
     {
-        free(valid_indexes);
+        dl_lib_free(valid_indexes);
         return NULL;
     }
 
-    image_box_t *valid_box = (image_box_t *)calloc(valid_count, sizeof(image_box_t));
-    image_list_t *valid_list = (image_list_t *)calloc(1, sizeof(image_list_t));
+    image_box_t *valid_box = (image_box_t *)dl_lib_calloc(valid_count, sizeof(image_box_t), 0);
+    image_list_t *valid_list = (image_list_t *)dl_lib_calloc(1, sizeof(image_list_t), 0);
     valid_list->head = valid_box;
     valid_list->origin_head = valid_box;
     valid_list->len = valid_count;
@@ -301,7 +301,7 @@ image_list_t *image_get_valid_boxes(fptp_t *score,
     }
     valid_box[valid_count - 1].next = NULL;
 
-    free(valid_indexes);
+    dl_lib_free(valid_indexes);
 
     return valid_list;
 } /*}}}*/

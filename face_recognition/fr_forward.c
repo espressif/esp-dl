@@ -20,7 +20,7 @@ void face_id_init(face_id_list *l, uint8_t size, uint8_t confirm_times)
     l->count = 0;
     l->size = size;
     l->confirm_times = confirm_times;
-    l->id_list = (dl_matrix3d_t **)calloc(size, sizeof(dl_matrix3d_t *));
+    l->id_list = (dl_matrix3d_t **)dl_lib_calloc(size, sizeof(dl_matrix3d_t *), 0);
 }
 
 void face_id_name_init(face_id_name_list *l, uint8_t size, uint8_t confirm_times)
@@ -363,6 +363,11 @@ uint8_t delete_face(face_id_list *l)
 
     l->head = (l->head + 1) % l->size;
     l->count--;
+    if (l->count == 0)
+    {
+        l->head = 0;
+        l->tail = 0;
+    }
     return l->count;
 }
 
@@ -405,7 +410,7 @@ int8_t enroll_face_with_name(face_id_name_list *l,
 
     if (confirm_counter == 0)
     {
-        face_id_node *new_node = (face_id_node *)malloc(sizeof(face_id_node));
+        face_id_node *new_node = (face_id_node *)dl_lib_calloc(1, sizeof(face_id_node), 0);
         new_node->next = NULL;
         new_node->id_vec = dl_matrix3d_alloc(1, 1, 1, FACE_ID_SIZE);
         if (NULL == l->tail)
@@ -465,7 +470,7 @@ int8_t delete_face_with_name(face_id_name_list *l, char *name)
             {
                 l->tail = p;
             }
-            free(q);
+            dl_lib_free(q);
             l->count--;
             return i;
         }
@@ -486,7 +491,7 @@ void delete_face_all_with_name(face_id_name_list *l)
     {
         dl_matrix3d_free(p->id_vec);
         l->head = p->next;
-        free(p);
+        dl_lib_free(p);
         p = l->head;
     }
     l->count = 0;
