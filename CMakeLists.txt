@@ -1,5 +1,6 @@
 set(COMPONENT_SRCS
     face_detection/fd_forward.c
+    object_detection/lssh_forward.c
     face_recognition/fr_forward.c
     face_recognition/fr_flash.c
     image_util/image_util.c
@@ -8,6 +9,7 @@ set(COMPONENT_SRCS
 set(COMPONENT_ADD_INCLUDEDIRS
     face_detection/include
     face_recognition/include
+    object_detection/include
     image_util/include
     lib/include
     )
@@ -21,4 +23,5 @@ target_link_libraries(${COMPONENT_TARGET}
     dl_lib
     fd
     fr
+    od
     )

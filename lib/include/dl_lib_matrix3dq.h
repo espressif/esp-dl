@@ -11,13 +11,13 @@ typedef int16_t qtp_t;
 typedef struct
 {
     /******* fix start *******/
-    int w;          /*!< Width */
-    int h;          /*!< Height */
-    int c;          /*!< Channel */
-    int n;          /*!< Number of filter, input and output must be 1 */
-    int stride;     /*!< Step between lines */
-    int exponent;   /*!< Exponent for quantization */
-    qtp_t *item;    /*!< Data */
+    int w;        /*!< Width */
+    int h;        /*!< Height */
+    int c;        /*!< Channel */
+    int n;        /*!< Number of filter, input and output must be 1 */
+    int stride;   /*!< Step between lines */
+    int exponent; /*!< Exponent for quantization */
+    qtp_t *item;  /*!< Data */
     /******* fix end *******/
 } dl_matrix3dq_t;
 
@@ -38,23 +38,22 @@ typedef struct
  */
 typedef enum
 {
-    DL_C_IMPL = 0,      /*!< ANSI C */
-    DL_XTENSA_IMPL = 1  /*!< Handwrite xtensa instruction */
+    DL_C_IMPL = 0,     /*!< ANSI C */
+    DL_XTENSA_IMPL = 1 /*!< Handwrite xtensa instruction */
 } dl_conv_mode;
-
 
 /**
  * Configuration of mobilenet operation
  */
 typedef struct
 {
-    int stride_x;               /*!< Strides of width */
-    int stride_y;               /*!< Strides of height */
-    dl_padding_type padding;    /*!< Padding type */
-    dl_conv_mode mode;          /*!< Implementation mode */
-    int dilate_exponent;        /*!< Exponent of dilation filter */
-    int depthwise_exponent;     /*!< Exponent of depthwise filter */
-    int compress_exponent;      /*!< Exponent of compress filter */
+    int stride_x;            /*!< Strides of width */
+    int stride_y;            /*!< Strides of height */
+    dl_padding_type padding; /*!< Padding type */
+    dl_conv_mode mode;       /*!< Implementation mode */
+    int dilate_exponent;     /*!< Exponent of dilation filter */
+    int depthwise_exponent;  /*!< Exponent of depthwise filter */
+    int compress_exponent;   /*!< Exponent of compress filter */
 } dl_matrix3dq_mobilenet_config_t;
 
 //
@@ -245,7 +244,8 @@ dl_matrix3dq_t *dl_matrix3dq_concat_8(dl_matrix3dq_t *in_1,
 void dl_matrix3dqq_conv_1x1(dl_matrix3dq_t *out,
                             dl_matrix3dq_t *in,
                             dl_matrix3dq_t *filter,
-                            dl_conv_mode mode);
+                            dl_conv_mode mode,
+                            char *name);
 
 /**
  * @brief Do 1x1 convolution with a quantized matrix, with relu activation
@@ -258,7 +258,8 @@ void dl_matrix3dqq_conv_1x1(dl_matrix3dq_t *out,
 void dl_matrix3dqq_conv_1x1_with_relu(dl_matrix3dq_t *out,
                                       dl_matrix3dq_t *in,
                                       dl_matrix3dq_t *filter,
-                                      dl_conv_mode mode);
+                                      dl_conv_mode mode,
+                                      char *name);
 
 /**
  * @brief Do 1x1 convolution with a quantized matrix, with bias adding
@@ -290,13 +291,25 @@ void dl_matrix3dqq_conv_1x1_with_bias_relu(dl_matrix3dq_t *out,
                                            dl_matrix3dq_t *in,
                                            dl_matrix3dq_t *filter,
                                            dl_matrix3dq_t *bias,
-                                           dl_conv_mode mode);
+                                           dl_conv_mode mode,
+                                           char *name);
 
+/**
+ * @brief 
+ * 
+ * @param out 
+ * @param in 
+ * @param filter 
+ * @param prelu 
+ * @param mode 
+ * @param name 
+ */
 void dl_matrix3dqq_conv_1x1_with_prelu(dl_matrix3dq_t *out,
                                        dl_matrix3dq_t *in,
                                        dl_matrix3dq_t *filter,
                                        dl_matrix3dq_t *prelu,
-                                       dl_conv_mode mode);
+                                       dl_conv_mode mode,
+                                       char *name);
 
 /**
  * @brief Do 1x1 convolution with an 8-bit fixed point matrix
@@ -309,7 +322,8 @@ void dl_matrix3dqq_conv_1x1_with_prelu(dl_matrix3dq_t *out,
 void dl_matrix3duq_conv_1x1(dl_matrix3dq_t *out,
                             dl_matrix3du_t *in,
                             dl_matrix3dq_t *filter,
-                            dl_conv_mode mode);
+                            dl_conv_mode mode,
+                            char *name);
 
 /**
  * @brief Do 1x1 convolution with an 8-bit fixed point matrix, with bias adding
@@ -324,66 +338,47 @@ void dl_matrix3duq_conv_1x1_with_bias(dl_matrix3dq_t *out,
                                       dl_matrix3du_t *in,
                                       dl_matrix3dq_t *filter,
                                       dl_matrix3dq_t *bias,
-                                      dl_conv_mode mode);
+                                      dl_conv_mode mode,
+                                      char *name);
 
 //
 // Conv 3x3
 //
-/**
- * @brief Do 3x3 convolution basic operation with a quantized matrix
- *
- * @param out       Preallocated quantized matrix
- * @param in        Input matrix, size (1, w, h, c)
- * @param filter    3x3 filter, size (n, 3, 3, c)
- * @param stride_x  Stride of width
- * @param stride_y  Stride of height
- */
-void dl_matrix3dqq_conv_3x3_op(dl_matrix3dq_t *out,
-                               dl_matrix3dq_t *in,
-                               dl_matrix3dq_t *filter,
-                               int stride_x,
-                               int stride_y);
 
 /**
  * @brief Do 3x3 convolution with a quantized matrix
- *
- * @param in        Input matrix, size (1, w, h, c)
- * @param filter    3x3 filter, size (n, 3, 3, c)
- * @param stride_x  Stride of width
- * @param stride_y  Stride of height
- * @param padding   Padding type, 0: valid, 1: same
- * @param exponent  Exponent for resulting matrix
- * @return          Resulting quantized matrix
+ * 
+ * @param input             Input matrix, size (1, w, h, c)
+ * @param filter            3x3 filter, size (n, 3, 3, c)
+ * @param stride_x          Stride of width
+ * @param stride_y          Stride of height
+ * @param padding           Padding type, 0: valid, 1: same
+ * @param exponent          Exponent for resulting matrix
+ * @param name 
+ * @return dl_matrix3dq_t*  Resulting quantized matrix
  */
-dl_matrix3dq_t *dl_matrix3dqq_conv_3x3(dl_matrix3dq_t *in,
+dl_matrix3dq_t *dl_matrix3dqq_conv_3x3(dl_matrix3dq_t *input,
                                        dl_matrix3dq_t *filter,
                                        int stride_x,
                                        int stride_y,
                                        dl_padding_type padding,
-                                       int exponent);
+                                       int exponent,
+                                       char *name);
 
 /**
  * @brief Do 3x3 convolution with a quantized matrix, with bias adding
- *
- * @param in        Input matrix, size (1, w, h, c)
- * @param filter    3x3 filter, size (n, 3, 3, c)
- * @param bias      Bias, size (1, 1, 1, n)
- * @param stride_x  Stride of width
- * @param stride_y  Stride of height
- * @param padding   Padding type, 0: valid, 1: same
- * @param exponent  Exponent for resulting matrix
- * @return          Resulting quantized matrix
+ * 
+ * @param input             Input matrix, size (1, w, h, c)
+ * @param filter            3x3 filter, size (n, 3, 3, c)
+ * @param bias              Bias, size (1, 1, 1, n)
+ * @param stride_x          Stride of width
+ * @param stride_y          Stride of height
+ * @param padding 
+ * @param exponent          Exponent for resulting matrix
+ * @param name 
+ * @return dl_matrix3dq_t*  Resulting quantized matrix
  */
-dl_matrix3dq_t *dl_matrix3dqq_conv_3x3_with_bias(dl_matrix3dq_t *in,
-                                                 dl_matrix3dq_t *f,
-                                                 dl_matrix3dq_t *bias,
-                                                 int stride_x,
-                                                 int stride_y,
-                                                 dl_padding_type padding,
-                                                 int exponent,
-                                                 int relu);
-
-dl_matrix3dq_t *dl_matrix3duq_conv_3x3_with_bias(dl_matrix3du_t *in,
+dl_matrix3dq_t *dl_matrix3dqq_conv_3x3_with_bias(dl_matrix3dq_t *input,
                                                  dl_matrix3dq_t *filter,
                                                  dl_matrix3dq_t *bias,
                                                  int stride_x,
@@ -392,7 +387,65 @@ dl_matrix3dq_t *dl_matrix3duq_conv_3x3_with_bias(dl_matrix3du_t *in,
                                                  int exponent,
                                                  char *name);
 
-dl_matrix3dq_t *dl_matrix3duq_conv_3x3_with_bias_prelu(dl_matrix3du_t *in,
+/**
+ * @brief Do 3x3 convolution with a quantized matrix, with bias adding, relu activation
+ * 
+ * @param input             Input matrix, size (1, w, h, c)
+ * @param filter            3x3 filter, size (n, 3, 3, c)
+ * @param bias              Bias, size (1, 1, 1, n)
+ * @param stride_x          Stride of width
+ * @param stride_y          Stride of height
+ * @param padding 
+ * @param exponent          Exponent for resulting matrix
+ * @param name 
+ * @return dl_matrix3dq_t*  Resulting quantized matrix
+ */
+dl_matrix3dq_t *dl_matrix3dqq_conv_3x3_with_bias_relu(dl_matrix3dq_t *input,
+                                                      dl_matrix3dq_t *filter,
+                                                      dl_matrix3dq_t *bias,
+                                                      int stride_x,
+                                                      int stride_y,
+                                                      dl_padding_type padding,
+                                                      int exponent,
+                                                      char *name);
+
+/**
+ * @brief 
+ * 
+ * @param input 
+ * @param filter 
+ * @param bias 
+ * @param stride_x 
+ * @param stride_y 
+ * @param padding 
+ * @param exponent 
+ * @param name 
+ * @return dl_matrix3dq_t* 
+ */
+dl_matrix3dq_t *dl_matrix3duq_conv_3x3_with_bias(dl_matrix3du_t *input,
+                                                 dl_matrix3dq_t *filter,
+                                                 dl_matrix3dq_t *bias,
+                                                 int stride_x,
+                                                 int stride_y,
+                                                 dl_padding_type padding,
+                                                 int exponent,
+                                                 char *name);
+
+/**
+ * @brief 
+ * 
+ * @param input 
+ * @param filter 
+ * @param bias 
+ * @param prelu 
+ * @param stride_x 
+ * @param stride_y 
+ * @param padding 
+ * @param exponent 
+ * @param name 
+ * @return dl_matrix3dq_t* 
+ */
+dl_matrix3dq_t *dl_matrix3duq_conv_3x3_with_bias_prelu(dl_matrix3du_t *input,
                                                        dl_matrix3dq_t *filter,
                                                        dl_matrix3dq_t *bias,
                                                        dl_matrix3dq_t *prelu,
@@ -469,7 +522,8 @@ dl_matrix3dq_t *dl_matrix3duq_depthwise_conv_3x3(dl_matrix3du_t *in,
                                                  int stride_x,
                                                  int stride_y,
                                                  dl_padding_type padding,
-                                                 int exponent);
+                                                 int exponent,
+                                                 char *name);
 
 /**
  * @brief Do 3x3 depthwise convolution with a quantized matrix
@@ -487,7 +541,8 @@ dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3(dl_matrix3dq_t *in,
                                                  int stride_x,
                                                  int stride_y,
                                                  dl_padding_type padding,
-                                                 int exponent);
+                                                 int exponent,
+                                                 char *name);
 
 #if CONFIG_DEVELOPING_CODE
 dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_2(dl_matrix3dq_t *in,
@@ -495,14 +550,16 @@ dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_2(dl_matrix3dq_t *in,
                                                    int stride_x,
                                                    int stride_y,
                                                    dl_padding_type padding,
-                                                   int exponent);
+                                                   int exponent,
+                                                   char *name);
 
 dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_3(dl_matrix3dq_t *in,
                                                    dl_matrix3dq_t *filter,
                                                    int stride_x,
                                                    int stride_y,
                                                    dl_padding_type padding,
-                                                   int exponent);
+                                                   int exponent,
+                                                   char *name);
 #endif
 
 /**
@@ -519,13 +576,14 @@ dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_3(dl_matrix3dq_t *in,
  * @return          Resulting quantized matrix
  */
 dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_with_bias(dl_matrix3dq_t *in,
-                                                          dl_matrix3dq_t *f,
-                                                          dl_matrix3dq_t *bias,
-                                                          int stride_x,
-                                                          int stride_y,
-                                                          dl_padding_type padding,
-                                                          int exponent,
-                                                          int relu);
+                                                           dl_matrix3dq_t *f,
+                                                           dl_matrix3dq_t *bias,
+                                                           int stride_x,
+                                                           int stride_y,
+                                                           dl_padding_type padding,
+                                                           int exponent,
+                                                           int relu,
+                                                           char *name);
 
 /**
  * @brief Do 3x3 depthwise convolution with a quantized matrix, with bias adding and stride 1
@@ -539,11 +597,12 @@ dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_with_bias(dl_matrix3dq_t *in,
  * @return          Resulting quantized matrix
  */
 dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3s1_with_bias(dl_matrix3dq_t *in,
-                                                            dl_matrix3dq_t *f,
-                                                            dl_matrix3dq_t *bias,
-                                                            dl_padding_type padding,
-                                                            int exponent,
-                                                            int relu);
+                                                             dl_matrix3dq_t *f,
+                                                             dl_matrix3dq_t *bias,
+                                                             dl_padding_type padding,
+                                                             int exponent,
+                                                             int relu,
+                                                             char *name);
 
 dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_with_prelu(dl_matrix3dq_t *in,
                                                             dl_matrix3dq_t *filter,
@@ -551,8 +610,8 @@ dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_with_prelu(dl_matrix3dq_t *in,
                                                             int stride_x,
                                                             int stride_y,
                                                             dl_padding_type padding,
-                                                            int exponent);
-
+                                                            int exponent,
+                                                            char *name);
 
 //
 // Depthwise Common
@@ -594,11 +653,13 @@ void dl_matrix3dqq_dot_product(dl_matrix3dq_t *out,
  * @param in        Input matrix, size (1, 1, 1, w)
  * @param filter    Filter matrix, size (1, w, h, 1)
  * @param mode      Implementation mode
+ * @param name
  */
 void dl_matrix3dqq_fc(dl_matrix3dq_t *out,
                       dl_matrix3dq_t *in,
                       dl_matrix3dq_t *filter,
-                      dl_conv_mode mode);
+                      dl_conv_mode mode,
+                      char *name);
 
 /**
  * @brief Do fully connected layer forward, with bias adding
@@ -749,23 +810,49 @@ dl_matrix3dq_t *dl_matrix3duq_mobilenet(dl_matrix3du_t *in,
 // Padding
 //
 
-dl_error_type dl_matrix3dqq_padding(dl_matrix3dq_t **padded_in,
-                                    dl_matrix3dq_t **out,
-                                    dl_matrix3dq_t *in,
-                                    int out_c,
+/**
+ * @brief 
+ * 
+ * @param padded_input 
+ * @param output_height 
+ * @param output_width 
+ * @param input 
+ * @param stride_x 
+ * @param stride_y 
+ * @param kernel_size 
+ * @param padding_type 
+ * @return dl_error_type 
+ */
+dl_error_type dl_matrix3dqq_padding(dl_matrix3dq_t **padded_input,
+                                    int *output_height,
+                                    int *output_width,
+                                    dl_matrix3dq_t *input,
                                     int stride_x,
                                     int stride_y,
-                                    int padding,
-                                    int exponent);
+                                    int kernel_size,
+                                    dl_padding_type padding_type);
 
-dl_error_type dl_matrix3duq_padding(dl_matrix3du_t **padded_in,
-                                    dl_matrix3dq_t **out,
-                                    dl_matrix3du_t *in,
-                                    int out_c,
+/**
+ * @brief 
+ * 
+ * @param padded_input 
+ * @param output_height 
+ * @param output_width 
+ * @param input 
+ * @param stride_x 
+ * @param stride_y 
+ * @param kernel_size 
+ * @param padding_type 
+ * @return dl_error_type 
+ */
+dl_error_type dl_matrix3duq_padding(dl_matrix3du_t **padded_input,
+                                    int *output_height,
+                                    int *output_width,
+                                    dl_matrix3du_t *input,
                                     int stride_x,
                                     int stride_y,
-                                    int padding,
-                                    int exponent);
+                                    int kernel_size,
+                                    dl_padding_type padding_type);
 
 //
 // Pooling
