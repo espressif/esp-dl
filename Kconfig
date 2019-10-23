@@ -41,5 +41,21 @@ menu "ESP-FACE Configuration"
         config FRMN2C_QUANT
             bool "FRMN2C"
     endchoice
+
+    menu "Object Detection"
     
+        choice OBJECT_DETECTION_MODEL
+            bool "Model"
+            default LSSH_SPARSE_MN_5
+
+            config LSSH_SPARSE_MN_5
+                bool "LSSH SPARSE MN 5"
+        endchoice
+
+        config LSSH_WITH_LANDMARK
+            bool "With landmark"
+            default n
+
+    endmenu
+
 endmenu

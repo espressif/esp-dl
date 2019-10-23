@@ -4,9 +4,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <assert.h>
+
 #if CONFIG_SPIRAM_SUPPORT
 #include "freertos/FreeRTOS.h"
+#endif
+
+#ifndef max(x, y)
+#define max(x, y) (((x) < (y)) ? (y) : (x))
+#endif
+
+#ifndef min(x, y)
+#define min(x, y) (((x) < (y)) ? (x) : (y))
 #endif
 
 typedef float fptp_t;
@@ -22,6 +32,7 @@ typedef enum
 {
     PADDING_VALID = 0,
     PADDING_SAME = 1,
+    PADDING_SAME_DONT_FREE_INPUT = 2,
 } dl_padding_type;
 
 /*
@@ -30,22 +41,22 @@ typedef enum
  */
 typedef struct
 {
-    int w;          /*!< Width */
-    int h;          /*!< Height */
-    int c;          /*!< Channel */
-    int n;          /*!< Number of filter, input and output must be 1 */
-    int stride;     /*!< Step between lines */
-    fptp_t *item;   /*!< Data */
+    int w;        /*!< Width */
+    int h;        /*!< Height */
+    int c;        /*!< Channel */
+    int n;        /*!< Number of filter, input and output must be 1 */
+    int stride;   /*!< Step between lines */
+    fptp_t *item; /*!< Data */
 } dl_matrix3d_t;
 
 typedef struct
 {
-    int w;          /*!< Width */
-    int h;          /*!< Height */
-    int c;          /*!< Channel */
-    int n;          /*!< Number of filter, input and output must be 1 */
-    int stride;     /*!< Step between lines */
-    uc_t *item;     /*!< Data */
+    int w;      /*!< Width */
+    int h;      /*!< Height */
+    int c;      /*!< Channel */
+    int n;      /*!< Number of filter, input and output must be 1 */
+    int stride; /*!< Step between lines */
+    uc_t *item; /*!< Data */
 } dl_matrix3du_t;
 
 typedef struct
@@ -55,7 +66,6 @@ typedef struct
     dl_padding_type padding;
 } dl_matrix3d_mobilenet_config_t;
 
-
 /*
  * @brief Allocate a zero-initialized space. Must use 'dl_lib_free' to free the memory.
  *
@@ -64,7 +74,7 @@ typedef struct
  * @param align Align of memory. If not required, set 0.
  * @return Pointer of allocated memory. Null for failed.
  */
-static inline void *dl_lib_calloc (int cnt, int size, int align)
+static inline void *dl_lib_calloc(int cnt, int size, int align)
 {
     int total_size = cnt * size + align + sizeof(void *);
     void *res = malloc(total_size);
@@ -88,21 +98,18 @@ static inline void *dl_lib_calloc (int cnt, int size, int align)
         aligned = (void **)(((size_t)data + (align - 1)) & -align);
     else
         aligned = data;
-    
+
     aligned[-1] = res;
     return (void *)aligned;
 }
 
-static inline void dl_lib_free (void *d)
+static inline void dl_lib_free(void *d)
 {
     if (NULL == d)
         return;
 
     free(((void **)d)[-1]);
 }
-
-
-
 
 /*
  * @brief Allocate a 3D matrix with float items, the access sequence is NHWC
