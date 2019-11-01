@@ -11,11 +11,11 @@
 #include "freertos/FreeRTOS.h"
 #endif
 
-#ifndef max(x, y)
+#ifndef max
 #define max(x, y) (((x) < (y)) ? (y) : (x))
 #endif
 
-#ifndef min(x, y)
+#ifndef min
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #endif
 
