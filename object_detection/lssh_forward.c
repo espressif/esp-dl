@@ -32,7 +32,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 
-static const char *TAG = "lssh_forward";
+//static const char *TAG = "lssh_forward";
 
 #if CONFIG_LSSH_SPARSE_MN_5
 #define LSSH_MODULES_CONFIG sparse_mn_5_modules_config
