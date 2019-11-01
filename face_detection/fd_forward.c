@@ -73,11 +73,15 @@ box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid
         {
             origin_head[i] = image_get_valid_boxes(out->category->item,
                                                    out->offset->item,
+                                                   NULL,
                                                    out->category->w,
                                                    out->category->h,
-                                                   config->w,
+                                                   1,
+                                                   &config->w,
                                                    config->threshold.score,
-                                                   scale);
+                                                   2,
+                                                   scale,
+                                                   false);
 
             if (origin_head[i])
             {
@@ -176,11 +180,15 @@ box_array_t *pnet_forward2(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyrami
         {
             origin_head[i] = image_get_valid_boxes(out->category->item,
                                                    out->offset->item,
+                                                   NULL,
                                                    out->category->w,
                                                    out->category->h,
-                                                   config->w,
+                                                   1,
+                                                   &config->w,
                                                    config->threshold.score,
-                                                   scale);
+                                                   2,
+                                                   scale,
+                                                   false);
 
             if (origin_head[i])
             {
@@ -301,11 +309,15 @@ box_array_t *pnet_forward_fast(dl_matrix3du_t *image, fptp_t min_face, int pyram
         {
             origin_head[i] = image_get_valid_boxes(out->category->item,
                                                    out->offset->item,
+                                                   NULL,
                                                    out->category->w,
                                                    out->category->h,
-                                                   config->w,
+                                                   1,
+                                                   &config->w,
                                                    config->threshold.score,
-                                                   resized_scale);
+                                                   2,
+                                                   resized_scale,
+                                                   false);
 
             if (origin_head[i])
             {
@@ -370,11 +382,15 @@ box_array_t *pnet_forward_fast(dl_matrix3du_t *image, fptp_t min_face, int pyram
         {
             origin_head[i] = image_get_valid_boxes(out->category->item,
                                                    out->offset->item,
+                                                   NULL,
                                                    out->category->w,
                                                    out->category->h,
-                                                   config->w,
+                                                   1,
+                                                   &config->w,
                                                    config->threshold.score,
-                                                   resized_scale);
+                                                   2,
+                                                   resized_scale,
+                                                   false);
 
             if (origin_head[i])
             {
