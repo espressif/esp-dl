@@ -198,12 +198,16 @@ extern "C"
      * @return image_list_t* 
      */
     image_list_t *image_get_valid_boxes(fptp_t *score,
-                                        fptp_t *offset,
-                                        int width,
-                                        int height,
-                                        int p_net_size,
-                                        fptp_t score_threshold,
-                                        fptp_t scale);
+                                    fptp_t *offset,
+                                    fptp_t *landmark,
+                                    int width,
+                                    int height,
+                                    int anchor_number,
+                                    int *anchors_size,
+                                    fptp_t score_threshold,
+                                    int stride,
+                                    fptp_t scale,
+                                    bool do_regression);
     /**
      * @brief 
      * 
