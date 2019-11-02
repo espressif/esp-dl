@@ -120,7 +120,31 @@ static inline void dl_lib_free(void *d)
  * @param c     Channel of matrix3d
  * @return      3d matrix
  */
-dl_matrix3d_t *dl_matrix3d_alloc(int n, int w, int h, int c);
+static inline dl_matrix3d_t *dl_matrix3d_alloc(int n, int w, int h, int c)
+{
+    dl_matrix3d_t *r = (dl_matrix3d_t *)dl_lib_calloc(1, sizeof(dl_matrix3d_t), 0);
+    if (NULL == r)
+    {
+        printf("internal r failed.\n");
+        return NULL;
+    }
+    fptp_t *items = (fptp_t *)dl_lib_calloc(n * w * h * c, sizeof(fptp_t), 0);
+    if (NULL == items)
+    {
+        printf("matrix3d item alloc failed.\n");
+        dl_lib_free(r);
+        return NULL;
+    }
+
+    r->w = w;
+    r->h = h;
+    r->c = c;
+    r->n = n;
+    r->stride = w * c;
+    r->item = items;
+
+    return r;
+}
 
 /*
  * @brief Allocate a 3D matrix with 8-bits items, the access sequence is NHWC
@@ -131,21 +155,68 @@ dl_matrix3d_t *dl_matrix3d_alloc(int n, int w, int h, int c);
  * @param c     Channel of matrix3d
  * @return      3d matrix
  */
-dl_matrix3du_t *dl_matrix3du_alloc(int n, int w, int h, int c);
+static inline dl_matrix3du_t *dl_matrix3du_alloc(int n, int w, int h, int c)
+{
+    dl_matrix3du_t *r = (dl_matrix3du_t *)dl_lib_calloc(1, sizeof(dl_matrix3du_t), 0);
+    if (NULL == r)
+    {
+        printf("internal r failed.\n");
+        return NULL;
+    }
+    uc_t *items = (uc_t *)dl_lib_calloc(n * w * h * c, sizeof(uc_t), 0);
+    if (NULL == items)
+    {
+        printf("matrix3du item alloc failed.\n");
+        dl_lib_free(r);
+        return NULL;
+    }
+
+    r->w = w;
+    r->h = h;
+    r->c = c;
+    r->n = n;
+    r->stride = w * c;
+    r->item = items;
+
+    return r;
+}
 
 /*
  * @brief Free a matrix3d
  *
  * @param m matrix3d with float items
  */
-void dl_matrix3d_free(dl_matrix3d_t *m);
+static inline void dl_matrix3d_free(dl_matrix3d_t *m)
+{
+    if (NULL == m)
+        return;
+    if (NULL == m->item)
+    {
+        dl_lib_free(m);
+        return;
+    }
+    dl_lib_free(m->item);
+    dl_lib_free(m);
+}
 
 /*
  * @brief Free a matrix3d
  *
  * @param m matrix3d with 8-bits items
  */
-void dl_matrix3du_free(dl_matrix3du_t *m);
+static inline void dl_matrix3du_free(dl_matrix3du_t *m)
+{
+    if (NULL == m)
+        return;
+    if (NULL == m->item)
+    {
+        dl_lib_free(m);
+        return;
+    }
+    dl_lib_free(m->item);
+    dl_lib_free(m);
+}
+
 
 /*
  * @brief Dot product with a vector and matrix

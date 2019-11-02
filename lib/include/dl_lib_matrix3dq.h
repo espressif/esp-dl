@@ -70,14 +70,52 @@ typedef struct
  * @param e Exponent of matrix data
  * @return 3d quantized matrix
  */
-dl_matrix3dq_t *dl_matrix3dq_alloc(int n, int w, int h, int c, int e);
+static inline dl_matrix3dq_t *dl_matrix3dq_alloc(int n, int w, int h, int c, int e)
+{
+    dl_matrix3dq_t *r = (dl_matrix3dq_t *)dl_lib_calloc(1, sizeof(dl_matrix3dq_t), 0);
+    if (NULL == r)
+    {
+        printf("dl_matrix3dq alloc failed.\n");
+        return NULL;
+    }
+
+    qtp_t *items = (qtp_t *)dl_lib_calloc(n * w * h * c, sizeof(qtp_t), 16);
+    if (NULL == items)
+    {
+        printf("matrix3dq item alloc failed.\n");
+        dl_lib_free(r);
+        return NULL;
+    }
+
+    r->w = w;
+    r->h = h;
+    r->c = c;
+    r->n = n;
+    r->exponent = e;
+    r->stride = w * c;
+    r->item = items;
+
+    return r;
+}
 
 /*
  * @brief Free a 3d quantized matrix
  *
  * @param m 3d quantised matrix
  */
-void dl_matrix3dq_free(dl_matrix3dq_t *m);
+static inline void dl_matrix3dq_free(dl_matrix3dq_t *m)
+{
+    if (NULL == m)
+        return;
+    if (NULL == m->item)
+    {
+        dl_lib_free(m);
+        return;
+    }
+    dl_lib_free(m->item);
+    dl_lib_free(m);
+}
+
 
 /**
  * @brief Copy a range of items from an existing matrix to a preallocated matrix
