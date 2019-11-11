@@ -263,8 +263,8 @@ int8_t delete_face_id_in_flash_with_name(face_id_name_list *l, char *name)
     esp_partition_write(pt, sizeof(int), &l->count, sizeof(uint8_t));
 
     // Last one don't need shift
-    if (index == l->count)
-        return l->count;
+    if (0 == l->count)
+        return 0;
 
     int i = 0;
     face_id_node *f = l->head;
