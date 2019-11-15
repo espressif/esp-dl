@@ -286,6 +286,9 @@ int8_t delete_face_id_in_flash_with_name(face_id_name_list *l, char *name)
             esp_partition_write(pt, 4096 + i * block_len, f->id_vec->item, block_len);
             esp_partition_write(pt, sizeof(int) + sizeof(uint8_t) + i * ENROLL_NAME_LEN * sizeof(char), f->id_name, ENROLL_NAME_LEN * sizeof(char));
 
+            if (f == l->tail)
+                break;
+            
             f = f->next;
             esp_partition_write(pt, 4096 + (i + 1) * block_len, f->id_vec->item, block_len);
             esp_partition_write(pt, sizeof(int) + sizeof(uint8_t) + (i + 1) * ENROLL_NAME_LEN * sizeof(char), f->id_name, ENROLL_NAME_LEN * sizeof(char));
