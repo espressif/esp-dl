@@ -81,6 +81,7 @@ box_array_t *pnet_forward(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyramid
                                                    config->threshold.score,
                                                    2,
                                                    scale,
+                                                   scale,
                                                    false);
 
             if (origin_head[i])
@@ -187,6 +188,7 @@ box_array_t *pnet_forward2(dl_matrix3du_t *image, fptp_t min_face, fptp_t pyrami
                                                    &config->w,
                                                    config->threshold.score,
                                                    2,
+                                                   scale,
                                                    scale,
                                                    false);
 
@@ -317,6 +319,7 @@ box_array_t *pnet_forward_fast(dl_matrix3du_t *image, fptp_t min_face, int pyram
                                                    config->threshold.score,
                                                    2,
                                                    resized_scale,
+                                                   resized_scale,
                                                    false);
 
             if (origin_head[i])
@@ -389,6 +392,7 @@ box_array_t *pnet_forward_fast(dl_matrix3du_t *image, fptp_t min_face, int pyram
                                                    &config->w,
                                                    config->threshold.score,
                                                    2,
+                                                   resized_scale,
                                                    resized_scale,
                                                    false);
 

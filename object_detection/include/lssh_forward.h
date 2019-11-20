@@ -33,7 +33,7 @@ extern "C"
 #include "lssh.h"
 
     /**
-     * @brief Initialize the min_face, score_threshold, nms_threshold and shape of input image
+     * @brief Get the min_face, score_threshold, nms_threshold and shape of input image
      * 
      * @param min_face 
      * @param score_threshold 
@@ -42,16 +42,17 @@ extern "C"
      * @param image_width       Input image width
      * @return lssh_config_t 
      */
-    lssh_config_t lssh_initialize_config(fptp_t min_face, fptp_t score_threshold, fptp_t nms_threshold, int image_height, int image_width);
+    lssh_config_t lssh_get_config(fptp_t min_face, fptp_t score_threshold, fptp_t nms_threshold, int image_height, int image_width);
 
     /**
      * @brief Update config once the input image shape is changeed
      * 
-     * @param image_height  Input image height
-     * @param image_width   Input image width
-     * @param config        LSSH config
+     * @param config 
+     * @param min_face 
+     * @param image_height 
+     * @param image_width 
      */
-    void lssh_update_image_shape(lssh_config_t *config, int image_height, int image_width);
+    void lssh_update_config(lssh_config_t *config, fptp_t min_face, int image_height, int image_width);
 
     /**
      * @brief 

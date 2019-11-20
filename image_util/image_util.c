@@ -250,7 +250,8 @@ image_list_t *image_get_valid_boxes(fptp_t *score,
                                     int *anchors_size,
                                     fptp_t score_threshold,
                                     int stride,
-                                    fptp_t scale,
+                                    fptp_t y_resize_scale,
+                                    fptp_t x_resize_scale,
                                     bool do_regression)
 { /*{{{*/
     typedef struct
@@ -303,28 +304,28 @@ image_list_t *image_get_valid_boxes(fptp_t *score,
 
             // TODO: box
             int anchor_size = anchors_size[valid_indexes[i].anchor_index];
-
             int anchor_left_up_x = valid_indexes[i].x * stride;
             int anchor_left_up_y = valid_indexes[i].y * stride;
+            
 
-            valid_box[i].box.box_p[0] = (offset[valid_indexes[i].index * 4 + 0] * anchor_size + anchor_left_up_x) / scale;
-            valid_box[i].box.box_p[1] = (offset[valid_indexes[i].index * 4 + 1] * anchor_size + anchor_left_up_y) / scale;
-            valid_box[i].box.box_p[2] = (offset[valid_indexes[i].index * 4 + 2] * anchor_size + anchor_left_up_x + anchor_size) / scale;
-            valid_box[i].box.box_p[3] = (offset[valid_indexes[i].index * 4 + 3] * anchor_size + anchor_left_up_y + anchor_size) / scale;
+            valid_box[i].box.box_p[0] = (offset[valid_indexes[i].index * 4 + 0] * anchor_size + anchor_left_up_x) / x_resize_scale;
+            valid_box[i].box.box_p[1] = (offset[valid_indexes[i].index * 4 + 1] * anchor_size + anchor_left_up_y) / y_resize_scale;
+            valid_box[i].box.box_p[2] = (offset[valid_indexes[i].index * 4 + 2] * anchor_size + anchor_left_up_x + anchor_size - 1) / x_resize_scale;
+            valid_box[i].box.box_p[3] = (offset[valid_indexes[i].index * 4 + 3] * anchor_size + anchor_left_up_y + anchor_size - 1) / y_resize_scale;
 
             // TODO: landmark
             if (landmark)
             {
-                valid_box[i].landmark.landmark_p[0] = (landmark[valid_indexes[i].index * 10 + 0] * anchor_size + anchor_left_up_x) / scale;
-                valid_box[i].landmark.landmark_p[1] = (landmark[valid_indexes[i].index * 10 + 1] * anchor_size + anchor_left_up_y) / scale;
-                valid_box[i].landmark.landmark_p[2] = (landmark[valid_indexes[i].index * 10 + 2] * anchor_size + anchor_left_up_x) / scale;
-                valid_box[i].landmark.landmark_p[3] = (landmark[valid_indexes[i].index * 10 + 3] * anchor_size + anchor_left_up_y) / scale;
-                valid_box[i].landmark.landmark_p[4] = (landmark[valid_indexes[i].index * 10 + 4] * anchor_size + anchor_left_up_x) / scale;
-                valid_box[i].landmark.landmark_p[5] = (landmark[valid_indexes[i].index * 10 + 5] * anchor_size + anchor_left_up_y) / scale;
-                valid_box[i].landmark.landmark_p[6] = (landmark[valid_indexes[i].index * 10 + 6] * anchor_size + anchor_left_up_x) / scale;
-                valid_box[i].landmark.landmark_p[7] = (landmark[valid_indexes[i].index * 10 + 7] * anchor_size + anchor_left_up_y) / scale;
-                valid_box[i].landmark.landmark_p[8] = (landmark[valid_indexes[i].index * 10 + 8] * anchor_size + anchor_left_up_x) / scale;
-                valid_box[i].landmark.landmark_p[9] = (landmark[valid_indexes[i].index * 10 + 9] * anchor_size + anchor_left_up_y) / scale;
+                valid_box[i].landmark.landmark_p[0] = (landmark[valid_indexes[i].index * 10 + 0] * anchor_size + anchor_left_up_x) / x_resize_scale;
+                valid_box[i].landmark.landmark_p[1] = (landmark[valid_indexes[i].index * 10 + 1] * anchor_size + anchor_left_up_y) / y_resize_scale;
+                valid_box[i].landmark.landmark_p[2] = (landmark[valid_indexes[i].index * 10 + 2] * anchor_size + anchor_left_up_x) / x_resize_scale;
+                valid_box[i].landmark.landmark_p[3] = (landmark[valid_indexes[i].index * 10 + 3] * anchor_size + anchor_left_up_y) / y_resize_scale;
+                valid_box[i].landmark.landmark_p[4] = (landmark[valid_indexes[i].index * 10 + 4] * anchor_size + anchor_left_up_x) / x_resize_scale;
+                valid_box[i].landmark.landmark_p[5] = (landmark[valid_indexes[i].index * 10 + 5] * anchor_size + anchor_left_up_y) / y_resize_scale;
+                valid_box[i].landmark.landmark_p[6] = (landmark[valid_indexes[i].index * 10 + 6] * anchor_size + anchor_left_up_x) / x_resize_scale;
+                valid_box[i].landmark.landmark_p[7] = (landmark[valid_indexes[i].index * 10 + 7] * anchor_size + anchor_left_up_y) / y_resize_scale;
+                valid_box[i].landmark.landmark_p[8] = (landmark[valid_indexes[i].index * 10 + 8] * anchor_size + anchor_left_up_x) / x_resize_scale;
+                valid_box[i].landmark.landmark_p[9] = (landmark[valid_indexes[i].index * 10 + 9] * anchor_size + anchor_left_up_y) / y_resize_scale;
             }
             valid_box[i].next = &(valid_box[i + 1]);
         }
@@ -336,10 +337,10 @@ image_list_t *image_get_valid_boxes(fptp_t *score,
             valid_box[i].score = score[2 * valid_indexes[i].index + 1];
 
             int anchor_size = anchors_size[valid_indexes[i].anchor_index];
-            valid_box[i].box.box_p[0] = valid_indexes[i].x / scale * stride;
-            valid_box[i].box.box_p[1] = valid_indexes[i].y / scale * stride;
-            valid_box[i].box.box_p[2] = valid_box[i].box.box_p[0] + anchor_size / scale;
-            valid_box[i].box.box_p[3] = valid_box[i].box.box_p[1] + anchor_size / scale;
+            valid_box[i].box.box_p[0] = valid_indexes[i].x / x_resize_scale * stride;
+            valid_box[i].box.box_p[1] = valid_indexes[i].y / y_resize_scale * stride;
+            valid_box[i].box.box_p[2] = valid_box[i].box.box_p[0] + anchor_size / x_resize_scale;
+            valid_box[i].box.box_p[3] = valid_box[i].box.box_p[1] + anchor_size / y_resize_scale;
 
             valid_box[i].offset.box_p[0] = offset[valid_indexes[i].index * 4 + 0];
             valid_box[i].offset.box_p[1] = offset[valid_indexes[i].index * 4 + 1];

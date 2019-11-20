@@ -33,11 +33,10 @@ extern "C"
 
     typedef struct
     {
-        fptp_t min_face;
-        fptp_t resized_scale;
         int resized_height;
         int resized_width;
-        bool free_image;
+        fptp_t y_resize_scale;
+        fptp_t x_resize_scale;
         int enabled_top_k;
         fptp_t score_threshold;
         fptp_t nms_threshold;
