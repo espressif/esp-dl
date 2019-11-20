@@ -38,45 +38,40 @@
 #define LSSH_MODULES_CONFIG sparse_mn_5_modules_config
 #endif
 
-lssh_config_t lssh_initialize_config(fptp_t min_face, fptp_t score_threshold, fptp_t nms_threshold, int image_height, int image_width)
+lssh_config_t lssh_get_config(fptp_t min_face, fptp_t score_threshold, fptp_t nms_threshold, int image_height, int image_width)
 {
     lssh_config_t config = {0};
-    config.min_face = min_face;
     config.score_threshold = score_threshold;
     config.nms_threshold = nms_threshold;
-    lssh_update_image_shape(&config, image_height, image_width);
+    lssh_update_config(&config, min_face, image_height, image_width);
     config.mode = DL_XTENSA_IMPL;
     return config;
 }
 
-void lssh_update_image_shape(lssh_config_t *config, int image_height, int image_width)
+void lssh_update_config(lssh_config_t *config, fptp_t min_face, int image_height, int image_width)
 {
-    if (config->min_face == LSSH_MODULES_CONFIG.module_config[0].anchor_size[0])
-    {
-        config->free_image = false;
-        config->resized_scale = 1.0;
-        config->resized_width = image_width;
-        config->resized_height = image_height;
-    }
-    else
-    {
-        config->free_image = true;
-        config->resized_scale = 1.0f * LSSH_MODULES_CONFIG.module_config[0].anchor_size[0] / config->min_face;
-        config->resized_width = round(image_width * config->resized_scale);
-        config->resized_height = round(image_height * config->resized_scale);
-    }
+
+    fptp_t rough_resize_scale = LSSH_MODULES_CONFIG.module_config[0].anchor_size[0] / min_face;
+
+    config->resized_width = round(image_width * rough_resize_scale);
+    config->resized_height = round(image_height * rough_resize_scale);
 
     int short_side = min(config->resized_height, config->resized_width);
-    config->enabled_top_k = 0;
-    for (size_t i = 0; i < LSSH_MODULES_CONFIG.number; i++)
+
+    config->enabled_top_k = 1;
+    for (size_t i = 1; i < LSSH_MODULES_CONFIG.number; i++)
     {
         if (short_side >= LSSH_MODULES_CONFIG.module_config[i].boundary)
             config->enabled_top_k++;
         else
             break;
     }
-    assert(config->enabled_top_k > 0);
-    // ESP_LOGW(TAG, "The \'min_face\' should < %d ", min(image_height, image_width) * LSSH_MODULES_CONFIG[0].anchor_size[0] / LSSH_MODULES_CONFIG[0].boundary);
+
+    int stride = LSSH_MODULES_CONFIG.module_config[config->enabled_top_k - 1].stride;
+    config->resized_height = ((int)(config->resized_height / stride) + 1) * stride;
+    config->resized_width = ((int)(config->resized_width / stride) + 1) * stride;
+    config->y_resize_scale = (fptp_t)config->resized_height / image_height;
+    config->x_resize_scale = (fptp_t)config->resized_width / image_width;
 }
 
 box_array_t *lssh_detect_object(dl_matrix3du_t *image, lssh_config_t config)
@@ -85,12 +80,8 @@ box_array_t *lssh_detect_object(dl_matrix3du_t *image, lssh_config_t config)
      * @brief resize image
      * 
      */
-    dl_matrix3du_t *resized_image = image;
-    if (config.free_image)
-    {
-        resized_image = dl_matrix3du_alloc(1, config.resized_width, config.resized_height, image->c);
-        image_resize_linear(resized_image->item, image->item, resized_image->w, resized_image->h, resized_image->c, image->w, image->h);
-    }
+    dl_matrix3du_t *resized_image = dl_matrix3du_alloc(1, config.resized_width, config.resized_height, image->c);
+    image_resize_linear(resized_image->item, image->item, resized_image->w, resized_image->h, resized_image->c, image->w, image->h);
 
     /**
      * @brief net operation
@@ -98,9 +89,9 @@ box_array_t *lssh_detect_object(dl_matrix3du_t *image, lssh_config_t config)
      */
 #if CONFIG_LSSH_SPARSE_MN_5
 #if CONFIG_LSSH_WITH_LANDMARK
-    lssh_module_result_t *module_result = sparse_mn_5_q_with_landmark(resized_image, config.free_image, config.enabled_top_k, DL_XTENSA_IMPL);
+    lssh_module_result_t *module_result = sparse_mn_5_q_with_landmark(resized_image, true, config.enabled_top_k, DL_XTENSA_IMPL);
 #else
-    lssh_module_result_t *module_result = sparse_mn_5_q_without_landmark(resized_image, config.free_image, config.enabled_top_k, DL_XTENSA_IMPL);
+    lssh_module_result_t *module_result = sparse_mn_5_q_without_landmark(resized_image, true, config.enabled_top_k, DL_XTENSA_IMPL);
 #endif
 #endif
 
@@ -115,6 +106,7 @@ box_array_t *lssh_detect_object(dl_matrix3du_t *image, lssh_config_t config)
     {
         fptp_t *category = module_result[i].category->item;
         fptp_t *box = module_result[i].box_offset->item;
+
 #if CONFIG_LSSH_WITH_LANDMARK
         fptp_t *landmark = module_result[i].landmark_offset->item;
         origin_head[i] = image_get_valid_boxes(category,
@@ -126,7 +118,8 @@ box_array_t *lssh_detect_object(dl_matrix3du_t *image, lssh_config_t config)
                                                LSSH_MODULES_CONFIG.module_config[i].anchor_size,
                                                config.score_threshold,
                                                LSSH_MODULES_CONFIG.module_config[i].stride,
-                                               config.resized_scale,
+                                               config.y_resize_scale,
+                                               config.x_resize_scale,
                                                true);
 #else
         origin_head[i] = image_get_valid_boxes(category,
@@ -138,7 +131,8 @@ box_array_t *lssh_detect_object(dl_matrix3du_t *image, lssh_config_t config)
                                                LSSH_MODULES_CONFIG.module_config[i].anchor_size,
                                                config.score_threshold,
                                                LSSH_MODULES_CONFIG.module_config[i].stride,
-                                               config.resized_scale,
+                                               config.y_resize_scale,
+                                               config.x_resize_scale,
                                                true);
 #endif
         if (origin_head[i])
