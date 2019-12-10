@@ -128,6 +128,13 @@ static inline void dl_matrix3dq_free(dl_matrix3dq_t *m)
  * @param h     Height of the resulting matrix
  */
 void dl_matrix3dq_slice_copy(dl_matrix3dq_t *dst, dl_matrix3dq_t *src, int x, int y, int w, int h);
+
+/**
+ * @brief Transform a sliced matrix block from nhwc to nchw, the block needs to be memory continous.
+ *
+ * @param out  The destination sliced matrix in nchw
+ * @param in   The source sliced matrix in nhwc
+ */
 void dl_matrix3dq_sliced_transform_nchw(dl_matrix3dq_t *out,
                                         dl_matrix3dq_t *in);
 
@@ -904,6 +911,19 @@ dl_error_type dl_matrix3duq_padding(dl_matrix3du_t **padded_input,
  * @return          Resulting matrix, size (1, 1, 1, c)
  */
 dl_matrix3dq_t *dl_matrix3dq_global_pool(dl_matrix3dq_t *in);
+
+/**
+ * @brief Calculate pooling layer of a feature map
+ *
+ * @param in        Input matrix, size (1, w, h, c)
+ * @param f_w       Window width
+ * @param f_h       Window height 
+ * @param stride_x  Stride in horizontal direction
+ * @param stride_y  Stride in vertical direction
+ * @param padding   Padding type: PADDING_VALID and PADDING_SAME
+ * @param pooling_type   Pooling type: DL_POOLING_MAX and POOLING_AVG
+ * @return          Resulting matrix, size (1, w', h', c)
+ */
 dl_matrix3dq_t *dl_matrix3dq_pooling(dl_matrix3dq_t *in,
                                      int f_w,
                                      int f_h,

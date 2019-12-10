@@ -274,6 +274,15 @@ void dl_matrix3du_slice_copy(dl_matrix3du_t *dst,
                              int h);
 
 /**
+ * @brief Transform a sliced matrix block from nhwc to nchw, the block needs to be memory continous.
+ *
+ * @param out  The destination sliced matrix in nchw
+ * @param in   The source sliced matrix in nhwc
+ */
+void dl_matrix3d_sliced_transform_nchw(dl_matrix3d_t *out,
+                                       dl_matrix3d_t *in);
+
+/**
  * @brief Do a general CNN layer pass, dimension is (number, width, height, channel)
  *
  * @param in             Input matrix3d
@@ -295,20 +304,6 @@ dl_matrix3d_t *dl_matrix3d_conv(dl_matrix3d_t *in,
                                 int mode);
 
 /**
- * @brief Do a general CNN layer pass, dimension is (number, width, height, channel)
- *
- * @param in             Input matrix3d
- * @param filter         Weights of the neurons
- * @param bias           Bias for the CNN layer
- * @param stride_x       The step length of the convolution window in x(width) direction
- * @param stride_y       The step length of the convolution window in y(height) direction
- * @param padding        One of VALID or SAME
- * @param mode           Do convolution using C implement or xtensa implement, 0 or 1, with respect
- *                       If ESP_PLATFORM is not defined, this value is not used. Default is 0
- * @return               The result of CNN layer
- */
-
-/**
  * @brief Do a global average pooling layer pass, dimension is (number, width, height, channel)
  *
  * @param in             Input matrix3d
@@ -317,6 +312,25 @@ dl_matrix3d_t *dl_matrix3d_conv(dl_matrix3d_t *in,
  */
 dl_matrix3d_t *dl_matrix3d_global_pool(dl_matrix3d_t *in);
 
+/**
+ * @brief Calculate pooling layer of a feature map
+ *
+ * @param in        Input matrix, size (1, w, h, c)
+ * @param f_w       Window width
+ * @param f_h       Window height 
+ * @param stride_x  Stride in horizontal direction
+ * @param stride_y  Stride in vertical direction
+ * @param padding   Padding type: PADDING_VALID and PADDING_SAME
+ * @param pooling_type   Pooling type: DL_POOLING_MAX and POOLING_AVG
+ * @return          Resulting matrix, size (1, w', h', c)
+ */
+dl_matrix3d_t *dl_matrix3d_pooling(dl_matrix3d_t *in,
+                                   int f_w,
+                                   int f_h,
+                                   int stride_x,
+                                   int stride_y,
+                                   dl_padding_type padding,
+                                   dl_pooling_type pooling_type);
 /**
  * @brief Do a batch normalization operation, update the input matrix3d: input = input * scale + offset
  *
