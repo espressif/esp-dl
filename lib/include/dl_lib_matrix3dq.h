@@ -128,6 +128,8 @@ static inline void dl_matrix3dq_free(dl_matrix3dq_t *m)
  * @param h     Height of the resulting matrix
  */
 void dl_matrix3dq_slice_copy(dl_matrix3dq_t *dst, dl_matrix3dq_t *src, int x, int y, int w, int h);
+void dl_matrix3dq_sliced_transform_nchw(dl_matrix3dq_t *out,
+                                        dl_matrix3dq_t *in);
 
 /**
  * @brief Transform a fixed point matrix to a float point matrix
@@ -902,3 +904,10 @@ dl_error_type dl_matrix3duq_padding(dl_matrix3du_t **padded_input,
  * @return          Resulting matrix, size (1, 1, 1, c)
  */
 dl_matrix3dq_t *dl_matrix3dq_global_pool(dl_matrix3dq_t *in);
+dl_matrix3dq_t *dl_matrix3dq_pooling(dl_matrix3dq_t *in,
+                                     int f_w,
+                                     int f_h,
+                                     int stride_x,
+                                     int stride_y,
+                                     dl_padding_type padding,
+                                     dl_pooling_type pooling_type);

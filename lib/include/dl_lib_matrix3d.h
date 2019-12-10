@@ -35,6 +35,11 @@ typedef enum
     PADDING_SAME_DONT_FREE_INPUT = 2,
 } dl_padding_type;
 
+typedef enum
+{
+    DL_POOLING_MAX = 0,
+    DL_POOLING_AVG = 1,
+} dl_pooling_type;
 /*
  * Matrix for 3d
  * @Warning: the sequence of variables is fixed, cannot be modified, otherwise there will be errors in esp_dsp_dot_float
