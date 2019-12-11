@@ -291,6 +291,7 @@ extern "C"
      * @param count 
      */
     void transform_output_image(uint16_t *bmp, uint8_t *m, int count);
+    void transform_output_image_adjustable(uint16_t *bmp, uint8_t *m, int src_w, int src_h, int dst_w, int dst_h);
 
     /**
      * @brief 

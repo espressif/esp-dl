@@ -449,6 +449,26 @@ void transform_output_image(uint16_t *bmp, uint8_t *m, int count)
     }
 } /*}}}*/
 
+void transform_output_image_adjustable(uint16_t *bmp, uint8_t *m, int src_w, int src_h, int dst_w, int dst_h)
+{ /*{{{*/
+    if (src_w == dst_w && src_h == src_h)
+        transform_output_image(bmp, m, src_h*src_w);
+    else
+    {
+        for (int y = 0; y < dst_h; y++)
+        {
+            m += (src_w - dst_w) / 2 * 3;
+            for (int x = 0; x < dst_w; x++)
+            {
+                rgb888_to_565(bmp, m[2], m[1], m[0]);
+                bmp++;
+                m += 3;
+            }
+            m += (src_w - dst_w) / 2 * 3;
+        }
+    }
+} /*}}}*/
+
 void draw_rectangle_rgb565(uint16_t *buf, box_array_t *boxes, int width)
 { /*{{{*/
     uint16_t p[14];
