@@ -30,16 +30,17 @@ menu "ESP-FACE Configuration"
 
     choice RECOGNITION_MODEL
         bool "Recognition Model"
-        default FRMN1_QUANT
-
-        config FRMN1_QUANT
-            bool "FRMN1"
-        config FRMN2_QUANT
-            bool "FRMN2"
-        config FRMN2P_QUANT
-            bool "FRMN2P"
-        config FRMN2C_QUANT
-            bool "FRMN2C"
+        default MFN56_1X
+        config FRMN
+            bool "FRMN"
+        config MFN56_1X
+            bool "MFN56_1X"
+        config MFN56_2X
+            bool "MFN56_2X"
+        config MFN56_3X
+            bool "MFN56_3X"
+        config MFN56_4X
+            bool "MFN56_4X"
     endchoice
 
     menu "Object Detection"

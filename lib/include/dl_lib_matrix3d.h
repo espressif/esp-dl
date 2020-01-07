@@ -33,6 +33,7 @@ typedef enum
     PADDING_VALID = 0,
     PADDING_SAME = 1,
     PADDING_SAME_DONT_FREE_INPUT = 2,
+    PADDING_SAME_MXNET = 3,
 } dl_padding_type;
 
 typedef enum
