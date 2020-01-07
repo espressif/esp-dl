@@ -31,6 +31,19 @@ void face_id_name_init(face_id_name_list *l, uint8_t size, uint8_t confirm_times
     l->confirm_times = confirm_times;
 }
 
+void l2_norm(dl_matrix3d_t *feature)
+{
+    int len = feature->w * feature->h * feature->c;
+    fptp_t norm = 0;
+    for(int i=0;i<len;i++){
+        norm += (feature->item[i] * feature->item[i]);
+    }
+    norm = sqrt(norm);
+    for(int i=0;i<len;i++){
+        feature->item[i] /= norm;
+    }
+}
+
 dl_matrix3dq_t *transform_frmn_input(dl_matrix3du_t *image)
 {
     dl_matrix3d_t *image_3d = dl_matrix3d_alloc(image->n,
@@ -194,27 +207,32 @@ dl_matrix3d_t *get_face_id(dl_matrix3du_t *aligned_face)
     dl_matrix3d_t *face_id = NULL;
     dl_matrix3dq_t *mobileface_in = transform_frmn_input(aligned_face);
 #if CONFIG_XTENSA_IMPL
-    #if CONFIG_FRMN1_QUANT
+    #if CONFIG_FRMN
         dl_matrix3dq_t *face_id_q = frmn_q(mobileface_in, DL_XTENSA_IMPL);
-    #elif CONFIG_FRMN2_QUANT
-        dl_matrix3dq_t *face_id_q = frmn2_q(mobileface_in, DL_XTENSA_IMPL);
-    #elif CONFIG_FRMN2P_QUANT
-        dl_matrix3dq_t *face_id_q = frmn2p_q(mobileface_in, DL_XTENSA_IMPL);
-    #else
-        dl_matrix3dq_t *face_id_q = frmn2c_q(mobileface_in, DL_XTENSA_IMPL);
+    #elif CONFIG_MFN56_1X
+        dl_matrix3dq_t *face_id_q = mfn56_42m_q(mobileface_in, DL_XTENSA_IMPL);
+    #elif CONFIG_MFN56_2X
+        dl_matrix3dq_t *face_id_q = mfn56_72m_q(mobileface_in, DL_XTENSA_IMPL);
+    #elif CONFIG_MFN56_3X
+        dl_matrix3dq_t *face_id_q = mfn56_112m_q(mobileface_in, DL_XTENSA_IMPL);
+    #elif CONFIG_MFN56_4X
+        dl_matrix3dq_t *face_id_q = mfn56_156m_q(mobileface_in, DL_XTENSA_IMPL);
     #endif
 #else
-    #if CONFIG_FRMN1_QUANT
+    #if CONFIG_FRMN
         dl_matrix3dq_t *face_id_q = frmn_q(mobileface_in, DL_C_IMPL);
-    #elif CONFIG_FRMN2_QUANT
-        dl_matrix3dq_t *face_id_q = frmn2_q(mobileface_in, DL_C_IMPL);
-    #elif CONFIG_FRMN2P_QUANT
-        dl_matrix3dq_t *face_id_q = frmn2p_q(mobileface_in, DL_C_IMPL);
-    #else
-        dl_matrix3dq_t *face_id_q = frmn2c_q(mobileface_in, DL_C_IMPL);
+    #elif CONFIG_MFN56_1X
+        dl_matrix3dq_t *face_id_q = mfn56_42m_q(mobileface_in, DL_C_IMPL);
+    #elif CONFIG_MFN56_2X
+        dl_matrix3dq_t *face_id_q = mfn56_72m_q(mobileface_in, DL_C_IMPL);
+    #elif CONFIG_MFN56_3X
+        dl_matrix3dq_t *face_id_q = mfn56_112m_q(mobileface_in, DL_C_IMPL);
+    #elif CONFIG_MFN56_4X
+        dl_matrix3dq_t *face_id_q = mfn56_156m_q(mobileface_in, DL_C_IMPL);
     #endif
 #endif
     face_id = dl_matrix3d_from_matrixq(face_id_q);
+    l2_norm(face_id);
     dl_matrix3dq_free(face_id_q);
     return face_id;
 }
@@ -237,6 +255,19 @@ fptp_t cos_distance(dl_matrix3d_t *id_1,
     for (uint16_t i = 0; i < c; i++)
     {
         dist += ((id_1->item[i]) * (id_2->item[i]) / (l2_norm_1 * l2_norm_2));
+    }
+    return dist;
+}
+
+fptp_t cos_distance_unit_id(dl_matrix3d_t *id_1,
+                    dl_matrix3d_t *id_2)
+{
+    assert(id_1->c == id_2->c);
+    uint16_t c = id_1->c;
+    fptp_t dist = 0;
+    for (uint16_t i = 0; i < c; i++)
+    {
+        dist += ((id_1->item[i]) * (id_2->item[i]));
     }
     return dist;
 }
@@ -298,7 +329,7 @@ int8_t recognize_face(face_id_list *l,
     for (uint16_t i = 0; i < l->count; i++)
     {
         uint8_t head = (l->head + i) % l->size;
-        similarity = cos_distance(l->id_list[head], face_id);
+        similarity = cos_distance_unit_id(l->id_list[head], face_id);
 
         if (similarity > max_similarity)
         {
@@ -381,7 +412,7 @@ face_id_node *recognize_face_with_name(face_id_name_list *l,
 
     for (face_id_node *p = head; p != NULL; p = p->next)
     {
-        similarity = cos_distance(p->id_vec, face_id);
+        similarity = cos_distance_unit_id(p->id_vec, face_id);
 
         if (similarity > max_similarity)
         {

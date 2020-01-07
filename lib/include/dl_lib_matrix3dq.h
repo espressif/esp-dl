@@ -502,6 +502,17 @@ dl_matrix3dq_t *dl_matrix3duq_conv_3x3_with_bias_prelu(dl_matrix3du_t *input,
                                                        int exponent,
                                                        char *name);
 
+
+
+dl_matrix3dq_t *dl_matrix3dqq_conv_3x3_with_bias_prelu(dl_matrix3dq_t *input,
+                                                       dl_matrix3dq_t *filter,
+                                                       dl_matrix3dq_t *bias,
+                                                       dl_matrix3dq_t *prelu,
+                                                       int stride_x,
+                                                       int stride_y,
+                                                       dl_padding_type padding,
+                                                       int exponent,
+                                                       char *name);
 //
 // Conv common
 //
@@ -660,6 +671,22 @@ dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_with_prelu(dl_matrix3dq_t *in,
                                                             int exponent,
                                                             char *name);
 
+dl_matrix3dq_t *dl_matrix3dqq_depthwise_conv_3x3_with_bias_prelu(dl_matrix3dq_t *in,
+                                                           dl_matrix3dq_t *f,
+                                                           dl_matrix3dq_t *bias,
+                                                           dl_matrix3dq_t *prelu,
+                                                           int stride_x,
+                                                           int stride_y,
+                                                           dl_padding_type padding,
+                                                           int exponent,
+                                                           char *name);
+
+dl_matrix3dq_t *dl_matrix3dqq_global_depthwise_conv_with_bias(dl_matrix3dq_t *in,
+                                                    dl_matrix3dq_t *filter,
+                                                    dl_matrix3dq_t *bias,
+                                                    int exponent,
+                                                    char *name);
+                                                    
 //
 // Depthwise Common
 //
@@ -803,6 +830,86 @@ dl_matrix3dq_t *dl_matrix3dqq_mobilefaceblock(dl_matrix3dq_t *in,
                                               dl_conv_mode mode,
                                               int shortcut);
 
+dl_matrix3dq_t *dl_matrix3dqq_mobilefaceblock_prelu(dl_matrix3dq_t *in,
+                                                dl_matrix3dq_t *pw,
+                                                dl_matrix3dq_t *pw_bias,
+                                                dl_matrix3dq_t *pw_prelu,
+                                                dl_matrix3dq_t *dw,
+                                                dl_matrix3dq_t *dw_bias,
+                                                dl_matrix3dq_t *dw_prelu,
+                                                dl_matrix3dq_t *pw_linear,
+                                                dl_matrix3dq_t *pw_linear_bias,
+                                                int pw_exponent,
+                                                int dw_exponent,
+                                                int pw_linear_exponent,
+                                                int stride_x,
+                                                int stride_y,
+                                                dl_padding_type padding,
+                                                dl_conv_mode mode,
+                                                int shortcut);
+
+dl_matrix3dq_t *dl_matrix3dqq_mobilefaceblock_prelu_split_2_2(dl_matrix3dq_t *in,
+                                                    dl_matrix3dq_t *pw_1,
+                                                    dl_matrix3dq_t *pw_2,
+                                                    dl_matrix3dq_t *pw_bias,
+                                                    dl_matrix3dq_t *pw_prelu,
+                                                    dl_matrix3dq_t *dw,
+                                                    dl_matrix3dq_t *dw_bias,
+                                                    dl_matrix3dq_t *dw_prelu,
+                                                    dl_matrix3dq_t *pw_linear_1,
+                                                    dl_matrix3dq_t *pw_linear_2,
+                                                    dl_matrix3dq_t *pw_linear_bias,
+                                                    int pw_exponent,
+                                                    int dw_exponent,
+                                                    int pw_linear_exponent,
+                                                    int stride_x,
+                                                    int stride_y,
+                                                    dl_padding_type padding,
+                                                    dl_conv_mode mode,
+                                                    int shortcut);
+
+dl_matrix3dq_t *dl_matrix3dqq_mobilefaceblock_prelu_split_4_4(dl_matrix3dq_t *in,
+                                                    dl_matrix3dq_t *pw_1,
+                                                    dl_matrix3dq_t *pw_2,
+                                                    dl_matrix3dq_t *pw_3,
+                                                    dl_matrix3dq_t *pw_4,
+                                                    dl_matrix3dq_t *pw_bias,
+                                                    dl_matrix3dq_t *pw_prelu,
+                                                    dl_matrix3dq_t *dw,
+                                                    dl_matrix3dq_t *dw_bias,
+                                                    dl_matrix3dq_t *dw_prelu,
+                                                    dl_matrix3dq_t *pw_linear_1,
+                                                    dl_matrix3dq_t *pw_linear_2,
+                                                    dl_matrix3dq_t *pw_linear_3,
+                                                    dl_matrix3dq_t *pw_linear_4,
+                                                    dl_matrix3dq_t *pw_linear_bias,
+                                                    int pw_exponent,
+                                                    int dw_exponent,
+                                                    int pw_linear_exponent,
+                                                    int stride_x,
+                                                    int stride_y,
+                                                    dl_padding_type padding,
+                                                    dl_conv_mode mode,
+                                                    int shortcut);
+
+dl_matrix3dq_t *dl_matrix3dqq_mobilefaceblock_prelu_split_1_2(dl_matrix3dq_t *in,
+                                                    dl_matrix3dq_t *pw,
+                                                    dl_matrix3dq_t *pw_bias,
+                                                    dl_matrix3dq_t *pw_prelu,
+                                                    dl_matrix3dq_t *dw,
+                                                    dl_matrix3dq_t *dw_bias,
+                                                    dl_matrix3dq_t *dw_prelu,
+                                                    dl_matrix3dq_t *pw_linear_1,
+                                                    dl_matrix3dq_t *pw_linear_2,
+                                                    dl_matrix3dq_t *pw_linear_bias,
+                                                    int pw_exponent,
+                                                    int dw_exponent,
+                                                    int pw_linear_exponent,
+                                                    int stride_x,
+                                                    int stride_y,
+                                                    dl_padding_type padding,
+                                                    dl_conv_mode mode,
+                                                    int shortcut);
 //
 // Mobilenet
 //
