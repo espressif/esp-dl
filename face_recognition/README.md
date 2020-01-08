@@ -4,9 +4,7 @@ FRMN is a lightweight **Human Face Recognition Model**, which is built around [a
 
 ## Overview
 
-Model FRMN1 is built on MobileNetV2.
-
-Model FRMN2/2C/2P is built on ShuffleNetV2.
+FRMN Models are built on MobileNetV2.
 
 In our training, we use the ArcFace Algorithm, instead of the traditional Softmax Function, and the Cross-Entropy Loss function.
 
@@ -48,20 +46,22 @@ Please see the flowchart of face recognition below:
 
 ## Recognition Model Selection
 
-4 versions of FRMN models are available by now:
-- FRMN1
-- FRMN2C
-- FRMN2
-- FRMN2P
+5 versions of FRMN models are available by now:
+- FRMN
+- MFN56_1X
+- MFN56_2X
+- MFN56_3X
+- MFN56_4X
 
-Accuracy: FRMN2P > FRMN2 > FRMN2C > FRMN1
+Accuracy: MFN56_4X > MFN56_3X > MFN56_2X > MFN56_1X > FRMN
 
 ### Details
-|Model|FRMN1|FRMN2C|FRMN2|FRMN2P|
-| ----- |:-----:|:-----:|:-----:|:-----:|
-|Function|frmn_q|frmn2c_q|frmn2_q|frmn2p_q|
-|Size| 1.2M |1.3M|1.6M|2.6M|
-|Time| 335ms|347ms|506ms|620ms|
+
+|Model|FRMN|MFN56_1X|MFN56_2X|MFN56_3X|MFN56_4X|
+| ----- |:-----:|:-----:|:-----:|:-----:|:-----:|
+|Function|frmn_q|mfn56_42m|mfn56_72m|mfn56_112m|mfn56_156m|
+|Size| 1.2MB | 1.6MB | 2.0MB | 2.4MB | 3.7MB |
+|Time| 363ms | 455ms | 738ms | 1150ms | 1540ms |
 
 
 ### Selection
@@ -70,6 +70,7 @@ Models can be selected through `idf.py menuconfig` or `make menuconfig`. Select 
 
 ![Recognition model selection](../img/recognition_model_selection.png)
 
+Note: The MFN56_4X model can only be run on the development board with 8MB FLASH
 
 ## Precautions
 
