@@ -38,3 +38,4 @@ The library contains basic matrix operations, basic deep neural network operatio
 
 More details are [HERE](lib/README.md)
 
+For the implementation of a simple network, [here](tutorial/implement_your_own_model.ipynb) is the tutorial.
