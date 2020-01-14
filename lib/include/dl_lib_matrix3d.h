@@ -564,6 +564,13 @@ dl_matrix3d_t *dl_matrix3duf_conv_common(dl_matrix3du_t *in,
                                          int stride_y,
                                          dl_padding_type padding);
 
+dl_matrix3d_t *dl_matrix3dff_conv_common(dl_matrix3d_t *in,
+                                         dl_matrix3d_t *filter,
+                                         dl_matrix3d_t *bias,
+                                         int stride_x,
+                                         int stride_y,
+                                         dl_padding_type padding);
+
 //
 // Depthwise 3x3
 //
