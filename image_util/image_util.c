@@ -451,7 +451,7 @@ void transform_output_image(uint16_t *bmp, uint8_t *m, int count)
 
 void transform_output_image_adjustable(uint16_t *bmp, uint8_t *m, int src_w, int src_h, int dst_w, int dst_h)
 { /*{{{*/
-    if (src_w == dst_w && src_h == src_h)
+    if (src_w == dst_w && src_h == dst_h)
         transform_output_image(bmp, m, src_h*src_w);
     else
     {
