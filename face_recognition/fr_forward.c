@@ -5,7 +5,6 @@
 #include "esp_log.h"
 #include "fr_forward.h"
 #include "freertos/FreeRTOS.h"
-#include "rom/ets_sys.h"
 #include "esp_partition.h"
 
 static const char *TAG = "face_recognition";
