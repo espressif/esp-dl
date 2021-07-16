@@ -1,0 +1,9 @@
+.vscode/
+build/
+sdkconfig.old
+sdkconfig
+bin/
+.idea/
+__pycache__/
+mnist_coefficient.cpp
+mnist_coefficient.hpp
