@@ -1,97 +1,69 @@
-# DL-LIB
+# ESP-DL
 
-This is a component which provides APIs for neurual network and some deep-learning application APIs, such as Cat Face Detection, Human Face Detection and Human Face Recognition. It can be used as a component of some project as it doesn't support any interface of periphrals. By default, it works along with ESP-WHO, which is a project-level repository. 
-
-> It's an alpha version for the customers who have received ESP32S3 series chip, 7.2.5 and 7.2.8. We are working on perfecting it.
+ESP-DL is a high-performance deep-learning library optimized for all Espressif Systems SoCs.
 
 
 
-## Neural Network Support
+## Overview
 
-### Data Type Support
+ESP-DL provides API for **Neural Network Inference**, **Image Processing**, **Math Operation** and some **Deep-Learning Models**. With ESP-DL, we can run neural network inference easily and fast on Espressif Systems SoCs.
 
-- [x] 16-bit
-- [ ] 8-bit
+ESP-DL can be used as a component of some project as it doesn't need any peripherals. For example, we make it as a component of **[ESP-WHO](https://github.com/espressif/esp-who)**, which contains several project-level examples on image application. Here shows the position of ESP-DL in a project and what ESP-DL consists of.
 
-The DL_LIB only supports quantization calculation. Element will be quantized in following rule.
-$$
-element_{float} * 2^{exponent} = element_{quantized}
-$$
-
-
-### API
-
-|                       | ESP32 | ESP32S2 | ESP32C3 | 7.2.5 | ESP32S3 |
-| --------------------- | ----- | ------- | ------- | ----- | ------- |
-| Conv2D                |       |         |         |       |         |
-| DepthwiseConv2D       |       |         |         |       |         |
-| GlobalDepthwiseConv2D |       |         |         |       |         |
-| Concat2D              |       |         |         |       |         |
-| ReLU                  |       |         |         |       |         |
-| LeakyReLU             |       |         |         |       |         |
-| PReLU                 |       |         |         |       |         |
-|                       |       |         |         |       |         |
-|                       |       |         |         |       |         |
-|                       |       |         |         |       |         |
+![](./img/esp-dl-architecture.drawio.png)
 
 
 
-## Build Your Own Model
+## How TO
 
-### Step 1: save model to npy files
-
-Save the float point coefficients of model into npy files, layer by layer, e.g.
-
-```python
-import numpy
-numpy.save(file=f'{root}/{layer_name}_filter.npy', arr=filter)
-numpy.save(file=f'{root}/{layer_name}_bias.npy', arr=bias)
-```
-
-Write a json file for model configuration. The format is 
-
-```json
-{
-    "layer_name": {				// must be the same as the corresponding npy file
-        "type": "conv2d", 		// "conv2d", "depthwise_conv2d", "global_depthwise_conv2d" only by now
-        "filter": -99, 			// exponent of filter. If it equals to -99, the convert tool will select an exponent to project filter to whole quantization range.
-        "element_width": 16, 	// quantization element width
-        "bias": -10, 			// exponent of bias, which must be equal to output's
-        "activation": {
-            "type": "relu"		// "relu", "leaky_relu", "prelu" only by now
-        }
-    }, 
-    ... ...
-}
-```
+- [Get Started](./docs/en/get_started.md): introduce how to get ESP-DL.
+- [Implement a Model](./tutorial): introduce how to implement a custom model step by step with a runnable example.
 
 
 
-```json
-{
-    "b_0": {
-        "type": "conv2d", 
-        "filter": -99, 
-        "element_width": 16, 
-        "bias": -10, 
-        "activation": {
-            "type": "relu"
-        }
-    }, 
-    "b_1_depth": {
-        "type": "depthwise_conv2d", 
-        "filter": -99, 
-        "element_width": 16, 
-        "activation": {
-            "type": "relu"
-        }
-    }, 
-    "b_1_compress": {
-        "type": "conv2d", 
-        "filter": -99, 
-        "element_width": 16, 
-        "bias": -8
-    }
-}
-```
 
+## Reference
+
+### Convert Tool
+
+With the help of config.json and convert.py, we can convert coefficient.npy in float-point to C/C++ in bit-quantize.
+
+> We plan to support generate code directly from third-part-framework, like TensorFlow, PyTorch and etc,  in future.
+
+- [Specification of config.json](./docs/en/specification_of_config_json.md)
+- [Usage of convert.py](./docs/en/usage_of_convert_py.md)
+
+
+
+### DL API
+
+- [About Type Define](./docs/en/about_type_define.md): introduce two categories of data type.
+- [Implement Custom Layer](./docs/en/implement_custom_layer.md): introduce how to implement your own layer step by step.
+- [API Documentation](): introduce provided API about Layer, NN, Math and tools.
+
+
+
+### Model Zoo
+
+ESP-DL provides some model API in [./include/model_zoo/](./include/model_zoo), like Human Face Detection, Human Face Recognition, Cat Face Detection, etc. The table below lists the link to examples.
+
+| Name                 | API Example                                                  | Application Example                                          |
+| -------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Human Face Detection | [ESP-DL/examples/human_face_detect](examples/human_face_detect) | [ESP-WHO/examples/human_face_detect](https://github.com/espressif/esp-who/tree/master/examples/human_face_detect) |
+| Cat Face Detection   | [ESP-DL/examples/cat_face_detect](examples/cat_face_detect)  | [ESP-WHO/examples/cat_face_detect](https://github.com/espressif/esp-who/tree/master/examples/cat_face_detect) |
+
+
+
+### Software & Hardware Boost
+
+- [About Bit Quantize](./docs/en/about_bit_quantize.md): the rule of convert float-point to bit-quantize.
+
+
+
+## Feedback
+
+[Q&A](./docs/en/Q&A.md) collects frequently asked questions.
+
+For feature requests or bug reports, please file an [issue](https://github.com/espressif/esp-dl/issues).
+
+> Please feel free to open an issue and let us know what else operations that you expect. We will give priority to the implementation of the high voice.
