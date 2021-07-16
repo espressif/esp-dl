@@ -1,4 +1,13 @@
+import os
+import sys
 import argparse
+import platform
+
+system_type = platform.system()
+path = f'{os.path.dirname(__file__)}/{system_type.lower()}'
+if system_type == 'Windows':
+    path.replace('/', '\\')
+sys.path.append(path)
 from utils import Convert
 
 if __name__ == '__main__':
@@ -13,8 +22,10 @@ if __name__ == '__main__':
         parser.print_help()
         quit()
 
-    print(f'Generating {args.output_root}/{args.name} on {args.target_chip}...', end='')
-    convert = Convert(target_chip=args.target_chip, input_root=args.input_root, output_root=args.output_root,
+    print(f'\nGenerating {args.output_root}/{args.name} on {args.target_chip}...', end='')
+    convert = Convert(target_chip=args.target_chip,
+                      input_root=args.input_root,
+                      output_root=args.output_root,
                       name=args.name)
     convert()
-    print(' Finish')
+    print(' Finish\n')
