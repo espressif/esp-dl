@@ -1,8 +1,8 @@
-# Cat Face Detection
+# Cat Face Detection [[中文]](./README_cn.md)
 
-这是猫脸检测接口的示例展示，其中输入为静态图片，检测结果显示在终端。想要了解项目级示例的，可参考 ESP-WHO/examples/cat_face_detection，其中输入图片来自摄像头，结果显示在 LCD 屏上。
+This project is an example of cat face detection interface. The input to this interface is a static image. The detection results are confidence scores and coordinate values shown in Terminal, which can be converted by a tool into an image shown on your PC screen.
 
-文件结构如下：
+Below is the structure of this project:
 
 ```shell
 cat_face_detect/
@@ -18,17 +18,22 @@ cat_face_detect/
 
 
 
-## 运行示例
+## Run the Example
 
-1. 打开终端，进入当前示例（ESP-DL/examples/cat_face_detect）
+1. Open Terminal and go to esp-dl/examples/cat_face_detect, the directory where this project is stored:
 
-2. 设定目标芯片。例如，目标芯片是 ESP32
+    ```shell
+    cd ~/esp-dl/examples/cat_face_detect
+    ```
 
-   ```shell
-   idf.py set-target esp32
-   ```
+2. Set SoC target:
 
-3. 烧写和监视，得到检测结果如下
+    ```shell
+    idf.py set-target [SoC]
+    ```
+    Replace [SoC] with your target, such as esp32, esp32s2, and esp32s3.
+
+3. Flash the program and launch IDF monitor to obtain the fractional and coordinate values of detection results:
 
    ```shell
    idf.py flash monitor
@@ -38,22 +43,29 @@ cat_face_detect/
    [0] score: 1.709961, box: [122, 2, 256, 117]
    ```
 
-4. 在 PC 上显示图片结果。我们提供了显示工具 `display_image.py`，方便用户体验更直观的检测结果。显示工具存放在 [example/tool/](../tool/) 中，请根据介绍使用工具。当前示例的显示结果如下图。
-
-   ![](./result.png)
-   
-   
-
-## 自定义输入图片
-
-示例中 [./main/image.hpp](./main/image.hpp) 是预设的输入图片。我们提供了转换工具 `convert_to_u8.py` ，方便用户将自己的图片转换成 C/C++ 的形式。转换工具存放在 [examples/tool/](../tool/) 中，请根据介绍使用工具。
-
-1. 在本示例中，使用 [examples/tool/convert_to_u8.py](../tool/convert_to_u8.py) 转化图片，如下：
+4. The tool `display_image.py` stored in [examples/tool/](../tool/) allows you to directly view the image of detection results. According to instructions on [Tools](../tool/README.md), run the following command:
 
    ```shell
-   # 假设当前仍在目录 cat_face_detect 下
+   python display_image.py -i ../cat_face_detect/image.jpg -b "(122, 2, 256, 117)"
+   ```
+   The image of detection results will show on your PC screen as follows:
+   
+   <p align="center">
+    <img width="%" src="./result.png"> 
+   </p>
+
+
+## Customize Input Image
+
+In this example project, [./main/image.hpp](./main/image.hpp) is the default input image. You can use the script `convert_to_u8.py` following instructions on [Tools](../tool/README.md), to convert your own image into C/C++ code in replace of the default input image.
+
+1. Save your image to directory ./examples/cat_face_detect, and use [examples/tool/convert_to_u8.py](../tool/convert_to_u8.py) to convert the image into an hpp file:
+
+   ```shell
+   # Assume you are in cat_face_detect directory
+
    python ../tool/convert_to_u8.py -i ./image.jpg -o ./main/image.hpp
    ```
 
-2. 参考 [Run Example](#Run-Example) 中的步骤，烧写程序，获取并显示检测结果。
+2. According to steps in Section [Run the Example](#run-the-example), flash the firmware, print the confidence scores and coordinate values of detection results, and view the image of detection results.
 

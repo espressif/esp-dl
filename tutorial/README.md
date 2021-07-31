@@ -1,10 +1,10 @@
-# How to Implement a Custom Model Step by Step
+# How to Customize a Model Step by Step
 
-This tutorial shows how to implement a custom model with ESP-DL step by step. For a more vivid explanation, the example is an runnable project about [MNIST](https://tensorflow.google.cn/datasets/catalog/mnist?hl=en) classification mission, hereinafter referred to as MNIST.
+This tutorial shows how to customize a model with ESP-DL step by step. In this tutorial, the example is an runnable project about [MNIST](https://tensorflow.google.cn/datasets/catalog/mnist?hl=en) classification mission, hereinafter referred to as MNIST.
 
-About how to implement a custom layer, please check [Implement Custom Layer](../docs/en/implement_custom_layer.md) to know.
+For how to customize a layer, please check [Customize a Layer Step by Step](../docs/en/implement_custom_layer.md).
 
-Here is the file structure,
+Below is the structure of this tutorial project.
 
 ```bash
 tutorial/
@@ -13,8 +13,8 @@ tutorial/
 │   ├── app_main.cpp
 │   └── CMakeLists.txt
 ├── model
-│   ├── mnist_coefficient.cpp	(generated after step3)
-│   ├── mnist_coefficient.hpp	(generated after step3)
+│   ├── mnist_coefficient.cpp	(generated in Step 3)
+│   ├── mnist_coefficient.hpp	(generated in Step 3)
 │   ├── mnist_model.hpp
 │   └── npy
 │       ├── config.json
@@ -51,29 +51,36 @@ tutorial/
 
 
 
-## Step-1: Save Model Coefficient
+## Step 1: Save Model Coefficients
 
-Save the float-point coefficients of model to npy files by [numpy.save(file=f'{filename}', arr=coefficient)](https://numpy.org/doc/stable/reference/generated/numpy.save.html?highlight=save#numpy.save). For each neural-network operation, we probably need:
+Save floating-point coefficients of your model in .npy format using the [numpy.save ()](https://numpy.org/doc/stable/reference/generated/numpy.save.html?highlight=save#numpy.save) function:
 
-- **filter**: saved with filename `'{layer_name}_filter.npy'`
-- **bias**: saved with filename `'{layer_name}_bias.npy'`
-- **activation**: activations with coefficient such as *LeakyReLU* and *PReLU* saved with filename `'{layer_name}_activation.npy'`
+```
+numpy.save(file=f'{filename}', arr=coefficient)
+```
 
-**Example:** [`./model/npy/`](./model/npy/) contains the coefficient.npy files of the MNIST.
+For each layer of a neural network operation, you might need:
 
+- **filter**: saved as `'{layer_name}_filter.npy'`
+- **bias**: saved as `'{layer_name}_bias.npy'`
+- **activation**: activation functions with coefficients such as *LeakyReLU* and *PReLU*, saved as `'{layer_name}_activation.npy'`
 
-
-## Step-2: Write Model Configuration
-
-Follow the [**Specification of config.json**](../docs/en/specification_of_config_json.md) and write the config.json file about the model.
-
-**Example:** [`./model/npy/config.json`](./model/npy/config.json) is the configuration of the MNIST.
+**Example:** coefficients of the MNIST project saved into .npy files in[`./model/npy/`](./model/npy/).
 
 
 
-## Step-3 Convert Model Coefficient
+## Step 2: Write Model Configuration
 
-Make sure that coefficient.npy files and config.json file are ready and in the same folder. Follow the [**Usage of convert.py**](../docs/en/usage_of_convert_py.md) to convert coefficients into C/C++ code. Then, the coefficients of each layer could be fetched by calling `get_{layer_name}_***()`, for example, getting filter of "l1" by calling `get_l1_filter()`.
+Write model configuration in the config.json file following the [**Specification of config.json**](../docs/en/specification_of_config_json.md).
+
+**Example:** configuration of the MNIST project saved in [`./model/npy/config.json`](./model/npy/config.json).
+
+
+
+## Step 3: Convert Model Coefficients
+
+
+Once the coefficient.npy files and config.json file are ready and stored in the same folder, convert the coefficients into C/C++ code using convert.py (see instructions in [**Usage of convert.py**](../docs/en/usage_of_convert_py.md)).
 
 **Example:**
 
@@ -83,13 +90,14 @@ Run
 python ../convert.py -i ./model/npy/ -n mnist_coefficient -o ./model/
 ```
 
-Two files `mnist_coefficient.cpp` and `mnist_coefficient.hpp` are generated in [`./model/`](./model/).
+and two files `mnist_coefficient.cpp` and `mnist_coefficient.hpp` would be generated in [`./model/`](./model/).
+
+Then, the coefficients of each layer could be fetched by calling `get_{layer_name}_***()`. For example, get the filter of "l1" by calling `get_l1_filter()`.
 
 
+## Step 4: Build a Model
 
-## Step-4 Build a Model
-
-### Step-4.1 Derive from the Model class in [`"dl_layer_model.hpp"`](../include/layer/dl_layer_model.hpp)
+### Step 4.1: Derive a class from the Model class in [`"dl_layer_model.hpp"`](../include/layer/dl_layer_model.hpp)
 
 ```c++
 class MNIST : public Model<int16_t>
@@ -99,7 +107,7 @@ class MNIST : public Model<int16_t>
 
 
 
-### Step-4.2 Declare layers as member variables
+### Step 4.2: Declare layers as member variables
 
 ```c++
 class MNIST : public Model<int16_t>
@@ -130,16 +138,16 @@ public:
 
 
 
-### Step-4.3 Initialize layers in constructor function
+### Step 4.3: Initialize layers in constructor function
 
-Initialize layers with the coefficients from the `"mnist_coefficient.hpp"` generated in [Step-3](#Step-3-Convert-Model-Coefficient).
+Initialize layers with the coefficients in `"mnist_coefficient.hpp"` generated in [Step 3: Convert Model Coefficients](#step-3-convert-model-coefficients).
 
-The details about how to initialize each kind of Layer, please check the [declaration of them](../include/layer/).
+For how to initialize each Layer, please check the corresponding .hpp file in [esp-dl/include/layer/](../include/layer/).
 
 ```c++
 class MNIST : public Model<int16_t>
 {
-    // ellipsis menber variables
+    // ellipsis member variables
     
     MNIST() : l1(Conv2D<int16_t>(-2, get_l1_filter(), get_l1_bias(), get_l1_relu(), PADDING_VALID, 2, 2, "l1")),
               l2_depth(DepthwiseConv2D<int16_t>(-1, get_l2_depth_filter(), NULL, get_l2_depth_relu(), PADDING_SAME, 2, 2, "l2_depth")),
@@ -164,21 +172,24 @@ class MNIST : public Model<int16_t>
 
 
 
-### Step-4.4 Implement `void build(Tensor<input_t> &input)`
+### Step 4.4: Implement `void build(Tensor<input_t> &input)`
 
-To distinguish `build()` of `Model` and `build()` of `Layer`, let `Model.build()` stands for `build()` of `Model`, `Layer.build()` stands for `build()` of `Layer`.
+To distinguish `build()` of `Model` and `build()` of `Layer`, we define:
 
-`Model.build()` is implemented with calling all `Layer.build()`. `Model.build()` is effective when its input shape changes. 
+* `Model.build()` as `build()` of `Model`;
+* `Layer.build()` as `build()` of `Layer`.
 
-The details about when is `Model.build()` called, please check [Step-5](#Step-5-Run-a-Model)
+`Model.build()` is effective when input shape changes. In `Model.build()`, all `Layer.build()` are called.
 
-The details about how to call `Layer.build()` of each kind of Layer, please check the [declaration of them](../include/layer/).
+For when `Model.build()` is called, please check [Step 5: Run a Model](#step-5-run-a-model).
+
+For how to call `Layer.build()` of each layer, please refer to the corresponding .hpp file in [esp-dl/include/layer/](../include/layer/).
 
 ```c++
 class MNIST : public Model<int16_t>
 {
-    // ellipsis menber variables
-    // ellipsis construcor function
+    // ellipsis member variables
+    // ellipsis constructor function
     
     void build(Tensor<int16_t> &input)
     {
@@ -208,16 +219,15 @@ class MNIST : public Model<int16_t>
 
 
 
-### Step-4.5 Implement `void call(Tensor<input_t> &input)`
+### Step 4.5: Implement `void call(Tensor<input_t> &input)`
 
-`Model.call()` is implemented with calling all `Layer.call()`. The details about how to call `Layer.call()` of each kind of Layer, please check the [declaration of them](../include/layer/).
-
+In `Model.call()`, all `Layer.call()` are called. For how to call `Layer.call()` of each layer, please refer to the corresponding .hpp file in [esp-dl/include/layer/](../include/layer/).
 
 ```c++
 class MNIST : public Model<int16_t>
 {
-    // ellipsis menber variables
-    // ellipsis construcor function
+    // ellipsis member variables
+    // ellipsis constructor function
     // ellipsis build(...)
 
     void call(Tensor<int16_t> &input)
@@ -280,11 +290,11 @@ class MNIST : public Model<int16_t>
 
 
 
-## Step-5 Run a Model
+## Step 5: Run a Model
 
 - Create an object of Model 
 
-- Run `Model.forward()` for neural-network inference. The progress of `Model.forward()` is:
+- Run `Model.forward()` for neural network inference. The progress of `Model.forward()` is:
 
   ```c++
   forward()
@@ -299,7 +309,7 @@ class MNIST : public Model<int16_t>
 
   
 
-**Example:** In [`./main/main.cpp`](./main/app_main.cpp), we create an object of MNIST and call `forward()` to get inference result.
+**Example:** the object of MNIST and the `forward()` function in [`./main/main.cpp`](./main/app_main.cpp).
 
 ```c++
 // model forward

@@ -1,18 +1,18 @@
-# Implement Custom Layer Step by Step
+# Customize a Layer Step by Step
 
-Our implemented layers, e.g. Conv2D, DepthwiseConv2D, are derived from base class **Layer** in [`./include/layer/dl_layer_base.hpp`](../../include/layer/dl_layer_base.hpp). As you see, the Layer class only has one member variable `name`, no virtual function needed to be overload. Actually, if it's no use with name, it will not necessary to implement a custom layer by derived from Layer class. However, we recommend deriving for code consistency.
+The implemented layers of ESP-DL, e.g. Conv2D, DepthwiseConv2D, are derived from the base **Layer** class in [`./include/layer/dl_layer_base.hpp`](../../include/layer/dl_layer_base.hpp). The Layer class only has one member variable `name`. Although if `name` is not used it would be unnecessary to customize a layer derived from the Layer class, we recommend doing so for code consistency.
 
-The example here is not a runnable class but for design purpose clarification. For a runnable example, please check the header files in [./include/layer/](../../include/layer/) folder, which contains Conv2D, DepthwiseConv2D, Concat2D, etc implements.
+The example in this document is not runnable, but only for design reference. For a runnable example, please check header files in the [./include/layer/](../../include/layer/) folder, which contains layers such as Conv2D, DepthwiseConv2D, Concat2D, etc.
 
-As input and output of layer are Tensor, **it is quite necessary to know the definition about Tensor in [About Type Define](./about_type_define.md/#Tensor)**.
+As the input and output of a layer are tensors, **it is quite necessary to learn about Tensor in [About Variables and Constants](./about_type_define.md/#Tensor)**.
 
-Let's start to implement a custom layer!
+Let's start to customize a layer!
 
 
 
-## Step-1 Derived from Layer class
+## Step 1: Derive from the Layer class
 
-Here, we derive a new layer named `MyLayer` from Layer class. Declare member variables, constructor and destructor according to requirements. Do not forget to initialize the constructor of base class. Nothing special here, just follow the C/C++ specification.
+Derive a new layer (named `MyLayer` in the example) from the Layer class, and then member variables, constructor and destructor according to requirements. Do not forget to initialize the constructor of the base class.
 
 ```c++
 class MyLayer : public Layer
@@ -25,7 +25,7 @@ public:
 
     MyLayer(/* arguments */) : Layer(name)
     {
-        // initialze anything frozen
+        // initialize anything frozen
     }
 
     ~MyLayer()
@@ -37,23 +37,26 @@ public:
 
 
 
-## Step-2 Implement build()
+## Step 2: Implement `build()`
 
-As a layer, it always has input(one or more) and output. The design purpose of `build()` comes into being due to input and output.
+A layer always has one or multiple inputs and one output. For now, `build()` is implemented for the purposes of:
 
-**Update Output Shape**: The output shape is determined by input shape, sometimes coefficient shape as well, e.g., output shape of Conv2D is determined by input shape, filter shape, stride and dilation. In a running application, some configurations of layer like filter shape, stride and dilation are frozen, but input shape is probably variable. Once input shape changed, output shape should be changed accordingly. So `build()` is implemented for the first purpose: update output shape according to input shape.
+- **Updating Output Shape**:
+    
+    The output shape is determined by the input shape, and sometimes the shape of coefficients as well. For example, the output shape of Conv2D is determined by its input shape, filter shape, stride, and dilation. In a running application, some configurations of a layer are fixed, such as the filter shape, stride and dilation, but the input shape is probably variable. Once the input shape is changed, the output shape should be changed accordingly. `build()` is implemented for the first purpose: updating the output shape according to the input shape.
 
-**Update Input Padding**: For some operation, e.g., Conv2D and DepthwiseConv2D, input probably needs padding. Like output shape, it's determined by input shape, sometimes coefficient shape as well, e.g., input padding of Conv2D is determined by input shape, filter shape, stride, dilation and padding type. So `build()` is implemented for the second purpose: update input padding according to input shape for a layer which need input padded.
+- **Updating Input Padding**: 
 
-We implement `build()` with these two above purpose only by now, but not limited to this. Infer other things from one fact, **all updates based on input could be input in build()**.
+    In 2D convolution layers such as Conv2D and DepthwiseConv2D, input tensors probably need to be padded. Like output shape, input padding is also determined by input shape, and sometimes the shape of coefficients as well. For example, the padding of an input to a Conv2D layer is determined by the input shape, filter shape, stride, dilation and padding type. `build()` is implemented for the second purpose: updating input padding according to the shape of the to-be-padded input.
 
-**Why build() is needed**: When we [Implement Custom Model](../../tutorial/README.md), all `Layer.build()` are called in `Model.build()`, described in [Step-4 Build a Model](../../tutorial/README.md/#Step-4-Build-a-Model). `Model.build()` is called when input shape is changed, described in [Step-5 Run a Model](../../tutorial/README.md/#Step-5-Run-a-Model). In other word, save `Model.build()` calling when input shape is not changed.
+`build()` is not limited to the above two purposes. **All updates made according to input could be implemented by build()**.
+
 
 ```c++
 class MyLayer : public Layer
 {
-    // ellipsis menber variables
-    // ellipsis construcor and destructor
+    // ellipsis member variables
+    // ellipsis constructor and destructor
 
     void build(Tensor<int16_t> &input)
     {
@@ -68,19 +71,18 @@ class MyLayer : public Layer
 
 
 
-## Step-3 Implement call()
+## Step 3: Implement call()
 
-Implement layer inference operation in `call()`. Here are some points to note,
+Implement layer inference operation in `call()`. Please pay attention to:
 
-**Call output.[`calloc_element()`](../../include/typedef/dl_variable.hpp/#122)**: Don't forget to apply memory for `output.element`.
-
-**Element Sequence of Tensor**: Input and output are both [`dl::Tensor`](../../include/typedef/dl_variable.hpp). It's very necessary to know the details about Tensor in [About Type Define](./about_type_define.md/#Tensor).
+- **memory allocation** for `output.element` via [`Tensor.apply_element()`](../../include/typedef/dl_variable.hpp), [`Tensor.malloc_element()`](../../include/typedef/dl_variable.hpp) or [`Tensor.calloc_element()`](../../include/typedef/dl_variable.hpp/#122);
+- **dimension order of tensors described in [About Variables and Constants](./about_type_define.md/#Tensor)**, as both input and output are [`dl::Tensor`](../../include/typedef/dl_variable.hpp).
 
 ```c++
 class MyLayer : public Layer
 {
-    // ellipsis menber variables
-    // ellipsis construcor and destructor
+    // ellipsis member variables
+    // ellipsis constructor and destructor
     // ellipsis build(...)
 
     Tensor<feature_t> &call(Tensor<int16_t> &input, /* other arguments */)

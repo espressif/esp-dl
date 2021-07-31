@@ -1,69 +1,59 @@
 # ESP-DL
 
-ESP-DL is a high-performance deep-learning library optimized for all Espressif Systems SoCs.
+ESP-DL is a library for high-performance deep learning resources dedicated to all SoCs by Espressif.
 
 
 
 ## Overview
 
-ESP-DL provides API for **Neural Network Inference**, **Image Processing**, **Math Operation** and some **Deep-Learning Models**. With ESP-DL, we can run neural network inference easily and fast on Espressif Systems SoCs.
+ESP-DL provides APIs for **Neural Network (NN) Inference**, **Image Processing**, **Math Operations** and some **Deep Learning Models**. With ESP-DL, you can use Espressif's SoCs for neural network inference easily and fast.
 
-ESP-DL can be used as a component of some project as it doesn't need any peripherals. For example, we make it as a component of **[ESP-WHO](https://github.com/espressif/esp-who)**, which contains several project-level examples on image application. Here shows the position of ESP-DL in a project and what ESP-DL consists of.
+As ESP-DL does not need any peripherals, it can be used as a component of some projects. For example, you can use it as a component of **[ESP-WHO](https://github.com/espressif/esp-who)**, which contains several project-level examples of image application. The figure below shows what ESP-DL consists of and how ESP-DL is implemented as a component in a project.
 
-![](./img/esp-dl-architecture.drawio.png)
-
-
-
-## How TO
-
-- [Get Started](./docs/en/get_started.md): introduce how to get ESP-DL.
-- [Implement a Model](./tutorial): introduce how to implement a custom model step by step with a runnable example.
+<p align="center">
+    <img width="%" src="./img/esp-dl-architecture.drawio.png"> 
+</p>
 
 
+## Get Started with ESP-DL
 
+For setup instructions to get started with ESP-DL, please read [Get Started](./docs/en/get_started.md).
 
-## Reference
+## Try Models in the Model Zoo
 
-### Convert Tool
-
-With the help of config.json and convert.py, we can convert coefficient.npy in float-point to C/C++ in bit-quantize.
-
-> We plan to support generate code directly from third-part-framework, like TensorFlow, PyTorch and etc,  in future.
-
-- [Specification of config.json](./docs/en/specification_of_config_json.md)
-- [Usage of convert.py](./docs/en/usage_of_convert_py.md)
-
-
-
-### DL API
-
-- [About Type Define](./docs/en/about_type_define.md): introduce two categories of data type.
-- [Implement Custom Layer](./docs/en/implement_custom_layer.md): introduce how to implement your own layer step by step.
-- [API Documentation](): introduce provided API about Layer, NN, Math and tools.
-
-
-
-### Model Zoo
-
-ESP-DL provides some model API in [./include/model_zoo/](./include/model_zoo), like Human Face Detection, Human Face Recognition, Cat Face Detection, etc. The table below lists the link to examples.
+ESP-DL provides some model APIs in the [Model Zoo](./include/model_zoo), such as Human Face Detection, Human Face Recognition, Cat Face Detection, etc. You can use these models in the table below out of box.
 
 | Name                 | API Example                                                  | Application Example                                          |
-| -------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| :-------------------- | :------------------------------------------------------------ | :------------------------------------------------------------ |
 | Human Face Detection | [ESP-DL/examples/human_face_detect](examples/human_face_detect) | [ESP-WHO/examples/human_face_detect](https://github.com/espressif/esp-who/tree/master/examples/human_face_detect) |
 | Cat Face Detection   | [ESP-DL/examples/cat_face_detect](examples/cat_face_detect)  | [ESP-WHO/examples/cat_face_detect](https://github.com/espressif/esp-who/tree/master/examples/cat_face_detect) |
 
 
+## Customize a Model
 
-### Software & Hardware Boost
+To customize a model, please proceed to [How to Customize a Model Step by Step](./tutorial), where the instructions with a runnable example will quickly help you design your model.
 
-- [About Bit Quantize](./docs/en/about_bit_quantize.md): the rule of convert float-point to bit-quantize.
+When you read the instructions, the following materials might be helpful:
+
+- DL API
+    * [About Variables and Constants](./docs/en/about_type_define.md): information about
+        - variable: tensors
+        - constants: filters, biases, and activations
+    * [Customize a Layer Step by Step](./docs/en/implement_custom_layer.md): instructions on how to customize a layer.
+    * [API Documentation](): guides to provided API about Layer, Neural Network (NN), Math and tools.
+- Convert Tool: the tool and configuration file for floating-point quantization on coefficient.npy
+    * config.json: see [Specification of config.json](./docs/en/specification_of_config_json.md)
+    * convert.py: see [Usage of convert.py](./docs/en/usage_of_convert_py.md)
+
+        > convert.py requires Python 3.7 or versions higher.
+
+- Software and Hardware Boost
+    * [About Bit Quantization](./docs/en/about_bit_quantize.md): rules of floating-point quantization
 
 
 
 ## Feedback
 
-[Q&A](./docs/en/Q&A.md) collects frequently asked questions.
+[Q&A](./docs/en/Q&A.md) lists answers to frequently asked questions.
 
-For feature requests or bug reports, please file an [issue](https://github.com/espressif/esp-dl/issues).
-
-> Please feel free to open an issue and let us know what else operations that you expect. We will give priority to the implementation of the high voice.
+For feature requests or bug reports, please submit an [issue](https://github.com/espressif/esp-dl/issues). We will prioritize the most anticipated features.

@@ -1,52 +1,63 @@
 # Get Started
 
-This document tells how to develop with ESP-DL.
+This document describes how to set up the environment for ESP-DL. You can use any ESP development board by [Espressif](https://www.espressif.com/en/products/devkits) or other vendors.
+
 
 ## Get ESP-IDF
 
-ESP-DL runs based on ESP-IDF. See [https://idf.espressif.com/](https://idf.espressif.com/) for links to detailed instructions on how to set up the ESP-IDF depending on chip you use.
-
+ESP-DL runs based on ESP-IDF. For detailed instructions on how to get ESP-IDF, please see [ESP-IDF Programming Guide](https://idf.espressif.com/).
 
 
 ## Get ESP-DL and Run Example
 
-1. Git clone or download ESP-DL.
+1. Download ESP-DL using the following command:
 
     ```shell
     git clone https://github.com/espressif/esp-dl.git
     ```
 
-2. Open a terminal. Get into the [tutorial](../../tutorial/) folder. Or, you can try other examples in [ESP-DL/examples](../../examples).
-
-3. Set target chip. For example, if target chip is ESP32, then run
+2. Open Terminal and go to the [ESP-DL/tutorial](../../tutorial/) directory:
 
     ```shell
-    idf.py set-target esp32
+    cd ~/esp-dl/tutorial
     ```
 
-4. Flash and Monitor. Result printed in terminal.
+    or to example projects in the [ESP-DL/examples](../../examples) directory.
+
+3. Set the SoC target by running:
+
+    ```shell
+    idf.py set-target [SoC]
+    ```
+    Replace [SoC] with your SoC target, such as esp32, esp32s2, esp32s3.
+
+4. Flash the firmware and print the result:
 
     ```shell
     idf.py flash monitor
     ```
     
-    - If target chip is ESP32, then
+    If you go to the [ESP-DL/tutorial](../../tutorial/) directory in Step 2, and
+
+    - your SoC target is ESP32, then
       
       ```shell
-      MNIST::forward: 37294 us
+      MNIST::forward: 37294 μs
       Prediction Result: 9
       ```
 
     
-    - If target chip is ESP32-S3, then
+    - your SoC target is ESP32-S3, then
 
       ```shell
-      MNIST::forward: 6103 us
+      MNIST::forward: 6103 μs
       Prediction Result: 9
       ```
 
 
 
-## Become Component
+## Use ESP-DL as Component
 
-ESP-DL is just a library contains various deep-learning API. We recommend to make ESP-DL as a component in a project. Take [ESP-WHO](https://github.com/espressif/esp-dl.git) for example, ESP-DL becomes a submodule in [ESP-WHO/components/](https://github.com/espressif/esp-who/tree/master/components).
+ESP-DL is a library that contains various deep-learning APIs. We recommend using ESP-DL as a component in a project. 
+
+For example, ESP-DL can be a submodule of the [ESP-WHO](https://github.com/espressif/esp-who) repository if added to [esp-who/components/](https://github.com/espressif/esp-who/tree/master/components) directory.

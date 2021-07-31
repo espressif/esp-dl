@@ -1,62 +1,62 @@
-# 工具
+# Tools [[中文]](./README_cn.md)
 
-因为 ESP-DL 的定位是不包含外设驱动的库。所以在编写 model_zoo 相关示例时，使用数组保存像素值来表示图片，运行结果只能显示在终端中。为了能让大家充分的体验 ESP-DL，我们提供了以下一些工具。
+Since ESP-DL is a repository without peripheral drivers, when writing [Examples](../../examples) in the model zoo, we use pixel arrays converted from images. The results can only show in Terminal. For more intuitive user experience, we provide the following tools for image conversion and display.
 
-## convert_to_u8.py
+## Image Converter convert_to_u8.py
 
-该转换工具可以帮助体验者，将自己的图片转换成 C/C++ 的数组形式。配置说明如下。
+This tool allows you to convert your customized image into C/C++ arrays. The table below lists descriptions of arguments:
 
-| 参数           | 值                     |
-| -------------- | ---------------------- |
-| -i \| --input  | string: 输入图片的路径 |
-| -o \| --output | string: 输出文件的路经 |
+| Argument       | Type |Value                  |
+| :------------- | :-: |:--------------------- |
+| -i \| --input  | string | The path of input image |
+| -o \| --output | string | The path of output file |
 
 
 
-**示例：**
+**Example:**
 
-假设，
+Assume that
 
-- 自定义图片路经为： my_album/my_image.png
-- 输出到 human_face_detect 的项目中
+- the path of the customized image is my_album/my_image.png
+- the output file is saved to esp-dl/examples/human_face_detect/main, the directory of the human face detection project
 
-则，
+then the command to execute would be:
 
 ```shell
 python convert_to_u8.py -i my_album/my_image.png -o ESP-DL/examples/human_face_detect/main/image.hpp
 ```
 
-> 注意：这段代码只作示例说明，并不是有效代码。
+> Note: The command above is only for reference and not effective.
 
 
 
-## display_image.py
+## Display Tool display_image.py
 
-该显示工具可以帮助体验者，在图片上绘制框和点。配置说明如下。
+This tool draws boxes and keypoints for detection on the image. The table below lists descriptions of arguments:
 
-| 参数              | 值                                                           |
-| ----------------- | ------------------------------------------------------------ |
-| -i \| --image     | string: 图片路经                                             |
-| -b \| --box       | string: 输入依照格式 "(x1, y1, x2, y2)"，其中 (x1, y1) 表示框的左上角坐标，(x2, y2) 表示框的右下角坐标<br />不配置： 不绘制框 |
-| -k \| --keypoints | string: 输入依照格式 "(x1, y1, x2, y2, ... , xn, yn)"，其中每对 (x, y) 表示一个点<br />不配置： 不绘制点 |
+| Argument              | Type |Value                                                           |
+| :---------------- | :---:| :----------------------------------------------------------- |
+| -i \| --image     | string |Image path                                             |
+| -b \| --box       | string | A box in (x1, y1, x2, y2) format, where (x1, y1) is the upper left point of the box, and(x2, y2) is the lower right point of the box. <br/>If dropped<sup>[1](#note1)</sup>, no box will be drawn. |
+| -k \| --keypoints | string | Keypoints in (x1, y1, x2, y2, ... , xn, yn) format, where each (x, y) stands for a point.<br/> If dropped, no keypoint will be drawn. |
 
+> <a name="note1">1</a>: **dropped**: to leave a specific argument empty.
 
+**Example:**
 
-**示例：**
+Assume that
 
-假设，
+- the path of the image is my_album/my_image.jpg
+- the upper left point of the box is (137, 75)
+- the lower right point of the box is (246, 215)
+- point 1 is (157, 131)
+- point 2 is (158, 177)
+- point 3 is (170, 163)
 
-- 图片路经为： my_album/my_image.jpg
-- 框的左上角坐标： (137, 75)
-- 框的右下角坐标： (246, 215)
-- 点1的坐标： (157, 131)
-- 点2的坐标： (158, 177)
-- 点3的坐标： (170, 163)
-
-则，
+then the command to execute would be:
 
 ```shell
 python display_image.py -i my_album/my_image.jpg -b "(137, 75, 246, 215)" -k "(157, 131, 158, 177, 170, 163)"
 ```
 
-> 注意：这段代码只作示例说明，并不是有效代码。
+> Note: The command above is only for reference and not effective.

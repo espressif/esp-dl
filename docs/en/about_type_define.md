@@ -1,65 +1,77 @@
-# About Type Define
+# About Variables and Constants
 
-ESP-DL has two categories of data types,
+ESP-DL has the following variable and constants:
 
-**Variable**: [Tensor](../../include/typedef/dl_variable.hpp/#15)
-
-**Constant**: [Filter](../../include/typedef/dl_constant.hpp/#33), [Bias](../../include/typedef/dl_constant.hpp/#55), [Activation](../../include/typedef/dl_constant.hpp/#67)
+- **Variable**: [tensors](../../include/typedef/dl_variable.hpp/#15) whose values can be changed
+- **Constants**: [filters](../../include/typedef/dl_constant.hpp/#33), [biases](../../include/typedef/dl_constant.hpp/#55), and [activations](../../include/typedef/dl_constant.hpp/#67) whose values are fixed
 
 
 
 ## Tensor
 
-Tensor is a data type for indicating feature map, e.g., input and output of a layer. Because of padding needed in some operation, the non-zero element may not continuous. It bothers custom layer implement. So, **If you want to implement a custom layer, please have a good look at it.**
+A tensor is a generalization of matrices to N dimensions. In other words, it could be:
 
+- 0-dimensional, represented as a scalar
+- 1-dimensional, represented as a vector
+- 2-dimensional, represented as a matrix
+- a higher-dimensional structure that is harder to visulize
 
+The number of dimensions and the size of each dimension is known as the shape of a tensor. In ESP-DL, a tensor is the primary data structure. Every input and output of a layer is a tensor.
+
+Sometimes a tensor needs to be padded with zero around its border, so that its shape is amenable to the neural network operation. In this case, the non-zero elements in the tensor may not be continuous. **The incontinuous non-zero elements makes it difficult to customize a layer. Please pay special attention when making customization.**
 
 ### Tensor in 1D
 
-As API for 1D operation is not ready, we do not talk about it right now.
+To be updated when the API for 1D operations is ready.
 
 
 
 ### Tensor in 2D
 
-#### Element Sequence
+#### Dimension Order
 
-In 2D operation, input and output(collectively referred to as feature map) of a layer is 2D. The sequence of element is fixed, in [height, width, channel]. For example, I have a feature map with shape [5, 3, 4], all elements in memory are arranged as follows. 
+In 2D operations, the input tensor and output tensor of a layer is 2D. Tensor dimensions are ordered in a fixed manner, namely [height, width, channel].
 
-![](../../img/tensor_2d_sequence.drawio.png)
+Suppose we have the following shape [5, 3, 4], and the elements of this tensor would be arranged as follows:
 
-#### About Padding
 
-Things are not easy in some operations that need padded-input.
+   <p align="center">
+    <img width="%" src="../../img/tensor_2d_sequence.drawio.png"> 
+   </p>
 
-For example, in Conv2D, DepthwiseConv2D, etc, they probably need input padded in **left, right, top and bottom**. Further more, the same feature map could probably become several layer's input. Each layer probably needs different padding requirements. To avoid memory copy(which takes a lot of time), we apply a whole memory with the biggest padding of this feature map.
 
-Specially, in Concat2D, We apply a whole memory for all feature map will be concatenated together. As it shows below, A, B and C are concatenated together along channel(ESP-DL only support this by now). When B becomes some layer's input, B actually has padding in **front and back**(probably top, bottom, left, right as well). Here, the expression of front and back padding in B may not be correct enough. Because there are meaningful elements in A and C.
+#### Padding
 
-![](../../img/concat_2d.drawio.png)
+In Conv2D, DepthwiseConv2D, and other types of 2D operations, input tensors probably need to be padded at the left, right, top, and bottom. Different layers might have the same input tensor, but vary in padding requirements. To reduce the times of memory copy (i.e. copying tensor elements from one memory location to another before padding), all input tensors in the memory are padded to the maximum. 
 
-According to these situations above, I draw a figure below. Among these labels in figure,
+Especially in Concat2D, all input tensors are concatenated. As the figure below shows, A, B, and C are concatenated along the channel dimension (for now the only dimension supported by concatenation in ESP-DL). As input for a specific layer, B is padded at the front and back (probably at the top, bottom, left, and right as well). The elements padded at the front and back of B include meaningful elements of A (at the front of B) and C (at the back of B).
 
-`Tensor.element`, `Tensor.shape`, `Tensor.padding` and `Tensor.shape_with_padding` could be found in [Tensor's member variables](../../include/typedef/dl_variable.hpp/#22) accordingly.
+   <p align="center">
+    <img width="%" src="../../img/concat_2d.drawio.png"> 
+   </p>
 
-- `Tensor.element`: always point to that in figure. Although it has front and back padding.
-- `Tensor.shape`: the shape without padded(the red box in figure).
-- `Tensor.padding`: the padding size of red box. `Tensor.padding` should great equal than `Layer.padding` in each axis.
+The figure below illustrates [tensor's member variables](../../include/typedef/dl_variable.hpp/#22) used for padding:
 
-`Layer.padding` could be found as an example in [`dl_layer_conv2d.hpp`](../../include/layer/dl_layer_conv2d.hpp). This padding is for operation. So, `Layer.padding` should less equal than `Tensor.padding`.
+- `Tensor.element`: a specific point whose position would never change in the tensor, regardless of padding at the front and back
+- `Tensor.shape`: the original tensor shape before being padded (the red box in the figure)
+- `Tensor.padding`: the padding size of the original tensor. `Tensor.padding` should be greater than or equal to `Layer.padding` in each dimension
+    > In [`dl_layer_conv2d.hpp`](../../include/layer/dl_layer_conv2d.hpp), `Layer.padding` is used, and is less than or equal to `Tensor.padding`.
 
-![](../../img/tensor_2d_padding.drawio.png)
+   <p align="center">
+    <img width="%" src="../../img/tensor_2d_padding.drawio.png"> 
+   </p>
+   
 
 #### In Application
 
-**Tensor as an input:** Probably, we have a layer needs a padded input with padding size, `Layer.padding`. Then, we could get the pointer point to the beginning of padded input by [`Tensor.get_element_ptr(Layer.padding)`](../../include/typedef/dl_variable.hpp/#100). Be cautious that there are probably still some gabs between padded input(the blue box in figure) and padded tensor(the biggest box in figure).
+**Input tensor:** Suppose that we have an input tensor to be padded by the padding size `Layer.padding`. Then [`Tensor.get_element_ptr(Layer.padding)`](../../include/typedef/dl_variable.hpp/#100) should point to the first padding element, i.e. the first placeholder to pad the input tensor. Note that there might be gaps between the padded output of `Layer.padding` (the blue box in the figure) and the padded output of `Tensor.padding` (the biggest box in the figure).
 
-**Tensor as an output:** The element of output is for storing result of a layer. It do not need padding as always. Then, we could get the pointer point the beginning of non-padded input by `Tensor.get_element_ptr()`.
+**Output tensor** Elements in an output tensor are used to store the operation result of a layer, so an output tensor always does not need to be padded. Then `Tensor.get_element_ptr()` should point to the first element of an output tensor without padding (the red box in the figure above).
 
-**Be cautious about the pointer moving.**
-
-
+**Be cautious about movements of the pointer.**
 
 ## Filter, Bias and Activation
 
-Compared with Tensor's, the definition of Filter, Bias and Activation is super simple(no padding thing at all). Just known that the sequence of `element` is flexible according to a specific operation. Nothing else worth to written in this document, please check the [`dl_constant.hpp`](../../include/typedef/dl_constant.hpp) or API Document.
+Unlike a tensor, a filter, bias, and activiation do not need to be padded. The order of these three `elements` is flexible according to specific operations.
+
+For more details, please refer to [`dl_constant.hpp`](../../include/typedef/dl_constant.hpp) or API documentation.
