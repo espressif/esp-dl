@@ -177,6 +177,26 @@ namespace dl
         }
 
         /**
+         * @brief Calculate the exponent of quantizing 1/n into max_value range.
+         * 
+         * @param n          1/n: value to be quantized
+         * @param max_value  the max_range
+         */
+        inline int calculate_exponent(int n, int max_value)
+        {
+            int exp = 0;
+            int tmp = 1 / n;
+            while (tmp < max_value)
+            {
+                exp += 1;
+                tmp = (1 << exp) / n;
+            }
+            exp -= 1;
+
+            return exp;
+        }
+
+        /**
          * @brief Print vector in format "[x1, x2, ...]\n".
          * 
          * @param array to print
@@ -304,6 +324,15 @@ namespace dl
             }
 
             /**
+             * @brief Clear the period
+             * 
+             */
+            void clear_period()
+            {
+                this->period = 0;
+            }
+
+            /**
              * @brief Print in format "latency: {this->period} {unit}\n".
              */
             void print()
@@ -322,7 +351,7 @@ namespace dl
              */
             void print(const char *message)
             {
-    #if DL_LOG_LATENCY_UNIT
+#if DL_LOG_LATENCY_UNIT
                 printf("%s: %15u cycle\n", message, this->get_average_period());
 #else
                 printf("%s: %15u us\n", message, this->get_average_period());

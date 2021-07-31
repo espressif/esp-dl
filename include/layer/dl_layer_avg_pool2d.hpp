@@ -26,7 +26,6 @@ namespace dl
             const int stride_x;                /*<! stride in width >*/
             const padding_type_t padding_type; /*<! one of PADDING_VALID or PADDING_SAME or PADDING_SAME_MXNET >*/
             std::vector<int> padding;          /*<! padding size needed in [top, bottom, left, right] of this operation >*/
-            const int pool_exponent;           /*<! exponent of 1.0 / (filter_height * filter_width) >*/
 
         public:
             Tensor<feature_t> output; /*<! output of AvgPool2D >*/
@@ -44,7 +43,6 @@ namespace dl
              *                        - PADDING_SAME_MXNET results padding in MXNET style
              * @param stride_y        stride in height
              * @param stride_x        stride in width
-             * @param pool_exponent   exponent of 1.0 / (filter_height * filter_width)
              * @param name            name of layer
              */
             AvgPool2D(const int output_exponent,
@@ -52,12 +50,10 @@ namespace dl
                       const padding_type_t padding_type = PADDING_VALID,
                       const int stride_y = 1,
                       const int stride_x = 1,
-                      const int pool_exponent = 2 - sizeof(feature_t) * 8,
                       const char *name = NULL) : Layer(name),
                                                  filter_shape(filter_shape),
                                                  stride_y(stride_y),
                                                  stride_x(stride_x),
-                                                 pool_exponent(pool_exponent),
                                                  padding_type(padding_type)
             {
                 this->output.set_exponent(output_exponent);
@@ -110,7 +106,7 @@ namespace dl
                 }
 
                 DL_LOG_LAYER_LATENCY_START();
-                nn::avg_pool2d(output, input, this->padding, this->filter_shape, this->stride_y, this->stride_x, this->pool_exponent);
+                nn::avg_pool2d(output, input, this->padding, this->filter_shape, this->stride_y, this->stride_x);
                 DL_LOG_LAYER_LATENCY_END(this->name, "avg_pool2d");
 
                 return this->output;

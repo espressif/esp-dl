@@ -18,7 +18,6 @@ namespace dl
          * @param filter_shape  filter_shape in [filter_height, filter_width]
          * @param stride_y      stride in height
          * @param stride_x      stride in width
-         * @param pool_exponent exponent of 1.0 / (filter_height * filter_width)
          * @param assign_core   not effective yet
          */
         void avg_pool2d(Tensor<int16_t> &output,
@@ -27,7 +26,6 @@ namespace dl
                         std::vector<int> &filter_shape,
                         const int stride_y,
                         const int stride_x,
-                        const int pool_exponent = -14,
                         const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE);
 
         /**
@@ -39,7 +37,6 @@ namespace dl
          * @param filter_shape  filter_shape in [filter_height, filter_width]
          * @param stride_y      stride in height
          * @param stride_x      stride in width
-         * @param pool_exponent exponent of 1.0 / (filter_height * filter_width)
          * @param assign_core   not effective yet
          */
         void avg_pool2d(Tensor<int8_t> &output,
@@ -48,7 +45,6 @@ namespace dl
                         std::vector<int> &filter_shape,
                         const int stride_y,
                         const int stride_x,
-                        const int pool_exponent = -6,
                         const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE);
 
         /**
@@ -68,7 +64,6 @@ namespace dl
          *                        such that output has the same height/width dimension as the input,
          *                        - PADDING_SAME results padding in TensorFlow style
          *                        - PADDING_SAME_MXNET results padding in MXNET style
-         * @param pool_exponent   exponent of 1.0 / (filter_height * filter_width)
          * @param assign_core     not effective yet
          * @return avg_pool2d result
          */
@@ -79,7 +74,6 @@ namespace dl
                                      const int stride_y,
                                      const int stride_x,
                                      const padding_type_t padding_type,
-                                     const int pool_exponent = 2 - sizeof(feature_t) * 8,
                                      const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE)
         {
             DL_LOG_NN_LATENCY_INIT();
@@ -99,7 +93,7 @@ namespace dl
             DL_LOG_NN_LATENCY_END("padding");
 
             DL_LOG_NN_LATENCY_START();
-            avg_pool2d(output, input, input.padding, filter_shape, stride_y, stride_x, pool_exponent, assign_core);
+            avg_pool2d(output, input, input.padding, filter_shape, stride_y, stride_x, assign_core);
             DL_LOG_NN_LATENCY_END("avg_pool2d");
 
             return output;

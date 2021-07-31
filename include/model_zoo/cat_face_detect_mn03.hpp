@@ -5,6 +5,11 @@
 #include <list>
 #include "dl_detect_define.hpp"
 
+/**
+ * @brief Hardware Requirement.
+ *        - flash 310kB
+ */
+
 class CatFaceDetectMN03
 {
 public:

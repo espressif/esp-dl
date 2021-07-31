@@ -176,12 +176,12 @@ namespace dl
          * @param y1           left up corner y
          * @param x2           right bottom corner x
          * @param y2           right bottom corner y
-         * @param color        0b  00000|   000000|    00000
-         *                     channel 0|channel 1|channel 2 
+         * @param color        0b         000|    00000|    00000|           000
+         *                     channel 1[2:0]|channel 0|channel 2|channel 1[5:3] 
          */
         void draw_filled_rectangle(uint16_t *image, const uint32_t image_height, const uint32_t image_width,
                                    uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
-                                   const uint16_t color = 0b1111100000000000);
+                                   const uint16_t color = 0b0001111100000000);
 
         /**
          * @brief Draw a point on RGB888 image.
@@ -208,12 +208,12 @@ namespace dl
          * @param x            point x
          * @param y            point y
          * @param size         size of point
-         * @param color        0b  00000|   000000|    00000
-         *                     channel 0|channel 1|channel 2 
+         * @param color        0b         000|    00000|    00000|           000
+         *                     channel 1[2:0]|channel 0|channel 2|channel 1[5:3] 
          */
         void draw_point(uint16_t *image, const uint32_t image_height, const uint32_t image_width,
                         const uint32_t x, const uint32_t y, const uint32_t size,
-                        uint16_t color = 0b1111100000000000);
+                        uint16_t color = 0b0001111100000000);
 
         /**
          * @brief Draw a hollow rectangle on RGB888 image.
@@ -242,11 +242,11 @@ namespace dl
          * @param y1           left up corner y
          * @param x2           right bottom corner x
          * @param y2           right bottom corner y
-         * @param color        0b  00000|   000000|    00000
-         *                     channel 0|channel 1|channel 2 
+         * @param color        0b         000|    00000|    00000|           000
+         *                     channel 1[2:0]|channel 0|channel 2|channel 1[5:3] 
          */
         void draw_hollow_rectangle(uint16_t *image, const uint32_t image_height, const uint32_t image_width,
                                    uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
-                                   const uint16_t color=0b1111100000000000);
+                                   const uint16_t color = 0b0001111100000000);
     } // namespace image
 } // namespace dl
