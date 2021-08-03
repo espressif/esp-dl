@@ -17,6 +17,20 @@ namespace dl
         } resize_type_t;
 
         /**
+         * @brief Convert RGB888 pixel to Gray.
+         * 
+         * @param red   red value
+         * @param green green value
+         * @param blue  blue value
+         * @return gray value
+         */
+        inline uint8_t convert_pixel_rgb888_to_gray(int red, int green, int blue)
+        {
+            int temp = (red * 38 + green * 75 + blue * 15) >> 7;
+            return DL_CLIP(temp, 0, 255);
+        }
+
+        /**
          * @brief Convert RGB565 pixel to RGB888.
          * 
          * @tparam T supports all integer types
@@ -32,17 +46,18 @@ namespace dl
         }
 
         /**
-         * @brief Convert RGB to Gray.
+         * @brief Convert RGB565 pixel to Gray.
          * 
-         * @param red   red value
-         * @param green green value
-         * @param blue  blue value
-         * @return gray value
+         * @param input pixel value in RGB565
+         * @return pixel value in Gray
          */
-        inline int convert_pixel_rgb_to_gray(int red, int green, int blue)
+        inline uint8_t convert_pixel_rgb565_to_gray(uint16_t input)
         {
-            int temp = (red * 38 + green * 75 + blue * 15) >> 7;
-            return DL_CLIP(temp, 0, 255);
+            int blue = (input & 0x1F00) >> 5;                            // blue
+            int green = ((input & 0x7) << 5) | ((input & 0xE000) >> 11); // green
+            int red = input & 0xF8;                                      // red
+
+            return convert_pixel_rgb888_to_gray(red, green, blue);
         }
 
         /**
@@ -248,5 +263,109 @@ namespace dl
         void draw_hollow_rectangle(uint16_t *image, const uint32_t image_height, const uint32_t image_width,
                                    uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2,
                                    const uint16_t color = 0b0001111100000000);
+
+        /**
+         * @brief Detect target moving by activated detection point number. Each cross in the figure below is a detection point.
+         * Once abs(frame_1_detection_point[i] - frame_2_detection_point[i]) > threshold, this detection point is activated.
+         * This function will return the number of activated detection point.
+         * 
+         *         __stride__________________________
+         *         |        |        |        |   |
+         *  stride |        |        |        |   |
+         *         |        |        |        |   |
+         *         |________|________|________|   |
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |________|________|________| height
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |________|________|________|   |
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |________|________|________|___|___
+         *         |                          |
+         *         |__________width___________|
+         *         |                          |
+         * 
+         * Time consumption:
+         * Frame shape = (240, 240)
+         * Both frame are in PSRAM
+         * On ESP32-S3 with CPU 240MHz, QSPI 80MHz
+         * 
+         * stride  latency
+         *      1  28316us
+         *      2   8770us
+         *      4   3622us
+         *      8   1990us
+         *     16    880us
+         *     32    260us
+         * 
+         * 
+         * In a application, outside this function, threshold of activated detection point number is needed.
+         * Once activated detection point number > number_threshold, this two frame are judged target moved.
+         * How to determine the number_threshold?
+         * Let's assume that the minimize shape of target is (target_min_height, target_max_width).
+         * Then, the number_threshold = [target_min_height / stride] * [target_max_width / stride] * ratio,
+         * where ratio is in (0, 1), the smaller the ratio is, the more sensitive the detector is, the more false detected.
+         * 
+         * 
+         * @param f1        one frame in RGB565
+         * @param f2        another frame in RGB565
+         * @param height    height of frame
+         * @param width     width of frame
+         * @param stride    stride of detection point, the smaller the stride is, the more reliable the detector is.
+         * @param threshold activation threshold of each detection point
+         * @return activated detection point number 
+         */
+        uint32_t get_moving_point_number(uint16_t *f1, uint16_t *f2, const uint32_t height, const uint32_t width, const uint32_t stride, const uint32_t threshold = 5);
+
+        /**
+         * @brief Detect target moving by activated detection point number. Each cross in the figure below is a detection point.
+         * Once abs(frame_1_detection_point[i] - frame_2_detection_point[i]) > threshold, this detection point is activated.
+         * This function will return the number of activated detection point.
+         * 
+         *         __stride__________________________
+         *         |        |        |        |   |
+         *  stride |        |        |        |   |
+         *         |        |        |        |   |
+         *         |________|________|________|   |
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |________|________|________| height
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |________|________|________|   |
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |        |        |        |   |
+         *         |________|________|________|___|___
+         *         |                          |
+         *         |__________width___________|
+         *         |                          |
+         * 
+         * 
+         * In a application, outside this function, threshold of activated detection point number is needed.
+         * Once activated detection point number > number_threshold, this two frame are judged target moved.
+         * How to determine the number_threshold?
+         * Let's assume that the minimize shape of target is (target_min_height, target_max_width).
+         * Then, the number_threshold = [target_min_height / stride] * [target_max_width / stride] * ratio,
+         * where ratio is in (0, 1), the smaller the ratio is, the more sensitive the detector is, the more false detected.
+         * 
+         * 
+         * @param f1        one frame in RGB888
+         * @param f2        another frame in RGB888
+         * @param height    height of frame
+         * @param width     width of frame
+         * @param stride    stride of detection point, the smaller the stride is, the more reliable the detector is.
+         * @param threshold activation threshold of each detection point
+         * @return activated detection point number 
+         */
+        uint32_t get_moving_point_number(uint8_t *f1, uint8_t *f2, const uint32_t height, const uint32_t width, const uint32_t stride, const uint32_t threshold = 5);
+
     } // namespace image
 } // namespace dl
