@@ -57,7 +57,7 @@ ESP-DL 在 [模型库](./include/model_zoo) 中提供了一些模型的 API，�
      > convert.py 需在 Python 3.7 或更高版本中运行。
 
 - 软硬件加速
-    * [位量化介绍](./docs/en/about_bit_quantize.md)：浮点量化规则
+    * [量化介绍](./docs/en/quantization_specification.md)：浮点量化规则
 
 
 

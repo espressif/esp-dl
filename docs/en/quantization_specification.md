@@ -1,6 +1,6 @@
 # Quantization specification
 ## Post training quantization
-[Post-training quantization][1] is a conversion technique that can reduce model size while also improving CPU and hardware accelerator latency, with little degradation in model accuracy. To run the inference on ESP chips which have relatively limited memory and up to 7.5G MACs @ 240 MHz on ESP-S3, a quantized model is necessary. You can use the *quantization_tool(developing)* to quantize your float model or deploy your integer model following the steps in *(some doc here: developing)*
+[Post-training quantization][1] is a conversion technique that can reduce model size while also improving CPU and hardware accelerator latency, with little degradation in model accuracy. To run the inference on ESP chips which have relatively limited memory and up to 7.5G MACs @ 240 MHz on ESP-S3, a quantized model is necessary. You can use the provided [quantization_tool](quantization_tool.md) to quantize your floating-point model or deploy your integer model following the steps in [usage_of_convert_py.md](usage_of_convert_py.md)
 
 [1]:https://www.tensorflow.org/lite/performance/post_training_quantization
 
