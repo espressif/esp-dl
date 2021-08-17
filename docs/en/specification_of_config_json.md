@@ -42,7 +42,7 @@ The value of each item is the **layer configuration.** Please fill arguments abo
 | "exponent" | integer | - If filled, activation is quantized according to the equation, value_float = value_int  * 2^exponent<br>- If dropped, exponent is determined according to the equation: exponent = log2(max(abs(value_float)) / 2^(element_width - 1)) |
 
 
-> <a name="note1">1</a>: **exponent**: the number of times the base is multiplied by itself for quantization. For better understanding, please refer to [*About Bit Quantization*](./about_bit_quantize.md).
+> <a name="note1">1</a>: **exponent**: the number of times the base is multiplied by itself for quantization. For better understanding, please refer to [*Quantization Specification*](./quantization_specification.md).
 >
 > <a name="note2">2</a>: **dropped**: to leave a specific argument empty.
 

@@ -48,7 +48,7 @@ When you read the instructions, the following materials might be helpful:
         > convert.py requires Python 3.7 or versions higher.
 
 - Software and Hardware Boost
-    * [About Bit Quantization](./docs/en/about_bit_quantize.md): rules of floating-point quantization
+    * [Quantization Specification](./docs/en/quantization_specification.md): rules of floating-point quantization
 
 
 
