@@ -1,4 +1,4 @@
-# ESP-DL
+# ESP-DL [[English]](./README.md)
 
 ESP-DL 是由乐鑫官方针对乐鑫各系列芯片产品所提供的高性能深度学习开发库。
 
@@ -19,7 +19,7 @@ ESP-DL 无需借助任何外围设备，因此可作为一些项目的组件，�
 
 ## 入门指南
 
-安装并入门 ESP-DL，请参考 [Get Started](./docs/en/get_started.md)。
+安装并入门 ESP-DL，请参考[快速入门](./docs/zh_CN/get_started.md)。
 
 
 
@@ -42,27 +42,27 @@ ESP-DL 在 [模型库](./include/model_zoo) 中提供了一些模型的 API，�
 阅读上述文档时，你可能会用到以下资料：
 
 - DL API
-    * [变量与常量介绍](./docs/en/about_type_define.md)：其中提供的信息包括：
+    * [变量与常量介绍](./docs/zh_CN/about_type_define.md)：其中提供的信息包括：
         - 变量：张量
         - 常量：过滤器，偏差，激活函数
-    * [定制层的步骤介绍](./docs/en/implement_custom_layer.md)：介绍了如何定制层。
+    * [定制层的步骤介绍](./docs/zh_CN/implement_custom_layer.md)：介绍了如何定制层。
     * [API 文档]()：关于层、神经网络、数学和工具的 API 指南。
 
 
 - 转换工具：可对 coefficient.npy 进行浮点量化的工具和配置文件。
 
-  * config.json：请参考 [config.json 配置规范](./docs/en/specification_of_config_json.md)
-  * convert.py：请参考 [convert.py 使用说明](./docs/en/usage_of_convert_py.md)
+  * config.json：请参考 [config.json 配置规范](./docs/zh_CN/specification_of_config_json.md)
+  * convert.py：请参考 [convert.py 使用说明](./docs/zh_CN/usage_of_convert_py.md)
 
      > convert.py 需在 Python 3.7 或更高版本中运行。
 
 - 软硬件加速
-    * [量化介绍](./docs/en/quantization_specification.md)：浮点量化规则
+    * [量化规范](./docs/zh_CN/about_bit_quantize.md)：浮点量化规则
 
 
 
 ## 反馈
 
-常见问题请参考 [Q&A](./docs/en/Q&A.md)。
+常见问题请参考 [Q&A](./docs/zh_CN/Q&A.md)。
 
 如果你在使用中发现了错误或者需要新的功能，请提交相关 [issue](https://github.com/espressif/esp-dl/issues)，我们会优先实现最受期待的功能。

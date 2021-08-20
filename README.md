@@ -1,4 +1,4 @@
-# ESP-DL
+# ESP-DL [[中文]](../zh_CN/get_started.md)
 
 ESP-DL is a library for high-performance deep learning resources dedicated to all SoCs by Espressif.
 
@@ -6,7 +6,7 @@ ESP-DL is a library for high-performance deep learning resources dedicated to al
 
 ## Overview
 
-ESP-DL provides APIs for **Neural Network (NN) Inference**, **Image Processing**, **Math Operations** and some **Deep Learning Models**. With ESP-DL, you can use Espressif's SoCs for neural network inference easily and fast.
+ESP-DL provides APIs for **Neural Network (NN) Inference**, **Image Processing**, **Math Operations** and some **Deep Learning Models**. With ESP-DL, you can use Espressif's SoCs for AI applications easily and fast.
 
 As ESP-DL does not need any peripherals, it can be used as a component of some projects. For example, you can use it as a component of **[ESP-WHO](https://github.com/espressif/esp-who)**, which contains several project-level examples of image application. The figure below shows what ESP-DL consists of and how ESP-DL is implemented as a component in a project.
 
