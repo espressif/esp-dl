@@ -1,34 +1,42 @@
-# Quantization specification
-## Post training quantization
-[Post-training quantization][1] is a conversion technique that can reduce model size while also improving CPU and hardware accelerator latency, with little degradation in model accuracy. To run the inference on ESP chips which have relatively limited memory and up to 7.5G MACs @ 240 MHz on ESP-S3, a quantized model is necessary. You can use the provided [quantization_tool](quantization_tool.md) to quantize your floating-point model or deploy your integer model following the steps in [usage_of_convert_py.md](usage_of_convert_py.md)
+# Quantization Specification
 
-[1]:https://www.tensorflow.org/lite/performance/post_training_quantization
+[Post-training quantization](https://www.tensorflow.org/lite/performance/post_training_quantization) converts floating-point values to fixed-point values. This conversion technique can shrink model size, and reduce CPU and hardware accelerator latency without losing accuracy.
 
-### Full integer quantization
-All data in the model are interger quantized, including constant values such as weights, biases and activation parameters, variable tensors such as model input and outputs of intermediate layers(activations).
+For chips such as ESP32-S3, which has relatively limited memory yet up to 7.5 giga multiply-accumulate operations (MAC) per second at 240 MHz, it is necessary to run inferences with a quantized model. You can use the provided [Quantization Toolkit](quantization_tool.md) to quantize your floating-point model, or deploy your integer model following steps in [Usage of convert.py](usage_of_convert_py.md).
 
-8 / 16-bit quantization approximates floating point value using the following formula.
+## Full Integer Quantization
+
+All data in the model are quantized to 8-bit or 16-bit integers, including
+  - constants weights, biases, and activations
+  - variable tensors, such as inputs and outputs of intermediate layers (activations)
+
+Such 8-bit or 16-bit quantization approximates floating-point values using the following formula：
+
 ```math
 real\_value = int\_value * 2^{\ exponent}
 ```
 
-#### Signed integer
-`int_value` are represented by **int8** for 8-bit quantization and **int16** for 16-bit quantization.
+### Signed Integer
 
-#### Symmetric
-Quantized data are all **symmetric**, which means no zero_point(bias). So we can avoid some extra runtime of multiplication.  
+For 8-bit quantization, `int_value` is represented by a value in the signed **int8** range [-128, 127]. For 16-bit quantization, `int_value` is represented by a value in the signed **int16** range [-32768, 32767].
 
-#### Granularity
-**Per-tensor(aka per-layer) quantization** means that there will be only one exponent per entire tensor.
+### Symmetric
 
-**Per-channel quantization** means that there will be different exponent for each channel of convolution kernel.
+All the quantized data are **symmetric**, which means no zero point (bias), so we can avoid the runtime cost of multiplying the zero point with other values.
 
-Per-channel quantization usually can achieve better accuracy compared to per-tensor quantization on some model. However it would be more time consuming. You can simulate the inference on chip using the *evaluator(developing)* to see the performance after quantization and then decide which method to apply.
+### Granularity
 
-We only support per-tensor quantization for 16-bit to provide faster computation. For 8-bit quantization, we support both per-tensor and per-channel quantization to allow a trade-off between performance and speed.
+**Per-tensor (aka per-layer) quantization** means that there will be only one exponent per entire tensor, and all the values within the tensor are quantized by this exponent.
+
+**Per-channel quantization** means that there will be different exponents for each channel of a convolution kernel.
+
+Compared with per-tensor quantization, usually per-channel quantization can achieve higher accuracy on some models. However, it would be more time-consuming. You can simulate inference on chips using the *evaluator* in [Quantization Toolkit](quantization_tool.md) to see the performance after quantization, and then decide which form of quantization to apply.
+
+For 16-bit quantization, we only support per-tensor quantization to ensure faster computation. For 8-bit quantization, we support both per-tensor and per-channel quantization, allowing a trade-off between performance and speed.
 
 
-## Quantized operator specifications
+## Quantized Operator Specifications
+
 Below we describe the quantization requirements for our APIs:
 ```
 ADD2D
@@ -64,7 +72,7 @@ CONCATENATION
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
-  restriction: Input and outputs must all have same exponent
+  restriction: Inputs and output must have the same exponent
 
 CONV_2D
   Input 0:
@@ -151,7 +159,7 @@ MAX2D
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
-  restriction: Input and output must all have same exponent
+  restriction: Input and output must have the same exponent
 
 MIN2D
   Input 0:
@@ -162,7 +170,7 @@ MIN2D
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
-  restriction: Input and output must all have same exponent
+  restriction: Input and output must have the same exponent
 
 ReLU
   Input 0:
@@ -173,7 +181,7 @@ ReLU
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
-  restriction: Input and output must all have same exponent
+  restriction: Input and output must have the same exponent
 
 LeakyReLU
   Input 0:
@@ -187,7 +195,7 @@ LeakyReLU
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
-  restriction: Input and output must all have same exponent
+  restriction: Input and output must have the same exponent
 
 PReLU
   Input 0:
@@ -201,6 +209,6 @@ PReLU
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
-  restriction: Input and output must all have same exponent
+  restriction: Input and output must have the same exponent
 
 ```
