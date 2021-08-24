@@ -1,133 +1,146 @@
-# Quantization tool APIs
-## Calibrator class
+# Quantization Toolkit API
 
-**initialization**
+## Calibrator  Class
+
+### Initialization
 
 ```
-Calibration(quantization_bit, granularity, method)
+Calibrator(quantization_bit, granularity, calib_method)
 ```
 
-Arguments
-- quantization_bit (int): 8 for int8 quantization, 16 for int16 quantization
-- granularity (str):
-  - If granularity = 'per-tensor'(default), there will be one scale per entire tensor
-  - If granularity = 'per-channel', there will be one scale per slice in the output_channel of the weights of convolutions
-- calib_method (str):
-  - If calib_method = 'minmax'(default), the min and max values of the layer outputs obtained from the calibration dataset will be used as the threshold
-  - If calib_method = 'entropy', the threshold will be derived based on KL divergence
+**Arguments**
+- **quantization_bit** _(integer)_:
+  - 8 for int8 quantization.
+  - 16 for int16 quantization.
+- **granularity** _(string)_:
+  - If granularity = 'per-tensor'(default), there will be one exponent per entire tensor.
+  - If granularity = 'per-channel', there will be one exponent for each channel of a convolution layer.
+- **calib_method** _(string)_:   
+  - If calib_method = 'minmax'(default), the threshold is the minimum and maximum values in the calibration dataset.
+  - If calib_method = 'entropy', the threshold is derived from Kullback-Leibler divergence (KL divergence).
 
+### *check_model* method
 
-***check_model* method**
 ```
 Calibrator.check_model(model_proto)
 ```
-Check the compatibility of the provided model
+Checks the compatibility of your model.
 
-Arguments
-- model_proto (ModelProto): a fp32 onnx model
+**Argument**
+- **model_proto** _(ModelProto)_: An FP32 ONNX model.
 
-Returns
-- -1 if the model is incompatible.
+**Returns**
+- **-1**: The model is incompatible.
 
-***set_method* method**
+### *set_method* method
 ```
 Calibrator.set_method(granularity, calib_method)
 ```
-Set the configuration of quantization
+Configures quantization.
 
-Arguments
-- granularity (str): 
-  - If granularity = 'per-tensor', there will be one scale per entire tensor
-  - If granularity = 'per-channel', there will be one scale per slice in the output_channel of the weights of convolutions
-- calib_method (str): 
-  - If calib_method = 'minmax', the min and max values of the layer outputs obtained from the calibration dataset will be used as the threshold
-  - If calib_method = 'entropy', the threshold will be derived based on KL divergence
+**Arguments**
+- **granularity** _(string)_:
+  - If granularity = 'per-tensor'(default), there will be one exponent per entire tensor.
+  - If granularity = 'per-channel', there will be one exponent for each channel of a convolution layer.
+- **calib_method** _(string)_:   
+  - If calib_method = 'minmax'(default), the threshold is the minimum and maximum values in the calibration dataset.
+  - If calib_method = 'entropy', the threshold is derived from Kullback-Leibler divergence (KL divergence).
 
-***set_providers* method**
+### *set_providers* method
 ```
 Calibrator.set_providers(providers)
 ```
-Set onnx runtime execution providers
+Configures the execution provider of ONNX Runtime.
 
-Arguments
-- providers (list of strings): list of execution providers for onnx runtime, eg. 'CPUExecutionProvider', 'CUDAExecutionProvider', more details in https://onnxruntime.ai/docs/reference/execution-providers/
+**Argument**
+- **providers** _(list of strings)_: An execution provider in the [list](https://onnxruntime.ai/docs/reference/execution-providers/), for example 'CPUExecutionProvider', and 'CUDAExecutionProvider'.
 
-***generate_quantization_table* method**
+
+### *generate_quantization_table* method
 ```
 Calibrator.generate_quantization_table(model_proto, calib_dataset, pickle_file_path)
 ```
+Generates the quantization table.
 
-Arguments
-- model_proto (ModelProto): a fp32 onnx model
-- calib_dataset (ndarray): calibration dataset, the whole dataset will be used to compute the threshold. The larger the dataset, the longer the time it will take to generate the final table
-- pickle_file_path (str): path of the pickle file that stores the dict of quantization parameters
+**Arguments**
+- **model_proto** _(ModelProto)_: An FP32 ONNX model.
+- **calib_dataset** _(ndarray)_: The calibration dataset used to compute the threshold. The larger the dataset, the longer time it takes to generate the quantization table.
+- **pickle_file_path** _(string)_: Path of the pickle file that stores the dictionary of quantization parameters.
 
 
-## Evaluator class
+## Evaluator Class
 
-**initialization**
+### Initialization
 
 ```
 Evaluator(quantization_bit, target_chip)
 ```
+**Arguments**
+- **quantization_bit** _(integer)_:
+  - 8 for int8 quantization.
+  - 16 for int16 quantization.
+- **target_chip** _(string)_: 'esp32s3' by default.
 
-Arguments
-- quantization_bit (int): 8 for int8 quantization, 16 for int16 quantization
-- target_chip (str): 'esp32s3' (default)
 
-***check_model* method**
+### *check_model* method
 ```
 Evaluator.check_model(model_proto)
 ```
-Check the compatibility of the provided model
+Checks the compatibility of your model.
 
-Arguments
-- model_proto (ModelProto): a fp32 onnx model
+**Argument**
+- **model_proto** _(ModelProto)_: An FP32 ONNX model.
 
-Returns
-- -1 if the model is incompatible.
+**Returns**
+- **-1**: The model is incompatible.
 
-***set_target_chip* method**
+### *set_target_chip* method
 ```
 Evaluator.set_target_chip(target_chip)
 ```
-Set the simulated chip environment
+Configures the chip environment to simulate.
 
-Arguments
-- target_chip (str): the chip envirionment to simulate, currently only support 'esp32s3'
+**Argument**
+- **target_chip** _(string)_: For now only 'esp32s3' is supported.
 
 
-***set_providers* method**
+### *set_providers* method
 ```
 Evaluator.set_providers(providers)
 ```
-Set onnx runtime execution providers
+Configures the execution provider of ONNX Runtime.
 
-Arguments
-- providers (list of strings): list of execution providers for onnx runtime, eg. 'CPUExecutionProvider', 'CUDAExecutionProvider', more details in  https://onnxruntime.ai/docs/reference/execution-providers/
+**Argument**
+- **providers** _(list of strings)_: An execution provider in the [list](https://onnxruntime.ai/docs/reference/execution-providers/), for example 'CPUExecutionProvider', and 'CUDAExecutionProvider'.
 
-***generate_quantized_model* method**
+
+### *generate_quantized_model* method
 ```
 Evaluator.generate_quantized_model(model_proto, pickle_file_path)
 ```
-Generate the quantized model 
+Generates the quantized model.
 
-Arguments
-- model_proto (ModelProto): a fp32 onnx model
-- pickle_file_path (str): path of a pickle file that stores all the quantization parameters for the corresponding fp32 onnx model. The pickle file must contain a dict of quantization paramater for all inputs and outputs of all nodes inside the model graph  
+**Arguments**
+- **model_proto** _(ModelProto)_: An FP32 ONNX model.
+- **pickle_file_path** _(string)_: Path of the pickle file that stores all quantization parameters for the FP32 ONXX model. This pickle file must contain a dictionary of quantization parameters for all input and output nodes in the model graph.
 
-***evaluate_quantized_model* method**
+
+### *evaluate_quantized_model* method
 ```
 Evaluator.evaluate_quantized_model(batch_fp_input, to_float=false)
 ```
-Obtain the outputs of the quantized model
-Arguments
-- batch_fp_input (ndarray): batch of floating-point inputs
-- to_float (bool): 
-  - if to_float = False(default): the quantized output will be returned directly
-  - if to_float = True: the returned output will be re-scaled to floating point value
+Obtains outputs of the quantized model.
 
-Returns
-- tuple of outputs and output_names
-  - outputs (list of ndarray): a list of outputs of the quantized model, 
-  - output_names (list of string): a list of name of outputs
+**Arguments**
+- **batch_fp_input** _(ndarray)_: Batch of floating-point inputs.
+- **to_float** _(bool)_: 
+  - False (default): Outputs will be returned directly.
+  - True: Outputs will be converted to floating-point values.
+
+**Returns**
+
+A tuple of outputs and output_names:
+- **outputs** _(list of ndarray)_: Outputs of the quantized model.
+- **output_names** _(list of strings)_: Names of outputs.
+
+
