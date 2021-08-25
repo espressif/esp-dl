@@ -1,4 +1,4 @@
-# ESP-DL [[中文]](../zh_CN/get_started.md)
+# ESP-DL [[中文]](./README_cn.md)
 
 ESP-DL is a library for high-performance deep learning resources dedicated to all SoCs by Espressif.
 
@@ -41,9 +41,14 @@ When you read the instructions, the following materials might be helpful:
         - constants: filters, biases, and activations
     * [Customize a Layer Step by Step](./docs/en/implement_custom_layer.md): instructions on how to customize a layer.
     * [API Documentation](): guides to provided API about Layer, Neural Network (NN), Math and tools.
-- Convert Tool: the tool and configuration file for floating-point quantization on coefficient.npy
-    * config.json: see [Specification of config.json](./docs/en/specification_of_config_json.md)
-    * convert.py: see [Usage of convert.py](./docs/en/usage_of_convert_py.md)
+
+- Platform Conversion
+1. Quantization toolkit: a tool for quantizing floating-point model and evaluating quantized model on ESP SoCs
+    * toolkit: see [Quantization Toolkit](./tools/quantization_tool/README.md)
+    * toolkit API: see [Quantization Toolkit API](./tools/quantization_tool/quantization_tool_api.md)
+2. Convert Tool: the tool and configuration file for floating-point quantization on coefficient.npy
+    * config.json: see [Specification of config.json](./tools/convert_tool/specification_of_config_json.md)
+    * convert.py: see [Usage of convert.py](./tools/convert_tool/README.md)
 
         > convert.py requires Python 3.7 or versions higher.
 
