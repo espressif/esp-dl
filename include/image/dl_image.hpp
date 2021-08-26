@@ -3,7 +3,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
+#include <vector>
 #include "dl_define.hpp"
+#include "dl_variable.hpp"
+#include "dl_math_matrix.hpp"
 
 namespace dl
 {
@@ -366,6 +369,12 @@ namespace dl
          * @return activated detection point number 
          */
         uint32_t get_moving_point_number(uint8_t *f1, uint8_t *f2, const uint32_t height, const uint32_t width, const uint32_t stride, const uint32_t threshold = 5);
+
+
+        template <typename T>
+        void warp_affine(dl::Tensor<T> *input, dl::Tensor<T> *output, dl::math::Matrix<float> *M_inv);
+        template <typename T>
+        void warp_affine(uint16_t *input, std::vector<int> shape, dl::Tensor<T> *output, dl::math::Matrix<float> *M_inv);
 
     } // namespace image
 } // namespace dl

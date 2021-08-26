@@ -25,9 +25,9 @@ namespace dl
             const int stride_x;                /*<! stride in width >*/
             const padding_type_t padding_type; /*<! one of PADDING_VALID or PADDING_SAME or PADDING_SAME_MXNET >*/
             std::vector<int> padding;          /*<! padding size needed in [top, bottom, left, right] of this operation >*/
+            Tensor<feature_t> *output;         /*<! output ptr of MaxPool2D >*/
 
         public:
-            Tensor<feature_t> output; /*<! output of MaxPool2D >*/
 
             /**
              * @brief Construct a new MaxPool2D object.
@@ -51,13 +51,22 @@ namespace dl
                                                  filter_shape(filter_shape),
                                                  stride_y(stride_y),
                                                  stride_x(stride_x),
-                                                 padding_type(padding_type) {}
+                                                 padding_type(padding_type)
+            {
+                this->output = new Tensor<feature_t>;
+            }
 
             /**
              * @brief Destroy the MaxPool2D object.
              * 
              */
-            ~MaxPool2D() {}
+            ~MaxPool2D() 
+            {
+                if (this->output != NULL)
+                {
+                    delete this->output;
+                }
+            }
 
             /**
              * @brief Update output shape and padding.
@@ -68,12 +77,23 @@ namespace dl
             {
                 assert(input.shape[0] > 0);
                 assert(input.shape[1] > 0);
-                this->output.set_exponent(input.exponent);
+                this->output->set_exponent(input.exponent);
                 std::vector<int> output_shape = nn::get_output_shape(input.shape, filter_shape, this->stride_y, this->stride_x, this->padding_type);
-                this->output.set_shape(output_shape);
+                this->output->set_shape(output_shape);
 
                 this->padding = nn::get_pad_size(output_shape, input.shape, filter_shape, this->stride_y, this->stride_x, this->padding_type);
                 input.set_padding_size(this->padding);
+                this->output->free_element();
+            }
+
+            /**
+             * @brief Get the output
+             * 
+             * @return Tensor<feature_t>& MaxPool2D result
+             */
+            Tensor<feature_t> &get_output()
+            {
+                return *this->output;
             }
 
             /**
@@ -91,20 +111,21 @@ namespace dl
                 DL_LOG_LAYER_LATENCY_INIT();
 
                 DL_LOG_LAYER_LATENCY_START();
-                this->output.apply_element();
+                this->output->apply_element();
+                this->output->set_exponent(input.exponent);
                 DL_LOG_LAYER_LATENCY_END(this->name, "apply");
 
                 if (autoload_enable)
                 {
-                    dl::tool::cache::autoload_func((uint32_t)(this->output.element), this->output.get_size() * sizeof(feature_t),
+                    dl::tool::cache::autoload_func((uint32_t)(this->output->element), this->output->get_size() * sizeof(feature_t),
                                                    (uint32_t)(input.element), input.get_size() * sizeof(feature_t));
                 }
 
                 DL_LOG_LAYER_LATENCY_START();
-                nn::max_pool2d(output, input, this->padding, this->filter_shape, this->stride_y, this->stride_x);
+                nn::max_pool2d(*this->output, input, this->padding, this->filter_shape, this->stride_y, this->stride_x);
                 DL_LOG_LAYER_LATENCY_END(this->name, "max_pool2d");
 
-                return this->output;
+                return *this->output;
             }
         };
     } // namespace layer

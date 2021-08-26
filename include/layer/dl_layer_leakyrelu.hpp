@@ -22,8 +22,10 @@ namespace dl
         private:
             feature_t activation_alpha; /*<! quantized alpha >*/
             int activation_exponent;    /*<! exponent of quantized alpha >*/
+            Tensor<feature_t> *output;  /*<! output ptr of leakyrelu>*/
+            bool inplace;               /*<! true: the output will store to input0
+                                             false: the output will store to a seperate memeory >*/
         public:
-            Tensor<feature_t> output; /*<! output of leakyrelu >*/
 
             /**
              * @brief Construct a new LeakyReLU object
@@ -31,18 +33,27 @@ namespace dl
              * @param activation_alpha     quantized alpha
              * @param activation_exponent  exponent of quantized alpha
              * @param name                 name of leakyrelu
+             * @param inplace              true: the output will store to input0
+             *                             false: the output will store to a seperate memeory
              */
-            LeakyReLU(const int activation_alpha, const int activation_exponent, const char *name = NULL) : Layer(name)
+            LeakyReLU(const int activation_alpha, const int activation_exponent, const char *name = NULL, bool inplace = false) : Layer(name)
             {
                 this->activation_alpha = activation_alpha;
                 this->activation_exponent = activation_exponent;
+                this->inplace = inplace;
             }
 
             /**
              * @brief Destroy the LeakyReLU object
              * 
              */
-            ~LeakyReLU() {}
+            ~LeakyReLU() 
+            {
+                if ((!this->inplace) && (this->output != NULL))
+                {
+                    delete this->output;
+                }
+            }
 
             /**
              * @brief Update output shape and exponent
@@ -51,8 +62,31 @@ namespace dl
              */
             void build(Tensor<feature_t> &input)
             {
-                this->output.set_shape(input.shape);
-                this->output.set_exponent(input.exponent);
+                if(!this->inplace)
+                {
+                    if(this->output != NULL)
+                    {
+                        this->output = new Tensor<feature_t>;
+                    }  
+                    this->output->set_shape(input.shape);
+                    this->output->set_exponent(input.exponent);
+                    this->output->free_element();
+                }
+                else
+                {
+                    this->output = &input;
+                }
+                
+            }
+
+            /**
+             * @brief Get the output 
+             * 
+             * @return Tensor<feature_t>& LeakyReLU result
+             */
+            Tensor<feature_t> &get_output()
+            {
+                return *this->output;
             }
 
             /**
@@ -66,15 +100,25 @@ namespace dl
             {
                 DL_LOG_LAYER_LATENCY_INIT();
 
-                DL_LOG_LAYER_LATENCY_START();
-                this->output.apply_element();
-                DL_LOG_LAYER_LATENCY_END(this->name, "apply");
+                if(!this->inplace)
+                {
+                    DL_LOG_LAYER_LATENCY_START();
+                    this->output->apply_element();
+                    this->output->set_exponent(input.exponent);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "apply");
 
-                DL_LOG_LAYER_LATENCY_START();
-                nn::leakyrelu(this->output, input, this->activation_alpha, this->activation_exponent, assign_core);
-                DL_LOG_LAYER_LATENCY_END(this->name, "leakyrelu");
+                    DL_LOG_LAYER_LATENCY_START();
+                    nn::leakyrelu(*this->output, input, this->activation_alpha, this->activation_exponent, assign_core);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "leakyrelu");
+                }
+                else
+                {
+                    DL_LOG_LAYER_LATENCY_START();
+                    nn::leakyrelu<true>(*this->output, input, this->activation_alpha, this->activation_exponent, assign_core);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "leakyrelu");
+                }
 
-                return this->output;
+                return *this->output;
             }
         };
     } // namespace layer

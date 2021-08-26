@@ -20,23 +20,36 @@ namespace dl
         template <typename feature_t>
         class ReLU : public Layer
         {
+        private:
+            Tensor<feature_t> *output;  /*<! output ptr of relu >*/
+            bool inplace;               /*<! true: the output will store to input0
+                                             false: the output will store to a seperate memeory >*/ 
         public:
-            Tensor<feature_t> output; /*<! output of relu>*/
+
 
             /**
              * @brief Construct a new ReLU object
              * 
-             * @param name            name of relu 
+             * @param name            name of relu
+             * @param inplace         true: the output will store to input0
+             *                        false: the output will store to a seperate memeory
              */
-            ReLU(const char *name = NULL) : Layer(name)
+            ReLU(const char *name = NULL, bool inplace = false) : Layer(name)
             {
+                this->inplace = inplace;
             }
 
             /**
              * @brief Destroy the ReLU object
              * 
              */
-            ~ReLU() {}
+            ~ReLU() 
+            {
+                if ((!this->inplace) && (this->output != NULL))
+                {
+                    delete this->output;
+                }
+            }
 
             /**
              * @brief Update output shape and exponent
@@ -45,8 +58,30 @@ namespace dl
              */
             void build(Tensor<feature_t> &input)
             {
-                this->output.set_shape(input.shape);
-                this->output.set_exponent(input.exponent);
+                if(!this->inplace)
+                {
+                    if(this->output != NULL)
+                    {
+                        this->output = new Tensor<feature_t>;
+                    }
+                    this->output->set_exponent(input.exponent);
+                    this->output->set_shape(input.shape);
+                    this->output->free_element();
+                }
+                else
+                {
+                    this->output = &input;
+                }
+            }
+
+            /**
+             * @brief Get the output
+             * 
+             * @return Tensor<feature_t>& ReLU result
+             */
+            Tensor<feature_t> &get_output()
+            {
+                return *this->output;
             }
 
             /**
@@ -60,15 +95,25 @@ namespace dl
             {
                 DL_LOG_LAYER_LATENCY_INIT();
 
-                DL_LOG_LAYER_LATENCY_START();
-                this->output.apply_element();
-                DL_LOG_LAYER_LATENCY_END(this->name, "apply");
+                if(!this->inplace)
+                {
+                    DL_LOG_LAYER_LATENCY_START();
+                    this->output->apply_element();
+                    this->output->set_exponent(input.exponent);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "apply");
 
-                DL_LOG_LAYER_LATENCY_START();
-                nn::relu(this->output, input, assign_core);
-                DL_LOG_LAYER_LATENCY_END(this->name, "relu");
+                    DL_LOG_LAYER_LATENCY_START();
+                    nn::relu(*this->output, input, assign_core);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "relu");
+                }
+                else
+                {
+                    DL_LOG_LAYER_LATENCY_START();
+                    nn::relu(*this->output, input, assign_core);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "relu");
+                }
 
-                return this->output;
+                return *this->output;
             }
         };
     } // namespace layer

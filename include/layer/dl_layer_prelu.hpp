@@ -22,8 +22,10 @@ namespace dl
         private:
             feature_t *activation_element; /*<! quantized alpha elements along channel axis >*/
             int activation_exponent;       /*<! exponent of quantized alpha elements >*/
+            Tensor<feature_t> *output;     /*<! output ptr of prelu >*/
+            bool inplace;                  /*<! true: the output will store to input0
+                                                false: the output will store to a seperate memeory >*/ 
         public:
-            Tensor<feature_t> output; /*<! output of prelu>*/
 
             /**
              * @brief Construct a new PReLU object
@@ -31,18 +33,27 @@ namespace dl
              * @param activation_element   quantized alpha elements along channel axis
              * @param activation_exponent  exponent of quantized alpha elements
              * @param name                 name of prelu
+             * @param inplace              true: the output will store to input0
+             *                             false: the output will store to a seperate memeory
              */
-            PReLU(const feature_t *activation_element, const int activation_exponent = 0, const char *name = NULL) : Layer(name)
+            PReLU(const feature_t *activation_element, const int activation_exponent = 0, const char *name = NULL, bool inplace = false) : Layer(name)
             {
                 this->activation_element = activation_element;
                 this->activation_exponent = activation_exponent;
+                this->inplace = inplace;
             }
 
             /**
              * @brief Destroy the PReLU object
              * 
              */
-            ~PReLU() {}
+            ~PReLU() 
+            {
+                if ((!this->inplace) && (this->output != NULL))
+                {
+                    delete this->output;
+                }
+            }
 
             /**
              * @brief Update output shape and exponent
@@ -51,8 +62,30 @@ namespace dl
              */
             void build(Tensor<feature_t> &input)
             {
-                this->output.set_shape(input.shape);
-                this->output.set_exponent(input.exponent);
+                if(!this->inplace)
+                {
+                    if(this->output != NULL)
+                    {
+                        this->output = new Tensor<feature_t>;
+                    }
+                    this->output->set_exponent(input.exponent);
+                    this->output->set_shape(input.shape);
+                    this->output->free_element();
+                }
+                else
+                {
+                    this->output = &input;
+                }
+            }
+
+            /**
+             * @brief Get the output
+             * 
+             * @return Tensor<feature_t>& PReLU result
+             */
+            Tensor<feature_t> &get_output()
+            {
+                return *this->output;
             }
 
             /**
@@ -66,15 +99,25 @@ namespace dl
             {
                 DL_LOG_LAYER_LATENCY_INIT();
 
-                DL_LOG_LAYER_LATENCY_START();
-                this->output.apply_element();
-                DL_LOG_LAYER_LATENCY_END(this->name, "apply");
+                if(!this->inplace)
+                {
+                    DL_LOG_LAYER_LATENCY_START();
+                    this->output->set_exponent(input.exponent);
+                    this->output->apply_element();
+                    DL_LOG_LAYER_LATENCY_END(this->name, "apply");
 
-                DL_LOG_LAYER_LATENCY_START();
-                nn::prelu(this->output, input, this->activation_element, this->activation_exponent, assign_core);
-                DL_LOG_LAYER_LATENCY_END(this->name, "leakyrelu");
+                    DL_LOG_LAYER_LATENCY_START();
+                    nn::prelu(*this->output, input, this->activation_element, this->activation_exponent, assign_core);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "leakyrelu");
+                }
+                else
+                {
+                    DL_LOG_LAYER_LATENCY_START();
+                    nn::prelu(*this->output, input, this->activation_element, this->activation_exponent, assign_core);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "leakyrelu");
+                }
 
-                return this->output;
+                return *this->output;
             }
         };
     } // namespace layer

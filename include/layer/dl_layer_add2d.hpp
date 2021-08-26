@@ -22,26 +22,36 @@ namespace dl
         {
         private:
             const Activation<feature_t> *activation; /*<! activation of add2d, if you don't specify anything, no activation is applied >*/
+            const int output_exponent;               /*<! exponent of output >*/
+            Tensor<feature_t> *output;               /*<! output ptr of add2d >*/
+            bool inplace;                            /*<! true: the output will store to input0
+                                                          false: the output will store to a seperate memeory >*/
 
         public:
-            Tensor<feature_t> output; /*<! output of add2d >*/
-
             /**
              * @brief Construct a new Add2D object.
              * 
              * @param output_exponent exponent of output
              * @param activation      activation of add2d, if you don't specify anything, no activation is applied
              * @param name            name of add2d
+             * @param inplace         true: the output will store to input0
+             *                        false: the output will store to a seperate memeory
              */
-            Add2D(const int output_exponent, const Activation<feature_t> *activation = NULL, const char *name = NULL) : Layer(name), activation(activation)
+            Add2D(const int output_exponent, const Activation<feature_t> *activation = NULL, const char *name = NULL, bool inplace = false) : Layer(name), activation(activation), output_exponent(output_exponent)
             {
-                this->output.set_exponent(output_exponent);
+                this->inplace = inplace;
             }
 
             /**
              * @brief Destroy the Add2D object
              */
-            ~Add2D() {}
+            ~Add2D()
+            {
+                if((!this->inplace) && (this->output != NULL))
+                {
+                    delete this->output;
+                }
+            }
 
             /**
              * @brief Update output shape.
@@ -53,7 +63,31 @@ namespace dl
             void build(Tensor<feature_t> &input0, Tensor<feature_t> &input1)
             {
                 assert(input0.is_same_shape(input1));
-                this->output.set_shape(input0.shape);
+
+                if (!this->inplace)
+                {
+                    if (this->output == NULL)
+                    {
+                        this->output = new Tensor<feature_t>;
+                    }
+                    this->output->set_exponent(this->output_exponent);
+                    this->output->set_shape(input0.shape);
+                    this->output->free_element();
+                }
+                else
+                {
+                    this->output = &input0;
+                }
+            }
+
+            /**
+            * @brief Get the output
+            * 
+            * @return Tensor<feature_t>& Add2D result
+            */
+            Tensor<feature_t> &get_output()
+            {
+                return *this->output;
             }
 
             /**
@@ -62,21 +96,31 @@ namespace dl
              * @param input0      as one input
              * @param input1      as another input
              * @param assign_core not effective yet
-             * @return Add2D result
+             * @return Tensor<feature_t>& added result
              */
             Tensor<feature_t> &call(Tensor<feature_t> &input0, Tensor<feature_t> &input1, const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE)
             {
                 DL_LOG_LAYER_LATENCY_INIT();
 
-                DL_LOG_LAYER_LATENCY_START();
-                this->output.apply_element();
-                DL_LOG_LAYER_LATENCY_END(this->name, "apply");
+                if (!this->inplace)
+                {
+                    DL_LOG_LAYER_LATENCY_START();
+                    this->output->apply_element();
+                    this->output->set_exponent(this->output_exponent);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "apply");
 
-                DL_LOG_LAYER_LATENCY_START();
-                nn::add2d(this->output, input0, input1, this->activation, assign_core);
-                DL_LOG_LAYER_LATENCY_END(this->name, "add2d");
+                    DL_LOG_LAYER_LATENCY_START();
+                    nn::add2d(*this->output, input0, input1, this->activation, assign_core);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "add2d");
+                }
+                else
+                {
+                    DL_LOG_LAYER_LATENCY_START();
+                    nn::add2d(*this->output, input0, input1, this->activation, assign_core, this->output_exponent);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "add2d");
+                }
 
-                return this->output;
+                return *this->output;
             }
         };
     } // namespace layer

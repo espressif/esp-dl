@@ -37,32 +37,44 @@ namespace dl
         /**
          * @brief min2d(input0, input1)
          * 
+         * @tparam inplace: whether directly store the output to input0
          * @tparam feature_t supports int16_t and int8_t,
          *         - int16_t: stands for operation in int16_t quantize
          *         - int8_t: stands for operation in int8_t quantize
          * @param input0          as one input
          * @param input1          as another input
          * @param assign_core     not effective yet
-         * @return min2d result
+         * @return min2d result or no return(result store to input0)
          */
-        template <typename feature_t>
-        Tensor<feature_t> min2d(Tensor<feature_t> &input0, Tensor<feature_t> &input1, const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE)
+        template <bool inplace = false, typename feature_t>
+        auto min2d(Tensor<feature_t> &input0, 
+                    Tensor<feature_t> &input1, 
+                    const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE) -> typename std::conditional<inplace, void, Tensor<feature_t>>::type
         {
             assert(input0.is_same_shape(input1));
             assert(input0.exponent == input1.exponent);
 
             DL_LOG_NN_LATENCY_INIT();
-
-            DL_LOG_NN_LATENCY_START();
             Tensor<feature_t> output;
-            output.set_exponent(input0.exponent).set_shape(input0.shape).apply_element();
-            DL_LOG_NN_LATENCY_END("apply");
+            
+            if constexpr(!inplace)
+            {
+                DL_LOG_NN_LATENCY_START();
+                output.set_exponent(input0.exponent).set_shape(input0.shape).apply_element();
+                DL_LOG_NN_LATENCY_END("apply");
 
-            DL_LOG_NN_LATENCY_START();
-            min2d(output, input0, input1, assign_core);
-            DL_LOG_NN_LATENCY_END("min2d");
+                DL_LOG_NN_LATENCY_START();
+                min2d(output, input0, input1, assign_core);
+                DL_LOG_NN_LATENCY_END("min2d");
 
-            return output;
+                return output;
+            }
+            else
+            {
+                DL_LOG_NN_LATENCY_START();
+                min2d(input0, input0, input1, assign_core);
+                DL_LOG_NN_LATENCY_END("min2d");
+            }
         }
     } // namespace nn
 } // namespace dl
