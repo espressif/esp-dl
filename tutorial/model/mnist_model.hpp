@@ -66,23 +66,23 @@ public:
     void build(Tensor<int16_t> &input)
     {
         this->l1.build(input);
-        this->l2_depth.build(this->l1.output);
-        this->l2_compress.build(this->l2_depth.output);
-        this->l3_a_depth.build(this->l2_compress.output);
-        this->l3_a_compress.build(this->l3_a_depth.output);
-        this->l3_b_depth.build(this->l2_compress.output);
-        this->l3_b_compress.build(this->l3_b_depth.output);
-        this->l3_c_depth.build(this->l3_b_compress.output);
-        this->l3_c_compress.build(this->l3_c_depth.output);
-        this->l3_d_depth.build(this->l3_b_compress.output);
-        this->l3_d_compress.build(this->l3_d_depth.output);
-        this->l3_e_depth.build(this->l3_d_compress.output);
-        this->l3_e_compress.build(this->l3_e_depth.output);
-        this->l3_concat.build({&this->l3_a_compress.output, &this->l3_c_compress.output, &this->l3_e_compress.output});
-        this->l4_depth.build(this->l3_concat.output);
-        this->l4_compress.build(this->l4_depth.output);
-        this->l5_depth.build(this->l4_compress.output);
-        this->l5_compress.build(this->l5_depth.output);
+        this->l2_depth.build(this->l1.get_output());
+        this->l2_compress.build(this->l2_depth.get_output());
+        this->l3_a_depth.build(this->l2_compress.get_output());
+        this->l3_a_compress.build(this->l3_a_depth.get_output());
+        this->l3_b_depth.build(this->l2_compress.get_output());
+        this->l3_b_compress.build(this->l3_b_depth.get_output());
+        this->l3_c_depth.build(this->l3_b_compress.get_output());
+        this->l3_c_compress.build(this->l3_c_depth.get_output());
+        this->l3_d_depth.build(this->l3_b_compress.get_output());
+        this->l3_d_compress.build(this->l3_d_depth.get_output());
+        this->l3_e_depth.build(this->l3_d_compress.get_output());
+        this->l3_e_compress.build(this->l3_e_depth.get_output());
+        this->l3_concat.build({&this->l3_a_compress.get_output(), &this->l3_c_compress.get_output(), &this->l3_e_compress.get_output()});
+        this->l4_depth.build(this->l3_concat.get_output());
+        this->l4_compress.build(this->l4_depth.get_output());
+        this->l5_depth.build(this->l4_compress.get_output());
+        this->l5_compress.build(this->l5_depth.get_output());
 
         this->l3_concat.backward();
     }
@@ -97,54 +97,54 @@ public:
         this->l1.call(input);
         input.free_element();
 
-        this->l2_depth.call(this->l1.output);
-        this->l1.output.free_element();
+        this->l2_depth.call(this->l1.get_output());
+        this->l1.get_output().free_element();
 
-        this->l2_compress.call(this->l2_depth.output);
-        this->l2_depth.output.free_element();
+        this->l2_compress.call(this->l2_depth.get_output());
+        this->l2_depth.get_output().free_element();
 
-        this->l3_a_depth.call(this->l2_compress.output);
-        // this->l2_compress.output.free_element();
+        this->l3_a_depth.call(this->l2_compress.get_output());
+        // this->l2_compress.get_output().free_element();
 
         this->l3_concat.calloc_element(); // calloc a memory for layers concat in future.
 
-        this->l3_a_compress.call(this->l3_a_depth.output);
-        this->l3_a_depth.output.free_element();
+        this->l3_a_compress.call(this->l3_a_depth.get_output());
+        this->l3_a_depth.get_output().free_element();
 
-        this->l3_b_depth.call(this->l2_compress.output);
-        this->l2_compress.output.free_element();
+        this->l3_b_depth.call(this->l2_compress.get_output());
+        this->l2_compress.get_output().free_element();
 
-        this->l3_b_compress.call(this->l3_b_depth.output);
-        this->l3_b_depth.output.free_element();
+        this->l3_b_compress.call(this->l3_b_depth.get_output());
+        this->l3_b_depth.get_output().free_element();
 
-        this->l3_c_depth.call(this->l3_b_compress.output);
-        // this->l3_b_compress.output.free_element();
+        this->l3_c_depth.call(this->l3_b_compress.get_output());
+        // this->l3_b_compress.get_output().free_element();
 
-        this->l3_c_compress.call(this->l3_c_depth.output);
-        this->l3_c_depth.output.free_element();
+        this->l3_c_compress.call(this->l3_c_depth.get_output());
+        this->l3_c_depth.get_output().free_element();
 
-        this->l3_d_depth.call(this->l3_b_compress.output);
-        this->l3_b_compress.output.free_element();
+        this->l3_d_depth.call(this->l3_b_compress.get_output());
+        this->l3_b_compress.get_output().free_element();
 
-        this->l3_d_compress.call(this->l3_d_depth.output);
-        this->l3_d_depth.output.free_element();
+        this->l3_d_compress.call(this->l3_d_depth.get_output());
+        this->l3_d_depth.get_output().free_element();
 
-        this->l3_e_depth.call(this->l3_d_compress.output);
-        this->l3_d_compress.output.free_element();
+        this->l3_e_depth.call(this->l3_d_compress.get_output());
+        this->l3_d_compress.get_output().free_element();
 
-        this->l3_e_compress.call(this->l3_e_depth.output);
-        this->l3_e_depth.output.free_element();
+        this->l3_e_compress.call(this->l3_e_depth.get_output());
+        this->l3_e_depth.get_output().free_element();
 
-        this->l4_depth.call(this->l3_concat.output);
-        this->l3_concat.output.free_element();
+        this->l4_depth.call(this->l3_concat.get_output());
+        this->l3_concat.get_output().free_element();
 
-        this->l4_compress.call(this->l4_depth.output);
-        this->l4_depth.output.free_element();
+        this->l4_compress.call(this->l4_depth.get_output());
+        this->l4_depth.get_output().free_element();
 
-        this->l5_depth.call(this->l4_compress.output);
-        this->l4_compress.output.free_element();
+        this->l5_depth.call(this->l4_compress.get_output());
+        this->l4_compress.get_output().free_element();
 
-        this->l5_compress.call(this->l5_depth.output);
-        this->l5_depth.output.free_element();
+        this->l5_compress.call(this->l5_depth.get_output());
+        this->l5_depth.get_output().free_element();
     }
 };
