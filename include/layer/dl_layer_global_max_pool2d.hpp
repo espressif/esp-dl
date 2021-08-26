@@ -19,22 +19,31 @@ namespace dl
         template <typename feature_t>
         class GlobalMaxPool2D : public Layer
         {
+        private:
+            Tensor<feature_t> *output;  /*<! output ptr of GlobalMaxPool2D >*/
         public:
-            Tensor<feature_t> output; /*<! output of GlobalMaxPool2D >*/
 
             /**
              * @brief Construct a new GlobalMaxPool2D object.
              * 
              * @param name         name of layer
              */
-            GlobalMaxPool2D(const std::vector<int> filter_shape,
-                            const char *name = NULL) : Layer(name) {}
+            GlobalMaxPool2D(const char *name = NULL) : Layer(name)
+            {
+                this->output = new Tensor<feature_t>;
+            }
 
             /**
              * @brief Destroy the GlobalMaxPool2D object.
              * 
              */
-            ~GlobalMaxPool2D() {}
+            ~GlobalMaxPool2D()
+            {
+                if (this->output != NULL)
+                {
+                    delete this->output;
+                }
+            }
 
             /**
              * @brief Update output shape and exponent.
@@ -45,11 +54,22 @@ namespace dl
             {
                 assert(input.shape[0] > 0);
                 assert(input.shape[1] > 0);
-                this->output.set_exponent(input.exponent);
+                this->output->set_exponent(input.exponent);
 
-                vector<int> output_shape(input.shape.size(), 1);
+                std::vector<int> output_shape(input.shape.size(), 1);
                 output_shape[2] = input.shape[2];
-                this->output.set_shape(output_shape);
+                this->output->set_shape(output_shape);
+                this->output->free_element();
+            }
+
+            /**
+             * @brief Get the output 
+             * 
+             * @return Tensor<feature_t>& GlobalMaxPool2D result
+             */
+            Tensor<feature_t> &get_output()
+            {
+                return *this->output;
             }
 
             /**
@@ -67,20 +87,21 @@ namespace dl
                 DL_LOG_LAYER_LATENCY_INIT();
 
                 DL_LOG_LAYER_LATENCY_START();
-                this->output.apply_element();
+                this->output->apply_element();
+                this->output->set_exponent(input.exponent);
                 DL_LOG_LAYER_LATENCY_END(this->name, "apply");
 
                 if (autoload_enable)
                 {
-                    dl::tool::cache::autoload_func((uint32_t)(this->output.element), this->output.get_size() * sizeof(feature_t),
+                    dl::tool::cache::autoload_func((uint32_t)(this->output->element), this->output->get_size() * sizeof(feature_t),
                                                    (uint32_t)(input.element), input.get_size() * sizeof(feature_t));
                 }
 
                 DL_LOG_LAYER_LATENCY_START();
-                nn::global_max_pool2d(output, input);
+                nn::global_max_pool2d(*this->output, input);
                 DL_LOG_LAYER_LATENCY_END(this->name, "global_max_pool2d");
 
-                return this->output;
+                return *this->output;
             }
         };
     } // namespace layer

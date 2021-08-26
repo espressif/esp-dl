@@ -18,6 +18,7 @@ namespace dl
         class DepthwiseConv2D : public Layer
         {
         private:
+            const int output_exponent;               /*<! exponent of output >*/
             const Filter<feature_t> *filter;         /*<! filter of DepthwiseConv2D >*/
             const int stride_y;                      /*<! stride in height >*/
             const int stride_x;                      /*<! stride in width >*/
@@ -25,9 +26,9 @@ namespace dl
             const Bias<feature_t> *bias;             /*<! bias of DepthwiseConv2D, if you don't specify anything, no bias is added >*/
             const Activation<feature_t> *activation; /*<! activation of DepthwiseConv2D, if you don't specify anything, no activation is applied >*/
             std::vector<int> padding;                /*<! padding size needed in [top, bottom, left, right] of this operation >*/
+            Tensor<feature_t> *output;               /*<! output ptr of DepthwiseConv2D >*/
 
         public:
-            Tensor<feature_t> output; /*<! output of DepthwiseConv2D >*/
 
             /**
              * @brief Construct a new DepthwiseConv2D object.
@@ -54,6 +55,7 @@ namespace dl
                             const int stride_y = 1,
                             const int stride_x = 1,
                             const char *name = NULL) : Layer(name),
+                                                       output_exponent(output_exponent),
                                                        filter(filter),
                                                        stride_y(stride_y),
                                                        stride_x(stride_x),
@@ -61,14 +63,20 @@ namespace dl
                                                        bias(bias),
                                                        activation(activation)
             {
-                this->output.set_exponent(output_exponent);
+                this->output = new Tensor<feature_t>;
             }
 
             /**
              * @brief Destroy the DepthwiseConv2D object.
              * 
              */
-            ~DepthwiseConv2D() {}
+            ~DepthwiseConv2D() 
+            {
+                if (this->output != NULL)
+                {
+                    delete this->output;
+                }
+            }
 
             /**
              * @brief Update output shape and padding.
@@ -81,10 +89,22 @@ namespace dl
                 assert(input.shape[1] > 0);
 
                 std::vector<int> output_shape = nn::get_output_shape(input.shape, this->filter->shape_with_dilation, this->stride_y, this->stride_x, this->padding_type);
-                this->output.set_shape(output_shape);
+                this->output->set_shape(output_shape);
+                this->output->set_exponent(this->output_exponent);
 
                 this->padding = nn::get_pad_size(output_shape, input.shape, this->filter->shape_with_dilation, this->stride_y, this->stride_x, this->padding_type);
                 input.set_padding_size(this->padding);
+                this->output->free_element();
+            }
+
+            /**
+             * @brief Get the output
+             * 
+             * @return Tensor<feature_t>& DepthwiseConv2D result
+             */
+            Tensor<feature_t> &get_output()
+            {
+                return *this->output;
             }
 
             /**
@@ -102,20 +122,21 @@ namespace dl
                 DL_LOG_LAYER_LATENCY_INIT();
 
                 DL_LOG_LAYER_LATENCY_START();
-                this->output.apply_element();
+                this->output->apply_element();
+                this->output->set_exponent(this->output_exponent);
                 DL_LOG_LAYER_LATENCY_END(this->name, "apply");
 
                 if (autoload_enable)
                 {
-                    dl::tool::cache::autoload_func((uint32_t)(this->output.element), this->output.get_size() * sizeof(feature_t),
+                    dl::tool::cache::autoload_func((uint32_t)(this->output->element), this->output->get_size() * sizeof(feature_t),
                                                    (uint32_t)(input.element), input.get_size() * sizeof(feature_t));
                 }
 
                 DL_LOG_LAYER_LATENCY_START();
-                nn::depthwise_conv2d(output, input, this->padding, *(this->filter), this->stride_y, this->stride_x, this->bias, this->activation, assign_core);
+                nn::depthwise_conv2d(*this->output, input, this->padding, *(this->filter), this->stride_y, this->stride_x, this->bias, this->activation, assign_core);
                 DL_LOG_LAYER_LATENCY_END(this->name, "depthwise_conv2d");
-               
-                return this->output;
+
+                return *this->output;
             }
 
             /**

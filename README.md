@@ -23,10 +23,11 @@ For setup instructions to get started with ESP-DL, please read [Get Started](./d
 
 ESP-DL provides some model APIs in the [Model Zoo](./include/model_zoo), such as Human Face Detection, Human Face Recognition, Cat Face Detection, etc. You can use these models in the table below out of box.
 
-| Name                 | API Example                                                  | Application Example                                          |
-| :-------------------- | :------------------------------------------------------------ | :------------------------------------------------------------ |
-| Human Face Detection | [ESP-DL/examples/human_face_detect](examples/human_face_detect) | [ESP-WHO/examples/human_face_detect](https://github.com/espressif/esp-who/tree/master/examples/human_face_detect) |
-| Cat Face Detection   | [ESP-DL/examples/cat_face_detect](examples/cat_face_detect)  | [ESP-WHO/examples/cat_face_detect](https://github.com/espressif/esp-who/tree/master/examples/cat_face_detect) |
+| Name                 | API Example                                                  |
+| :-------------------- | :------------------------------------------------------------ |
+| Human Face Detection | [ESP-DL/examples/human_face_detect](examples/human_face_detect) |
+| Face Recognition | [ESP-DL/examples/face_recognition](examples/face_recognition)  |
+| Cat Face Detection | [ESP-DL/examples/cat_face_detect](examples/cat_face_detect)  |
 
 
 ## Customize a Model
@@ -53,6 +54,7 @@ When you read the instructions, the following materials might be helpful:
         > convert.py requires Python 3.7 or versions higher.
 
 - Software and Hardware Boost
+  
     * [Quantization Specification](./docs/en/quantization_specification.md): rules of floating-point quantization
 
 

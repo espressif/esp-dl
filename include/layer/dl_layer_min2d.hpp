@@ -21,24 +21,35 @@ namespace dl
         template <typename feature_t>
         class Min2D : public Layer
         {
-
-        public:
-            Tensor<feature_t> output; /*<! output of min2d>*/
+        private:
+            Tensor<feature_t> *output;  /*<! output of ptr min2d>*/ 
+            bool inplace;               /*<! true: the output will store to input0
+                                             false: the output will store to a seperate memeory >*/ 
+        public:    
 
             /**
              * @brief Construct a new Min2D object
              * 
-             * @param name            name of min2d 
+             * @param name            name of min2d
+             * @param inplace         true: the output will store to input0
+             *                        false: the output will store to a seperate memeory
              */
-            Min2D(const char *name = NULL) : Layer(name)
+            Min2D(const char *name = NULL, bool inplace = false) : Layer(name)
             {
+                this->inplace = inplace;
             }
 
             /**
              * @brief Destroy the Min2D object
              * 
              */
-            ~Min2D() {}
+            ~Min2D() 
+            {
+                if ((!this->inplace) && (this->output != NULL))
+                {
+                    delete this->output;
+                }
+            }
 
             /**
              * @brief Update output shape and exponent
@@ -53,8 +64,29 @@ namespace dl
                 assert(input0.is_same_shape(input1));
                 assert(input0.exponent == input1.exponent);
 
-                this->output.set_shape(input0.shape);
-                this->output.set_exponent(input0.exponent);
+                if(!this->inplace)
+                {
+                    if(this->output != NULL)
+                    {
+                        this->output = new Tensor<feature_t>;
+                    }
+                    this->output->set_shape(input0.shape);
+                    this->output->set_exponent(input0.exponent);
+                    this->output->free_element();
+                }
+                else
+                    this->output = &input0;
+                
+            }
+
+            /**
+             * @brief Get the output
+             * 
+             * @return Tensor<feature_t>& Min2D result
+             */
+            Tensor<feature_t> &get_output()
+            {
+                return *this->output;
             }
 
             /**
@@ -69,15 +101,25 @@ namespace dl
             {
                 DL_LOG_LAYER_LATENCY_INIT();
 
-                DL_LOG_LAYER_LATENCY_START();
-                this->output.apply_element();
-                DL_LOG_LAYER_LATENCY_END(this->name, "apply");
+                if(!this->inplace)
+                {
+                    DL_LOG_LAYER_LATENCY_START();
+                    this->output->apply_element();
+                    this->output->set_exponent(input0.exponent);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "apply");
 
-                DL_LOG_LAYER_LATENCY_START();
-                nn::min2d(this->output, input0, input1, assign_core);
-                DL_LOG_LAYER_LATENCY_END(this->name, "min2d");
+                    DL_LOG_LAYER_LATENCY_START();
+                    nn::min2d(*this->output, input0, input1, assign_core);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "min2d");
+                }
+                else
+                {
+                    DL_LOG_LAYER_LATENCY_START();
+                    nn::min2d<true>(*this->output, input0, input1, assign_core);
+                    DL_LOG_LAYER_LATENCY_END(this->name, "min2d");
+                }
 
-                return this->output;
+                return *this->output;
             }
         };
     } // namespace layer

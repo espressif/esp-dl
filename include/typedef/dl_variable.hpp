@@ -56,8 +56,9 @@ namespace dl
         {
             if (deep)
             {
-                T *new_element = (T *)tool::calloc_aligned(this->get_size(), sizeof(T), 16);
-                memcpy(new_element, input.element, size * sizeof(T));
+                int size_real = input.shape_with_padding.size() ? input.shape_with_padding[0] * input.shape_with_padding[1] * input.shape_with_padding[2] : 0;
+                T *new_element = (T *)tool::calloc_aligned(size_real, sizeof(T), 16);
+                tool::copy_memory(new_element, input.element, size_real * sizeof(T));
                 this->element = new_element;
             }
             else
@@ -127,6 +128,10 @@ namespace dl
          */
         Tensor<T> &set_shape(const std::vector<int> shape)
         {
+            for (int i = 0; i < shape.size(); ++i)
+            {
+                assert(shape[i] > 0);
+            }
             this->shape = shape;
             this->shape_with_padding = shape;
             this->size = -1;
@@ -196,7 +201,7 @@ namespace dl
                     int offset_src_next_y = this->shape_with_padding[1] * this->shape_with_padding[2]; // width * channel
                     for (int y = 0; y < this->shape[0]; y++)
                     {
-                        memcpy(dst, src, src_copy_length * sizeof(T));
+                        tool::copy_memory(dst, src, src_copy_length * sizeof(T));
                         dst += offset_dst_next_y;
                         src += offset_src_next_y;
                     }
@@ -587,6 +592,47 @@ namespace dl
         }
 
         /**
+         * @brief print all the element of the Tensor.
+         * 
+         * @param message to print
+         * @param with_padding one of true or false,
+         *                     - true: the padding element will also be printed
+         *                     - false: the padding element will not be printed
+         */
+        void print_all(const char *message, const bool with_padding = false)
+        {
+            int y_end;
+            int x_end;
+            int c_end;
+            if (with_padding)
+            {
+                y_end = this->shape_with_padding[0];
+                x_end = this->shape_with_padding[1];
+                c_end = this->shape_with_padding[2];
+            }
+            else
+            {
+                y_end = this->shape[0];
+                x_end = this->shape[1];
+                c_end = this->shape[2];
+            }
+
+            printf("\n%s | ", message);
+            this->print_shape();
+
+            for (int y = 0; y < y_end; y++)
+            {
+                for (int x = 0; x < x_end; x++)
+                {
+                    for (int c = 0; c < c_end; c++)
+                        printf("%d ", this->get_element_value({y, x, c}, with_padding));
+                }
+            }
+            printf("\n");
+            return;
+        }
+
+        /**
          * @brief Check the element value with input ground-truth.
          * 
          * @param gt_element ground-truth value of element
@@ -650,6 +696,39 @@ namespace dl
                 }
             }
             return true;
+        }
+
+        Tensor<T> &operator=(const Tensor<T> &input)
+        {
+            this->size = input.size;
+            this->auto_free = input.auto_free;
+            this->exponent = input.exponent;
+            this->shape = input.shape;
+            this->padding = input.padding;
+            int size_real_tmp = this->shape_with_padding.size() ? this->shape_with_padding[0] * this->shape_with_padding[1] * this->shape_with_padding[2] : 0;
+            int size_input_real = input.shape_with_padding.size() ? input.shape_with_padding[0] * input.shape_with_padding[1] * input.shape_with_padding[2] : 0;
+            this->shape_with_padding = input.shape_with_padding;
+            if (this->element)
+            {
+                if (size_real_tmp != size_input_real)
+                {
+                    tool::free_aligned(this->element);
+                    T *new_element = (T *)tool::calloc_aligned(size_input_real, sizeof(T), 16);
+                    tool::copy_memory(new_element, input.element, size_input_real * sizeof(T));
+                    this->element = new_element;
+                }
+                else
+                {
+                    tool::copy_memory(this->element, input.element, size_input_real * sizeof(T));
+                }
+            }
+            else
+            {
+                T *new_element = (T *)tool::calloc_aligned(size_input_real, sizeof(T), 16);
+                tool::copy_memory(new_element, input.element, size_input_real * sizeof(T));
+                this->element = new_element;
+            }
+            return *this;
         }
     };
 } // namespace dl

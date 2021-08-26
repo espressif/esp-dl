@@ -15,7 +15,9 @@ namespace dl
          * @param input       as an input
          * @param assign_core not effective yet
          */
-        void relu(Tensor<int16_t> &output, Tensor<int16_t> &input, const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE);
+        void relu(Tensor<int16_t> &output, 
+                    Tensor<int16_t> &input, 
+                    const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE);
 
         /**
          * @brief relu(input).
@@ -24,33 +26,45 @@ namespace dl
          * @param input       as an input
          * @param assign_core not effective yet
          */
-        void relu(Tensor<int8_t> &output, Tensor<int8_t> &input, const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE);
+        void relu(Tensor<int8_t> &output, 
+                    Tensor<int8_t> &input, 
+                    const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE);
 
         /**
          * @brief relu(input)
          * 
+         * @tparam inplace: whether directly store the output to input
          * @tparam feature_t supports int16_t and int8_t,
          *         - int16_t: stands for operation in int16_t quantize
          *         - int8_t: stands for operation in int8_t quantize
          * @param input           as an input
          * @param assign_core     not effective yet
-         * @return relu result
+         * @return relu result or no return(result store to input)
          */
-        template <typename feature_t>
-        Tensor<feature_t> relu(Tensor<feature_t> &input, const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE)
+        template <bool inplace = false, typename feature_t>
+        auto relu(Tensor<feature_t> &input, const std::vector<int> &assign_core = CONFIG_DEFAULT_ASSIGN_CORE) -> typename std::conditional<inplace, void, Tensor<feature_t>>::type
         {
             DL_LOG_NN_LATENCY_INIT();
-
-            DL_LOG_NN_LATENCY_START();
             Tensor<feature_t> output;
-            output.set_exponent(input.exponent).set_shape(input.shape).apply_element();
-            DL_LOG_NN_LATENCY_END("apply");
+            
+            if constexpr(!inplace)
+            {
+                DL_LOG_NN_LATENCY_START();
+                output.set_exponent(input.exponent).set_shape(input.shape).apply_element();
+                DL_LOG_NN_LATENCY_END("apply");
 
-            DL_LOG_NN_LATENCY_START();
-            relu(output, input, assign_core);
-            DL_LOG_NN_LATENCY_END("relu");
+                DL_LOG_NN_LATENCY_START();
+                relu(output, input, assign_core);
+                DL_LOG_NN_LATENCY_END("relu");
 
-            return output;
+                return output;
+            }
+            else
+            {
+                DL_LOG_NN_LATENCY_START();
+                relu(input, input, assign_core);
+                DL_LOG_NN_LATENCY_END("relu");
+            }
         }
     } // namespace nn
 } // namespace dl

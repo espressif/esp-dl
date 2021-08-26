@@ -324,7 +324,7 @@ extern "C" void app_main(void)
     latency.print("MNIST", "forward");
 
     // parse
-    int16_t *score = model.l5_compress.output.get_element_ptr();
+    int16_t *score = model.l5_compress.get_output().get_element_ptr();
     int16_t max_score = score[0];
     int max_index = 0;
     printf("%d, ", max_score);
