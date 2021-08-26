@@ -24,7 +24,7 @@ human_face_detect/
 1. 打开终端，进入人脸检测示例所在文件夹 esp-dl/examples/human_face_detect：
 
     ```shell
-    cd ~/esp-dl/examples/cat_face_detect
+    cd ~/esp-dl/examples/human_face_detect
     ```
 
 2. 设定目标芯片：

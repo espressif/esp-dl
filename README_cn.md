@@ -29,11 +29,11 @@ ESP-DL 无需借助任何外围设备，因此可作为一些项目的组件，�
 ESP-DL 在 [模型库](./include/model_zoo) 中提供了一些模型的 API，如人脸检测、人脸识别、猫脸检测等。你可以使用下表中开箱即用的模型。
 
 
-| 项目                 | API 实例                                                  | 应用实例                                          |
-| -------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 人脸检测 | [ESP-DL/examples/human_face_detect](examples/human_face_detect) | [ESP-WHO/examples/human_face_detect](https://github.com/espressif/esp-who/tree/master/examples/human_face_detect) |
-| 猫脸检测   | [ESP-DL/examples/cat_face_detect](examples/cat_face_detect)  | [ESP-WHO/examples/cat_face_detect](https://github.com/espressif/esp-who/tree/master/examples/cat_face_detect) |
-
+| 项目                 | API 实例                                                  |
+| -------------------- | ------------------------------------------------------------ |
+| 人脸检测 | [ESP-DL/examples/human_face_detect](examples/human_face_detect) |
+| 人脸识别 | [ESP-DL/examples/face_recognition](examples/face_recognition) |
+| 猫脸检测 | [ESP-DL/examples/cat_face_detect](examples/cat_face_detect)  |
 
 ## 定制模型
 

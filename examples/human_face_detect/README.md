@@ -24,7 +24,7 @@ human_face_detect/
 1. Open Terminal and go to esp-dl/examples/human_face_detect, the directory where this project is stored:
 
     ```shell
-    cd ~/esp-dl/examples/cat_face_detect
+    cd ~/esp-dl/examples/human_face_detect
     ```
 
 2. Set SoC target:
