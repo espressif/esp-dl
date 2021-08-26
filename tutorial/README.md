@@ -87,7 +87,7 @@ Once the coefficient.npy files and config.json file are ready and stored in the 
 Run 
 
 ```bash
-python ../convert.py -i ./model/npy/ -n mnist_coefficient -o ./model/
+python ../tools/convert_tool/convert.py -t [SoC] -i ./model/npy/ -n mnist_coefficient -o ./model/
 ```
 
 and two files `mnist_coefficient.cpp` and `mnist_coefficient.hpp` would be generated in [`./model/`](./model/).

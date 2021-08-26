@@ -1,7 +1,7 @@
 idf_build_get_property(target IDF_TARGET)
 
 execute_process(
-    COMMAND python ${COMPONENT_PATH}/../../tool/convert.py -t ${IDF_TARGET} -i ${COMPONENT_PATH}/../model/npy -n mnist_coefficient -o ${COMPONENT_PATH}/../model
+    COMMAND python ${COMPONENT_PATH}/../../tools/convert_tool/convert.py -t ${IDF_TARGET} -i ${COMPONENT_PATH}/../model/npy -n mnist_coefficient -o ${COMPONENT_PATH}/../model
 )
 
 set(srcs            app_main.cpp
