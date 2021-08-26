@@ -47,13 +47,13 @@ human_face_detect/
         mouth left: (158, 177), mouth right: (193, 180)
    ```
 
-4. 存放在 [example/tool/](../tool/) 目录下的显示工具 `display_image.py`，可方便您更直观地查看检测结果的图片。根据[工具](../tool/README.md)介绍使用显示工具，运行如下命令：
+4. 存放在 [example/tool/](../tool/) 目录下的显示工具 `display_image.py`，可方便您更直观地查看检测结果的图片。根据[工具](../tool/README_cn.md)介绍使用显示工具，运行如下命令：
 
    ```shell
    python display_image.py -i ../human_face_detect/image.jpg -b "(137, 75, 246, 215)" -k "(157, 131, 199, 133, 170, 163, 158, 177, 193, 180)"
    ```
    PC 屏上会显示当前示例检测结果的图片，如下图所示：
-    
+   
     <p align="center">
     <img width="%" src="./result.png"> 
     </p>
@@ -73,7 +73,7 @@ human_face_detect/
 
 ## 自定义输入图片
 
-示例中 [./main/image.hpp](./main/image.hpp) 是预设的输入图片。您可根据[工具](../tool/README.md)介绍，使用存放在 [example/tool/](../tool/) 目录下的转换工具 `convert_to_u8.py`，将自定义图片转换成 C/C++ 的形式，替换预设图片。
+示例中 [./main/image.hpp](./main/image.hpp) 是预设的输入图片。您可根据[工具](../tool/README_cn.md)介绍，使用存放在 [example/tool/](../tool/) 目录下的转换工具 `convert_to_u8.py`，将自定义图片转换成 C/C++ 的形式，替换预设图片。
 
 1. 将自定义图片存放至 ./examples/human_face_detect 目录下，使用 [examples/tool/convert_to_u8.py](../tool/convert_to_u8.py) 把图片转换为 hpp 格式：
 
@@ -85,3 +85,14 @@ human_face_detect/
 
 2. 参考[运行示例](#运行示例)中的步骤，烧录固件，打印检测结果的置信度分数和坐标值，显示检测结果的图片。
 
+
+
+## 延时情况
+
+|   芯片   | `TWO_STAGE` = 1 | `TWO_STAGE` = 0 |
+| :------: | --------------: | --------------: |
+|  ESP32   |      409,216 us |      144,848 us |
+| ESP32-S2 |      700,414 us |      207,985 us |
+| ESP32-S3 |       94,183 us |       36,707 us |
+
+> 以上数据基于示例的默认配置。

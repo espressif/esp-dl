@@ -86,3 +86,13 @@ In this example project, [./main/image.hpp](./main/image.hpp) is the default inp
 2. According to steps in Section [Run the Example](#run-the-example), flash the firmware, print the confidence scores and coordinate values of detection results, and view the image of detection results.
 
 
+
+## Time Consumption
+
+|   SoC    | `TWO_STAGE` = 1 | `TWO_STAGE` = 0 |
+| :------: | --------------: | --------------: |
+|  ESP32   |      409,216 us |      144,848 us |
+| ESP32-S2 |      700,414 us |      207,985 us |
+| ESP32-S3 |       94,183 us |       36,707 us |
+
+> Statistics above are base on default configuration of this example.

@@ -2,12 +2,15 @@
 #include "image.hpp"
 #include "human_face_detect_msr01.hpp"
 #include "human_face_detect_mnp01.hpp"
+#include "dl_tool.hpp"
 
 #define TWO_STAGE 1 /*<! 1: detect by two-stage which is more accurate but slower(with keypoints). */
                     /*<! 0: detect by one-stage which is less accurate but faster(without keypoints). */
 
 extern "C" void app_main(void)
 {
+    dl::tool::Latency latency;
+
     // initialize
 #if TWO_STAGE
     HumanFaceDetectMSR01 s1(0.1F, 0.5F, 10, 0.2F);
@@ -17,12 +20,15 @@ extern "C" void app_main(void)
 #endif
 
     // inference
+    latency.start();
 #if TWO_STAGE
     std::list<dl::detect::result_t> &candidates = s1.infer((uint8_t *)IMAGE_ELEMENT, {IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL});
     std::list<dl::detect::result_t> &results = s2.infer((uint8_t *)IMAGE_ELEMENT, {IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL}, candidates);
 #else // ONE_STAGE
     std::list<dl::detect::result_t> &results = s1.infer((uint8_t *)IMAGE_ELEMENT, {IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL});
 #endif
+    latency.end();
+    latency.print("Inference latency");
 
     // display
     int i = 0;

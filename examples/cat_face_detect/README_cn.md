@@ -43,7 +43,7 @@ cat_face_detect/
    [0] score: 1.709961, box: [122, 2, 256, 117]
    ```
 
-4. 存放在 [examples/tool/](../tool/) 目录下的显示工具 `display_image.py`，可方便您更直观地查看检测结果的图片。根据[工具](../tool/README.md)介绍使用显示工具，运行如下命令：
+4. 存放在 [examples/tool/](../tool/) 目录下的显示工具 `display_image.py`，可方便您更直观地查看检测结果的图片。根据[工具](../tool/README_cn.md)介绍使用显示工具，运行如下命令：
 
    ```shell
    python display_image.py -i ../cat_face_detect/image.jpg -b "(122, 2, 256, 117)"
@@ -57,7 +57,7 @@ cat_face_detect/
 
 ## 自定义输入图片
 
-示例中 [./main/image.hpp](./main/image.hpp) 是预设的输入图片。您可根据[工具](../tool/README.md)介绍，使用存放在 [example/tool/](../tool/) 目录下的转换工具 `convert_to_u8.py`，将自定义图片转换成 C/C++ 的形式，替换预设图片。
+示例中 [./main/image.hpp](./main/image.hpp) 是预设的输入图片。您可根据[工具](../tool/README_cn.md)介绍，使用存放在 [example/tool/](../tool/) 目录下的转换工具 `convert_to_u8.py`，将自定义图片转换成 C/C++ 的形式，替换预设图片。
 
 1. 将自定义图片存放至 ./examples/cat_face_detect 目录下，使用 [examples/tool/convert_to_u8.py](../tool/convert_to_u8.py) 把图片转换为 hpp 格式：
 
@@ -68,4 +68,16 @@ cat_face_detect/
    ```
 
 2. 参考[运行示例](#运行示例)中的步骤，烧录固件，打印检测结果的置信度分数和坐标值，显示检测结果的图片。
+
+
+
+## 延时情况
+
+|   芯片   |       耗时 |
+| :------: | ---------: |
+|  ESP32   | 145,331 us |
+| ESP32-S2 | 286,402 us |
+| ESP32-S3 |  32,727 us |
+
+> 以上数据基于示例的默认配置。
 
