@@ -11,13 +11,17 @@ ESP-DL provides APIs for **Neural Network (NN) Inference**, **Image Processing**
 As ESP-DL does not need any peripherals, it can be used as a component of some projects. For example, you can use it as a component of **[ESP-WHO](https://github.com/espressif/esp-who)**, which contains several project-level examples of image application. The figure below shows what ESP-DL consists of and how ESP-DL is implemented as a component in a project.
 
 <p align="center">
-    <img width="%" src="./img/esp-dl-architecture.drawio.png"> 
+    <img width="%" src="./img/esp-dl-architecture.png"> 
 </p>
 
 
 ## Get Started with ESP-DL
 
 For setup instructions to get started with ESP-DL, please read [Get Started](./docs/en/get_started.md).
+
+> Please use the [latest](https://github.com/espressif/esp-idf/tree/master) ESP-IDF on master branch.
+
+
 
 ## Try Models in the Model Zoo
 
@@ -26,7 +30,7 @@ ESP-DL provides some model APIs in the [Model Zoo](./include/model_zoo), such as
 | Name                 | API Example                                                  |
 | :-------------------- | :------------------------------------------------------------ |
 | Human Face Detection | [ESP-DL/examples/human_face_detect](examples/human_face_detect) |
-| Face Recognition | [ESP-DL/examples/face_recognition](examples/face_recognition)  |
+| Human Face Recognition | [ESP-DL/examples/face_recognition](examples/face_recognition)  |
 | Cat Face Detection | [ESP-DL/examples/cat_face_detect](examples/cat_face_detect)  |
 
 

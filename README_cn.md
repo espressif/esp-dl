@@ -12,7 +12,7 @@ ESP-DL 无需借助任何外围设备，因此可作为一些项目的组件，�
 
 
 <p align="center">
-    <img width="%" src="./img/esp-dl-architecture_cn.drawio.png"> 
+    <img width="%" src="./img/esp-dl-architecture_cn.png"> 
 </p>
 
 
@@ -20,6 +20,7 @@ ESP-DL 无需借助任何外围设备，因此可作为一些项目的组件，�
 ## 入门指南
 
 安装并入门 ESP-DL，请参考[快速入门](./docs/en/get_started.md)。
+> 请使用最新 ESP-IDF 在 master 分支上的[最新版本](https://github.com/espressif/esp-idf/tree/master)。
 
 
 
@@ -46,7 +47,9 @@ ESP-DL 在 [模型库](./include/model_zoo) 中提供了一些模型的 API，�
         - 变量：张量
         - 常量：过滤器，偏差，激活函数
     * [定制层的步骤介绍](./docs/en/implement_custom_layer.md)：介绍了如何定制层。
-    * [API 文档]()：关于层、神经网络、数学和工具的 API 指南。
+    * [API 文档](./include)：关于层、神经网络、数学和工具的 API 指南。
+
+        > 请暂时查看头文件注释。
 
 
 - 平台转换
