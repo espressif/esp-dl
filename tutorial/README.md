@@ -71,7 +71,7 @@ For each layer of a neural network operation, you might need:
 
 ## Step 2: Write Model Configuration
 
-Write model configuration in the config.json file following the [**Specification of config.json**](../docs/en/specification_of_config_json.md).
+Write model configuration in the config.json file following the [**Specification of config.json**](../tools/convert_tool/specification_of_config_json.md).
 
 **Example:** configuration of the MNIST project saved in [`./model/npy/config.json`](./model/npy/config.json).
 
@@ -80,7 +80,7 @@ Write model configuration in the config.json file following the [**Specification
 ## Step 3: Convert Model Coefficients
 
 
-Once the coefficient.npy files and config.json file are ready and stored in the same folder, convert the coefficients into C/C++ code using convert.py (see instructions in [**Usage of convert.py**](../docs/en/usage_of_convert_py.md)).
+Once the coefficient.npy files and config.json file are ready and stored in the same folder, convert the coefficients into C/C++ code using convert.py (see instructions in [**Usage of convert.py**](../tools/convert_tool/)).
 
 **Example:**
 
