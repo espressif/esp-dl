@@ -1,6 +1,6 @@
 # ESP-DL [[中文]](./README_cn.md)
 
-ESP-DL is a library for high-performance deep learning resources dedicated to all SoCs by Espressif.
+ESP-DL is a library for high-performance deep learning resources dedicated to  [ESP32](https://www.espressif.com/en/products/socs/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2),  [ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3) and [ESP32-C3](https://www.espressif.com/en/products/socs/esp32-c3).
 
 
 

@@ -1,6 +1,6 @@
 # ESP-DL [[English]](./README.md)
 
-ESP-DL 是由乐鑫官方针对乐鑫各系列芯片产品所提供的高性能深度学习开发库。
+ESP-DL 是由乐鑫官方针对乐鑫系列芯片 [ESP32](https://www.espressif.com/en/products/socs/esp32)、[ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2)、[ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3) 和 [ESP32-C3](https://www.espressif.com/en/products/socs/esp32-c3) 所提供的高性能深度学习开发库。
 
 
 

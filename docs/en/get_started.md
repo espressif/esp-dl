@@ -29,7 +29,9 @@ ESP-DL runs based on ESP-IDF. For detailed instructions on how to get ESP-IDF, p
     ```shell
     idf.py set-target [SoC]
     ```
-    Replace [SoC] with your SoC target, such as esp32, esp32s2, esp32s3.
+    Replace [SoC] with your SoC target, such as esp32, esp32s2, esp32s3 and esp32c3.
+
+    > Be cautious that ESP32-C3 only support no PARAM requirement application. 
 
 4. Flash the firmware and print the result:
 
