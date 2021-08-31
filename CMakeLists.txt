@@ -18,6 +18,7 @@ set(COMPONENT_ADD_INCLUDEDIRS   include/
                                 include/tool
                                 include/typedef
                                 include/image
+                                include/math
                                 include/nn
                                 include/layer
                                 include/detect
