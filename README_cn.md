@@ -12,7 +12,7 @@ ESP-DL 无需借助任何外围设备，因此可作为一些项目的组件，�
 
 
 <p align="center">
-    <img width="%" src="./img/esp-dl-architecture_cn.png"> 
+    <img width="80%" src="./img/architecture_cn.drawio.svg"> 
 </p>
 
 
