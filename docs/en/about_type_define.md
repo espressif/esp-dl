@@ -1,4 +1,4 @@
-# About Variables and Constants
+# About Variables and Constants [[中文]](../zh_CN/about_type_define.md)
 
 ESP-DL has the following variable and constants:
 
@@ -52,7 +52,7 @@ Especially in Concat2D, all input tensors are concatenated. As the figure below 
 
 The figure below illustrates [tensor's member variables](../../include/typedef/dl_variable.hpp/#22) used for padding:
 
-- `Tensor.element`: a specific point whose position would never change in the tensor, regardless of padding at the front and back
+- `Tensor.element`: a specific point that always points to the position in the figure below, regardless of padding at the front and back
 - `Tensor.shape`: the original tensor shape before being padded (the red box in the figure)
 - `Tensor.padding`: the padding size of the original tensor. `Tensor.padding` should be greater than or equal to `Layer.padding` in each dimension
     > In [`dl_layer_conv2d.hpp`](../../include/layer/dl_layer_conv2d.hpp), `Layer.padding` is used, and is less than or equal to `Tensor.padding`.
@@ -64,9 +64,9 @@ The figure below illustrates [tensor's member variables](../../include/typedef/d
 
 #### In Application
 
-**Input tensor:** Suppose that we have an input tensor to be padded by the padding size `Layer.padding`. Then [`Tensor.get_element_ptr(Layer.padding)`](../../include/typedef/dl_variable.hpp/#100) should point to the first padding element, i.e. the first placeholder to pad the input tensor. Note that there might be gaps between the padded output of `Layer.padding` (the blue box in the figure) and the padded output of `Tensor.padding` (the biggest box in the figure).
+**Input tensor**: Suppose that we have an input tensor to be padded by the padding size `Layer.padding`. Then [`Tensor.get_element_ptr(Layer.padding)`](../../include/typedef/dl_variable.hpp/#100) should point to the first padding element, i.e. the first placeholder to pad the input tensor. Note that there might be gaps between the padded output of `Layer.padding` (the blue box in the figure) and the padded output of `Tensor.padding` (the biggest box in the figure).
 
-**Output tensor** Elements in an output tensor are used to store the operation result of a layer, so an output tensor always does not need to be padded. Then `Tensor.get_element_ptr()` should point to the first element of an output tensor without padding (the red box in the figure above).
+**Output tensor**: Elements in an output tensor are used to store the operation results of a layer, so an output tensor always does not need to be padded. Then `Tensor.get_element_ptr()` should point to the first element of an output tensor without padding (the red box in the figure above). When storing the operation results, please note gaps between the output tensor without padding (the red box in the figure above) and `Tensor.padding` (the biggest box in the figure).
 
 **Be cautious about movements of the pointer.**
 

@@ -1,6 +1,6 @@
 # ESP-DL [[中文]](./README_cn.md)
 
-ESP-DL is a library for high-performance deep learning resources dedicated to  [ESP32](https://www.espressif.com/en/products/socs/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2),  [ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3) and [ESP32-C3](https://www.espressif.com/en/products/socs/esp32-c3).
+ESP-DL is a library for high-performance deep learning resources dedicated to [ESP32](https://www.espressif.com/en/products/socs/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2), [ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3) and [ESP32-C3](https://www.espressif.com/en/products/socs/esp32-c3).
 
 
 
@@ -45,15 +45,17 @@ When you read the instructions, the following materials might be helpful:
         - variable: tensors
         - constants: filters, biases, and activations
     * [Customize a Layer Step by Step](./docs/en/implement_custom_layer.md): instructions on how to customize a layer.
-    * [API Documentation](): guides to provided API about Layer, Neural Network (NN), Math and tools.
+    * [API Documentation](./include): guides to provided API about Layer, Neural Network (NN), Math and tools.
+
+        > For API documentation, please refer to annotations in header files for the moment.
 
 - Platform Conversion
-1. Quantization toolkit: a tool for quantizing floating-point model and evaluating quantized model on ESP SoCs
-    * toolkit: see [Quantization Toolkit](./tools/quantization_tool/README.md)
-    * toolkit API: see [Quantization Toolkit API](./tools/quantization_tool/quantization_tool_api.md)
-2. Convert Tool: the tool and configuration file for floating-point quantization on coefficient.npy
-    * config.json: see [Specification of config.json](./tools/convert_tool/specification_of_config_json.md)
-    * convert.py: see [Usage of convert.py](./tools/convert_tool/README.md)
+    - Quantization Toolkit: a tool for quantizing floating-point models and evaluating quantized models on ESP SoCs
+        * Toolkit: see [Quantization Toolkit](./tools/quantization_tool/README.md)
+        * Toolkit API: see [Quantization Toolkit API](./tools/quantization_tool/quantization_tool_api.md)
+    - Convert Tool: the tool and configuration file for floating-point quantization on coefficient.npy
+        * config.json: see [Specification of config.json](./tools/convert_tool/specification_of_config_json.md)
+        * convert.py: see [Usage of convert.py](./tools/convert_tool/README.md)
 
         > convert.py requires Python 3.7 or versions higher.
 

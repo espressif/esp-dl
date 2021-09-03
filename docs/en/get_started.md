@@ -1,4 +1,4 @@
-# Get Started
+# Get Started [[中文]](../zh_CN/get_started.md)
 
 This document describes how to set up the environment for ESP-DL. You can use any ESP development board by [Espressif](https://www.espressif.com/en/products/devkits) or other vendors.
 
@@ -31,7 +31,7 @@ ESP-DL runs based on ESP-IDF. For detailed instructions on how to get ESP-IDF, p
     ```
     Replace [SoC] with your SoC target, such as esp32, esp32s2, esp32s3 and esp32c3.
 
-    > Be cautious that ESP32-C3 only support no PARAM requirement application. 
+    > Note that ESP32-C3 is aimed only at applications which do not require PSRAM.
 
 4. Flash the firmware and print the result:
 
