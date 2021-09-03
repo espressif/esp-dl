@@ -8,7 +8,7 @@ import platform
 system_type = platform.system()
 path = f'../{system_type.lower()}'
 if system_type == 'Windows':
-    path.replace('/', '\\')
+    path = path.replace('/', '\\')
 sys.path.append(path)
 sys.path.append("..")
 
@@ -26,18 +26,20 @@ if __name__ == "__main__":
         (test_images, test_labels) = pickle.load(f)
     test_images = test_images / 255.0
 
-    # prepare the calibration dataset
+    # Prepare the calibration dataset
     calib_dataset = test_images[0:5000:50]
     pickle_file_path = 'mnist_calib.pickle'
     model_proto = onnx.load(optimized_model_path)
-    #
-    calib = Calibrator('int8', 'per-tensor', 'minmax')
+
+    print('Generating the quantization table:')
+    calib = Calibrator('int16', 'per-tensor', 'minmax')
     calib.set_providers(['CPUExecutionProvider'])
     calib.generate_quantization_table(model_proto, calib_dataset, pickle_file_path)
-
+    calib.export_coefficient_to_cpp(model_proto, pickle_file_path, 'esp32s3', '.', 'test_mnist', True)
 
     # Evaluate the performance
-    eva = Evaluator('int8', 'esp32s3')
+    print('Evaluating the performance on esp32s3:')
+    eva = Evaluator('int16', 'esp32s3')
     eva.set_providers(['CPUExecutionProvider'])
     eva.generate_quantized_model(model_proto, pickle_file_path)
 
