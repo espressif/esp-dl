@@ -1,4 +1,4 @@
-# Usage of convert.py
+# Usage of convert.py [[中文]](./README_cn.md)
 
 The script [convert.py](./convert.py) quantizes floating-point coefficients in .npy files to C/C++ code in .cpp and .hpp files. It also converts the element order of coefficients to boost operations.
 

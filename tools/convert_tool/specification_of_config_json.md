@@ -1,4 +1,4 @@
-# Specification of config.json
+# Specification of config.json [[中文]](./specification_of_config_json_cn.md)
 
 > The config.json file saves configurations used to quantize floating points in coefficient.npy.
 
@@ -21,7 +21,7 @@ The key of each item is the **layer name**. The convert tool ``convert.py`` sear
 
 
 
-The value of each item is the **layer configuration.** Please fill arguments about layer configuration listed in Table 1:
+The value of each item is the **layer configuration**. Please fill arguments about layer configuration listed in Table 1:
 
 <div align=center>Table 1: Layer Configuration Arguments</div>
 
@@ -59,7 +59,7 @@ Assume that for a one-layer model:
 - feature_type: s16, which means int16 quantization
 - type of activation: PReLU 
 
-The config.json should be written as:
+The config.json file should be written as:
 
 ```json
 {

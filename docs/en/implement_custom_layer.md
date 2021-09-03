@@ -1,4 +1,4 @@
-# Customize a Layer Step by Step
+# Customize a Layer Step by Step [[中文]](../zh_CN/implement_custom_layer.md)
 
 The implemented layers of ESP-DL, e.g. Conv2D, DepthwiseConv2D, are derived from the base **Layer** class in [`./include/layer/dl_layer_base.hpp`](../../include/layer/dl_layer_base.hpp). The Layer class only has one member variable `name`. Although if `name` is not used it would be unnecessary to customize a layer derived from the Layer class, we recommend doing so for code consistency.
 

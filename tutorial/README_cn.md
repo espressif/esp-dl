@@ -1,10 +1,10 @@
-# How to Customize a Model Step by Step [[中文]](./README_cn.md)
+# 定制模型的步骤介绍 [[English]](./README.md)
 
-This tutorial shows how to customize a model with ESP-DL step by step. In this tutorial, the example is an runnable project about [MNIST](https://tensorflow.google.cn/datasets/catalog/mnist?hl=en) classification mission, hereinafter referred to as MNIST.
+本教程介绍了定制模型的详细步骤。教程中的示例是可运行的 [MNIST](https://tensorflow.google.cn/datasets/catalog/mnist) 分类项目，以下简称 MNIST。
 
-For how to customize a layer, please check [Customize a Layer Step by Step](../docs/en/implement_custom_layer.md).
+有关如何定制层，请查看[定制层的步骤介绍](../docs/zh_CN/implement_custom_layer.md)。
 
-Below is the structure of this tutorial project.
+本教程的结构如下所示。
 
 ```bash
 tutorial/
@@ -51,53 +51,53 @@ tutorial/
 
 
 
-## Step 1: Save Model Coefficients
+## 步骤 1：保存模型系数
 
-Save floating-point coefficients of your model in .npy format using the [numpy.save ()](https://numpy.org/doc/stable/reference/generated/numpy.save.html?highlight=save#numpy.save) function:
+使用 [numpy.save ()](https://numpy.org/doc/stable/reference/generated/numpy.save.html?highlight=save#numpy.save) 函数，保存 .npy 格式的模型浮点系数：
 
 ```
 numpy.save(file=f'{filename}', arr=coefficient)
 ```
 
-For each layer of a neural network operation, you might need:
+神经网络的每一层都需要有：
 
-- **filter**: saved as `'{layer_name}_filter.npy'`
-- **bias**: saved as `'{layer_name}_bias.npy'`
-- **activation**: activation functions with coefficients such as *LeakyReLU* and *PReLU*, saved as `'{layer_name}_activation.npy'`
+- **过滤器**：保存为 `'{layer_name}_filter.npy'`
+- **偏差**：保存为 `'{layer_name}_bias.npy'`
+- **激活函数**：具有系数的激活函数，如 *LeakyReLU*、*PReLU*，保存为 `'{layer_name}_activation.npy'`
 
-**Example**: coefficients of the MNIST project saved into .npy files in [`./model/npy/`](./model/npy/).
-
-
-
-## Step 2: Write Model Configuration
-
-Write model configuration in the config.json file following the [**Specification of config.json**](../tools/convert_tool/specification_of_config_json.md).
-
-**Example**: configuration of the MNIST project saved in [`./model/npy/config.json`](./model/npy/config.json).
+**示例**： [`./model/npy/`](./model/npy/) 文件夹中 .npy 文件里的 MNIST 项目系数。
 
 
 
-## Step 3: Convert Model Coefficients
+## 步骤 2：配置模型
+
+根据 [**config.json 配置规范**](../tools/convert_tool/specification_of_config_json_cn.md)，在 config.json 文件中配置模型。
+
+**示例**： [`./model/npy/config.json`](./model/npy/config.json) 文件中 MNIST 项目的配置。
 
 
-Once the coefficient.npy files and config.json file are ready and stored in the same folder, convert the coefficients into C/C++ code using convert.py (see instructions in [**Usage of convert.py**](../tools/convert_tool/README.md)).
 
-**Example**:
+## 步骤 3：转换模型系数
 
-Run 
+
+将 coefficient.npy 文件和 config.json 准备好且保存在同一文件夹后，使用 convert.py（请参考 [**convert.py 使用说明**](../tools/convert_tool/README_cn.md)）把系数转换为 C/C++ 代码。
+
+**示例**：
+
+运行如下命令
 
 ```bash
-python ../tools/convert_tool/convert.py -t [SoC] -i ./model/npy/ -n mnist_coefficient -o ./model/
+python ../convert.py -i ./model/npy/ -n mnist_coefficient -o ./model/
 ```
 
-and two files `mnist_coefficient.cpp` and `mnist_coefficient.hpp` would be generated in [`./model/`](./model/).
+然后 [`./model/`](./model/) 文件夹中会生成两个文件：`mnist_coefficient.cpp` 和 `mnist_coefficient.hpp`。
 
-Then, the coefficients of each layer could be fetched by calling `get_{layer_name}_***()`. For example, get the filter of "l1" by calling `get_l1_filter()`.
+之后，调用 `get_{layer_name}_***()` 即可获取每层的系数。比如要获取 "l1" 的过滤器，可调用 `get_l1_filter()`。
 
 
-## Step 4: Build a Model
+## 步骤 4：构建模型
 
-### Step 4.1: Derive a class from the Model class in [`"dl_layer_model.hpp"`](../include/layer/dl_layer_model.hpp)
+### 步骤 4.1：从 [`"dl_layer_model.hpp"`](../include/layer/dl_layer_model.hpp) 中的模型类派生一个新类
 
 ```c++
 class MNIST : public Model<int16_t>
@@ -107,7 +107,7 @@ class MNIST : public Model<int16_t>
 
 
 
-### Step 4.2: Declare layers as member variables
+### 步骤 4.2：将层声明为成员变量
 
 ```c++
 class MNIST : public Model<int16_t>
@@ -138,11 +138,11 @@ public:
 
 
 
-### Step 4.3: Initialize layers in constructor function
+### 步骤 4.3：用构造函数初始化层
 
-Initialize layers with the coefficients in `"mnist_coefficient.hpp"` generated in [Step 3: Convert Model Coefficients](#step-3-convert-model-coefficients).
+[步骤 3：转换模型系数](#步骤-3转换模型系数)生成的 `"mnist_coefficient.hpp"` 文件中有层的系数，用该系数初始化层。
 
-For how to initialize each Layer, please check the corresponding .hpp file in [esp-dl/include/layer/](../include/layer/).
+有关如何初始化每一层，请查看 [esp-dl/include/layer/](../include/layer/) 文件夹中相应的 .hpp 文件。
 
 ```c++
 class MNIST : public Model<int16_t>
@@ -172,18 +172,18 @@ class MNIST : public Model<int16_t>
 
 
 
-### Step 4.4: Implement `void build(Tensor<input_t> &input)`
+### 步骤 4.4：实现 `void build(Tensor<input_t> &input)`
 
-To distinguish `build()` of `Model` and `build()` of `Layer`, we define:
+为了便于区分`模型` `build()` 和`层` `build()`，现定义：
 
-* `Model.build()` as `build()` of `Model`;
-* `Layer.build()` as `build()` of `Layer`.
+* `模型` `build()` 为 `Model.build()`；
+* `层` `build()` 为 `Layer.build()`。
 
-In `Model.build()`, all `Layer.build()` are called. `Model.build()` is effective when input shape changes. If input shape does not change, `Model.build()` will not be called, thus saving computing time.
+`Model.build()` 会调用所有 `Layer.build()`。`Model.build()` 仅在输入形状变化时有效。若输入形状没有变化，则 `Model.build()` 不会被调用，从而节省计算时间。
 
-For when `Model.build()` is called, please check [Step 5: Run a Model](#step-5-run-a-model).
+有关 `Model.build()` 何时被调用，请查看[步骤 5：运行模型](#步骤-5运行模型)。
 
-For how to call `Layer.build()` of each layer, please refer to the corresponding .hpp file in [esp-dl/include/layer/](../include/layer/).
+有关如何调用每一层的 `Layer.build()`，请查看 [esp-dl/include/layer/](../include/layer/) 文件夹中相应的 .hpp 文件。
 
 ```c++
 class MNIST : public Model<int16_t>
@@ -219,9 +219,9 @@ class MNIST : public Model<int16_t>
 
 
 
-### Step 4.5: Implement `void call(Tensor<input_t> &input)`
+### 步骤 4.5：实现 `void call(Tensor<input_t> &input)`
 
-In `Model.call()`, all `Layer.call()` are called. For how to call `Layer.call()` of each layer, please refer to the corresponding .hpp file in [esp-dl/include/layer/](../include/layer/).
+`Model.call()` 会调用所有 `Layer.call()`。有关如何调用每一层的 `Layer.call()`，请查看 [esp-dl/include/layer/](../include/layer/) 文件夹中相应的 .hpp 文件。
 
 ```c++
 class MNIST : public Model<int16_t>
@@ -289,12 +289,11 @@ class MNIST : public Model<int16_t>
 ```
 
 
+## 步骤 5：运行模型
 
-## Step 5: Run a Model
+- 创建模型对象
 
-- Create an object of Model 
-
-- Run `Model.forward()` for neural network inference. The progress of `Model.forward()` is:
+- 运行 `Model.forward()` 进行神经网络推理。`Model.forward()` 的过程如下：
 
   ```c++
   forward()
@@ -309,7 +308,7 @@ class MNIST : public Model<int16_t>
 
   
 
-**Example**: the object of MNIST and the `forward()` function in [`./main/main.cpp`](./main/app_main.cpp).
+**示例**：[`./main/main.cpp`](./main/app_main.cpp) 文件中的 MNIST 对象和 `forward()` 函数。
 
 ```c++
 // model forward
