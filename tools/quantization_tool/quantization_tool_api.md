@@ -1,22 +1,22 @@
-# Quantization Toolkit API
+# Quantization Toolkit API [[中文]](./quantization_tool_api_cn.md)
 
-## Calibrator  Class
+## Calibrator Class
 
 ### Initialization
 
 ```
-Calibrator(quantization_bit, granularity, calib_method)
+Calibrator(quantization_bit, granularity='per-tensor', calib_method='minmax')
 ```
 
 **Arguments**
 - **quantization_bit** _(string)_:
-  - 'int8' for fully int8 quantization.
-  - 'int16' for fully int16 quantization.
+  - 'int8' for full int8 quantization.
+  - 'int16' for full int16 quantization.
 - **granularity** _(string)_:
   - If granularity = 'per-tensor'(default), there will be one exponent per entire tensor.
   - If granularity = 'per-channel', there will be one exponent for each channel of a convolution layer.
 - **calib_method** _(string)_:   
-  - If calib_method = 'minmax'(default), the threshold is the minimum and maximum values in the calibration dataset.
+  - If calib_method = 'minmax'(default), the threshold is derived from the minimum and maximum values of the layer outputs from calibration dataset.
   - If calib_method = 'entropy', the threshold is derived from Kullback-Leibler divergence (KL divergence).
 
 ### *check_model* method
@@ -40,10 +40,10 @@ Configures quantization.
 
 **Arguments**
 - **granularity** _(string)_:
-  - If granularity = 'per-tensor'(default), there will be one exponent per entire tensor.
+  - If granularity = 'per-tensor', there will be one exponent per entire tensor.
   - If granularity = 'per-channel', there will be one exponent for each channel of a convolution layer.
 - **calib_method** _(string)_:   
-  - If calib_method = 'minmax'(default), the threshold is the minimum and maximum values in the calibration dataset.
+  - If calib_method = 'minmax', the threshold is derived from the minimum and maximum values of the layer outputs from calibration dataset.
   - If calib_method = 'entropy', the threshold is derived from Kullback-Leibler divergence (KL divergence).
 
 ### *set_providers* method
@@ -68,6 +68,22 @@ Generates the quantization table.
 - **pickle_file_path** _(string)_: Path of the pickle file that stores the dictionary of quantization parameters.
 
 
+### *export_coefficient_to_cpp* method
+```
+Calibrator.export_coefficient_to_cpp(model_proto, pickle_file_path, target_chip, output_path, file_name, print_model_info=False)
+```
+Exports quantization parameters.
+
+**Arguments**
+- **model_proto** _(ModelProto)_: An FP32 ONNX model.
+- **pickle_file_path** _(string)_: Path of the pickle file that stores the dictionary of quantization parameters.
+- **target_chip** _(string)_: Currently support 'esp32', 'esp32s2', 'esp32c3' and 'esp32s3'.
+- **output_path** _(string)_: Path of output files.
+- **file_name** _(string)_: Name of output files.
+- **print_model_info**_(bool)_: 
+  - False (default): No log will be printed.
+  - True: Information of the model will be printed.
+
 ## Evaluator Class
 
 ### Initialization
@@ -77,8 +93,8 @@ Evaluator(quantization_bit, target_chip)
 ```
 **Arguments**
 - **quantization_bit** _(string)_:
-  - 'int8' for fully int8 quantization.
-  - 'int16' for fully int16 quantization.
+  - 'int8' for full int8 quantization.
+  - 'int16' for full int16 quantization.
 - **target_chip** _(string)_: 'esp32s3' by default.
 
 
@@ -127,7 +143,7 @@ Generates the quantized model.
 
 ### *evaluate_quantized_model* method
 ```
-Evaluator.evaluate_quantized_model(batch_fp_input, to_float=false)
+Evaluator.evaluate_quantized_model(batch_fp_input, to_float=False)
 ```
 Obtains outputs of the quantized model.
 

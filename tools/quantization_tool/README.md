@@ -1,4 +1,4 @@
-# Quantization Toolkit
+# Quantization Toolkit [[中文]](./README_cn.md)
 
 The quantization toolkit helps you deploy the quantized inference on ESP SoCs with models using ESP-DL. Such toolkit runs based on [Open Neural Network Exchange (ONNX)](https://github.com/onnx/onnx), an open source format for AI models.
 
@@ -17,7 +17,7 @@ This document covers the specifications of each tool. For corresponding APIs, pl
 
 The graph optimizer [optimizer.py](optimizer.py) improves model performance through redundant node elimination, model structure simplification, model fusion, etc. It is based on [ONNX Optimizer](https://github.com/onnx/optimizer) which provides a list of [optimization passes](https://github.com/onnx/optimizer/tree/master/onnxoptimizer/passes), together with some additional passes implemented by us.
 
-It is important to enable graph fusion before quantization, especially batch normalization fusion. Therefore, we recommended passing your model through the optimizer before you use the calibrator or evaluator. You can use [netron](https://github.com/lutzroeder/netron) to view your model structure.
+It is important to enable graph fusion before quantization, especially batch normalization fusion. Therefore, we recommended passing your model through the optimizer before you use the calibrator or evaluator. You can use [Netron](https://github.com/lutzroeder/netron) to view your model structure.
 
 
 **Python API example**
@@ -53,7 +53,7 @@ The prepared FP32 model must be compatible with the existing library. If the mod
 
 The model's compatibility is checked when you obtain quantization parameters, or via calling *check_model* in advance. 
 
-Before you normalize inputs, please delete normalized nodes (if any) in the model graph for better performance.
+The input of the model should be already normalized. If the nodes for normalization are included in the model graph, please delete them for better performance.
 
 ### Calibration Dataset
 
@@ -73,7 +73,15 @@ int16:
 
 ### Quantization Parameters
 
-The returned quantization table is a list of quantization exponents for all data in the model, including:
+As described in [Quantization Specification](../../docs/en/quantization_specification.md), 8-bit or 16-bit quantization in ESP-DL approximates floating-point values using the following formula：
+
+```math
+real\_value = int\_value * 2^{\ exponent}
+```
+
+where 2^exponent is called scale.
+
+The returned quantization table is a list of quantization scales for all data in the model, including:
 - constant values, such as weights, biases and activations;
 - variable tensors, such as model input and outputs of intermediate layers (activations).
 
@@ -97,7 +105,7 @@ calib.generate_quantization_table(model_proto, calib_dataset, pickle_file_path)
 
 ## Evaluator
 
-The evaluator is a tool to simulate quantization and evaluate performance of the quantized model as it runs on ESP SoCs.
+The evaluator is a tool to simulate quantization and help you evaluate performance of the quantized model as it runs on ESP SoCs.
 
 If the model contains operations that are not supported by ESP-DL, the evaluator will not accept it and will generate error messages.
 
@@ -138,6 +146,14 @@ The following tools may be helpful to convert a model into ONNX format.
 - From PyTorch to ONNX: [torch.onnx](https://pytorch.org/docs/stable/onnx.html)
 
 Environment Requirements:
+- Python == 3.7
+- [Numba](https://github.com/numba/numba) == 0.53.1
 - [ONNX](https://github.com/onnx/onnx) == 1.9.0
 - [ONNX Runtime](https://github.com/microsoft/onnxruntime) == 1.7.0
 - [ONNX Optimizer](https://github.com/onnx/optimizer) == 0.2.6
+
+You can install python packages with requirement.txt:
+```cpp
+pip install -r requirement.txt
+```
+

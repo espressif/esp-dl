@@ -1,43 +1,43 @@
-# Quantization Specification [[中文]](../zh_CN/quantization_specification.md)
+# 量化规范 [[English]](../en/quantization_specification.md)
 
-[Post-training quantization](https://www.tensorflow.org/lite/performance/post_training_quantization) converts floating-point models to fixed-point models. This conversion technique can shrink model size, and reduce CPU and hardware accelerator latency without losing accuracy.
+[训练后量化](https://www.tensorflow.org/lite/performance/post_training_quantization)将浮点模型转换为定点模型。这种转换技术可以缩减模型大小，降低 CPU 和硬件加速器延迟，同时不会降低准确度。
 
-For chips such as ESP32-S3, which has relatively limited memory yet up to 7.5 giga multiply-accumulate operations (MAC) per second at 240 MHz, it is necessary to run inferences with a quantized model. You can use the provided [Quantization Toolkit](../../tools/quantization_tool/README.md) to quantize your floating-point model, or deploy your fixed-point model following steps in [Usage of convert.py](../../tools/convert_tool/README.md).
+如 ESP32-S3 芯片，存储空间相对有限，在 240 MHz 的情况下每秒乘加累计运算次数 (MACs) 仅达 75 亿次。在这样的芯片上必须要用量化后的模型做推理。您可使用我们提供的[量化工具包](../../tools/quantization_tool/README_cn.md)量化浮点模型，或根据 [convert.py 使用说明](../../tools/convert_tool/README_cn.md)中的步骤部署定点模型。
 
-## Full Integer Quantization
+## 全整数量化
 
-All data in the model are quantized to 8-bit or 16-bit integers, including
-  - constants weights, biases, and activations
-  - variable tensors, such as inputs and outputs of intermediate layers (activations)
+模型中的所有数据都需要量化为 8 位或 16 位整数。所有数据包括
+  - 常量：权重、偏差和激活函数
+  - 变量：张量，如中间层（激活函数）的输入和输出
 
-Such 8-bit or 16-bit quantization approximates floating-point values using the following formula：
+8 位或 16 位量化使用以下公式近似表示浮点值：
 
 ```math
 real\_value = int\_value * 2^{\ exponent}
 ```
 
-### Signed Integer
+### 有符号整数
 
-For 8-bit quantization, `int_value` is represented by a value in the signed **int8** range [-128, 127]. For 16-bit quantization, `int_value` is represented by a value in the signed **int16** range [-32768, 32767].
+8 位量化的 `int_value` 代表一个 **int8** 的有符号数, 其范围是 [-128, 127]。16 位量化的 `int_value` 代表一个 **int16** 的有符号数, 其范围是 [-32768, 32767]。
 
-### Symmetric
+### 对称
 
-All the quantized data are **symmetric**, which means no zero point (bias), so we can avoid the runtime cost of multiplying the zero point with other values.
+所有量化后的数据都是**对称**的，也就是说没有零点（偏差），因此可以节省将零点与其他值相乘的运算时间。
 
-### Granularity
+### 粒度
 
-**Per-tensor (aka per-layer) quantization** means that there will be only one exponent per entire tensor, and all the values within the tensor are quantized by this exponent.
+**按张量（又名按层）量化**的意思是每个完整张量只有一个指数位，该张量内的所有值都按照该指数位量化。
 
-**Per-channel quantization** means that there will be different exponents for each channel of a convolution kernel.
+**按通道量化**的意思是卷积核的每个通道对应着不同的指数位。
 
-Compared with per-tensor quantization, usually per-channel quantization can achieve higher accuracy on some models. However, it would be more time-consuming. You can simulate inference on chips using the *evaluator* in [Quantization Toolkit](../../tools/quantization_tool/README.md) to see the performance after quantization, and then decide which form of quantization to apply.
+与按张量量化相比，按通道量化通常对于部分模型来说精确度会更高，但也会更耗时间。您可使用[量化工具包](../../tools/quantization_tool/README_cn.md)中的*评估器*模拟在芯片上进行量化推理的性能，之后再决定使用哪种量化形式。
 
-For 16-bit quantization, we only support per-tensor quantization to ensure faster computation. For 8-bit quantization, we support both per-tensor and per-channel quantization, allowing a trade-off between performance and speed.
+16 位量化为确保更快的运算速度，目前仅支持按张量量化。8 位量化支持按张量和按通道两种形式，可让您在性能和速度之间折中。
 
 
-## Quantized Operator Specifications
+## 量化算子规范
 
-Below we describe the quantization requirements for our APIs:
+以下是 API 的量化要求：
 ```
 ADD2D
   Input 0:
