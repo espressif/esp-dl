@@ -4,13 +4,14 @@ import argparse
 import platform
 
 system_type = platform.system()
-path = f'{os.path.dirname(__file__)}/{system_type.lower()}'
-if system_type == 'Windows':
-    path = path.replace('/', '\\')
-sys.path.append(path)
-from utils import Convert
+python_version = platform.python_version()
+m, s, _ = python_version.split('.')
+path = f'{os.path.dirname(os.path.abspath(__file__))}/{system_type.lower()}/{m}{s}'
 
-if __name__ == '__main__':
+if os.path.exists(path):
+    sys.path.append(path)
+    from utils import Convert
+
     parser = argparse.ArgumentParser(description='Model generator tool')
     parser.add_argument('-t', '--target_chip', help='esp32, esp32s2, esp32s3, esp32c3')
     parser.add_argument('-i', '--input_root', help="npy files root")
@@ -33,3 +34,5 @@ if __name__ == '__main__':
     convert()
     print(' Finish\n')
 
+else:
+    print(f'Not supported python == {python_version} on {system_type}')
