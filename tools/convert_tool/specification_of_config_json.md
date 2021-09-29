@@ -27,11 +27,12 @@ The value of each item is the **layer configuration**. Please fill arguments abo
 
 | Key | Type | Value |
 |---|:---:|---|
-| "operation" | string | - "conv2d"<br>- "depthwise_conv2d" |
+| "operation" | string | - "conv2d"<br>- "depthwise_conv2d"<br>- "fully_connected"|
 | "feature_type" | string | - "s16" for int16 quantization with element_width = 16<br>- "s8" for int8 quantization with element_width = 8 |
 | "filter_exponent" | integer | - If filled, filter is quantized according to the equation: value_float = value_int * 2^exponent<sup>[1](#note1)</sup><br>- If dropped<sup>[2](#note2)</sup>, exponent is determined according to the equation: exponent = log2(max(abs(value_float)) / 2^(element_width - 1)), while filter is quantized according to the equation: value_float = value_int * 2^exponent |
 | "bias" | string | - "True" for adding bias<br>- "False" and dropped for no bias |
-| "output_exponent" | integer | Both output and bias are quantized according to the equation: value_float = value_int * 2^exponent.<br>For now, "output_exponent" is effective only for "bias" coefficient conversion. If there is no "bias" in a specific layer, "output_exponent" could be dropped. |
+| "output_exponent" | integer | Both output and bias are quantized according to the equation: value_float = value_int * 2^exponent.<br>For now, "output_exponent" is effective only for "bias" coefficient conversion. "output_exponent" must be provided when using per-tensor quantization. If there is no "bias" in a specific layer or using per-channel quantization, "output_exponent" could be dropped. |
+| "input_exponent" | integer | When using per-channel quantization, the exponent of bias is related to input_exponent and filter_exponent. <br>"input_exponent" must be provided for "bias" coefficient conversion. If there is no "bias" in a specific layer or using per-tensor quantization, "output_exponent" could be dropped. |
 | "activation" | dict | - If filled, see details in Table 2<br>- If dropped, no activation |
 
 <div align=center>Table 2: Activation Configuration Arguments</div>
@@ -53,9 +54,10 @@ The value of each item is the **layer configuration**. Please fill arguments abo
 
 Assume that for a one-layer model:
 
+##### 1. using int16 per-tensor quantization:
 - layer name: "mylayer"
 - operation: Conv2D(input, filter) + bias
-- output_exponent: -10
+- output_exponent: -10, exponent for the result of operation
 - feature_type: s16, which means int16 quantization
 - type of activation: PReLU 
 
@@ -74,8 +76,57 @@ The config.json file should be written as:
 	}
 }
 ```
-> "filter_exponent" and "exponent" of "activation" are dropped.
+> "filter_exponent" and "exponent" of "activation" are dropped. <br/>
+>  must provide "output_exponent" for bias in this layer.
 
 
+##### 2. using int8 per-tensor quantization:
+- layer name: "mylayer"
+- operation: Conv2D(input, filter) + bias
+- output_exponent: -7, exponent for the result of this layer
+- feature_type: s8
+- type of activation: PReLU 
+
+The config.json file should be written as:
+
+```json
+{
+	"mylayer": {
+		"operation": "conv2d",
+		"feature_type": "s8",
+        "bias": "True",
+        "output_exponent": -7,
+        "activation": {
+            "type": "PReLU"
+        }
+	}
+}
+```
+> must provide "output_exponent" for bias in this layer.
+
+
+##### 3. using int8 per-channel quantization:
+- layer name: "mylayer"
+- operation: Conv2D(input, filter) + bias
+- input_exponent: -7, exponent for the input of this layer
+- feature_type: s8
+- type of activation: PReLU 
+
+The config.json file should be written as:
+
+```json
+{
+	"mylayer": {
+		"operation": "conv2d",
+		"feature_type": "s8",
+        "bias": "True",
+        "input_exponent": -7,
+        "activation": {
+            "type": "PReLU"
+        }
+	}
+}
+```
+> must provide "input_exponent" for bias in this layer.
 
 Meanwhile, `mylayer_filter.npy`, `mylayer_bias.npy` and `mylayer_activation.npy` should be ready.

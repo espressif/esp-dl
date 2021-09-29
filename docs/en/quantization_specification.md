@@ -39,7 +39,7 @@ For 16-bit quantization, we only support per-tensor quantization to ensure faste
 
 Below we describe the quantization requirements for our APIs:
 ```
-ADD2D
+Add2D
   Input 0:
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
@@ -53,7 +53,7 @@ ADD2D
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
 
-AVERAGE_POOL_2D
+AvgPool2D
   Input 0:
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
@@ -63,7 +63,7 @@ AVERAGE_POOL_2D
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
 
-CONCATENATION
+Concat
   Input ...:
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
@@ -74,7 +74,7 @@ CONCATENATION
     granularity: per-tensor
   restriction: Inputs and output must have the same exponent
 
-CONV_2D
+Conv2D
   Input 0:
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
@@ -93,7 +93,7 @@ CONV_2D
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
 
-DEPTHWISE_CONV_2D
+DepthwiseConv2D
   Input 0:
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
@@ -112,46 +112,8 @@ DEPTHWISE_CONV_2D
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
 
-MAX_POOL_2D
-  Input 0:
-    data_type  : int8 / int16
-    range      : [-128, 127] / [-32768, 32767]
-    granularity: per-tensor
-  Output 0:
-    data_type  : int8 / int16
-    range      : [-128, 127] / [-32768, 32767]
-    granularity: per-tensor
-
-MUL2D
-  Input 0:
-    data_type  : int8 / int16
-    range      : [-128, 127] / [-32768, 32767]
-    granularity: per-tensor
-  Input 1:
-    data_type  : int8 / int16
-    range      : [-128, 127] / [-32768, 32767]
-    granularity: per-tensor
-  Output 0:
-    data_type  : int8 / int16
-    range      : [-128, 127] / [-32768, 32767]
-    granularity: per-tensor
-
-SUB2D
-  Input 0:
-    data_type  : int8 / int16
-    range      : [-128, 127] / [-32768, 32767]
-    granularity: per-tensor
-  Input 1:
-    data_type  : int8 / int16
-    range      : [-128, 127] / [-32768, 32767]
-    granularity: per-tensor
-  Output 0:
-    data_type  : int8 / int16
-    range      : [-128, 127] / [-32768, 32767]
-    granularity: per-tensor
-
-MAX2D
-  Input 0:
+ExpandDims
+ Input 0:
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
@@ -161,8 +123,8 @@ MAX2D
     granularity: per-tensor
   restriction: Input and output must have the same exponent
 
-MIN2D
-  Input 0:
+Flatten
+ Input 0:
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
@@ -172,7 +134,36 @@ MIN2D
     granularity: per-tensor
   restriction: Input and output must have the same exponent
 
-ReLU
+FullyConnected
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Input 1 (Weight):
+    data_type  : int8 / int16
+    range      : [-127, 127] / [-32767, 32767]
+    granularity: {per-channel / per-tensor for int8} / {per-tensor for int16} 
+  Input 2 (Bias):
+    data_type  : int8 / int16
+    range      : {[-32768, 32767] for int8 per-channel / [-128, 127] for int8 per-tensor} / {[-32768, 32767] for int16}
+    granularity: {per-channel / per-tensor for int8} / {per-tensor for int16} 
+    restriction: {exponent = input_exponent + weight_exponent + 4 for per-channel / exponent = output_exponent for per-tensor}
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+
+GlobalAveragePool2D
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+
+GlobalMaxPool2D
   Input 0:
     data_type  : int8 / int16
     range      : [-128, 127] / [-32768, 32767]
@@ -197,6 +188,53 @@ LeakyReLU
     granularity: per-tensor
   restriction: Input and output must have the same exponent
 
+Max2D
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  restriction: Input and output must have the same exponent
+  
+MaxPool2D
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  restriction: Input and output must have the same exponent
+
+Min2D
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  restriction: Input and output must have the same exponent
+  
+Mul2D
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Input 1:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+
 PReLU
   Input 0:
     data_type  : int8 / int16
@@ -210,5 +248,62 @@ PReLU
     range      : [-128, 127] / [-32768, 32767]
     granularity: per-tensor
   restriction: Input and output must have the same exponent
+  
+ReLU
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  restriction: Input and output must have the same exponent
 
+Reshape
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  restriction: Input and output must have the same exponent
+
+Squeeze
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  restriction: Input and output must have the same exponent
+  
+Sub2D
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Input 1:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+
+Transpose
+  Input 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  Output 0:
+    data_type  : int8 / int16
+    range      : [-128, 127] / [-32768, 32767]
+    granularity: per-tensor
+  restriction: Input and output must have the same exponent
 ```

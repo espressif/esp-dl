@@ -13,9 +13,11 @@ When you run convert.py, the following arguments should be filled:
 | Argument            | Value                                        |
 | :------------------ | :------------------------------------------- |
 | -t \| --target_chip | esp32 \| esp32s2 \|esp32s3 \| esp32c3        |
-| -i \| --input_root  | directory of npy files and config.json         |
+| -i \| --input_root  | directory of npy files and json file         |
+| -j \| --json_file_name  | name of json file <br/>(default: config.json)         |
 | -n \| --name        | name of output files        |
 | -o \| --output_root | directory of output files |
+| -q \| --quant | quantization granularity <br/> 0(default) for per-tensor, 1 for per-channel |
 
 
 
