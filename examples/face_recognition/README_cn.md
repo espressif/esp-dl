@@ -1,6 +1,8 @@
 # 人脸识别 [[English]](./README.md)
 
-本项目为人脸识别接口的示例。人脸识别接口的输入图片为一张带有人脸的静态图片，我们的人脸识别器提供了录入人脸， 识别人脸， 删除人脸等功能。 每一个功能的运行结果可显示在终端中。我们还提供了16位量化与8位量化两个版本的模型。16位量化的模型相比于8位量化的模型， 精度更高， 但是占用内存更多， 运行速度也更慢。 使用者可以根据实际使用场景挑选合适的模型。
+本项目为人脸识别接口的示例。人脸识别接口的输入图片为一张带有人脸的静态图片，输出是录入人脸、识别人脸、删除人脸等接口功能的运行结果，显示在终端中。
+
+该接口提供了 16 位量化与 8 位量化两个版本的模型。16 位量化的模型相比于 8 位量化的模型，精度更高，但是占用内存更多，运行速度也更慢。您可以根据实际使用场景挑选合适的模型。
 
 项目所在文件夹结构如下：
 
@@ -14,6 +16,7 @@ human_face_detect/
 │   └── image.hpp
 ├── partitions.csv
 └── README.md
+└── README_cn.md
 ```
 
 
@@ -31,10 +34,11 @@ human_face_detect/
     ```shell
     idf.py set-target [SoC]
     ```
-    将 [SoC] 替换为您的目标芯片，如 esp32、 esp32s2、esp32s3。
-    我们更推荐使用esp32s3芯片， 在AI应用上，它的运行速度会远快于其他芯片。
+    将 [SoC] 替换为您的目标芯片，如 esp32、esp32s2、esp32s3。
+    
+    由于 ESP32-S3 芯片在 AI 应用上的运行速度远快于其他芯片，我们更推荐您使用 ESP32-S3 芯片。
 
-3. 烧录固件，打印每一阶段的运行结果：
+3. 烧录程序，运行 IDF 监视器获取各功能的运行结果：
 
    ```shell
    idf.py flash monitor
@@ -72,19 +76,21 @@ human_face_detect/
    ```
 
 ## 其他设置
-1. [./main/app_main.cpp](./main/app_main.cpp) 开头处的宏定义 `QUANT_S16`，可定义模型的量化类型。具体区别如下：
 
-- `QUANT_S16` = 1：识别器为16位量化模型，识别精度更高，但速度更慢，更占内存。
-- `QUANT_S16` = 0：识别器为8位量化模型，识别精度低于16位模型，但速度更快，内存占用更少。
+1. [./main/app_main.cpp](./main/app_main.cpp) 开头处的宏定义 `QUANT_TYPE`，可定义模型的量化类型。
 
-  您可实际使用场景挑选合适的模型。
+    - `QUANT_TYPE` = 0：使用 8 位量化模型，识别精度低于 16 位模型，但速度更快，内存占用更少。
+    - `QUANT_TYPE` = 1：使用 16 位量化模型，识别精度与浮点模型一致。
 
-2. [./main/app_main.cpp](./main/app_main.cpp) 开头处的宏定义 `USE_FACE_DETECTOR`，可以定义人脸landmark坐标的获得方式：
+    您可根据实际使用场景挑选合适的模型。
 
-- `USE_FACE_DETECTOR` = 1：使用我们的人脸检测模型获得landmark坐标。
-- `USE_FACE_DETECTOR` = 0：使用存放在image.hpp中的landmark坐标。
 
-   请注意landmark的坐标顺序为：
+2. [./main/app_main.cpp](./main/app_main.cpp) 开头处的宏定义 `USE_FACE_DETECTOR`，可定义人脸关键点 (landmark) 坐标的获得方式。
+
+    - `USE_FACE_DETECTOR` = 0：使用存放在 ./image.hpp 中的关键点坐标。
+    - `USE_FACE_DETECTOR` = 1：使用人脸检测模型获得关键点坐标。
+
+   请注意关键点坐标顺序为：
    
     ```
     left_eye_x, left_eye_y, 
@@ -94,3 +100,9 @@ human_face_detect/
     mouth_right_x, mouth_right_y
     ```
 
+## 延时情况
+
+| SoC | 8 位 | 16 位 |
+|:---:| ----:| ----:|
+| ESP32 | 13,185 ms | 4,360 ms |
+| ESP32-S3 | 281 ms | 701 ms |

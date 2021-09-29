@@ -14,6 +14,7 @@ human_face_detect/
 │   └── image.hpp
 ├── partitions.csv
 ├── README.md
+├── README_cn.md
 └── result.png
 ```
 
@@ -32,7 +33,7 @@ human_face_detect/
     ```shell
     idf.py set-target [SoC]
     ```
-    将 [SoC] 替换为您的目标芯片，如 esp32、 esp32s2、esp32s3。
+    将 [SoC] 替换为您的目标芯片，如 esp32、esp32s2、esp32s3。
 
 3. 烧录固件，打印检测结果的分数值和坐标值：
 
