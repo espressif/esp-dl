@@ -89,12 +89,15 @@ Exports quantization parameters.
 ### Initialization
 
 ```
-Evaluator(quantization_bit, target_chip)
+Evaluator(quantization_bit, granularity, target_chip)
 ```
 **Arguments**
 - **quantization_bit** _(string)_:
   - 'int8' for full int8 quantization.
   - 'int16' for full int16 quantization.
+- **granularity** _(string)_:
+  - If granularity = 'per-tensor', there will be one exponent per entire tensor.
+  - If granularity = 'per-channel', there will be one exponent for each channel of a convolution layer.
 - **target_chip** _(string)_: 'esp32s3' by default.
 
 

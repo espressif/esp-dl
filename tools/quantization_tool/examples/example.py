@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     # Evaluate the performance
     print('Evaluating the performance on esp32s3:')
-    eva = Evaluator('int16', 'esp32s3')
+    eva = Evaluator('int16', 'per-tensor', 'esp32s3')
     eva.set_providers(['CPUExecutionProvider'])
     eva.generate_quantized_model(model_proto, pickle_file_path)
 

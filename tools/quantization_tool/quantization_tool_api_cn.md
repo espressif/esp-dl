@@ -90,12 +90,15 @@ Calibrator.export_coefficient_to_cpp(model_proto, pickle_file_path, target_chip,
 ### 初始化
 
 ```
-Evaluator(quantization_bit, target_chip)
+Evaluator(quantization_bit, granularity, target_chip)
 ```
 **实参**
 - **quantization_bit** _(string)_：
   - 'int8' 代表全 8 位整数量化。
   - 'int16' 代表全 16 位整数量化。
+- **granularity** _(string)_：
+  - 若 granularity = 'per-tensor'，则整个张量只有一个指数。
+  - 若 granularity = 'per-channel'，则卷积层的每个通道都有一个指数。
 - **target_chip** _(string)_：默认是 'esp32s3'。
 
 
