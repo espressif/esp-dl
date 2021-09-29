@@ -14,6 +14,7 @@ human_face_detect/
 │   └── image.hpp
 ├── partitions.csv
 ├── README.md
+├── README_cn.md
 └── result.png
 ```
 
@@ -87,7 +88,7 @@ In this example project, [./main/image.hpp](./main/image.hpp) is the default inp
 
 
 
-## Time Consumption
+## Latency
 
 |   SoC    | `TWO_STAGE` = 1 | `TWO_STAGE` = 0 |
 | :------: | --------------: | --------------: |
@@ -95,4 +96,4 @@ In this example project, [./main/image.hpp](./main/image.hpp) is the default inp
 | ESP32-S2 |      700,414 us |      207,985 us |
 | ESP32-S3 |       94,183 us |       36,707 us |
 
-> Statistics above are base on default configuration of this example.
+> Results above are based on the default configuration of this example.

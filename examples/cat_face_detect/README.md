@@ -13,6 +13,7 @@ cat_face_detect/
 │   ├── CMakeLists.txt
 │   └── image.hpp
 ├── README.md
+├── README_cn.md
 └── result.png
 ```
 
@@ -71,7 +72,7 @@ In this example project, [./main/image.hpp](./main/image.hpp) is the default inp
 
 
 
-## Time Consumption
+## Latency
 
 |   SoC    |    Latency |
 | :------: | ---------: |
@@ -79,5 +80,5 @@ In this example project, [./main/image.hpp](./main/image.hpp) is the default inp
 | ESP32-S2 | 286,402 us |
 | ESP32-S3 |  32,727 us |
 
-> Statistics above are base on default configuration of this example.
+> Results above are based on the default configuration of this example.
 
