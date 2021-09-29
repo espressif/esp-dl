@@ -27,11 +27,12 @@ config.json 中的每一项代表一层的配置。以下列代码为例：
 
 | 键 | 类型 | 值 |
 |---|:---:|---|
-| "operation" | string | - "conv2d"<br>- "depthwise_conv2d" |
+| "operation" | string | - "conv2d"<br>- "depthwise_conv2d"<br>- "fully_connected" |
 | "feature_type" | string | - "s16" 代表 16 位整数量化，element_width 为 16<br>- "s8" 代表 8 位整数量化， element_width 为 8 |
 | "filter_exponent" | integer | - 若填写，则过滤器根据公式量化：value_float = value_int * 2^指数<sup>[1](#note1)</sup> <br>- 若空置<sup>[2](#note2)</sup>，则指数为 log2(max(abs(value_float)) / 2^(element_width - 1))，过滤器会根据公式量化：value_float = value_int * 2^指数|
 | "bias" | string | - "True" 代表添加偏差<br>- "False" 和空置代表不使用偏差 |
-| "output_exponent" | integer | 输出和偏差根据公式量化：value_float = value_int * 2^指数。<br>目前，"output_exponent" 仅在转换偏差系数时有效。如果特定层没有偏差，"output_exponent" 可空置。 |
+| "output_exponent" | integer | 输出和偏差根据公式量化：value_float = value_int * 2^指数。<br>目前，"output_exponent" 仅在转换偏差系数时有效。当使用按层量化时, 必须提供"output_exponent"。如果特定层没有偏差或使用按通道量化时，"output_exponent" 可空置。 |
+| "input_exponent" | integer | 当使用按通道量化时, 偏差的指数位与输入和过滤器的指数位相关。<br>如果有偏差时必须提供 "input_exponent" 用于转换偏差系数。如果特定层没有偏差或使用按层量化时，"input_exponent" 可空置。|
 | "activation" | dict | - 若填写，详见表 2<br>- 若空置，则不使用激活函数 |
 
 <div align=center>表 2：激活函数配置实参</div>
@@ -53,6 +54,7 @@ config.json 中的每一项代表一层的配置。以下列代码为例：
 
 假设有一个一层模型：
 
+##### 1. 使用 int16 按层量化:
 - 层名："mylayer"
 - operation：Conv2D(input, filter) + bias
 - output_exponent：-10
@@ -74,8 +76,56 @@ config.json 应写作：
 	}
 }
 ```
-> "filter_exponent" 和 "activation" 的 "exponent" 空置。
+> "filter_exponent" 和 "activation" 的 "exponent" 空置。<br/>
+> 必须提供 "output_exponent" 用于转化该层的 bias 
+
+##### 2. 使用 int8 按层量化:
+- 层名："mylayer"
+- operation：Conv2D(input, filter) + bias
+- output_exponent：-7, 该卷积层结果的指数位
+- feature_type：s8
+- 激活函数类型：PReLU 
+
+config.json 应写作：
+
+```json
+{
+	"mylayer": {
+		"operation": "conv2d",
+		"feature_type": "s8",
+        "bias": "True",
+        "output_exponent": -7,
+        "activation": {
+            "type": "PReLU"
+        }
+	}
+}
+```
+> 必须提供 "output_exponent" 用于转化该层的 bias 
 
 
+##### 3. 使用 int8 按通道量化:
+- 层名："mylayer"
+- operation：Conv2D(input, filter) + bias
+- input_exponent：-7, 该卷积层输入的指数位
+- feature_type：s8
+- 激活函数类型：PReLU 
+
+config.json 应写作：
+
+```json
+{
+	"mylayer": {
+		"operation": "conv2d",
+		"feature_type": "s8",
+        "bias": "True",
+        "input_exponent": -7,
+        "activation": {
+            "type": "PReLU"
+        }
+	}
+}
+```
+> 必须提供 "input_exponent" 用于转化该层的 bias 
 
 同时，`mylayer_filter.npy`、`mylayer_bias.npy` 和 `mylayer_activation.npy` 需要准备好。
