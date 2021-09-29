@@ -115,8 +115,8 @@ If performance of the quantized model does not satisfy your needs, please consid
 **Python API example**
 
 ```cpp
-// initialize an evaluator to generate an int8 MNIST model running on ESP32-S3 SoC
-eva = Evaluator('int8', 'esp32s3')
+// initialize an evaluator to generate an MNIST using int8 per-channel quantization model running on ESP32-S3 SoC
+eva = Evaluator('int8', 'per-channel', 'esp32s3')
 
 // use quantization parameters in the pickle file to generate the int8 model
 eva.generate_quantized_model(model_proto, pickle_file_path)

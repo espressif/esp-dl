@@ -92,8 +92,8 @@ In this example project, [./main/image.hpp](./main/image.hpp) is the default inp
 
 |   SoC    | `TWO_STAGE` = 1 | `TWO_STAGE` = 0 |
 | :------: | --------------: | --------------: |
-|  ESP32   |      409,216 us |      144,848 us |
-| ESP32-S2 |      700,414 us |      207,985 us |
-| ESP32-S3 |       94,183 us |       36,707 us |
+|  ESP32   |      415,246 us |      154,687 us |
+| ESP32-S2 |    1,052,363 us |      309,159 us |
+| ESP32-S3 |       56,303 us |       16,614 us |
 
 > Results above are based on the default configuration of this example.

@@ -104,8 +104,8 @@ face_recognition/
 
 | SoC | 8-bit | 16-bit |
 |:---:| ----:| ----:|
-| ESP32 | 13,185 ms | 4,360 ms |
-| ESP32-S3 | 281 ms | 701 ms |
+| ESP32 | 13,301 ms | 5,041 ms |
+| ESP32-S3 | 287 ms | 554 ms |
 
   
 
