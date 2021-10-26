@@ -30,6 +30,8 @@ target_link_libraries(${COMPONENT_TARGET}   INTERFACE   ${links})
 
 set(lib     libcat_face_detect.a
             libhuman_face_detect.a
+	    libcolor_detect.a
+            libmfn.a
             libdl.a)
 target_link_libraries(${COMPONENT_TARGET}   INTERFACE   ${lib})
 
