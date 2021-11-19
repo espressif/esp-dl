@@ -9,7 +9,6 @@ from onnxruntime.transformers.onnx_model import OnnxModel
 
 import onnxoptimizer
 
-
 # check model format
 def check_model_extension(model_path):
     # Split the extension from the path and normalise it to lowercase.
@@ -132,8 +131,9 @@ def convert_model_batch_to_dynamic(model):
     inputs[0].type.tensor_type.elem_type = TensorProto.FLOAT
     model.graph.output[0].type.tensor_type.elem_type = TensorProto.FLOAT
     dim = shape.dim
-    model.opset_import[0].version = 13
 
+    if model.opset_import[0].version > 13:
+        model.opset_import[0].version = 13
     if not dim[0].dim_param:
         dim[0].dim_param = 'N'
     model = onnx.shape_inference.infer_shapes(model)

@@ -148,7 +148,7 @@ class FaceRecognizer
          * @param name              name of the face id.
          * @return  int             the face id index of the enrolled embedding.
          */
-        int enroll_id(uint16_t *image_input, std::vector<int> shape, std::vector<int> &landmarks, std::string name="");
+        int enroll_id(uint16_t *image_input, std::vector<int> shape, std::vector<int> &landmarks, std::string name="", bool update_flash = false);
         
         /**
          * @brief enroll face id
@@ -160,7 +160,7 @@ class FaceRecognizer
          * @param name               name of the face id.
          * @return  int              the face id index of the enrolled embedding.
          */
-        int enroll_id(uint16_t *image_input, std::vector<int> shape, Tensor<uint8_t> &aligned_face, std::vector<int> &landmarks, std::string name="");
+        int enroll_id(uint16_t *image_input, std::vector<int> shape, Tensor<uint8_t> &aligned_face, std::vector<int> &landmarks, std::string name="", bool update_flash = false);
 
         /**
          * @brief enroll face id
@@ -170,7 +170,7 @@ class FaceRecognizer
          * @param name                name of the face id.
          * @return  int               the face id index of the enrolled embedding.
          */
-        int enroll_id(Tensor<uint8_t> &image_input, std::vector<int> &landmarks, std::string name="");
+        int enroll_id(Tensor<uint8_t> &image_input, std::vector<int> &landmarks, std::string name="", bool update_flash = false);
 
         /**
          * @brief enroll face id
@@ -181,7 +181,7 @@ class FaceRecognizer
          * @param name                  name of the face id.
          * @return  int                 the face id index of the enrolled embedding.
          */
-        int enroll_id(Tensor<uint8_t> &image_input, Tensor<uint8_t> &aligned_face, std::vector<int> &landmarks, std::string name="");
+        int enroll_id(Tensor<uint8_t> &image_input, Tensor<uint8_t> &aligned_face, std::vector<int> &landmarks, std::string name="", bool update_flash = false);
 
         /**
          * @brief enroll face id
@@ -190,7 +190,7 @@ class FaceRecognizer
          * @param name                  name of the face id.
          * @return  int                 the face id index of the enrolled embedding.
          */
-        int enroll_id(Tensor<uint8_t> &aligned_face, std::string name="");
+        int enroll_id(Tensor<uint8_t> &aligned_face, std::string name="", bool update_flash = false);
         
         /**
          * @brief       enroll the normalzied face embedding.
@@ -199,7 +199,7 @@ class FaceRecognizer
          * @param name  name of the face id.
          * @return int  the face id index of the enrolled embedding.
          */
-        int enroll_id(Tensor<float> &emb, std::string name="");
+        int enroll_id(Tensor<float> &emb, std::string name="", bool update_flash = false);
 
         /**
          * @brief       delete the last enrolled face id.
@@ -207,7 +207,7 @@ class FaceRecognizer
          * @return int  the number of remained face ids.
          *              if the face ids list is empty, return -1
          */
-        int delete_id();
+        int delete_id(bool update_flash = false);
 
         /**
          * @brief       delete the face id with id index.
@@ -216,5 +216,32 @@ class FaceRecognizer
          * @return int  the number of remained face ids.
          *              if there is no matched id return -1
          */
-        int delete_id(int id);
+        int delete_id(int id, bool update_flash = false);
+
+        int set_ids(std::vector<FaceID<float> *> &ids, bool update_flash = false);
+
+        int set_ids_from_flash();
+
+        int write_ids_to_flash();
+
+        std::vector<face_info_t> get_enrolled_ids_with_name(std::string name);
+
+        int check_partition();
+
+        /**
+         * @brief delete all the enrolled face ids.
+         * 
+         */
+        void clear_id(bool update_flash = false);
+
+        /**
+         * @brief Set the partition for saving face ids to flash or reading face ids from flash. 
+         * 
+         * @param type          esp_partition_type
+         * @param subtype       esp_partition_subtype
+         * @param label         the partition label
+         * @return int          the result of setting.
+         */
+        int set_partition(esp_partition_type_t type, esp_partition_subtype_t subtype, const char *label);
+
 };
