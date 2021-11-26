@@ -45,6 +45,8 @@ face_recognition/
    
    ... ...
    
+   E (1907) MFN: Flash is empty
+   
    enroll id ...
    name: Sandra, id: 1
    name: Jiong, id: 2
@@ -68,6 +70,7 @@ face_recognition/
    
    enroll id ...
    name: Jiong, id: 2
+   write 2 ids to flash.
    
    recognize face ...
    [recognition result] id: 1, name: Sandra, similarity: 0.758815
@@ -92,13 +95,13 @@ face_recognition/
 
     Note that the order of face landmark coordinates is:
   
-    ```
+   ```
       left_eye_x, left_eye_y, 
       mouth_left_x, mouth_left_y,
       nose_x, nose_y,
       right_eye_x, right_eye_y, 
       mouth_right_x, mouth_right_y
-    ```
+   ```
 
 ## Latency
 

@@ -7,7 +7,7 @@
 项目所在文件夹结构如下：
 
 ```shell
-human_face_detect/
+face_recognition/
 ├── CMakeLists.txt
 ├── image.jpg
 ├── main
@@ -23,7 +23,7 @@ human_face_detect/
 
 ## 运行示例
 
-1. 打开终端，进入人脸检测示例所在文件夹 esp-dl/examples/human_face_detect：
+1. 打开终端，进入人脸检测示例所在文件夹 esp-dl/examples/face_recognition
 
     ```shell
     cd ~/esp-dl/examples/face_recognition
@@ -45,34 +45,37 @@ human_face_detect/
    
    ... ...
    
+   E (1907) MFN: Flash is empty
+   
    enroll id ...
    name: Sandra, id: 1
    name: Jiong, id: 2
-
+   
    recognize face ...
    [recognition result] id: 1, name: Sandra, similarity: 0.728666
    [recognition result] id: 2, name: Jiong, similarity: 0.827225
-
+   
    recognizer information ...
    recognizer threshold: 0.55
    input shape: 112, 112, 3
-
+   
    face id information ...
    number of enrolled ids: 2
    id: 1, name: Sandra
    id: 2, name: Jiong
-
+   
    delete id ...
    number of remaining ids: 1
    [recognition result] id: -1, name: unknown, similarity: 0.124767
-
+   
    enroll id ...
    name: Jiong, id: 2
-
+   write 2 ids to flash.
+   
    recognize face ...
    [recognition result] id: 1, name: Sandra, similarity: 0.758815
    [recognition result] id: 2, name: Jiong, similarity: 0.722041
-
+   
    ```
 
 ## 其他设置
@@ -92,17 +95,17 @@ human_face_detect/
 
    请注意关键点坐标顺序为：
    
-    ```
+   ```
     left_eye_x, left_eye_y, 
     mouth_left_x, mouth_left_y,
     nose_x, nose_y,
     right_eye_x, right_eye_y, 
     mouth_right_x, mouth_right_y
-    ```
+   ```
 
 ## 延时情况
 
-| SoC | 8 位 | 16 位 |
-|:---:| ----:| ----:|
-| ESP32 | 13,301 ms | 5,041 ms |
-| ESP32-S3 | 287 ms | 554 ms |
+|   SoC    |      8 位 |    16 位 |
+| :------: | --------: | -------: |
+|  ESP32   | 13,301 ms | 5,041 ms |
+| ESP32-S3 |    287 ms |   554 ms |
