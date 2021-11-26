@@ -1,8 +1,6 @@
 # Color Detection[[中文]](./README_cn.md)
 
-This project is an example of color detection interface. The input to this interface is a static image of different color blocks: 
-![](rgby.png)
-The output is results of color enrollment, color detection, color segmentation, color deletion, and other functions provided by this interface, shown in Terminal.
+This project is an example of color detection interface. The input to this interface is a static image of different color blocks. The output is results of color enrollment, color detection, color segmentation, color deletion, and other functions provided by this interface, shown in Terminal.
 
 Below is the structure of this project:
 
