@@ -15,7 +15,7 @@
 
 extern "C" void app_main(void)
 {
-#if QUANT_TYPE   
+#if QUANT_TYPE
     // S16 model
     FaceRecognition112V1S16 recognizer;
 #else
@@ -42,7 +42,11 @@ extern "C" void app_main(void)
     vector<int> landmarks_319_1 = image_319_1_landmarks;
 #endif
 
-    //prepare image data
+    // load ids from flash partition
+    recognizer.set_partition(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, "fr");
+    recognizer.set_ids_from_flash();
+
+    // prepare image data
     Tensor<uint8_t> image_rgb888_316_1;
     image_rgb888_316_1.set_element((uint8_t *)image_bgr_316_1).set_shape({240, 320, 3}).set_auto_free(false);
 
@@ -57,22 +61,43 @@ extern "C" void app_main(void)
 
     Tensor<uint8_t> aligned_face_rgb888_319_2;
     aligned_face_rgb888_319_2.set_element((uint8_t *)aligned_face112_image_bgr_319_2).set_shape({112, 112, 3}).set_auto_free(false);
-    
+
     Tensor<uint8_t> aligned_face_rgb888_319_3;
     aligned_face_rgb888_319_3.set_element((uint8_t *)aligned_face112_image_bgr_319_3).set_shape({112, 112, 3}).set_auto_free(false);
-    
-    
+
     // enroll id
-    cout << "\nenroll id ...\n"; 
+    cout << "\nenroll id ...\n";
     string name_316 = "Sandra";
     string name_319 = "Jiong";
+    int id316, id319 = -1;
 
-    //using the bgr888 image with landmarks of human face to enroll face id
-    int id316 = recognizer.enroll_id(image_rgb888_316_1, landmarks_316_1, name_316);
-    cout<< "name: " << name_316 <<", id: "<< id316 << "\n";
+    //using the bgr888 image with landmarks of human face to enroll face id to flash
+    if (recognizer.get_enrolled_id_num() == 0)
+    {
+        id316 = recognizer.enroll_id(image_rgb888_316_1, landmarks_316_1, name_316, true);
+        cout << "name: " << name_316 << ", id: " << id316 << "\n";
 
-    int id319 = recognizer.enroll_id(image_rgb888_319_1, landmarks_319_1, name_319);
-    cout << "name: " << name_319 <<", id: " << id319 << "\n";
+        id319 = recognizer.enroll_id(image_rgb888_319_1, landmarks_319_1, name_319, true);
+        cout << "name: " << name_319 << ", id: " << id319 << "\n";
+    }
+    else
+    {
+        vector<face_info_t> ids = recognizer.get_enrolled_ids();
+        for (std::vector<face_info_t>::iterator i = ids.begin(); i != ids.end(); ++i)
+        {
+            if((*i).name == name_316)
+            {
+                id316 = (*i).id;
+                cout << "ids from flash, name: " << name_316 << ", id: " << id316 << "\n";
+            }
+            if((*i).name == name_319)
+            {
+                id319 = (*i).id;
+                cout << "ids from flash, name: " << name_319 << ", id: " << id319 << "\n";
+            }
+        }
+        
+    }
 
     // recognize face
     cout << "\nrecognize face ...\n";
@@ -94,17 +119,17 @@ extern "C" void app_main(void)
     // face id information
     cout << "\nface id information ...\n";
 
-    cout << "number of enrolled ids: " << recognizer.get_enrolled_id_num() << "\n";   
-    vector<face_info_t> ids = recognizer.get_enrolled_ids(); 
-    for (std::vector<face_info_t >::iterator i = ids.begin(); i != ids.end(); ++i)
+    cout << "number of enrolled ids: " << recognizer.get_enrolled_id_num() << "\n";
+    vector<face_info_t> ids = recognizer.get_enrolled_ids();
+    for (std::vector<face_info_t>::iterator i = ids.begin(); i != ids.end(); ++i)
     {
-        cout << "id: "<< (*i).id << ", name: " << (*i).name << "\n";
+        cout << "id: " << (*i).id << ", name: " << (*i).name << "\n";
     }
 
-    // delete id
+    // delete id and update the id information to flash
     cout << "\ndelete id ...\n";
-    cout<< "number of remaining ids: " << recognizer.delete_id(id319) << "\n";
-    
+    cout << "number of remaining ids: " << recognizer.delete_id(id319, true) << "\n";
+
     recognize_319 = recognizer.recognize(aligned_face_rgb888_319_2);
     cout << "[recognition result] id: " << recognize_319.id << ", name: " << recognize_319.name << ", similarity: " << recognize_319.similarity << "\n";
 
@@ -113,6 +138,9 @@ extern "C" void app_main(void)
     id319 = recognizer.enroll_id(aligned_face_rgb888_319_3, name_319);
     cout << "name: " << name_319 << ", id: " << id319 << "\n";
 
+    // write enrolled ids to flash partition. 
+    cout << "write " << recognizer.write_ids_to_flash() << " ids to flash.\n";
+
     // recognize face
     cout << "\nrecognize face ...\n";
     recognize_316 = recognizer.recognize(aligned_face_rgb888_316_3);
@@ -120,5 +148,4 @@ extern "C" void app_main(void)
 
     recognize_319 = recognizer.recognize(image_rgb888_319_1, landmarks_319_1);
     cout << "[recognition result] id: " << recognize_319.id << ", name: " << recognize_319.name << ", similarity: " << recognize_319.similarity << "\n";
-
 }

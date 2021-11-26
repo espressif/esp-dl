@@ -53,7 +53,7 @@ namespace dl
         const int channel_exponent_size;
 
         /**
-         * @brief Construct a new Filter object.
+         * @brief Construct a new Filter object. 
          * 
          * @param element  point to element
          * @param exponent exponent of element
@@ -68,7 +68,7 @@ namespace dl
         Filter(const T *element, const int exponent, const std::vector<int> shape, const std::vector<int> dilation = {1, 1});
 
         /**
-         * @brief Construct a new Filter object.
+         * @brief Construct a new Filter object. it is only avaliable to int16_t
          * 
          * @param element               point to element
          * @param channel_exponent      exponent for per-channel
