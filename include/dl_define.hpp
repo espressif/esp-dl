@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dl_define_private.hpp"
+
 #include <climits>
 #include "sdkconfig.h"
 
