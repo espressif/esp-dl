@@ -20,7 +20,7 @@ ESP-DL 无需借助任何外围设备，因此可作为一些项目的组件，�
 ## 入门指南
 
 安装并入门 ESP-DL，请参考[快速入门](./docs/en/get_started.md)。
-> 请使用 ESP-IDF 在 master 分支上的[最新版本](https://github.com/espressif/esp-idf/tree/master)。
+> 请使用 ESP-IDF 在 release/v4.4 分支上的[最新版本](https://github.com/espressif/esp-idf/tree/release/v4.4)。
 
 
 
