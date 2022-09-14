@@ -72,7 +72,7 @@ Generates the quantization table.
 ```
 Calibrator.export_coefficient_to_cpp(model_proto, pickle_file_path, target_chip, output_path, file_name, print_model_info=False)
 ```
-Exports quantization parameters.
+Exports the quantized model coefficient such as weight to deploy on ESP SoCs.
 
 **Arguments**
 - **model_proto** _(ModelProto)_: An FP32 ONNX model.

@@ -73,7 +73,7 @@ int16:
 
 ### Quantization Parameters
 
-As described in [Quantization Specification](../../docs/en/quantization_specification.md), 8-bit or 16-bit quantization in ESP-DL approximates floating-point values using the following formula：
+As described in [Quantization Specification](../../docs/en/quantization_specification.md), 8-bit or 16-bit quantization in ESP-DL approximates floating-point values using the following formula:
 
 ```math
 real\_value = int\_value * 2^{\ exponent}
@@ -101,6 +101,9 @@ calib.set_providers(['CPUExecutionProvider'])
 // use calib_dataset as the calibration dataset, and save quantization parameters to the pickle file
 pickle_file_path = 'mnist_calib.pickle'
 calib.generate_quantization_table(model_proto, calib_dataset, pickle_file_path)
+
+// export to quantized coefficient to cpp/hpp file for deploying on ESP SoCs
+calib.export_coefficient_to_cpp(model_proto, pickle_file_path, 'esp32s3', '.', 'mnist_coefficient', True)
 ```
 
 ## Evaluator
@@ -141,7 +144,7 @@ For example codes to convert a PyTorch MNIST model to an ONNX model, please refe
 
 The following tools may be helpful to convert a model into ONNX format.
 
-- From TensorFlow, Keras and Tflite to ONNX: [tf2onnx](https://github.com/onnx/tensorflow-onnx) 
+- From TensorFlow, Keras and TFLite to ONNX: [tf2onnx](https://github.com/onnx/tensorflow-onnx) 
 - From MXNet to ONNX: [MXNet-ONNX](https://mxnet.apache.org/versions/1.8.0/api/python/docs/tutorials/deploy/export/onnx.html) 
 - From PyTorch to ONNX: [torch.onnx](https://pytorch.org/docs/stable/onnx.html)
 

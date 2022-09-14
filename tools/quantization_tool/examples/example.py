@@ -35,7 +35,7 @@ if __name__ == "__main__":
     calib = Calibrator('int16', 'per-tensor', 'minmax')
     calib.set_providers(['CPUExecutionProvider'])
     calib.generate_quantization_table(model_proto, calib_dataset, pickle_file_path)
-    calib.export_coefficient_to_cpp(model_proto, pickle_file_path, 'esp32s3', '.', 'test_mnist', True)
+    calib.export_coefficient_to_cpp(model_proto, pickle_file_path, 'esp32s3', '.', 'mnist_coefficient', True)
 
     # Evaluate the performance
     print('Evaluating the performance on esp32s3:')
