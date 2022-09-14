@@ -16,10 +16,10 @@ ESP-DL runs based on ESP-IDF. For detailed instructions on how to get ESP-IDF, p
     git clone https://github.com/espressif/esp-dl.git
     ```
 
-2. Open Terminal and go to the [ESP-DL/tutorial](../../tutorial/) directory:
+2. Open Terminal and go to the [ESP-DL/tutorial/convert_tool_example](../../tutorial/convert_tool_example/) directory:
 
     ```shell
-    cd ~/esp-dl/tutorial
+    cd ~/esp-dl/tutorial/convert_tool_example
     ```
 
     or to example projects in the [ESP-DL/examples](../../examples) directory.
@@ -39,7 +39,7 @@ ESP-DL runs based on ESP-IDF. For detailed instructions on how to get ESP-IDF, p
     idf.py flash monitor
     ```
     
-    If you go to the [ESP-DL/tutorial](../../tutorial/) directory in Step 2, and
+    If you go to the [ESP-DL/tutorial/convert_tool_example](../../tutorial/convert_tool_example/) directory in Step 2, and
 
     - your SoC target is ESP32, then
       

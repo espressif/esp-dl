@@ -3,7 +3,7 @@ import os
 import collections
 
 import onnx
-from onnx import helper, numpy_helper
+from onnx import helper, numpy_helper, version_converter
 from onnx import TensorProto
 from onnxruntime.transformers.onnx_model import OnnxModel
 
@@ -132,10 +132,12 @@ def convert_model_batch_to_dynamic(model):
     model.graph.output[0].type.tensor_type.elem_type = TensorProto.FLOAT
     dim = shape.dim
 
-    if model.opset_import[0].version > 13:
-        model.opset_import[0].version = 13
+    # if model.opset_import[0].version < 13:
+    #     model = version_converter.convert_version(model, 13)
     if not dim[0].dim_param:
         dim[0].dim_param = 'N'
+        if dim[0].dim_value:
+            dim[0].dim_value = ''
     model = onnx.shape_inference.infer_shapes(model)
 
     return model
@@ -161,7 +163,7 @@ def optimize_fp_model(model_path):
     fuse_bn(model_proto)
 
     # Save optimized model
-    model_name = model_path.split(".")
+    model_name = model_path.split(".onnx")
     model_path = model_name[0] + "_optimized.onnx"
     onnx.save(model_proto, model_path)
 

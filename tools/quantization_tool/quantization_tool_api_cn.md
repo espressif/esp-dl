@@ -72,7 +72,7 @@ Calibrator.generate_quantization_table(model_proto, calib_dataset, pickle_file_p
 ```
 Calibrator.export_coefficient_to_cpp(model_proto, pickle_file_path, target_chip, output_path, file_name, print_model_info=False)
 ```
-导出量化参数。
+导出模型量化后的权重等系数以用于部署在乐鑫芯片上。
 
 **Arguments**
 - **model_proto** _(ModelProto)_: 一个 FP32 ONNX 模型。

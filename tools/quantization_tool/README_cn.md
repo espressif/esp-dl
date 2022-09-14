@@ -101,6 +101,9 @@ calib.set_providers(['CPUExecutionProvider'])
 // use calib_dataset as the calibration dataset, and save quantization parameters to the pickle file
 pickle_file_path = 'mnist_calib.pickle'
 calib.generate_quantization_table(model_proto, calib_dataset, pickle_file_path)
+
+// export to quantized coefficient to cpp/hpp file for deploying on ESP SoCs
+calib.export_coefficient_to_cpp(model_proto, pickle_file_path, 'esp32s3', '.', 'mnist_coefficient', True)
 ```
 
 ## 评估器
@@ -141,7 +144,7 @@ res = np.argmax(outputs[0])
 
 下列工具可帮助您将模型转换为 ONNX 格式。
 
-- TensorFlow、Keras 和 Tflite 转换为 ONNX：[tf2onnx](https://github.com/onnx/tensorflow-onnx) 
+- TensorFlow、Keras 和 TFLite 转换为 ONNX：[tf2onnx](https://github.com/onnx/tensorflow-onnx) 
 - MXNet 转换为 ONNX：[MXNet-ONNX](https://mxnet.apache.org/versions/1.8.0/api/python/docs/tutorials/deploy/export/onnx.html) 
 - PyTorch 转换为 ONNX：[torch.onnx](https://pytorch.org/docs/stable/onnx.html)
 

@@ -16,10 +16,10 @@ ESP-DL 的运行需要依赖 ESP-IDF。有关 ESP-IDF 的详细安装步骤，�
     git clone https://github.com/espressif/esp-dl.git
     ```
 
-2. 打开终端，进入 [ESP-DL/tutorial](../../tutorial/) 文件夹：
+2. 打开终端，进入 [ESP-DL/tutorial/convert_tool_example](../../tutorial/convert_tool_example/) 文件夹：
 
     ```shell
-    cd ~/esp-dl/tutorial
+    cd ~/esp-dl/tutorial/convert_tool_example
     ```
 
     或是进入 [ESP-DL/examples](../../examples) 文件夹下的其他示例项目。
@@ -39,7 +39,7 @@ ESP-DL 的运行需要依赖 ESP-IDF。有关 ESP-IDF 的详细安装步骤，�
     idf.py flash monitor
     ```
     
-    如果在第二步您进入的是 [ESP-DL/tutorial](../../tutorial/) 文件夹，
+    如果在第二步您进入的是 [ESP-DL/tutorial](../../tutorial/convert_tool_example/) 文件夹，
 
     - 您的目标芯片是 ESP32，则
       

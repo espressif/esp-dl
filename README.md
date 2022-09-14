@@ -36,7 +36,7 @@ ESP-DL provides some model APIs in the [Model Zoo](./include/model_zoo), such as
 
 ## Customize a Model
 
-To customize a model, please proceed to [How to Customize a Model Step by Step](./tutorial), where the instructions with a runnable example will quickly help you design your model.
+To customize a model, please proceed to [Customize a Model Step by Step](./tutorial), where the instructions with two runnable examples will quickly help you design your model.
 
 When you read the instructions, the following materials might be helpful:
 
