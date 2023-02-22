@@ -1,0 +1,3 @@
+description: esp_dl provides APIs for Neural Network (NN) Inference, Image Processing, Math Operations and some Deep Learning Models.
+dependencies:
+  idf: "4.4.*"
