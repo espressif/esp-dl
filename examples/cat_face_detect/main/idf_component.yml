@@ -1,0 +1,3 @@
+dependencies:
+  # Required IDF version
+  idf: "5.0.*"
