@@ -11,7 +11,7 @@ ESP-DL provides APIs for **Neural Network (NN) Inference**, **Image Processing**
 As ESP-DL does not need any peripherals, it can be used as a component of some projects. For example, you can use it as a component of **[ESP-WHO](https://github.com/espressif/esp-who)**, which contains several project-level examples of image application. The figure below shows what ESP-DL consists of and how ESP-DL is implemented as a component in a project.
 
 <p align="center">
-    <img width="%" src="./img/architecture_en.drawio.svg"> 
+    <img width="%" src="./docs/_static/architecture_en.drawio.svg">
 </p>
 
 
@@ -60,7 +60,7 @@ When you read the instructions, the following materials might be helpful:
         > convert.py requires Python 3.7 or versions higher.
 
 - Software and Hardware Boost
-  
+
     * [Quantization Specification](./docs/en/quantization_specification.md): rules of floating-point quantization
 
 
