@@ -3,7 +3,11 @@ var DOCUMENTATION_VERSIONS = {
               supported_targets: [ "esp32" ]
             },
   VERSIONS: [
+    //latest
     { name: "latest", has_targets: true, supported_targets: [ "esp32", "esp32s2", "esp32s3", "esp32c3"] },
+
+    //
+    { name: "release-v1.0", has_targets: true, supported_targets: [ "esp32", "esp32s2", "esp32s3", "esp32c3"] },
   ],
   IDF_TARGETS: [
      { text: "ESP32", value: "esp32"},
