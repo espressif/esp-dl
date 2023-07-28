@@ -168,7 +168,7 @@ def dump_tvm_onnx_project(target_chip, model_path, img_path, template_path, gene
     
     
 
-def debug_mod(target_chip, model_path, img_path):
+def debug_onnx_model(target_chip, model_path, img_path):
     from tvm.contrib.debugger.debug_executor import GraphModuleDebug
     
     onnx_model = onnx.load(model_path)
@@ -199,19 +199,21 @@ def debug_mod(target_chip, model_path, img_path):
         lib["debug_create"]("default", dev),
         [dev],
         lib.graph_json,
-        dump_root="/home/gansichen/Workspace/projects/local/framework/tvmdbg",
+        dump_root = os.path.dirname(os.path.abspath(model_path))+"/tvmdbg",
     )
     # set inputs
     image_sample = np.load(img_path)
     m.set_input(input_name, tvm.nd.array(image_sample))
     m.set_input(**params)
     m.run()
+    # output of model
     tvm_out = m.get_output(0, tvm.nd.empty(output_shape, dtype=output_dtype))
-    # print(tvm_out.numpy().flatten()[0:16])
+    print(tvm_out.numpy())
     
-    flattened = tvm_out.numpy().flatten()[0:16]
-    formatted = ', '.join(f'{x:.9f}' for x in flattened)
-    print(formatted)
+    # output of first relu layer
+    tvm_out = tvm.nd.empty((1,32,32,16),dtype="int8")
+    m.debug_get_output("tvmgen_default_fused_nn_relu", tvm_out)
+    print(tvm_out.numpy().flatten()[0:16])
     
     
     
@@ -227,4 +229,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     dump_tvm_onnx_project(target_chip=args.target_chip, model_path=args.model_path, img_path=args.img_path,  template_path=args.template_path, generated_project_path=args.out_path)
-    # debug_mod(args.target_chip, args.model_path, args.img_path)
+    # debug_onnx_model(args.target_chip, args.model_path, args.img_path)
