@@ -1,0 +1,11 @@
+numpy
+decorator
+attrs
+typing-extensions
+psutil
+scipy
+onnx==1.12.0
+onnxruntime==1.14.0
+onnxoptimizer==0.2.6
+onnx-simplifier==0.4.17
+

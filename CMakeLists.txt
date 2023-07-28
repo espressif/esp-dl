@@ -20,6 +20,7 @@ set(COMPONENT_ADD_INCLUDEDIRS   include/
                                 include/image
                                 include/math
                                 include/nn
+				include/tvm
                                 include/layer
                                 include/detect
                                 include/model_zoo)
