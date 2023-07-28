@@ -1,0 +1,4 @@
+build
+dist
+*.cpp
+requirements/*.txt
