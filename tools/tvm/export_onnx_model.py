@@ -166,7 +166,6 @@ def dump_tvm_onnx_project(target_chip, model_path, img_path, template_path, gene
     output_dir = generated_project_path + "/new_project"
     generate_project(template_path, model_tar_file, output_dir, image_sample, input_shape, input_dtype, output_shape, output_dtype) 
     
-    
 
 def debug_onnx_model(target_chip, model_path, img_path):
     from tvm.contrib.debugger.debug_executor import GraphModuleDebug

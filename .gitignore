@@ -7,3 +7,9 @@ bin/
 __pycache__/
 mnist_calib.pickle
 mnist_model_example_optimized.onnx
+
+# MacOS directory files
+.DS_Store
+
+# Built docs
+_build/
