@@ -1,5 +1,5 @@
-Deploying Quantized Models
-==========================
+Manual Deployment Guide for pre-quantized Models
+====================================================
 
 :link_to_translation:`zh_CN:[中文]`
 

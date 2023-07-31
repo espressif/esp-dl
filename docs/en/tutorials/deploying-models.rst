@@ -1,6 +1,6 @@
-================
-Deploying Models
-================
+====================================================
+Manual Model Quantization and Deployment Guide
+====================================================
 
 :link_to_translation:`zh_CN:[中文]`
 
