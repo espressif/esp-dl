@@ -40,10 +40,16 @@ ESP-DL 是适配 ESP 系列芯片的深度学习推理框架。本库无法完�
 
     pip install -r requirements.txt
 
-设置 TVM 包的路径
-~~~~~~~~~~~~~~~~~~~~
+配置 TVM 包
+~~~~~~~~~~~~~~~~~~
 
-设置环境变量 PYTHONPATH，指定 TVM 库的位置。可以在终端运行以下命令，也可以在 ``~/.bashrc`` 文件中添加以下行。
+您可以使用 :project_file:`tools/tvm/download.sh` 来下载我们已经编译好的 TVM 包：
+
+.. code:: none
+
+    . ./download.sh
+
+TVM 包将被下载到 ``esp-dl/tvm/python/tvm`` 中. 下载完包后，需要设置环境变量 PYTHONPATH，指定 TVM 库的位置。可以在终端运行以下命令，也可以在 ``~/.bashrc`` 文件中添加以下行。
 
 .. code:: python
 

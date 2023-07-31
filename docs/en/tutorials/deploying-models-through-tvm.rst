@@ -43,7 +43,13 @@ You can use the :project_file:`tools/tvm/requirements.txt` file to install the r
 Set TVM Package Path
 ~~~~~~~~~~~~~~~~~~~~~
 
-You can set the PYTHONPATH environment variable to specify the location of the TVM library. To achieve this, run the following command in the terminal, or add the following line to the ``~/.bashrc`` file.
+You can use the :project_file:`tools/tvm/download.sh` file to download the compiled TVM packages:
+
+.. code:: none
+
+    . ./download.sh
+
+The TVM package will be downloaded to ``esp-dl/tvm/python/tvm``. After finish downloading, you can set the PYTHONPATH environment variable to specify the location of the TVM library. To achieve this, run the following command in the terminal, or add the following line to the ``~/.bashrc`` file.
 
 .. code:: python
 
