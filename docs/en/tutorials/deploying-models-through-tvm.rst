@@ -126,7 +126,7 @@ Step 2: Deploy the Model
 
 Deploy the quantized ONNX model on the ESP series chips. Only some operators running on ESP32-S3 are supported by ISA related acceleration.
 
-For operators supported by acceleration, please see `esp-dl/include/layer <./include/layer>`__. For more information about ISA, please refer to `ESP32-S3 Technical Reference Manual <https://www.espressif.com.cn/sites/default/files/documentation/esp32-s3_technical_reference_manual_en.pdf>`__.
+For operators supported by acceleration, please see :project:`include/layer`. For more information about ISA, please refer to `ESP32-S3 Technical Reference Manual <https://www.espressif.com.cn/sites/default/files/documentation/esp32-s3_technical_reference_manual_en.pdf>`__.
 
 Step 2.1: Prepare the Input
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -147,7 +147,7 @@ Parameter descriptions:
 -  target_chip: The name of the target chip, which is esp32s3 in the command above. It specifies that the generated example project will be optimized for the ESP32-S3 chip.
 -  model_path: The path of the quantized ONNX model. Please provide the full path and filename of the model.
 -  img_path: The path of the input image. Please provide the full path and filename of the input image.
--  template_path: The template path for the example project. The template program by default is `esp-dl/tools/tvm/template_project_for_model <./tools/tvm/template_project_for_model>`__.
+-  template_path: The template path for the example project. The template program by default is :project:`tools/tvm/template_project_for_model`.
 -  out_path: The output path of the generated example project. Please provide a path to a target directory.
 
 The script :project_file:`tools/tvm/export_onnx_model.py` loads the quantized ONNX model into TVM, and converts and optimizes the model's layout. After  preprocessing, it finally compiles the model into code suitable for the ESP backend. The specific process is as follows:
@@ -190,7 +190,6 @@ Once the ESP-IDF terminal environment is properly configured (please note the ve
 
 ::
 
-    cd main
     idf.py set-target esp32s3
     idf.py flash monitor
 

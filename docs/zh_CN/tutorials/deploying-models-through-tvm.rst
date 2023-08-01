@@ -117,7 +117,7 @@ ESP-DL 中目前只支持第一种方法。若无法接受量化后的精度损�
 
 :project_file:`tools/tvm/esp_quantize_onnx.py` 中创建了一个用于模型的输入数据读取器，使用这些输入数据来运行模型，以校准每个张量的量化参数，并生成量化模型。具体流程如下：
 
--  创建输入数据读取器：首先，创建一个输入数据读取器，用于从数据源中读取输入的校准数据。用于校准的数据集应保存为 NumPy 数组文件，其中包含输入图片的集合。例如 model.onnx 的输入大小为 [32, 32, 3]，calibe_images.npy 存储的则是 500 张校准图片的数据，形状为 [500, 112, 112, 3]。
+-  创建输入数据读取器：首先，创建一个输入数据读取器，用于从数据源中读取输入的校准数据。用于校准的数据集应保存为 NumPy 数组文件，其中包含输入图片的集合。例如 model.onnx 的输入大小为 [32, 32, 3]，calibe_images.npy 存储的则是 500 张校准图片的数据，形状为 [500, 32, 32, 3]。
 -  运行模型进行校准：接下来，代码会使用输入数据读取器提供的数据来运行模型。通过将输入数据传递给模型，模型会进行推断（inference），生成输出结果。在这个过程中，代码会根据实际输出结果和预期结果，校准每个张量的量化参数。这个校准过程旨在确定每个张量的量化范围、缩放因子等参数，以便在后续的量化转换中准确地表示数据。
 -  生成量化模型：校准完量化参数后，代码将使用这些参数对模型进行量化转换。这个转换过程会将模型中的浮点数权重和偏差替换为量化表示，使用较低的位精度来表示数值。生成的量化模型会保留量化参数，以便在后续的部署过程中正确还原数据。请注意，不要在这个量化模型上运行推理过程，可能会与板上运行的结果不一致，具体的调试流程请参考后续章节。
 
@@ -126,7 +126,7 @@ ESP-DL 中目前只支持第一种方法。若无法接受量化后的精度损�
 
 将量化后的 ONNX 模型部署到 ESP 系列芯片上。只有在 ESP32-S3 上运行的部分算子支持 ISA 加速。
 
-支持加速的算子请查看 `esp-dl/include/layer <./include/layer>`__。更多 ISA 相关介绍请查看 `《ESP32-S3 技术参考手册》 <https://www.espressif.com.cn/sites/default/files/documentation/esp32-s3_technical_reference_manual_cn.pdf>`__。
+支持加速的算子请查看 :project:`include/layer`。更多 ISA 相关介绍请查看 `《ESP32-S3 技术参考手册》 <https://www.espressif.com.cn/sites/default/files/documentation/esp32-s3_technical_reference_manual_cn.pdf>`__。
 
 步骤 2.1：准备输入
 ~~~~~~~~~~~~~~~~~~
@@ -149,7 +149,7 @@ ESP-DL 中目前只支持第一种方法。若无法接受量化后的精度损�
 -  target_chip: 目标芯片的名称。上述命令中目标芯片是esp32s3，表示生成的示例项目将针对 ESP32-S3 芯片进行优化。
 -  model_path: 经过量化的 ONNX 模型的路径。请提供模型的完整路径和文件名。
 -  img_path: 输入图像的路径。请提供输入图像的完整路径和文件名。
--  template_path: 用于示例项目的模板路径。默认提供的模板程序为 `esp-dl/tools/tvm/template_project_for_model <./tools/tvm/template_project_for_model>`__。
+-  template_path: 用于示例项目的模板路径。默认提供的模板程序为 :project:`tools/tvm/template_project_for_model`。
 -  out_path: 生成的示例项目的输出路径。请提供目标目录的路径。
 
 :project_file:`tools/tvm/export_onnx_model.py` 将量化的 ONNX 模型加载到 TVM 中，并对模型进行布局转换和优化，经过一定的预处理后最终编译成适配 ESP 后端的代码。具体流程如下：
@@ -192,7 +192,6 @@ ESP-DL 中目前只支持第一种方法。若无法接受量化后的精度损�
 
 ::
 
-    cd main
     idf.py set-target esp32s3
     idf.py flash monitor
 
