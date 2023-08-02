@@ -3,13 +3,19 @@ import os
 import shutil
 import tarfile
 import pathlib
+from pathlib import Path
 import re
 import onnx
 import tvm
 from tvm.micro import export_model_library_format
 from tvm.relay.op.contrib.esp import preprocess_onnx_for_esp, evaluate_onnx_for_esp
 
-esp_dl_library_path = '../../'
+if 'ESP_DL_PATH' in os.environ:
+    esp_dl_library_path = os.environ['ESP_DL_PATH']
+else:
+    current_script_path = Path(__file__).resolve()
+    parent_parent_path = current_script_path.parent.parent.parent
+    esp_dl_library_path = str(parent_parent_path)
 
 def generate_project(template_dir, tar_file, output_dir, input_ndarray, input_shape, input_dtype, output_shape, output_dtype):    
     if os.path.exists(output_dir):
@@ -21,9 +27,10 @@ def generate_project(template_dir, tar_file, output_dir, input_ndarray, input_sh
     
     
     # copy esp-dl lib as one of the component
-    shutil.copytree(esp_dl_library_path + 'include', output_dir + '/components/esp-dl/include')
-    shutil.copytree(esp_dl_library_path + 'lib', output_dir + '/components/esp-dl/lib')
-    shutil.copy(esp_dl_library_path + 'CMakeLists.txt', output_dir + '/components/esp-dl/CMakeLists.txt')
+    print(f"esp_dl_library_path: {esp_dl_library_path}")
+    shutil.copytree(esp_dl_library_path + '/include', output_dir + '/components/esp-dl/include')
+    shutil.copytree(esp_dl_library_path + '/lib', output_dir + '/components/esp-dl/lib')
+    shutil.copy(esp_dl_library_path + '/CMakeLists.txt', output_dir + '/components/esp-dl/CMakeLists.txt')
     
 
     # tvm model files as one of the component
