@@ -1,0 +1,20 @@
+name: Upload component to IDF Component Registry
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  upload_components:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Upload esp-dl
+        uses: espressif/upload-components-ci-action@v1
+        with:
+          name: "esp-dl"
+          namespace: "espressif"
+          version: ${{ github.ref_name }}
+          api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
