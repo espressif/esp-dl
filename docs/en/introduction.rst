@@ -24,7 +24,7 @@ Get Started with ESP-DL
 
 For setup instructions to get started with ESP-DL, please read :doc:`Getting Started with ESP-DL <../../get-started>`.
 
-Please use the `release/v5.0 <https://github.com/espressif/esp-idf/tree/release/v5.0>`__ ESP-IDF on master branch.
+Please use the `ESP-IDF <https://github.com/espressif/esp-idf>`__ on version 5.0 or above.
 
 Try Models in the Model Zoo
 ---------------------------

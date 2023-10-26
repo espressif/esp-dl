@@ -19,7 +19,7 @@ As ESP-DL does not need any peripherals, it can be used as a component of some p
 
 For setup instructions to get started with ESP-DL, please read [Get Started](./docs/en/get_started.md).
 
-> Please use the [release/v5.0](https://github.com/espressif/esp-idf/tree/release/v5.0) ESP-IDF on master branch.
+> Please use [ESP-IDF](https://github.com/espressif/esp-idf) `release/v5.0` or above.
 
 
 
