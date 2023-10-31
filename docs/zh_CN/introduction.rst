@@ -24,7 +24,7 @@ ESP-DL 无需借助任何外围设备，因此可作为一些项目的组件，�
 
 安装并入门 ESP-DL，请参考 :doc:`快速入门 <../../get-started>`。
 
-请使用 ESP-IDF 在 release/v5.0 分支上的 `最新版本 <https://github.com/espressif/esp-idf/tree/release/v5.0>`__。
+请使用 ESP-IDF 5.0 或以上版本 `最新版本 <https://github.com/espressif/esp-idf>`__。
 
 尝试模型库中的模型
 ------------------
