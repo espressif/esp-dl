@@ -137,6 +137,7 @@ def make_qnn_conv_onnx_pattern():
 
 def check_qnn_conv2d_onnx(pattern):
     """Check if the Conv2D is supported by esp."""
+    bias_add = None
     if str(pattern.op.name) == "nn.relu":
         relu = pattern
         relu_input = relu.args[0]
