@@ -67,7 +67,7 @@ def generate_project(template_dir, tar_file, output_dir, input_ndarray, input_sh
     with open(os.path.join(output_dir, 'main', 'output_data.h'), 'w') as file:
         file.write('#include <tvmgen_default.h>\n')
         file.write(f'const size_t output_len = {product};\n')
-        file.write(f'const static __attribute__((aligned(16))) {output_dtype} output_data[{product}]\n')
+        file.write(f'static __attribute__((aligned(16))) {output_dtype} output_data[{product}]\n')
         file.write('={};\n')
 
     print(f"generated project in: {output_dir}")
