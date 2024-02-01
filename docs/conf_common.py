@@ -27,3 +27,6 @@ versions_url = './_static/docs_version.js'
 
 # Final PDF filename will contains target and version
 pdf_file_prefix = u'esp-dl'
+
+# add Tracking ID for Google Analytics
+google_analytics_id = 'G-KTJ5YS7QWC'
