@@ -13,6 +13,7 @@ if __name__ == '__main__':
         quit()
 
     image = cv2.imread(args.input)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     h,w,c=image.shape
 
     with open(args.output, 'w') as file:
