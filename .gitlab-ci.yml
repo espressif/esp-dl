@@ -4,8 +4,28 @@ stages:
 
 variables:
   # Versioned esp-idf-doc env image to use for all document building jobs
-  ESP_DOCS_ENV_IMAGE: "$CI_DOCKER_REGISTRY/esp-idf-doc-env-v5.0:2-2"
+  ESP_DOCS_ENV_IMAGE: "$CI_DOCKER_REGISTRY/esp-idf-doc-env-v5.0" 
   ESP_DOCS_PATH: "$CI_PROJECT_DIR"
+
+.if-protected: &if-protected
+  if: '($CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_BRANCH =~ /^release\/v/ || $CI_COMMIT_TAG =~ /^v\d+\.\d+(\.\d+)?($|-)/)'
+
+.if-dev-push: &if-dev-push
+  if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_BRANCH !~ /^release\/v/ && $CI_COMMIT_TAG !~ /^v\d+\.\d+(\.\d+)?($|-)/ && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event")'
+
+.if-label-build: &if-label-build
+  if: '$CI_MERGE_REQUEST_LABELS =~ /^(?:[^,\n\r]+,)*build(?:,[^,\n\r]+)*$/i'
+
+
+.patterns-build_docs: &patterns-build_docs
+  - "docs/**/*"
+
+.rules:build_docs:docs:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-build_docs
 
 .build_template:
   stage: build
@@ -14,6 +34,7 @@ variables:
 build_esp_dl_html:
   extends:
     - .build_template
+    - .rules:build_docs:docs
   variables:
     DOCS_DIR: $CI_PROJECT_DIR/docs
   artifacts:
@@ -36,6 +57,7 @@ build_esp_dl_html:
 build_esp_dl_pdf:
   extends:
     - .build_template
+    - .rules:build_docs:docs
   variables:
     DOCS_DIR: $CI_PROJECT_DIR/docs
   artifacts:
@@ -72,6 +94,7 @@ build_esp_dl_pdf:
 deploy_docs_preview:
   extends:
     - .deploy_docs_template
+    - .rules:build_docs:docs
   variables:
     TYPE: "preview"
     DOCS_BUILD_DIR: "${CI_PROJECT_DIR}/docs/_build/"
