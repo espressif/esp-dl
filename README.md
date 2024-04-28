@@ -17,7 +17,7 @@ As ESP-DL does not need any peripherals, it can be used as a component of some p
 
 ## Get Started with ESP-DL
 
-For setup instructions to get started with ESP-DL, please read [Get Started](./docs/en/get_started.md).
+For setup instructions to get started with ESP-DL, please read [Get Started](https://docs.espressif.com/projects/esp-dl/en/latest/esp32s3/get-started.html).
 
 > Please use [ESP-IDF](https://github.com/espressif/esp-idf) `release/v5.0` or above.
 
