@@ -21,6 +21,13 @@
 
 为了部署模型，必须将训练好的浮点模型转换为 ESP-DL 适配的整型模型格式。由于本库使用的量化方式和参数排列方式与一些平台不同，请使用我们提供的工具 :doc:`量化工具包 <../../tools/quantization-toolkit/quantization-toolkit-overview>` 来完成转换。
 
+目前 ESP-DL 支持的算子如下：
+
+Conv2d, Gemm, Relu, AvgPool2d, MaxPool2d, Add, Mul, Sub, Softmax, Tanh,
+Sigmoid, Concat, Expand, Flatten, Max, Min, Pad, Reshape, Squeeze, Transpose,
+Slice, Shape, Resize
+
+
 步骤 1.1：转换为 ONNX 格式模型
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

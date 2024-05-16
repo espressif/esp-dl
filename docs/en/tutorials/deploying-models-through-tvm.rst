@@ -5,6 +5,7 @@ Auto-Generating Model Deployment Project using TVM
 :link_to_translation:`zh_CN:[中文]`
 
 This case introduces the complete process of deploying a model with TVM.
+**This project is based on the TVM v0.14.0 branch and is in an experimental state, with no plans for further iteration or maintenance at the moment. Currently, only the conv2d operator from ESP-DL is integrated, and other operators may cause exceptions.**
 
 Preparation
 -----------

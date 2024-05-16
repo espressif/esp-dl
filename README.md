@@ -36,7 +36,7 @@ ESP-DL provides some model APIs in the [Model Zoo](./include/model_zoo), such as
 
 ## Deploy Your Own Models
 
-We recommend using TVM to deploy your models, for details please refer to [ESP-DL/tutorial/tvm_example](tutorial/tvm_example).
+For details please refer to [Manual Model Quantization and Deployment Guide](https://docs.espressif.com/projects/esp-dl/en/latest/esp32s3/tutorials/deploying-models.html).
 
 
 ## Feedback

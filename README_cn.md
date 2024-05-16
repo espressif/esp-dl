@@ -38,7 +38,7 @@ ESP-DL 在 [模型库](./include/model_zoo) 中提供了一些模型的 API，�
 
 ## 部署你的模型
 
-我们推荐使用 TVM 来部署你的模型，具体可参考 [ESP-DL/tutorial/tvm_example](tutorial/tvm_example)。
+具体可参考 [手动部署模型](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/esp32s3/tutorials/deploying-models.html)。
 
 
 ## 反馈
