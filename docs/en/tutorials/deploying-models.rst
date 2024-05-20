@@ -21,6 +21,13 @@ Step 1: Convert Your Model
 
 In order to be deployed, the trained floating-point model must be converted to an integer model, the format compatible with ESP-DL. Given that ESP-DL uses a different quantization scheme and element arrangements compared with other platforms, please convert your model with our :doc:`Quantization Toolkit Overview <../../tools/quantization-toolkit/quantization-toolkit-overview>`.
 
+Currently, the operators supported by ESP-DL are as follows:
+
+Conv2d, Gemm, Relu, AvgPool2d, MaxPool2d, Add, Mul, Sub, Softmax, Tanh,
+Sigmoid, Concat, Expand, Flatten, Max, Min, Pad, Reshape, Squeeze, Transpose,
+Slice, Shape, Resize
+
+
 Step 1.1: Convert to ONNX Format
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
