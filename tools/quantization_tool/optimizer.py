@@ -155,7 +155,7 @@ def optimize_fp_model(model_path):
                                        ['fuse_bn_into_conv', 'fuse_add_bias_into_conv', 'fuse_pad_into_conv',
                                         'fuse_matmul_add_bias_into_gemm', 'fuse_transpose_into_gemm',
                                         'eliminate_nop_flatten', 'eliminate_nop_pad', 'eliminate_nop_transpose',
-                                        'eliminate_unused_initializer', 'eliminate_duplicate_initializer'])
+                                        'extract_constant_to_initializer', 'eliminate_unused_initializer', 'eliminate_duplicate_initializer'])
     # Add Gemm name
     add_fused_gemm_name(model_proto)
 
