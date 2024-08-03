@@ -1,3 +1,6 @@
-description: esp_dl provides APIs for Neural Network (NN) Inference, Image Processing, Math Operations and some Deep Learning Models.
+description: ESP Deap Learning: APIs for Neural Network (NN) Inference, Image Processing, Math Operations and some Deep Learning Models
+url: https://github.com/espressif/esp-dl
+documentation: "https://docs.espressif.com/projects/esp-dl/en/latest/esp32s3/index.html"
+repository: "https://github.com/espressif/esp-dl.git"
 dependencies:
   idf: ">=5.0.0"
