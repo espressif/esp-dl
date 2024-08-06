@@ -1,1 +1,0 @@
-本文档已迁移至 [ESP-DL 用户指南](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/esp32/index.html)。
