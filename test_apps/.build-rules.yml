@@ -1,0 +1,5 @@
+test_apps/dl-ops:
+  enable:
+    - if: IDF_TARGET in ["esp32s3"]
+      temporary: false
+
