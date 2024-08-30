@@ -1,44 +1,49 @@
-# ESP-DL [[中文]](./README_cn.md)
+# ESP-DL 
 
-ESP-DL is a library for high-performance deep learning resources dedicated to [ESP32](https://www.espressif.com/en/products/socs/esp32), [ESP32-S2](https://www.espressif.com/en/products/socs/esp32-s2), [ESP32-S3](https://www.espressif.com/en/products/socs/esp32-s3) and [ESP32-C3](https://www.espressif.com/en/products/socs/esp32-c3).
-Please read [ESP-DL User Guide](https://docs.espressif.com/projects/esp-dl/en/latest/esp32/index.html) for more information about ESP-DL.
+The new ESP-DL offers the best AI performance on ESP series chips, and you can use the new ESP-DL models with the same convenience as ONNX.  Most of the code has been open-sourced, allowing you modify and add your own operators and models.
 
+**Note:**
+This release is not compatible with the master branch, and currently supports only the ESP32-P4.  
+We will be adding more documentation and support ESP32-S3 in the next month.
 
 ## Overview
-
-ESP-DL provides APIs for **Neural Network (NN) Inference**, **Image Processing**, **Math Operations** and some **Deep Learning Models**. With ESP-DL, you can use Espressif's SoCs for AI applications easily and fast.
-
-As ESP-DL does not need any peripherals, it can be used as a component of some projects. For example, you can use it as a component of **[ESP-WHO](https://github.com/espressif/esp-who)**, which contains several project-level examples of image application. The figure below shows what ESP-DL consists of and how ESP-DL is implemented as a component in a project.
-
-<p align="center">
-    <img width="%" src="./docs/_static/architecture_en.drawio.svg">
-</p>
+The new ESP-DL includes the following new features:
 
 
-## Get Started with ESP-DL
+### ESP-DL standand model format
 
-For setup instructions to get started with ESP-DL, please read [Get Started](https://docs.espressif.com/projects/esp-dl/en/latest/esp32s3/get-started.html).
-
-> Please use [ESP-IDF](https://github.com/espressif/esp-idf) `release/v5.0` or above.
+The ESP-DL standard model format is a binary format used to store the model graph, weights, and other information.The file extension is .espdl.
 
 
+This format is similar to the ONNX model format, but replaces ONNX's [Protobuf](https://github.com/protocolbuffers/protobuf) with [FlatBuffers](https://github.com/google/flatbuffers), making models more lightweight and supporting zero-copy deserialization. This means that accessing the serialized data does not require first copying it into a separate part of memory. This makes data access much faster than formats that require more extensive processing, such as Protobuf.
 
-## Try Models in the Model Zoo
+### Model Quantization:[esp-ppq](https://github.com/espressif/esp-ppq)
 
-ESP-DL provides some model APIs in the [Model Zoo](./include/model_zoo), such as Human Face Detection, Human Face Recognition, Cat Face Detection, etc. You can use these models in the table below out of box.
+ESP-PPQ is a model quantization tool developed based on the open-source project PPQ. Users can export ESP-DL standard model by selecting the ESPDL target platform. ESP-PPQ inherits all the functions and documents from the PPQ project, allowing users to try different quantization algorithms and analyze quantization errors.
 
-| Name                 | API Example                                                  |
-| :-------------------- | :------------------------------------------------------------ |
-| Human Face Detection | [ESP-DL/examples/human_face_detect](examples/human_face_detect) |
-| Human Face Recognition | [ESP-DL/examples/face_recognition](examples/face_recognition)  |
-| Cat Face Detection | [ESP-DL/examples/cat_face_detect](examples/cat_face_detect)  |
+For more details please refer to [esp-ppq](https://github.com/espressif/esp-ppq).
+
+### Efficient Operator Implementation
+
+Based on the AI instruction,Common AI operators is efficiently implemented , including Conv2d, Pool2D, Gemm, Add, Mul, etc.  At the same time. Operators precisely aligned with the PyTorch operator implementation to ensure that the results obtained from esp-ppq tool are consistent with the results running on ESP-DL.
+
+### Static Memory Planner
+
+A new static memory planner is designed for Internal RAM/PSRAM memory structure. Considering that internal RAM has faster access speed but limited capacity, we provide an API that allows users to customize the size of the internal RAM that the model can use. The memory planner will automatically allocate different layers to the optimal memory location based on the size of the internal RAM specified by the user, ensuring that the overall running speed is more efficient while occupying the minimum amount of memory.
 
 
-## Deploy Your Own Models
+### Dual Core Scheduling
 
-For details please refer to [Manual Model Quantization and Deployment Guide](https://docs.espressif.com/projects/esp-dl/en/latest/esp32s3/tutorials/deploying-models.html).
+The automatic dual-core scheduling enables computationally intensive operators to fully utilize the computing power of dual-cores. Currently, Conv2D and DepthwiseConv2D support dual-core scheduling. Below are some of our experimental results:
+
+| |conv2d(input=224X224X3, kernel=3x3, output=112x112x16)|
+|:---:|:---:|
+|single core| 12.1.ms|
+|dual core| 6.2 ms|
 
 
-## Feedback
+## Support models
 
-For feature requests or bug reports, please submit an [issue](https://github.com/espressif/esp-dl/issues). We will prioritize the most anticipated features.
+[Pedestrian Detection](./models/pedestrian_detect/)
+
+[Human Face Detection](./models/human_face_detect/)
