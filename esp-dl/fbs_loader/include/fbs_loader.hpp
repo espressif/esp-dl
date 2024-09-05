@@ -11,9 +11,9 @@
 namespace fbs {
 
 typedef enum {
-    MODEL_LOCATION_IN_FLASH_RODATA = 0,     // The model in FLASH .rodata section
-    MODEL_LOCATION_IN_FLASH_PARTITION = 1,  // The model in PARTITION
-    MODEL_LOCATION_IN_SDCARD = 2, // The model in SDCard
+    MODEL_LOCATION_IN_FLASH_RODATA = 0,    // The model in FLASH .rodata section
+    MODEL_LOCATION_IN_FLASH_PARTITION = 1, // The model in SPIFFS
+    MODEL_LOCATION_IN_SDCARD = 2,          // The model in SDCard
     MODEL_LOCATION_MAX = MODEL_LOCATION_IN_SDCARD,
 } model_location_type_t;
 
@@ -32,7 +32,8 @@ public:
      *                                     The path of model while location is MODEL_LOCATION_IN_SDCARD.
      * @param location  The model location.
      */
-    FbsLoader(const char *rodata_address_or_partition_label_or_path = nullptr, model_location_type_t location = MODEL_LOCATION_IN_FLASH_RODATA);
+    FbsLoader(const char *rodata_address_or_partition_label_or_path = nullptr,
+              model_location_type_t location = MODEL_LOCATION_IN_FLASH_RODATA);
 
     /**
      * @brief Destroy the FbsLoader object.
@@ -56,7 +57,7 @@ public:
      * @param key   NULL or a 128-bit AES key, like {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a,
      * 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}.
      *
-     * @return  Return ESP_OK if parse successfully. Otherwise return ESP_FAIL.
+     * @return  Return nullptr if loading fails. Otherwise return the pointer of FbsModel.
      */
     FbsModel *load(const int model_index, const uint8_t *key = nullptr);
 
@@ -67,9 +68,16 @@ public:
      * @param key   NULL or a 128-bit AES key, like {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a,
      * 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
      *
-     * @return  Return ESP_OK if parse successfully. Otherwise return ESP_FAIL.
+     * @return  Return nullptr if loading fails. Otherwise return the pointer of FbsModel.
      */
     FbsModel *load(const char *model_name, const uint8_t *key = nullptr);
+
+    /**
+     * @brief Get the number of models.
+     *
+     * @return The number of models
+     */
+    int get_model_num();
 
     /**
      * @brief List all model's name

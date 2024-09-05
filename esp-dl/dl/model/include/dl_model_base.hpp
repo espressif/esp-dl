@@ -33,11 +33,12 @@ public:
 
     Model(const char *name,
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
+          int model_index = 0,
           int internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
           uint8_t *key = nullptr)
     {
-        if (this->load(name, location, key) == ESP_OK) {
+        if (this->load(name, location, model_index, key) == ESP_OK) {
             this->build(internal_size, mm_type);
         }
     }
@@ -53,13 +54,17 @@ public:
     /**
      * @brief Load model graph and parameters from flash or sdcard.
      *
-     * @param partition_label_or_path          The label of partition while location is MODEL_LOCATION_IN_FLASH.
-     *                                         The path of model while location is MODEL_LOCATION_IN_SDCARD.
+     * @param rodata_address_or_partition_label_or_path
+     *                                     The address of model data while location is MODEL_LOCATION_IN_FLASH_RODATA.
+     *                                     The label of partition while location is MODEL_LOCATION_IN_FLASH_PARTITION.
+     *                                     The path of model while location is MODEL_LOCATION_IN_SDCARD.
      * @param location      The model location.
+     * @param model_index   The model index of packed models.
      * @param key           The key of encrypted model.
      */
-    virtual esp_err_t load(const char *partition_label_or_path,
+    virtual esp_err_t load(const char *rodata_address_or_partition_label_or_path,
                            fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
+                           int model_index = 0,
                            uint8_t *key = nullptr);
 
     /**

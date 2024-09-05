@@ -1,5 +1,4 @@
 #include "fbs_loader.hpp"
-#include "string.h"
 #include "mbedtls/aes.h"
 
 static const char *TAG = "FbsLoader";
@@ -77,45 +76,12 @@ fbs_file_format_t get_model_format(const char *format)
     return FBS_FILE_FORMAT_UNK;
 }
 
-esp_err_t get_model_offset_by_name(const uint8_t *fbs_buf, const char *model_name, uint32_t &offset)
-{
-    const uint32_t *header = (const uint32_t *)fbs_buf;
-    uint32_t model_num = header[1];
-    int str_max_len = 128;
-    for (int i = 0; i < model_num; i++) {
-        if (str_max_len <= header[4 + i * 3]) {
-            str_max_len = header[4 + i * 3] + 1;
-        }
-    }
-    char *name = (char *)malloc(str_max_len);
-    int index = -1;
-    for (int i = 0; i < model_num; i++) {
-        int offset = header[3 + i * 3];
-        int length = header[4 + i * 3];
-        memcpy(name, fbs_buf + offset, length);
-        name[length] = '\0';
-        if (strcmp(name, model_name) == 0) {
-            index = i;
-            break;
-        }
-    }
-    free(name);
-
-    if (index < 0) {
-        ESP_LOGE(TAG, "Model %s not found.", model_name);
-        return ESP_FAIL;
-    }
-
-    offset = header[2 + index * 3];
-    return ESP_OK;
-}
-
 esp_err_t get_model_offset_by_index(const uint8_t *fbs_buf, uint32_t index, uint32_t &offset)
 {
     const uint32_t *header = (const uint32_t *)fbs_buf;
     uint32_t model_num = header[1];
     if (index >= model_num) {
-        ESP_LOGE(TAG, "Input index is out of range. The number of model:%d", model_num);
+        ESP_LOGE(TAG, "The model index is out of range.");
         return ESP_FAIL;
     }
 
@@ -131,7 +97,7 @@ FbsModel *create_fbs_model(const uint8_t *model_buf, const uint8_t *key)
     }
 
     uint32_t *header = (uint32_t *)model_buf;
-    uint32_t mode = header[1]; // cryptographic mode, 0: without encryption, 1: aes encryption, 2: shift encryption
+    uint32_t mode = header[1]; // cryptographic mode, 0: without encryption, 1: aes encryption
     uint32_t size = header[2];
     if (mode != 0 && key == NULL) {
         ESP_LOGE(TAG, "This is a cryptographic model, please enter the secret key!");
@@ -258,30 +224,31 @@ FbsModel *FbsLoader::load(const uint8_t *key)
 
 FbsModel *FbsLoader::load(const char *model_name, const uint8_t *key)
 {
+    return this->load(0, key);
+}
+
+int FbsLoader::get_model_num()
+{
     if (this->m_fbs_buf == nullptr) {
-        ESP_LOGE(TAG, "Model's flatbuffers is empty.");
-        return nullptr;
+        return 0;
     }
 
     uint8_t *model_buf = (uint8_t *)m_fbs_buf;
-    uint32_t offset = 0;
     fbs_file_format_t format = get_model_format((const char *)m_fbs_buf);
     if (format == FBS_FILE_FORMAT_PDL1) {
         // packed multiple espdl models
-        if (get_model_offset_by_name(model_buf, model_name, offset) != ESP_OK) {
-            return nullptr;
-        }
+        uint32_t *header = (uint32_t *)model_buf;
+        uint32_t model_num = header[1];
+        return model_num;
     } else if (format == FBS_FILE_FORMAT_EDL1) {
         // single espdl model
-        if (model_name != nullptr) {
-            ESP_LOGW(TAG, "There are only one model in the flatbuffers, ignore the input model name!");
-        }
-        offset = 0;
+        return 1;
     } else {
         ESP_LOGE(TAG, "Unsupported format, or the model file is corrupted!");
-        return nullptr;
+        return 0;
     }
-    return create_fbs_model(model_buf + offset, key);
+
+    return 0;
 }
 
 void FbsLoader::list_models()
