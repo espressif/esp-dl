@@ -13,3 +13,4 @@ mnist_model_example_optimized.onnx
 
 # Built docs
 _build/
+dependencies.lock

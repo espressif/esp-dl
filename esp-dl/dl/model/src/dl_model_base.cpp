@@ -37,10 +37,10 @@ Model::~Model()
     }
 }
 
-esp_err_t Model::load(const char *name, fbs::model_location_type_t location, uint8_t *key)
+esp_err_t Model::load(const char *name, fbs::model_location_type_t location, int model_index, uint8_t *key)
 {
     fbs_loader = new fbs::FbsLoader(name, location);
-    return this->load(fbs_loader->load(key));
+    return this->load(fbs_loader->load(model_index, key));
 }
 
 esp_err_t Model::load(fbs::FbsModel *fbs_model)
@@ -56,7 +56,15 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
     this->name = fbs_model->get_model_name();
     this->version = fbs_model->get_model_version();
     this->doc_string = fbs_model->get_model_doc_string();
-    ESP_LOGI(TAG, "model: %s, version: %lld, doc: %s \n", this->name.c_str(), this->version, this->doc_string.c_str());
+    if (this->doc_string.empty()) {
+        ESP_LOGI(TAG, "model:%s, version:%lld\n", this->name.c_str(), this->version);
+    } else {
+        ESP_LOGI(TAG,
+                 "model:%s, version:%lld, description:%s\n",
+                 this->name.c_str(),
+                 this->version,
+                 this->doc_string.c_str());
+    }
 
     // Construct the execution plan.
     execution_plan.clear();
@@ -66,6 +74,7 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
     for (int i = 0; i < sorted_nodes.size(); i++) {
         std::string node_name = sorted_nodes[i];
         std::string op_type = fbs_model->get_operation_type(node_name);
+        ESP_LOGI(TAG, "%s: %s", node_name.c_str(), op_type.c_str());
         if (op_type.empty()) {
             ESP_LOGE(TAG, "Can not find the operation %s", node_name.c_str());
             ret = ESP_FAIL;
@@ -163,10 +172,15 @@ void Model::run(TensorBase *input, runtime_mode_t mode)
     }
 }
 
-void Model::run(std::map<std::string, TensorBase *> &user_inputs, runtime_mode_t mode, std::map<std::string, TensorBase *> user_outputs)
+void Model::run(std::map<std::string, TensorBase *> &user_inputs,
+                runtime_mode_t mode,
+                std::map<std::string, TensorBase *> user_outputs)
 {
     if (user_inputs.size() != this->inputs.size()) {
-        ESP_LOGE(TAG, "The size of user_inputs(%d) don't equal with the size of model inputs(%d).", user_inputs.size(), this->inputs.size());
+        ESP_LOGE(TAG,
+                 "The size of user_inputs(%d) don't equal with the size of model inputs(%d).",
+                 user_inputs.size(),
+                 this->inputs.size());
         return;
     }
 
@@ -192,8 +206,10 @@ void Model::run(std::map<std::string, TensorBase *> &user_inputs, runtime_mode_t
             module->forward(this->memory_manager->tensors, mode);
             // get the intermediate tensor for debug.
             if (!user_outputs.empty()) {
-                for (auto user_outputs_iter = user_outputs.begin(); user_outputs_iter != user_outputs.end(); user_outputs_iter++) {
-                    int user_tensor_index = this->memory_manager->get_tensor_index(const_cast<std::string &>(user_outputs_iter->first));
+                for (auto user_outputs_iter = user_outputs.begin(); user_outputs_iter != user_outputs.end();
+                     user_outputs_iter++) {
+                    int user_tensor_index =
+                        this->memory_manager->get_tensor_index(const_cast<std::string &>(user_outputs_iter->first));
                     if (user_tensor_index >= 0) {
                         std::vector<int> outputs_index = module->get_outputs_index();
                         for (int i = 0; i < outputs_index.size(); i++) {
@@ -212,12 +228,12 @@ void Model::run(std::map<std::string, TensorBase *> &user_inputs, runtime_mode_t
     return;
 }
 
-std::map<std::string, TensorBase *>& Model::get_inputs()
+std::map<std::string, TensorBase *> &Model::get_inputs()
 {
     return this->inputs;
 }
 
-TensorBase* Model::get_intermediate(std::string name)
+TensorBase *Model::get_intermediate(std::string name)
 {
     if (name.empty()) {
         ESP_LOGE(TAG, "Invalid name.");
@@ -226,7 +242,7 @@ TensorBase* Model::get_intermediate(std::string name)
     return this->memory_manager->get_tensor(name);
 }
 
-std::map<std::string, TensorBase *>& Model::get_outputs()
+std::map<std::string, TensorBase *> &Model::get_outputs()
 {
     return this->outputs;
 }
