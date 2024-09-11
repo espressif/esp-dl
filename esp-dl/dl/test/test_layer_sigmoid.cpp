@@ -1,7 +1,7 @@
 #include "dl_layer_sigmoid.hpp"
 
-#include <memory>
 #include <math.h>
+#include <memory>
 
 #include "unity.h"
 
@@ -15,8 +15,7 @@ std::unique_ptr<O[]> sigmoid_float(const int output_exp, I *input_ptr, const int
     float scale = (input_exp > 0) ? (1 << input_exp) : ((float)1.0 / (1 << -input_exp));
     float rescale = (output_exp > 0) ? ((float)1.0 / (1 << output_exp)) : (1 << -output_exp);
 
-    for (size_t i = 0; i < size; i++)
-    {
+    for (size_t i = 0; i < size; i++) {
         float temp = exp((float)input_ptr[i] * scale);
         temp = temp / (temp + 1);
 
@@ -46,7 +45,8 @@ bool testcase()
     random_array(input.element, input.get_size());
 
     // latency.start();
-    std::unique_ptr<O[]> ref = sigmoid_float<I, O, type>(output_exponent, input.element, input.exponent, input.get_size());
+    std::unique_ptr<O[]> ref =
+        sigmoid_float<I, O, type>(output_exponent, input.element, input.exponent, input.get_size());
     // latency.end();
     // latency.print("float");
 

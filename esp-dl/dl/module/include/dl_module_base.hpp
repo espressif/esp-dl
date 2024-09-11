@@ -9,6 +9,12 @@
 #include <iostream>
 
 namespace dl {
+typedef enum {
+    MODULE_NON_INPLACE = 0,              /*<! Non inplace operation. the output will store to a separate memory>*/
+    MODULE_INPLACE_UNCHANGED_BUFFER = 1, /*<! Inplace operation which don't change the buffer data.>*/
+    MODULE_INPLACE_CHANGED_BUFFER = 2    /*<! Inplace operation which will change the buffer data. >*/
+} module_inplace_t;
+
 namespace module {
 /**
  * @brief Base class for module.
@@ -16,7 +22,7 @@ namespace module {
 class Module {
 public:
     char *name; /*<! name of module >*/
-    bool inplace;
+    module_inplace_t inplace;
     quant_type_t quant_type;
     std::vector<int> m_inputs_index;  /*<! tensor index of model's tensors that used for inputs >*/
     std::vector<int> m_outputs_index; /*<! tensor index of model's tensors that used for outputs >*/
@@ -26,7 +32,9 @@ public:
      *
      * @param name name of module.
      */
-    Module(const char *name = NULL, bool inplace = false, quant_type_t quant_type = QUANT_TYPE_NONE);
+    Module(const char *name = NULL,
+           module_inplace_t inplace = MODULE_NON_INPLACE,
+           quant_type_t quant_type = QUANT_TYPE_NONE);
 
     /**
      * @brief Destroy the Module object. Return resource.
@@ -125,7 +133,8 @@ static void module_forward_task(void *args)
     xSemaphoreGive(task->semaphore);
     vTaskDelete(NULL);
 }
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 /**
  * @brief Run the module with dual core and use semaphores to keep tasks in sync
  *
@@ -157,6 +166,7 @@ static void module_forward_dual_core(Module *op, void *args1, void *args2)
     xSemaphoreTake(semaphore, portMAX_DELAY);
     vSemaphoreDelete(semaphore);
 }
+#pragma GCC diagnostic pop
 
 #if DL_LOG_LAYER_LATENCY
 /**
@@ -180,7 +190,6 @@ static void module_forward_dual_core(Module *op, void *args1, void *args2)
 #define DL_LOG_LAYER_LATENCY_START()
 #define DL_LOG_LAYER_LATENCY_END(prefix, key)
 #endif
-
 
 } // namespace module
 } // namespace dl

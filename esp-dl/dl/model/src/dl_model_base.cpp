@@ -97,7 +97,7 @@ void Model::build(size_t internal_size, memory_manager_t mm_type, bool preload)
 {
     int max_available_internal_size = heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) * 0.8;
     if (internal_size > max_available_internal_size) {
-        ESP_LOGW(TAG, "The maximum available free internal memory is %d", max_available_internal_size);
+        ESP_LOGW(TAG, "The maximum available internal memory is %d", max_available_internal_size);
         internal_size = max_available_internal_size;
     }
 

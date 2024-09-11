@@ -1,13 +1,13 @@
-#include <limits.h>
 #include "unity.h"
 #include <iostream>
+#include <limits.h>
 
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "dl_variable.hpp"
 #include "dl_nn_pad.hpp"
+#include "dl_variable.hpp"
 
 #include "dl_layer_max2d.hpp"
 #include "dl_layer_pad.hpp"
@@ -18,7 +18,7 @@ using namespace std;
 TEST_CASE("PAD", "shape")
 {
     printf("--------------------------------------------\n");
-    Tensor<int8_t> x = Tensor<int8_t>::arange(2*3*4);
+    Tensor<int8_t> x = Tensor<int8_t>::arange(2 * 3 * 4);
     x.reshape({2, 3, 4}).print({}, "x");
     Tensor<int8_t> out;
     out = nn::pad(x, {1, 0, 1, 2, 0, 1}, {-1, -2, -3, -4, -5, -6}, PADDING_CONSTANT);
@@ -41,7 +41,7 @@ TEST_CASE("PAD", "shape")
 
     out = nn::pad(x, {1, 2, 1, 1, 1, 1}, {}, PADDING_SYMMETRIC);
     out.print({}, "PADDING_SYMMETRIC 1");
-    
+
     out = nn::pad(x, {1, 0, 1, 2, 0, 1}, {}, PADDING_SYMMETRIC);
     out.print({}, "PADDING_SYMMETRIC 2");
 
@@ -70,6 +70,4 @@ TEST_CASE("PAD", "shape")
     padlayer.build(x.reshape({2, 3, -1}), true);
     Tensor<int8_t> &output = padlayer.call(x);
     output.print({}, "layer");
-
-
 }

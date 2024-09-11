@@ -1,20 +1,21 @@
 #pragma once
 
 #include "dl_define_private.hpp"
-#include <string>
-#include <climits>
 #include "sdkconfig.h"
+#include <climits>
+#include <string>
 
-#define DL_LOG_LATENCY_UNIT 0   /*<! - 1: cycle */
-                                /*<! - 0: us */
-#define DL_LOG_NN_LATENCY 0     /*<! - 1: print the latency of each parts of nn */
-                                /*<! - 0: mute */
-#define DL_LOG_LAYER_LATENCY 0  /*<! - 1: print the latency of each parts of layer */
-                                /*<! - 0: mute */
-#define DL_LOG_CACHE_COUNT 0    /*<! - 1: print the cache hit/miss count only for esp32p4 */
-                                /*<! - 0: mute */
+#define DL_LOG_LATENCY_UNIT 0  /*<! - 1: cycle */
+                               /*<! - 0: us */
+#define DL_LOG_NN_LATENCY 0    /*<! - 1: print the latency of each parts of nn */
+                               /*<! - 0: mute */
+#define DL_LOG_LAYER_LATENCY 0 /*<! - 1: print the latency of each parts of layer */
+                               /*<! - 0: mute */
+#define DL_LOG_CACHE_COUNT 0   /*<! - 1: print the cache hit/miss count only for esp32p4 */
+                               /*<! - 0: mute */
 
-#if CONFIG_SPIRAM_SUPPORT || CONFIG_ESP32_SPIRAM_SUPPORT || CONFIG_ESP32S2_SPIRAM_SUPPORT || CONFIG_ESP32S3_SPIRAM_SUPPORT || CONFIG_SPIRAM
+#if CONFIG_SPIRAM_SUPPORT || CONFIG_ESP32_SPIRAM_SUPPORT || CONFIG_ESP32S2_SPIRAM_SUPPORT || \
+    CONFIG_ESP32S3_SPIRAM_SUPPORT || CONFIG_SPIRAM
 #define DL_SPIRAM_SUPPORT 1
 #else
 #define DL_SPIRAM_SUPPORT 0
@@ -84,56 +85,46 @@
 #define QIQO 0
 #define QIFO 1
 
-namespace dl
-{
-    typedef enum
-    {
-        QUANT_TYPE_NONE,         /*Unknown quantization type*/
-        QUANT_TYPE_FLOAT32,      /*<! Float>*/
-        QUANT_TYPE_SYMM_8BIT,    /*<! symmetry 8bit quantization (per tensor) >*/
-        QUANT_TYPE_SYMM_16BIT,   /*<! symmetry 16bit quantization (per tensor) >*/
-        QUANT_TYPE_SYMM_32BIT,   /*<! symmetry 32bit quantization (per tensor) >*/
-    } quant_type_t;
+namespace dl {
+typedef enum {
+    QUANT_TYPE_NONE,       /*Unknown quantization type*/
+    QUANT_TYPE_FLOAT32,    /*<! Float>*/
+    QUANT_TYPE_SYMM_8BIT,  /*<! symmetry 8bit quantization (per tensor) >*/
+    QUANT_TYPE_SYMM_16BIT, /*<! symmetry 16bit quantization (per tensor) >*/
+    QUANT_TYPE_SYMM_32BIT, /*<! symmetry 32bit quantization (per tensor) >*/
+} quant_type_t;
 
-    typedef enum
-    {
-        Linear,    /*<! Linear >*/
-        ReLU,      /*<! ReLU >*/
-        LeakyReLU, /*<! LeakyReLU >*/
-        PReLU,     /*<! PReLU >*/
-        // TODO: ReLU6
-    } activation_type_t;
+typedef enum {
+    Linear,    /*<! Linear >*/
+    ReLU,      /*<! ReLU >*/
+    LeakyReLU, /*<! LeakyReLU >*/
+    PReLU,     /*<! PReLU >*/
+    // TODO: ReLU6
+} activation_type_t;
 
-    typedef enum
-    {
-        PADDING_NOT_SET,
-        PADDING_VALID,      /*<! no padding >*/
-        PADDING_SAME_BEGIN, /*<! SAME in MXNET style >*/
-        PADDING_SAME_END,   /*<! SAME in TensorFlow style >*/
-    } padding_type_t;
+typedef enum {
+    PADDING_NOT_SET,
+    PADDING_VALID,      /*<! no padding >*/
+    PADDING_SAME_BEGIN, /*<! SAME in MXNET style >*/
+    PADDING_SAME_END,   /*<! SAME in TensorFlow style >*/
+} padding_type_t;
 
-    typedef enum
-    {
-        PADDING_EMPTY,
-        PADDING_CONSTANT,
-        PADDING_EDGE,
-        PADDING_REFLECT,
-        PADDING_SYMMETRIC,
-    } padding_mode_t;
+typedef enum {
+    PADDING_EMPTY,
+    PADDING_CONSTANT,
+    PADDING_EDGE,
+    PADDING_REFLECT,
+    PADDING_SYMMETRIC,
+} padding_mode_t;
 
-    typedef enum
-    {
-        RESIZE_NEAREST,
-        RESIZE_LINEAR,
-        RESIZE_CUBIC
-    } resize_mode_t;
+typedef enum { RESIZE_NEAREST, RESIZE_LINEAR, RESIZE_CUBIC } resize_mode_t;
 
-    /**
-     * @brief The mode of esp-dl runtime, single-core or multi-core
-    */
-    typedef enum {
-        RUNTIME_MODE_AUTO = 0,           // Automatically select single-core or multi-core runtime
-        RUNTIME_MODE_SINGLE_CORE = 1,    // Always select single-core runtime
-        RUNTIME_MODE_MULTI_CORE = 2,     // Always select multi-core runtime(dual core for ESP32-S3 and ESP32-P4)
-    } runtime_mode_t;
+/**
+ * @brief The mode of esp-dl runtime, single-core or multi-core
+ */
+typedef enum {
+    RUNTIME_MODE_AUTO = 0,        // Automatically select single-core or multi-core runtime
+    RUNTIME_MODE_SINGLE_CORE = 1, // Always select single-core runtime
+    RUNTIME_MODE_MULTI_CORE = 2,  // Always select multi-core runtime(dual core for ESP32-S3 and ESP32-P4)
+} runtime_mode_t;
 } // namespace dl

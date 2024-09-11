@@ -1,6 +1,6 @@
-#include <limits.h>
 #include "unity.h"
 #include <iostream>
+#include <limits.h>
 
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
@@ -15,34 +15,33 @@ TEST_CASE("Tensor", "shape")
 {
     Tensor<int8_t> b;
     b.set_shape({2, 3, 4}).malloc_element();
-    for(int i=0; i<b.get_size(); i++)
-    {
-        b.element[i] = i; 
+    for (int i = 0; i < b.get_size(); i++) {
+        b.element[i] = i;
     }
 
     Tensor<int8_t> c;
     c.set_shape({2, 3, 4}).malloc_element();
-    for(int i=0; i<b.get_size(); i++)
-    {
-        c.element[i] = i + 100; 
+    for (int i = 0; i < b.get_size(); i++) {
+        c.element[i] = i + 100;
     }
 
     Tensor<int8_t> x;
     x.set_shape({2, 3, 4, 3, 2}).malloc_element();
-    for(int i=0; i<x.get_size(); i++)
-    {
-        x.element[i] = i; 
+    for (int i = 0; i < x.get_size(); i++) {
+        x.element[i] = i;
     }
 
     Tensor<int8_t> a(b, true);
     a.flatten();
-    printf("\n---------------------------------------------------data---------------------------------------------------\n");
+    printf("\n---------------------------------------------------data--------------------------------------------------"
+           "-\n");
     a.print({}, "\na orig");
     b.print({}, "\nb orig");
     c.print({}, "\nc orig");
     x.print({}, "\nc orig");
 
-    printf("\n---------------------------------------------------slice---------------------------------------------------\n");
+    printf("\n---------------------------------------------------slice-------------------------------------------------"
+           "--\n");
     Tensor<int8_t> d = b.slice({0, -1, 1, 3, -1, 4});
     d.print({}, "\nslice 1");
 
@@ -65,14 +64,16 @@ TEST_CASE("Tensor", "shape")
     d.print({}, "\nslice 7");
 
     a.squeeze();
-    printf("\n---------------------------------------------------set value (T) ---------------------------------------------------\n");
+    printf("\n---------------------------------------------------set value (T) "
+           "---------------------------------------------------\n");
     d = b;
     d.set_value(-6);
     d.print({}, "\n set_value T 1");
     d.set_value(200);
     d.print({}, "\n set_value T 2");
 
-    printf("\n---------------------------------------------------set value (Tensor<T>)---------------------------------------------------\n");
+    printf("\n---------------------------------------------------set value "
+           "(Tensor<T>)---------------------------------------------------\n");
     Tensor<int8_t> temp;
 
     d.set_value(b);
@@ -98,13 +99,14 @@ TEST_CASE("Tensor", "shape")
 
     temp = a.slice({2, 3});
     d.set_value(temp);
-    d.print({}, "\nset_value Tensor 6"); 
+    d.print({}, "\nset_value Tensor 6");
 
     temp = a.slice({2, 3}).expand_dims({0, 2});
     d.expand_dims({0, 2}).set_value(temp);
     d.print({}, "\nset_value Tensor 7");
 
-    printf("\n---------------------------------------------------set value (slice, T)---------------------------------------------------\n");
+    printf("\n---------------------------------------------------set value (slice, "
+           "T)---------------------------------------------------\n");
     d.reshape({2, 3, -1}).set_value(b);
     d.set_value({0, 2, 1, 3, 0, 3}, 100);
     d.print({}, "\nset_value slice T 1");
@@ -124,7 +126,8 @@ TEST_CASE("Tensor", "shape")
     d.set_value({3, 99}, 66);
     d.print({}, "\nset_value slice T 5");
 
-    printf("\n---------------------------------------------------set value (slice, Tensor<T>)---------------------------------------------------\n");
+    printf("\n---------------------------------------------------set value (slice, "
+           "Tensor<T>)---------------------------------------------------\n");
 
     d.reshape({2, 3, -1});
     temp = c.slice({0, 2, 1, 3, 0, -1});
@@ -173,8 +176,9 @@ TEST_CASE("Tensor", "shape")
     d.set_value({0, 100, 0, 2, 1, 100, 0, 2, 0, 100}, temp);
     d.print({}, "set_value slice Tensor 9");
 
-    printf("\n---------------------------------------------------reverse---------------------------------------------------\n");
-    
+    printf("\n---------------------------------------------------reverse-----------------------------------------------"
+           "----\n");
+
     d = b;
     d.reverse({0});
     d.print({}, "\nreverse {0}");
@@ -186,7 +190,7 @@ TEST_CASE("Tensor", "shape")
     d = b;
     d.reverse({2});
     d.print({}, "\nreverse {2}");
-    
+
     d = b;
     d.reverse({-1});
     d.print({}, "\nreverse {-1}");

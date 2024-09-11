@@ -155,7 +155,9 @@ private:
     uint32_t offset;          // PSRAM offset
     uint32_t internal_offset; // Internal ram offset, used to allocate tensor on both PSRAM and internal ram
     bool is_internal;
-    TensorInfo *inplace_tensor;
+    TensorInfo *m_leader_tensor;
+    TensorInfo
+        *m_follower_dirty_tensor; // Only reference the follower tensor which will modify the data of leader tensor.
 
 public:
     TensorInfo(std::string &name,
@@ -168,60 +170,63 @@ public:
 
     ~TensorInfo() {}
 
-    void set_inplace_tensor(TensorInfo *tensor);
+    void set_inplace_leader_tensor(TensorInfo *tensor);
+
+    void set_inplace_follower_tensor(TensorInfo *tensor) { m_follower_dirty_tensor = tensor; }
+
+    TensorInfo *get_inplace_follower_tensor() { return m_follower_dirty_tensor; }
 
     void update_time(int new_time);
 
     TensorBase *create_tensor(void *internal_root, void *psram_root);
 
-
-    bool is_inplaced() { return this->inplace_tensor != nullptr; }
+    bool is_inplaced() { return this->m_leader_tensor != nullptr; }
 
     uint32_t get_offset()
     {
-        if (inplace_tensor) {
-            return inplace_tensor->get_offset();
+        if (m_leader_tensor) {
+            return m_leader_tensor->get_offset();
         }
         return this->offset;
     }
 
     void set_offset(uint32_t offset)
     {
-        if (inplace_tensor) {
-            inplace_tensor->set_offset(offset);
+        if (m_leader_tensor) {
+            m_leader_tensor->set_offset(offset);
         }
         this->offset = offset;
     }
 
     uint32_t get_internal_offset()
     {
-        if (inplace_tensor) {
-            return inplace_tensor->get_internal_offset();
+        if (m_leader_tensor) {
+            return m_leader_tensor->get_internal_offset();
         }
         return this->internal_offset;
     }
 
     bool get_internal_state()
     {
-        if (inplace_tensor) {
-            return inplace_tensor->get_internal_state();
+        if (m_leader_tensor) {
+            return m_leader_tensor->get_internal_state();
         }
         return this->is_internal;
     }
 
     void set_internal_state(bool is_internal)
     {
-        if (inplace_tensor) {
-            inplace_tensor->set_internal_state(is_internal);
+        if (m_leader_tensor) {
+            m_leader_tensor->set_internal_state(is_internal);
         }
         this->is_internal = is_internal;
     }
 
     void set_internal_offset(uint32_t offset)
     {
-        if (inplace_tensor) {
-            inplace_tensor->set_internal_offset(offset);
-            inplace_tensor->set_internal_state(true);
+        if (m_leader_tensor) {
+            m_leader_tensor->set_internal_offset(offset);
+            m_leader_tensor->set_internal_state(true);
         }
         this->is_internal = true;
         this->internal_offset = offset;
@@ -229,16 +234,16 @@ public:
 
     int get_time_end()
     {
-        if (inplace_tensor) {
-            return inplace_tensor->get_time_end();
+        if (m_leader_tensor) {
+            return m_leader_tensor->get_time_end();
         }
         return this->time_end;
     }
 
     int get_time_begin()
     {
-        if (inplace_tensor) {
-            return inplace_tensor->get_time_begin();
+        if (m_leader_tensor) {
+            return m_leader_tensor->get_time_begin();
         }
         return this->time_begin;
     }
@@ -248,7 +253,6 @@ public:
     std::string get_name() { return this->name; }
 
     std::vector<int> get_shape() { return this->shape; }
-
 
     void print()
     {

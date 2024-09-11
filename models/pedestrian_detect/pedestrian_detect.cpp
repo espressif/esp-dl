@@ -2,12 +2,16 @@
 
 PedestrianDetect::PedestrianDetect()
 {
-    this->model = (void *)new dl::detect::Pedestrian<int8_t>(0.5, 0.5, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}}, {0, 0, 0}, {1, 1, 1});
+    this->model = (void *)new dl::detect::Pedestrian<int8_t>(
+        0.5, 0.5, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}}, {0, 0, 0}, {1, 1, 1});
 }
 
 PedestrianDetect::~PedestrianDetect()
 {
-    delete (dl::detect::Pedestrian<int8_t> *)this->model;
+    if (this->model) {
+        delete (dl::detect::Pedestrian<int8_t> *)this->model;
+        this->model = nullptr;
+    }
 }
 
 template <typename T>

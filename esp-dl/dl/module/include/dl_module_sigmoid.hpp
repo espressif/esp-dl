@@ -1,7 +1,7 @@
 #pragma once
 
-#include "dl_module_base.hpp"
 #include "dl_math.hpp"
+#include "dl_module_base.hpp"
 #include "dl_sigmoid_lut.hpp"
 
 namespace dl {
@@ -15,18 +15,17 @@ namespace module {
  */
 class Sigmoid : public Module {
 private:
-    const int8_t* sigmoid_lut;  /*sigmoid loop up table*/
+    const int8_t *sigmoid_lut; /*sigmoid loop up table*/
 public:
     /**
      * @brief Construct a new Sigmoid object.
      *
      * @param name            name of module
-     * @param inplace         true: the output will store to input0
-     *                        false: the output will store to a separate memory
+     * @param inplace         inplace type.
      */
-    Sigmoid(const char *name = NULL, 
-           bool inplace = false,
-           quant_type_t quant_type = QUANT_TYPE_NONE) :
+    Sigmoid(const char *name = NULL,
+            module_inplace_t inplace = MODULE_NON_INPLACE,
+            quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, inplace, quant_type)
     {
     }
@@ -37,7 +36,7 @@ public:
     ~Sigmoid() {}
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
-    {   
+    {
         assert(input_shapes.size() == 1);
         std::vector<std::vector<int>> output_shapes(1, input_shapes[0]);
         return output_shapes;
@@ -83,9 +82,7 @@ public:
         DL_LOG_LAYER_LATENCY_END(this->name, "Sigmoid");
     }
 
-    void forward_args(void *args) 
-    {
-    }
+    void forward_args(void *args) {}
 
     /**
      * @brief deserialize Sigmoid module instance by node serialization information
@@ -98,15 +95,12 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new Sigmoid(node_name.c_str(), true, quant_type);
+            op = new Sigmoid(node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }
         return op;
     }
 
-    void print() 
-    {
-        ESP_LOGI("Sigmoid", "quant_type: %s.", quant_type_to_string(quant_type));
-    }
+    void print() { ESP_LOGI("Sigmoid", "quant_type: %s.", quant_type_to_string(quant_type)); }
 };
 } // namespace module
 } // namespace dl

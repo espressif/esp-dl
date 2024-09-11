@@ -1,12 +1,12 @@
 #pragma once
 
-#include "dl_module_base.hpp"
 #include "dl_base_resize2d.hpp"
+#include "dl_module_base.hpp"
 
 namespace dl {
 namespace module {
 /**
- * NOTE: 
+ * NOTE:
  *
  * @tparam feature_t supports int16_t and int8_t,
  *         - int16_t: stands for operation in int16_t quantize
@@ -14,9 +14,9 @@ namespace module {
  */
 class Resize2D : public Module {
 private:
-    const resize_mode_t resize_type;            /*<! one of RESIZE_NEAREST or RESIZE_LINEAR or RESIZE_CUBIC >*/
-    const float scale_y;                        /*<! scale in height >*/
-    const float scale_x;                        /*<! scale in width >*/
+    const resize_mode_t resize_type; /*<! one of RESIZE_NEAREST or RESIZE_LINEAR or RESIZE_CUBIC >*/
+    const float scale_y;             /*<! scale in height >*/
+    const float scale_x;             /*<! scale in width >*/
 public:
     /**
      * @brief Construct a new Resize2D object.
@@ -31,10 +31,7 @@ public:
              const float scale_y = 2.f,
              const float scale_x = 2.f,
              quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, false, quant_type), 
-        resize_type(resize_type), 
-        scale_y(scale_y), 
-        scale_x(scale_x)
+        Module(name, MODULE_NON_INPLACE, quant_type), resize_type(resize_type), scale_y(scale_y), scale_x(scale_x)
     {
     }
 
@@ -46,13 +43,14 @@ public:
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
         assert(input_shapes.size() == 1);
-        assert(input_shapes[0].size() == 3);
+        assert(input_shapes[0].size() == 4);
         int *input_shape = input_shapes[0].data();
 
-        std::vector<int> output_shape(3);
-        output_shape[0] = (int)(input_shape[0] * this->scale_y);
-        output_shape[1] = (int)(input_shape[1] * this->scale_x);
-        output_shape[2] = input_shape[2];
+        std::vector<int> output_shape(4);
+        output_shape[0] = input_shape[0];
+        output_shape[1] = (int)(input_shape[1] * this->scale_y);
+        output_shape[2] = (int)(input_shape[2] * this->scale_x);
+        output_shape[3] = input_shape[3];
 
         std::vector<std::vector<int>> output_shapes(1, output_shape);
         return output_shapes;
@@ -70,7 +68,7 @@ public:
         DL_LOG_LAYER_LATENCY_END(this->name, "Resize2D");
     }
 
-    void forward_args(void *args) 
+    void forward_args(void *args)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             base::resize2d<int8_t>(args);
@@ -85,11 +83,8 @@ public:
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
-        std::vector<base::resizeArgsType<T>> m_args = base::get_resize_operation_args<T>(output, 
-                                                                                        input,  
-                                                                                        RESIZE_NEAREST,
-                                                                                        scale_y,
-                                                                                        scale_x);
+        std::vector<base::resizeArgsType<T>> m_args =
+            base::get_resize_operation_args<T>(output, input, RESIZE_NEAREST, scale_y, scale_x);
         int task_size = m_args.size();
         if (task_size == 1) { // single task
             forward_args((void *)&m_args[0]);
@@ -122,10 +117,7 @@ public:
         return op;
     }
 
-    void print() 
-    {
-        ESP_LOGI("Resize2D", "quant_type: %s.", quant_type_to_string(quant_type));
-    }
+    void print() { ESP_LOGI("Resize2D", "quant_type: %s.", quant_type_to_string(quant_type)); }
 };
 } // namespace module
 } // namespace dl

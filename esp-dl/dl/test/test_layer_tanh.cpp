@@ -1,7 +1,7 @@
 #include "dl_layer_tanh.hpp"
 
-#include <memory>
 #include <math.h>
+#include <memory>
 
 #include "unity.h"
 
@@ -15,8 +15,7 @@ std::unique_ptr<O[]> tanh_float(const int output_exp, I *input_ptr, const int in
     float scale = DL_SCALE(input_exp + 1);
     float rescale = DL_RESCALE(output_exp);
 
-    for (size_t i = 0; i < size; i++)
-    {
+    for (size_t i = 0; i < size; i++) {
         float temp = exp((float)input_ptr[i] * scale);
         temp = (temp - 1.0f) / (temp + 1.0f);
 
@@ -42,10 +41,7 @@ bool testcase()
     int channel = 7;
 
     dl::Tensor<I> input;
-    input.set_exponent(input_exponent)
-        .set_shape({height, width, channel})
-        .set_auto_free(true)
-        .malloc_element();
+    input.set_exponent(input_exponent).set_shape({height, width, channel}).set_auto_free(true).malloc_element();
     random_array(input.element, input.get_size());
 
     latency.start();

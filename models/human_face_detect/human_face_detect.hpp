@@ -1,14 +1,13 @@
 #pragma once
 
+#include "dl_detect_mnp01_postprocessor.hpp"
+#include "dl_detect_msr01_postprocessor.hpp"
 #include "dl_image_preprocessor.hpp"
 #include "dl_model_base.hpp"
-#include "dl_detect_msr01_postprocessor.hpp"
-#include "dl_detect_mnp01_postprocessor.hpp"
 
 extern const uint8_t human_face_detect_espdl[] asm("_binary_human_face_detect_espdl_start");
 
-class HumanFaceDetect
-{
+class HumanFaceDetect {
 private:
     void *stage1_model;
     void *stage2_model;
@@ -26,7 +25,7 @@ public:
 
     /**
      * @brief Inference.
-     * 
+     *
      * @tparam T supports uint8_t and uint16_t
      *         - uint8_t: input image is RGB888
      *         - uint16_t: input image is RGB565
@@ -73,9 +72,18 @@ public:
 
     ~MSR01()
     {
-        delete this->model;
-        delete this->image_preprocessor;
-        delete this->postprocessor;
+        if (this->model) {
+            delete this->model;
+            this->model = nullptr;
+        }
+        if (this->image_preprocessor) {
+            delete this->image_preprocessor;
+            this->image_preprocessor = nullptr;
+        }
+        if (this->postprocessor) {
+            delete this->postprocessor;
+            this->postprocessor = nullptr;
+        }
     }
 
     void set_print_info(bool print_info)
@@ -143,9 +151,18 @@ public:
 
     ~MNP01()
     {
-        delete this->model;
-        delete this->image_preprocessor;
-        delete this->postprocessor;
+        if (this->model) {
+            delete this->model;
+            this->model = nullptr;
+        }
+        if (this->image_preprocessor) {
+            delete this->image_preprocessor;
+            this->image_preprocessor = nullptr;
+        }
+        if (this->postprocessor) {
+            delete this->postprocessor;
+            this->postprocessor = nullptr;
+        }
     };
 
     void set_print_info(bool print_info)
@@ -156,9 +173,7 @@ public:
     };
 
     template <typename T>
-    std::list<result_t> &run(T *input_element,
-                                         std::vector<int> input_shape,
-                                         std::list<result_t> &candidates)
+    std::list<result_t> &run(T *input_element, std::vector<int> input_shape, std::list<result_t> &candidates)
     {
         tool::Latency latency[3] = {tool::Latency(10), tool::Latency(10), tool::Latency(10)};
         this->postprocessor->clear_result();

@@ -116,7 +116,8 @@ TensorInfo::TensorInfo(std::string &name,
     dtype(dtype),
     exponent(exponent),
     is_internal(is_internal),
-    inplace_tensor(nullptr)
+    m_leader_tensor(nullptr),
+    m_follower_dirty_tensor(nullptr)
 {
     if (shape.size() > 0) {
         this->shape.push_back(shape[0]);
@@ -140,10 +141,10 @@ TensorInfo::TensorInfo(std::string &name,
     this->internal_offset = 0;
 }
 
-void TensorInfo::set_inplace_tensor(TensorInfo *tensor)
+void TensorInfo::set_inplace_leader_tensor(TensorInfo *tensor)
 {
-    if (tensor && this->get_size() <= tensor->get_size()) {
-        this->inplace_tensor = tensor;
+    this->m_leader_tensor = tensor;
+    if (tensor) {
         if (tensor->time_end < this->time_end || this->time_end == -1) {
             tensor->update_time(this->time_end);
         }
@@ -152,9 +153,9 @@ void TensorInfo::set_inplace_tensor(TensorInfo *tensor)
 
 void TensorInfo::update_time(int new_time)
 {
-    if (inplace_tensor) { // if inplace tensor is not null, update end time of inplace tensor
-        inplace_tensor->update_time(new_time);
-        this->time_end = inplace_tensor->time_end;
+    if (m_leader_tensor) { // if inplace tensor is not null, update end time of inplace tensor
+        m_leader_tensor->update_time(new_time);
+        this->time_end = m_leader_tensor->time_end;
     } else {
         if (new_time == -1) {
             this->time_end = -1;
@@ -171,13 +172,15 @@ void TensorInfo::update_time(int new_time)
 TensorBase *TensorInfo::create_tensor(void *internal_root, void *psram_root)
 {
     TensorBase *tensor = nullptr;
+    uint8_t *element = nullptr;
 
     if (this->is_internal) {
-        tensor = new TensorBase(shape, internal_root + this->get_internal_offset(), exponent, dtype, false);
+        element = (uint8_t *)internal_root + this->get_internal_offset();
     } else {
-        tensor = new TensorBase(shape, psram_root + this->get_offset(), exponent, dtype, false);
+        element = (uint8_t *)psram_root + this->get_offset();
     }
 
+    tensor = new TensorBase(shape, element, exponent, dtype, false);
     return tensor;
 }
 
@@ -266,8 +269,8 @@ void print_memory_list(const char *tag, std::list<MemoryChunk *> &memory_list)
             state = "true";
         }
         ESP_LOGI(tag,
-                 "[size:%dk, offset:%d, free:%s, tensor:%s] -> ",
-                 (*it)->size / 1000,
+                 "[size:%d, offset:%d, free:%s, tensor:%s] -> ",
+                 (*it)->size,
                  (*it)->offset,
                  state.c_str(),
                  name.c_str());
