@@ -5,9 +5,8 @@
  */
 
 #pragma once
-#include <stdint.h>
 #include "esp_err.h"
-
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,7 +21,6 @@ extern "C" {
  * @param linect Amount of lines to calculate
  */
 void pretty_effect_calc_lines(uint16_t *dest, int line, int frame, int linect);
-
 
 /**
  * @brief Initialize the effect

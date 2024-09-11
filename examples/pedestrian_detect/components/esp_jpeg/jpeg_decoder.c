@@ -4,14 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "jpeg_decoder.h"
+#include "esp_check.h"
+#include "esp_err.h"
+#include "esp_log.h"
+#include "esp_rom_caps.h"
+#include "esp_system.h"
 #include <string.h>
 #include "freertos/FreeRTOS.h"
-#include "esp_system.h"
-#include "esp_rom_caps.h"
-#include "esp_log.h"
-#include "esp_err.h"
-#include "esp_check.h"
-#include "jpeg_decoder.h"
 
 #if CONFIG_JD_USE_ROM
 /* When supported in ROM, use ROM functions */
@@ -33,13 +33,13 @@ typedef int jpeg_decode_out_t;
 
 static const char *TAG = "JPEG";
 
-#define LOBYTE(u16)     ((uint8_t)(((uint16_t)(u16)) & 0xff))
-#define HIBYTE(u16)     ((uint8_t)((((uint16_t)(u16))>>8) & 0xff))
+#define LOBYTE(u16) ((uint8_t)(((uint16_t)(u16)) & 0xff))
+#define HIBYTE(u16) ((uint8_t)((((uint16_t)(u16)) >> 8) & 0xff))
 
 #if defined(JD_FASTDECODE) && (JD_FASTDECODE == 2)
-#define JPEG_WORK_BUF_SIZE  65472
+#define JPEG_WORK_BUF_SIZE 65472
 #else
-#define JPEG_WORK_BUF_SIZE  3100    /* Recommended buffer size; Independent on the size of the image */
+#define JPEG_WORK_BUF_SIZE 3100 /* Recommended buffer size; Independent on the size of the image */
 #endif
 
 /* If not set JD_FORMAT, it is set in ROM to RGB888, otherwise, it can be set in config */
@@ -48,26 +48,26 @@ static const char *TAG = "JPEG";
 #endif
 
 /* Output color bytes from tjpgd (depends on JD_FORMAT) */
-#if (JD_FORMAT==0)
-#define ESP_JPEG_COLOR_BYTES    3
-#elif  (JD_FORMAT==1)
-#define ESP_JPEG_COLOR_BYTES    2
-#elif  (JD_FORMAT==2)
+#if (JD_FORMAT == 0)
+#define ESP_JPEG_COLOR_BYTES 3
+#elif (JD_FORMAT == 1)
+#define ESP_JPEG_COLOR_BYTES 2
+#elif (JD_FORMAT == 2)
 #error Grayscale image output format is not supported
-#define ESP_JPEG_COLOR_BYTES    1
+#define ESP_JPEG_COLOR_BYTES 1
 #endif
 
 /*******************************************************************************
-* Function definitions
-*******************************************************************************/
+ * Function definitions
+ *******************************************************************************/
 static uint8_t jpeg_get_div_by_scale(esp_jpeg_image_scale_t scale);
 static uint8_t jpeg_get_color_bytes(esp_jpeg_image_format_t format);
 
 static unsigned int jpeg_decode_in_cb(JDEC *jd, uint8_t *buff, unsigned int nbyte);
 static jpeg_decode_out_t jpeg_decode_out_cb(JDEC *jd, void *bitmap, JRECT *rect);
 /*******************************************************************************
-* Public API functions
-*******************************************************************************/
+ * Public API functions
+ *******************************************************************************/
 
 esp_err_t esp_jpeg_decode(esp_jpeg_image_cfg_t *cfg, esp_jpeg_image_output_t *img)
 {
@@ -112,8 +112,8 @@ err:
 }
 
 /*******************************************************************************
-* Private API functions
-*******************************************************************************/
+ * Private API functions
+ *******************************************************************************/
 
 static unsigned int jpeg_decode_in_cb(JDEC *dec, uint8_t *buff, unsigned int nbyte)
 {
@@ -158,8 +158,8 @@ static jpeg_decode_out_t jpeg_decode_out_cb(JDEC *dec, void *bitmap, JRECT *rect
     uint8_t *dst = (uint8_t *)cfg->outbuf;
     for (int y = rect->top; y <= rect->bottom; y++) {
         for (int x = rect->left; x <= rect->right; x++) {
-            if ( (JD_FORMAT == 0 && cfg->out_format == JPEG_IMAGE_FORMAT_RGB888) ||
-                    (JD_FORMAT == 1 && cfg->out_format == JPEG_IMAGE_FORMAT_RGB565) ) {
+            if ((JD_FORMAT == 0 && cfg->out_format == JPEG_IMAGE_FORMAT_RGB888) ||
+                (JD_FORMAT == 1 && cfg->out_format == JPEG_IMAGE_FORMAT_RGB565)) {
                 /* Output image format is same as set in TJPGD */
                 for (int b = 0; b < ESP_JPEG_COLOR_BYTES; b++) {
                     if (cfg->flags.swap_color_bytes) {

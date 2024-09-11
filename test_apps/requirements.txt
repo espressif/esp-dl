@@ -1,4 +1,4 @@
-idf-build-apps == 2.3.0
+idf-build-apps
 pytest
 pytest-embedded-idf
 pytest-embedded-serial-esp

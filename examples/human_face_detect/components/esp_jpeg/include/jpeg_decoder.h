@@ -28,8 +28,8 @@ typedef enum {
  *
  */
 typedef enum {
-    JPEG_IMAGE_FORMAT_RGB888 = 0,   /*!< Format RGB888 */
-    JPEG_IMAGE_FORMAT_RGB565,       /*!< Format RGB565 */
+    JPEG_IMAGE_FORMAT_RGB888 = 0, /*!< Format RGB888 */
+    JPEG_IMAGE_FORMAT_RGB565,     /*!< Format RGB565 */
 } esp_jpeg_image_format_t;
 
 /**
@@ -37,19 +37,19 @@ typedef enum {
  *
  */
 typedef struct esp_jpeg_image_cfg_s {
-    uint8_t *indata;        /*!< Input JPEG image */
-    uint32_t indata_size;   /*!< Size of input image  */
-    uint8_t *outbuf;        /*!< Output buffer */
-    uint32_t outbuf_size;   /*!< Output buffer size */
+    uint8_t *indata;                    /*!< Input JPEG image */
+    uint32_t indata_size;               /*!< Size of input image  */
+    uint8_t *outbuf;                    /*!< Output buffer */
+    uint32_t outbuf_size;               /*!< Output buffer size */
     esp_jpeg_image_format_t out_format; /*!< Output image format */
-    esp_jpeg_image_scale_t  out_scale; /*!< Output scale */
+    esp_jpeg_image_scale_t out_scale;   /*!< Output scale */
 
     struct {
-        uint8_t swap_color_bytes: 1; /*!< Swap first and last color bytes */
+        uint8_t swap_color_bytes : 1; /*!< Swap first and last color bytes */
     } flags;
 
     struct {
-        uint32_t read;  /*!< Internal count of read bytes */
+        uint32_t read; /*!< Internal count of read bytes */
     } priv;
 } esp_jpeg_image_cfg_t;
 
@@ -58,8 +58,8 @@ typedef struct esp_jpeg_image_cfg_s {
  *
  */
 typedef struct esp_jpeg_image_output_s {
-    uint16_t width;    /*!< Width of the output image */
-    uint16_t height;   /*!< Height of the output image */
+    uint16_t width;  /*!< Width of the output image */
+    uint16_t height; /*!< Height of the output image */
 } esp_jpeg_image_output_t;
 
 /**

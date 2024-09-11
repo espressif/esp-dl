@@ -1,0 +1,41 @@
+.pre_check_template:
+  stage: pre_check
+  image: python:3.9
+  tags: ["build", "amd64", "internet"]
+  dependencies: []
+
+check_readme_links:
+  extends:
+    - .pre_check_template
+    - .rules:pre_check:readme
+  allow_failure: false
+  script:
+    - python ${CI_PROJECT_DIR}/.gitlab/tool/check_readme_links.py
+
+check_pre_commit:
+  extends:
+    - .pre_check_template
+  before_script:
+    - pip install pre-commit
+  script:
+    - |
+      # merged results pipelines, by default
+      if [[ -n $CI_MERGE_REQUEST_SOURCE_BRANCH_SHA ]]; then
+        MODIFIED_FILES=$(git diff --name-only $CI_MERGE_REQUEST_DIFF_BASE_SHA $CI_MERGE_REQUEST_SOURCE_BRANCH_SHA)
+      # merge request pipelines, when the mr got conflicts
+      elif [[ -n $CI_MERGE_REQUEST_DIFF_BASE_SHA ]]; then
+        MODIFIED_FILES=$(git diff --name-only $CI_MERGE_REQUEST_DIFF_BASE_SHA $CI_COMMIT_SHA)
+      # other pipelines, like the protected branches pipelines
+      else
+        if [[ -z $CI_COMMIT_BEFORE_SHA || $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000" ]]; then
+          echo "Warning: CI_COMMIT_BEFORE_SHA is empty or invalid. Cannot determine modified files based on this value."
+          exit 0
+        else
+          MODIFIED_FILES=$(git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA)
+        fi
+      fi
+      # print the MODIFIED_FILES
+      echo "MODIFIED_FILES: $MODIFIED_FILES"
+    - pre-commit install --allow-missing-config -t pre-commit -t commit-msg
+    - export SKIP=check-copyright # copyrights has been checked in separate job
+    - pre-commit run --files $MODIFIED_FILES
