@@ -67,7 +67,7 @@
     EXAMPLE_CONFIG: "="
   script:
     - pip install --upgrade idf-component-manager
-    - pip install idf_build_apps
+    - pip install idf_build_apps==2.3.0
     - python test_apps/build_apps.py ${EXAMPLE_DIR} -t ${TARGET} -vv
 
 build_espdl_ops:
