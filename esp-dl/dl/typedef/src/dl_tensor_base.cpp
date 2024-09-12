@@ -150,7 +150,7 @@ TensorBase::TensorBase(
             this->auto_free = true;
             this->data = heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, caps);
             if (!this->data && caps != MALLOC_CAP_8BIT) {
-                ESP_LOGW(__FUNCTION__, "heap_caps_aligned_calloc failed from caps: %d, retry with MALLOC_CAP_8BIT");
+                ESP_LOGW(__FUNCTION__, "heap_caps_aligned_calloc failed, retry with MALLOC_CAP_8BIT");
                 this->caps = MALLOC_CAP_8BIT;
                 this->data = heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, MALLOC_CAP_8BIT);
             }
@@ -163,7 +163,7 @@ TensorBase::TensorBase(
         this->auto_free = true;
         this->data = heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, caps);
         if (!this->data && caps != MALLOC_CAP_8BIT) {
-            ESP_LOGW(__FUNCTION__, "heap_caps_aligned_calloc failed from caps: %d, retry with MALLOC_CAP_8BIT");
+            ESP_LOGW(__FUNCTION__, "heap_caps_aligned_calloc failed, retry with MALLOC_CAP_8BIT");
             this->caps = MALLOC_CAP_8BIT;
             this->data = heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, MALLOC_CAP_8BIT);
         }
