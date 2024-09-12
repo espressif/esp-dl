@@ -11,12 +11,11 @@ public:
      * @brief Construct a new RequantizeLinear object.
      *
      * @param name            name of module
-     * @param inplace         true: the output will store to input0
-     *                        false: the output will store to a separate memory
+     * @param inplace         inplace type.
      */
-    RequantizeLinear(const char *name = NULL, 
-           bool inplace = false,
-           quant_type_t quant_type = QUANT_TYPE_NONE) :
+    RequantizeLinear(const char *name = NULL,
+                     module_inplace_t inplace = MODULE_NON_INPLACE,
+                     quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, inplace, quant_type)
     {
     }
@@ -43,9 +42,7 @@ public:
         DL_LOG_LAYER_LATENCY_END(this->name, "RequantizeLinear");
     }
 
-    void forward_args(void *args) 
-    {
-    }
+    void forward_args(void *args) {}
 
     /**
      * @brief deserialize RequantizeLinear module instance by node serialization information
@@ -57,14 +54,11 @@ public:
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
 
         // Create module
-        op = new RequantizeLinear(node_name.c_str(), true, quant_type);
+        op = new RequantizeLinear(node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         return op;
     }
 
-    void print() 
-    {
-        ESP_LOGI("RequantizeLinear", "quant_type: %s.", quant_type_to_string(quant_type));
-    }
+    void print() { ESP_LOGI("RequantizeLinear", "quant_type: %s.", quant_type_to_string(quant_type)); }
 };
 } // namespace module
 } // namespace dl

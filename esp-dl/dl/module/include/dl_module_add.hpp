@@ -1,7 +1,8 @@
 #pragma once
 
-#include "dl_module_base.hpp"
 #include "dl_base_add2d.hpp"
+#include "dl_base_shape.hpp"
+#include "dl_module_base.hpp"
 
 namespace dl {
 namespace module {
@@ -18,10 +19,11 @@ public:
      * @brief Construct a new Add2D object.
      *
      * @param name            name of module
-     * @param inplace         true: the output will store to input0
-     *                        false: the output will store to a separate memory
+     * @param inplace         inplace type.
      */
-    Add2D(const char *name = NULL, bool inplace = false, quant_type_t quant_type = QUANT_TYPE_NONE) :
+    Add2D(const char *name = NULL,
+          module_inplace_t inplace = MODULE_NON_INPLACE,
+          quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, inplace, quant_type)
     {
     }
@@ -34,15 +36,11 @@ public:
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
         assert(input_shapes.size() == 2);
-        assert(input_shapes[0].size() == 3 && input_shapes[1].size() == 3);
 
-        std::vector<std::vector<int>> shapes;
-        if (input_shapes[0][2] >= input_shapes[1][2])
-            shapes = std::vector<std::vector<int>>(1, input_shapes[0]);
-        else
-            shapes = std::vector<std::vector<int>>(1, input_shapes[1]);
-        
-        return shapes;
+        // support multidirectional broadcasting
+        std::vector<int> output_shape = base::get_multidirectional_broadcasting_shape(input_shapes[0], input_shapes[1]);
+
+        return std::vector<std::vector<int>>(1, output_shape);
     }
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
@@ -57,7 +55,7 @@ public:
         // DL_LOG_LAYER_LATENCY_END(this->name, "Add2D");
     }
 
-    void forward_args(void *args) 
+    void forward_args(void *args)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             base::add2d<int8_t>(args);
@@ -73,12 +71,8 @@ public:
         TensorBase *input1 = tensors[m_inputs_index[1]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
-        std::vector<base::arithArgsType<T>> m_args = base::get_arith_operation_args<T>(output, 
-                                                                                       input0, 
-                                                                                       input1, 
-                                                                                       Linear,
-                                                                                       nullptr,
-                                                                                       mode);
+        std::vector<base::arithArgsType<T>> m_args =
+            base::get_arith_operation_args<T>(output, input0, input1, Linear, nullptr, mode);
         int task_size = m_args.size();
         if (task_size == 1) { // single task
             forward_args((void *)&m_args[0]);
@@ -100,15 +94,12 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new Add2D(NULL, true, quant_type);
+            op = new Add2D(NULL, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }
         return op;
     }
 
-    void print() 
-    {
-        ESP_LOGI("Add2D", "quant_type: %s.", quant_type_to_string(quant_type));
-    }
+    void print() { ESP_LOGI("Add2D", "quant_type: %s.", quant_type_to_string(quant_type)); }
 };
 } // namespace module
 } // namespace dl

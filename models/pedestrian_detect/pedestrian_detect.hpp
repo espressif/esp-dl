@@ -4,10 +4,9 @@
 #include "dl_image_preprocessor.hpp"
 #include "dl_model_base.hpp"
 
-extern const uint8_t pedestrian_espdl[] asm("_binary_pedestrian_espdl_start");
+extern const uint8_t pedestrian_espdl[] asm("_binary_pedestrian_detect_espdl_start");
 
-class PedestrianDetect
-{
+class PedestrianDetect {
 private:
     void *model;
 
@@ -24,7 +23,7 @@ public:
 
     /**
      * @brief Inference.
-     * 
+     *
      * @tparam T supports uint8_t and uint16_t
      *         - uint8_t: input image is RGB888
      *         - uint16_t: input image is RGB565
@@ -71,9 +70,18 @@ public:
 
     ~Pedestrian()
     {
-        delete this->model;
-        delete this->image_preprocessor;
-        delete this->postprocessor;
+        if (this->model) {
+            delete this->model;
+            this->model = nullptr;
+        }
+        if (this->image_preprocessor) {
+            delete this->image_preprocessor;
+            this->image_preprocessor = nullptr;
+        }
+        if (this->postprocessor) {
+            delete this->postprocessor;
+            this->postprocessor = nullptr;
+        }
     }
 
     void set_print_info(bool print_info)

@@ -35,12 +35,12 @@ typedef enum {
 
 /**
  * quantize float data into integer data
-*/
+ */
 int quantize(float input, float scale, float quant_min, float quant_max);
 
 /**
  * @brief dequantize integer data into float data
-*/
+ */
 float dequantize(int input, float scale);
 
 /**
@@ -116,23 +116,23 @@ public:
 
     /**
      * @brief Assign tensor to this tensor
-     * 
+     *
      * @param tensor
-     * 
+     *
      * @return ture if assign successfully, otherwise false.
-    */
+     */
     bool assign(TensorBase *tensor);
 
     /**
      * @brief Assign data to this tensor
-     * 
+     *
      * @param shape
      * @param element
      * @param exponent
      * @param dtype
-     * 
+     *
      * @return ture if assign successfully, otherwise false.
-    */
+     */
     bool assign(std::vector<int> shape, const void *element, int exponent, dtype_t dtype);
 
     /**
@@ -152,20 +152,20 @@ public:
         int align = 16 / this->get_dtype_bytes();
         return this->size % align == 0 ? this->size : this->size + align - this->size % align;
     }
-    
+
     /**
      * @brief Get the dtype size, in bytes.
      *
      * @return  the size of dtype.
      */
-    size_t get_dtype_bytes() {return dtype_sizeof(this->dtype);}
+    size_t get_dtype_bytes() { return dtype_sizeof(this->dtype); }
 
     /**
      * @brief Get the dtype string of Tensor.
      *
      * @return  the string of Tensor's dtype.
      */
-    const char* get_dtype_string() {return dtype_to_string(this->dtype);}
+    const char *get_dtype_string() { return dtype_to_string(this->dtype); }
 
     /**
      * @brief Get the bytes of Tensor.
@@ -175,10 +175,11 @@ public:
     int get_bytes() { return this->size * this->get_dtype_bytes(); }
 
     /**
-     * @brief Get element pointer. If cache(preload data pointer) is not null, return cache pointer, otherwise return data pointer.
-     * 
+     * @brief Get element pointer. If cache(preload data pointer) is not null, return cache pointer, otherwise return
+     * data pointer.
+     *
      * @return  the pointer of Tensor's element
-    */
+     */
     virtual void *get_element_ptr()
     {
         if (this->cache) {
@@ -190,7 +191,7 @@ public:
 
     /**
      * @brief Get the index of each dims
-     * 
+     *
      * @param element_index the index of the element
      * @return std::vector<int> the index of each dims
      */
@@ -207,14 +208,47 @@ public:
      * @brief Set the shape of Tensor.
      * @param shape the shape of Tensor.
      * @return  Tensor.
-    */
+     */
     TensorBase &set_shape(const std::vector<int> shape);
 
     std::vector<int> get_shape() { return this->shape; }
 
+    dtype_t get_dtype() { return this->dtype; }
+
     size_t set_preload_addr(void *addr, size_t size);
 
     void reset_bias_layout();
+
+    /**
+     * @brief Change a new shape to the Tensor without changing its data.
+     *
+     * @param shape  the target shape
+     * @return TensorBase&  self
+     */
+    TensorBase &reshape(std::vector<int> shape);
+
+    template <typename T>
+    TensorBase *transpose(T *input_element,
+                          std::vector<int> &input_shape,
+                          std::vector<int> &input_axis_offset,
+                          std::vector<int> &perm);
+
+    /**
+     * @brief Reverse or permute the axes of the input Tensor
+     *
+     * @param input the input Tensor
+     * @param perm the new arangement of the dims. if perm == {}, the dims arangement will be reversed.
+     * @return TensorBase *self
+     */
+    TensorBase *transpose(TensorBase *input, std::vector<int> perm = {});
+
+    /**
+     * @brief Get the index of element
+     *
+     * @param axis_index the index of each dims
+     * @return int the index of element
+     */
+    int get_element_index(const std::vector<int> axis_index);
 
     // int& operator[](size_t index) {
     //     if (index >= this->size) {

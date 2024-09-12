@@ -54,7 +54,7 @@ public:
            const char *name = NULL,
            const int group = 1,
            quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, false, quant_type),
+        Module(name, MODULE_NON_INPLACE, quant_type),
         filter(filter),
         bias(bias),
         stride_y(stride_y),
@@ -92,15 +92,18 @@ public:
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
         assert(input_shapes.size() == 1);
-        assert(input_shapes[0].size() == 3);
+        assert(input_shapes[0].size() == 4);
         int *input_shape = input_shapes[0].data();
         int *filter_shape = filter->shape.data();
-        std::vector<int> output_shape(3);
+        std::vector<int> output_shape(4);
 
         // refer to https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html
-        output_shape[0] = (input_shape[0] + padding[0] + padding[1] - dilation_y * (filter_shape[0] - 1) - 1) / stride_y + 1;
-        output_shape[1] = (input_shape[1] + padding[2] + padding[3] - dilation_x * (filter_shape[1] - 1) - 1) / stride_x + 1;
-        output_shape[2] = group == 1 ? filter_shape[3] : input_shape[2];
+        output_shape[0] = input_shape[0];
+        output_shape[1] =
+            (input_shape[1] + padding[0] + padding[1] - dilation_y * (filter_shape[0] - 1) - 1) / stride_y + 1;
+        output_shape[2] =
+            (input_shape[2] + padding[2] + padding[3] - dilation_x * (filter_shape[1] - 1) - 1) / stride_x + 1;
+        output_shape[3] = group == 1 ? filter_shape[3] : input_shape[3];
 
         std::vector<std::vector<int>> output_shapes(1, output_shape);
         return output_shapes;

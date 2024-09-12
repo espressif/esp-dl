@@ -1,15 +1,19 @@
 #pragma once
-#include "dl_module_conv2d.hpp"
-#include "dl_module_mul.hpp"
 #include "dl_module_add.hpp"
-#include "dl_module_resize2d.hpp"
-#include "dl_module_global_avg_pool2d.hpp"
 #include "dl_module_avg_pool2d.hpp"
+#include "dl_module_clip.hpp"
 #include "dl_module_concat.hpp"
-#include "dl_module_sigmoid.hpp"
+#include "dl_module_conv2d.hpp"
+#include "dl_module_flatten.hpp"
 #include "dl_module_gemm.hpp"
-#include "dl_module_requantize_linear.hpp"
+#include "dl_module_global_avg_pool2d.hpp"
+#include "dl_module_mul.hpp"
 #include "dl_module_prelu.hpp"
+#include "dl_module_requantize_linear.hpp"
+#include "dl_module_reshape.hpp"
+#include "dl_module_resize2d.hpp"
+#include "dl_module_sigmoid.hpp"
+#include "dl_module_transpose.hpp"
 #include "fbs_loader.hpp"
 #include <functional>
 #include <iostream>
@@ -55,6 +59,10 @@ public:
             this->register_module("DequantizeLinear", RequantizeLinear::deserialize);
             this->register_module("RequantizeLinear", RequantizeLinear::deserialize);
             this->register_module("PRelu", PRelu::deserialize);
+            this->register_module("Clip", Clip::deserialize);
+            this->register_module("Flatten", Flatten::deserialize);
+            this->register_module("Reshape", Reshape::deserialize);
+            this->register_module("Transpose", Transpose::deserialize);
         }
     }
 

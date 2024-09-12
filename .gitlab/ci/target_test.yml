@@ -1,0 +1,75 @@
+variables:
+  DOCKER_TARGET_TEST_v5_3_ENV_IMAGE: "$CI_DOCKER_REGISTRY/target-test-env-v5.3:1"
+
+.test_template: &test_template
+  image: DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  stage: target_test
+  timeout: 4 hour
+  variables:
+    GIT_DEPTH: 1
+    SUBMODULES_TO_FETCH: "none"
+  cache:
+    # Usually do not need submodule-cache in target_test
+    - key: pip-cache
+      paths:
+        - .cache/pip
+      policy: pull
+
+.pytest_template:
+  <<: *test_template
+  artifacts:
+    when: always
+    paths:
+      - XUNIT_RESULT.xml
+      - pytest_embedded_log/
+    reports:
+      junit: XUNIT_RESULT.xml
+    expire_in: 4 days
+  variables:
+    TEST_TARGET: 'esp32p4'
+    TEST_FOLDER: 'test_apps/esp-dl'
+    TEST_ENV: 'esp32p4'
+  script:
+    - pip install -r test_apps/requirements.txt
+    - pytest ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} --junitxml=XUNIT_RESULT.xml
+
+.pytest_ops_template:
+  <<: *test_template
+  artifacts:
+    when: always
+    paths:
+      - XUNIT_RESULT.xml
+      - pytest_embedded_log/
+    reports:
+      junit: XUNIT_RESULT.xml
+    expire_in: 4 days
+  variables:
+    TEST_TARGET: 'esp32p4'
+    TEST_ENV: 'esp32p4'
+    TEST_MODEL: 'conv2d'
+    TEST_FOLDER: test_apps/esp-dl/pytest_espdl_ops.py
+  script:
+    - pip install -r test_apps/requirements.txt
+    - python test_apps/esp-dl/gen_op_test.py test_apps/esp-dl/models --pytest_file ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} 
+    - pytest ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} --model ${TEST_MODEL} --junitxml=XUNIT_RESULT.xml
+
+test_espdl_ops:
+  extends:
+    - .pytest_ops_template
+    - .rules:build:espdl_ops
+  needs:
+    - job: "build_espdl_ops"
+      artifacts: true
+      optional: true
+  parallel:
+    matrix:
+      - IDF_TARGET: esp32p4
+        IDF_VERSION: "5.3"
+        TEST_MODEL: "all"
+  tags:
+    - ${IDF_TARGET}
+  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  variables:
+    TEST_TARGET: ${IDF_TARGET}
+    TEST_ENV: ${IDF_TARGET}
+    TEST_MODEL: ${TEST_MODEL}

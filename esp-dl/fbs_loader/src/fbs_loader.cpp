@@ -111,8 +111,6 @@ FbsModel *create_fbs_model(const uint8_t *model_buf, const uint8_t *key)
         uint8_t *m_data = (uint8_t *)heap_caps_malloc(size, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
         fbs_aes_crypt_ctr(model_buf, m_data, size, key);
         return new FbsModel(m_data, true);
-    } else {
-        ESP_LOGE(TAG, "The model file is corrupted or is an unsupported file type");
     }
 
     return nullptr;
@@ -131,7 +129,6 @@ FbsLoader::FbsLoader(const char *name, model_location_type_t location) :
         const esp_partition_t *partition =
             esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_ANY, name);
         if (partition) {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
             int free_pages = spi_flash_mmap_get_free_pages(SPI_FLASH_MMAP_DATA);
             uint32_t storage_size = free_pages * 64 * 1024; // Byte
             ESP_LOGI(TAG, "The storage free size is %ld KB", storage_size / 1024);
@@ -148,22 +145,6 @@ FbsLoader::FbsLoader(const char *name, model_location_type_t location) :
                                                ESP_PARTITION_MMAP_DATA,
                                                &this->m_fbs_buf,
                                                static_cast<esp_partition_mmap_handle_t *>(this->m_mmap_handle)));
-#else
-            int free_pages = spi_flash_mmap_get_free_pages(SPI_FLASH_MMAP_DATA);
-            uint32_t storage_size = free_pages * 64 * 1024; // Byte
-            ESP_LOGI(TAG, "The storage free size is %d KB", storage_size / 1024);
-            ESP_LOGI(TAG, "The partition size is %d KB", partition->size / 1024);
-            if (storage_size < partition->size) {
-                ESP_LOGE(TAG, "The storage free size of board is less than %s partition size", partition->label);
-            }
-            this->m_mmap_handle = (spi_flash_mmap_handle_t *)malloc(sizeof(spi_flash_mmap_handle_t));
-            ESP_ERROR_CHECK(esp_partition_mmap(partition,
-                                               0,
-                                               partition->size,
-                                               SPI_FLASH_MMAP_DATA,
-                                               &this->m_fbs_buf,
-                                               static_cast<spi_flash_mmap_handle_t *>(this->m_mmap_handle)));
-#endif
         } else {
             ESP_LOGE(TAG, "Can not find %s in partition table", name);
         }
@@ -175,11 +156,7 @@ FbsLoader::FbsLoader(const char *name, model_location_type_t location) :
 FbsLoader::~FbsLoader()
 {
     if (m_location == MODEL_LOCATION_IN_FLASH_PARTITION) {
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
         esp_partition_munmap(*static_cast<esp_partition_mmap_handle_t *>(this->m_mmap_handle)); // support esp-idf v5
-#else
-        spi_flash_munmap(*static_cast<spi_flash_mmap_handle_t *>(this->m_mmap_handle)); // support esp-idf v4
-#endif
         if (this->m_mmap_handle) {
             free(this->m_mmap_handle);
             this->m_mmap_handle = nullptr;

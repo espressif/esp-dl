@@ -3,17 +3,15 @@
  *
  * SPDX-License-Identifier: Unlicense OR CC0-1.0
  */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include "sdkconfig.h"
 #include "unity.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-
-#include "../include/jpeg_decoder.h"
 #include "test_logo_jpg.h"
 #include "test_logo_rgb888.h"
+#include "../include/jpeg_decoder.h"
 
 #define TESTW 46
 #define TESTH 46
@@ -32,17 +30,15 @@ TEST_CASE("Test JPEG decompression library", "[esp_jpeg]")
     }
 
     /* JPEG decode */
-    esp_jpeg_image_cfg_t jpeg_cfg = {
-        .indata = (uint8_t *)logo_jpg,
-        .indata_size = sizeof(logo_jpg),
-        .outbuf = decoded,
-        .outbuf_size = decoded_outsize,
-        .out_format = JPEG_IMAGE_FORMAT_RGB888,
-        .out_scale = JPEG_IMAGE_SCALE_0,
-        .flags = {
-            .swap_color_bytes = 0,
-        }
-    };
+    esp_jpeg_image_cfg_t jpeg_cfg = {.indata = (uint8_t *)logo_jpg,
+                                     .indata_size = sizeof(logo_jpg),
+                                     .outbuf = decoded,
+                                     .outbuf_size = decoded_outsize,
+                                     .out_format = JPEG_IMAGE_FORMAT_RGB888,
+                                     .out_scale = JPEG_IMAGE_SCALE_0,
+                                     .flags = {
+                                         .swap_color_bytes = 0,
+                                     }};
     esp_jpeg_image_output_t outimg;
     esp_err_t err = esp_jpeg_decode(&jpeg_cfg, &outimg);
     TEST_ASSERT_EQUAL(err, ESP_OK);
@@ -72,7 +68,6 @@ TEST_CASE("Test JPEG decompression library", "[esp_jpeg]")
         }
         printf("%c%c", ' ', '\n');
     }
-
 
     free(decoded);
 }

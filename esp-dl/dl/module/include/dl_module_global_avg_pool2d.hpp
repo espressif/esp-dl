@@ -1,12 +1,12 @@
 #pragma once
 
-#include "dl_module_base.hpp"
 #include "dl_base_avg_pool2d.hpp"
+#include "dl_module_base.hpp"
 
 namespace dl {
 namespace module {
 /**
- * NOTE: 
+ * NOTE:
  *
  * @tparam feature_t supports int16_t and int8_t,
  *         - int16_t: stands for operation in int16_t quantize
@@ -20,7 +20,7 @@ public:
      * @param name            name of module
      */
     GlobalAveragePool2D(const char *name = NULL, quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, false, quant_type)
+        Module(name, MODULE_NON_INPLACE, quant_type)
     {
     }
 
@@ -32,11 +32,11 @@ public:
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
         assert(input_shapes.size() == 1);
-        assert(input_shapes[0].size() == 3);
+        assert(input_shapes[0].size() == 4);
         int *input_shape = input_shapes[0].data();
 
-        std::vector<int> output_shape(3, 1);
-        output_shape[2] = input_shape[2];
+        std::vector<int> output_shape(4, 1);
+        output_shape[3] = input_shape[3];
 
         std::vector<std::vector<int>> output_shapes(1, output_shape);
         return output_shapes;
@@ -54,7 +54,7 @@ public:
         DL_LOG_LAYER_LATENCY_END(this->name, "GlobalAveragePool2D");
     }
 
-    void forward_args(void *args) 
+    void forward_args(void *args)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             base::avg_pool2d<int8_t>(args);
@@ -69,13 +69,8 @@ public:
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
-        std::vector<base::PoolArgsType<T>> m_args = base::get_pool_args<T>(output, 
-                                                                           input,
-                                                                           {0, 0, 0, 0},
-                                                                           {input->shape[0], input->shape[1]},
-                                                                           1,
-                                                                           1,
-                                                                           mode);
+        std::vector<base::PoolArgsType<T>> m_args =
+            base::get_pool_args<T>(output, input, {0, 0, 0, 0}, {input->shape[1], input->shape[2]}, 1, 1, mode);
         int task_size = m_args.size();
         if (task_size == 1) { // single task
             forward_args((void *)&m_args[0]);
@@ -102,10 +97,7 @@ public:
         return op;
     }
 
-    void print() 
-    {
-        ESP_LOGI("GlobalAveragePool2D", "quant_type: %s.", quant_type_to_string(quant_type));
-    }
+    void print() { ESP_LOGI("GlobalAveragePool2D", "quant_type: %s.", quant_type_to_string(quant_type)); }
 };
 } // namespace module
 } // namespace dl

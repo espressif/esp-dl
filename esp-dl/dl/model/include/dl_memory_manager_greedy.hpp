@@ -4,14 +4,14 @@
 
 namespace dl {
 namespace memory {
-    
+
 /**
  * @brief Greedy memory manager, allocate memory for each tensor in the order of the execution plan.
-*/
+ */
 class MemoryManagerGreedy : public MemoryManagerBase {
     // refer to https://zhuanlan.zhihu.com/p/423688020
 private:
-    std::list<MemoryChunk *> memory_list;          //
+    std::list<MemoryChunk *> memory_list; //
     std::list<MemoryChunk *> free_list;
     std::list<MemoryChunk *> internal_memory_list;
     std::list<MemoryChunk *> internal_free_list;
@@ -24,7 +24,9 @@ private:
 
     int simulate_with_internal_memory(std::vector<TensorInfo *> &tensor_info, int node_num);
 
-    MemoryChunk *free_tensor(TensorInfo *tensor, std::list<MemoryChunk *> &memory_list, std::list<MemoryChunk *> &free_list);
+    MemoryChunk *free_tensor(TensorInfo *tensor,
+                             std::list<MemoryChunk *> &memory_list,
+                             std::list<MemoryChunk *> &free_list);
 
     MemoryChunk *alloc_tensor(TensorInfo *tensor, int mode = 0);
 
@@ -32,9 +34,8 @@ private:
 
     void free_memory_list();
 
-
 public:
-    MemoryManagerGreedy(int max_internal_size, int alignment=16) : MemoryManagerBase(max_internal_size, alignment) {}
+    MemoryManagerGreedy(int max_internal_size, int alignment = 16) : MemoryManagerBase(max_internal_size, alignment) {}
 
     ~MemoryManagerGreedy() { this->free_memory_list(); }
 
@@ -49,9 +50,9 @@ public:
 
     /**
      * @brief Set preload address for module's parameters
-     * 
+     *
      * @param execution_plan   Topological sorted module list
-    */
+     */
     void set_preload_addr(std::vector<dl::module::Module *> execution_plan);
 
     /**

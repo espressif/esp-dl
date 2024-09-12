@@ -1,7 +1,7 @@
 #pragma once
 
-#include "dl_module_base.hpp"
 #include "dl_base_prelu.hpp"
+#include "dl_module_base.hpp"
 
 namespace dl {
 namespace module {
@@ -15,36 +15,32 @@ namespace module {
 class PRelu : public Module {
 private:
     TensorBase *alpha;
+
 public:
     /**
      * @brief Construct a new PRelu object.
      *
      * @param name            name of module
      * @param alpha           learnable param alpha of prelu, slope for neg part.
-     * @param inplace         true: the output will store to input0
-     *                        false: the output will store to a separate memory
+     * @param inplace         inplace type.
      */
-    PRelu(const char *name = NULL, 
+    PRelu(const char *name = NULL,
           TensorBase *alpha = NULL,
-          bool inplace = false,
+          module_inplace_t inplace = MODULE_NON_INPLACE,
           quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, inplace, quant_type),
-        alpha(alpha)
+        Module(name, inplace, quant_type), alpha(alpha)
     {
     }
 
     /**
      * @brief Destroy the PRelu object.
      */
-    ~PRelu() 
-    {
-        delete this->alpha;
-    }
+    ~PRelu() { delete this->alpha; }
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
-    {   
+    {
         assert(input_shapes.size() == 1);
-        assert(input_shapes[0][2] == this->alpha->shape[0]);
+        assert(input_shapes[0][3] == this->alpha->shape[0]);
         std::vector<std::vector<int>> output_shapes(1, input_shapes[0]);
         return output_shapes;
     }
@@ -61,7 +57,7 @@ public:
         DL_LOG_LAYER_LATENCY_END(this->name, "PRelu");
     }
 
-    void forward_args(void *args) 
+    void forward_args(void *args)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             base::prelu<int8_t>(args);
@@ -76,11 +72,7 @@ public:
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
-        std::vector<base::ArgsType<T>> m_args = base::get_activation_args<T>(output, 
-                                                                             input, 
-                                                                             PReLU,
-                                                                             alpha,
-                                                                             mode);
+        std::vector<base::ArgsType<T>> m_args = base::get_activation_args<T>(output, input, PReLU, alpha, mode);
         int task_size = m_args.size();
         if (task_size == 1) { // single task
             forward_args((void *)&m_args[0]);
@@ -105,15 +97,12 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new PRelu(node_name.c_str(), alpha, true, quant_type);
+            op = new PRelu(node_name.c_str(), alpha, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }
         return op;
     }
 
-    void print() 
-    {
-        ESP_LOGI("PRelU", "quant_type: %s.", quant_type_to_string(quant_type));
-    }
+    void print() { ESP_LOGI("PRelU", "quant_type: %s.", quant_type_to_string(quant_type)); }
 };
 } // namespace module
 } // namespace dl

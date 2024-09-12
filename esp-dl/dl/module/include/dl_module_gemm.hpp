@@ -16,8 +16,8 @@ namespace module {
  */
 class Gemm : public Module {
 private:
-    TensorBase *filter;   /*<! filter of Gemm. It's shape is [1, 1, in_features, out_features] >*/
-    TensorBase *bias;     /*<! bias of Gemm, if you don't specify anything, no bias is added >*/
+    TensorBase *filter;           /*<! filter of Gemm. It's shape is [1, 1, in_features, out_features] >*/
+    TensorBase *bias;             /*<! bias of Gemm, if you don't specify anything, no bias is added >*/
     activation_type_t activation; /*<! activation of Gemm, if you don't specify anything, no activation is applied >*/
 
 public:
@@ -30,14 +30,11 @@ public:
      * @param name            name of module
      */
     Gemm(TensorBase *filter,
-           TensorBase *bias = nullptr,
-           activation_type_t activation = Linear,
-           const char *name = nullptr,
-           quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, false, quant_type),
-        filter(filter),
-        bias(bias),
-        activation(activation)
+         TensorBase *bias = nullptr,
+         activation_type_t activation = Linear,
+         const char *name = nullptr,
+         quant_type_t quant_type = QUANT_TYPE_NONE) :
+        Module(name, MODULE_NON_INPLACE, quant_type), filter(filter), bias(bias), activation(activation)
     {
     }
 
@@ -95,19 +92,19 @@ public:
         TensorBase *output = tensors[m_outputs_index[0]];
         std::vector<int> origin_input_shape = input->get_shape();
         std::vector<int> origin_output_shape = output->get_shape();
-        input->set_shape({1, input->get_size() / origin_input_shape.back(), origin_input_shape.back()});
-        output->set_shape({1, output->get_size() / origin_output_shape.back(), origin_output_shape.back()});
+        input->set_shape({1, 1, input->get_size() / origin_input_shape.back(), origin_input_shape.back()});
+        output->set_shape({1, 1, output->get_size() / origin_output_shape.back(), origin_output_shape.back()});
 
         std::vector<base::ArgsType<T>> m_args =
             base::get_conv_operation_args<T>(output,
                                              input,
                                              padding,
                                              this->filter,
-                                             1/*stride_y*/,
-                                             1/*stride_x*/,
-                                             1/*dilation_y*/,
-                                             1/*dilation_x*/,
-                                             1/*group*/,
+                                             1 /*stride_y*/,
+                                             1 /*stride_x*/,
+                                             1 /*dilation_y*/,
+                                             1 /*dilation_x*/,
+                                             1 /*group*/,
                                              this->bias,
                                              this->activation,
                                              nullptr,
@@ -146,8 +143,13 @@ public:
 
         activation_type_t activation_type;
         quant_type_t quant_type;
+        int transA = -1, transB = -1;
         fbs_model->get_operation_attribute(node_name, "activation", activation_type);
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
+        fbs_model->get_operation_attribute(node_name, "transA", transA);
+        fbs_model->get_operation_attribute(node_name, "transB", transB);
+        assert(transA == -1 || transA == 0);
+        assert(transB == -1 || transB == 0);
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
@@ -159,11 +161,7 @@ public:
                 }
             }
 
-            gemm_op = new Gemm(filter,
-                                bias,
-                                activation_type,
-                                node_name.c_str(),
-                                quant_type);
+            gemm_op = new Gemm(filter, bias, activation_type, node_name.c_str(), quant_type);
         }
 
         return gemm_op;
@@ -179,36 +177,6 @@ public:
                  activation_type_to_string(activation),
                  quant_type_to_string(quant_type));
     }
-
-    // void set_preload_addr(void *addr, size_t size)
-    // {
-    //     size_t offset = 0;
-    //     if (this->filter) {
-    //         offset = this->filter->set_preload_addr(addr, size);
-    //     }
-    //     if (this->bias) {
-    //         this->bias->set_preload_addr((void *)((char *)addr + offset), size - offset);
-    //     }
-    // }
-
-    // void preload()
-    // {
-    //     // printf("preload filter and bias!");
-    //     if (filter)
-    //         filter->preload();
-    //     if (bias)
-    //         bias->preload();
-    // }
-
-    // void reset()
-    // {
-    //     this->m_inputs_index.clear();
-    //     this->m_outputs_index.clear();
-    //     this->filter->cache = nullptr;
-    //     if (this->bias != nullptr) {
-    //         this->bias->cache = nullptr;
-    //     }
-    // }
 };
 } // namespace module
 } // namespace dl

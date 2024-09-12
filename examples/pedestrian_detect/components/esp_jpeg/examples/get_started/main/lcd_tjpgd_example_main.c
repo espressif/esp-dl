@@ -4,33 +4,33 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
-#include <stdio.h>
+#include "esp_heap_caps.h"
+#include "esp_lcd_panel_ops.h"
+#include "pretty_effect.h"
 #include "sdkconfig.h"
+#include <stdio.h>
+#include "bsp/display.h"
+#include "bsp/esp-bsp.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_lcd_panel_ops.h"
-#include "esp_heap_caps.h"
-#include "pretty_effect.h"
-#include "bsp/esp-bsp.h"
-#include "bsp/display.h"
 
 // Using SPI2 in the example, as it also supports octal modes on some targets
-#define LCD_HOST       SPI2_HOST
+#define LCD_HOST SPI2_HOST
 // To speed up transfers, every SPI transfer sends a bunch of lines. This define specifies how many.
 // More means more memory use, but less overhead for setting up / finishing transfers. Make sure 240
 // is dividable by this.
 #define PARALLEL_LINES CONFIG_EXAMPLE_LCD_FLUSH_PARALLEL_LINES
 // The number of frames to show before rotate the graph
-#define ROTATE_FRAME   30
+#define ROTATE_FRAME 30
 
 #if BSP_LCD_H_RES > BSP_LCD_V_RES
-#define EXAMPLE_LCD_SWAP    0
-#define EXAMPLE_LCD_H_RES   BSP_LCD_H_RES
-#define EXAMPLE_LCD_V_RES   BSP_LCD_V_RES
+#define EXAMPLE_LCD_SWAP 0
+#define EXAMPLE_LCD_H_RES BSP_LCD_H_RES
+#define EXAMPLE_LCD_V_RES BSP_LCD_V_RES
 #else
-#define EXAMPLE_LCD_SWAP    1
-#define EXAMPLE_LCD_H_RES   BSP_LCD_V_RES
-#define EXAMPLE_LCD_V_RES   BSP_LCD_H_RES
+#define EXAMPLE_LCD_SWAP 1
+#define EXAMPLE_LCD_H_RES BSP_LCD_V_RES
+#define EXAMPLE_LCD_V_RES BSP_LCD_H_RES
 #endif
 
 // Simple routine to generate some patterns and send them to the LCD. Because the
@@ -53,7 +53,8 @@ static void display_pretty_colors(esp_lcd_panel_handle_t panel_handle)
             sending_line = calc_line;
             calc_line = !calc_line;
             // Send the calculated data
-            esp_lcd_panel_draw_bitmap(panel_handle, 0, y, 0 + EXAMPLE_LCD_H_RES, y + PARALLEL_LINES, s_lines[sending_line]);
+            esp_lcd_panel_draw_bitmap(
+                panel_handle, 0, y, 0 + EXAMPLE_LCD_H_RES, y + PARALLEL_LINES, s_lines[sending_line]);
         }
     }
 }

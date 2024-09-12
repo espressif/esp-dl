@@ -128,7 +128,7 @@ std::string shape_to_string(std::vector<int> shape)
     for (int i = 0; i < shape.size(); i++) {
         str += std::to_string(shape[i]);
         if (i != shape.size() - 1) {
-            str += ",";
+            str += ", ";
         }
     }
     str += "]";
@@ -179,16 +179,16 @@ bool TensorBase::assign(TensorBase *tensor)
     if (this->exponent == tensor->exponent && this->dtype == tensor->dtype) {
         tool::copy_memory(this->data, tensor->data, this->get_bytes());
     } else if (tensor->dtype == DATA_TYPE_FLOAT) {
-        float* src_data = (float*)tensor->data;
+        float *src_data = (float *)tensor->data;
         float scale = 1.0 / (DL_SCALE(this->exponent));
 
         if (this->dtype == DATA_TYPE_INT8) {
-            int8_t *data = (int8_t*)this->data;
+            int8_t *data = (int8_t *)this->data;
             for (int i = 0; i < this->get_size(); i++) {
                 data[i] = static_cast<int8_t>(quantize(src_data[i], scale, DL_QUANT8_MIN, DL_QUANT8_MAX));
             }
         } else if (this->dtype == DATA_TYPE_INT16) {
-            int16_t *data = (int16_t*)this->data;
+            int16_t *data = (int16_t *)this->data;
             for (int i = 0; i < this->get_size(); i++) {
                 data[i] = static_cast<int16_t>(quantize(src_data[i], scale, DL_QUANT16_MIN, DL_QUANT16_MAX));
             }
@@ -196,16 +196,16 @@ bool TensorBase::assign(TensorBase *tensor)
             return false;
         }
     } else if (this->dtype == DATA_TYPE_FLOAT) {
-        float* data = (float*)this->data;
+        float *data = (float *)this->data;
         float scale = DL_SCALE(tensor->exponent);
 
         if (tensor->dtype == DATA_TYPE_INT8 || tensor->dtype == DATA_TYPE_UINT8) {
-            int8_t *src_data = (int8_t*)tensor->data;
+            int8_t *src_data = (int8_t *)tensor->data;
             for (int i = 0; i < this->get_size(); i++) {
                 data[i] = dequantize(src_data[i], scale);
             }
         } else if (tensor->dtype == DATA_TYPE_INT16 || tensor->dtype == DATA_TYPE_UINT16) {
-            int16_t *src_data = (int16_t*)tensor->data;
+            int16_t *src_data = (int16_t *)tensor->data;
             for (int i = 0; i < this->get_size(); i++) {
                 data[i] = dequantize(src_data[i], scale);
             }
@@ -281,8 +281,7 @@ bool TensorBase::assign(std::vector<int> shape, const void *element, int exponen
 std::vector<int> TensorBase::get_axis_index(int element_index)
 {
     std::vector<int> axis_index(this->shape.size(), 0);
-    for (int j = this->shape.size() - 1; j > -1; --j)
-    {
+    for (int j = this->shape.size() - 1; j > -1; --j) {
         axis_index[j] = element_index % this->shape[j];
         element_index /= this->shape[j];
     }
@@ -338,5 +337,158 @@ void TensorBase::reset_bias_layout()
 #endif
 }
 
+TensorBase &TensorBase::reshape(std::vector<int> shape)
+{
+    int size_gt = this->get_size();
+    int index = -1;
+    for (int i = 0; i < shape.size(); ++i) {
+        if (shape[i] == -1) {
+            assert(index == -1);
+            index = i;
+        } else {
+            assert(shape[i] > 0);
+        }
+    }
+    int size = 1;
+    if (index == -1) {
+        for (int i = 0; i < shape.size(); ++i) {
+            size *= shape[i];
+        }
+        assert(size == size_gt);
+        this->set_shape(shape);
+    } else {
+        for (int i = 0; i < shape.size(); ++i) {
+            if (shape[i] > 0) {
+                size *= shape[i];
+            }
+        }
+        assert((size_gt % size) == 0);
+        shape[index] = size_gt / size;
+        this->set_shape(shape);
+    }
+    return *this;
+}
+
+template <typename T>
+TensorBase *TensorBase::transpose(T *input_element,
+                                  std::vector<int> &input_shape,
+                                  std::vector<int> &input_axis_offset,
+                                  std::vector<int> &perm)
+{
+    if (perm.size() == 0) {
+        for (int i = shape.size() - 1; i >= 0; i--) {
+            perm.push_back(i);
+        }
+    }
+    int dims = perm.size();
+
+    for (int i = 0; i < dims; ++i) {
+        if (perm[i] < 0)
+            perm[i] = dims + perm[i];
+        this->shape[i] = input_shape[perm[i]];
+    }
+
+    this->axis_offset[dims - 1] = 1;
+    for (int i = dims - 2; i > -1; --i) {
+        this->axis_offset[i] = this->axis_offset[i + 1] * this->shape[i + 1];
+    }
+    T *output_element = (T *)this->get_element_ptr();
+
+    std::vector<int> input_axis_index(dims);
+    if (dims == 4) {
+        uint32_t input_idx = 0, output_idx = 0;
+        for (int i = 0; i < input_shape[0]; i++) {
+            for (int j = 0; j < input_shape[1]; j++) {
+                for (int k = 0; k < input_shape[2]; k++) {
+                    for (int l = 0; l < input_shape[3]; l++) {
+                        input_axis_index = {i, j, k, l};
+                        input_idx = l + k * input_axis_offset[2] + j * input_axis_offset[1] + i * input_axis_offset[0];
+                        output_idx = input_axis_index[perm[3]] * this->axis_offset[3] +
+                            input_axis_index[perm[2]] * this->axis_offset[2] +
+                            input_axis_index[perm[1]] * this->axis_offset[1] +
+                            input_axis_index[perm[0]] * this->axis_offset[0];
+                        output_element[output_idx] = input_element[input_idx];
+                    }
+                }
+            }
+        }
+    } else if (dims == 3) {
+        uint32_t input_idx = 0, output_idx = 0;
+        for (int i = 0; i < input_shape[0]; i++) {
+            for (int j = 0; j < input_shape[1]; j++) {
+                for (int k = 0; k < input_shape[2]; k++) {
+                    input_axis_index = {i, j, k};
+                    input_idx = k + j * input_axis_offset[1] + i * input_axis_offset[0];
+                    output_idx = input_axis_index[perm[2]] * this->axis_offset[2] +
+                        input_axis_index[perm[1]] * this->axis_offset[1] +
+                        input_axis_index[perm[0]] * this->axis_offset[0];
+                    output_element[output_idx] = input_element[input_idx];
+                }
+            }
+        }
+    } else if (dims == 2) {
+        uint32_t input_idx = 0, output_idx = 0;
+        for (int i = 0; i < input_shape[0]; i++) {
+            for (int j = 0; j < input_shape[1]; j++) {
+                input_axis_index = {i, j};
+                input_idx = j + i * input_axis_offset[0];
+                output_idx =
+                    input_axis_index[perm[1]] * this->axis_offset[1] + input_axis_index[perm[0]] * this->axis_offset[0];
+                output_element[output_idx] = input_element[input_idx];
+            }
+        }
+    } else {
+        // for any dims
+        std::vector<int> index_old(dims, 0);
+        for (int i = 0; i < size; ++i) {
+            int dim_div_value = i;
+            int index_new = 0;
+            for (int j = dims - 1; j > -1; --j) {
+                index_old[j] = dim_div_value % input_shape[j];
+                dim_div_value /= input_shape[j];
+            }
+            for (int j = dims - 1; j > -1; --j) {
+                index_new += index_old[perm[j]] * this->axis_offset[j];
+            }
+            output_element[index_new] = input_element[i];
+        }
+    }
+
+    return this;
+}
+
+TensorBase *TensorBase::transpose(TensorBase *input, std::vector<int> perm)
+{
+    assert(this->get_size() == input->get_size());
+    assert(this->dtype == input->dtype);
+
+    if (this->dtype == DATA_TYPE_INT8) {
+        transpose<int8_t>((int8_t *)input->get_element_ptr(), input->shape, input->axis_offset, perm);
+    } else if (this->dtype == DATA_TYPE_UINT8) {
+        transpose<uint8_t>((uint8_t *)input->get_element_ptr(), input->shape, input->axis_offset, perm);
+    } else if (this->dtype == DATA_TYPE_INT16) {
+        transpose<int16_t>((int16_t *)input->get_element_ptr(), input->shape, input->axis_offset, perm);
+    } else if (this->dtype == DATA_TYPE_INT32) {
+        transpose<int32_t>((int32_t *)input->get_element_ptr(), input->shape, input->axis_offset, perm);
+    } else if (this->dtype == DATA_TYPE_UINT16) {
+        transpose<uint16_t>((uint16_t *)input->get_element_ptr(), input->shape, input->axis_offset, perm);
+    } else if (this->dtype == DATA_TYPE_INT32) {
+        transpose<uint32_t>((uint32_t *)input->get_element_ptr(), input->shape, input->axis_offset, perm);
+    } else if (this->dtype == DATA_TYPE_FLOAT) {
+        transpose<float>((float *)input->get_element_ptr(), input->shape, input->axis_offset, perm);
+    }
+
+    return this;
+}
+
+int TensorBase::get_element_index(const std::vector<int> axis_index)
+{
+    assert(axis_index.size() == this->shape.size());
+    int element_index = 0;
+    for (int i = 0; i < axis_index.size(); i++) {
+        element_index += axis_index[i] * this->axis_offset[i];
+    }
+    return element_index;
+}
 
 } // namespace dl

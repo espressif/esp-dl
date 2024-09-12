@@ -59,11 +59,8 @@ public:
     esp_err_t get_operation_attribute(std::string node_name,
                                       std::string attribute_name,
                                       dl::activation_type_t &ret_value);
-    esp_err_t get_operation_attribute(std::string node_name,
-                                      std::string attribute_name,
-                                      dl::resize_mode_t &ret_value);
+    esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, dl::resize_mode_t &ret_value);
 
-    
     /**
      * @brief Get operation output shape
      *
@@ -74,7 +71,6 @@ public:
      * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
      */
     esp_err_t get_operation_output_shape(std::string node_name, int index, std::vector<int> &ret_value);
-
 
     /**
      * @brief Get the attribute of node.
@@ -222,7 +218,7 @@ public:
 
     /**
      * @brief Clear all map
-    */
+     */
     void clear_map();
 
     /**
@@ -231,18 +227,18 @@ public:
     void load_map();
 
     /**
-     * @brief Get model name 
+     * @brief Get model name
      */
     std::string get_model_name();
 
     /**
      * @brief Get model version
-    */
+     */
     int64_t get_model_version();
 
     /**
      * @brief Get model doc string
-    */
+     */
     std::string get_model_doc_string();
 
 private:
