@@ -15,7 +15,8 @@ dl_esp32p4_s8_prelu_11c:
     # a3: c_div_x_1
     # s8: activation_alpha_ptr
     # s9: activation_shift
-    # t3: mac_shift
+    # t3: output_shift
+    # t4: output_scale
 
 
     lw a3, 100(a2)
@@ -38,12 +39,8 @@ dl_esp32p4_s8_prelu_11c:
     0:
         esp.vcmp.gt.s8 q4, q0, q2
         esp.notq q5, q4
-        
-        esp.zero.qacc
-        # alpha * input
-        esp.vmulas.s8.qacc q0, q1
-        # right shift: output - alpha - input
-        esp.srcmb.s8.qacc q1, s9, 1
+
+        esp.vprelu.s8 q1, q0, q1, s9
 
         # *scale/right shift: output - input
         esp.zero.qacc
@@ -62,11 +59,7 @@ dl_esp32p4_s8_prelu_11c:
     esp.vcmp.gt.s8 q4, q0, q2
     esp.notq q5, q4
     
-    esp.zero.qacc
-    # alpha * input
-    esp.vmulas.s8.qacc q0, q1
-    # right shift: output - alpha - input
-    esp.srcmb.s8.qacc q1, s9, 1
+    esp.vprelu.s8 q1, q0, q1, s9
 
     # *scale/right shift: output - input
     esp.zero.qacc

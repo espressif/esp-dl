@@ -123,8 +123,7 @@ std::vector<PoolArgsType<feature_t>> get_pool_args(Tensor<feature_t> &output,
     int u = 16 / sizeof(feature_t);
     args.c_remainder = (input.shape[2] % u) * sizeof(feature_t);
 #if CONFIG_ESP32P4_BOOST
-    args.avg_pool_area_inv =
-        dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
+    args.avg_pool_area_inv = tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
     args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif
@@ -228,8 +227,7 @@ std::vector<PoolArgsType<feature_t>> get_pool_args(TensorBase *output,
     int u = 16 / sizeof(feature_t);
     args.c_remainder = (input->shape[3] % u) * sizeof(feature_t);
 #if CONFIG_ESP32P4_BOOST
-    args.avg_pool_area_inv =
-        dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
+    args.avg_pool_area_inv = tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
     args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif
@@ -319,8 +317,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
 #if CONFIG_ESP32P4_BOOST
-                args.avg_pool_area_inv = dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) *
-                                                                    (1 << (-args.pool_exponent)));
+                args.avg_pool_area_inv =
+                    tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
                 args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif
@@ -334,8 +332,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
             args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
             args.pool_exponent = new_pool_exponent;
 #if CONFIG_ESP32P4_BOOST
-            args.avg_pool_area_inv = dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) *
-                                                                (1 << (-args.pool_exponent)));
+            args.avg_pool_area_inv =
+                tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
             args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif
@@ -351,8 +349,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
 #if CONFIG_ESP32P4_BOOST
-                args.avg_pool_area_inv = dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) *
-                                                                    (1 << (-args.pool_exponent)));
+                args.avg_pool_area_inv =
+                    tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
                 args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif
@@ -376,8 +374,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
 #if CONFIG_ESP32P4_BOOST
-                args.avg_pool_area_inv = dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) *
-                                                                    (1 << (-args.pool_exponent)));
+                args.avg_pool_area_inv =
+                    tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
                 args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif
@@ -391,8 +389,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
             args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
             args.pool_exponent = new_pool_exponent;
 #if CONFIG_ESP32P4_BOOST
-            args.avg_pool_area_inv = dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) *
-                                                                (1 << (-args.pool_exponent)));
+            args.avg_pool_area_inv =
+                tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
             args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif
@@ -408,8 +406,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
 #if CONFIG_ESP32P4_BOOST
-                args.avg_pool_area_inv = dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) *
-                                                                    (1 << (-args.pool_exponent)));
+                args.avg_pool_area_inv =
+                    tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
                 args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif
@@ -433,8 +431,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
 #if CONFIG_ESP32P4_BOOST
-                args.avg_pool_area_inv = dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) *
-                                                                    (1 << (-args.pool_exponent)));
+                args.avg_pool_area_inv =
+                    tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
                 args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif
@@ -448,8 +446,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
             args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
             args.pool_exponent = new_pool_exponent;
 #if CONFIG_ESP32P4_BOOST
-            args.avg_pool_area_inv = dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) *
-                                                                (1 << (-args.pool_exponent)));
+            args.avg_pool_area_inv =
+                tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
             args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif
@@ -465,8 +463,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
 #if CONFIG_ESP32P4_BOOST
-                args.avg_pool_area_inv = dl_esp32p4_round_half_even(1.f / (args.filter_height * args.filter_width) *
-                                                                    (1 << (-args.pool_exponent)));
+                args.avg_pool_area_inv =
+                    tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
                 args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
 #endif

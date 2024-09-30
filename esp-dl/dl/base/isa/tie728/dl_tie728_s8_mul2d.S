@@ -33,13 +33,15 @@ dl_tie728_s8_mul2d_11c:
         EE.ZERO.QACC 
         EE.VMULAS.S8.QACC.LD.IP q0, a3, 16, q0, q1
         EE.VLD.128.IP q1, a4, 16
-        EE.SRCMB.S8.QACC q2, a7, 0
+        # EE.SRCMB.S8.QACC q2, a7, 0
+        tie728_s8_vector_round_result q2, a7, a10, q7
         EE.VST.128.IP q2, a2, 16
     0:
 
     EE.ZERO.QACC 
     EE.VMULAS.S8.QACC q0, q1
-    EE.SRCMB.S8.QACC q2, a7, 0
+    # EE.SRCMB.S8.QACC q2, a7, 0
+    tie728_s8_vector_round_result q2, a7, a10, q7
 
     EE.VST.128.IP q2, a2, 16
 
@@ -80,14 +82,16 @@ dl_tie728_s8_mul2d_11c_relu:
         EE.ZERO.QACC 
         EE.VMULAS.S8.QACC.LD.IP q0, a3, 16, q0, q1
         EE.VLD.128.IP q1, a4, 16
-        EE.SRCMB.S8.QACC q2, a7, 0
+        # EE.SRCMB.S8.QACC q2, a7, 0
+        tie728_s8_vector_round_result q2, a7, a10, q7
         EE.VRELU.S8 q2, a14, a15
         EE.VST.128.IP q2, a2, 16
     0:
 
     EE.ZERO.QACC 
     EE.VMULAS.S8.QACC q0, q1
-    EE.SRCMB.S8.QACC q2, a7, 0
+    # EE.SRCMB.S8.QACC q2, a7, 0
+    tie728_s8_vector_round_result q2, a7, a10, q7
 
     EE.VRELU.S8 q2, a14, a15
     EE.VST.128.IP q2, a2, 16
@@ -130,7 +134,8 @@ dl_tie728_s8_mul2d_11c_prelu:
         EE.VLD.128.IP q1, a4, 16
 
         EE.VLD.128.IP q3, a14, 16
-        EE.SRCMB.S8.QACC q2, a7, 0
+        # EE.SRCMB.S8.QACC q2, a7, 0
+        tie728_s8_vector_round_result q2, a7, a10, q7
         EE.VPRELU.S8 q2, q2, q3, a15
         EE.VST.128.IP q2, a2, 16
     0:
@@ -138,7 +143,8 @@ dl_tie728_s8_mul2d_11c_prelu:
     EE.ZERO.QACC 
     EE.VMULAS.S8.QACC q0, q1
     EE.VLD.128.IP q3, a14, 16
-    EE.SRCMB.S8.QACC q2, a7, 0
+    # EE.SRCMB.S8.QACC q2, a7, 0
+    tie728_s8_vector_round_result q2, a7, a10, q7
 
     EE.VPRELU.S8 q2, q2, q3, a15
     EE.VST.128.IP q2, a2, 16
@@ -202,7 +208,8 @@ dl_tie728_s8_unaligned_mul2d_11c:
         EE.SRC.Q.QUP q5, q3, q4
 
         EE.VMULAS.S8.QACC q2, q5
-        EE.SRCMB.S8.QACC q2, a8, 0
+        # EE.SRCMB.S8.QACC q2, a8, 0
+        tie728_s8_vector_round_result q2, a8, a10, q7
         EE.LD.128.USAR.IP q1, a3, 16
         dl_tie728_s8_unaligned_store0 q2, a2, a13
     0:
@@ -218,7 +225,8 @@ dl_tie728_s8_unaligned_mul2d_11c:
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S8.QACC q2, q5
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     dl_tie728_s8_unaligned_store0 q2, a2, a13
     j dl_tie718_s8_unaligned_mul2d_11c_remainder
 
@@ -232,7 +240,8 @@ dl_tie718_s8_unaligned_mul2d_11c_0:
         EE.SRC.Q.QUP q5, q3, q4
 
         EE.VMULAS.S8.QACC q2, q5
-        EE.SRCMB.S8.QACC q2, a8, 0
+        # EE.SRCMB.S8.QACC q2, a8, 0
+        tie728_s8_vector_round_result q2, a8, a10, q7
         EE.LD.128.USAR.IP q1, a3, 16
         EE.VST.128.IP q2, a2, 16
     1:
@@ -248,7 +257,8 @@ dl_tie718_s8_unaligned_mul2d_11c_0:
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S8.QACC q2, q5
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     EE.VST.128.IP q2, a2, 16
     j dl_tie718_s8_unaligned_mul2d_11c_remainder
 
@@ -262,7 +272,8 @@ dl_tie718_s8_unaligned_mul2d_11c_1:
         EE.SRC.Q.QUP q5, q3, q4
 
         EE.VMULAS.S8.QACC q2, q5
-        EE.SRCMB.S8.QACC q2, a8, 0
+        # EE.SRCMB.S8.QACC q2, a8, 0
+        tie728_s8_vector_round_result q2, a8, a10, q7
         EE.LD.128.USAR.IP q1, a3, 16
         dl_tie728_s8_unaligned_store1 q2, a2
     2:
@@ -278,7 +289,8 @@ dl_tie718_s8_unaligned_mul2d_11c_1:
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S8.QACC q2, q5
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     dl_tie728_s8_unaligned_store1 q2, a2
 
     j dl_tie718_s8_unaligned_mul2d_11c_remainder
@@ -305,7 +317,8 @@ dl_tie718_s8_unaligned_mul2d_11c_remainder:
 
     EE.ZERO.QACC
     EE.VMULAS.S8.QACC q2, q5
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
 
     # dl_tie728_s8_unaligned_store0 q2, a2, a13
     dl_tie728_s8_store_remainder q2, a9, a11, a12, a13, a2, a7
@@ -368,7 +381,8 @@ dl_tie728_s8_unaligned_mul2d_11c_relu:
         EE.SRC.Q.QUP q5, q3, q4
 
         EE.VMULAS.S8.QACC q2, q5
-        EE.SRCMB.S8.QACC q2, a8, 0
+        # EE.SRCMB.S8.QACC q2, a8, 0
+        tie728_s8_vector_round_result q2, a8, a10, q7
         EE.LD.128.USAR.IP q1, a3, 16
         EE.VRELU.S8 q2, a14, a15
         dl_tie728_s8_unaligned_store0 q2, a2, a13
@@ -384,7 +398,8 @@ dl_tie728_s8_unaligned_mul2d_11c_relu:
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S8.QACC q2, q5
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     EE.VRELU.S8 q2, a14, a15
     dl_tie728_s8_unaligned_store0 q2, a2, a13
     j dl_tie718_s8_unaligned_mul2d_11c_relu_remainder
@@ -399,7 +414,8 @@ dl_tie718_s8_unaligned_mul2d_11c_relu_0:
         EE.SRC.Q.QUP q5, q3, q4
 
         EE.VMULAS.S8.QACC q2, q5
-        EE.SRCMB.S8.QACC q2, a8, 0
+        # EE.SRCMB.S8.QACC q2, a8, 0
+        tie728_s8_vector_round_result q2, a8, a10, q7
         EE.LD.128.USAR.IP q1, a3, 16
         EE.VRELU.S8 q2, a14, a15
         EE.VST.128.IP q2, a2, 16
@@ -415,7 +431,8 @@ dl_tie718_s8_unaligned_mul2d_11c_relu_0:
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S8.QACC q2, q5
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     EE.VRELU.S8 q2, a14, a15
     EE.VST.128.IP q2, a2, 16
     j dl_tie718_s8_unaligned_mul2d_11c_relu_remainder
@@ -430,7 +447,8 @@ dl_tie718_s8_unaligned_mul2d_11c_relu_1:
         EE.SRC.Q.QUP q5, q3, q4
 
         EE.VMULAS.S8.QACC q2, q5
-        EE.SRCMB.S8.QACC q2, a8, 0
+        # EE.SRCMB.S8.QACC q2, a8, 0
+        tie728_s8_vector_round_result q2, a8, a10, q7
         EE.LD.128.USAR.IP q1, a3, 16
         EE.VRELU.S8 q2, a14, a15
         dl_tie728_s8_unaligned_store1 q2, a2
@@ -446,7 +464,8 @@ dl_tie718_s8_unaligned_mul2d_11c_relu_1:
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S8.QACC q2, q5
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     EE.VRELU.S8 q2, a14, a15
     dl_tie728_s8_unaligned_store1 q2, a2
     j dl_tie718_s8_unaligned_mul2d_11c_relu_remainder
@@ -473,7 +492,8 @@ dl_tie718_s8_unaligned_mul2d_11c_relu_remainder:
 
     EE.ZERO.QACC
     EE.VMULAS.S8.QACC q2, q5
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     EE.VRELU.S8 q2, a14, a15
     # dl_tie728_s8_unaligned_store0 q2, a2, a13
     dl_tie728_s8_store_remainder q2, a9, a11, a12, a13, a2, a7
@@ -534,7 +554,8 @@ dl_tie728_s8_unaligned_mul2d_11c_prelu:
         EE.SRC.Q.QUP q5, q3, q4
 
         EE.VMULAS.S8.QACC q2, q5
-        EE.SRCMB.S8.QACC q2, a8, 0
+        # EE.SRCMB.S8.QACC q2, a8, 0
+        tie728_s8_vector_round_result q2, a8, a10, q7
 
         EE.VLD.128.IP q6, a14, 16
         EE.LD.128.USAR.IP q1, a3, 16
@@ -553,7 +574,8 @@ dl_tie728_s8_unaligned_mul2d_11c_prelu:
 
     EE.VMULAS.S8.QACC q2, q5
     EE.VLD.128.IP q6, a14, 16
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     EE.VPRELU.S8 q2, q2, q6, a15
     dl_tie728_s8_unaligned_store0 q2, a2, a13
     j dl_tie718_s8_unaligned_mul2d_11c_prelu_remainder
@@ -568,7 +590,8 @@ dl_tie718_s8_unaligned_mul2d_11c_prelu_0:
         EE.SRC.Q.QUP q5, q3, q4
 
         EE.VMULAS.S8.QACC q2, q5
-        EE.SRCMB.S8.QACC q2, a8, 0
+        # EE.SRCMB.S8.QACC q2, a8, 0
+        tie728_s8_vector_round_result q2, a8, a10, q7
         EE.VLD.128.IP q6, a14, 16
         EE.LD.128.USAR.IP q1, a3, 16
         EE.VPRELU.S8 q2, q2, q6, a15
@@ -586,7 +609,8 @@ dl_tie718_s8_unaligned_mul2d_11c_prelu_0:
 
     EE.VMULAS.S8.QACC q2, q5
     EE.VLD.128.IP q6, a14, 16
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     EE.VPRELU.S8 q2, q2, q6, a15
     EE.VST.128.IP q2, a2, 16
     j dl_tie718_s8_unaligned_mul2d_11c_prelu_remainder
@@ -601,7 +625,8 @@ dl_tie718_s8_unaligned_mul2d_11c_prelu_1:
         EE.SRC.Q.QUP q5, q3, q4
 
         EE.VMULAS.S8.QACC q2, q5
-        EE.SRCMB.S8.QACC q2, a8, 0
+        # EE.SRCMB.S8.QACC q2, a8, 0
+        tie728_s8_vector_round_result q2, a8, a10, q7
         EE.VLD.128.IP q6, a14, 16
         EE.LD.128.USAR.IP q1, a3, 16
         EE.VPRELU.S8 q2, q2, q6, a15
@@ -619,7 +644,8 @@ dl_tie718_s8_unaligned_mul2d_11c_prelu_1:
 
     EE.VMULAS.S8.QACC q2, q5
     EE.VLD.128.IP q6, a14, 16
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     EE.VPRELU.S8 q2, q2, q6, a15
     dl_tie728_s8_unaligned_store1 q2, a2
     j dl_tie718_s8_unaligned_mul2d_11c_prelu_remainder
@@ -647,7 +673,8 @@ dl_tie718_s8_unaligned_mul2d_11c_prelu_remainder:
     EE.ZERO.QACC
     EE.VMULAS.S8.QACC q2, q5
     EE.VLD.128.IP q6, a14, 16
-    EE.SRCMB.S8.QACC q2, a8, 0
+    # EE.SRCMB.S8.QACC q2, a8, 0
+    tie728_s8_vector_round_result q2, a8, a10, q7
     EE.VPRELU.S8 q2, q2, q6, a15
     # dl_tie728_s8_unaligned_store0 q2, a2, a13
     dl_tie728_s8_store_remainder q2, a9, a11, a12, a13, a2, a7

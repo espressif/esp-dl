@@ -118,10 +118,10 @@ dl_esp32p4_s8_unaligned_resize2d_nearest_2x2_c1_remainder:
     esp.src.q.qup q2, q0, q1
     esp.vmulas.s8.qacc q2, q3
     esp.srcmb.s8.qacc q4, t4, 1
-    dl_esp32p4_s8_store_remainder q2, t4, t5, s8, s9, t0, a0, t3
-    dl_esp32p4_s8_store_remainder q2, t4, t5, s8, s9, t0, t6, t3
-    dl_esp32p4_s8_store_remainder q2, t4, t5, s8, s9, t0, s0, t3
-    dl_esp32p4_s8_store_remainder q2, t4, t5, s8, s9, t0, s1, t3
+    dl_esp32p4_s8_store_remainder q4, t4, t5, s8, s9, t0, a0, t3
+    dl_esp32p4_s8_store_remainder q4, t4, t5, s8, s9, t0, t6, t3
+    dl_esp32p4_s8_store_remainder q4, t4, t5, s8, s9, t0, s0, t3
+    dl_esp32p4_s8_store_remainder q4, t4, t5, s8, s9, t0, s1, t3
     esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
     ret
 

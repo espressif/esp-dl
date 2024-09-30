@@ -155,10 +155,8 @@ public:
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
             TensorBase *filter = fbs_model->get_operation_parameter(node_name, 1);
             TensorBase *bias = fbs_model->get_operation_parameter(node_name, 2);
-            if (bias && quant_type == QUANT_TYPE_SYMM_16BIT) {
-                if (bias->dtype == DATA_TYPE_INT32) {
-                    bias->reset_bias_layout();
-                }
+            if (bias) {
+                bias->reset_bias_layout(quant_type, false);
             }
 
             gemm_op = new Gemm(filter, bias, activation_type, node_name.c_str(), quant_type);

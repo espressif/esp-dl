@@ -29,7 +29,6 @@ private:
     bool rgb_swap;
     bool byte_swap;
     bool use_ppa;
-    bool print_info = false;
     feature_t *norm_lut;
     int input_area_x_start;
     int input_area_y_start;
@@ -51,7 +50,11 @@ public:
                       const std::vector<float> &mean,
                       const std::vector<float> &std,
                       bool byte_rgb = false,
+#if CONFIG_IDF_TARGET_ESP32S3
+                      bool byte_swap = true,
+#else
                       bool byte_swap = false,
+#endif
                       bool use_ppa = true);
 
     ~ImagePreprocessor();
@@ -60,14 +63,9 @@ public:
     float get_resize_scale_y() { return this->resize_scale_y; };
     float get_top_left_x() { return this->input_area_x_start; };
     float get_top_left_y() { return this->input_area_y_start; };
-    void set_print_info(bool print_info) { this->print_info = print_info; };
 
-    void preprocess(uint8_t *input_element,
-                    const std::vector<int> &input_shape,
-                    const std::vector<int> &crop_area = {});
-    void preprocess(uint16_t *input_element,
-                    const std::vector<int> &input_shape,
-                    const std::vector<int> &crop_area = {});
+    template <typename T>
+    void preprocess(T *input_element, const std::vector<int> &input_shape, const std::vector<int> &crop_area = {});
 };
 
 } // namespace image

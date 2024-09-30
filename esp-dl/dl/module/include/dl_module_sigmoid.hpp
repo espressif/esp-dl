@@ -63,7 +63,7 @@ public:
                 float output_scale = DL_RESCALE(output->exponent);
                 for (size_t i = 0; i < input->size; i++) {
                     float temp = dl::math::sigmoid((float)input_ptr[i] * input_scale);
-                    dl::tool::truncate(output_ptr[i], round_half_even(temp * output_scale));
+                    dl::tool::truncate(output_ptr[i], tool::round(temp * output_scale));
                 }
             }
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
@@ -76,7 +76,7 @@ public:
             float output_scale = DL_RESCALE(output->exponent);
             for (size_t i = 0; i < input->size; i++) {
                 float temp = dl::math::sigmoid((float)input_ptr[i] * input_scale);
-                dl::tool::truncate(output_ptr[i], round_half_even(temp * output_scale));
+                dl::tool::truncate(output_ptr[i], tool::round(temp * output_scale));
             }
         }
         DL_LOG_LAYER_LATENCY_END(this->name, "Sigmoid");

@@ -153,6 +153,51 @@
 .endm
 
 
+.macro tie728_s8_vector_round_result output_v mac_shift tmp tmp_q1
+    beqz  \mac_shift, 500f
+
+    MOVI  \tmp, 257                             // 0000 0000 0000 0000 0000 0001 0000 0001
+    EE.MOVI.32.Q  \output_v, \tmp, 0
+    EE.MOVI.32.Q  \output_v, \tmp, 1
+    EE.MOVI.32.Q  \output_v, \tmp, 2
+    EE.MOVI.32.Q  \output_v, \tmp, 3
+    movi.n  \tmp, 16
+    wsr.sar  \tmp
+    EE.VSL.32  \tmp_q1, \output_v
+    EE.ORQ  \tmp_q1, \tmp_q1, \output_v         // 0000 0001 0000 0001 0000 0001 0000 0001
+
+    addi  \tmp, \mac_shift, -1
+    EE.SRCMB.S8.QACC  \output_v, \tmp, 0
+
+    movi.n  \tmp, 1
+    EE.MOVI.32.Q  \output_v, \tmp, 0
+    EE.VSMULAS.S8.QACC  \tmp_q1, \output_v, 0   // qacc[0:16] += round
+    EE.SRCMB.S8.QACC  \output_v, \tmp, 0
+    j  501f
+500:
+    EE.SRCMB.S8.QACC  \output_v, \mac_shift, 0
+501:
+.endm
+
+
+.macro tie728_s8_element_round_result  output mac_shift tmp tmp_q1
+    beqz  \mac_shift, 505f
+
+    addi  \tmp, \mac_shift, -1
+    EE.SRS.ACCX  \output, \tmp, 0
+
+    movi.n  \tmp, 1
+    EE.ZERO.Q  \tmp_q1
+    EE.MOVI.32.Q  \tmp_q1, \tmp, 0
+    EE.VMULAS.S8.ACCX  \tmp_q1, \tmp_q1
+    EE.SRS.ACCX  \output, \tmp, 0
+    j  506f
+505:
+    EE.SRS.ACCX  \output, \mac_shift, 0
+506:
+.endm
+
+
 # what if a1 not 16 byte aligned?
 .macro tie728_s8_conv2d_per_channel_result output_v scale_q scale_factor tmp tmp_q1
     # entry need to be 128
@@ -265,31 +310,24 @@
 .endm
 
 
+.macro tie728_s8_conv2d_128b_vector_bias  bias_ptr
+    EE.LD.QACC_L.L.128.IP  \bias_ptr, 16
+    EE.LD.QACC_L.H.32.IP  \bias_ptr, 16
+    EE.LD.QACC_H.L.128.IP  \bias_ptr, 16
+    EE.LD.QACC_H.H.32.IP  \bias_ptr, 16
+.endm
+
+
+.macro tie728_s8_conv2d_element_bias  bias_ptr
+    EE.LD.ACCX.IP  \bias_ptr, 8
+.endm
+
+
 .macro tie728_s8_conv2d_bias output_v bias_v bias_ptr
     EE.VLD.128.IP \bias_v, \bias_ptr, 16 # load bias
 
     # bias
     EE.VADDS.S8 \output_v, \output_v, \bias_v
-.endm
-
-
-
-.macro tie728_s8_conv2d_bias_s32 bias_v0 bias_v1 bias_v2 bias_ptr tmp
-    EE.VLD.128.IP \bias_v0, \bias_ptr, 16       # Load 4 32bit bias
-    EE.VLD.128.IP \bias_v1, \bias_ptr, 16       # Load 4 32bit bias
-    EE.VUNZIP.16  \bias_v0, \bias_v1            # Unzip the 32bit bias, bias_v0 contains 8 valid 16bit data
-    EE.VLD.128.IP \bias_v1, \bias_ptr, 16       # Load 4 32bit bias
-    EE.VLD.128.IP \bias_v2, \bias_ptr, 16       # Load 4 32bit bias
-    EE.VUNZIP.16  \bias_v1, \bias_v2            # Unzip the 32bit bias, bias_v1 contains 8 valid 16bit data
-    EE.VUNZIP.8   \bias_v0, \bias_v1            # Unzip the 16bit bias, bias_v0 contains low 8-bit valid data, bias_v1 contains high 8-bit valid data.
-
-    movi.n        \tmp, 64                      # 64 is '0100 0000'
-    EE.MOVI.32.Q  \bias_v2, \tmp, 0
-    EE.MOV.U8.QACC \bias_v0                     # Move 'the low 8-bit valid data of bias' to QACC.
-    EE.VSMULAS.S8.QACC \bias_v1, \bias_v2, 0    # 'The high 8-bit valid data of bias' << 6, and add to QACC.
-    EE.VSMULAS.S8.QACC \bias_v1, \bias_v2, 0    # Repeat four times, equivalent to '<< 2'
-    EE.VSMULAS.S8.QACC \bias_v1, \bias_v2, 0
-    EE.VSMULAS.S8.QACC \bias_v1, \bias_v2, 0
 .endm
 
 
@@ -430,14 +468,20 @@
 5:  # remainder == 4, 5
     bbci \operation_type, 0, 4f
     # per_layer bias + prelu, 0x101
-    tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
-    tie728_s8_conv2d_bias_prelu \output_v, \tmp_q1, \bias_ptr, \tmp_q2, \activation_alpha, \activation_shift  
+    # tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
+    tie728_s8_vector_round_result \output_v, \mac_shift, \tmp, \tmp_q1
+    # tie728_s8_conv2d_bias_prelu \output_v, \tmp_q1, \bias_ptr, \tmp_q2, \activation_alpha, \activation_shift
+    # bias will be preload
+    tie728_s8_conv2d_prelu \output_v, \tmp_q2, \activation_alpha, \activation_shift
 
     j 16f  # jump to 16f
 
 4:  # per_layer bias + relu, 0x100
-    tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
-    tie728_s8_conv2d_bias_relu \output_v, \tmp_q1, \bias_ptr, \activation_alpha, \activation_shift
+    # tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
+    tie728_s8_vector_round_result \output_v, \mac_shift, \tmp, \tmp_q1
+    # tie728_s8_conv2d_bias_relu \output_v, \tmp_q1, \bias_ptr, \activation_alpha, \activation_shift
+    # bias will be preload
+    tie728_s8_conv2d_relu \output_v, \activation_alpha, \activation_shift
 
     j 16f  # jump to 16f
 
@@ -445,25 +489,30 @@
     bbci \operation_type, 1, 1f
     bbci \operation_type, 0, 2f
     # per_layer bias, 0x011
-    tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
-    tie728_s8_conv2d_bias \output_v, \tmp_q1, \bias_ptr
+    # tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
+    tie728_s8_vector_round_result \output_v, \mac_shift, \tmp, \tmp_q1
+    # bias will be preload
+    # tie728_s8_conv2d_bias \output_v, \tmp_q1, \bias_ptr
 
     j 16f  # jump to 16f
 
 2:  # per_layer no_bias + prelu, 0x010
-    tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
+    # tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
+    tie728_s8_vector_round_result \output_v, \mac_shift, \tmp, \tmp_q1
     tie728_s8_conv2d_prelu \output_v, \tmp_q2, \activation_alpha, \activation_shift
 
     j 16f  # jump to 16f
 
 1:  # no_bias + relu, 0x001
     bbci \operation_type, 0, 0f
-    tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
+    # tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
+    tie728_s8_vector_round_result \output_v, \mac_shift, \tmp, \tmp_q1
     tie728_s8_conv2d_relu \output_v, \activation_alpha, \activation_shift
 
     j 16f  # jump to 16f
 
 0:  # per_layer no_bias, 0x000
-    tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
+    # tie728_s8_conv2d_per_layer_result \output_v, \mac_shift
+    tie728_s8_vector_round_result \output_v, \mac_shift, \tmp, \tmp_q1
 16:
 .endm
