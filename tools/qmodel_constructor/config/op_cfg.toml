@@ -1,0 +1,375 @@
+[meta]
+    seed = 0
+    quant_bits = 8      # Only support 8 or 16 now.
+    batch_size = 1
+    calib_steps = 8     # The minimum value for calib_steps is 8.
+    model_version = 1
+    target = "esp32p4"
+
+[ops_test]
+    class_package = "module.ops_test"
+
+    [ops_test.conv2d]
+    class_name = "CONV2D_TEST"
+        [[ops_test.conv2d.cfg]]
+        # conv2d, pointwise, aligned
+        input_shape = [1, 3, 224, 224]
+        export_name_prefix = "conv2d_s8_ishap_1_3_224_224_kshap_16_3_3_3"
+        export_path = ""
+        in_channels = 3
+        out_channels = 16
+        kernel_size = [3, 3]
+        stride = [2, 2]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # conv2d, pointwise, aligned
+        input_shape = [1, 16, 32, 32]
+        export_name_prefix = "conv2d_s8_ishap_1_16_32_32_kshap_32_16_1_1"
+        export_path = ""
+        in_channels = 16
+        out_channels = 32
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # conv2d, pointwise, aligned, two task
+        input_shape = [1, 16, 120, 120]
+        export_name_prefix = "conv2d_s8_ishap_1_16_120_120_kshap_32_16_1_1"
+        export_path = ""
+        in_channels = 16
+        out_channels = 32
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # conv2d, pointwise, aligned, two task
+        input_shape = [1, 16, 32, 32]
+        export_name_prefix = "conv2d_s8_ishap_1_16_32_32_kshap_32_16_5_5_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 32
+        kernel_size = [5, 5]
+        stride = [2, 2]
+        padding = [2, 2]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # conv2d, pointwise, aligned, two task
+        input_shape = [1, 16, 32, 32]
+        export_name_prefix = "conv2d_s8_ishap_1_16_32_32_kshap_32_16_7_7_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 32
+        kernel_size = [7, 7]
+        stride = [2, 2]
+        padding = [2, 2]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # conv2d, pointwise, aligned, two task
+        input_shape = [1, 48, 19, 29]
+        export_name_prefix = "conv2d_s8_ishap_1_48_19_29_kshap_16_48_3_3"
+        export_path = ""
+        in_channels = 48
+        out_channels = 16
+        kernel_size = [3, 3]
+        stride = [2, 2]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # conv2d, pointwise, aligned, two task
+        input_shape = [1, 33, 19, 29]
+        export_name_prefix = "conv2d_s8_ishap_1_33_19_29_kshap_33_55_3_3"
+        export_path = ""
+        in_channels = 33
+        out_channels = 55
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 16, 3, 3]
+        export_name_prefix = "depthwise_conv2d_s8_ishap_1_16_3_3_kshap_16_16_3_3_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 16
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 16
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 16, 20, 20]
+        export_name_prefix = "depthwise_conv2d_s8_ishap_1_16_20_20_kshap_16_16_5_5_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 16
+        kernel_size = [5, 5]
+        stride = [2, 2]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 16
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 16, 20, 20]
+        export_name_prefix = "depthwise_conv2d_s8_ishap_1_16_20_20_kshap_16_16_5_5_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 16
+        kernel_size = [5, 5]
+        stride = [1, 2]
+        padding = [2, 2]
+        dilation = [1, 1]
+        groups = 16
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 32, 120, 120]
+        export_name_prefix = "depthwise_conv2d_s8_ishap_1_16_120_120_kshap_32_32_3_3_relu"
+        export_path = ""
+        in_channels = 32
+        out_channels = 32
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 32
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+    [ops_test.linear]
+    class_name = "LINEAR_TEST"
+        [[ops_test.linear.cfg]]
+        input_shape = [1, 16]
+        export_name_prefix = "linear_s8_ishap_1_16_kshap_16_16_relu"
+        export_path = ""
+        in_features = 16
+        out_features = 16
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.linear.cfg]]
+        input_shape = [1, 31]
+        export_name_prefix = "linear_s8_ishap_1_31_kshap_32_31_relu"
+        export_path = ""
+        in_features = 31
+        out_features = 32
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.linear.cfg]]
+        input_shape = [1, 64]
+        export_name_prefix = "linear_s8_ishap_1_64_kshap_32_64_relu"
+        export_path = ""
+        in_features = 64
+        out_features = 32
+        bias = true
+        activation_func = ""    # "", "ReLU"
+
+    [ops_test.add2d]
+    class_name = "ADD2D_TEST"
+        [[ops_test.add2d.cfg]]
+        input_shape = [[1, 96, 5, 5], [1, 96, 5, 5]]
+        export_name_prefix = "add2d_s8_ishap_1_96_5_5"
+        activation_func = ""
+        [[ops_test.add2d.cfg]]
+        input_shape = [[1, 5, 5, 31], [1, 1, 1, 31]]
+        export_name_prefix = "add2d_s8_ishap_1_96_1_1"
+        activation_func = ""
+
+    [ops_test.mul2d]
+    class_name = "MUL2D_TEST"
+        [[ops_test.mul2d.cfg]]
+        input_shape = [[1, 176, 10, 10], [1, 176, 10, 10]]
+        export_name_prefix = "mul2d_s8_ishap_1_176_10_10"
+        export_path = ""
+        activation_func = ""
+        [[ops_test.mul2d.cfg]]
+        input_shape = [[1, 1, 1, 100], [1, 10, 10, 100]]
+        export_name_prefix = "mul2d_s8_ishap_1_10_10_100"
+        export_path = ""
+        activation_func = ""
+
+    [ops_test.global_average_pooling]
+    class_name = "GLOBAL_AVERAGE_POOLING_TEST"
+        [[ops_test.global_average_pooling.cfg]]
+        input_shape = [1, 96, 5, 5]
+        export_name_prefix = "global_average_pooling_s8_ishap_1_96_5_5"
+        [[ops_test.global_average_pooling.cfg]]
+        input_shape = [1, 51, 3, 3]
+        export_name_prefix = "global_average_pooling_s8_ishap_1_51_3_3"
+
+    [ops_test.average_pooling]
+    class_name = "AVERAGE_POOLING_TEST"
+        [[ops_test.average_pooling.cfg]]
+        input_shape = [1, 96, 7, 7]
+        export_name_prefix = "average_pooling_s8_ishap_1_96_7_7_kshape_2_3"
+        kernel_size = [2, 3]
+        stride = [1, 2]
+        padding = [0, 0]
+
+        [[ops_test.average_pooling.cfg]]
+        input_shape = [1, 96, 5, 5]
+        export_name_prefix = "average_pooling_s8_ishap_1_96_5_5_kshape_2_2"
+        kernel_size = [2, 2]
+        stride = [2, 2]
+        padding = [0, 0]
+
+        [[ops_test.average_pooling.cfg]]
+        input_shape = [1, 51, 5, 5]
+        export_name_prefix = "average_pooling_s8_ishap_1_51_5_5_kshape_3_1"
+        kernel_size = [3, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+
+        [[ops_test.average_pooling.cfg]]
+        input_shape = [1, 51, 7, 7]
+        export_name_prefix = "average_pooling_s8_ishap_1_51_7_7_kshape_2_2"
+        kernel_size = [2, 2]
+        stride = [1, 1]
+        padding = [1, 1]
+
+    [ops_test.resize2d]
+    class_name = "RESIZE2D_TEST"
+        [[ops_test.resize2d.cfg]]
+        input_shape = [1, 96, 5, 5]
+        export_name_prefix = "resize2d_s8_ishap_1_96_5_5"
+        conv = false
+
+        [[ops_test.resize2d.cfg]]
+        input_shape = [1, 16, 8, 8]
+        export_name_prefix = "resize2d_s8_conv_ishap_1_16_8_8"
+        conv = true
+        in_features = 16
+        out_features = 16
+
+    [ops_test.sigmoid]
+    class_name = "SIGMOID_TEST"
+        [[ops_test.sigmoid.cfg]]
+        input_shape = [1, 96, 20, 20]
+        export_name_prefix = "sigmoid_ishap_1_96_20_20"
+
+        [[ops_test.sigmoid.cfg]]
+        input_shape = [1, 30, 40]
+        export_name_prefix = "sigmoid_ishap_1_30_40"
+
+    [ops_test.concat]
+    class_name = "CONCAT_TEST"
+        [[ops_test.concat.cfg]]
+        input_shape = [[1, 80, 20, 20], [1, 48, 20, 20]]
+        export_name_prefix = "concat_ishape_1_80_20_20_1_48_20_20"
+        axis = 1
+
+        [[ops_test.concat.cfg]]
+        input_shape = [[1, 5, 10, 10], [1, 5, 12, 10]]
+        export_name_prefix = "concat_ishape_1_5_10_10_1_5_12_10"
+        axis = 2
+
+        [[ops_test.concat.cfg]]
+        input_shape = [[1, 5, 10, 10], [1, 5, 10, 31]]
+        export_name_prefix = "concat_ishape_1_5_10_10_1_5_10_31"
+        axis = 3
+
+    [ops_test.clip]
+    class_name = "CLIP_TEST"
+        [[ops_test.clip.cfg]]
+        input_shape = [1, 10, 5, 5]
+        export_name_prefix = "clip_ishape_1_10_5_5_min_0_max_6"
+        min = 0
+        max = 6
+        export_path = ""
+
+    [ops_test.flatten]
+    class_name = "FLATTEN_TEST"
+        [[ops_test.flatten.cfg]]
+        input_shape = [1, 10, 32, 5, 5]
+        export_name_prefix = "flatten_ishape_1_10_32_5_5_start_0_end__2"
+        start_dim = 0
+        end_dim = -2
+        export_path = ""
+
+    [ops_test.reshape]
+    class_name = "RESHAPE_TEST"
+        [[ops_test.reshape.cfg]]
+        input_shape = [1, 10, 32, 5, 5]
+        export_name_prefix = "reshape_ishape_1_10_32_5_5_shape_320_5_5"
+        shape = [320, 5, 5]
+        export_path = ""
+
+        [[ops_test.reshape.cfg]]
+        input_shape = [1, 10, 32, 5, 5]
+        export_name_prefix = "reshape_ishape_1_10_32_5_5_shape_1600_5"
+        shape = [1600, 5]
+        export_path = ""
+
+    [ops_test.transpose]
+    class_name = "TRANSPOSE_TEST"
+        [[ops_test.transpose.cfg]]
+        input_shape = [1, 10, 20, 40]
+        export_name_prefix = "transpose_ishape_1_10_20_40_perm_0_2_1_3"
+        export_path = ""
+        perm = [0, 2, 1, 3]
+
+        [[ops_test.transpose.cfg]]
+        input_shape = [1, 25, 35]
+        export_name_prefix = "transpose_ishape_1_25_35_perm_2_0_1"
+        export_path = ""
+        perm = [2, 0, 1]
+
+        [[ops_test.transpose.cfg]]
+        input_shape = [1, 33]
+        export_name_prefix = "transpose_ishape_1_33_perm_1_0"
+        export_path = ""
+        perm = [1, 0]
+
+[models_test]
+    [models_test.picodet]
+        input_shape = [1, 3, 224, 224]
+        onnx_model_path = "picodet_xs_224_mod_chns_relu_rep_sim.onnx"
+        export_path = ""
+        export_name_prefix = "picodet_xs_224_mod_chns_relu_rep_sim"
+
+    [models_test.mobilenet_v2]
+        input_shape = [1, 3, 224, 224]
+        onnx_model_path = "mobilenet_v2.onnx"
+        export_path = ""
+        export_name_prefix = "mobilenet_v2"

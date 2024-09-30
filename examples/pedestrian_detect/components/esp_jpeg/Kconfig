@@ -1,0 +1,69 @@
+menu "JPEG Decoder"
+
+    config JD_USE_ROM
+        bool "Use TinyJPG Decoder from ROM"
+        depends on IDF_TARGET_ESP32 || IDF_TARGET_ESP32C3 || IDF_TARGET_ESP32C6 || IDF_TARGET_ESP32S3
+        default y
+        help
+            By default, Espressif SoCs use TJpg decoder implemented in ROM code.
+            If this feature is disabled, new configuration of TJpg decoder can be used.
+            Refer to REAME.md for more details.
+
+    config JD_SZBUF
+        int "Size of stream input buffer"
+        depends on !JD_USE_ROM
+        default 512
+
+    config JD_FORMAT
+        int
+        depends on !JD_USE_ROM
+        default 0 if JD_FORMAT_RGB888
+        default 1 if JD_FORMAT_RGB565
+
+        choice
+            prompt "Output pixel format"
+            depends on !JD_USE_ROM
+            default JD_FORMAT_RGB888
+            help
+                Output format is selected at runtime.
+
+        config JD_FORMAT_RGB888
+            bool "Support RGB565 and RGB888 output (16-bit/pix and 24-bit/pix)"
+        config JD_FORMAT_RGB565
+            bool "Support RGB565 output (16-bit/pix)"
+        endchoice
+
+    config JD_USE_SCALE
+        bool "Enable descaling"
+        depends on !JD_USE_ROM
+        default y
+        help
+            If scaling is enabled, size of output image can be lowered during decoding.
+
+    config JD_TBLCLIP
+        bool "Use table conversion for saturation arithmetic"
+        depends on !JD_USE_ROM
+        default y
+        help
+            Use table conversion for saturation arithmetic. A bit faster, but increases 1 KB of code size.
+
+    config JD_FASTDECODE
+        int
+        depends on !JD_USE_ROM
+        default 0 if JD_FASTDECODE_BASIC
+        default 1 if JD_FASTDECODE_32BIT
+        default 2 if JD_FASTDECODE_TABLE
+
+        choice
+            prompt "Optimization level"
+            depends on !JD_USE_ROM
+            default JD_FASTDECODE_32BIT
+
+        config JD_FASTDECODE_BASIC
+            bool "Basic optimization. Suitable for 8/16-bit MCUs"
+        config JD_FASTDECODE_32BIT
+            bool "+ 32-bit barrel shifter. Suitable for 32-bit MCUs"
+        config JD_FASTDECODE_TABLE
+            bool "+ Table conversion for huffman decoding (wants 6 << HUFF_BIT bytes of RAM)"
+        endchoice
+endmenu

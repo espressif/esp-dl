@@ -1,0 +1,114 @@
+############
+# Patterns #
+############
+
+# esp-dl folder, in the alphabetic order
+.patterns-esp-dl: &patterns-esp-dl
+  - "esp-dl/**/*"
+
+.patterns-esp-dl_dl: &patterns-esp-dl_dl
+  - "esp-dl/dl/**/*"
+
+.patterns-esp-dl_dl_base: &patterns-esp-dl_dl_base
+  - "esp-dl/dl/base/**/*"
+
+.patterns-esp-dl_dl_typedef: &patterns-esp-dl_dl_typedef
+  - "esp-dl/dl/typedef/**/*"
+
+.patterns-esp-dl_dl_model: &patterns-esp-dl_dl_model
+  - "esp-dl/dl/model/**/*"
+
+.patterns-esp-dl_dl_module: &patterns-esp-dl_dl_module
+  - "esp-dl/dl/module/**/*"
+
+.patterns-esp-dl_fbs_loader: &patterns-esp-dl_fbs_loader
+  - "esp-dl/fbs_loader/**/*"
+
+.patterns-esp-dl_vision: &patterns-esp-dl_vision
+  - "esp-dl/vision/**/*"
+
+# models folder, in the alphabetic order
+.patterns-model_human_face_detect: &patterns-model_human_face_detect
+  - "models/model_human_face_detect/**/*"
+
+.patterns-model_pedestrian_detect: &patterns-model_pedestrian_detect
+  - "models/pedestrian_detect/**/*"
+
+# examples folder, in the alphabetic order
+.patterns-example_human_face_detect: &patterns-example_human_face_detect
+  - "examples/human_face_detect/**/*"
+
+.patterns-example_pedestrian_detect: &patterns-example_pedestrian_detect
+  - "examples/pedestrian_detect/**/*"
+
+.patterns-example_mobilenet_v2: &patterns-example_mobilenet_v2
+  - "examples/mobilenet_v2/**/*"
+
+##############
+# if anchors #
+##############
+.if-protected: &if-protected
+  if: '($CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_BRANCH =~ /^release\/v/ || $CI_COMMIT_TAG =~ /^v\d+\.\d+(\.\d+)?($|-)/)'
+
+.if-dev-push: &if-dev-push
+  if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_BRANCH !~ /^release\/v/ && $CI_COMMIT_TAG !~ /^v\d+\.\d+(\.\d+)?($|-)/ && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event")'
+
+##################
+# Auto Generated #
+##################
+.if-label-build: &if-label-build
+  if: '$CI_MERGE_REQUEST_LABELS =~ /^(?:[^,\n\r]+,)*build(?:,[^,\n\r]+)*$/i'
+
+.if-label-pre_check: &if-label-pre_check
+  if: '$BOT_LABEL_PRE_CHECK || $CI_MERGE_REQUEST_LABELS =~ /^(?:[^,\n\r]+,)*pre_check(?:,[^,\n\r]+)*$/i'
+
+.patterns-docs_md: &patterns-docs_md
+  - "**/*.md"
+
+# rules for espdl op test
+.rules:build:espdl_ops:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl_dl
+
+# rules for examples
+.rules:build:example_human_face_detect:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_human_face_detect
+    - <<: *if-dev-push
+      changes: *patterns-example_human_face_detect
+
+.rules:build:example_pedestrian_detect:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_pedestrian_detect
+    - <<: *if-dev-push
+      changes: *patterns-example_pedestrian_detect
+
+.rules:build:example_mobilenet_v2:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-example_mobilenet_v2
+
+
+.rules:pre_check:readme:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-pre_check
+    - <<: *if-dev-push
+      changes: *patterns-docs_md
