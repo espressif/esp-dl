@@ -3,7 +3,7 @@
 namespace dl {
 int quantize(float input, float scale, float quant_min, float quant_max)
 {
-    int output = dl_esp32p4_round_half_even(input * scale);
+    int output = tool::round(input * scale);
     output = DL_CLIP(output, quant_min, quant_max);
     return output;
 }
@@ -317,23 +317,84 @@ size_t TensorBase::set_preload_addr(void *addr, size_t size)
     return 0;
 }
 
-void TensorBase::reset_bias_layout()
+void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise)
 {
-#if CONFIG_IDF_TARGET_ESP32P4
-    // TODO: reset bias layout for esp32p4
-    this->dtype = DATA_TYPE_INT64;
-    size_t dtype_bytes = this->get_dtype_bytes();
-    size_t aligned_size = this->get_aligned_size();
+    // The bias needs to be quantized to 32 bits.
+    assert(this->dtype == DATA_TYPE_INT32);
 
-    int32_t *pre_data = static_cast<int32_t *>(this->data);
-    int64_t *cur_data = static_cast<int64_t *>(heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, this->caps));
-    for (int i = 0; i < this->get_size(); i++) {
-        cur_data[i] = pre_data[i];
+#if CONFIG_IDF_TARGET_ESP32P4
+    // Reset bias layout for esp32p4
+    if (op_quant_type == QUANT_TYPE_SYMM_16BIT) {
+        this->dtype = DATA_TYPE_INT64;
+        size_t dtype_bytes = this->get_dtype_bytes();
+        size_t aligned_size = this->get_aligned_size();
+
+        int32_t *pre_data = static_cast<int32_t *>(this->data);
+        int64_t *cur_data = static_cast<int64_t *>(heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, this->caps));
+        for (int i = 0; i < this->get_size(); i++) {
+            cur_data[i] = pre_data[i];
+        }
+        heap_caps_free(this->data);
+        this->data = cur_data;
     }
-    heap_caps_free(this->data);
-    this->data = cur_data;
 #elif CONFIG_IDF_TARGET_ESP32S3
-    // TODO: reset bias layout for esp32s3
+    // Reset bias layout for esp32s3
+    // 0x000AAAAA000BBBBB ==> 0xAAAAABBBBB
+    if (op_quant_type == QUANT_TYPE_SYMM_8BIT) {
+        size_t dtype_bytes = 1;
+        size_t align = 16 / dtype_bytes;
+        size_t data_num = this->get_size();
+        size_t align_num = ((size_t)(data_num / align)) * align;
+        size_t remain_num = data_num - align_num;
+        if (is_depthwise) {
+            align_num = data_num;
+            remain_num = 0;
+        }
+        // QACC, EE.LD.QACC_L.L.128.IP / EE.LD.QACC_H.L.128.IP requires 16-byte address alignment.
+        //      When the bias is stored with a size of 4 bytes, the address is exactly 16-byte aligned
+        //      when used in EE.LD.QACC_H.L.128.IP, so the size of the aligned portion of memory here
+        //      is calculated based on 4 bytes.
+        // ACCX, EE.LD.ACCX.IP requires 8-byte address alignment.
+        size_t memory_size_needed = align_num * 4 + remain_num * 8;
+        // get the aligned size
+        memory_size_needed = memory_size_needed % align == 0 ? memory_size_needed
+                                                             : memory_size_needed + align - memory_size_needed % align;
+        int32_t *src_ptr = static_cast<int32_t *>(this->data);
+        int8_t *dst_ptr =
+            static_cast<int8_t *>(heap_caps_aligned_calloc(16, memory_size_needed, dtype_bytes, this->caps));
+        int8_t *dst_ptr_head = dst_ptr;
+
+        // 0x000AAAAA000BBBBB ==> 0xAAAAABBBBB
+        int i = 0;
+        for (; i < align_num; i++) {
+            int32_t src_data = src_ptr[i] & 0xfffff;
+            if (i & 1) {
+                int8_t src_least_4bit = src_data & 0xf;
+                (*(--dst_ptr_head)) |= (src_least_4bit << 4);
+                src_data >>= 4;
+            } else {
+                *dst_ptr_head = src_data & 0xff;
+                src_data >>= 8;
+            }
+            dst_ptr_head++;
+            *(reinterpret_cast<int16_t *>(dst_ptr_head)) = static_cast<int16_t>(src_data);
+            dst_ptr_head += 2;
+
+            // Move to the 16-byte memory address alignment.
+            if (((i + 1) % (align >> 1) == 0) && (reinterpret_cast<uintptr_t>(dst_ptr_head) & 0xf)) {
+                dst_ptr_head = dst_ptr_head + 16 - (reinterpret_cast<uintptr_t>(dst_ptr_head) & 0xf);
+            }
+        }
+
+        for (int j = 0; j < remain_num; j++, i++) {
+            (reinterpret_cast<int64_t *>(dst_ptr_head))[j] = src_ptr[i];
+        }
+
+        heap_caps_free(this->data);
+        this->data = dst_ptr;
+    } else if (op_quant_type == QUANT_TYPE_SYMM_16BIT) {
+        // TODO: reset bias layout for esp32s3 s16
+    }
 #endif
 }
 

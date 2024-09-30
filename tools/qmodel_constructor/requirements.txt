@@ -1,9 +1,0 @@
-numpy
-onnx >= 1.14.0
-protobuf == 3.20.2
-torch >= 1.10.0
-tqdm
-toml
-torchinfo
-pandas
-onnx-simplifier

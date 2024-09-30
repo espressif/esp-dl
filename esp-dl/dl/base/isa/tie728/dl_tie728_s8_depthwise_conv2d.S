@@ -135,18 +135,16 @@ dl_tie728_s8_depthwise_conv2d_per_layer_33c1:
 
     loopgtz a9, tie728_s8_depthwise_conv2d_per_layer_33c1_bias_loop
         EE.ZERO.QACC
-        tie728_s8_conv2d_bias_s32 q3, q4, q5, a11, a15
+        tie728_s8_conv2d_128b_vector_bias a11
         tie728_s8_depthwise_conv2d_33s1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-        tie728_s8_conv2d_per_layer_result q3, a10
-        # tie728_s8_conv2d_bias q3, q4, a11
+        tie728_s8_vector_round_result q3, a10, a15, q6
         EE.VST.128.IP q3, a2, 16
     tie728_s8_depthwise_conv2d_per_layer_33c1_bias_loop:
 
     EE.ZERO.QACC
-    tie728_s8_conv2d_bias_s32 q3, q4, q5, a11, a15
+    tie728_s8_conv2d_128b_vector_bias a11
     tie728_s8_depthwise_conv2d_33s1_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s8_conv2d_per_layer_result q3, a10
-    # tie728_s8_conv2d_bias q3, q4, a11
+    tie728_s8_vector_round_result q3, a10, a15, q6
     EE.VST.128.IP q3, a2, 16
     retw
 
@@ -155,13 +153,13 @@ dl_tie728_s8_depthwise_conv2d_per_layer_33c1:
     loopgtz a9, tie728_s8_depthwise_conv2d_per_layer_33c1_no_bias_loop
         EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_33s1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-        tie728_s8_conv2d_per_layer_result q3, a10
+        tie728_s8_vector_round_result q3, a10, a15, q6
         EE.VST.128.IP q3, a2, 16
     tie728_s8_depthwise_conv2d_per_layer_33c1_no_bias_loop:
 
     EE.ZERO.QACC
     tie728_s8_depthwise_conv2d_33s1_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s8_conv2d_per_layer_result q3, a10
+    tie728_s8_vector_round_result q3, a10, a15, q6
     EE.VST.128.IP q3, a2, 16
     retw
 
@@ -249,19 +247,17 @@ dl_tie728_s8_depthwise_conv2d_per_layer_33c1_relu:
 
     loopgtz a9, tie728_s8_depthwise_conv2d_per_layer_33c1_bias_relu_loop
         EE.ZERO.QACC
-        tie728_s8_conv2d_bias_s32 q3, q4, q5, a11, a15
+        tie728_s8_conv2d_128b_vector_bias a11
         tie728_s8_depthwise_conv2d_33s1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-        tie728_s8_conv2d_per_layer_result q3, a10
-        # tie728_s8_conv2d_bias_relu q3, q4, a11, a12, a13
+        tie728_s8_vector_round_result q3, a10, a15, q6
         tie728_s8_conv2d_relu q3, a12, a13
         EE.VST.128.IP q3, a2, 16
     tie728_s8_depthwise_conv2d_per_layer_33c1_bias_relu_loop:
 
     EE.ZERO.QACC
-    tie728_s8_conv2d_bias_s32 q3, q4, q5, a11, a15
+    tie728_s8_conv2d_128b_vector_bias a11
     tie728_s8_depthwise_conv2d_33s1_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s8_conv2d_per_layer_result q3, a10
-    # tie728_s8_conv2d_bias_relu q3, q4, a11, a12, a13
+    tie728_s8_vector_round_result q3, a10, a15, q6
     tie728_s8_conv2d_relu q3, a12, a13
     EE.VST.128.IP q3, a2, 16
     retw
@@ -271,14 +267,14 @@ dl_tie728_s8_depthwise_conv2d_per_layer_33c1_relu:
     loopgtz a9, tie728_s8_depthwise_conv2d_per_layer_33c1_no_bias_relu_loop
         EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_33s1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-        tie728_s8_conv2d_per_layer_result q3, a10
+        tie728_s8_vector_round_result q3, a10, a15, q6
         tie728_s8_conv2d_relu q3, a12, a13
         EE.VST.128.IP q3, a2, 16
     tie728_s8_depthwise_conv2d_per_layer_33c1_no_bias_relu_loop:
 
     EE.ZERO.QACC
     tie728_s8_depthwise_conv2d_33s1_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s8_conv2d_per_layer_result q3, a10
+    tie728_s8_vector_round_result q3, a10, a15, q6
     tie728_s8_conv2d_relu q3, a12, a13
     EE.VST.128.IP q3, a2, 16
     retw
@@ -371,16 +367,18 @@ dl_tie728_s8_depthwise_conv2d_per_layer_33c1_prelu:
 
     loopgtz a9, tie728_s8_depthwise_conv2d_per_layer_33c1_bias_prelu_loop
         EE.ZERO.QACC
+        tie728_s8_conv2d_128b_vector_bias a11
         tie728_s8_depthwise_conv2d_33s1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-        tie728_s8_conv2d_per_layer_result q3, a10
-        tie728_s8_conv2d_bias_prelu q3, q4, a11, q5, a12, a13
+        tie728_s8_vector_round_result q3, a10, a15, q6
+        tie728_s8_conv2d_prelu q3, q5, a12, a13
         EE.VST.128.IP q3, a2, 16
     tie728_s8_depthwise_conv2d_per_layer_33c1_bias_prelu_loop:
 
     EE.ZERO.QACC
+    tie728_s8_conv2d_128b_vector_bias a11
     tie728_s8_depthwise_conv2d_33s1_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s8_conv2d_per_layer_result q3, a10
-    tie728_s8_conv2d_bias_prelu q3, q4, a11, q5, a12, a13
+    tie728_s8_vector_round_result q3, a10, a15, q6
+    tie728_s8_conv2d_prelu q3, q5, a12, a13
     EE.VST.128.IP q3, a2, 16
     retw
 
@@ -389,14 +387,14 @@ dl_tie728_s8_depthwise_conv2d_per_layer_33c1_prelu:
     loopgtz a9, tie728_s8_depthwise_conv2d_per_layer_33c1_no_bias_prelu_loop
         EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_33s1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-        tie728_s8_conv2d_per_layer_result q3, a10
+        tie728_s8_vector_round_result q3, a10, a15, q6
         tie728_s8_conv2d_prelu q3, q5, a12, a13
         EE.VST.128.IP q3, a2, 16
     tie728_s8_depthwise_conv2d_per_layer_33c1_no_bias_prelu_loop:
 
     EE.ZERO.QACC
     tie728_s8_depthwise_conv2d_33s1_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s8_conv2d_per_layer_result q3, a10
+    tie728_s8_vector_round_result q3, a10, a15, q6
     tie728_s8_conv2d_prelu q3, q5, a12, a13
     EE.VST.128.IP q3, a2, 16
     retw
@@ -458,7 +456,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
     # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T)
     # next_33s1 = (-(filter_width - 1) * dilation_x * input_channel_with_padding - (filter_height - 1) * dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T) + 16
     
-    EE.ZERO.QACC
+    # EE.ZERO.QACC
 
     # EE.LD.128.USAR.IP \input_v2, \input_ptr, 16
     EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_y_offset
@@ -503,7 +501,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
     # dilation_x_offset = input_channel_with_padding * dilation_x * sizeof(T)
     # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T)
     
-    EE.ZERO.QACC
+    # EE.ZERO.QACC
 
     EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_y_offset
     EE.VMULAS.S8.QACC.LD.IP \filter_v1, \filter_ptr, 16, \input_v0, \filter_v0
@@ -583,7 +581,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
     # dilation_x_offset = input_channel_with_padding * dilation_x * remainder_c
     # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * remainder_c
 
-    EE.ZERO.QACC
+    # EE.ZERO.QACC
 
     tie728_s8_depthwise_conv2d_unaligned_c_slice_updatex \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \dilation_x_offset, \remainder_c
     tie728_s8_depthwise_conv2d_unaligned_c_slice_updatex \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \dilation_x_offset, \remainder_c
@@ -686,6 +684,13 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1:
 
     tie728_s8_unaligned_depthwise_conv2d_33c1_loop:
     # loopgtz a9, tie728_s8_unaligned_depthwise_conv2d_33c1_loop   # Internal error in istack_push_space
+        EE.ZERO.QACC
+
+        # Without modifications specifically for per-channel, there may be issues with per-channel
+        beqz a11, tie728_s8_unaligned_depthwise_conv2d_33c1_loop_no_preload_bias
+            tie728_s8_conv2d_128b_vector_bias a11
+        tie728_s8_unaligned_depthwise_conv2d_33c1_loop_no_preload_bias:
+
         tie728_s8_unaligned_depthwise_conv2d_33s1 q0, q1, q2, q3, a3, q4, q5, q6, a5, a6, a7, a8
         tie728_s8_conv2d_1_1_unaligned_c_result a15, q3, a10, a11, a12, a13, a14, q5, q6
         # tie728_s8_conv2d_per_layer_result q3, a10
@@ -697,6 +702,13 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1:
     bnez a9, tie728_s8_unaligned_depthwise_conv2d_33c1_loop
 
 tie728_s8_unaligned_depthwise_conv2d_33c1_loop_last:
+
+    EE.ZERO.QACC
+
+    # Without modifications specifically for per-channel, there may be issues with per-channel
+    beqz a11, tie728_s8_unaligned_depthwise_conv2d_33c1_loop_last_no_preload_bias
+        tie728_s8_conv2d_128b_vector_bias a11
+    tie728_s8_unaligned_depthwise_conv2d_33c1_loop_last_no_preload_bias:
 
     tie728_s8_unaligned_depthwise_conv2d_33s1_last q0, q1, q2, q3, a3, q4, q5, a5, a6, a7, a8
     tie728_s8_conv2d_1_1_unaligned_c_result a15, q3, a10, a11, a12, a13, a14, q5, q6
@@ -714,6 +726,13 @@ tie728_s8_unaligned_depthwise_conv2d_33c1_0:
     
     tie728_s8_unaligned_depthwise_conv2d_33c1_loop0:
     # loopgtz a9, tie728_s8_unaligned_depthwise_conv2d_33c1_loop0
+        EE.ZERO.QACC
+
+        # Without modifications specifically for per-channel, there may be issues with per-channel
+        beqz a11, tie728_s8_unaligned_depthwise_conv2d_33c1_loop0_no_preload_bias
+            tie728_s8_conv2d_128b_vector_bias a11
+        tie728_s8_unaligned_depthwise_conv2d_33c1_loop0_no_preload_bias:
+
         tie728_s8_unaligned_depthwise_conv2d_33s1 q0, q1, q2, q3, a3, q4, q5, q6, a5, a6, a7, a8
         tie728_s8_conv2d_1_1_unaligned_c_result a15, q3, a10, a11, a12, a13, a14, q5, q6
 
@@ -723,6 +742,13 @@ tie728_s8_unaligned_depthwise_conv2d_33c1_0:
     bnez a9, tie728_s8_unaligned_depthwise_conv2d_33c1_loop0
 
 tie728_s8_unaligned_depthwise_conv2d_33c1_loop0_last:
+    EE.ZERO.QACC
+
+    # Without modifications specifically for per-channel, there may be issues with per-channel
+    beqz a11, tie728_s8_unaligned_depthwise_conv2d_33c1_loop0_last_no_preload_bias
+        tie728_s8_conv2d_128b_vector_bias a11
+    tie728_s8_unaligned_depthwise_conv2d_33c1_loop0_last_no_preload_bias:
+
     tie728_s8_unaligned_depthwise_conv2d_33s1_last q0, q1, q2, q3, a3, q4, q5, a5, a6, a7, a8
     tie728_s8_conv2d_1_1_unaligned_c_result a15, q3, a10, a11, a12, a13, a14, q5, q6
     EE.VST.128.IP q3, a2, 16
@@ -736,6 +762,13 @@ tie728_s8_unaligned_depthwise_conv2d_33c1_8:
     tie728_s8_unaligned_depthwise_conv2d_33c1_loop8:
 
     # loopgtz a9, tie728_s8_unaligned_depthwise_conv2d_33c1_loop8
+        EE.ZERO.QACC
+
+        # Without modifications specifically for per-channel, there may be issues with per-channel
+        beqz a11, tie728_s8_unaligned_depthwise_conv2d_33c1_loop8_no_preload_bias
+            tie728_s8_conv2d_128b_vector_bias a11
+        tie728_s8_unaligned_depthwise_conv2d_33c1_loop8_no_preload_bias:
+
         tie728_s8_unaligned_depthwise_conv2d_33s1 q0, q1, q2, q3, a3, q4, q5, q6, a5, a6, a7, a8
         tie728_s8_conv2d_1_1_unaligned_c_result a15, q3, a10, a11, a12, a13, a14, q5, q6
 
@@ -746,6 +779,13 @@ tie728_s8_unaligned_depthwise_conv2d_33c1_8:
     bnez a9, tie728_s8_unaligned_depthwise_conv2d_33c1_loop8
 
 tie728_s8_unaligned_depthwise_conv2d_33c1_loop8_last:
+    EE.ZERO.QACC
+
+    # Without modifications specifically for per-channel, there may be issues with per-channel
+    beqz a11, tie728_s8_unaligned_depthwise_conv2d_33c1_loop8_last_no_preload_bias
+        tie728_s8_conv2d_128b_vector_bias a11
+    tie728_s8_unaligned_depthwise_conv2d_33c1_loop8_last_no_preload_bias:
+
     tie728_s8_unaligned_depthwise_conv2d_33s1_last q0, q1, q2, q3, a3, q4, q5, a5, a6, a7, a8
     tie728_s8_conv2d_1_1_unaligned_c_result a15, q3, a10, a11, a12, a13, a14, q5, q6
     dl_tie728_s8_unaligned_store1 q3, a2
@@ -763,6 +803,13 @@ tie728_s8_unaligned_depthwise_conv2d_33c1_c_loop_end:
 
     sub a6, a6, a8
     sub a7, a7, a8
+
+    EE.ZERO.QACC
+
+    # Without modifications specifically for per-channel, there may be issues with per-channel
+    beqz a11, tie728_s8_unaligned_depthwise_conv2d_33c1_c_loop_end_no_preload_bias
+        tie728_s8_conv2d_128b_vector_bias a11
+    tie728_s8_unaligned_depthwise_conv2d_33c1_c_loop_end_no_preload_bias:
 
     tie728_s8_depthwise_conv2d_33s1_c_remainder q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
     tie728_s8_conv2d_1_1_unaligned_c_result a15, q3, a10, a11, a12, a13, a14, q4, q5
@@ -853,7 +900,7 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1_end:
     # filter_w_rs1_1
 
 
-    EE.ZERO.QACC
+    # EE.ZERO.QACC
 
     l32i \filter_h, \args, 52  # filter_height
 
@@ -947,9 +994,10 @@ dl_tie728_s8_depthwise_conv2d_per_layer_hwc1:
     beqz a14, tie728_s8_depthwise_conv2d_per_layer_hwc1_no_bias
 
     tie728_s8_depthwise_conv2d_per_layer_hwc1_bias_loop:
+        EE.ZERO.QACC
+        tie728_s8_conv2d_128b_vector_bias a14
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15 
-        tie728_s8_conv2d_per_layer_result q3, a10
-        tie728_s8_conv2d_bias q3, q4, a14
+        tie728_s8_vector_round_result q3, a10, a11, q6
         EE.VST.128.IP q3, a2, 16
         addi a9, a9, -1
     bgez a9, tie728_s8_depthwise_conv2d_per_layer_hwc1_bias_loop
@@ -957,8 +1005,9 @@ dl_tie728_s8_depthwise_conv2d_per_layer_hwc1:
 
 
     tie728_s8_depthwise_conv2d_per_layer_hwc1_no_bias:
+        EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
-        tie728_s8_conv2d_per_layer_result q3, a10
+        tie728_s8_vector_round_result q3, a10, a11, q6
         EE.VST.128.IP q3, a2, 16
         addi a9, a9, -1
     bgez a9, tie728_s8_depthwise_conv2d_per_layer_hwc1_no_bias
@@ -971,6 +1020,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1:
     beqz a14, tie728_s8_depthwise_conv2d_per_channel_hwc1_no_bias
 
     tie728_s8_depthwise_conv2d_per_channel_hwc1_bias_loop:
+        EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
         # tie728_s8_conv2d_per_channel_result q3, q4, a10, a11, q5
         # tie728_s8_conv2d_bias q3, q4, a14
@@ -982,6 +1032,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1:
 
 
     tie728_s8_depthwise_conv2d_per_channel_hwc1_no_bias:
+        EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
         tie728_s8_conv2d_per_channel_result q3, q4, a10, a11, q5
         EE.VST.128.IP q3, a2, 16
@@ -1040,11 +1091,13 @@ dl_tie728_s8_depthwise_conv2d_per_layer_hwc1_relu:
 
     tie728_s8_depthwise_conv2d_per_layer_hwc1_bias_relu_loop:
         EE.MOVI.32.A q7, a15, 1
+        EE.ZERO.QACC
+        tie728_s8_conv2d_128b_vector_bias a14
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
-        tie728_s8_conv2d_per_layer_result q3, a10
+        tie728_s8_vector_round_result q3, a10, a11, q6
         l32i a11, a4, 84  # activation_shift
         EE.MOVI.32.A q7, a15, 3
-        tie728_s8_conv2d_bias_relu q3, q4, a14, a15, a11 
+        tie728_s8_conv2d_relu q3, a15, a11
         EE.VST.128.IP q3, a2, 16
         addi a9, a9, -1
     bgez a9, tie728_s8_depthwise_conv2d_per_layer_hwc1_bias_relu_loop
@@ -1055,8 +1108,9 @@ dl_tie728_s8_depthwise_conv2d_per_layer_hwc1_relu:
     l32i a14, a4, 84  # activation_shift
     tie728_s8_depthwise_conv2d_per_layer_hwc1_no_bias_relu_loop:
         EE.MOVI.32.A q7, a15, 1
+        EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
-        tie728_s8_conv2d_per_layer_result q3, a10
+        tie728_s8_vector_round_result q3, a10, a11, q6
         EE.MOVI.32.A q7, a15, 3
         tie728_s8_conv2d_relu q3, a15, a14
         EE.VST.128.IP q3, a2, 16
@@ -1072,6 +1126,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_relu:
 
     tie728_s8_depthwise_conv2d_per_channel_hwc1_bias_relu_loop:
         EE.MOVI.32.A q7, a15, 1
+        EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
         # tie728_s8_conv2d_per_channel_result q3, q4, a10, a11, q5
         # l32i a11, a4, 84  # activation_shift
@@ -1090,6 +1145,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_relu:
     l32i a14, a4, 84  # activation_shift
     tie728_s8_depthwise_conv2d_per_channel_hwc1_no_bias_relu_loop:
         EE.MOVI.32.A q7, a15, 1
+        EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
         tie728_s8_conv2d_per_channel_result q3, q4, a10, a11, q5
         EE.MOVI.32.A q7, a15, 3
@@ -1150,11 +1206,13 @@ dl_tie728_s8_depthwise_conv2d_per_layer_hwc1_prelu:
 
     tie728_s8_depthwise_conv2d_per_layer_hwc1_bias_prelu_loop:
         EE.MOVI.32.A q7, a15, 1
+        EE.ZERO.QACC
+        tie728_s8_conv2d_128b_vector_bias a14
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
-        tie728_s8_conv2d_per_layer_result q3, a10
+        tie728_s8_vector_round_result q3, a10, a11, q6
         l32i a11, a4, 84  # activation_shift
         EE.MOVI.32.A q7, a15, 3
-        tie728_s8_conv2d_bias_prelu q3, q4, a14, q5, a15, a11
+        tie728_s8_conv2d_prelu q3, q5, a15, a11
         EE.MOVI.32.Q q7, a15, 3
         EE.VST.128.IP q3, a2, 16
         addi a9, a9, -1
@@ -1166,8 +1224,9 @@ dl_tie728_s8_depthwise_conv2d_per_layer_hwc1_prelu:
     l32i a14, a4, 84  # activation_shift
     tie728_s8_depthwise_conv2d_per_layer_hwc1_no_bias_prelu_loop:
         EE.MOVI.32.A q7, a15, 1
+        EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
-        tie728_s8_conv2d_per_layer_result q3, a10
+        tie728_s8_vector_round_result q3, a10, a11, q6
         EE.MOVI.32.A q7, a15, 3
         tie728_s8_conv2d_prelu q3, q5, a15, a14
         EE.MOVI.32.Q q7, a15, 3
@@ -1184,6 +1243,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
 
     tie728_s8_depthwise_conv2d_per_channel_hwc1_bias_prelu_loop:
         EE.MOVI.32.A q7, a15, 1
+        EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
         # tie728_s8_conv2d_per_channel_result q3, q4, a10, a11, q5
         tie728_s8_conv2d_per_channel_with_bias_result q3, q4, a10, a14, a11, q5
@@ -1201,6 +1261,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
     l32i a14, a4, 84  # activation_shift
     tie728_s8_depthwise_conv2d_per_channel_hwc1_no_bias_prelu_loop:
         EE.MOVI.32.A q7, a15, 1
+        EE.ZERO.QACC
         tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
         tie728_s8_conv2d_per_channel_result q3, q4, a10, a11, q5
         EE.MOVI.32.A q7, a15, 3
@@ -1324,7 +1385,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
     # filter_w_rs1_1
 
 
-    EE.ZERO.QACC
+    # EE.ZERO.QACC
 
     l32i \filter_h, \args, 52  # filter_height
 
@@ -1383,7 +1444,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
     # dilation_x_offset = input_channel_with_padding * dilation_x * remainder_c
     # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * remainder_c
 
-    EE.ZERO.QACC
+    # EE.ZERO.QACC
 
     l32i \filter_h, \args, 52 # filter_height
 
@@ -1489,6 +1550,12 @@ tie728_s8_unaligned_depthwise_conv2d_hwc1_with_activation:
         l32i a13, a4, 148 # filter_w_rs1_1
         l32i a12, a4, 56 # filter_w
         EE.MOVI.32.A q7, a15, 1
+        EE.ZERO.QACC
+
+        # Without modifications specifically for per-channel, there may be issues with per-channel
+        beqz a14, tie728_s8_unaligned_depthwise_conv2d_hwc1_loop_no_preload_bias
+            tie728_s8_conv2d_128b_vector_bias a14
+        tie728_s8_unaligned_depthwise_conv2d_hwc1_loop_no_preload_bias:
         tie728_s8_unaligned_depthwise_conv2d_hws1 q0, q1, q2, a3, q3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
 
         EE.MOVI.32.A q7, a13, 0 #operation type
@@ -1510,6 +1577,12 @@ tie728_s8_unaligned_depthwise_conv2d_hwc1_no_activation:
 
     tie728_s8_unaligned_depthwise_conv2d_hwc1_loop_no_act:
         EE.MOVI.32.A q7, a15, 1
+        EE.ZERO.QACC
+
+        # Without modifications specifically for per-channel, there may be issues with per-channel
+        beqz a14, tie728_s8_unaligned_depthwise_conv2d_hwc1_loop_no_act_no_preload_bias
+            tie728_s8_conv2d_128b_vector_bias a14
+        tie728_s8_unaligned_depthwise_conv2d_hwc1_loop_no_act_no_preload_bias:
         tie728_s8_unaligned_depthwise_conv2d_hws1 q0, q1, q2, a3, q3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
         EE.MOVI.32.A q7, a15, 0
         tie728_s8_conv2d_1_1_unaligned_c_result a15, q4, a10, a14, a11, a11, a11, q5, q6
@@ -1543,6 +1616,12 @@ tie728_s8_unaligned_depthwise_conv2d_hwc1_c_loop_end:
     l32i a13, a4, 148 # filter_w_rs1_1
     l32i a12, a4, 56 # filter_w
     EE.MOVI.32.A q7, a15, 1
+    EE.ZERO.QACC
+
+    # Without modifications specifically for per-channel, there may be issues with per-channel
+    beqz a14, tie728_s8_unaligned_depthwise_conv2d_hwc1_c_loop_end_no_preload_bias
+        tie728_s8_conv2d_128b_vector_bias a14
+    tie728_s8_unaligned_depthwise_conv2d_hwc1_c_loop_end_no_preload_bias:
     tie728_s8_unaligned_depthwise_conv2d_hws1_c_remainder q0, q1, q2, a3, q3, q4, q5, a5, a6, a7, a11, a12, a13, a8, a4, a15
     
     l32i a12, a4, 84  # activation_shift

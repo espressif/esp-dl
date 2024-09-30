@@ -41,8 +41,7 @@ void DetectPostprocessor::nms()
         }
     }
     latency.end();
-    if (this->print_info)
-        latency.print("detect", "postprocess::nms");
+    latency.print("detect", "postprocess::nms");
 }
 
 std::list<result_t> &DetectPostprocessor::get_result(const std::vector<int> &input_shape)

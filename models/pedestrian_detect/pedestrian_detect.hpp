@@ -33,8 +33,6 @@ public:
      */
     template <typename T>
     std::list<dl::detect::result_t> &run(T *input_element, std::vector<int> input_shape);
-
-    void set_print_info(bool print_info);
 };
 
 namespace dl {
@@ -46,7 +44,6 @@ private:
     Model *model;
     image::ImagePreprocessor<feature_t> *image_preprocessor;
     PedestrianPostprocessor<feature_t> *postprocessor;
-    bool print_info = false;
 
 public:
     Pedestrian(const float score_threshold,
@@ -61,11 +58,7 @@ public:
         std::map<std::string, TensorBase *> model_inputs_map = this->model->get_inputs();
         assert(model_inputs_map.size() == 1);
         TensorBase *model_input = model_inputs_map.begin()->second;
-#if CONFIG_IDF_TARGET_ESP32P4
         this->image_preprocessor = new image::ImagePreprocessor<feature_t>(model_input, mean, std);
-#else
-        this->image_preprocessor = new image::ImagePreprocessor<feature_t>(model_input, mean, std, false, true);
-#endif
     }
 
     ~Pedestrian()
@@ -83,13 +76,6 @@ public:
             this->postprocessor = nullptr;
         }
     }
-
-    void set_print_info(bool print_info)
-    {
-        this->print_info = print_info;
-        this->image_preprocessor->set_print_info(print_info);
-        this->postprocessor->set_print_info(print_info);
-    };
 
     template <typename T>
     std::list<result_t> &run(T *input_element, std::vector<int> input_shape)
@@ -110,11 +96,11 @@ public:
         this->postprocessor->postprocess(model->get_outputs());
         std::list<result_t> &result = this->postprocessor->get_result(input_shape);
         latency[2].end();
-        if (this->print_info) {
-            latency[0].print("detect", "preprocess");
-            latency[1].print("detect", "forward");
-            latency[2].print("detect", "postprocess");
-        }
+
+        latency[0].print("detect", "preprocess");
+        latency[1].print("detect", "forward");
+        latency[2].print("detect", "postprocess");
+
         return result;
     }
 };

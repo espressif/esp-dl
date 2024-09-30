@@ -13,7 +13,7 @@ inline void resize2d_nearest_2x2_c1(feature_t *output_ptr, feature_t *input_ptr,
     feature_t *output_ptr_1_1 = output_ptr_1_0 + args.output_x_offset;
 
     for (int i = 0; i < args.input_channel; i++) {
-        feature_t output_value = round_half_even((float)(*input_ptr++) * args.output_scale / (1 << args.output_shift));
+        feature_t output_value = tool::round((float)(*input_ptr++) * args.output_scale / (1 << args.output_shift));
         *(output_ptr_0_0++) = output_value;
         *(output_ptr_0_1++) = output_value;
         *(output_ptr_1_0++) = output_value;
@@ -33,6 +33,12 @@ inline void load_resized2d_nearest_2x2_c1_s8(resize_i_impl_func_s8_t &i_impl_fun
         i_impl_func = dl_esp32p4_s8_unaligned_resize2d_nearest_2x2_c1;
     }
 #elif CONFIG_TIE728_BOOST
+    if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
+        !((unsigned)&args.output_element[0] & 15)) {
+        i_impl_func = dl_tie728_s8_resize2d_nearest_2x2_c1;
+    } else {
+        i_impl_func = dl_tie728_s8_unaligned_resize2d_nearest_2x2_c1;
+    }
 #else
     c_impl_func = resize2d_nearest_2x2_c1<int8_t>;
 #endif

@@ -217,7 +217,7 @@ public:
 
     size_t set_preload_addr(void *addr, size_t size);
 
-    void reset_bias_layout();
+    void reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise);
 
     /**
      * @brief Change a new shape to the Tensor without changing its data.

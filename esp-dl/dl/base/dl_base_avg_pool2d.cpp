@@ -31,7 +31,7 @@ inline void avgpool2d_hwc1(buffer_t *buffer_ptr,
 
     for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
         tool::truncate(output_ptr[output_c],
-                       round_half_even(buffer_ptr[output_c] * avg_pool_area_inv / DL_SCALE(args.output_exponent)));
+                       tool::round(buffer_ptr[output_c] * avg_pool_area_inv / DL_SCALE(args.output_exponent)));
         buffer_ptr[output_c] = 0;
     }
 }

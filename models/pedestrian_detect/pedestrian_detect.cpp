@@ -21,8 +21,3 @@ std::list<dl::detect::result_t> &PedestrianDetect::run(T *input_element, std::ve
 }
 template std::list<dl::detect::result_t> &PedestrianDetect::run(uint16_t *input_element, std::vector<int> input_shape);
 template std::list<dl::detect::result_t> &PedestrianDetect::run(uint8_t *input_element, std::vector<int> input_shape);
-
-void PedestrianDetect::set_print_info(bool print_info)
-{
-    ((dl::detect::Pedestrian<int8_t> *)this->model)->set_print_info(print_info);
-}

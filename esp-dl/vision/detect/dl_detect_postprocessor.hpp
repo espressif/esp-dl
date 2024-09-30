@@ -1,6 +1,6 @@
 #pragma once
 #include "dl_detect_define.hpp"
-#include "dl_variable.hpp"
+#include <dl_tensor_base.hpp>
 #include <list>
 #include <map>
 
@@ -11,7 +11,6 @@ protected:
     const float score_threshold; /*<! Candidate box with lower score than score_threshold will be filtered */
     const float nms_threshold;   /*<! Candidate box with higher IoU than nms_threshold will be filtered */
     const int top_k;             /*<! Keep top_k number of candidate boxes */
-    bool print_info = false;
     float resize_scale_x;
     float resize_scale_y;
     float top_left_x;
@@ -28,7 +27,6 @@ public:
     void set_resize_scale_y(float resize_scale_y) { this->resize_scale_y = resize_scale_y; };
     void set_top_left_x(float top_left_x) { this->top_left_x = top_left_x; };
     void set_top_left_y(float top_left_y) { this->top_left_y = top_left_y; };
-    void set_print_info(bool print_info) { this->print_info = print_info; };
     void clear_result() { this->box_list.clear(); };
     std::list<result_t> &get_result(const std::vector<int> &input_shape);
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <limits>
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,7 @@
 #include <vector>
 
 #include "esp_cpu.h"
+#include "esp_log.h"
 #include "esp_system.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
@@ -40,11 +42,19 @@ typedef enum {
 void dl_esp32p4_cfg_round(round_mode_t round_mode);
 int dl_esp32p4_round_half_even(float value);
 #endif
-int round_half_even(float value);
 }
 
 namespace dl {
 namespace tool {
+
+/**
+ * @brief Encapsulate the round strategies for different platforms.
+ *
+ * @param value The float value.
+ * @return int
+ */
+int round(float value);
+
 /**
  * @brief Set memory zero.
  *
@@ -84,7 +94,7 @@ void set_value(T *ptr, const T value, const int len)
  * @param src pointer of source
  * @param n   byte number
  */
-void copy_memory(void *dst, void *src, const int n);
+void copy_memory(void *dst, void *src, const size_t n);
 
 /**
  * @brief Apply memory without initialized. Can use free_aligned() to free the memory.
@@ -565,7 +575,7 @@ public:
      * @param prefix prefix of print
      * @param key    key of print
      */
-    void print(const char *prefix, const char *key)
+    void print(const char *prefix, const char *key, bool debug = true)
     {
 #if DL_LOG_LATENCY_UNIT
         printf("%s::%s: %lu cycle\n", prefix, key, this->get_average_period());
@@ -596,7 +606,10 @@ public:
             "%s::%s: l1 icache, nxtlvl cnt: %lu\n", prefix, key, this->l1ibus_nxtlvl_cnt_e - this->l1ibus_nxtlvl_cnt_s);
 #endif
 #else
-        printf("%s::%s: %lu us\n", prefix, key, this->get_average_period());
+        if (debug)
+            ESP_LOGD("latency", "%s::%s: %lu us\n", prefix, key, this->get_average_period());
+        else
+            printf("%s::%s: %lu us\n", prefix, key, this->get_average_period());
 #endif
     }
 };

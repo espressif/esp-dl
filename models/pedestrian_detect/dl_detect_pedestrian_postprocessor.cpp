@@ -21,14 +21,10 @@ void PedestrianPostprocessor<feature_t>::parse_stage(TensorBase *score, TensorBa
     feature_t score_threshold_quant;
     if (std::is_same<feature_t, int8_t>::value) {
         score_threshold_quant = (feature_t)DL_CLIP(
-            dl_esp32p4_round_half_even(this->score_threshold * this->score_threshold / DL_SCALE(score->exponent)),
-            -128,
-            127);
+            tool::round(this->score_threshold * this->score_threshold / DL_SCALE(score->exponent)), -128, 127);
     } else {
         score_threshold_quant = (feature_t)DL_CLIP(
-            dl_esp32p4_round_half_even(this->score_threshold * this->score_threshold / DL_SCALE(score->exponent)),
-            -32768,
-            32767);
+            tool::round(this->score_threshold * this->score_threshold / DL_SCALE(score->exponent)), -32768, 32767);
     }
 
     feature_t *box_element = (feature_t *)box->get_element_ptr();
