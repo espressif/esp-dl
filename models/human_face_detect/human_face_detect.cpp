@@ -34,9 +34,3 @@ std::list<dl::detect::result_t> &HumanFaceDetect::run(T *input_element, std::vec
 }
 template std::list<dl::detect::result_t> &HumanFaceDetect::run(uint16_t *input_element, std::vector<int> input_shape);
 template std::list<dl::detect::result_t> &HumanFaceDetect::run(uint8_t *input_element, std::vector<int> input_shape);
-
-void HumanFaceDetect::set_print_info(bool print_info)
-{
-    ((dl::detect::MSR01<int8_t> *)this->stage1_model)->set_print_info(print_info);
-    ((dl::detect::MNP01<int8_t> *)this->stage2_model)->set_print_info(print_info);
-}

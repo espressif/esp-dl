@@ -8,9 +8,7 @@
 
 ## 方法1: 从 `rodata` 中加载模型
 
-### 步骤
-
-1. **在 `CMakeLists.txt` 中添加模型文件**：
+### 1. **在 `CMakeLists.txt` 中添加模型文件**：
    参考文档 [ESP-IDF 构建系统](https://docs.espressif.com/projects/esp-idf/zh_CN/stable/esp32/api-guides/build-system.html#cmake-embed-data)，将 `espdl` 模型文件添加到芯片 flash 的 `.rodata` 段。
 
    ```cmake
@@ -19,7 +17,7 @@
                           EMBED_FILES ${embed_files})
    ```
 
-2. **在程序中加载模型**：
+### 2. **在程序中加载模型**：
    使用以下方法加载模型：
 
    ```cpp
@@ -31,18 +29,16 @@
 
 ## 方法2: 从 `partition` 中加载模型
 
-### 步骤
-
-1. **在 `partition.csv` 中添加模型信息**：
+### 1. **在 `partition.csv` 中添加模型信息**：
    在 `partition.csv` 文件中添加模型的 `offset`、`size` 等信息。
 
    ```csv
    # Name,   Type, SubType, Offset,  Size, Flags
    factory,  app,  factory,  0x010000,  4000K,
-   model,   data,  undefined,        ,  4000K,
+   model,   data,  spiffs,        ,  4000K,
    ```
 
-2. **在 `CMakeLists.txt` 中添加自动加载程序**：
+### 2. **在 `CMakeLists.txt` 中添加自动加载程序**：
    如果选择手动烧写，可以跳过此步骤。
 
    ```cmake
@@ -53,17 +49,17 @@
    else()
    ```
 
-3. **在程序中加载模型**：
+### 3. **在程序中加载模型**：
    有两种方法可以加载模型。
 
-   - **方法1**: 使用构造函数加载模型：
+   - 使用构造函数加载模型：
 
      ```cpp
      // method1:
      Model *model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
      ```
 
-   - **方法2**: 首先加载 `fbs_model`，然后使用 `fbs_model` 指针创建模型：
+   - 首先加载 `fbs_model`，然后使用 `fbs_model` 指针创建模型：
 
      ```cpp
      // method2:
