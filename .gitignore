@@ -5,11 +5,33 @@ sdkconfig
 bin/
 .idea/
 __pycache__/
-mnist_calib.pickle
-mnist_model_example_optimized.onnx
 
-# MacOS directory files
-.DS_Store
+output
 
-# Built docs
-_build/
+mn03_coefficient.cpp
+mn03_coefficient.hpp
+
+msr01_coefficient.cpp
+msr01_coefficient.hpp
+
+mnp01_coefficient.cpp
+mnp01_coefficient.hpp
+
+mfn112_440m_prelu_512_coefficient_s16.cpp
+mfn112_440m_prelu_512_coefficient_s16.hpp
+
+mfn112_440m_prelu_512_coefficient_s8.cpp
+mfn112_440m_prelu_512_coefficient_s8.hpp
+
+dummy.py
+
+# unit test
+test_apps/*/*/build_*
+test_apps/*/override-result.sdkconfig
+pytest_log
+
+dependencies.lock
+managed_components/
+**/*/sdkconfig.model.*
+
+examples/*/**/build_*

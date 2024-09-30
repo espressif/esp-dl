@@ -1,0 +1,17 @@
+dependencies:
+  idf: ">=5.0"
+  esp_jpeg:
+    version: ">=1.0.2"
+    override_path: "../../../"
+  esp-box:
+    version: "^2.4"
+    rules:
+      - if: "target == esp32s3"
+  esp32_s2_kaluga_kit:
+    version: "^3.0"
+    rules:
+      - if: "target == esp32s2"
+  esp_wrover_kit:
+    version: "^1.5"
+    rules:
+      - if: "target == esp32"
