@@ -1,6 +1,6 @@
 ## IDF Component Manager Manifest File
 dependencies:
-  espressif/esp_jpeg: "^1.0.5~2"
+  espressif/esp_jpeg: "^1.0.5~3"
   ## Required IDF version
   idf:
     version: ">=4.1.0"
