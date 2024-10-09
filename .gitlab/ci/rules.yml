@@ -2,6 +2,9 @@
 # Patterns #
 ############
 
+.patterns-gitlab-ci: &patterns-gitlab-ci
+  - ".gitlab/ci/*"
+
 # esp-dl folder, in the alphabetic order
 .patterns-esp-dl: &patterns-esp-dl
   - "esp-dl/**/*"
@@ -72,6 +75,8 @@
     - <<: *if-label-build
     - <<: *if-dev-push
       changes: *patterns-esp-dl_dl
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
 
 # rules for examples
 .rules:build:example_human_face_detect:
@@ -84,6 +89,8 @@
       changes: *patterns-model_human_face_detect
     - <<: *if-dev-push
       changes: *patterns-example_human_face_detect
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
 
 .rules:build:example_pedestrian_detect:
   rules:
@@ -95,6 +102,8 @@
       changes: *patterns-model_pedestrian_detect
     - <<: *if-dev-push
       changes: *patterns-example_pedestrian_detect
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
 
 .rules:build:example_mobilenet_v2:
   rules:
@@ -104,6 +113,8 @@
       changes: *patterns-esp-dl
     - <<: *if-dev-push
       changes: *patterns-example_mobilenet_v2
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
 
 
 .rules:pre_check:readme:
