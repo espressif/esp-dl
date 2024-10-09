@@ -479,7 +479,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
     } else // run c_impl_func
 #endif
     {
-        buffer_t *buffer = (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t));
+        buffer_t *buffer = (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
         feature_t *input_syx_real = input_ptr_real;
         feature_t *output_yx = output_ptr;
         for (size_t output_y = 0; output_y < n_h_head; output_y++) {
@@ -701,7 +701,7 @@ void max_pool_shell(PoolArgsType<feature_t> &args,
         }
     } else // run c_impl_func
     {
-        buffer_t *buffer = (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t));
+        buffer_t *buffer = (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
         feature_t *input_syx_real = input_ptr_real;
         feature_t *output_yx = output_ptr;
         for (size_t output_y = 0; output_y < n_h_head; output_y++) {

@@ -33,14 +33,15 @@ Constant<T>::Constant(const T *element,
         }
 
         if (memory_relayout == dl::MEMORY_RELAYOUT_INTERTWINE_32_32 && sizeof(T) == 4) {
-            this->element = (T *)tool::calloc_aligned_prefer(alloc_size, sizeof(T) * 2, 16);
+            this->element = (T *)tool::calloc_aligned(alloc_size, sizeof(T) * 2, 16, MALLOC_CAP_8BIT);
+
             const int32_t *input_element_tmp = reinterpret_cast<const int32_t *>(element);
             int64_t *element_tmp = reinterpret_cast<int64_t *>(const_cast<T *>(this->element));
             for (int i = 0; i < size; i++) {
                 element_tmp[i] = input_element_tmp[i];
             }
         } else {
-            this->element = (T *)tool::calloc_aligned_prefer(alloc_size, sizeof(T), 16);
+            this->element = (T *)tool::calloc_aligned(alloc_size, sizeof(T), 16, MALLOC_CAP_8BIT);
             tool::copy_memory(const_cast<T *>(this->element), const_cast<T *>(element), size * sizeof(T));
         }
     }
@@ -66,7 +67,7 @@ Constant<T>::~Constant()
 {
     if (this->dynamic_alloc) {
         if (this->element) {
-            tool::free_aligned_prefer(const_cast<T *>(this->element));
+            tool::free_aligned(const_cast<T *>(this->element));
         }
     }
 }

@@ -1543,7 +1543,8 @@ T *resize_image_nearest(T *image, std::vector<int> input_shape, std::vector<int>
 {
     assert(input_shape.size() == 3);
     assert(target_shape.size() == 3);
-    T *resized_image = (T *)dl::tool::malloc_aligned(target_shape[0] * target_shape[1] * target_shape[2], sizeof(T));
+    T *resized_image = (T *)dl::tool::malloc_aligned(
+        target_shape[0] * target_shape[1] * target_shape[2], sizeof(T), 16, MALLOC_CAP_8BIT);
     float h_ratio = (float)(input_shape[0]) / target_shape[0];
     float w_ratio = (float)(input_shape[1]) / target_shape[1];
 

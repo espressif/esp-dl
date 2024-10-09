@@ -102,36 +102,52 @@ void copy_memory(void *dst, void *src, const size_t n);
  * @param number number of elements
  * @param size   size of element
  * @param align  number of byte aligned, e.g., 16 means 16-byte aligned
+ * @param caps   Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
  * @return pointer of allocated memory. NULL for failed
  */
-inline void *malloc_aligned(int number, int size, int align = 16)
+inline void *malloc_aligned(int number, int size, int align, uint32_t &caps)
 {
     assert((align > 0) && (((align & (align - 1)) == 0)));
     int total_size = number * size;
 
-    void *res = heap_caps_aligned_alloc(align, total_size, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+    void *res = heap_caps_aligned_alloc(align, total_size, caps);
+    if (!res && caps != MALLOC_CAP_8BIT) {
+        ESP_LOGW(__FUNCTION__, "heap_caps_aligned_alloc failed, retry with MALLOC_CAP_8BIT");
+        res = heap_caps_aligned_alloc(align, total_size, MALLOC_CAP_8BIT);
+        caps = MALLOC_CAP_8BIT;
+    }
+
 #if CONFIG_ESP32P4_BOOST
     // skip the TCM memory.
     if (reinterpret_cast<uintptr_t>(res) >= 0x30100000 && reinterpret_cast<uintptr_t>(res) <= 0x30101fff) {
+        ESP_LOGW(__FUNCTION__, "Malloc skip the TCM memory");
         heap_caps_free(res);
         res = NULL;
     }
-#endif
-
 #if DL_SPIRAM_SUPPORT
-    if (NULL == res)
-        res = heap_caps_aligned_alloc(align, total_size, MALLOC_CAP_SPIRAM);
-#endif
     if (NULL == res) {
-        printf("Fail to malloc %d bytes from DRAM(%d bytyes) and PSRAM(%d bytes), PSRAM is %s.\n",
-               total_size,
-               heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
-               heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
-               DL_SPIRAM_SUPPORT ? "on" : "off");
-        return NULL;
+        res = heap_caps_aligned_alloc(align, total_size, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
+        caps = MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM;
     }
+#endif
+#endif
 
-    return (void *)res;
+    if (NULL == res) {
+        caps = MALLOC_CAP_8BIT;
+        ESP_LOGE(__FUNCTION__,
+                 "Fail to malloc %d bytes from DRAM(%d bytyes) and PSRAM(%d bytes), PSRAM is %s.\n",
+                 total_size,
+                 heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+                 heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+                 DL_SPIRAM_SUPPORT ? "on" : "off");
+    }
+    return res;
+}
+
+inline void *malloc_aligned(int number, int size, int align, uint32_t &&caps)
+{
+    uint32_t caps_tmp = caps;
+    return malloc_aligned(number, size, align, caps_tmp);
 }
 
 /**
@@ -140,14 +156,50 @@ inline void *malloc_aligned(int number, int size, int align = 16)
  * @param number number of elements
  * @param size   size of element
  * @param align  number of byte aligned, e.g., 16 means 16-byte aligned
+ * @param caps   Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
  * @return pointer of allocated memory. NULL for failed
  */
-inline void *calloc_aligned(int number, int size, int align = 16)
+inline void *calloc_aligned(int number, int size, int align, uint32_t &caps)
 {
-    void *aligned = malloc_aligned(number, size, align);
-    set_zero(aligned, number * size);
+    assert((align > 0) && (((align & (align - 1)) == 0)));
+    void *res = heap_caps_aligned_calloc(align, number, size, caps);
+    if (!res && caps != MALLOC_CAP_8BIT) {
+        ESP_LOGW(__FUNCTION__, "heap_caps_aligned_calloc failed, retry with MALLOC_CAP_8BIT");
+        res = heap_caps_aligned_calloc(align, number, size, MALLOC_CAP_8BIT);
+        caps = MALLOC_CAP_8BIT;
+    }
 
-    return (void *)aligned;
+#if CONFIG_ESP32P4_BOOST
+    // skip the TCM memory.
+    if (reinterpret_cast<uintptr_t>(res) >= 0x30100000 && reinterpret_cast<uintptr_t>(res) <= 0x30101fff) {
+        ESP_LOGW(__FUNCTION__, "Calloc skip the TCM memory");
+        heap_caps_free(res);
+        res = NULL;
+    }
+#if DL_SPIRAM_SUPPORT
+    if (NULL == res) {
+        res = heap_caps_aligned_calloc(align, number, size, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
+        caps = MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM;
+    }
+#endif
+#endif
+
+    if (NULL == res) {
+        caps = MALLOC_CAP_8BIT;
+        ESP_LOGE(__FUNCTION__,
+                 "Fail to malloc %d bytes from DRAM(%d bytyes) and PSRAM(%d bytes), PSRAM is %s.\n",
+                 number * size,
+                 heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+                 heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+                 DL_SPIRAM_SUPPORT ? "on" : "off");
+    }
+    return res;
+}
+
+inline void *calloc_aligned(int number, int size, int align, uint32_t &&caps)
+{
+    uint32_t caps_tmp = caps;
+    return calloc_aligned(number, size, align, caps_tmp);
 }
 
 /**
@@ -156,73 +208,6 @@ inline void *calloc_aligned(int number, int size, int align = 16)
  * @param address pointer of memory to free
  */
 inline void free_aligned(void *address)
-{
-    if (NULL == address)
-        return;
-
-    heap_caps_free(address);
-}
-
-/**
- * @brief Apply memory without initialized in preference order: internal aligned, internal, external aligned
- *
- * @param number number of elements
- * @param size   size of element
- * @param align  number of byte aligned, e.g., 16 means 16-byte aligned
- * @return pointer of allocated memory. NULL for failed
- */
-inline void *malloc_aligned_prefer(int number, int size, int align = 16)
-{
-    assert((align > 0) && (((align & (align - 1)) == 0)));
-    int total_size = number * size;
-    void *res = heap_caps_aligned_alloc(align, total_size, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
-#if CONFIG_ESP32P4_BOOST
-    // skip the TCM memory.
-    if (reinterpret_cast<uintptr_t>(res) >= 0x30100000 && reinterpret_cast<uintptr_t>(res) <= 0x30101fff) {
-        heap_caps_free(res);
-        res = NULL;
-    }
-#endif
-
-#if DL_SPIRAM_SUPPORT
-    if (NULL == res) {
-        res = heap_caps_aligned_alloc(align, total_size, MALLOC_CAP_SPIRAM);
-    }
-#endif
-    if (NULL == res) {
-        printf("Fail to malloc %d bytes from DRAM(%d bytyes) and PSRAM(%d bytes), PSRAM is %s.\n",
-               total_size,
-               heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
-               heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
-               DL_SPIRAM_SUPPORT ? "on" : "off");
-        return NULL;
-    }
-
-    return res;
-}
-
-/**
- * @brief Apply memory with zero-initialized in preference order: internal aligned, internal, external aligned
- *
- * @param number number of elements
- * @param size   size of element
- * @param align  number of byte aligned, e.g., 16 means 16-byte aligned
- * @return pointer of allocated memory. NULL for failed
- */
-inline void *calloc_aligned_prefer(int number, int size, int align = 16)
-{
-    void *res = malloc_aligned_prefer(number, size, align);
-    set_zero(res, number * size);
-
-    return (void *)res;
-}
-
-/**
- * @brief Free the calloc_aligned_prefer() and malloc_aligned_prefer() memory
- *
- * @param address pointer of memory to free
- */
-inline void free_aligned_prefer(void *address)
 {
     if (NULL == address)
         return;

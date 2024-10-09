@@ -17,6 +17,7 @@ else()
 endif()
 
 message("PROJECT_DIR: ${PROJECT_DIR}")
+message("model_path: ${model_path}")
 
 set(MVMODEL_EXE ${PROJECT_DIR}/../../tools/pack_models/pack_espdl_models.py)
 idf_build_get_property(build_dir BUILD_DIR)
@@ -41,3 +42,5 @@ else()
     set(message "Failed to find model in partition table file"
                 "Please add a line(Name=model, Size>recommended size in log) to the partition file.")
 endif()
+
+component_compile_options(-Wno-error=format=-Wno-format)

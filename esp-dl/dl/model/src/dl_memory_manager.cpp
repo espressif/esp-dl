@@ -52,14 +52,14 @@ int MemoryManagerBase::get_tensor_index(std::string &name)
 bool MemoryManagerBase::root_calloc(size_t internal_size, size_t psram_size)
 {
     if (internal_size > 0) {
-        this->internal_root = heap_caps_aligned_calloc(alignment, internal_size, 1, MALLOC_CAP_INTERNAL);
+        this->internal_root = tool::calloc_aligned(internal_size, 1, alignment, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
         if (this->internal_root == nullptr) {
             return false;
         }
     }
 
     if (psram_size > 0) {
-        this->psram_root = heap_caps_aligned_calloc(alignment, psram_size, 1, MALLOC_CAP_SPIRAM);
+        this->psram_root = tool::calloc_aligned(psram_size, 1, alignment, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
         if (this->psram_root == nullptr) {
             return false;
         }
@@ -71,7 +71,7 @@ bool MemoryManagerBase::root_calloc(size_t internal_size, size_t psram_size)
 void *MemoryManagerBase::psram_root_calloc(size_t psram_size)
 {
     if (psram_size > 0) {
-        this->psram_root = heap_caps_aligned_calloc(alignment, psram_size, 1, MALLOC_CAP_SPIRAM);
+        this->psram_root = tool::calloc_aligned(psram_size, 1, alignment, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
         if (this->psram_root)
             this->psram_size = psram_size;
     }
@@ -81,7 +81,7 @@ void *MemoryManagerBase::psram_root_calloc(size_t psram_size)
 void *MemoryManagerBase::internal_root_calloc(size_t internal_size)
 {
     if (internal_size > 0) {
-        this->internal_root = heap_caps_aligned_calloc(alignment, internal_size, 1, MALLOC_CAP_INTERNAL);
+        this->internal_root = tool::calloc_aligned(internal_size, 1, alignment, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
         if (this->internal_root)
             this->internal_size = internal_size;
     }

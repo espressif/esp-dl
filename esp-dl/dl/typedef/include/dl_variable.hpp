@@ -64,7 +64,7 @@ public:
         this->dtype = input.dtype;
         if (deep && (input.element != NULL)) {
             int size_real = input.get_size();
-            T *new_element = (T *)tool::calloc_aligned_prefer(size_real, sizeof(T), 16);
+            T *new_element = (T *)tool::calloc_aligned(size_real, sizeof(T), 16, MALLOC_CAP_8BIT);
             tool::copy_memory(new_element, input.element, size_real * sizeof(T));
             this->element = new_element;
         } else {
@@ -90,7 +90,7 @@ public:
         if (element) {
             if (deep) {
                 this->auto_free = true;
-                this->element = (T *)heap_caps_aligned_alloc(16, this->get_size() * sizeof(T), caps);
+                this->element = (T *)tool::malloc_aligned(this->get_size(), sizeof(T), 16, caps);
                 tool::copy_memory(this->element, element, this->get_size() * sizeof(T));
             } else {
                 this->auto_free = false;
@@ -98,7 +98,7 @@ public:
             }
         } else {
             this->auto_free = true;
-            this->element = (T *)heap_caps_aligned_alloc(16, this->get_size() * sizeof(T), caps);
+            this->element = (T *)tool::malloc_aligned(this->get_size(), sizeof(T), 16, caps);
         }
     }
 
@@ -116,7 +116,7 @@ public:
         if (element) {
             if (deep) {
                 this->auto_free = true;
-                this->element = (T *)heap_caps_aligned_alloc(16, this->get_size() * sizeof(T), caps);
+                this->element = (T *)tool::malloc_aligned(this->get_size(), sizeof(T), 16, caps);
                 tool::copy_memory(this->element, const_cast<T *>(element), this->get_size() * sizeof(T));
             } else {
                 this->auto_free = false;
@@ -124,7 +124,7 @@ public:
             }
         } else {
             this->auto_free = true;
-            this->element = (T *)heap_caps_aligned_alloc(16, this->get_size() * sizeof(T), caps);
+            this->element = (T *)tool::malloc_aligned(this->get_size(), sizeof(T), 16, caps);
         }
     }
 
@@ -382,7 +382,7 @@ public:
         if (this->element != NULL)
             return false;
 
-        this->element = (T *)dl::tool::calloc_aligned_prefer(this->get_size(), sizeof(T), 16);
+        this->element = (T *)tool::calloc_aligned(this->get_size(), sizeof(T), 16, MALLOC_CAP_8BIT);
         this->auto_free = auto_free;
 
         return true;
@@ -403,7 +403,7 @@ public:
         if (this->element != NULL)
             return false;
 
-        this->element = (T *)tool::malloc_aligned_prefer(this->get_size(), sizeof(T), 16);
+        this->element = (T *)tool::malloc_aligned(this->get_size(), sizeof(T), 16, MALLOC_CAP_8BIT);
         this->auto_free = auto_free;
 
         return true;
@@ -417,7 +417,7 @@ public:
     void free_element()
     {
         if (this->auto_free && this->element) {
-            tool::free_aligned_prefer(this->element);
+            tool::free_aligned(this->element);
             this->element = NULL;
         }
     }
@@ -530,22 +530,22 @@ public:
         if (input.element) {
             if (this->element) {
                 if (size_real_tmp != size_input_real) {
-                    tool::free_aligned_prefer(this->element);
-                    T *new_element = (T *)tool::malloc_aligned_prefer(size_input_real, sizeof(T), 16);
+                    tool::free_aligned(this->element);
+                    T *new_element = (T *)tool::malloc_aligned(size_input_real, sizeof(T), 16, MALLOC_CAP_8BIT);
                     tool::copy_memory(new_element, input.element, size_input_real * sizeof(T));
                     this->element = new_element;
                 } else {
                     tool::copy_memory(this->element, input.element, size_input_real * sizeof(T));
                 }
             } else {
-                T *new_element = (T *)tool::malloc_aligned_prefer(size_input_real, sizeof(T), 16);
+                T *new_element = (T *)tool::malloc_aligned(size_input_real, sizeof(T), 16, MALLOC_CAP_8BIT);
                 tool::copy_memory(new_element, input.element, size_input_real * sizeof(T));
                 this->element = new_element;
             }
             return *this;
         } else {
             if (this->element) {
-                tool::free_aligned_prefer(this->element);
+                tool::free_aligned(this->element);
                 this->element = NULL;
             }
             return *this;

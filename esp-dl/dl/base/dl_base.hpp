@@ -165,8 +165,8 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(Tensor<feature_t> &outp
         args.mac_shift = INT_MIN;
 
         // calculate scale using filter.channel_exponent
-        args.tie_filter_channel_factor =
-            (int16_t *)tool::malloc_aligned(filter.channel_exponent_size, sizeof(int16_t), 16); // TODO: auto_split
+        args.tie_filter_channel_factor = (int16_t *)tool::malloc_aligned(
+            filter.channel_exponent_size, sizeof(int16_t), 16, MALLOC_CAP_8BIT); // TODO: auto_split
         int u = 16 / sizeof(feature_t);
         int len = filter.channel_exponent_size / u * u;
 
@@ -178,7 +178,8 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(Tensor<feature_t> &outp
             args.tie_filter_channel_factor[i] = output.exponent - filter.channel_exponent[i] - input.exponent;
         }
 
-        args.filter_channel_factor = (int16_t *)tool::malloc_aligned(filter.channel_exponent_size, sizeof(int16_t), 16);
+        args.filter_channel_factor =
+            (int16_t *)tool::malloc_aligned(filter.channel_exponent_size, sizeof(int16_t), 16, MALLOC_CAP_8BIT);
         for (int i = 0; i < filter.channel_exponent_size; i++) {
             args.filter_channel_factor[i] = output.exponent - filter.channel_exponent[i] - input.exponent;
         }
@@ -234,7 +235,7 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(Tensor<feature_t> &outp
 
     args.debug_value = nullptr;
     if (malloc_debug_memory) {
-        args.debug_value = tool::calloc_aligned(16, sizeof(int8_t), 16);
+        args.debug_value = tool::calloc_aligned(16, sizeof(int8_t), 16, MALLOC_CAP_8BIT);
     }
 
     // slice
@@ -400,7 +401,7 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
     }
     args.debug_value = nullptr;
     if (malloc_debug_memory) {
-        args.debug_value = tool::calloc_aligned(16, sizeof(int8_t), 16);
+        args.debug_value = tool::calloc_aligned(16, sizeof(int8_t), 16, MALLOC_CAP_8BIT);
     }
     std::vector<ArgsType<feature_t>> m_args(1, args);
     if (args.input_height > 4 * args.dilation_h * args.filter_height) {
@@ -874,7 +875,8 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             }
         } else // run c_impl_func
         {
-            buffer_t *buffer = (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t));
+            buffer_t *buffer =
+                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
             feature_t *input_y_real;
             feature_t *input_x_real;
             feature_t *filter_ptr_y;
@@ -1057,7 +1059,8 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             }
         } else // run c_impl_func
         {
-            buffer_t *buffer = (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t));
+            buffer_t *buffer =
+                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
             for (size_t output_y = 0; output_y < args.output_height; output_y++) {
                 feature_t *input_syx = input_ptr;
                 feature_t *output_yx = output_ptr;
@@ -1143,7 +1146,7 @@ std::vector<ArgsType<feature_t>> get_dwconv_operation_args(Tensor<feature_t> &ou
 
         // calculate scale using filter.channel_exponent
         args.tie_filter_channel_factor =
-            (int16_t *)tool::malloc_aligned(filter.channel_exponent_size, sizeof(int16_t), 16);
+            (int16_t *)tool::malloc_aligned(filter.channel_exponent_size, sizeof(int16_t), 16, MALLOC_CAP_8BIT);
         int u = 16 / sizeof(feature_t);
         // int len = filter.channel_exponent_size / u * u;
         // depthwise_conv2d
@@ -1152,7 +1155,8 @@ std::vector<ArgsType<feature_t>> get_dwconv_operation_args(Tensor<feature_t> &ou
             args.tie_filter_channel_factor[i] = (int16_t)1 << (15 - tmp);
         }
 
-        args.filter_channel_factor = (int16_t *)tool::malloc_aligned(filter.channel_exponent_size, sizeof(int16_t), 16);
+        args.filter_channel_factor =
+            (int16_t *)tool::malloc_aligned(filter.channel_exponent_size, sizeof(int16_t), 16, MALLOC_CAP_8BIT);
         for (int i = 0; i < filter.channel_exponent_size; i++) {
             args.filter_channel_factor[i] = output.exponent - filter.channel_exponent[i] - input.exponent;
         }
@@ -1221,7 +1225,7 @@ std::vector<ArgsType<feature_t>> get_dwconv_operation_args(Tensor<feature_t> &ou
 
     args.debug_value = nullptr;
     if (malloc_debug_memory) {
-        args.debug_value = tool::calloc_aligned(16, sizeof(int8_t), 16);
+        args.debug_value = tool::calloc_aligned(16, sizeof(int8_t), 16, MALLOC_CAP_8BIT);
     }
 
     // slice
@@ -1782,7 +1786,8 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
             }
         } else // run c_impl_func
         {
-            buffer_t *buffer = (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t));
+            buffer_t *buffer =
+                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
             feature_t *input_y_real;
             feature_t *input_x_real;
             feature_t *filter_ptr_y;
@@ -1964,7 +1969,8 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
         } else // run c_impl_func
         {
             args.filter_y_offset = 0;
-            buffer_t *buffer = (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t));
+            buffer_t *buffer =
+                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
             for (size_t output_y = 0; output_y < args.output_height; output_y++) {
                 feature_t *input_syx = input_ptr;
                 feature_t *output_yx = output_ptr;

@@ -95,7 +95,7 @@ public:
     int get_tensor_index(std::string &name);
 
     /**
-     * @brief Allocate root pointer by heap_caps_aligned_calloc API
+     * @brief Allocate root pointer by dl::tool::calloc_aligned API
      *
      * @param internal_size      Size, in bytes, of a chunk of Internal ram to allocate
      * @param psram_size             Size, in bytes, of a chunk of PSRAM to allocate
@@ -105,7 +105,7 @@ public:
     bool root_calloc(size_t internal_size, size_t psram_size);
 
     /**
-     * @brief Allocate root pointer by heap_caps_aligned_calloc API
+     * @brief Allocate root pointer by dl::tool::calloc_aligned API
      *
      * @param psram_size             Size, in bytes, of a chunk of PSRAM to allocate
      *
@@ -114,7 +114,7 @@ public:
     void *psram_root_calloc(size_t psram_size);
 
     /**
-     * @brief Allocate root pointer by heap_caps_aligned_calloc API
+     * @brief Allocate root pointer by dl::tool::calloc_aligned API
      *
      * @param internal_size           Size, in bytes, of a chunk of Internal ram to allocate
      *

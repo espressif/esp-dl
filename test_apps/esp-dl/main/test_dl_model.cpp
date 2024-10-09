@@ -32,9 +32,7 @@ void compare_elementwise(const ground_truth_element_t *ground_truth, TensorBase 
                      static_cast<int32_t>(ground_truth[i]),
                      static_cast<int32_t>(infer_value_pointer[i]));
             std::vector<int> value_position = infer_value->get_axis_index(i);
-            for (int j = 0; j < value_position.size(); j++) {
-                ESP_LOGE(TAG, "The position of inconsistent values, dim: %d, index: %d", j, value_position[j]);
-            }
+            ESP_LOGE(TAG, "The position of inconsistent values: %s", dl::shape_to_string(value_position).c_str());
         }
         TEST_ASSERT_EQUAL(ground_truth[i], infer_value_pointer[i]);
     }
@@ -57,10 +55,10 @@ void compare_test_outputs(Model *model, std::map<std::string, TensorBase *> infe
             return;
         }
         TensorBase *infer_output = infer_outputs_iter->second;
-        std::vector<int> infer_output_shape = infer_output->get_shape();
-        for (int i = 0; i < infer_output_shape.size(); i++) {
-            ESP_LOGI(TAG, "infer_output shape[%d]: %d", i, infer_output_shape[i]);
-        }
+        ESP_LOGI(TAG,
+                 "infer_output, name: %s, shape: %s",
+                 infer_outputs_iter->first.c_str(),
+                 dl::shape_to_string(infer_output->get_shape()).c_str());
 
         if (infer_output->dtype == dl::DATA_TYPE_INT8) {
             compare_elementwise(static_cast<const int8_t *>(ground_truth_data), infer_output);
@@ -126,7 +124,6 @@ TEST_CASE("Test espdl model", "[dl_model]")
         latency.print(TAG, "model->run()");
 
         ::compare_test_outputs(model, model->get_outputs());
-        delete model;
         for (auto graph_test_inputs_iter = graph_test_inputs.begin(); graph_test_inputs_iter != graph_test_inputs.end();
              graph_test_inputs_iter++) {
             if (graph_test_inputs_iter->second) {
@@ -134,8 +131,11 @@ TEST_CASE("Test espdl model", "[dl_model]")
             }
         }
         graph_test_inputs.clear();
+        delete model;
+        delete fbs_model;
     }
 
+    delete fbs_loader;
     int total_ram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     int internal_ram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
     int psram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
