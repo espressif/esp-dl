@@ -18,11 +18,11 @@ def test_model_common(dut: Dut) -> None:
 
 
 def get_model_names(model_path):
-    if not os.path.exists(model_path):
+    if not model_path or not os.path.exists(model_path):
         return []
     models = [entry for entry in os.scandir(model_path) if entry.is_dir()]
     if len(models) == 0:
-        models = [model_path]
+        return []
 
     names = []
     for mode in models:
@@ -32,7 +32,9 @@ def get_model_names(model_path):
 
 
 def gen_pytest_script(model_path, pytest_file, target="esp32p4", env="esp32p4"):
-    models = get_model_names(model_path)
+    # models = get_model_names(model_path)
+    target_model_path = os.path.join(model_path, target)
+    models = get_model_names(target_model_path)
     if len(models) > 0:
         print(models)
         pytest_content = PYTEST_TEMPLATE.format(

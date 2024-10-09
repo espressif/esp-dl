@@ -3,7 +3,9 @@ from pytest_embedded import Dut
 
 
 @pytest.mark.target("esp32p4")
+@pytest.mark.target("esp32s3")
 @pytest.mark.env("esp32p4")
+@pytest.mark.env("esp32s3")
 @pytest.mark.parametrize(
     "config",
     [
