@@ -14,7 +14,8 @@ ImagePreprocessor<feature_t>::ImagePreprocessor(TensorBase *model_input,
     model_input(model_input), mean(mean), std(std), rgb_swap(rgb_swap), byte_swap(byte_swap), use_ppa(use_ppa)
 
 {
-    this->norm_lut = (feature_t *)heap_caps_aligned_alloc(16, mean.size() * 256 * sizeof(feature_t), MALLOC_CAP_SPIRAM);
+    this->norm_lut = (feature_t *)tool::malloc_aligned(
+        mean.size() * 256, sizeof(feature_t), 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
     this->create_norm_lut();
 #if CONFIG_IDF_TARGET_ESP32P4
     if (this->use_ppa) {
@@ -26,8 +27,8 @@ ImagePreprocessor<feature_t>::ImagePreprocessor(TensorBase *model_input,
         ESP_ERROR_CHECK(esp_cache_get_alignment(MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA, &cache_line_size));
         this->ppa_buffer_size =
             ALIGN_UP(model_input->shape[1] * model_input->shape[2] * model_input->shape[3], cache_line_size);
-        this->ppa_buffer = heap_caps_aligned_calloc(
-            cache_line_size, this->ppa_buffer_size, sizeof(uint8_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
+        this->ppa_buffer = tool::calloc_aligned(
+            this->ppa_buffer_size, sizeof(uint8_t), cache_line_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
     }
 #endif
 }

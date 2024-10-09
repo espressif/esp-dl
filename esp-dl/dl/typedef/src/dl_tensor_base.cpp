@@ -142,18 +142,12 @@ TensorBase::TensorBase(
     this->exponent = exponent;
     this->dtype = dtype;
     this->cache = nullptr;
-    this->caps = caps;
     size_t dtype_bytes = this->get_dtype_bytes();
     size_t aligned_size = this->get_aligned_size();
     if (element) {
         if (deep) {
             this->auto_free = true;
-            this->data = heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, caps);
-            if (!this->data && caps != MALLOC_CAP_8BIT) {
-                ESP_LOGW(__FUNCTION__, "heap_caps_aligned_calloc failed, retry with MALLOC_CAP_8BIT");
-                this->caps = MALLOC_CAP_8BIT;
-                this->data = heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, MALLOC_CAP_8BIT);
-            }
+            this->data = tool::calloc_aligned(aligned_size, dtype_bytes, 16, caps);
             tool::copy_memory(this->data, const_cast<void *>(element), this->get_size() * dtype_bytes);
         } else {
             this->auto_free = false;
@@ -161,13 +155,9 @@ TensorBase::TensorBase(
         }
     } else {
         this->auto_free = true;
-        this->data = heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, caps);
-        if (!this->data && caps != MALLOC_CAP_8BIT) {
-            ESP_LOGW(__FUNCTION__, "heap_caps_aligned_calloc failed, retry with MALLOC_CAP_8BIT");
-            this->caps = MALLOC_CAP_8BIT;
-            this->data = heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, MALLOC_CAP_8BIT);
-        }
+        this->data = tool::calloc_aligned(aligned_size, dtype_bytes, 16, caps);
     }
+    this->caps = caps;
 }
 
 bool TensorBase::assign(TensorBase *tensor)
@@ -330,7 +320,7 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         size_t aligned_size = this->get_aligned_size();
 
         int32_t *pre_data = static_cast<int32_t *>(this->data);
-        int64_t *cur_data = static_cast<int64_t *>(heap_caps_aligned_calloc(16, aligned_size, dtype_bytes, this->caps));
+        int64_t *cur_data = static_cast<int64_t *>(tool::calloc_aligned(aligned_size, dtype_bytes, 16, this->caps));
         for (int i = 0; i < this->get_size(); i++) {
             cur_data[i] = pre_data[i];
         }
@@ -360,8 +350,7 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         memory_size_needed = memory_size_needed % align == 0 ? memory_size_needed
                                                              : memory_size_needed + align - memory_size_needed % align;
         int32_t *src_ptr = static_cast<int32_t *>(this->data);
-        int8_t *dst_ptr =
-            static_cast<int8_t *>(heap_caps_aligned_calloc(16, memory_size_needed, dtype_bytes, this->caps));
+        int8_t *dst_ptr = static_cast<int8_t *>(tool::calloc_aligned(memory_size_needed, dtype_bytes, 16, this->caps));
         int8_t *dst_ptr_head = dst_ptr;
 
         // 0x000AAAAA000BBBBB ==> 0xAAAAABBBBB
