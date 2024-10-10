@@ -36,13 +36,24 @@ IGNORE_WARNINGS = [
 
 
 def list_directories(path):
-    directories = [entry for entry in os.scandir(path) if entry.is_dir()]
-    return directories
+    directories = []
+
+    try:
+        with os.scandir(path) as entries:
+            for entry in entries:
+                if entry.is_dir():
+                    directories.append(entry)
+        return directories
+    except FileNotFoundError:
+        LOGGER.error(f"The {path} directory is not exist.")
+        return None
 
 
-def generate_model_config(model_file, config_file, key="CONFIG_MODEL_FILE_PATH"):
+def generate_model_config(
+    target, model_file, config_file, key="CONFIG_MODEL_FILE_PATH"
+):
     model_prefix = os.path.splitext(os.path.basename(model_file))[0]
-    new_config_name = f"sdkconfig.model.{model_prefix}"
+    new_config_name = f"sdkconfig.model.{target}_{model_prefix}"
     new_config_file = os.path.join(os.path.dirname(config_file), new_config_name)
     d = {}
 
@@ -97,27 +108,30 @@ def get_cmake_apps(
             default_build_targets=default_build_targets,
         )
     else:
-        model_files = list_directories(model_path)
-        if len(model_files) == 0:
-            model_files = [model_path]
-        LOGGER.info(f"Read models from {paths}")
         if target == "all":
             target_list = ["esp32s3", "esp32p4"]
         else:
             target_list = [target]
 
         for t in target_list:
+            # model_files = list_directories(model_path)
+            target_model_path = os.path.join(model_path, t)
+            model_files = list_directories(target_model_path)
+            if not model_files or len(model_files) == 0:
+                continue
+            LOGGER.info(f"Read models from {target_model_path}")
+
             config_file_path = os.path.join(paths[0], f"sdkconfig.defaults.{t}")
             if not os.path.exists(config_file_path):
                 LOGGER.error(f"Please add {config_file_path}")
             for model_file in model_files:
-                generate_model_config(model_file, config_file_path)
+                generate_model_config(t, model_file, config_file_path)
 
         apps = find_apps(
             paths,
             recursive=True,
             target=target,
-            build_dir=f"{idf_ver}/build_@t_@w",
+            build_dir=f"{idf_ver}/build_@w",
             config_rules_str="sdkconfig.model.*=",
             build_log_filename="build_log.txt",
             size_json_filename="size.json",

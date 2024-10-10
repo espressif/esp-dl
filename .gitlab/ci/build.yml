@@ -37,7 +37,7 @@
     EXAMPLE_CONFIG: "="
   script:
     - pip install --upgrade idf-component-manager
-    - pip install idf_build_apps
+    - pip install idf_build_apps==2.4.3
     - python test_apps/build_apps.py ${EXAMPLE_DIR} -m ${MODEL_PATH} -t ${TARGET} -vv
 
 .build_examples_template: &build_examples_template
@@ -67,7 +67,7 @@
     EXAMPLE_CONFIG: "="
   script:
     - pip install --upgrade idf-component-manager
-    - pip install idf_build_apps==2.3.0
+    - pip install idf_build_apps==2.4.3
     - python test_apps/build_apps.py ${EXAMPLE_DIR} -t ${TARGET} -vv
 
 build_espdl_ops:
@@ -77,7 +77,7 @@ build_espdl_ops:
   parallel:
     matrix:
       - IMAGE: espressif/idf:release-v5.3
-        TARGET: esp32p4
+        TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: test_apps/esp-dl
     MODEL_PATH: test_apps/esp-dl/models
@@ -112,6 +112,6 @@ build_example_mobilenet_v2:
   parallel:
     matrix:
       - IMAGE: espressif/idf:release-v5.3
-        TARGET: esp32p4
+        TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/mobilenet_v2

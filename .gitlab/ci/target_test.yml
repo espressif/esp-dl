@@ -63,7 +63,7 @@ test_espdl_ops:
       optional: true
   parallel:
     matrix:
-      - IDF_TARGET: esp32p4
+      - IDF_TARGET: [esp32p4, esp32s3]
         IDF_VERSION: "5.3"
         TEST_MODEL: "all"
   tags:
