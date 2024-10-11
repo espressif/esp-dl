@@ -14,6 +14,11 @@
 #include "dl_module_resize2d.hpp"
 #include "dl_module_sigmoid.hpp"
 #include "dl_module_transpose.hpp"
+#include "dl_module_lut.hpp"
+#include "dl_module_tanh.hpp"
+#include "dl_module_leakyrelu.hpp"
+#include "dl_module_hardsigmoid.hpp"
+#include "dl_module_hardswish.hpp"
 #include "fbs_loader.hpp"
 #include <functional>
 #include <iostream>
@@ -54,6 +59,13 @@ public:
             this->register_module("AveragePool", AveragePool2D::deserialize);
             this->register_module("Concat", Concat::deserialize);
             this->register_module("Sigmoid", Sigmoid::deserialize);
+            this->register_module("Tanh", Tanh::deserialize);
+            this->register_module("LeakyRelu", LeakyRelu::deserialize);
+            this->register_module("HardSigmoid", HardSigmoid::deserialize);
+            this->register_module("HardSwish", HardSwish::deserialize);
+            this->register_module("Gelu", LUT::deserialize);
+            this->register_module("Elu", LUT::deserialize);
+            this->register_module("LUT", LUT::deserialize);
             this->register_module("Gemm", Gemm::deserialize);
             this->register_module("QuantizeLinear", RequantizeLinear::deserialize);
             this->register_module("DequantizeLinear", RequantizeLinear::deserialize);

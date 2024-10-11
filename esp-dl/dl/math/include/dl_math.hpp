@@ -182,6 +182,11 @@ inline float sigmoid(float x)
     return 1.0 / (1.0 + expf(-x));
 }
 
+inline float tanh(float x)
+{
+    return 2 * sigmoid(2 * x) - 1;
+}
+
 inline float inverse_sigmoid(float x)
 {
     return -logf(1.0 / x - 1);
