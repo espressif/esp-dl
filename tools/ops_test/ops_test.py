@@ -143,6 +143,7 @@ class SIGMOID_TEST(nn.Module):
     def forward(self, input):
         return self.sigmoid(input)
 
+
 class TANH_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -151,6 +152,7 @@ class TANH_TEST(nn.Module):
 
     def forward(self, input):
         return self.op(input)
+
 
 class LEAKYRELU_TEST(nn.Module):
     def __init__(self, config):
@@ -161,6 +163,7 @@ class LEAKYRELU_TEST(nn.Module):
     def forward(self, input):
         return self.op(input)
 
+
 class PRELU_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -170,14 +173,16 @@ class PRELU_TEST(nn.Module):
     def forward(self, input):
         return self.op(input)
 
+
 class HARDSIGMOID_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
         self.op = nn.Hardsigmoid()
-    
+
     def forward(self, input):
         return self.op(input)
+
 
 class HARDSWISH_TEST(nn.Module):
     def __init__(self, config):
@@ -188,6 +193,7 @@ class HARDSWISH_TEST(nn.Module):
     def forward(self, input):
         return self.op(input)
 
+
 class CONCAT_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -195,6 +201,7 @@ class CONCAT_TEST(nn.Module):
 
     def forward(self, input1, input2):
         return torch.cat([input1, input2], dim=self.config["axis"])
+
 
 class CLIP_TEST(nn.Module):
     def __init__(self, config):

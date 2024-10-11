@@ -22,8 +22,8 @@ public:
      * @param inplace         inplace type.
      */
     Tanh(const char *name = NULL,
-        module_inplace_t inplace = MODULE_NON_INPLACE,
-        quant_type_t quant_type = QUANT_TYPE_NONE) :
+         module_inplace_t inplace = MODULE_NON_INPLACE,
+         quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, inplace, quant_type)
     {
     }
@@ -31,9 +31,7 @@ public:
     /**
      * @brief Destroy the Tanh object.
      */
-    ~Tanh()
-    {
-    }
+    ~Tanh() {}
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
@@ -73,7 +71,7 @@ public:
             float *output_ptr = (float *)output->get_element_ptr();
 
             for (size_t i = 0; i < input->size; i++) {
-                output_ptr[i] = math::tanh(input_ptr[i]); 
+                output_ptr[i] = math::tanh(input_ptr[i]);
             }
         }
         DL_LOG_LAYER_LATENCY_END(this->name, "Tanh");

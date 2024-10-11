@@ -72,7 +72,7 @@ public:
             float *output_ptr = (float *)output->get_element_ptr();
 
             for (size_t i = 0; i < input->size; i++) {
-                output_ptr[i] = math::sigmoid(input_ptr[i]); 
+                output_ptr[i] = math::sigmoid(input_ptr[i]);
             }
         }
         DL_LOG_LAYER_LATENCY_END(this->name, "Sigmoid");

@@ -22,8 +22,8 @@ public:
      * @param inplace         inplace type.
      */
     HardSwish(const char *name = NULL,
-        module_inplace_t inplace = MODULE_NON_INPLACE,
-        quant_type_t quant_type = QUANT_TYPE_NONE) :
+              module_inplace_t inplace = MODULE_NON_INPLACE,
+              quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, inplace, quant_type)
     {
     }
@@ -31,9 +31,7 @@ public:
     /**
      * @brief Destroy the HardSwish object.
      */
-    ~HardSwish()
-    {
-    }
+    ~HardSwish() {}
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {

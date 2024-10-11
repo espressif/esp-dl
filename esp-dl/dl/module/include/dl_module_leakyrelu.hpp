@@ -11,10 +11,12 @@ namespace module {
  * @tparam feature_t supports int16_t and int8_t,
  *         - int16_t: stands for operation in int16_t, implemented by LUT
  *         - int8_t: stands for operation in int16_t, implemented by LUT
+ *         refer to https://onnx.ai/onnx/operators/onnx__LeakyRelu.html
  */
 class LeakyRelu : public Module {
 private:
     float alpha;
+
 public:
     /**
      * @brief Construct a new LeakyRelu object.
@@ -23,9 +25,9 @@ public:
      * @param inplace         inplace type.
      */
     LeakyRelu(const char *name = NULL,
-        float alpha = 0.01,
-        module_inplace_t inplace = MODULE_NON_INPLACE,
-        quant_type_t quant_type = QUANT_TYPE_NONE) :
+              float alpha = 0.01,
+              module_inplace_t inplace = MODULE_NON_INPLACE,
+              quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, inplace, quant_type)
     {
         this->alpha = alpha;
@@ -34,9 +36,7 @@ public:
     /**
      * @brief Destroy the LeakyRelu object.
      */
-    ~LeakyRelu()
-    {
-    }
+    ~LeakyRelu() {}
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
@@ -85,7 +85,7 @@ public:
     {
         Module *op = nullptr;
         quant_type_t quant_type;
-        float alpha=0.01;
+        float alpha = 0.01;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
         fbs_model->get_operation_attribute(node_name, "alpha", alpha);
         TensorBase *table = fbs_model->get_operation_lut(node_name);

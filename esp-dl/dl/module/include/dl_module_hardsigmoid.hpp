@@ -17,6 +17,7 @@ class HardSigmoid : public Module {
 private:
     float alpha;
     float beta;
+
 public:
     /**
      * @brief Construct a new HardSigmoid object.
@@ -25,10 +26,10 @@ public:
      * @param inplace         inplace type.
      */
     HardSigmoid(const char *name = NULL,
-        float alpha = 0.2,
-        float beta = 0.5,
-        module_inplace_t inplace = MODULE_NON_INPLACE,
-        quant_type_t quant_type = QUANT_TYPE_NONE) :
+                float alpha = 0.2,
+                float beta = 0.5,
+                module_inplace_t inplace = MODULE_NON_INPLACE,
+                quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, inplace, quant_type)
     {
         this->alpha = alpha;
@@ -38,9 +39,7 @@ public:
     /**
      * @brief Destroy the HardSigmoid object.
      */
-    ~HardSigmoid()
-    {
-    }
+    ~HardSigmoid() {}
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
@@ -86,8 +85,8 @@ public:
     {
         Module *op = nullptr;
         quant_type_t quant_type;
-        float alpha=0.2;
-        float beta=0.5;
+        float alpha = 0.2;
+        float beta = 0.5;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
         fbs_model->get_operation_attribute(node_name, "alpha", alpha);
         fbs_model->get_operation_attribute(node_name, "beta", beta);
@@ -103,7 +102,10 @@ public:
         return op;
     }
 
-    void print() { ESP_LOGI("HardSigmoid", "quant_type: %s. alpha:%f, beta:%f", quant_type_to_string(quant_type), alpha, beta); }
+    void print()
+    {
+        ESP_LOGI("HardSigmoid", "quant_type: %s. alpha:%f, beta:%f", quant_type_to_string(quant_type), alpha, beta);
+    }
 };
 } // namespace module
 } // namespace dl

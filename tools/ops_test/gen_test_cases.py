@@ -75,7 +75,7 @@ class BaseInferencer:
             model=self.model,
             espdl_export_file=espdl_export_file,
             calib_dataloader=self.calib_dataloader,
-            calib_steps=self.calib_steps ,
+            calib_steps=self.calib_steps,
             input_shape=self.input_shape,
             target=self.target,
             num_of_bits=self.num_of_bits,
@@ -151,7 +151,7 @@ if __name__ == "__main__":
         "hardsigmoid",
         "hardswish",
         "leakyrelu",
-        "prelu"
+        "prelu",
     ]
     if args.ops:
         op_set = args.ops
