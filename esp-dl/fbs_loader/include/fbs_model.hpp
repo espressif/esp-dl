@@ -95,7 +95,7 @@ public:
     std::string get_operation_type(std::string node_name);
 
     /**
-     * @brief return if the variable is a parameter
+     * @brief Return if the variable is a parameter
      *
      * @param node_name  The name of operation
      * @param index      The index of the variable
@@ -108,6 +108,19 @@ public:
                                             int index = 1,
                                             bool copy = true,
                                             uint32_t caps = MALLOC_CAP_SPIRAM);
+
+    /**
+     * @brief Get LUT(Look Up Table) if the operation has LUT
+     * 
+     * @param node_name   The name of operation
+     * @param copy       If true, return a copy of the variable
+     * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
+     * @param attribute_name The name of LUT attribute
+    */
+    dl::TensorBase *get_operation_lut(std::string node_name, 
+                                      bool copy = true,
+                                      uint32_t caps = MALLOC_CAP_SPIRAM,
+                                      std::string attribute_name = "lut");
 
     /**
      * @brief return true if the variable is a parameter
