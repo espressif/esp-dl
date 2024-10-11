@@ -1,0 +1,172 @@
+# -*- coding: utf-8 -*-
+
+import argparse
+import importlib
+import os
+import sys
+from typing import (
+    Iterable,
+)
+
+import toml
+import torch
+from ppq.api import espdl_quantize_torch
+from ppq.quantization.optim import *
+from torch.utils.data import DataLoader
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+
+class BaseInferencer:
+    def __init__(
+        self,
+        model,
+        export_path,
+        target="esp32p4",
+        num_of_bits=8,
+        model_version="1.0",
+        model_cfg=None,
+    ):
+        self.model_cfg = model_cfg if model_cfg is not None else model.config
+        self.model = model
+        if not os.path.exists(export_path):
+            os.makedirs(export_path)
+        self.export_path = export_path
+
+        # config device
+        self.device_str = "cpu"
+        self.calib_steps = 32
+        self.batch_size = 1
+
+        self.input_shape = self.model_cfg["input_shape"]
+        if not isinstance(self.input_shape[0], list):
+            self.input_shape = [self.input_shape]
+            self.multi_input = False
+        else:
+            self.multi_input = True
+
+        # get calibration dataset.
+        calibration_dataset = self.load_calibration_dataset()
+        self.calib_dataloader = DataLoader(
+            dataset=calibration_dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+        )
+
+        # get quantization config.
+        self.num_of_bits = num_of_bits
+        self.model_version = model_version
+        self.target = target
+        self.input_dtype = torch.float if self.num_of_bits == 8 else torch.float64
+
+    def __call__(self):
+        # get the export files path
+        name_prefix = self.model_cfg["export_name_prefix"]
+        espdl_export_file = os.path.join(self.export_path, name_prefix + ".espdl")
+
+        collate_fn = (
+            (lambda x: x.type(self.input_dtype).to(self.device_str))
+            if not self.multi_input
+            else (lambda x: [xx.type(self.input_dtype).to(self.device_str) for xx in x])
+        )
+
+        print("start PTQ")
+        quant_ppq_graph, _ = espdl_quantize_torch(
+            model=self.model,
+            espdl_export_file=espdl_export_file,
+            calib_dataloader=self.calib_dataloader,
+            calib_steps=self.calib_steps ,
+            input_shape=self.input_shape,
+            target=self.target,
+            num_of_bits=self.num_of_bits,
+            collate_fn=collate_fn,
+            dispatching_override=None,
+            dispatching_method="allin",
+            device=self.device_str,
+            error_report=False,
+            skip_export=False,
+            export_test_values=True,
+            export_config=False,
+            verbose=1,
+        )
+
+    def load_calibration_dataset(self) -> Iterable:
+        if not self.multi_input:
+            return [
+                torch.randn(size=self.input_shape[0][1:])
+                for _ in range(self.batch_size)
+            ]
+        else:
+            return [
+                [torch.randn(size=i[1:]) for i in self.input_shape]
+                for _ in range(self.batch_size)
+            ]
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument(
+        "-c", "--config", required=True, type=str, help="Config (*.toml)."
+    )
+    parser.add_argument(
+        "-o",
+        "--output-path",
+        required=True,
+        type=str,
+        default=None,
+        help="Output Path.",
+    )
+    parser.add_argument(
+        "-t", "--target", type=str, default="esp32p4", help="esp32p4 or esp32s3."
+    )
+    parser.add_argument(
+        "-b", "--bits", type=int, default=8, help="the number of bits, support 8 or 16"
+    )
+    parser.add_argument(
+        "-v", "--version", type=str, default="v1.0", help="the version of the test case"
+    )
+    parser.add_argument("--ops", nargs="+", type=str, help="An array of ops")
+    args = parser.parse_args()
+
+    # load config
+    config = toml.load(args.config)
+
+    # generate test cases
+    pkg = importlib.import_module(config["ops_test"]["class_package"])
+    op_set = [
+        "conv2d",
+        "add2d",
+        "mul2d",
+        "sigmoid",
+        "average_pooling",
+        "global_average_pooling",
+        "linear",
+        "concat",
+        "resize2d",
+        "clip",
+        "flatten",
+        "reshape",
+        "transpose",
+        "tanh",
+        "hardsigmoid",
+        "hardswish",
+        "leakyrelu",
+        "prelu"
+    ]
+    if args.ops:
+        op_set = args.ops
+
+    for op_type in op_set:
+        op_configs = config["ops_test"][op_type]["cfg"]
+        op_class_name = config["ops_test"][op_type]["class_name"]
+        export_path = os.path.join(args.output_path, op_type)
+        for cfg in op_configs:
+            print("Op Class Name: ", op_class_name, "Configs: ", cfg)
+            op = getattr(pkg, op_class_name)(cfg)
+            BaseInferencer(
+                op,
+                export_path=export_path,
+                target=args.target,
+                num_of_bits=args.bits,
+                model_version=args.version,
+            )()
