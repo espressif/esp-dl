@@ -5,7 +5,7 @@
 namespace dl {
 namespace module {
 /**
- * NOTE:
+ * NOTE:int16 using linear interpolation + lookup table.
  *
  * @tparam feature_t supports int16_t and int8_t,
  *         - int16_t: stands for operation in int16_t quantize
@@ -14,6 +14,7 @@ namespace module {
 class LUT : public Module {
 private:
     TensorBase *table; /*LUT loop up table*/
+    int step;          /*LUT loop up table step: only available for int16.*/
 public:
     /**
      * @brief Construct a new LUT object.
@@ -28,6 +29,10 @@ public:
         Module(name, inplace, quant_type)
     {
         this->table = table;
+        this->step = 1;
+        if (quant_type == QUANT_TYPE_SYMM_16BIT) {
+            this->step = 65536 / (this->table->get_size() - 1);
+        }
     }
 
     /**
@@ -66,8 +71,21 @@ public:
             int16_t *output_ptr = (int16_t *)output->get_element_ptr();
             int16_t *table_ptr = (int16_t *)(this->table->get_element_ptr());
 
-            for (size_t i = 0; i < input->size; i++) {
-                output_ptr[i] = table_ptr[input_ptr[i] + 32768];
+            if (this->step == 1) {
+                for (size_t i = 0; i < input->size; i++) {
+                    output_ptr[i] = table_ptr[input_ptr[i] + 32768];
+                }
+            } else {
+                for (size_t i = 0; i < input->size; i++) {
+                    int idx = input_ptr[i] + 32768;
+                    int len = idx % this->step;
+                    idx = idx / this->step;
+
+                    // linear interpolation
+                    int x = table_ptr[idx];
+                    int y = table_ptr[idx + 1];
+                    output_ptr[i] = x + len * (y - x) / this->step;
+                }
             }
         }
         DL_LOG_LAYER_LATENCY_END(this->name, "LUT");
