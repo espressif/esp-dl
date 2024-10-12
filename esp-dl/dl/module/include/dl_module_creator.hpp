@@ -24,6 +24,7 @@
 #include "dl_module_squeeze.hpp"
 #include "dl_module_tanh.hpp"
 #include "dl_module_transpose.hpp"
+#include "dl_module_unsqueeze.hpp"
 #include "fbs_loader.hpp"
 #include <functional>
 #include <iostream>
@@ -85,6 +86,7 @@ public:
             this->register_module("Log", Log::deserialize);
             this->register_module("Sqrt", Sqrt::deserialize);
             this->register_module("Squeeze", Squeeze::deserialize);
+            this->register_module("Unsqueeze", Unsqueeze::deserialize);
         }
     }
 
