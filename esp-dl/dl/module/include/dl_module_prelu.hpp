@@ -2,6 +2,7 @@
 
 #include "dl_base_prelu.hpp"
 #include "dl_module_base.hpp"
+#include "dl_module_lut.hpp"
 
 namespace dl {
 namespace module {
@@ -91,12 +92,15 @@ public:
         Module *op = nullptr;
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
-        dl::TensorBase *alpha = fbs_model->get_operation_parameter(node_name, 1);
+        TensorBase *alpha = fbs_model->get_operation_parameter(node_name, 1);
+        TensorBase *table = fbs_model->get_operation_lut(node_name);
         // [c, 1, 1]
         assert(alpha->shape.size() == 3);
 
         // Create module
-        if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
+        if (table != NULL) {
+            op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+        } else if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
             op = new PRelu(node_name.c_str(), alpha, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }
         return op;
