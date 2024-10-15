@@ -26,6 +26,7 @@ class BaseInferencer:
         num_of_bits=8,
         model_version="1.0",
         model_cfg=None,
+        meta_cfg=None,
     ):
         self.model_cfg = model_cfg if model_cfg is not None else model.config
         self.model = model
@@ -35,8 +36,8 @@ class BaseInferencer:
 
         # config device
         self.device_str = "cpu"
-        self.calib_steps = 32
-        self.batch_size = 1
+        self.calib_steps = meta_cfg["calib_steps"] if meta_cfg is not None else 32
+        self.batch_size = meta_cfg["batch_size"] if meta_cfg is not None else 1
 
         self.input_shape = self.model_cfg["input_shape"]
         if not isinstance(self.input_shape[0], list):
@@ -61,7 +62,9 @@ class BaseInferencer:
 
     def __call__(self):
         # get the export files path
-        name_prefix = self.model_cfg["export_name_prefix"]
+        name_prefix = (
+            self.model_cfg["export_name_prefix"] + "_s" + str(self.num_of_bits)
+        )
         espdl_export_file = os.path.join(self.export_path, name_prefix + ".espdl")
 
         collate_fn = (
@@ -169,4 +172,5 @@ if __name__ == "__main__":
                 target=args.target,
                 num_of_bits=args.bits,
                 model_version=args.version,
+                meta_cfg=config["meta"],
             )()

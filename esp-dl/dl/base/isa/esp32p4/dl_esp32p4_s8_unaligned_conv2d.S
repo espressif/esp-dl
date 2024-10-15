@@ -313,15 +313,19 @@
         esp.ld.128.usar.ip  \input_back, \input_ptr, 16
         
         beqz  \c_div_x_1, 10f
-        # lp.setup  0, \c_div_x_1, 9f
-        esp.lp.setup  0, \c_div_x_1, 9f
+        # esp.lp.setup  0, \c_div_x_1, 9f
+        # Use the zero register as a loop counter, and the value remains zero after the loop is complete.
+        mv  \zero, \c_div_x_1
+        9:
             esp.src.q.qup  \input_v, \input_front, \input_back
 
             esp.ld.128.usar.ip  \filter_back, \filter_ptr, 16
             esp.src.q.qup  \filter_v, \filter_front, \filter_back
 
             esp.ld.128.usar.ip  \input_back, \input_ptr, 16
-        9:  esp.vmulas.s8.xacc  \filter_v, \input_v
+            esp.vmulas.s8.xacc  \filter_v, \input_v
+            addi  \zero, \zero, -1
+            bgtz  \zero, 9b
             
         10:
         // last entire-128b

@@ -1,10 +1,8 @@
 [meta]
     seed = 0
-    quant_bits = 8          # Only support 8 or 16 now.
     batch_size = 1
     calib_steps = 8         # The minimum value for calib_steps is 8.
     model_version = 1
-    target = "esp32p4"      # "esp32p4", "esp32s3"
 
 [ops_test]
     class_package = "ops_test"
