@@ -81,6 +81,17 @@ build_espdl_ops:
   variables:
     EXAMPLE_DIR: test_apps/esp-dl
     MODEL_PATH: test_apps/esp-dl/models
+
+build_example_human_face_recognition:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_human_face_recognition
+  parallel:
+    matrix:
+      - IMAGE: espressif/idf:release-v5.3
+        TARGET: [esp32p4, esp32s3]
+  variables:
+    EXAMPLE_DIR: examples/human_face_recognition
   
 build_example_human_face_detect:
   extends:
@@ -89,7 +100,7 @@ build_example_human_face_detect:
   parallel:
     matrix:
       - IMAGE: espressif/idf:release-v5.3
-        TARGET: esp32p4
+        TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/human_face_detect
 
@@ -100,7 +111,7 @@ build_example_pedestrian_detect:
   parallel:
     matrix:
       - IMAGE: espressif/idf:release-v5.3
-        TARGET: esp32p4
+        TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/pedestrian_detect
 
