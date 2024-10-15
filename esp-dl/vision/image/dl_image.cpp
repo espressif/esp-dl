@@ -831,14 +831,13 @@ uint32_t get_moving_point_number(uint8_t *f1,
 }
 
 template <typename T>
-void warp_affine(dl::Tensor<T> *input, dl::Tensor<T> *output, dl::math::Matrix<float> *M_inv)
+void warp_affine(uint8_t *input,
+                 const std::vector<int> &input_shape,
+                 T *output,
+                 const std::vector<int> &output_shape,
+                 dl::math::Matrix<float> *M_inv,
+                 bool byte_swap)
 {
-    // Matrix<float> *M_inv = M->get_inverse();
-    T *dst = (T *)output->get_element_ptr();
-    T *src = (T *)input->get_element_ptr();
-    std::vector<int> input_shape = input->shape;
-    std::vector<int> output_shape = output->shape;
-
     int input_stride = input_shape[1] * input_shape[2]; // stride = w * c
     int c = input_shape[2];
     int output_h = output_shape[0];
@@ -859,7 +858,7 @@ void warp_affine(dl::Tensor<T> *input, dl::Tensor<T> *output, dl::math::Matrix<f
                 (M_inv->array[2][0] * j + M_inv->array[2][1] * i + M_inv->array[2][2]);
             if ((x_src < 0) || (y_src < 0) || (x_src >= (input_shape[1] - 1)) || (y_src >= (input_shape[0] - 1))) {
                 for (int k = 0; k < c; k++) {
-                    *dst++ = 0;
+                    *output++ = 0;
                 }
             } else {
                 x1 = floor(x_src);
@@ -867,26 +866,38 @@ void warp_affine(dl::Tensor<T> *input, dl::Tensor<T> *output, dl::math::Matrix<f
                 y1 = floor(y_src);
                 y2 = y1 + 1;
                 for (int k = 0; k < c; k++) {
-                    *dst++ = (T)rintf(((src[y1 * input_stride + x1 * c + k]) * (x2 - x_src) * (y2 - y_src)) +
-                                      ((src[y1 * input_stride + x2 * c + k]) * (x_src - x1) * (y2 - y_src)) +
-                                      ((src[y2 * input_stride + x1 * c + k]) * (x2 - x_src) * (y_src - y1)) +
-                                      ((src[y2 * input_stride + x2 * c + k]) * (x_src - x1) * (y_src - y1)));
+                    *output++ = (T)rintf(((input[y1 * input_stride + x1 * c + k]) * (x2 - x_src) * (y2 - y_src)) +
+                                         ((input[y1 * input_stride + x2 * c + k]) * (x_src - x1) * (y2 - y_src)) +
+                                         ((input[y2 * input_stride + x1 * c + k]) * (x2 - x_src) * (y_src - y1)) +
+                                         ((input[y2 * input_stride + x2 * c + k]) * (x_src - x1) * (y_src - y1)));
                 }
             }
         }
     }
-    // matrix_free(M_inv);
 }
-template void warp_affine(dl::Tensor<uint8_t> *input, dl::Tensor<uint8_t> *output, dl::math::Matrix<float> *M_inv);
+template void warp_affine(uint8_t *input,
+                          const std::vector<int> &input_shape,
+                          uint8_t *output,
+                          const std::vector<int> &output_shape,
+                          dl::math::Matrix<float> *M_inv,
+                          bool byte_swap);
+template void warp_affine(uint8_t *input,
+                          const std::vector<int> &input_shape,
+                          int16_t *output,
+                          const std::vector<int> &output_shape,
+                          dl::math::Matrix<float> *M_inv,
+                          bool byte_swap);
 
 template <typename T>
-void warp_affine(uint16_t *input, std::vector<int> shape, dl::Tensor<T> *output, dl::math::Matrix<float> *M_inv)
+void warp_affine(uint16_t *input,
+                 const std::vector<int> &input_shape,
+                 T *output,
+                 const std::vector<int> &output_shape,
+                 dl::math::Matrix<float> *M_inv,
+                 bool byte_swap)
 {
-    // Matrix<float> *M_inv = M->get_inverse();
-    std::vector<int> output_shape = output->shape;
-    T *dst = (T *)output->get_element_ptr();
-    int input_stride = shape[1]; // stride = w
-    int c = shape[2];
+    int input_stride = input_shape[1]; // stride = w
+    int c = input_shape[2];
     assert(c == 3);
     int output_h = output_shape[0];
     int output_w = output_shape[1];
@@ -898,10 +909,10 @@ void warp_affine(uint16_t *input, std::vector<int> shape, dl::Tensor<T> *output,
     int y1 = 0;
     int y2 = 0;
 
-    T src_x1y1[3] = {0};
-    T src_x1y2[3] = {0};
-    T src_x2y1[3] = {0};
-    T src_x2y2[3] = {0};
+    uint8_t src_x1y1[3] = {0};
+    uint8_t src_x1y2[3] = {0};
+    uint8_t src_x2y1[3] = {0};
+    uint8_t src_x2y2[3] = {0};
 
     for (int i = 0; i < output_h; i++) {
         for (int j = 0; j < output_w; j++) {
@@ -909,27 +920,28 @@ void warp_affine(uint16_t *input, std::vector<int> shape, dl::Tensor<T> *output,
                 (M_inv->array[2][0] * j + M_inv->array[2][1] * i + M_inv->array[2][2]);
             y_src = (M_inv->array[1][0] * j + M_inv->array[1][1] * i + M_inv->array[1][2]) /
                 (M_inv->array[2][0] * j + M_inv->array[2][1] * i + M_inv->array[2][2]);
-            if ((x_src < 0) || (y_src < 0) || (x_src >= (shape[1] - 1)) || (y_src >= (shape[0] - 1))) {
+            if ((x_src < 0) || (y_src < 0) || (x_src >= (input_shape[1] - 1)) || (y_src >= (input_shape[0] - 1))) {
                 for (int k = 0; k < c; k++) {
-                    *dst++ = 0;
+                    *output++ = 0;
                 }
             } else {
                 x1 = floor(x_src);
                 x2 = x1 + 1;
                 y1 = floor(y_src);
                 y2 = y1 + 1;
+
                 dl::image::convert_pixel_rgb565_to_rgb888(input[y1 * input_stride + x1], src_x1y1);
                 dl::image::convert_pixel_rgb565_to_rgb888(input[y2 * input_stride + x1], src_x1y2);
                 dl::image::convert_pixel_rgb565_to_rgb888(input[y1 * input_stride + x2], src_x2y1);
                 dl::image::convert_pixel_rgb565_to_rgb888(input[y2 * input_stride + x2], src_x2y2);
 
-                *dst++ =
+                *output++ =
                     (T)rintf((src_x1y1[0] * (x2 - x_src) * (y2 - y_src)) + (src_x2y1[0] * (x_src - x1) * (y2 - y_src)) +
                              (src_x1y2[0] * (x2 - x_src) * (y_src - y1)) + (src_x2y2[0] * (x_src - x1) * (y_src - y1)));
-                *dst++ =
+                *output++ =
                     (T)rintf((src_x1y1[1] * (x2 - x_src) * (y2 - y_src)) + (src_x2y1[1] * (x_src - x1) * (y2 - y_src)) +
                              (src_x1y2[1] * (x2 - x_src) * (y_src - y1)) + (src_x2y2[1] * (x_src - x1) * (y_src - y1)));
-                *dst++ =
+                *output++ =
                     (T)rintf((src_x1y1[2] * (x2 - x_src) * (y2 - y_src)) + (src_x2y1[2] * (x_src - x1) * (y2 - y_src)) +
                              (src_x1y2[2] * (x2 - x_src) * (y_src - y1)) + (src_x2y2[2] * (x_src - x1) * (y_src - y1)));
             }
@@ -937,13 +949,17 @@ void warp_affine(uint16_t *input, std::vector<int> shape, dl::Tensor<T> *output,
     }
 }
 template void warp_affine(uint16_t *input,
-                          std::vector<int> shape,
-                          dl::Tensor<uint8_t> *output,
-                          dl::math::Matrix<float> *M_inv);
+                          const std::vector<int> &input_shape,
+                          uint8_t *output,
+                          const std::vector<int> &output_shape,
+                          dl::math::Matrix<float> *M_inv,
+                          bool byte_swap);
 template void warp_affine(uint16_t *input,
-                          std::vector<int> shape,
-                          dl::Tensor<int16_t> *output,
-                          dl::math::Matrix<float> *M_inv);
+                          const std::vector<int> &input_shape,
+                          int16_t *output,
+                          const std::vector<int> &output_shape,
+                          dl::math::Matrix<float> *M_inv,
+                          bool byte_swap);
 
 uint8_t get_otsu_thresh(Tensor<uint8_t> &image)
 {

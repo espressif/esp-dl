@@ -9,6 +9,7 @@ set(src_dirs        ./dl/tool/src
                     ./fbs_loader/src
                     ./vision/detect
                     ./vision/image
+                    ./vision/recognition
                     )
                     
 set(include_dirs    ./dl
@@ -23,6 +24,7 @@ set(include_dirs    ./dl
                     ./fbs_loader/include
                     ./vision/detect
                     ./vision/image
+                    ./vision/recognition
                     )
 
 if(CONFIG_IDF_TARGET_ESP32)

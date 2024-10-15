@@ -31,13 +31,19 @@
   - "esp-dl/vision/**/*"
 
 # models folder, in the alphabetic order
+.patterns-model_human_face_recognition: &patterns-model_human_face_recognition
+  - "models/human_face_recognition/**/*"
+
 .patterns-model_human_face_detect: &patterns-model_human_face_detect
-  - "models/model_human_face_detect/**/*"
+  - "models/human_face_detect/**/*"
 
 .patterns-model_pedestrian_detect: &patterns-model_pedestrian_detect
   - "models/pedestrian_detect/**/*"
 
 # examples folder, in the alphabetic order
+.patterns-example_human_face_recognition: &patterns-example_human_face_recognition
+  - "examples/human_face_recognition/**/*"
+
 .patterns-example_human_face_detect: &patterns-example_human_face_detect
   - "examples/human_face_detect/**/*"
 
@@ -79,6 +85,19 @@
       changes: *patterns-gitlab-ci
 
 # rules for examples
+.rules:build:example_human_face_recognition:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_human_face_recognition
+    - <<: *if-dev-push
+      changes: *patterns-example_human_face_recognition
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
 .rules:build:example_human_face_detect:
   rules:
     - <<: *if-protected
