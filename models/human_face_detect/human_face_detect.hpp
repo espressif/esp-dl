@@ -5,8 +5,6 @@
 #include "dl_image_preprocessor.hpp"
 #include "dl_model_base.hpp"
 
-extern const uint8_t human_face_detect_espdl[] asm("_binary_human_face_detect_espdl_start");
-
 class HumanFaceDetect {
 private:
     void *stage1_model;
@@ -36,156 +34,48 @@ public:
     template <typename T>
     std::list<dl::detect::result_t> &run(T *input_element, std::vector<int> input_shape);
 };
-
-namespace dl {
-namespace detect {
+namespace model_zoo {
 
 template <typename feature_t>
 class MSR01 {
 private:
-    Model *model;
-    image::ImagePreprocessor<feature_t> *image_preprocessor;
-    MSR01Postprocessor<feature_t> *postprocessor;
+    dl::Model *model;
+    dl::image::ImagePreprocessor<feature_t> *image_preprocessor;
+    dl::detect::MSR01Postprocessor<feature_t> *postprocessor;
 
 public:
     MSR01(const float score_threshold,
           const float nms_threshold,
           const int top_k,
-          const std::vector<anchor_box_stage_t> &stages,
+          const std::vector<dl::detect::anchor_box_stage_t> &stages,
           const std::vector<float> &mean,
-          const std::vector<float> &std) :
-        model(new Model((const char *)human_face_detect_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA, 1)),
-        postprocessor(new MSR01Postprocessor<feature_t>(score_threshold, nms_threshold, top_k, stages))
-    {
-        std::map<std::string, TensorBase *> model_inputs_map = this->model->get_inputs();
-        assert(model_inputs_map.size() == 1);
-        TensorBase *model_input = model_inputs_map.begin()->second;
-        this->image_preprocessor = new image::ImagePreprocessor<feature_t>(model_input, mean, std);
-    }
-
-    ~MSR01()
-    {
-        if (this->model) {
-            delete this->model;
-            this->model = nullptr;
-        }
-        if (this->image_preprocessor) {
-            delete this->image_preprocessor;
-            this->image_preprocessor = nullptr;
-        }
-        if (this->postprocessor) {
-            delete this->postprocessor;
-            this->postprocessor = nullptr;
-        }
-    }
+          const std::vector<float> &std);
+    ~MSR01();
 
     template <typename T>
-    std::list<result_t> &run(T *input_element, std::vector<int> input_shape)
-    {
-        tool::Latency latency[3] = {tool::Latency(), tool::Latency(), tool::Latency()};
-        latency[0].start();
-        this->image_preprocessor->preprocess(input_element, input_shape);
-        latency[0].end();
-
-        latency[1].start();
-        this->model->run();
-        latency[1].end();
-
-        latency[2].start();
-        this->postprocessor->clear_result();
-        this->postprocessor->set_resize_scale_x(this->image_preprocessor->get_resize_scale_x());
-        this->postprocessor->set_resize_scale_y(this->image_preprocessor->get_resize_scale_y());
-        this->postprocessor->postprocess(model->get_outputs());
-        std::list<result_t> &result = this->postprocessor->get_result(input_shape);
-        latency[2].end();
-
-        latency[0].print("detect", "preprocess");
-        latency[1].print("detect", "forward");
-        latency[2].print("detect", "postprocess");
-
-        return result;
-    }
+    std::list<dl::detect::result_t> &run(T *input_element, std::vector<int> input_shape);
 };
 
 template <typename feature_t>
 class MNP01 {
 private:
-    Model *model;
-    image::ImagePreprocessor<feature_t> *image_preprocessor;
-    MNP01Postprocessor<feature_t> *postprocessor;
+    dl::Model *model;
+    dl::image::ImagePreprocessor<feature_t> *image_preprocessor;
+    dl::detect::MNP01Postprocessor<feature_t> *postprocessor;
 
 public:
     MNP01(const float score_threshold,
           const float nms_threshold,
           const int top_k,
-          const std::vector<anchor_box_stage_t> &stages,
+          const std::vector<dl::detect::anchor_box_stage_t> &stages,
           const std::vector<float> &mean,
-          const std::vector<float> &std) :
-        model(new Model((const char *)human_face_detect_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA, 0)),
-        postprocessor(new MNP01Postprocessor<feature_t>(score_threshold, nms_threshold, top_k, stages))
-    {
-        std::map<std::string, TensorBase *> model_inputs_map = this->model->get_inputs();
-        assert(model_inputs_map.size() == 1);
-        TensorBase *model_input = model_inputs_map.begin()->second;
-        this->image_preprocessor = new image::ImagePreprocessor<feature_t>(model_input, mean, std);
-    }
-
-    ~MNP01()
-    {
-        if (this->model) {
-            delete this->model;
-            this->model = nullptr;
-        }
-        if (this->image_preprocessor) {
-            delete this->image_preprocessor;
-            this->image_preprocessor = nullptr;
-        }
-        if (this->postprocessor) {
-            delete this->postprocessor;
-            this->postprocessor = nullptr;
-        }
-    };
+          const std::vector<float> &std);
+    ~MNP01();
 
     template <typename T>
-    std::list<result_t> &run(T *input_element, std::vector<int> input_shape, std::list<result_t> &candidates)
-    {
-        tool::Latency latency[3] = {tool::Latency(10), tool::Latency(10), tool::Latency(10)};
-        this->postprocessor->clear_result();
-        for (auto &candidate : candidates) {
-            int center_x = (candidate.box[0] + candidate.box[2]) >> 1;
-            int center_y = (candidate.box[1] + candidate.box[3]) >> 1;
-            int side = DL_MAX(candidate.box[2] - candidate.box[0], candidate.box[3] - candidate.box[1]);
-            candidate.box[0] = center_x - (side >> 1);
-            candidate.box[1] = center_y - (side >> 1);
-            candidate.box[2] = candidate.box[0] + side;
-            candidate.box[3] = candidate.box[1] + side;
-
-            latency[0].start();
-            this->image_preprocessor->preprocess(input_element, input_shape, candidate.box);
-            latency[0].end();
-
-            latency[1].start();
-            this->model->run();
-            latency[1].end();
-
-            latency[2].start();
-            this->postprocessor->set_resize_scale_x(this->image_preprocessor->get_resize_scale_x());
-            this->postprocessor->set_resize_scale_y(this->image_preprocessor->get_resize_scale_y());
-            this->postprocessor->set_top_left_x(this->image_preprocessor->get_top_left_x());
-            this->postprocessor->set_top_left_y(this->image_preprocessor->get_top_left_y());
-            this->postprocessor->postprocess(model->get_outputs());
-            latency[2].end();
-        }
-        this->postprocessor->nms();
-        std::list<result_t> &result = this->postprocessor->get_result(input_shape);
-        if (candidates.size() > 0) {
-            latency[0].print("detect", "preprocess");
-            latency[1].print("detect", "forward");
-            latency[2].print("detect", "postprocess");
-        }
-        return result;
-    }
+    std::list<dl::detect::result_t> &run(T *input_element,
+                                         std::vector<int> input_shape,
+                                         std::list<dl::detect::result_t> &candidates);
 };
 
-} // namespace detect
-} // namespace dl
+} // namespace model_zoo

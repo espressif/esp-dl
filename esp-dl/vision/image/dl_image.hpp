@@ -450,7 +450,12 @@ uint32_t get_moving_point_number(uint8_t *f1,
  * @param M_inv     the inverse transformation matrix.
  */
 template <typename T>
-void warp_affine(dl::Tensor<T> *input, dl::Tensor<T> *output, dl::math::Matrix<float> *M_inv);
+void warp_affine(uint8_t *input,
+                 const std::vector<int> &input_shape,
+                 T *output,
+                 const std::vector<int> &output_shape,
+                 dl::math::Matrix<float> *M_inv,
+                 bool byte_swap = false);
 
 /**
  * @brief Apply an affine transformation to an image.
@@ -462,7 +467,12 @@ void warp_affine(dl::Tensor<T> *input, dl::Tensor<T> *output, dl::math::Matrix<f
  * @param M_inv    the inverse transformation matrix.
  */
 template <typename T>
-void warp_affine(uint16_t *input, std::vector<int> shape, dl::Tensor<T> *output, dl::math::Matrix<float> *M_inv);
+void warp_affine(uint16_t *input,
+                 const std::vector<int> &input_shape,
+                 T *output,
+                 const std::vector<int> &output_shape,
+                 dl::math::Matrix<float> *M_inv,
+                 bool byte_swap = false);
 
 /**
  * @brief Get the otsu thresh object.

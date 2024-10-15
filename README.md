@@ -19,7 +19,8 @@ In general, the ESP-DL features will be supported, as shown below:
 ## Support models
 
 [Pedestrian Detection](./models/pedestrian_detect/)   
-[Human Face Detection](./models/human_face_detect/)
+[Human Face Detection](./models/human_face_detect/)  
+[Human Face Recognition](./models/human_face_recognition/)
 
 ## Getting Started
 

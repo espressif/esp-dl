@@ -23,7 +23,8 @@ ESP-DL 的以下功能将得到支持，如下所示：
 ## Support models
 
 [行人检测](./models/pedestrian_detect/)  
-[人脸检测](./models/human_face_detect/)
+[人脸检测](./models/human_face_detect/)  
+[人脸识别](./models/human_face_recognition/)
 
 ## Getting Started
 
