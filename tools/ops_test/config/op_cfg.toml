@@ -12,7 +12,7 @@
         [[ops_test.conv2d.cfg]]
         # conv2d, pointwise, aligned
         input_shape = [1, 3, 224, 224]
-        export_name_prefix = "conv2d_s8_ishap_1_3_224_224_kshap_16_3_3_3"
+        export_name_prefix = "conv2d_ishap_1_3_224_224_kshap_16_3_3_3"
         export_path = ""
         in_channels = 3
         out_channels = 16
@@ -27,7 +27,7 @@
         [[ops_test.conv2d.cfg]]
         # conv2d, pointwise, aligned
         input_shape = [1, 16, 32, 32]
-        export_name_prefix = "conv2d_s8_ishap_1_16_32_32_kshap_32_16_1_1"
+        export_name_prefix = "conv2d_ishap_1_16_32_32_kshap_32_16_1_1"
         export_path = ""
         in_channels = 16
         out_channels = 32
@@ -42,7 +42,7 @@
         [[ops_test.conv2d.cfg]]
         # conv2d, pointwise, aligned, two task
         input_shape = [1, 16, 120, 120]
-        export_name_prefix = "conv2d_s8_ishap_1_16_120_120_kshap_32_16_1_1"
+        export_name_prefix = "conv2d_ishap_1_16_120_120_kshap_32_16_1_1"
         export_path = ""
         in_channels = 16
         out_channels = 32
@@ -57,7 +57,7 @@
         [[ops_test.conv2d.cfg]]
         # conv2d, pointwise, aligned, two task
         input_shape = [1, 16, 32, 32]
-        export_name_prefix = "conv2d_s8_ishap_1_16_32_32_kshap_32_16_5_5_relu"
+        export_name_prefix = "conv2d_ishap_1_16_32_32_kshap_32_16_5_5_relu"
         export_path = ""
         in_channels = 16
         out_channels = 32
@@ -72,7 +72,7 @@
         [[ops_test.conv2d.cfg]]
         # conv2d, pointwise, aligned, two task
         input_shape = [1, 16, 32, 32]
-        export_name_prefix = "conv2d_s8_ishap_1_16_32_32_kshap_32_16_7_7_relu"
+        export_name_prefix = "conv2d_ishap_1_16_32_32_kshap_32_16_7_7_relu"
         export_path = ""
         in_channels = 16
         out_channels = 32
@@ -87,7 +87,7 @@
         [[ops_test.conv2d.cfg]]
         # conv2d, pointwise, aligned, two task
         input_shape = [1, 48, 19, 29]
-        export_name_prefix = "conv2d_s8_ishap_1_48_19_29_kshap_16_48_3_3"
+        export_name_prefix = "conv2d_ishap_1_48_19_29_kshap_16_48_3_3"
         export_path = ""
         in_channels = 48
         out_channels = 16
@@ -102,7 +102,7 @@
         [[ops_test.conv2d.cfg]]
         # conv2d, pointwise, aligned, two task
         input_shape = [1, 33, 19, 29]
-        export_name_prefix = "conv2d_s8_ishap_1_33_19_29_kshap_55_33_3_3"
+        export_name_prefix = "conv2d_ishap_1_33_19_29_kshap_55_33_3_3"
         export_path = ""
         in_channels = 33
         out_channels = 55
@@ -117,7 +117,7 @@
         [[ops_test.conv2d.cfg]]
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 3, 3]
-        export_name_prefix = "depthwise_conv2d_s8_ishap_1_16_3_3_kshap_16_1_3_3_relu"
+        export_name_prefix = "depthwise_conv2d_ishap_1_16_3_3_kshap_16_1_3_3_relu"
         export_path = ""
         in_channels = 16
         out_channels = 16
@@ -131,8 +131,23 @@
 
         [[ops_test.conv2d.cfg]]
         # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 16, 10, 10]
+        export_name_prefix = "depthwise_conv2d_ishap_1_16_10_10_kshap_16_1_3_3_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 16
+        kernel_size = [3, 3]
+        stride = [1, 2]
+        padding = [0, 0]
+        dilation = [2, 1]
+        groups = 16
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.conv2d.cfg]]
+        # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 20, 20]
-        export_name_prefix = "depthwise_conv2d_s8_ishap_1_16_20_20_kshap_16_1_5_5_relu"
+        export_name_prefix = "depthwise_conv2d_ishap_1_16_20_20_kshap_16_1_5_5_relu"
         export_path = ""
         in_channels = 16
         out_channels = 16
@@ -147,7 +162,7 @@
         [[ops_test.conv2d.cfg]]
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 20, 20]
-        export_name_prefix = "depthwise_conv2d_s8_ishap_1_16_20_20_kshap_16_1_7_7_relu"
+        export_name_prefix = "depthwise_conv2d_ishap_1_16_20_20_kshap_16_1_7_7_relu"
         export_path = ""
         in_channels = 16
         out_channels = 16
@@ -162,7 +177,7 @@
         [[ops_test.conv2d.cfg]]
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 30, 20, 20]
-        export_name_prefix = "depthwise_conv2d_s8_ishap_1_30_20_20_kshap_30_1_7_7_relu"
+        export_name_prefix = "depthwise_conv2d_ishap_1_30_20_20_kshap_30_1_7_7_relu"
         export_path = ""
         in_channels = 30
         out_channels = 30
@@ -177,7 +192,7 @@
         [[ops_test.conv2d.cfg]]
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 32, 120, 120]
-        export_name_prefix = "depthwise_conv2d_s8_ishap_1_32_120_120_kshap_32_1_3_3_relu"
+        export_name_prefix = "depthwise_conv2d_ishap_1_32_120_120_kshap_32_1_3_3_relu"
         export_path = ""
         in_channels = 32
         out_channels = 32
@@ -193,7 +208,7 @@
     class_name = "LINEAR_TEST"
         [[ops_test.linear.cfg]]
         input_shape = [1, 16]
-        export_name_prefix = "linear_s8_ishap_1_16_kshap_16_16_relu"
+        export_name_prefix = "linear_ishap_1_16_kshap_16_16_relu"
         export_path = ""
         in_features = 16
         out_features = 16
@@ -202,7 +217,7 @@
 
         [[ops_test.linear.cfg]]
         input_shape = [1, 31]
-        export_name_prefix = "linear_s8_ishap_1_31_kshap_32_31_relu"
+        export_name_prefix = "linear_ishap_1_31_kshap_32_31_relu"
         export_path = ""
         in_features = 31
         out_features = 32
@@ -211,7 +226,7 @@
 
         [[ops_test.linear.cfg]]
         input_shape = [1, 64]
-        export_name_prefix = "linear_s8_ishap_1_64_kshap_32_64_relu"
+        export_name_prefix = "linear_ishap_1_64_kshap_32_64_relu"
         export_path = ""
         in_features = 64
         out_features = 32
@@ -222,23 +237,23 @@
     class_name = "ADD2D_TEST"
         [[ops_test.add2d.cfg]]
         input_shape = [[1, 96, 5, 5], [1, 96, 5, 5]]
-        export_name_prefix = "add2d_s8_ishap_1_96_5_5"
+        export_name_prefix = "add2d_ishap_1_96_5_5"
         activation_func = ""
         [[ops_test.add2d.cfg]]
         input_shape = [[1, 5, 5, 31], [1, 1, 1, 31]]
-        export_name_prefix = "add2d_s8_ishap_1_96_1_1"
+        export_name_prefix = "add2d_ishap_1_96_1_1"
         activation_func = ""
 
     [ops_test.mul2d]
     class_name = "MUL2D_TEST"
         [[ops_test.mul2d.cfg]]
         input_shape = [[1, 176, 10, 10], [1, 176, 10, 10]]
-        export_name_prefix = "mul2d_s8_ishap_1_176_10_10"
+        export_name_prefix = "mul2d_ishap_1_176_10_10"
         export_path = ""
         activation_func = ""
         [[ops_test.mul2d.cfg]]
         input_shape = [[1, 1, 1, 100], [1, 10, 10, 100]]
-        export_name_prefix = "mul2d_s8_ishap_1_10_10_100"
+        export_name_prefix = "mul2d_ishap_1_10_10_100"
         export_path = ""
         activation_func = ""
 
@@ -246,37 +261,37 @@
     class_name = "GLOBAL_AVERAGE_POOLING_TEST"
         [[ops_test.global_average_pooling.cfg]]
         input_shape = [1, 96, 5, 5]
-        export_name_prefix = "global_average_pooling_s8_ishap_1_96_5_5"
+        export_name_prefix = "global_average_pooling_ishap_1_96_5_5"
         [[ops_test.global_average_pooling.cfg]]
         input_shape = [1, 51, 3, 3]
-        export_name_prefix = "global_average_pooling_s8_ishap_1_51_3_3"
+        export_name_prefix = "global_average_pooling_ishap_1_51_3_3"
 
     [ops_test.average_pooling]
     class_name = "AVERAGE_POOLING_TEST"
         [[ops_test.average_pooling.cfg]]
         input_shape = [1, 96, 7, 7]
-        export_name_prefix = "average_pooling_s8_ishap_1_96_7_7_kshape_2_3"
+        export_name_prefix = "average_pooling_ishap_1_96_7_7_kshape_2_3"
         kernel_size = [2, 3]
         stride = [1, 2]
         padding = [0, 0]
 
         [[ops_test.average_pooling.cfg]]
         input_shape = [1, 96, 5, 5]
-        export_name_prefix = "average_pooling_s8_ishap_1_96_5_5_kshape_2_2"
+        export_name_prefix = "average_pooling_ishap_1_96_5_5_kshape_2_2"
         kernel_size = [2, 2]
         stride = [2, 2]
         padding = [0, 0]
 
         [[ops_test.average_pooling.cfg]]
         input_shape = [1, 51, 5, 5]
-        export_name_prefix = "average_pooling_s8_ishap_1_51_5_5_kshape_3_1"
+        export_name_prefix = "average_pooling_ishap_1_51_5_5_kshape_3_1"
         kernel_size = [3, 1]
         stride = [1, 1]
         padding = [0, 0]
 
         [[ops_test.average_pooling.cfg]]
         input_shape = [1, 51, 7, 7]
-        export_name_prefix = "average_pooling_s8_ishap_1_51_7_7_kshape_2_2"
+        export_name_prefix = "average_pooling_ishap_1_51_7_7_kshape_2_2"
         kernel_size = [2, 2]
         stride = [1, 1]
         padding = [1, 1]
@@ -285,12 +300,12 @@
     class_name = "RESIZE2D_TEST"
         [[ops_test.resize2d.cfg]]
         input_shape = [1, 96, 5, 5]
-        export_name_prefix = "resize2d_s8_ishap_1_96_5_5"
+        export_name_prefix = "resize2d_ishap_1_96_5_5"
         conv = false
 
         [[ops_test.resize2d.cfg]]
         input_shape = [1, 16, 8, 8]
-        export_name_prefix = "resize2d_s8_conv_ishap_1_16_8_8"
+        export_name_prefix = "resize2d_conv_ishap_1_16_8_8"
         conv = true
         in_features = 16
         out_features = 16

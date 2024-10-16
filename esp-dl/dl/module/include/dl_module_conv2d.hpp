@@ -121,7 +121,7 @@ public:
             if (quant_type == QUANT_TYPE_SYMM_8BIT) {
                 base::depthwise_conv2d<int8_t, int32_t, int32_t>(args);
             } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-                // base::depthwise_conv2d<int16_t, int32_t, int64_t>(args);
+                base::depthwise_conv2d<int16_t, int32_t, int64_t>(args);
             }
         }
     }
