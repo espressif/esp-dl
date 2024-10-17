@@ -9,7 +9,7 @@ private:
     void parse_stage(TensorBase *score, TensorBase *box, const int stage_index);
 
 public:
-    void postprocess(std::map<std::string, TensorBase *> &model_outputs_map);
+    void postprocess() override;
     using AnchorPointDetectPostprocessor::AnchorPointDetectPostprocessor;
 };
 } // namespace detect

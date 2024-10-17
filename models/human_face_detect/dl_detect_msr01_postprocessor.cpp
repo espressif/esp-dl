@@ -74,12 +74,12 @@ void MSR01Postprocessor<feature_t>::parse_stage(TensorBase *score, TensorBase *b
 }
 
 template <typename feature_t>
-void MSR01Postprocessor<feature_t>::postprocess(std::map<std::string, TensorBase *> &model_outputs_map)
+void MSR01Postprocessor<feature_t>::postprocess()
 {
-    TensorBase *score0 = model_outputs_map.at("score0");
-    TensorBase *bbox0 = model_outputs_map.at("box0");
-    TensorBase *score1 = model_outputs_map.at("score1");
-    TensorBase *bbox1 = model_outputs_map.at("box1");
+    TensorBase *score0 = this->get_model_output("score0");
+    TensorBase *bbox0 = this->get_model_output("box0");
+    TensorBase *score1 = this->get_model_output("score1");
+    TensorBase *bbox1 = this->get_model_output("box1");
 
     this->parse_stage(score0, bbox0, 0);
     this->parse_stage(score1, bbox1, 1);

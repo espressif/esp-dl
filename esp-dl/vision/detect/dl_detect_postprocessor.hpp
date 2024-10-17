@@ -8,6 +8,7 @@ namespace dl {
 namespace detect {
 class DetectPostprocessor {
 protected:
+    std::map<std::string, TensorBase *> &model_outputs_map;
     const float score_threshold; /*<! Candidate box with lower score than score_threshold will be filtered */
     const float nms_threshold;   /*<! Candidate box with higher IoU than nms_threshold will be filtered */
     const int top_k;             /*<! Keep top_k number of candidate boxes */
@@ -16,12 +17,19 @@ protected:
     float top_left_x;
     float top_left_y;
     std::list<result_t> box_list; /*<! Detected box list */
+    TensorBase *get_model_output(const char *output_name);
 
 public:
-    DetectPostprocessor(const float score_threshold, const float nms_threshold, const int top_k) :
-        score_threshold(score_threshold), nms_threshold(nms_threshold), top_k(top_k) {};
+    DetectPostprocessor(std::map<std::string, TensorBase *> &model_outputs_map,
+                        const float score_threshold,
+                        const float nms_threshold,
+                        const int top_k) :
+        model_outputs_map(model_outputs_map),
+        score_threshold(score_threshold),
+        nms_threshold(nms_threshold),
+        top_k(top_k) {};
     virtual ~DetectPostprocessor() {};
-    virtual void postprocess(std::map<std::string, TensorBase *> &model_outputs_map) = 0;
+    virtual void postprocess() = 0;
     void nms();
     void set_resize_scale_x(float resize_scale_x) { this->resize_scale_x = resize_scale_x; };
     void set_resize_scale_y(float resize_scale_y) { this->resize_scale_y = resize_scale_y; };
@@ -36,11 +44,12 @@ protected:
     std::vector<anchor_point_stage_t> stages;
 
 public:
-    AnchorPointDetectPostprocessor(const float score_threshold,
+    AnchorPointDetectPostprocessor(std::map<std::string, TensorBase *> &model_outputs_map,
+                                   const float score_threshold,
                                    const float nms_threshold,
                                    const int top_k,
                                    const std::vector<anchor_point_stage_t> &stages) :
-        DetectPostprocessor(score_threshold, nms_threshold, top_k), stages(stages) {};
+        DetectPostprocessor(model_outputs_map, score_threshold, nms_threshold, top_k), stages(stages) {};
 };
 
 class AnchorBoxDetectPostprocessor : public DetectPostprocessor {
@@ -48,11 +57,12 @@ protected:
     std::vector<anchor_box_stage_t> stages;
 
 public:
-    AnchorBoxDetectPostprocessor(const float score_threshold,
+    AnchorBoxDetectPostprocessor(std::map<std::string, TensorBase *> &model_outputs_map,
+                                 const float score_threshold,
                                  const float nms_threshold,
                                  const int top_k,
                                  const std::vector<anchor_box_stage_t> &stages) :
-        DetectPostprocessor(score_threshold, nms_threshold, top_k), stages(stages) {};
+        DetectPostprocessor(model_outputs_map, score_threshold, nms_threshold, top_k), stages(stages) {};
 };
 } // namespace detect
 } // namespace dl

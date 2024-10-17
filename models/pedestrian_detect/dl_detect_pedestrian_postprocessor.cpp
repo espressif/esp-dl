@@ -68,14 +68,14 @@ void PedestrianPostprocessor<feature_t>::parse_stage(TensorBase *score, TensorBa
 }
 
 template <typename feature_t>
-void PedestrianPostprocessor<feature_t>::postprocess(std::map<std::string, TensorBase *> &model_outputs_map)
+void PedestrianPostprocessor<feature_t>::postprocess()
 {
-    TensorBase *score0 = model_outputs_map.at("score0");
-    TensorBase *bbox0 = model_outputs_map.at("bbox0");
-    TensorBase *score1 = model_outputs_map.at("score1");
-    TensorBase *bbox1 = model_outputs_map.at("bbox1");
-    TensorBase *score2 = model_outputs_map.at("score2");
-    TensorBase *bbox2 = model_outputs_map.at("bbox2");
+    TensorBase *score0 = this->get_model_output("score0");
+    TensorBase *bbox0 = this->get_model_output("bbox0");
+    TensorBase *score1 = this->get_model_output("score1");
+    TensorBase *bbox1 = this->get_model_output("bbox1");
+    TensorBase *score2 = this->get_model_output("score2");
+    TensorBase *bbox2 = this->get_model_output("bbox2");
 
     this->parse_stage(score0, bbox0, 0);
     this->parse_stage(score1, bbox1, 1);

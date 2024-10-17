@@ -4,10 +4,9 @@ namespace dl {
 namespace recognition {
 
 template <typename feature_t>
-TensorBase *RecognitionPostprocessor<feature_t>::postprocess(std::map<std::string, TensorBase *> &model_outputs_map)
+TensorBase *RecognitionPostprocessor<feature_t>::postprocess()
 {
-    TensorBase *embedding = model_outputs_map.at("embedding");
-    this->feat->assign(embedding);
+    this->feat->assign(this->model_output);
     this->l2_norm();
     return this->feat;
 }

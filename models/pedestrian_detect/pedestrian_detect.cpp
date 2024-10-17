@@ -34,7 +34,8 @@ Pedestrian<feature_t>::Pedestrian(const float score_threshold,
                                   const std::vector<float> &mean,
                                   const std::vector<float> &std) :
     model(new dl::Model((const char *)pedestrian_espdl)),
-    postprocessor(new dl::detect::PedestrianPostprocessor<feature_t>(score_threshold, nms_threshold, top_k, stages))
+    postprocessor(new dl::detect::PedestrianPostprocessor<feature_t>(
+        this->model->get_outputs(), score_threshold, nms_threshold, top_k, stages))
 {
     std::map<std::string, dl::TensorBase *> model_inputs_map = this->model->get_inputs();
     assert(model_inputs_map.size() == 1);
@@ -76,7 +77,7 @@ std::list<dl::detect::result_t> &Pedestrian<feature_t>::run(T *input_element, co
     this->postprocessor->clear_result();
     this->postprocessor->set_resize_scale_x(this->image_preprocessor->get_resize_scale_x());
     this->postprocessor->set_resize_scale_y(this->image_preprocessor->get_resize_scale_y());
-    this->postprocessor->postprocess(model->get_outputs());
+    this->postprocessor->postprocess();
     std::list<dl::detect::result_t> &result = this->postprocessor->get_result(input_shape);
     latency[2].end();
 

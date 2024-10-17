@@ -122,7 +122,7 @@ dl::TensorBase *MFN<feature_t>::run(T *input_element,
     latency[1].end();
 
     latency[2].start();
-    dl::TensorBase *feat = this->postprocessor->postprocess(this->model->get_outputs());
+    dl::TensorBase *feat = this->postprocessor->postprocess();
     latency[2].end();
 
     latency[0].print("detect", "preprocess");

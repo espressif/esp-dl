@@ -1,5 +1,7 @@
 #include "dl_detect_postprocessor.hpp"
 
+static const char *TAG = "dl::detect::DetectPostprocessor";
+
 namespace dl {
 namespace detect {
 void DetectPostprocessor::nms()
@@ -42,6 +44,18 @@ void DetectPostprocessor::nms()
     }
     latency.end();
     latency.print("detect", "postprocess::nms");
+}
+
+TensorBase *DetectPostprocessor::get_model_output(const char *output_name)
+{
+    TensorBase *output = nullptr;
+    auto iter = this->model_outputs_map.find(output_name);
+    if (iter != this->model_outputs_map.end()) {
+        output = iter->second;
+    } else {
+        ESP_LOGE(TAG, "Invalid key: %s, it is not in model outputs map.", output_name);
+    }
+    return output;
 }
 
 std::list<result_t> &DetectPostprocessor::get_result(const std::vector<int> &input_shape)
