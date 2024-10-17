@@ -131,21 +131,6 @@
 
         [[ops_test.conv2d.cfg]]
         # Can be configured as 1-d or 2-d arrays
-        input_shape = [1, 16, 10, 10]
-        export_name_prefix = "depthwise_conv2d_ishap_1_16_10_10_kshap_16_1_3_3_relu"
-        export_path = ""
-        in_channels = 16
-        out_channels = 16
-        kernel_size = [3, 3]
-        stride = [1, 2]
-        padding = [0, 0]
-        dilation = [2, 1]
-        groups = 16
-        bias = true
-        activation_func = "ReLU"    # "", "ReLU"
-
-        [[ops_test.conv2d.cfg]]
-        # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 20, 20]
         export_name_prefix = "depthwise_conv2d_ishap_1_16_20_20_kshap_16_1_5_5_relu"
         export_path = ""

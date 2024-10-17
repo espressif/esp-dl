@@ -81,13 +81,11 @@ inline void load_depthwise_conv2d_33c1_s16(i_impl_func_s16_t &i_impl_func,
             switch (args.activation_type) {
             case Linear:
                 i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_bias;
-                // i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias;
-                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_33c1_bias;
+                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias;
                 break;
             case ReLU:
                 i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu;
-                // i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu;
-                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu;
+                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu;
@@ -102,13 +100,11 @@ inline void load_depthwise_conv2d_33c1_s16(i_impl_func_s16_t &i_impl_func,
             switch (args.activation_type) {
             case Linear:
                 i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1;
-                // i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1;
-                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_33c1;
+                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1;
                 break;
             case ReLU:
                 i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_relu;
-                // i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_relu;
-                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_33c1_relu;
+                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_relu;
@@ -288,7 +284,76 @@ inline void load_depthwise_conv2d_hwc1_s16(i_impl_func_s16_t &i_impl_func,
                                            n_wise_func_s16_t &n_wise_func,
                                            const ArgsType<int16_t> &args)
 {
-#if CONFIG_TIE728_BOOST
+#if CONFIG_ESP32P4_BOOST
+    if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
+        !((unsigned)&args.output_element[0] & 15)) {
+        if (args.bias_element) {
+            switch (args.activation_type) {
+            case Linear:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias;
+                break;
+            case ReLU:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu;
+                break;
+            case LeakyReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu;
+                break;
+            case PReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_prelu;
+                break;
+            }
+        } else {
+            switch (args.activation_type) {
+            case Linear:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1;
+                break;
+            case ReLU:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_relu;
+                break;
+            case LeakyReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_relu;
+                break;
+            case PReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_prelu;
+                break;
+            }
+        }
+    } else {
+        // if (args.bias_element) {
+        //     switch (args.activation_type) {
+        //     case Linear:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias;
+        //         break;
+        //     case ReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
+        //         break;
+        //     case LeakyReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
+        //         break;
+        //     case PReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu;
+        //         break;
+        //     }
+        // } else {
+        //     switch (args.activation_type) {
+        //     case Linear:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1;
+        //         break;
+        //     case ReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
+        //         break;
+        //     case LeakyReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
+        //         break;
+        //     case PReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_prelu;
+        //         break;
+        //     }
+        // }
+    }
+
+    i_impl_func = i_impl_func_sp;
+#elif CONFIG_TIE728_BOOST
     if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
