@@ -64,14 +64,14 @@ inline void load_prelu_11cn_s8(i_impl_acti_s8_t &i_impl_func,
         !((unsigned)&args.input_element[0] & 15) && !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_esp32p4_s8_prelu_11c;
     } else {
-        // i_impl_func = dl_esp32p4_s8_unaligned_prelu_11c;
+        i_impl_func = dl_esp32p4_s8_unaligned_prelu_11c;
     }
 #elif CONFIG_TIE728_BOOST
     if (args.input_stride_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 &&
         !((unsigned)&args.input_element[0] & 15) && !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_tie728_s8_prelu_11c;
     } else {
-        // i_impl_func = dl_tie728_s8_unaligned_prelu_11c;
+        i_impl_func = dl_tie728_s8_unaligned_prelu_11c;
     }
 #else
     c_impl_func = prelu_11c<int8_t, int16_t>;
