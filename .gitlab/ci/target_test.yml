@@ -1,5 +1,5 @@
 variables:
-  DOCKER_TARGET_TEST_v5_3_ENV_IMAGE: "$CI_DOCKER_REGISTRY/target-test-env-v5.3:1"
+  DOCKER_TARGET_TEST_v5_3_ENV_IMAGE: "$CI_DOCKER_REGISTRY/target-test-env-v5.4:1"
 
 .test_template: &test_template
   image: DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
