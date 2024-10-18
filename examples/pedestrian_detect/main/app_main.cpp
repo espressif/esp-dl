@@ -31,7 +31,7 @@ extern "C" void app_main(void)
 {
     uint8_t *pedestrian = get_image(pedestrian_jpg_start, pedestrian_jpg_end - pedestrian_jpg_start, 480, 640);
     PedestrianDetect *detect = new PedestrianDetect();
-    auto detect_results = detect->run((uint8_t *)pedestrian, {480, 640, 3});
+    auto &detect_results = detect->run((uint8_t *)pedestrian, {480, 640, 3});
     for (const auto &res : detect_results) {
         ESP_LOGI(TAG,
                  "[score: %f, x1: %d, y1: %d, x2: %d, y2: %d]\n",

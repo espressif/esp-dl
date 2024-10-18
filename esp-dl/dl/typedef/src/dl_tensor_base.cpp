@@ -1,9 +1,9 @@
 #include "dl_tensor_base.hpp"
 
 namespace dl {
-int quantize(float input, float scale, float quant_min, float quant_max)
+int quantize(float input, float inv_scale, float quant_min, float quant_max)
 {
-    int output = tool::round(input * scale);
+    int output = tool::round(input * inv_scale);
     output = DL_CLIP(output, quant_min, quant_max);
     return output;
 }

@@ -95,11 +95,11 @@ void MNP01Postprocessor<feature_t>::parse_stage(TensorBase *score,
 }
 
 template <typename feature_t>
-void MNP01Postprocessor<feature_t>::postprocess(std::map<std::string, TensorBase *> &model_outputs_map)
+void MNP01Postprocessor<feature_t>::postprocess()
 {
-    TensorBase *score = model_outputs_map.at("score");
-    TensorBase *bbox = model_outputs_map.at("box");
-    TensorBase *landmark = model_outputs_map.at("landmark");
+    TensorBase *score = this->get_model_output("score");
+    TensorBase *bbox = this->get_model_output("box");
+    TensorBase *landmark = this->get_model_output("landmark");
     this->parse_stage(score, bbox, landmark, 0);
 }
 

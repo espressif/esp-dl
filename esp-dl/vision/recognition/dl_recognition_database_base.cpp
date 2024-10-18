@@ -97,7 +97,8 @@ esp_err_t DataBase::load_database_from_storage(int feat_len)
                 }
                 continue;
             }
-            float *feat = (float *)heap_caps_malloc(sizeof(float) * this->meta.feat_len, MALLOC_CAP_SPIRAM);
+            float *feat = (float *)tool::malloc_aligned(
+                this->meta.feat_len, sizeof(float), 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
             size = fread(feat, sizeof(float), this->meta.feat_len, f);
             if (size != this->meta.feat_len) {
                 ESP_LOGE(TAG, "Failed to read feature data.");
@@ -130,7 +131,8 @@ esp_err_t DataBase::enroll_feat(TensorBase *feat)
         ESP_LOGE(TAG, "Feature len to enroll does not match feature len in db.");
         return ESP_FAIL;
     }
-    float *feat_copy = (float *)heap_caps_malloc(sizeof(float) * this->meta.feat_len, MALLOC_CAP_SPIRAM);
+    float *feat_copy =
+        (float *)tool::malloc_aligned(this->meta.feat_len, sizeof(float), 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
     memcpy(feat_copy, feat->data, feat->get_bytes());
 
     this->feats.emplace_back(this->meta.num_feats_total + 1, feat_copy);

@@ -2122,6 +2122,7 @@ std::vector<ArgsType<feature_t>> get_activation_args(TensorBase *output,
     args.c_remainder = (args.input_channel % u) * sizeof(feature_t);
 
     int c_div_x = input->shape[3] / u;
+    args.n_div_x = c_div_x;
     args.c_rs1_1 = DL_MAX(c_div_x / 2 - 1, 0);     // actually c / 2u - 1
     args.c_rs2_1 = c_div_x - 2 * args.c_rs1_1 - 1; // actually c left - 1
 

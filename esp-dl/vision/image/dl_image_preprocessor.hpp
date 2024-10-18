@@ -55,7 +55,7 @@ public:
 #else
                       bool byte_swap = false,
 #endif
-                      bool use_ppa = true);
+                      bool use_ppa = false);
 
     ~ImagePreprocessor();
 
