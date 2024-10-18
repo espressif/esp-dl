@@ -74,7 +74,90 @@ inline void load_depthwise_conv2d_33c1_s16(i_impl_func_s16_t &i_impl_func,
                                            n_wise_func_s16_t &n_wise_func,
                                            const ArgsType<int16_t> &args)
 {
-#if CONFIG_TIE728_BOOST
+#if CONFIG_ESP32P4_BOOST
+    if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
+        !((unsigned)&args.output_element[0] & 15)) {
+        if (args.bias_element) {
+            switch (args.activation_type) {
+            case Linear:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_bias;
+                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias;
+                break;
+            case ReLU:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu;
+                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu;
+                break;
+            case LeakyReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu;
+                // i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu;
+                break;
+            case PReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_bias_prelu;
+                // i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_prelu;
+                break;
+            }
+        } else {
+            switch (args.activation_type) {
+            case Linear:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1;
+                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1;
+                break;
+            case ReLU:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_relu;
+                i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_relu;
+                break;
+            case LeakyReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_relu;
+                // i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_relu;
+                break;
+            case PReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_33c1_prelu;
+                // i_impl_func = dl_esp32p4_s16_depthwise_conv2d_hwc1_prelu;
+                break;
+            }
+        }
+    } else {
+        // if (args.bias_element) {
+        //     switch (args.activation_type) {
+        //     case Linear:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias;
+        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias;
+        //         break;
+        //     case ReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_relu;
+        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
+        //         break;
+        //     case LeakyReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_relu;
+        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
+        //         break;
+        //     case PReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_prelu;
+        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu;
+        //         break;
+        //     }
+        // } else {
+        //     switch (args.activation_type) {
+        //     case Linear:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1;
+        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1;
+        //         break;
+        //     case ReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_relu;
+        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
+        //         break;
+        //     case LeakyReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_relu;
+        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
+        //         break;
+        //     case PReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_prelu;
+        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_prelu;
+        //         break;
+        //     }
+        // }
+    }
+#elif CONFIG_TIE728_BOOST
     if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -201,7 +284,76 @@ inline void load_depthwise_conv2d_hwc1_s16(i_impl_func_s16_t &i_impl_func,
                                            n_wise_func_s16_t &n_wise_func,
                                            const ArgsType<int16_t> &args)
 {
-#if CONFIG_TIE728_BOOST
+#if CONFIG_ESP32P4_BOOST
+    if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
+        !((unsigned)&args.output_element[0] & 15)) {
+        if (args.bias_element) {
+            switch (args.activation_type) {
+            case Linear:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias;
+                break;
+            case ReLU:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu;
+                break;
+            case LeakyReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu;
+                break;
+            case PReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_prelu;
+                break;
+            }
+        } else {
+            switch (args.activation_type) {
+            case Linear:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1;
+                break;
+            case ReLU:
+                i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_relu;
+                break;
+            case LeakyReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_relu;
+                break;
+            case PReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_depthwise_conv2d_hwc1_prelu;
+                break;
+            }
+        }
+    } else {
+        // if (args.bias_element) {
+        //     switch (args.activation_type) {
+        //     case Linear:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias;
+        //         break;
+        //     case ReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
+        //         break;
+        //     case LeakyReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
+        //         break;
+        //     case PReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu;
+        //         break;
+        //     }
+        // } else {
+        //     switch (args.activation_type) {
+        //     case Linear:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1;
+        //         break;
+        //     case ReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
+        //         break;
+        //     case LeakyReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
+        //         break;
+        //     case PReLU:
+        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_prelu;
+        //         break;
+        //     }
+        // }
+    }
+
+    i_impl_func = i_impl_func_sp;
+#elif CONFIG_TIE728_BOOST
     if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -317,6 +469,32 @@ void depthwise_conv2d<int16_t, int16_t, DL_S16_BUFFER_TYPE>(void *args_ptr)
     c_impl_func_s16_t c_impl_func = NULL;
     c_impl_func_s16_t c_impl_func_sp = NULL;
     n_wise_func_s16_t n_wise_func = NULL;
+
+    if (args.filter_height == 3 && args.filter_width == 3) // Filter shape = [3, 3, C, N]
+    {
+        load_depthwise_conv2d_33c1_s16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
+    } else // Filter shape = [H, W, C, N]
+    {
+        load_depthwise_conv2d_hwc1_s16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
+    }
+    dwconv_operation_shell<int16_t, DL_S16_BUFFER_TYPE>(
+        args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
+}
+
+template <>
+void depthwise_conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
+{
+    ArgsType<int16_t> &args = *((ArgsType<int16_t> *)args_ptr);
+
+    i_impl_func_s16_t i_impl_func = NULL;
+    i_impl_func_s16_t i_impl_func_sp = NULL;
+    c_impl_func_s16_t c_impl_func = NULL;
+    c_impl_func_s16_t c_impl_func_sp = NULL;
+    n_wise_func_s16_t n_wise_func = NULL;
+
+#if CONFIG_ESP32P4_BOOST
+    dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
+#endif
 
     if (args.filter_height == 3 && args.filter_width == 3) // Filter shape = [3, 3, C, N]
     {
