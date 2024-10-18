@@ -9,6 +9,18 @@ static const char *TAG = "dl::Model";
 
 namespace dl {
 
+Model::Model(const char *name,
+             fbs::model_location_type_t location,
+             int model_index,
+             int internal_size,
+             memory_manager_t mm_type,
+             uint8_t *key)
+{
+    if (this->load(name, location, model_index, key) == ESP_OK) {
+        this->build(internal_size, mm_type);
+    }
+}
+
 Model::Model(fbs::FbsModel *fbs_model, int internal_size, memory_manager_t mm_type)
 {
     if (this->load(fbs_model) == ESP_OK) {
@@ -18,10 +30,10 @@ Model::Model(fbs::FbsModel *fbs_model, int internal_size, memory_manager_t mm_ty
 
 Model::~Model()
 {
+    // If fbs_loader is NULL, this means fbs_model is created outside this class. So don't delete it.
     if (fbs_loader) {
         delete fbs_loader;
 
-        // If fbs_loader is NULL, this means fbs_model is created by user, not by model.
         if (fbs_model) {
             delete fbs_model;
         }

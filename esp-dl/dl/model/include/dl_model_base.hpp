@@ -31,23 +31,37 @@ private:
 public:
     Model() {}
 
-    Model(const char *name,
+    /**
+     * @brief Create the Model object by rodata address or partition label.
+     *
+     * @param rodata_address_or_partition_label_or_path
+     *                                     The address of model data while location is MODEL_LOCATION_IN_FLASH_RODATA.
+     *                                     The label of partition while location is MODEL_LOCATION_IN_FLASH_PARTITION.
+     *                                     The path of model while location is MODEL_LOCATION_IN_SDCARD.
+     * @param location      The model location.
+     * @param model_index   The model index of packed models.
+     * @param internal_size  Internal ram size, in bytes
+     * @param mm_type        Type of memory manager
+     * @param key           The key of encrypted model.
+     */
+    Model(const char *rodata_address_or_partition_label_or_path,
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
           int model_index = 0,
           int internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
-          uint8_t *key = nullptr)
-    {
-        if (this->load(name, location, model_index, key) == ESP_OK) {
-            this->build(internal_size, mm_type);
-        }
-    }
+          uint8_t *key = nullptr);
 
+    /**
+     * @brief Create the Model object by fbs_model.
+     *
+     * @param fbs_model      The fbs model.
+     * @param internal_size  Internal ram size, in bytes
+     * @param mm_type        Type of memory manager
+     */
     Model(fbs::FbsModel *fbs_model, int internal_size = 0, memory_manager_t mm_type = MEMORY_MANAGER_GREEDY);
 
     /**
      * @brief Destroy the Model object.
-     *
      */
     virtual ~Model();
 
