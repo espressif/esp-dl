@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dl_module_base.hpp"
+#include "dl_module_lut.hpp"
 
 namespace dl {
 namespace module {

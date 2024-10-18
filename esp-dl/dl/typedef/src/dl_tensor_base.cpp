@@ -541,4 +541,21 @@ int TensorBase::get_element_index(const std::vector<int> axis_index)
     return element_index;
 }
 
+template <typename T>
+T TensorBase::get_element(int index)
+{
+    if (index < 0) {
+        index += this->size;
+    }
+
+    return ((T *)this->data)[index];
+}
+template int8_t TensorBase::get_element<int8_t>(int index);
+template uint8_t TensorBase::get_element<uint8_t>(int index);
+template int16_t TensorBase::get_element<int16_t>(int index);
+template uint16_t TensorBase::get_element<uint16_t>(int index);
+template int32_t TensorBase::get_element<int32_t>(int index);
+template uint32_t TensorBase::get_element<uint32_t>(int index);
+template float TensorBase::get_element<float>(int index);
+
 } // namespace dl
