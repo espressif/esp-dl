@@ -250,11 +250,13 @@ public:
      */
     int get_element_index(const std::vector<int> axis_index);
 
-    // int& operator[](size_t index) {
-    //     if (index >= this->size) {
-    //         throw std::out_of_range("Index out of range");
-    //     }
-    //     return data[index];
-    // }
+    /**
+     * @brief Get a element of tensor
+     *
+     * @param index  The index of element
+     * @return   The element of tensor
+     */
+    template <typename T>
+    T get_element(int index);
 };
 } // namespace dl

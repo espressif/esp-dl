@@ -72,7 +72,7 @@ public:
      *
      * @param args      ArgsType, arithArgsType, resizeArgsType and so on
      */
-    virtual void forward_args(void *args) = 0;
+    virtual void forward_args(void *args) {};
 
     /**
      * @brief create module instance by node serialization information
@@ -111,6 +111,26 @@ public:
         this->m_inputs_index.clear();
         this->m_outputs_index.clear();
     }
+
+    /**
+     * @brief Run the module with single input and single output
+     *
+     * @param input   Input tensor
+     * @param output  Output tensor
+     * @param mode    Runtime mode
+     */
+    virtual void run(TensorBase *input, TensorBase *output, runtime_mode_t mode = RUNTIME_MODE_AUTO);
+
+    /**
+     * @brief Run the module by inputs and outputs
+     *
+     * @param inputs   Input tensors
+     * @param outputs  Output tensors
+     * @param mode    Runtime mode
+     */
+    virtual void run(std::vector<dl::TensorBase *> inputs,
+                     std::vector<dl::TensorBase *> outputs,
+                     runtime_mode_t mode = RUNTIME_MODE_AUTO);
 };
 
 /**
