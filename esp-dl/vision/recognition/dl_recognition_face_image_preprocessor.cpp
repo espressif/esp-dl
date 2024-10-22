@@ -7,6 +7,15 @@ std::vector<float> FaceImagePreprocessor<feature_t>::std_ldks_112 = {
     38.2946, 51.6963, 41.5493, 92.3655, 56.0252, 71.7366, 73.5318, 51.5014, 70.7299, 92.2041};
 
 template <typename feature_t>
+FaceImagePreprocessor<feature_t>::~FaceImagePreprocessor()
+{
+    if (this->image_preprocessor) {
+        delete this->image_preprocessor;
+        this->image_preprocessor = nullptr;
+    }
+}
+
+template <typename feature_t>
 template <typename T>
 void FaceImagePreprocessor<feature_t>::preprocess(T *input_element,
                                                   const std::vector<int> &input_shape,

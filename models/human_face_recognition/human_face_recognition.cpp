@@ -29,6 +29,18 @@ template dl::TensorBase *HumanFaceFeat::run(uint16_t *input_element,
                                             const std::vector<int> &input_shape,
                                             const std::vector<int> &landmarks);
 
+FaceRecognizer::~FaceRecognizer()
+{
+    if (this->detect) {
+        delete this->detect;
+        this->detect = nullptr;
+    }
+    if (this->feat_extract) {
+        delete this->feat_extract;
+        this->feat_extract = nullptr;
+    }
+}
+
 template <typename T>
 std::vector<std::list<dl::recognition::query_info>> FaceRecognizer::recognize(T *input_element,
                                                                               const std::vector<int> &input_shape)
@@ -57,7 +69,7 @@ template std::vector<std::list<dl::recognition::query_info>> FaceRecognizer::rec
 template <typename T>
 esp_err_t FaceRecognizer::enroll(T *input_element, const std::vector<int> &input_shape)
 {
-    auto detect_results = this->detect->run(input_element, input_shape);
+    auto &detect_results = this->detect->run(input_element, input_shape);
     if (detect_results.empty()) {
         ESP_LOGW("FaceRecognizer", "Failed to enroll. No face detected.");
         return ESP_FAIL;

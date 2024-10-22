@@ -54,6 +54,9 @@ public:
         top_k(top_k)
     {
     }
+
+    ~FaceRecognizer();
+
     template <typename T>
     std::vector<std::list<dl::recognition::query_info>> recognize(T *input_element,
                                                                   const std::vector<int> &input_shape);
