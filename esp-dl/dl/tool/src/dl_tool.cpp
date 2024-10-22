@@ -83,5 +83,18 @@ void copy_memory(void *dst, void *src, const size_t n)
     memcpy(dst, src, n);
 #endif
 }
+
+float *gen_lut_8bit(float *table, int exponent, std::function<float(float)> func)
+{
+    if (table == nullptr) {
+        return table;
+    }
+    float scale = DL_SCALE(exponent);
+    for (int i = 0; i < 256; i++) {
+        table[i] = func(scale * (i - 128));
+    }
+    return table;
+}
+
 } // namespace tool
 } // namespace dl

@@ -58,15 +58,7 @@ public:
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
-        if (quant_type == QUANT_TYPE_FLOAT32) {
-            float *input_element = (float *)input->get_element_ptr();
-            float *output_element = (float *)output->get_element_ptr();
-
-            if (input_element != output_element) {
-                memcpy(output_element, input_element, input->get_bytes());
-            }
-            forward_float(output_element, output->get_size(), output->get_shape(), this->axis);
-        } else if (quant_type == QUANT_TYPE_SYMM_8BIT) {
+        if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             forward_lut(input, output);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             int16_t *input_element = (int16_t *)input->get_element_ptr();
@@ -75,6 +67,14 @@ public:
             float scale = DL_SCALE(input->exponent);
             for (int i = 0; i < input->get_size(); i++) {
                 output_element[i] = scale * input_element[i];
+            }
+            forward_float(output_element, output->get_size(), output->get_shape(), this->axis);
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
+            float *input_element = (float *)input->get_element_ptr();
+            float *output_element = (float *)output->get_element_ptr();
+
+            if (input_element != output_element) {
+                memcpy(output_element, input_element, input->get_bytes());
             }
             forward_float(output_element, output->get_size(), output->get_shape(), this->axis);
         }
@@ -145,23 +145,11 @@ public:
         }
     }
 
-    float *gen_lut_8bit(float *table, int exponent)
-    {
-        if (table == nullptr) {
-            return table;
-        }
-        float scale = DL_SCALE(exponent);
-        for (int i = 0; i < 256; i++) {
-            table[i] = expf(scale * (i - 128));
-        }
-        return table;
-    }
-
     void forward_lut(TensorBase *input, TensorBase *output)
     {
         if (this->exp_table == nullptr) {
             this->exp_table = (float *)tool::malloc_aligned(256, sizeof(float), 16, MALLOC_CAP_8BIT);
-            gen_lut_8bit(this->exp_table, input->exponent);
+            tool::gen_lut_8bit(this->exp_table, input->exponent, expf);
         }
 
         int dims = input->get_shape().size();
