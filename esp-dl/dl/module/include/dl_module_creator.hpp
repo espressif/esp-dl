@@ -20,6 +20,7 @@
 #include "dl_module_reshape.hpp"
 #include "dl_module_resize2d.hpp"
 #include "dl_module_sigmoid.hpp"
+#include "dl_module_softmax.hpp"
 #include "dl_module_sqrt.hpp"
 #include "dl_module_squeeze.hpp"
 #include "dl_module_tanh.hpp"
@@ -87,6 +88,7 @@ public:
             this->register_module("Sqrt", Sqrt::deserialize);
             this->register_module("Squeeze", Squeeze::deserialize);
             this->register_module("Unsqueeze", Unsqueeze::deserialize);
+            this->register_module("Softmax", Softmax::deserialize);
         }
     }
 

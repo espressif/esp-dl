@@ -264,7 +264,7 @@ void Model::print()
     if (!execution_plan.empty()) {
         for (int i = 0; i < execution_plan.size(); i++) {
             if (execution_plan[i]) {
-                ESP_LOGI(TAG, "------------------------------- %d -------------------------------\n", i);
+                ESP_LOGI(TAG, "------------------------------- %d -------------------------------", i);
                 if (execution_plan[i]) {
                     execution_plan[i]->print();
                 } else {
