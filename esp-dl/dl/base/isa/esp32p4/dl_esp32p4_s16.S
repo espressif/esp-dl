@@ -13,6 +13,39 @@
 
 
 
+.macro esp32p4_s16_conv2d_element_bias  bias_ptr
+    esp.ld.xacc.ip  \bias_ptr, 8
+.endm
+
+
+
+############################################################################################################################################################
+# esp32p4_s16_32b_unaligned_vector series
+############################################################################################################################################################
+.macro esp32p4_s16_32b_unaligned_vector_store  output_v, output_ptr, tmp
+    esp.movi.32.a  \output_v, \tmp, 0
+    sw  \tmp, 0(\output_ptr)
+    esp.movi.32.a  \output_v, \tmp, 1
+    sw  \tmp, 4(\output_ptr)
+    esp.movi.32.a  \output_v, \tmp, 2
+    sw  \tmp, 8(\output_ptr)
+    esp.movi.32.a  \output_v, \tmp, 3
+    sw  \tmp, 12(\output_ptr)
+    addi  \output_ptr, \output_ptr, 16
+.endm
+
+
+
+############################################################################################################################################################
+# esp32p4_s16_64b_unaligned_vector series
+############################################################################################################################################################
+.macro esp32p4_s16_64b_unaligned_vector_store  output_v, output_ptr
+    esp.vst.l.64.ip \output_v, \output_ptr, 8
+    esp.vst.h.64.ip \output_v, \output_ptr, 8
+.endm
+
+
+
 ############################################################################################################################################################
 # esp32p4_s16_128b_vector series
 ############################################################################################################################################################
@@ -60,57 +93,6 @@
 600:
 .endm
 
-
-.macro dl_esp32p4_s16_store_aligned_remainder remainder_data, c_remainder, tmp_a, output_ptr
-607:    # remainder == 1, 0x111
-    andi t0, \c_remainder, 4
-    beqz t0, 603f
-    andi t0, \c_remainder, 2
-    beqz t0, 605f
-    andi t0, \c_remainder, 1
-    beqz t0, 606f
-    esp.vst.l.64.ip \remainder_data, \output_ptr, 0
-    esp.movi.32.a \remainder_data, \tmp_a, 2
-    sw \tmp_a, 8(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 3
-    sh \tmp_a, 12(\output_ptr)
-    j 600f
-606:    # remainder == 1, 0x110
-    esp.vst.l.64.ip \remainder_data, \output_ptr, 0
-    esp.movi.32.a \remainder_data, \tmp_a, 2
-    sw \tmp_a, 8(\output_ptr)
-    j 600f
-605:    # remainder == 1, 0x101
-    andi t0, \c_remainder, 1
-    beqz t0, 604f
-    esp.vst.l.64.ip \remainder_data, \output_ptr, 0
-    esp.movi.32.a \remainder_data, \tmp_a, 2
-    sh \tmp_a, 8(\output_ptr)
-    j 600f
-604:    # remainder == 1, 0x100
-    esp.vst.l.64.ip \remainder_data, \output_ptr, 0
-    j 600f
-603:    # remainder == 1, 0x011
-    andi t0, \c_remainder, 2
-    beqz t0, 601f
-    andi t0, \c_remainder, 1
-    beqz t0, 602f
-    esp.movi.32.a \remainder_data, \tmp_a, 0
-    sw \tmp_a, 0(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 1
-    sh \tmp_a, 4(\output_ptr)
-    j 600f
-602:    # remainder == 1, 0x010
-    esp.movi.32.a \remainder_data, \tmp_a, 0
-    sw \tmp_a, 0(\output_ptr)
-    j 600f
-601:    # remainder == 1, 0x001
-    andi t0, \c_remainder, 1
-    beqz t0, 600f
-    esp.movi.32.a \remainder_data, \tmp_a, 0
-    sh \tmp_a, 0(\output_ptr)
-600:
-.endm
 
 
 .macro dl_esp32p4_s16_store_remainder remainder_data, c_remainder, tmp_a, output_ptr
@@ -174,4 +156,29 @@
     esp.movi.32.a \remainder_data, \tmp_a, 0
     sh \tmp_a, 0(\output_ptr)
 600:
+.endm
+
+
+
+############################################################################################################################################################
+# esp32p4_s16_element series
+############################################################################################################################################################
+.macro esp32p4_s16_element_result  output, mac_shift
+    esp.srs.s.xacc  \output, \mac_shift
+.endm
+
+
+
+.macro esp32p4_s16_element_store  output_ptr, output
+    sh  \output, 0(\output_ptr)
+    addi  \output_ptr, \output_ptr, 2
+.endm
+
+
+
+.macro esp32p4_s16_element_leakyrelu  output, alpha, shift
+    bgez \output, 0f
+        mul  \output, \output, \alpha
+        sra  \output, \output, \shift
+    0:
 .endm

@@ -485,6 +485,7 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
 
 
     .text
+    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_hwc1_bias
     .type	dl_esp32p4_s16_depthwise_conv2d_hwc1_bias, @function
     .balign 4
@@ -542,6 +543,7 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1_bias:
 
 
     .text
+    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu
     .type	dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu, @function
     .balign 4
@@ -602,6 +604,7 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu:
 
 
     .text
+    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_hwc1
     .type	dl_esp32p4_s16_depthwise_conv2d_hwc1, @function
     .balign 4
@@ -657,6 +660,7 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1:
 
 
     .text
+    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_hwc1_relu
     .type	dl_esp32p4_s16_depthwise_conv2d_hwc1_relu, @function
     .balign 4
