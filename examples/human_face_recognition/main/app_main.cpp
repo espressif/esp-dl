@@ -54,4 +54,8 @@ extern "C" void app_main(void)
 
     face_recognizer->clear_all_feats();
     delete face_recognizer;
+    heap_caps_free(bill1);
+    heap_caps_free(bill2);
+    heap_caps_free(musk1);
+    heap_caps_free(musk2);
 }

@@ -42,5 +42,5 @@ extern "C" void app_main(void)
                  res.box[3]);
     }
     delete detect;
-    delete pedestrian;
+    heap_caps_free(pedestrian);
 }
