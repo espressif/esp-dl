@@ -244,6 +244,20 @@ class TRANSPOSE_TEST(nn.Module):
         return torch.permute(input, dims=self.config["perm"])
 
 
+class SOFTMAX_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+
+        self.op = nn.Softmax(config["dim"])
+        self.config = config
+
+    def forward(self, inputs):
+        if self.config["relu"]:
+            inputs = nn.ReLU()(inputs)
+        output = self.op(inputs)
+        return output
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 
