@@ -1,11 +1,11 @@
 #include "dl_model_base.hpp"
 #include "dl_module_add.hpp"
+#include "dl_module_creator.hpp"
 #include "dl_module_relu.hpp"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "unity.h"
 #include <type_traits>
-
 static const char *TAG = "TEST DL MODEL";
 
 using namespace dl;
@@ -19,6 +19,7 @@ TEST_CASE("Test dl model API: load()", "[model load]")
     int psram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
     Model *model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION, 0, 0, MEMORY_MANAGER_GREEDY, key);
     delete model;
+    module::ModuleCreator::get_instance()->clear();
 
     int internal_ram_size_second = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
     fbs::FbsLoader *fbs_loader = new fbs::FbsLoader("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
@@ -27,6 +28,7 @@ TEST_CASE("Test dl model API: load()", "[model load]")
     delete model2;
     delete fbs_loader;
     delete fbs_model;
+    module::ModuleCreator::get_instance()->clear();
 
     int internal_ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
     int psram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
@@ -37,7 +39,7 @@ TEST_CASE("Test dl model API: load()", "[model load]")
              internal_ram_size_second,
              internal_ram_size_end);
     ESP_LOGI(TAG, "psram size before: %d, end:%d", psram_size_before, psram_size_end);
-    TEST_ASSERT_EQUAL(true, internal_ram_size_before - internal_ram_size_second < 1500);
+    TEST_ASSERT_EQUAL(true, internal_ram_size_before - internal_ram_size_second < 1000);
     TEST_ASSERT_EQUAL(true, internal_ram_size_second == internal_ram_size_end);
     TEST_ASSERT_EQUAL(true, psram_size_before == psram_size_end);
 }

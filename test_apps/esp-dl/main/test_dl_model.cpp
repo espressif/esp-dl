@@ -1,4 +1,5 @@
 #include "dl_model_base.hpp"
+#include "dl_module_creator.hpp"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "fbs_loader.hpp"
@@ -137,11 +138,15 @@ TEST_CASE("Test espdl model", "[dl_model]")
     }
 
     delete fbs_loader;
+    dl::module::ModuleCreator *module_creator = dl::module::ModuleCreator::get_instance();
+    module_creator->clear();
+
     int total_ram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     int internal_ram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
     int psram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
     ESP_LOGI(TAG, "total ram consume: %d B, ", (total_ram_size_before - total_ram_size_after));
     ESP_LOGI(TAG, "internal ram consume: %d B, ", (internal_ram_size_before - internal_ram_size_after));
     ESP_LOGI(TAG, "psram consume: %d B\n", (psram_size_before - psram_size_after));
+    TEST_ASSERT_EQUAL(true, psram_size_before == psram_size_after);
     ESP_LOGI(TAG, "exit app_main");
 }
