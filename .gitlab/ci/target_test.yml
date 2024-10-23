@@ -83,7 +83,7 @@ test_espdl_ops:
     matrix:
       - IDF_TARGET: [esp32p4, esp32s3]
         IDF_VERSION: "5.3"
-        TEST_MODEL: "all"
+        TEST_MODEL: ["opset_5_0", "opset_5_1", "opset_5_2", "opset_5_3", "opset_5_4"]
   tags:
     - ${IDF_TARGET}
   image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
