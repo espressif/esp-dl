@@ -55,5 +55,5 @@ extern "C" void app_main(void)
             res.keypoint[9]);
     }
     delete detect;
-    delete human_face;
+    heap_caps_free(human_face);
 }

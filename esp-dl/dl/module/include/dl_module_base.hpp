@@ -151,7 +151,7 @@ static void module_forward_task(void *args)
     module_task_data_t *task = (module_task_data_t *)args;
     task->op->forward_args(task->args);
     xSemaphoreGive(task->semaphore);
-    vTaskDelete(NULL);
+    vTaskSuspend(NULL);
 }
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -167,24 +167,29 @@ static void module_forward_dual_core(Module *op, void *args1, void *args2)
     BaseType_t current_core_id = xPortGetCoreID();
     UBaseType_t current_priority = uxTaskPriorityGet(xTaskGetCurrentTaskHandle());
     SemaphoreHandle_t semaphore = xSemaphoreCreateCounting(2, 0);
+    TaskHandle_t xHandleTask1, xHandleTask2;
+
     module_task_data_t task_data1 = {
         .op = op,
         .args = args1,
         .semaphore = semaphore,
     };
     xTaskCreatePinnedToCore(
-        module_forward_task, NULL, 2048, &task_data1, current_priority, NULL, (current_core_id + 1) % 2);
+        module_forward_task, NULL, 2048, &task_data1, current_priority, &xHandleTask1, (current_core_id + 1) % 2);
 
     module_task_data_t task_data2 = {
         .op = op,
         .args = args2,
         .semaphore = semaphore,
     };
-    xTaskCreatePinnedToCore(module_forward_task, NULL, 2048, &task_data2, current_priority, NULL, current_core_id);
+    xTaskCreatePinnedToCore(
+        module_forward_task, NULL, 2048, &task_data2, current_priority, &xHandleTask2, current_core_id);
 
     xSemaphoreTake(semaphore, portMAX_DELAY);
     xSemaphoreTake(semaphore, portMAX_DELAY);
     vSemaphoreDelete(semaphore);
+    vTaskDelete(xHandleTask1);
+    vTaskDelete(xHandleTask2);
 }
 #pragma GCC diagnostic pop
 

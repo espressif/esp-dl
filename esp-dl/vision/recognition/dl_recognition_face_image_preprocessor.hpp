@@ -17,6 +17,8 @@ public:
             new dl::image::ImagePreprocessor<feature_t>(model_input, mean, std, byte_rgb, byte_swap, use_ppa)),
         byte_swap(byte_swap) {};
 
+    ~FaceImagePreprocessor();
+
     template <typename T>
     void preprocess(T *input_element, const std::vector<int> &input_shape, const std::vector<int> &landmarks);
 

@@ -11,6 +11,7 @@ void DataBase::init(int feat_len)
     if (f == NULL) {
         this->create_empty_database_in_storage(feat_len);
     } else {
+        fclose(f);
         this->load_database_from_storage(feat_len);
     }
 }
@@ -166,12 +167,11 @@ esp_err_t DataBase::enroll_feat(TensorBase *feat)
             fclose(f);
             return ESP_FAIL;
         }
+        fclose(f);
     } else {
         ESP_LOGE(TAG, "Failed to open db.");
-        fclose(f);
         return ESP_FAIL;
     }
-    fclose(f);
     return ESP_OK;
 }
 
@@ -224,12 +224,11 @@ esp_err_t DataBase::delete_feat(uint16_t id)
             fclose(f);
             return ESP_FAIL;
         }
+        fclose(f);
     } else {
         ESP_LOGE(TAG, "Failed to open db.");
-        fclose(f);
         return ESP_FAIL;
     }
-    fclose(f);
     return ESP_OK;
 }
 
