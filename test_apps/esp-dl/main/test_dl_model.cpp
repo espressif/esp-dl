@@ -118,6 +118,7 @@ TEST_CASE("Test espdl model", "[dl_model]")
         std::map<std::string, TensorBase *> graph_test_inputs = get_graph_test_inputs(model);
         dl::tool::Latency latency;
         ESP_LOGI(TAG, "model index:%d", i);
+        model->print();
         latency.start();
         model->run(graph_test_inputs);
         latency.end();

@@ -26,10 +26,8 @@ Module::~Module()
 
 void Module::run(TensorBase *input, TensorBase *output, runtime_mode_t mode)
 {
-    std::vector<dl::TensorBase *> tensors;
-    tensors.push_back(input);
+    std::vector<dl::TensorBase *> tensors = {input, output};
     m_inputs_index.push_back(0);
-    tensors.push_back(output);
     m_outputs_index.push_back(1);
     forward(tensors, mode);
 }

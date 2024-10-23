@@ -8,13 +8,13 @@
 #include <string.h>
 #include <vector>
 
+#include "dl_define.hpp"
 #include "esp_cpu.h"
 #include "esp_log.h"
 #include "esp_system.h"
 #include "esp_timer.h"
+#include <functional>
 #include "freertos/FreeRTOS.h"
-
-#include "dl_define.hpp"
 #if CONFIG_ESP32P4_BOOST
 #include "dl_esp32p4_cache_reg.hpp"
 #endif
@@ -294,6 +294,17 @@ void truncate(int64_t &output, T input)
 {
     output = DL_CLIP(input, INT64_MIN, INT64_MAX);
 }
+
+/**
+ * @brief Generate 8bit lut table
+ *
+ * @param table:    lut table
+ * @param exponent: exponent
+ * @param func:     function
+ *
+ * @return return 8-bit lut table
+ */
+float *gen_lut_8bit(float *table, int exponent, std::function<float(float)> func);
 
 #if CONFIG_ESP32P4_BOOST
 inline int calculate_exponent(int n, int max_value)
