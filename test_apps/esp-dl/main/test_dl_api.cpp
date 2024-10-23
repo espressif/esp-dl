@@ -12,7 +12,7 @@ using namespace dl;
 
 uint8_t key[16] = {0x8a, 0x7f, 0xc9, 0x61, 0xe4, 0xe6, 0xff, 0x0a, 0xd2, 0x64, 0x36, 0x95, 0x28, 0x75, 0xae, 0x4a};
 
-TEST_CASE("Test dl model API: load()", "[model load]")
+TEST_CASE("Test dl model API: load()", "[api]")
 {
     ESP_LOGI(TAG, "Test dl model API: load()");
     int internal_ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
@@ -44,7 +44,7 @@ TEST_CASE("Test dl model API: load()", "[model load]")
     TEST_ASSERT_EQUAL(true, psram_size_before == psram_size_end);
 }
 
-TEST_CASE("Test dl model API: run()", "[model run]")
+TEST_CASE("Test dl model API: run()", "[api]")
 {
     ESP_LOGI(TAG, "Test dl model API: run()");
     Model *model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
@@ -67,7 +67,7 @@ TEST_CASE("Test dl model API: run()", "[model run]")
     TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);
 }
 
-TEST_CASE("Test dl module API: run()", "[module run]")
+TEST_CASE("Test dl module API: run()", "[api]")
 {
     ESP_LOGI(TAG, "Test dl module API: run()");
     int total_ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
