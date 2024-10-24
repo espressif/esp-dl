@@ -120,13 +120,25 @@ if __name__ == "__main__":
         help="Output Path.",
     )
     parser.add_argument(
-        "-t", "--target", type=str, default="esp32p4", help="esp32p4 or esp32s3."
+        "-t",
+        "--target",
+        type=str,
+        default="esp32p4",
+        help="esp32p4 or esp32s3, (defaults: esp32p4).",
     )
     parser.add_argument(
-        "-b", "--bits", type=int, default=8, help="the number of bits, support 8 or 16"
+        "-b",
+        "--bits",
+        type=int,
+        default=8,
+        help="the number of bits, support 8 or 16, (defaults: 8).",
     )
     parser.add_argument(
-        "-v", "--version", type=str, default="v1.0", help="the version of the test case"
+        "-v",
+        "--version",
+        type=str,
+        default="v1.0",
+        help="the version of the test case, (defaults: v1.0)",
     )
     parser.add_argument("--ops", nargs="+", type=str, help="An array of ops")
     args = parser.parse_args()

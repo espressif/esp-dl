@@ -671,3 +671,563 @@ dl_esp32p4_s16_unaligned_conv2d_11cn_relu:
 
     esp32p4_pop_20_stacks_5r  s0, s1, s8, s9, s10     // restore registers
     ret
+
+
+
+
+
+
+############################################################################################################################################################
+#### 
+#### esp32p4_s16_unaligned_conv2d_33cn series
+#### 
+############################################################################################################################################################
+.macro esp32p4_s16_unaligned_conv2d_33c8  input_v0, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, temp
+    esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    add  \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    add  \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    add  \input_ptr, \input_ptr, \dilation_y_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    add  \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    add  \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    add  \input_ptr, \input_ptr, \dilation_y_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    add  \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    add  \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    # add  \input_ptr, \input_ptr, \dilation_y_offset
+.endm
+
+
+
+.macro esp32p4_s16_unaligned_conv2d_33c1  input_v0, input_front, input_back, filter_v0, filter_front, filter_back, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, temp, zero
+    esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
+    add \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
+    add \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
+    add \input_ptr, \input_ptr, \dilation_y_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
+    add \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
+    add \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
+    add \input_ptr, \input_ptr, \dilation_y_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
+    add \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
+    add \input_ptr, \input_ptr, \dilation_x_offset
+    
+    esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
+    # add \input_ptr, \input_ptr, \dilation_y_offset
+.endm
+
+
+
+.macro esp32p4_s16_unaligned_conv2d_hwcn_load_args  args, filter_ptr, c_div_x_1, n_div_x, mac_shift, c_remainder, dilation_x_offset, dilation_y_offset
+    esp32p4_s16_unaligned_conv2d_11cn_load_args  \args, \filter_ptr, \c_div_x_1, \n_div_x, \mac_shift, \c_remainder
+    lw  \dilation_x_offset, 108(\args)  // input dilation x offset
+    lw  \dilation_y_offset, 112(\args)  // input dilation y offset
+.endm
+
+
+
+    .text
+    .align 2
+    .global dl_esp32p4_s16_unaligned_conv2d_33cn_bias
+    .type   dl_esp32p4_s16_unaligned_conv2d_33cn_bias, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_conv2d_33cn_bias:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr
+    # a4: c_remainder
+    # a5: mac_shift
+    # t3: output_sar_byte / moving input_ptr / tmp value
+    # t4: 
+    # t5: 
+    # t6: bias_ptr
+
+    # a6(not for extension instructions): dilation_y_offset
+    # a7(not for extension instructions): 
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+    # s2(not for extension instructions): 
+    # s3(not for extension instructions): 
+    # s4(not for extension instructions): 
+    # s5(not for extension instructions): 
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9: 
+    # s10: 
+    # s11:
+
+    esp32p4_push_12_stacks_3r  s0, s1, s8    // push stacks
+    li  s1, -32768      // clamp min value
+    li  s8, 32767       // clamp max value
+
+    esp32p4_s16_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+    lw  t6, 68(a2)      // bias
+
+    beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.movx.r.sar.bytes  t3               //  t3: output_sar_byte
+        
+        beqz  t3, esp32p4_s16_unaligned_conv2d_33cn_bias_128b
+            li  a7, 8
+            beq  t3, a7, esp32p4_s16_unaligned_conv2d_33cn_bias_64b
+            esp32p4_s16_unaligned_conv2d_33cn_bias_32b:
+                esp32p4_s16_unaligned_conv2d_33cn_bias_32b_multiple_loop:
+                    mv  t3, a1                  // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s16_conv2d_128b_vector_bias  t6
+                    esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                    esp32p4_s16_128b_vector_shift_result  q0, a5
+                    esp32p4_s16_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_32b_multiple_loop
+                j  esp32p4_s16_unaligned_conv2d_33cn_bias_n_remainder
+
+            esp32p4_s16_unaligned_conv2d_33cn_bias_64b:
+                esp32p4_s16_unaligned_conv2d_33cn_bias_64b_multiple_loop:
+                    mv  t3, a1                  // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s16_conv2d_128b_vector_bias  t6
+                    esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                    esp32p4_s16_128b_vector_shift_result  q0, a5
+                    esp32p4_s16_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_64b_multiple_loop
+                j  esp32p4_s16_unaligned_conv2d_33cn_bias_n_remainder
+
+        esp32p4_s16_unaligned_conv2d_33cn_bias_128b:
+            esp32p4_s16_unaligned_conv2d_33cn_bias_128b_multiple_loop:
+                mv  t3, a1                      // t3: input_ptr
+                esp.zero.qacc
+
+                esp32p4_s16_conv2d_128b_vector_bias  t6
+                esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                esp32p4_s16_128b_vector_shift_result  q0, a5
+                esp32p4_s16_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_128b_multiple_loop
+
+
+    esp32p4_s16_unaligned_conv2d_33cn_bias_n_remainder:
+        lw  t1, 140(a2)       # t1: n_remainder
+        beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       # t4: 15 - c_remainder
+            li  t5,  0            # t5: activation_shift = zero
+
+            esp32p4_s16_unaligned_conv2d_33cn_bias_n_remainder_loop:
+                mv  t3, a1         # t3: input_ptr
+                esp.zero.xacc
+
+                esp32p4_s16_conv2d_element_bias  t6
+                esp32p4_s16_unaligned_conv2d_33c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, t4, t5
+                esp32p4_s16_element_result  s0, a5
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s16_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_n_remainder_loop
+
+        esp32p4_s16_unaligned_conv2d_33cn_bias_n_remainder_end:
+
+    esp32p4_pop_12_stacks_3r  s0, s1, s8     // restore registers
+    ret
+
+
+
+    .text
+    .align 2
+    .global dl_esp32p4_s16_unaligned_conv2d_33cn_bias_relu
+    .type   dl_esp32p4_s16_unaligned_conv2d_33cn_bias_relu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_conv2d_33cn_bias_relu:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr
+    # a4: c_remainder
+    # a5: mac_shift
+    # t3: output_sar_byte / moving input_ptr / tmp value
+    # t4: 
+    # t5: 
+    # t6: bias_ptr
+
+    # a6(not for extension instructions): dilation_y_offset
+    # a7(not for extension instructions): 
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+    # s2(not for extension instructions): 
+    # s3(not for extension instructions): 
+    # s4(not for extension instructions): 
+    # s5(not for extension instructions): 
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9: activation_alpha/_address
+    # s10: activation_shift
+    # s11:
+
+    esp32p4_push_20_stacks_5r  s0, s1, s8, s9, s10    // push stacks
+    li  s1, -32768      // clamp min value
+    li  s8, 32767       // clamp max value
+    lw  s9, 76(a2)      // activation_alpha
+    lw  s10, 84(a2)     // activation_shift
+
+    esp32p4_s16_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+    lw  t6, 68(a2)      // bias
+
+    beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.movx.r.sar.bytes  t3               //  t3: output_sar_byte
+        
+        beqz  t3, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_128b
+            li  a7, 8
+            beq  t3, a7, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_64b
+            esp32p4_s16_unaligned_conv2d_33cn_bias_relu_32b:
+                esp32p4_s16_unaligned_conv2d_33cn_bias_relu_32b_multiple_loop:
+                    mv  t3, a1                  // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s16_conv2d_128b_vector_bias  t6
+                    esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                    esp32p4_s16_128b_vector_shift_result  q0, a5
+                    esp32p4_s16_128b_vector_relu  q0, s9, s10
+                    esp32p4_s16_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_32b_multiple_loop
+                j  esp32p4_s16_unaligned_conv2d_33cn_bias_relu_n_remainder
+
+            esp32p4_s16_unaligned_conv2d_33cn_bias_relu_64b:
+                esp32p4_s16_unaligned_conv2d_33cn_bias_relu_64b_multiple_loop:
+                    mv  t3, a1                  // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s16_conv2d_128b_vector_bias  t6
+                    esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                    esp32p4_s16_128b_vector_shift_result  q0, a5
+                    esp32p4_s16_128b_vector_relu  q0, s9, s10
+                    esp32p4_s16_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_64b_multiple_loop
+                j  esp32p4_s16_unaligned_conv2d_33cn_bias_relu_n_remainder
+
+        esp32p4_s16_unaligned_conv2d_33cn_bias_relu_128b:
+            esp32p4_s16_unaligned_conv2d_33cn_bias_relu_128b_multiple_loop:
+                mv  t3, a1                      // t3: input_ptr
+                esp.zero.qacc
+
+                esp32p4_s16_conv2d_128b_vector_bias  t6
+                esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                esp32p4_s16_128b_vector_shift_result  q0, a5
+                esp32p4_s16_128b_vector_relu  q0, s9, s10
+                esp32p4_s16_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_128b_multiple_loop
+
+
+    esp32p4_s16_unaligned_conv2d_33cn_bias_relu_n_remainder:
+        lw  t1, 140(a2)       # t1: n_remainder
+        beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       # t4: 15 - c_remainder
+            li  t5,  0            # t5: activation_shift = zero
+
+            esp32p4_s16_unaligned_conv2d_33cn_bias_relu_n_remainder_loop:
+                mv  t3, a1         # t3: input_ptr
+                esp.zero.xacc
+
+                esp32p4_s16_conv2d_element_bias  t6
+                esp32p4_s16_unaligned_conv2d_33c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, t4, t5
+                esp32p4_s16_element_result  s0, a5
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s16_element_leakyrelu  s0, s9, s10
+                esp32p4_s16_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_n_remainder_loop
+
+        esp32p4_s16_unaligned_conv2d_33cn_bias_relu_n_remainder_end:
+
+    esp32p4_pop_20_stacks_5r  s0, s1, s8, s9, s10     // restore registers
+    ret
+
+
+
+    .text
+    .align 2
+    .global dl_esp32p4_s16_unaligned_conv2d_33cn
+    .type   dl_esp32p4_s16_unaligned_conv2d_33cn, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_conv2d_33cn:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr
+    # a4: c_remainder
+    # a5: mac_shift
+    # t3: output_sar_byte / moving input_ptr / tmp value
+    # t4: 
+    # t5: 
+    # t6: 
+
+    # a6(not for extension instructions): dilation_y_offset
+    # a7(not for extension instructions): 
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+    # s2(not for extension instructions): 
+    # s3(not for extension instructions): 
+    # s4(not for extension instructions): 
+    # s5(not for extension instructions): 
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9: 
+    # s10: 
+    # s11:
+
+    esp32p4_push_12_stacks_3r  s0, s1, s8    // push stacks
+    li  s1, -32768      // clamp min value
+    li  s8, 32767       // clamp max value
+
+    esp32p4_s16_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+
+    beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.movx.r.sar.bytes  t3               //  t3: output_sar_byte
+        
+        beqz  t3, esp32p4_s16_unaligned_conv2d_33cn_128b
+            li  a7, 8
+            beq  t3, a7, esp32p4_s16_unaligned_conv2d_33cn_64b
+            esp32p4_s16_unaligned_conv2d_33cn_32b:
+                esp32p4_s16_unaligned_conv2d_33cn_32b_multiple_loop:
+                    mv  t3, a1                  // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                    esp32p4_s16_128b_vector_shift_result  q0, a5
+                    esp32p4_s16_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_32b_multiple_loop
+                j  esp32p4_s16_unaligned_conv2d_33cn_n_remainder
+
+            esp32p4_s16_unaligned_conv2d_33cn_64b:
+                esp32p4_s16_unaligned_conv2d_33cn_64b_multiple_loop:
+                    mv  t3, a1                  // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                    esp32p4_s16_128b_vector_shift_result  q0, a5
+                    esp32p4_s16_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_64b_multiple_loop
+                j  esp32p4_s16_unaligned_conv2d_33cn_n_remainder
+
+        esp32p4_s16_unaligned_conv2d_33cn_128b:
+            esp32p4_s16_unaligned_conv2d_33cn_128b_multiple_loop:
+                mv  t3, a1                      // t3: input_ptr
+                esp.zero.qacc
+
+                esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                esp32p4_s16_128b_vector_shift_result  q0, a5
+                esp32p4_s16_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_128b_multiple_loop
+
+
+    esp32p4_s16_unaligned_conv2d_33cn_n_remainder:
+        lw  t1, 140(a2)       # t1: n_remainder
+        beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       # t4: 15 - c_remainder
+            li  t5,  0            # t5: activation_shift = zero
+
+            esp32p4_s16_unaligned_conv2d_33cn_n_remainder_loop:
+                mv  t3, a1         # t3: input_ptr
+                esp.zero.xacc
+
+                esp32p4_s16_unaligned_conv2d_33c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, t4, t5
+                esp32p4_s16_element_result  s0, a5
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s16_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_n_remainder_loop
+
+        esp32p4_s16_unaligned_conv2d_33cn_n_remainder_end:
+
+    esp32p4_pop_12_stacks_3r  s0, s1, s8     // restore registers
+    ret
+
+
+
+    .text
+    .align 2
+    .global dl_esp32p4_s16_unaligned_conv2d_33cn_relu
+    .type   dl_esp32p4_s16_unaligned_conv2d_33cn_relu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_conv2d_33cn_relu:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr
+    # a4: c_remainder
+    # a5: mac_shift
+    # t3: output_sar_byte / moving input_ptr / tmp value
+    # t4: 
+    # t5: 
+    # t6: 
+
+    # a6(not for extension instructions): dilation_y_offset
+    # a7(not for extension instructions): 
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+    # s2(not for extension instructions): 
+    # s3(not for extension instructions): 
+    # s4(not for extension instructions): 
+    # s5(not for extension instructions): 
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9: activation_alpha/_address
+    # s10: activation_shift
+    # s11:
+
+    esp32p4_push_20_stacks_5r  s0, s1, s8, s9, s10    // push stacks
+    li  s1, -32768      // clamp min value
+    li  s8, 32767       // clamp max value
+    lw  s9, 76(a2)      // activation_alpha
+    lw  s10, 84(a2)     // activation_shift
+
+    esp32p4_s16_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+
+    beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_relu_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.movx.r.sar.bytes  t3               //  t3: output_sar_byte
+        
+        beqz  t3, esp32p4_s16_unaligned_conv2d_33cn_relu_128b
+            li  a7, 8
+            beq  t3, a7, esp32p4_s16_unaligned_conv2d_33cn_relu_64b
+            esp32p4_s16_unaligned_conv2d_33cn_relu_32b:
+                esp32p4_s16_unaligned_conv2d_33cn_relu_32b_multiple_loop:
+                    mv  t3, a1                  // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                    esp32p4_s16_128b_vector_shift_result  q0, a5
+                    esp32p4_s16_128b_vector_relu  q0, s9, s10
+                    esp32p4_s16_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_relu_32b_multiple_loop
+                j  esp32p4_s16_unaligned_conv2d_33cn_relu_n_remainder
+
+            esp32p4_s16_unaligned_conv2d_33cn_relu_64b:
+                esp32p4_s16_unaligned_conv2d_33cn_relu_64b_multiple_loop:
+                    mv  t3, a1                  // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                    esp32p4_s16_128b_vector_shift_result  q0, a5
+                    esp32p4_s16_128b_vector_relu  q0, s9, s10
+                    esp32p4_s16_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_relu_64b_multiple_loop
+                j  esp32p4_s16_unaligned_conv2d_33cn_relu_n_remainder
+
+        esp32p4_s16_unaligned_conv2d_33cn_relu_128b:
+            esp32p4_s16_unaligned_conv2d_33cn_relu_128b_multiple_loop:
+                mv  t3, a1                      // t3: input_ptr
+                esp.zero.qacc
+
+                esp32p4_s16_unaligned_conv2d_33c8  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7
+                esp32p4_s16_128b_vector_shift_result  q0, a5
+                esp32p4_s16_128b_vector_relu  q0, s9, s10
+                esp32p4_s16_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_relu_128b_multiple_loop
+
+
+    esp32p4_s16_unaligned_conv2d_33cn_relu_n_remainder:
+        lw  t1, 140(a2)       # t1: n_remainder
+        beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_relu_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       # t4: 15 - c_remainder
+            li  t5,  0            # t5: activation_shift = zero
+
+            esp32p4_s16_unaligned_conv2d_33cn_relu_n_remainder_loop:
+                mv  t3, a1         # t3: input_ptr
+                esp.zero.xacc
+
+                esp32p4_s16_unaligned_conv2d_33c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, t4, t5
+                esp32p4_s16_element_result  s0, a5
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s16_element_leakyrelu  s0, s9, s10
+                esp32p4_s16_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s16_unaligned_conv2d_33cn_relu_n_remainder_loop
+
+        esp32p4_s16_unaligned_conv2d_33cn_relu_n_remainder_end:
+
+    esp32p4_pop_20_stacks_5r  s0, s1, s8, s9, s10     // restore registers
+    ret
