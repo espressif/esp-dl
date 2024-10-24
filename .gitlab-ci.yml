@@ -2,6 +2,7 @@ stages:
   - pre_check
   - build
   - target_test
+  - deploy
 
 workflow:
   rules:
@@ -29,3 +30,4 @@ include:
   - '.gitlab/ci/pre_check.yml'
   - '.gitlab/ci/build.yml'
   - '.gitlab/ci/target_test.yml'
+  - '.gitlab/ci/deploy.yml'
