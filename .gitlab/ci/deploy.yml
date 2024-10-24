@@ -1,0 +1,19 @@
+push_to_github:
+  stage: deploy
+  only:
+    - master
+    - /^release\/v/
+  when: on_success
+  image: $CI_DOCKER_REGISTRY/esp32-ci-env
+  tags:
+    - github_sync
+  variables:
+    GIT_STRATEGY: clone
+    SUBMODULES_TO_FETCH: "none"
+  dependencies: []
+  before_script:
+    - echo "skip default before_script"
+  script:
+    - git remote remove github &>/dev/null || true
+    - git remote add github https://${GITHUB_PUSH_TOKEN}@github.com/espressif/esp-dl.git
+    - ${CI_PROJECT_DIR}/.gitlab/tool/push_to_github.sh
