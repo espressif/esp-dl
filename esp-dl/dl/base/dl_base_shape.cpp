@@ -1,5 +1,3 @@
-#pragma once
-
 #include "dl_base_shape.hpp"
 #include "dl_define.hpp"
 

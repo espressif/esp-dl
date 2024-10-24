@@ -24,6 +24,8 @@ inline float power(float x, int a)
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 /**
  * @brief sqrt(x).
  *
@@ -51,6 +53,7 @@ inline float sqrt_reciprocal_quick(float x)
     x = x * (1.5f - xhalf * x * x); // Newton step, repeating increases accuracy
     return x;
 }
+#pragma GCC diagnostic pop
 
 static const float EN = 0.00001f;
 
