@@ -100,6 +100,9 @@ public:
         // Create module
         if (table != NULL) {
             op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            if (alpha != nullptr) {
+                delete alpha;
+            }
         } else if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
             op = new PRelu(node_name.c_str(), alpha, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }

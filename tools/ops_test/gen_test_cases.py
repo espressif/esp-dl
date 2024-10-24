@@ -59,6 +59,7 @@ class BaseInferencer:
         self.model_version = model_version
         self.target = target
         self.input_dtype = torch.float if self.num_of_bits == 8 else torch.float64
+        print(self.target)
 
     def __call__(self):
         # get the export files path
@@ -89,7 +90,7 @@ class BaseInferencer:
             error_report=False,
             skip_export=False,
             export_test_values=True,
-            export_config=True,
+            export_config=False,
             verbose=1,
         )
 

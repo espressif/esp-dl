@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+import math
 import os
 import pathlib
 import re
@@ -235,8 +236,24 @@ class IdfPytestEmbedded:
 
             items[:] = [item for item in items if self.env_name in item_envs(item)]
 
-        if self.model_name and self.model_name[0] != "all":
-            items[:] = [
-                item for item in items if _get_param_config(item) in self.model_name
-            ]
+        if self.model_name:
+            if "opset_" in self.model_name[0]:
+                pattern = r"opset_(\d+)_(\d+)"
+                match = re.match(pattern, self.model_name[0])
+                if match:
+                    number1 = int(match.group(1))
+                    number2 = int(match.group(2))
+                    step = int(math.ceil(len(items) / number1))
+                    start = number2 * step
+                    end = start + step
+                    if end > len(items):
+                        end = len(items)
+                    items[:] = items[start:end]
+            elif self.model_name[0] != "all":
+                items[:] = [
+                    item
+                    for item in items
+                    if _get_param_config(item) not in self.model_name
+                ]
+
         print(items)

@@ -29,6 +29,7 @@
 #include "fbs_loader.hpp"
 #include <functional>
 #include <iostream>
+#include <malloc.h>
 #include <map>
 namespace dl {
 namespace module {
@@ -100,6 +101,14 @@ public:
             }
         } else {
             printf("Create empty module\n");
+        }
+    }
+
+    void clear()
+    {
+        if (!creators.empty()) {
+            creators.clear();
+            malloc_trim(0);
         }
     }
 

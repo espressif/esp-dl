@@ -363,9 +363,9 @@
     [ops_test.prelu]
     class_name = "PRELU_TEST"
         [[ops_test.prelu.cfg]]
-        input_shape = [1, 96, 20, 20]
-        num_parameters = 96
-        export_name_prefix = "prelu_ishap_1_96_20_20_96"
+        input_shape = [1, 20, 20, 20]
+        num_parameters = 1
+        export_name_prefix = "prelu_ishap_1_20_20_20_1"
     
     class_name = "PRELU_TEST"
         [[ops_test.prelu.cfg]]
@@ -462,6 +462,45 @@
         export_name_prefix = "softmax_ishape_1_33_dim_-1"
         dim = -1
         relu = false
+    
+    [ops_test.squeeze]
+    class_name = "SQUEEZE_TEST"
+        [[ops_test.squeeze.cfg]]
+        input_shape = [1, 10, 1, 2, 5]
+        export_name_prefix = "squeeze_ishape_1_10_1_2_5_dim_2"
+        dim = 2
+
+        [[ops_test.squeeze.cfg]]
+        input_shape = [1, 10, 1, 2, 1]
+        export_name_prefix = "squeeze_ishape_1_10_1_2_1_dim_-1"
+        dim = -1
+
+        [[ops_test.squeeze.cfg]]
+        input_shape = [1, 2, 1, 4]
+        export_name_prefix = "squeeze_ishape_1_2_1_4"
+        dim = false
+
+    [ops_test.unsqueeze]
+    class_name = "UNSQUEEZE_TEST"
+        [[ops_test.unsqueeze.cfg]]
+        input_shape = [1, 10, 2, 5]
+        export_name_prefix = "unsqueeze_ishape_1_10_2_5_dim_0"
+        dim = 0
+
+        [[ops_test.unsqueeze.cfg]]
+        input_shape = [1, 10, 2, 5]
+        export_name_prefix = "unsqueeze_ishape_1_10_2_5_dim_2"
+        dim = 2
+
+        [[ops_test.unsqueeze.cfg]]
+        input_shape = [1, 10, 2, 5]
+        export_name_prefix = "unsqueeze_ishape_1_10_2_5_dim_-1"
+        dim = -1
+
+        [[ops_test.unsqueeze.cfg]]
+        input_shape = [1, 2, 4]
+        export_name_prefix = "unsqueeze_ishape_1_2_4_dim_3"
+        dim = 3
 
 [models_test]
     [models_test.picodet]

@@ -3,10 +3,13 @@
 namespace dl {
 namespace tool {
 namespace cache {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 static uint8_t autoload_trigger = 2; // TODO: typedef enum 提高可读性
 static uint8_t autoload_linesize = 0;
 static uint8_t autoload_enable = 1;
 static uint8_t preload_enable = 0;
+#pragma GCC diagnostic pop
 
 int8_t preload_init(uint8_t preload)
 {

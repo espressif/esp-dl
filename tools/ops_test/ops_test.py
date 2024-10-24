@@ -258,6 +258,29 @@ class SOFTMAX_TEST(nn.Module):
         return output
 
 
+class SQUEEZE_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, inputs):
+        if self.config["dim"]:
+            output = torch.squeeze(inputs, self.config["dim"])
+        else:
+            output = torch.squeeze(inputs)
+        return output
+
+
+class UNSQUEEZE_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, inputs):
+        output = torch.unsqueeze(inputs, self.config["dim"])
+        return output
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 

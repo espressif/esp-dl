@@ -13,13 +13,17 @@ idf_component_register(SRCS ${srcs}
 if(CONFIG_MODEL_FILE_PATH)
     set(model_path ${CONFIG_MODEL_FILE_PATH})
 else()
-    set(model_path "${PROJECT_DIR}/models/conv2d")
+if(CONFIG_IDF_TARGET_ESP32S3)
+    set(model_path "${PROJECT_DIR}/models/esp32s3/conv2d")
+elseif(CONFIG_IDF_TARGET_ESP32P4)
+    set(model_path "${PROJECT_DIR}/models/esp32p4/conv2d")
+endif()
 endif()
 
 message("PROJECT_DIR: ${PROJECT_DIR}")
 message("model_path: ${model_path}")
 
-set(MVMODEL_EXE ${PROJECT_DIR}/../../tools/pack_models/pack_espdl_models.py)
+set(MVMODEL_EXE ${PROJECT_DIR}/../../esp-dl/fbs_loader/pack_espdl_models.py)
 idf_build_get_property(build_dir BUILD_DIR)
 set(image_file ${build_dir}/espdl_models/models.espdl)
 

@@ -53,6 +53,24 @@ variables:
     - python test_apps/esp-dl/gen_op_test.py test_apps/esp-dl/models --pytest_file ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} 
     - pytest ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} --model ${TEST_MODEL} --junitxml=XUNIT_RESULT.xml
 
+.pytest_api_template:
+  <<: *test_template
+  artifacts:
+    when: always
+    paths:
+      - XUNIT_RESULT.xml
+      - pytest_embedded_log/
+    reports:
+      junit: XUNIT_RESULT.xml
+    expire_in: 4 days
+  variables:
+    TEST_TARGET: 'esp32p4'
+    TEST_ENV: 'esp32p4'
+    TEST_FOLDER: test_apps/esp-dl/pytest_espdl_api.py
+  script:
+    - pip install -r test_apps/requirements.txt
+    - pytest ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} --junitxml=XUNIT_RESULT.xml
+
 test_espdl_ops:
   extends:
     - .pytest_ops_template
@@ -65,7 +83,7 @@ test_espdl_ops:
     matrix:
       - IDF_TARGET: [esp32p4, esp32s3]
         IDF_VERSION: "5.3"
-        TEST_MODEL: "all"
+        TEST_MODEL: ["opset_5_0", "opset_5_1", "opset_5_2", "opset_5_3", "opset_5_4"]
   tags:
     - ${IDF_TARGET}
   image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
@@ -73,3 +91,22 @@ test_espdl_ops:
     TEST_TARGET: ${IDF_TARGET}
     TEST_ENV: ${IDF_TARGET}
     TEST_MODEL: ${TEST_MODEL}
+  
+test_espdl_api:
+  extends:
+    - .pytest_api_template
+    - .rules:build:espdl_ops
+  needs:
+    - job: "build_espdl_ops"
+      artifacts: true
+      optional: true
+  parallel:
+    matrix:
+      - IDF_TARGET: [esp32p4, esp32s3]
+        IDF_VERSION: "5.3"
+  tags:
+    - ${IDF_TARGET}
+  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  variables:
+    TEST_TARGET: ${IDF_TARGET}
+    TEST_ENV: ${IDF_TARGET}

@@ -10,16 +10,20 @@ import argparse
 import logging
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
 
 from idf_build_apps import build_apps, find_apps, setup_logging
 
 LOGGER = logging.getLogger("idf_build_apps")
-
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 PROJECT_ROOT = Path(__file__).parent.parent.absolute()
-print(PROJECT_ROOT)
+sys.path.append(str(PROJECT_ROOT / "esp-dl" / "fbs_loader"))
+print(PROJECT_ROOT / "esp-dl" / "fbs_loader")
+from pack_espdl_models import pack_models  # noqa: E402
+
 APPS_BUILD_PER_JOB = 5
 IGNORE_WARNINGS = [
     r"Wunused-variable",
@@ -101,8 +105,6 @@ def get_cmake_apps(
             target=target,
             build_dir=f"{idf_ver}/build_@t_@w",
             config_rules_str=config_rules_str,
-            build_log_filename="build_log.txt",
-            size_json_filename="size.json",
             check_warnings=True,
             preserve=True,
             default_build_targets=default_build_targets,
@@ -133,8 +135,6 @@ def get_cmake_apps(
             target=target,
             build_dir=f"{idf_ver}/build_@w",
             config_rules_str="sdkconfig.model.*=",
-            build_log_filename="build_log.txt",
-            size_json_filename="size.json",
             check_warnings=True,
             preserve=True,
             default_build_targets=default_build_targets,
@@ -145,14 +145,44 @@ def get_cmake_apps(
     return apps
 
 
+def build_and_copy(apps_to_build, model_path):
+    target_apps = {}
+    model_path = Path(model_path)
+    for app in apps_to_build:
+        if app.target not in target_apps:
+            target_apps[app.target] = Path(app.build_path)
+
+    for target, build_path in target_apps.items():
+        basedir = build_path.parent
+        target_model_path = model_path / target
+        opset = [subdir for subdir in target_model_path.iterdir() if subdir.is_dir()]
+        for op_path in opset:
+            op_build_path = basedir / f"build_{target}_{op_path.name}"
+            if op_build_path.exists():
+                shutil.rmtree(op_build_path)
+                shutil.copytree(build_path, op_build_path)
+            else:
+                shutil.copytree(build_path, op_build_path)
+            print(build_path, op_build_path, op_path)
+            bin_path = op_build_path / "espdl_models" / "models.espdl"
+            pack_models(op_path, bin_path)
+
+
 def main(args):  # type: (argparse.Namespace) -> None
     default_build_targets = (
         args.default_build_targets.split(",") if args.default_build_targets else None
     )
-    # file_name = os.path.split(model_file)[1]
-    # prefix_file_name = os.path.splitext(file_name)[0]
-    apps = get_cmake_apps(
-        args.paths, args.target, args.config, default_build_targets, args.model_path
+    idf_ver = _get_idf_version()
+    # find app
+    apps = find_apps(
+        args.paths,
+        recursive=True,
+        target=args.target,
+        build_dir=f"{idf_ver}/build_@t_@w",
+        config_rules_str=args.config,
+        check_warnings=True,
+        preserve=True,
+        default_build_targets=default_build_targets,
     )
     print(apps, len(apps))
     if args.exclude_apps:
@@ -176,6 +206,8 @@ def main(args):  # type: (argparse.Namespace) -> None
         ignore_warning_strs=IGNORE_WARNINGS,
         copy_sdkconfig=True,
     )
+    if args.model_path and os.path.exists(args.model_path):
+        build_and_copy(apps_to_build, args.model_path)
 
     sys.exit(ret_code)
 

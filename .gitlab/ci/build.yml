@@ -15,8 +15,6 @@
   artifacts:
     when: always
     paths:
-      - "**/build*/size.json"
-      - "**/build*/build_log.txt"
       - "**/build*/*.bin"
       # upload to s3 server to save the artifacts size
       - "**/build*/*.map"
@@ -28,7 +26,6 @@
       - "**/build*/bootloader/*.elf"
       - "**/build*/partition_table/*.bin"
       - "**/build*/espdl_models/*.espdl"
-      - size_info.txt
     expire_in: 1 week
   variables:
     IDF_CI_BUILD: "1"
@@ -45,8 +42,6 @@
   artifacts:
     when: always
     paths:
-      - "**/build*/size.json"
-      - "**/build*/build_log.txt"
       - "**/build*/*.bin"
       # upload to s3 server to save the artifacts size
       - "**/build*/*.map"
@@ -58,7 +53,6 @@
       - "**/build*/bootloader/*.elf"
       - "**/build*/partition_table/*.bin"
       - "**/build*/espdl_models/*.espdl"
-      - size_info.txt
     expire_in: 1 week
   variables:
     IDF_CI_BUILD: "1"
