@@ -558,4 +558,61 @@ template int32_t TensorBase::get_element<int32_t>(int index);
 template uint32_t TensorBase::get_element<uint32_t>(int index);
 template float TensorBase::get_element<float>(int index);
 
+bool TensorBase::equal(TensorBase *tensor, bool verbose)
+{
+    if (tensor == nullptr) {
+        return false;
+    }
+
+    // compare data type
+    if (this->get_dtype() != tensor->get_dtype()) {
+        if (verbose) {
+            ESP_LOGE(__FUNCTION__,
+                     "data type not equal: %s != %s",
+                     dtype_to_string(this->get_dtype()),
+                     dtype_to_string(tensor->get_dtype()));
+        }
+        return false;
+    }
+
+    // compare shape
+    std::vector<int> shape1 = this->get_shape();
+    std::vector<int> shape2 = tensor->get_shape();
+    if (shape1.size() != shape2.size()) {
+        if (verbose) {
+            ESP_LOGE(__FUNCTION__,
+                     "shape not equal: %s != %s",
+                     shape_to_string(this->get_shape()),
+                     shape_to_string(tensor->get_shape()));
+        }
+        return false;
+    }
+    for (int i = 0; i < shape1.size(); i++) {
+        if (shape1[i] != shape2[i]) {
+            if (verbose) {
+                ESP_LOGE(__FUNCTION__,
+                         "shape not equal: %s != %s",
+                         shape_to_string(this->get_shape()),
+                         shape_to_string(tensor->get_shape()));
+            }
+            return false;
+        }
+    }
+
+    // compare tensor element
+    if (this->exponent != tensor->exponent) {
+        if (verbose) {
+            ESP_LOGE(__FUNCTION__, "exponent not equal: %d != %d", this->exponent, tensor->exponent);
+        }
+        return false;
+    }
+    if (memcmp(this->get_element_ptr(), tensor->get_element_ptr(), this->get_bytes()) != 0) {
+        if (verbose) {
+            ESP_LOGE(__FUNCTION__, "element not equal");
+        }
+        return false;
+    }
+    return true;
+}
+
 } // namespace dl
