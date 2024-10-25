@@ -216,6 +216,28 @@ public:
     const void *get_test_output_tensor_raw_data(std::string tensor_name);
 
     /**
+     * @brief Get the test input tensor.
+     *
+     * @param tensor_name   The name of test input tensor.
+     * @param copy       If true, return a copy of the variable
+     * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
+     * @return  The pointer of tensor.
+     */
+    dl::TensorBase *get_test_input_tensor(std::string tensor_name, bool copy = true, uint32_t caps = MALLOC_CAP_SPIRAM);
+
+    /**
+     * @brief Get the test output tensor.
+     *
+     * @param tensor_name   The name of test output tensor.
+     * @param copy       If true, return a copy of the variable
+     * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
+     * @return The pointer of tensor.
+     */
+    dl::TensorBase *get_test_output_tensor(std::string tensor_name,
+                                           bool copy = true,
+                                           uint32_t caps = MALLOC_CAP_SPIRAM);
+
+    /**
      * @brief Get the graph inputs.
      *
      * @return the name of inputs
