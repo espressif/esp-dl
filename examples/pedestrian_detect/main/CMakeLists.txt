@@ -2,7 +2,8 @@ set(src_dirs        ./)
 
 set(include_dirs    ./)
 
-set(requires        pedestrian_detect)
+set(requires        pedestrian_detect
+                    esp_jpeg)
 
 set(embed_files     "pedestrian.jpg")
 

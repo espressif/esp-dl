@@ -3,19 +3,18 @@ license: "MIT"
 description: human face recognition model.
 url: https://github.com/espressif/esp-dl/tree/master/models/human_face_recognition
 dependencies: 
-  idf: ">=5.3"
+  # compilation problem in newest version, update later
   espressif/esp32_p4_function_ev_board:
-    version: ^4.0.1
+    version: ==4.0.1
     rules:
      - if: "target == esp32p4"
   espressif/esp32_s3_eye:
     version: ^3.1.0~1
     rules:
      - if: "target == esp32s3"
-  espressif/esp-dl:
-    version: "^3.0.0"
-    pre_release: true
-    override_path: "../../esp-dl"
   espressif/human_face_detect:
     version: "^0.1.0"
     override_path: "../human_face_detect"
+  # compilation problem in newest version, update later
+  espressif/esp_lvgl_port: "==2.3.3"
+  lvgl/lvgl: "==9.2.0"

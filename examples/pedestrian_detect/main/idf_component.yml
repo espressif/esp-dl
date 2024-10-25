@@ -1,6 +1,6 @@
 ## IDF Component Manager Manifest File
 dependencies:
   espressif/esp_jpeg: "^1.0.5~3"
-  ## Required IDF version
-  idf:
-    version: ">=4.1.0"
+  espressif/pedestrian_detect:
+    version: "^0.1.0"
+    override_path: "../../../models/pedestrian_detect"

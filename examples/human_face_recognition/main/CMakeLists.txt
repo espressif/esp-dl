@@ -2,7 +2,8 @@ set(src_dirs        ./)
 
 set(include_dirs    ./)
 
-set(requires        human_face_recognition)
+set(requires        human_face_recognition
+                    esp_jpeg)
 
 file(GLOB embed_files "${PROJECT_DIR}/faces/*.jpg")
 
