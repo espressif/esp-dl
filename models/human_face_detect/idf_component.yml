@@ -3,8 +3,6 @@ license: "MIT"
 description: human face detect model.
 url: https://github.com/espressif/esp-dl/tree/master/models/human_face_detect
 dependencies: 
-  idf: ">=5.3"
   espressif/esp-dl:
-    version: "^3.0.0"
-    pre_release: true
+    version: "^3.0.0-rc.1"
     override_path: "../../esp-dl"
