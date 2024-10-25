@@ -1,4 +1,4 @@
-version: "0.1.0"
+version: "0.1.0~1"
 license: "MIT"
 description: pedestrian detect model.
 url: https://github.com/espressif/esp-dl/tree/master/models/pedestrian_detect
