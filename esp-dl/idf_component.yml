@@ -1,4 +1,5 @@
 version: "3.0.0-rc.1"
+license: "MIT"
 targets:
   - esp32s3
   - esp32p4
