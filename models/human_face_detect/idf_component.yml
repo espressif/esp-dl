@@ -1,0 +1,9 @@
+version: "0.1.0"
+description: human face detect model.
+url: https://github.com/espressif/esp-dl/tree/master/models/human_face_detect
+dependencies: 
+  idf: ">=5.3"
+  espressif/esp-dl:
+    version: "^3.0.0"
+    pre_release: true
+    override_path: "../../esp-dl"

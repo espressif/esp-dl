@@ -1,20 +1,22 @@
-name: Upload component to IDF Component Registry
-
+name: Push component to https://components.espressif.com
 on:
   push:
-    tags:
-      - v*
-
+    branches:
+      - master
 jobs:
   upload_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-
-      - name: Upload esp-dl
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: Upload component to the component registry
         uses: espressif/upload-components-ci-action@v1
         with:
-          name: "esp-dl"
+          directories: >
+            esp-dl;
+            models/human_face_detect;
+            models/human_face_recognition;
+            models/pedestrian_detect;
           namespace: "espressif"
-          version: ${{ github.ref_name }}
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
