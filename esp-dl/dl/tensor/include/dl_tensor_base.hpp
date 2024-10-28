@@ -255,10 +255,24 @@ public:
      * @brief Compare the shape and data of two Tensor
      *
      * @param tensor Input tensor
-     * @param verbose If true, print the detail of results
+     * @param epsilon The max error of two element
+     * @param If true, print the detail of results
+     *
      * @return true if two tensor is equal otherwise false
      */
-    bool equal(TensorBase *tensor, bool verbose = false);
+    bool equal(TensorBase *tensor, float epsilon = 1e-7, bool verbose = false);
+
+    /**
+     * @brief Compare the elements of two Tensor
+     *
+     * @param gt_elements The ground truth elements
+     * @param epsilon The max error of two element
+     * @param If true, print the detail of results
+     *
+     * @return true if all elements are equal otherwise false
+     */
+    template <typename T>
+    bool compare_elements(const T *gt_elements, float epsilon = 1e-7, bool verbose = false);
 
     /**
      * @brief Get the index of element
