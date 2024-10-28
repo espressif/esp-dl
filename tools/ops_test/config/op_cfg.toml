@@ -501,6 +501,47 @@
         input_shape = [1, 2, 4]
         export_name_prefix = "unsqueeze_ishape_1_2_4_dim_3"
         dim = 3
+    
+    class_name = "EXP_TEST"
+        [[ops_test.exp.cfg]]
+        input_shape = [1, 96, 20, 20]
+        export_name_prefix = "exp_ishap_1_96_20_20"
+
+        [[ops_test.exp.cfg]]
+        input_shape = [1, 30, 40]
+        export_name_prefix = "exp_ishap_1_30_40"
+
+        [[ops_test.exp.cfg]]
+        input_shape = [1, 355]
+        export_name_prefix = "exp_ishap_1_355"
+    
+    [ops_test.log]
+    class_name = "LOG_TEST"
+        [[ops_test.log.cfg]]
+        input_shape = [1, 96, 20, 20]
+        export_name_prefix = "log_ishap_1_96_20_20"
+
+        [[ops_test.log.cfg]]
+        input_shape = [1, 30, 40]
+        export_name_prefix = "log_ishap_1_30_40"
+
+        [[ops_test.log.cfg]]
+        input_shape = [1, 355]
+        export_name_prefix = "log_ishap_1_355"
+    
+    [ops_test.sqrt]
+    class_name = "SQRT_TEST"
+        [[ops_test.sqrt.cfg]]
+        input_shape = [1, 96, 20, 20]
+        export_name_prefix = "sqrt_ishap_1_96_20_20"
+
+        [[ops_test.sqrt.cfg]]
+        input_shape = [1, 30, 40]
+        export_name_prefix = "sqrt_ishap_1_30_40"
+
+        [[ops_test.sqrt.cfg]]
+        input_shape = [1, 355]
+        export_name_prefix = "sqrt_ishap_1_355"
 
 [models_test]
     [models_test.picodet]

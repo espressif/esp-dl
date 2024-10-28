@@ -281,6 +281,33 @@ class UNSQUEEZE_TEST(nn.Module):
         return output
 
 
+class EXP_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        return torch.exp(input)
+
+
+class LOG_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        return torch.log(input)
+
+
+class SQRT_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        return torch.sqrt(input)
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 
