@@ -1,4 +1,4 @@
-version: "3.0.0-rc.1"
+version: "3.0.0~1-rc.1"
 license: "MIT"
 targets:
   - esp32s3
@@ -7,3 +7,8 @@ description: esp-dl is a lightweight and efficient neural network inference fram
 url: https://github.com/espressif/esp-dl/tree/master/esp-dl
 dependencies: 
   idf: ">=5.3"
+examples:
+  - path: ../examples/human_face_detect
+  - path: ../examples/human_face_recognition
+  - path: ../examples/mobilenet_v2
+  - path: ../examples/pedestrian_detect

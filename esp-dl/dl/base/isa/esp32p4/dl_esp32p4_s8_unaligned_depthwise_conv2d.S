@@ -205,8 +205,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias:
                         esp32p4_s8_conv2d_128b_vector_bias  s8
                         esp32p4_s8_unaligned_depthwise_conv2d_33s1  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
                         esp32p4_s8_128b_vector_shift_result  q3, t4
-                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_32b_loop_end:
                         esp32p4_s8_32b_unaligned_vector_store  q3, a0, t6
+                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_32b_loop_end:
+                        nop
                 
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_32b_last:
                     esp.zero.qacc
@@ -224,8 +225,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias:
                         esp32p4_s8_conv2d_128b_vector_bias  s8
                         esp32p4_s8_unaligned_depthwise_conv2d_33s1  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
                         esp32p4_s8_128b_vector_shift_result  q3, t4
-                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_64b_loop_end:
                         esp32p4_s8_64b_unaligned_vector_store  q3, a0
+                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_64b_loop_end:
+                        nop
                 
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_64b_last:
                     esp.zero.qacc
@@ -346,8 +348,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu:
                         esp32p4_s8_unaligned_depthwise_conv2d_33s1  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
                         esp32p4_s8_128b_vector_shift_result  q3, t4
                         esp32p4_s8_128b_vector_relu  q3, s0, s1
-                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_32b_loop_end:
                         esp32p4_s8_32b_unaligned_vector_store  q3, a0, t6
+                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_32b_loop_end:
+                        nop
                 
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_32b_last:
                     esp.zero.qacc
@@ -367,8 +370,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu:
                         esp32p4_s8_unaligned_depthwise_conv2d_33s1  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
                         esp32p4_s8_128b_vector_shift_result  q3, t4
                         esp32p4_s8_128b_vector_relu  q3, s0, s1
-                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_64b_loop_end:
                         esp32p4_s8_64b_unaligned_vector_store  q3, a0
+                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_64b_loop_end:
+                        nop
                 
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_64b_last:
                     esp.zero.qacc
@@ -486,8 +490,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1:
                         esp.zero.qacc
                         esp32p4_s8_unaligned_depthwise_conv2d_33s1  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
                         esp32p4_s8_128b_vector_shift_result  q3, t4
-                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_32b_loop_end:
                         esp32p4_s8_32b_unaligned_vector_store  q3, a0, t6
+                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_32b_loop_end:
+                        nop
                 
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_32b_last:
                     esp.zero.qacc
@@ -503,8 +508,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1:
                         esp.zero.qacc
                         esp32p4_s8_unaligned_depthwise_conv2d_33s1  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
                         esp32p4_s8_128b_vector_shift_result  q3, t4
-                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_64b_loop_end:
                         esp32p4_s8_64b_unaligned_vector_store  q3, a0
+                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_64b_loop_end:
+                        nop
                 
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_64b_last:
                     esp.zero.qacc
@@ -618,8 +624,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
                         esp32p4_s8_unaligned_depthwise_conv2d_33s1  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
                         esp32p4_s8_128b_vector_shift_result  q3, t4
                         esp32p4_s8_128b_vector_relu  q3, s0, s1
-                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_32b_loop_end:
                         esp32p4_s8_32b_unaligned_vector_store  q3, a0, t6
+                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_32b_loop_end:
+                        nop
                 
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_32b_last:
                     esp.zero.qacc
@@ -637,8 +644,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
                         esp32p4_s8_unaligned_depthwise_conv2d_33s1  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
                         esp32p4_s8_128b_vector_shift_result  q3, t4
                         esp32p4_s8_128b_vector_relu  q3, s0, s1
-                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_64b_loop_end:
                         esp32p4_s8_64b_unaligned_vector_store  q3, a0
+                    esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_64b_loop_end:
+                        nop
                 
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_64b_last:
                     esp.zero.qacc
