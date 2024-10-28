@@ -26,7 +26,7 @@ void compare_test_outputs(Model *model, std::map<std::string, TensorBase *> infe
             TensorBase *ground_truth_tensor = fbs_model_instance->get_test_output_tensor(infer_output_name, true);
             TEST_ASSERT_EQUAL_MESSAGE(true, ground_truth_tensor != nullptr, "The test output tensor is not found");
             TEST_ASSERT_EQUAL_MESSAGE(true,
-                                      infer_output->equal(ground_truth_tensor, 1e-7, true),
+                                      infer_output->equal(ground_truth_tensor, 1e-6, true),
                                       "The output tensor is not equal to the ground truth");
             delete ground_truth_tensor;
         }

@@ -570,7 +570,7 @@ bool TensorBase::compare_elements(const T *gt_elements, float epsilon, bool verb
         if (elements[i] - gt_elements[i] > epsilon || elements[i] - gt_elements[i] < -epsilon) {
             if (verbose) {
                 ESP_LOGE(__FUNCTION__,
-                         "Inconsistent values, ground true: %f, infer: %f, epsilon:%f",
+                         "Inconsistent values, ground true: %.10f, infer: %.10f, epsilon:%.10f",
                          gt_elements[i] * 1.0,
                          elements[i] * 1.0,
                          epsilon);

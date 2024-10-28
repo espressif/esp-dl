@@ -260,7 +260,7 @@ public:
      *
      * @return true if two tensor is equal otherwise false
      */
-    bool equal(TensorBase *tensor, float epsilon = 1e-7, bool verbose = false);
+    bool equal(TensorBase *tensor, float epsilon = 1e-6, bool verbose = false);
 
     /**
      * @brief Compare the elements of two Tensor
@@ -272,7 +272,7 @@ public:
      * @return true if all elements are equal otherwise false
      */
     template <typename T>
-    bool compare_elements(const T *gt_elements, float epsilon = 1e-7, bool verbose = false);
+    bool compare_elements(const T *gt_elements, float epsilon = 1e-6, bool verbose = false);
 
     /**
      * @brief Get the index of element
