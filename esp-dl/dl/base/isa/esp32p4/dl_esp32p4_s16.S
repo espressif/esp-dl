@@ -95,65 +95,65 @@
 
 
 
-.macro dl_esp32p4_s16_store_remainder remainder_data, c_remainder, tmp_a, output_ptr
-607:    # remainder == 1, 0x111
-    andi t0, \c_remainder, 4
-    beqz t0, 603f
-    andi t0, \c_remainder, 2
-    beqz t0, 605f
-    andi t0, \c_remainder, 1
-    beqz t0, 606f
-    esp.movi.32.a \remainder_data, \tmp_a, 0
+.macro dl_esp32p4_s16_store_remainder  vector_data, c_remainder, tmp_a, output_ptr
+607:    # remainder == 7, 0x111
+    andi \tmp_a, \c_remainder, 4
+    beqz \tmp_a, 603f
+    andi \tmp_a, \c_remainder, 2
+    beqz \tmp_a, 605f
+    andi \tmp_a, \c_remainder, 1
+    beqz \tmp_a, 606f
+    esp.movi.32.a \vector_data, \tmp_a, 0
     sw \tmp_a, 0(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 1
+    esp.movi.32.a \vector_data, \tmp_a, 1
     sw \tmp_a, 4(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 2
+    esp.movi.32.a \vector_data, \tmp_a, 2
     sw \tmp_a, 8(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 3
+    esp.movi.32.a \vector_data, \tmp_a, 3
     sh \tmp_a, 12(\output_ptr)
     j 600f
-606:    # remainder == 1, 0x110
-    esp.movi.32.a \remainder_data, \tmp_a, 0
+606:    # remainder == 6, 0x110
+    esp.movi.32.a \vector_data, \tmp_a, 0
     sw \tmp_a, 0(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 1
+    esp.movi.32.a \vector_data, \tmp_a, 1
     sw \tmp_a, 4(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 2
+    esp.movi.32.a \vector_data, \tmp_a, 2
     sw \tmp_a, 8(\output_ptr)
     j 600f
-605:    # remainder == 1, 0x101
-    andi t0, \c_remainder, 1
-    beqz t0, 604f
-    esp.movi.32.a \remainder_data, \tmp_a, 0
+605:    # remainder == 5, 0x101
+    andi \tmp_a, \c_remainder, 1
+    beqz \tmp_a, 604f
+    esp.movi.32.a \vector_data, \tmp_a, 0
     sw \tmp_a, 0(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 1
+    esp.movi.32.a \vector_data, \tmp_a, 1
     sw \tmp_a, 4(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 2
+    esp.movi.32.a \vector_data, \tmp_a, 2
     sh \tmp_a, 8(\output_ptr)
     j 600f
-604:    # remainder == 1, 0x100
-    esp.movi.32.a \remainder_data, \tmp_a, 0
+604:    # remainder == 4, 0x100
+    esp.movi.32.a \vector_data, \tmp_a, 0
     sw \tmp_a, 0(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 1
+    esp.movi.32.a \vector_data, \tmp_a, 1
     sw \tmp_a, 4(\output_ptr)
     j 600f
-603:    # remainder == 1, 0x011
-    andi t0, \c_remainder, 2
-    beqz t0, 601f
-    andi t0, \c_remainder, 1
-    beqz t0, 602f
-    esp.movi.32.a \remainder_data, \tmp_a, 0
+603:    # remainder == 3, 0x011
+    andi \tmp_a, \c_remainder, 2
+    beqz \tmp_a, 601f
+    andi \tmp_a, \c_remainder, 1
+    beqz \tmp_a, 602f
+    esp.movi.32.a \vector_data, \tmp_a, 0
     sw \tmp_a, 0(\output_ptr)
-    esp.movi.32.a \remainder_data, \tmp_a, 1
+    esp.movi.32.a \vector_data, \tmp_a, 1
     sh \tmp_a, 4(\output_ptr)
     j 600f
-602:    # remainder == 1, 0x010
-    esp.movi.32.a \remainder_data, \tmp_a, 0
+602:    # remainder == 2, 0x010
+    esp.movi.32.a \vector_data, \tmp_a, 0
     sw \tmp_a, 0(\output_ptr)
     j 600f
 601:    # remainder == 1, 0x001
-    andi t0, \c_remainder, 1
-    beqz t0, 600f
-    esp.movi.32.a \remainder_data, \tmp_a, 0
+    andi \tmp_a, \c_remainder, 1
+    beqz \tmp_a, 600f
+    esp.movi.32.a \vector_data, \tmp_a, 0
     sh \tmp_a, 0(\output_ptr)
 600:
 .endm
