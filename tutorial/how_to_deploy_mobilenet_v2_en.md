@@ -76,7 +76,7 @@ if (input_data) {
 }
 ```
 
-> For the quantization processing of input data, ESP-DL P4 uses the "Rounding half to even" strategy. You can refer to the relevant implementation in [bool TensorBase::assign(TensorBase *tensor)](../esp-dl/dl/typedef/src/dl_tensor_base.cpp). The required exponent and other information for quantization can be found in the "*.info" related model files.
+> For the quantization processing of input data, ESP-DL P4 uses the "Rounding half to even" strategy. You can refer to the relevant implementation in [bool TensorBase::assign(TensorBase *tensor)](../esp-dl/dl/tensor/src/dl_tensor_base.cpp). The required exponent and other information for quantization can be found in the "*.info" related model files.
 
 ### Inference Result Testing
 
