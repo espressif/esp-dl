@@ -222,7 +222,7 @@ public:
         fbs_model->get_operation_attribute(node_name, "axis", axis);
 
         // Create module
-        op = new Softmax(node_name.c_str(), axis, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+        op = new Softmax(node_name.c_str(), axis, MODULE_NON_INPLACE, quant_type);
         return op;
     }
 
