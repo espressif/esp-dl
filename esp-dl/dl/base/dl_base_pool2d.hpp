@@ -253,11 +253,11 @@ std::vector<PoolArgsType<feature_t>> get_pool_args(TensorBase *output,
     return m_args;
 }
 
-typedef void (*pool_c_impl_func_s16_t)(int64_t *, int16_t *, int16_t *, PoolArgsType<int16_t> &);
-typedef void (*pool_c_impl_func_s8_t)(int32_t *, int8_t *, int8_t *, PoolArgsType<int8_t> &);
-
 typedef void (*avg_pool_c_impl_func_s16_t)(float *, int16_t *, int16_t *, PoolArgsType<int16_t> &);
 typedef void (*avg_pool_c_impl_func_s8_t)(float *, int8_t *, int8_t *, PoolArgsType<int8_t> &);
+
+typedef void (*max_pool_c_impl_func_s16_t)(int16_t *, int16_t *, PoolArgsType<int16_t> &);
+typedef void (*max_pool_c_impl_func_s8_t)(int8_t *, int8_t *, PoolArgsType<int8_t> &);
 
 /**
  * @brief
@@ -590,11 +590,11 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
  * @param c_impl_func
  * @param n_wise_tail
  */
-template <typename feature_t, typename buffer_t>
+template <typename feature_t>
 void max_pool_shell(PoolArgsType<feature_t> &args,
                     void (*i_impl_func)(feature_t *, feature_t *, void *),
                     void (*i_impl_func_sp)(feature_t *, feature_t *, void *),
-                    void (*c_impl_func)(buffer_t *, feature_t *, feature_t *, PoolArgsType<feature_t> &))
+                    void (*c_impl_func)(feature_t *, feature_t *, PoolArgsType<feature_t> &))
 {
     feature_t *input_ptr_real = (feature_t *)args.input_element;
     feature_t *output_ptr = (feature_t *)args.output_element;
@@ -630,7 +630,8 @@ void max_pool_shell(PoolArgsType<feature_t> &args,
             }
 
             for (size_t output_x = 0; output_x < n_w_tail; output_x++) {
-                args.filter_width = filter_w - args.padding_w_tail + (n_w_tail - 1 - output_x) * args.stride_x;
+                args.filter_width = args.padding_w_head + args.input_width - (n_w_head + n_w_body) * args.stride_x -
+                    output_x * args.stride_x;
                 i_impl_func(output_yx, input_syx_real, (void *const)&args);
                 input_syx_real += args.input_stride_x_offset;
                 output_yx += args.output_x_offset;
@@ -660,7 +661,8 @@ void max_pool_shell(PoolArgsType<feature_t> &args,
             }
 
             for (size_t output_x = 0; output_x < n_w_tail; output_x++) {
-                args.filter_width = filter_w - args.padding_w_tail + (n_w_tail - 1 - output_x) * args.stride_x;
+                args.filter_width = args.padding_w_head + args.input_width - (n_w_head + n_w_body) * args.stride_x -
+                    output_x * args.stride_x;
                 i_impl_func(output_yx, input_syx_real, (void *const)&args);
                 input_syx_real += args.input_stride_x_offset;
                 output_yx += args.output_x_offset;
@@ -673,7 +675,8 @@ void max_pool_shell(PoolArgsType<feature_t> &args,
         for (size_t output_y = 0; output_y < n_h_tail; output_y++) {
             input_syx_real = input_ptr_real;
             output_yx = output_ptr;
-            args.filter_height = filter_h - args.padding_h_tail + (n_h_tail - 1 - output_y) * args.stride_y;
+            args.filter_height = args.padding_h_head + args.input_height - (n_h_head + n_h_body) * args.stride_y -
+                output_y * args.stride_y;
 
             for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                 args.filter_width = filter_w - args.padding_w_head + output_x * args.stride_x;
@@ -690,7 +693,8 @@ void max_pool_shell(PoolArgsType<feature_t> &args,
             }
 
             for (size_t output_x = 0; output_x < n_w_tail; output_x++) {
-                args.filter_width = filter_w - args.padding_w_tail + (n_w_tail - 1 - output_x) * args.stride_x;
+                args.filter_width = args.padding_w_head + args.input_width - (n_w_head + n_w_body) * args.stride_x -
+                    output_x * args.stride_x;
                 i_impl_func(output_yx, input_syx_real, (void *const)&args);
                 input_syx_real += args.input_stride_x_offset;
                 output_yx += args.output_x_offset;
@@ -701,7 +705,6 @@ void max_pool_shell(PoolArgsType<feature_t> &args,
         }
     } else // run c_impl_func
     {
-        buffer_t *buffer = (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
         feature_t *input_syx_real = input_ptr_real;
         feature_t *output_yx = output_ptr;
         for (size_t output_y = 0; output_y < n_h_head; output_y++) {
@@ -711,21 +714,22 @@ void max_pool_shell(PoolArgsType<feature_t> &args,
 
             for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                 args.filter_width = filter_w - args.padding_w_head + output_x * args.stride_x;
-                c_impl_func(buffer, input_syx_real, output_yx, args);
+                c_impl_func(input_syx_real, output_yx, args);
                 output_yx += args.output_x_offset;
             }
 
             input_syx_real += (args.stride_x * n_w_head - args.padding_w_head) * args.input_x_offset;
             args.filter_width = filter_w;
             for (size_t output_x = 0; output_x < n_w_body; output_x++) {
-                c_impl_func(buffer, input_syx_real, output_yx, args);
+                c_impl_func(input_syx_real, output_yx, args);
                 input_syx_real += args.input_stride_x_offset;
                 output_yx += args.output_x_offset;
             }
 
             for (size_t output_x = 0; output_x < n_w_tail; output_x++) {
-                args.filter_width = filter_w - args.padding_w_tail + (n_w_tail - 1 - output_x) * args.stride_x;
-                c_impl_func(buffer, input_syx_real, output_yx, args);
+                args.filter_width = args.padding_w_head + args.input_width - (n_w_head + n_w_body) * args.stride_x -
+                    output_x * args.stride_x;
+                c_impl_func(input_syx_real, output_yx, args);
                 input_syx_real += args.input_stride_x_offset;
                 output_yx += args.output_x_offset;
             }
@@ -740,21 +744,22 @@ void max_pool_shell(PoolArgsType<feature_t> &args,
 
             for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                 args.filter_width = filter_w - args.padding_w_head + output_x * args.stride_x;
-                c_impl_func(buffer, input_syx_real, output_yx, args);
+                c_impl_func(input_syx_real, output_yx, args);
                 output_yx += args.output_x_offset;
             }
 
             input_syx_real += (args.stride_x * n_w_head - args.padding_w_head) * args.input_x_offset;
             args.filter_width = filter_w;
             for (size_t output_x = 0; output_x < n_w_body; output_x++) {
-                c_impl_func(buffer, input_syx_real, output_yx, args);
+                c_impl_func(input_syx_real, output_yx, args);
                 input_syx_real += args.input_stride_x_offset;
                 output_yx += args.output_x_offset;
             }
 
             for (size_t output_x = 0; output_x < n_w_tail; output_x++) {
-                args.filter_width = filter_w - args.padding_w_tail + (n_w_tail - 1 - output_x) * args.stride_x;
-                c_impl_func(buffer, input_syx_real, output_yx, args);
+                args.filter_width = args.padding_w_head + args.input_width - (n_w_head + n_w_body) * args.stride_x -
+                    output_x * args.stride_x;
+                c_impl_func(input_syx_real, output_yx, args);
                 input_syx_real += args.input_stride_x_offset;
                 output_yx += args.output_x_offset;
             }
@@ -766,25 +771,27 @@ void max_pool_shell(PoolArgsType<feature_t> &args,
         for (size_t output_y = 0; output_y < n_h_tail; output_y++) {
             input_syx_real = input_ptr_real;
             output_yx = output_ptr;
-            args.filter_height = filter_h - args.padding_h_tail + (n_h_tail - 1 - output_y) * args.stride_y;
+            args.filter_height = args.padding_h_head + args.input_height - (n_h_head + n_h_body) * args.stride_y -
+                output_y * args.stride_y;
 
             for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                 args.filter_width = filter_w - args.padding_w_head + output_x * args.stride_x;
-                c_impl_func(buffer, input_syx_real, output_yx, args);
+                c_impl_func(input_syx_real, output_yx, args);
                 output_yx += args.output_x_offset;
             }
 
             input_syx_real += (args.stride_x * n_w_head - args.padding_w_head) * args.input_x_offset;
             args.filter_width = filter_w;
             for (size_t output_x = 0; output_x < n_w_body; output_x++) {
-                c_impl_func(buffer, input_syx_real, output_yx, args);
+                c_impl_func(input_syx_real, output_yx, args);
                 input_syx_real += args.input_stride_x_offset;
                 output_yx += args.output_x_offset;
             }
 
             for (size_t output_x = 0; output_x < n_w_tail; output_x++) {
-                args.filter_width = filter_w - args.padding_w_tail + (n_w_tail - 1 - output_x) * args.stride_x;
-                c_impl_func(buffer, input_syx_real, output_yx, args);
+                args.filter_width = args.padding_w_head + args.input_width - (n_w_head + n_w_body) * args.stride_x -
+                    output_x * args.stride_x;
+                c_impl_func(input_syx_real, output_yx, args);
                 input_syx_real += args.input_stride_x_offset;
                 output_yx += args.output_x_offset;
             }
@@ -792,7 +799,6 @@ void max_pool_shell(PoolArgsType<feature_t> &args,
             input_ptr_real += args.input_stride_y_offset;
             output_ptr += args.output_y_offset;
         }
-        tool::free_aligned(buffer);
     }
     return;
 }

@@ -13,6 +13,7 @@
 #include "dl_module_leakyrelu.hpp"
 #include "dl_module_log.hpp"
 #include "dl_module_lut.hpp"
+#include "dl_module_max_pool2d.hpp"
 #include "dl_module_mul.hpp"
 #include "dl_module_prelu.hpp"
 #include "dl_module_relu.hpp"
@@ -90,6 +91,7 @@ public:
             this->register_module("Squeeze", Squeeze::deserialize);
             this->register_module("Unsqueeze", Unsqueeze::deserialize);
             this->register_module("Softmax", Softmax::deserialize);
+            this->register_module("MaxPool", MaxPool2D::deserialize);
         }
     }
 

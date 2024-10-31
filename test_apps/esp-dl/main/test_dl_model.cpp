@@ -6,7 +6,7 @@
 #include "unity.h"
 #include <type_traits>
 
-static const char *TAG = "TEST_ESPDL_MODLE";
+static const char *TAG = "TEST_ESPDL_MODEL";
 
 // using namespace fbs;
 using namespace dl;
