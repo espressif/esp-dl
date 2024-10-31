@@ -78,7 +78,7 @@ ESP-DL 支持自动构图及内存规划，目前支持的算子见 [esp-dl/dl/m
    }
    ```
 
-> 对于输入数据的量化处理，ESP-DL P4 采用的 round 策略为 "Rounding half to even"，可参考 [bool TensorBase::assign(TensorBase *tensor)](../esp-dl/dl/typedef/src/dl_tensor_base.cpp) 中相关实现。量化所需的 exponent 等信息，可在 "*.info" 相关模型文件中查找。
+> 对于输入数据的量化处理，ESP-DL P4 采用的 round 策略为 "Rounding half to even"，可参考 [bool TensorBase::assign(TensorBase *tensor)](../esp-dl/dl/tensor/src/dl_tensor_base.cpp) 中相关实现。量化所需的 exponent 等信息，可在 "*.info" 相关模型文件中查找。
 
 
 ### 推理结果获取及测试
