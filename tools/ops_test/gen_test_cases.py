@@ -10,6 +10,7 @@ from typing import (
 
 import toml
 import torch
+from ppq import QuantizationSettingFactory
 from ppq.api import espdl_quantize_torch
 from ppq.quantization.optim import *
 from torch.utils.data import DataLoader
@@ -75,7 +76,10 @@ class BaseInferencer:
         )
 
         print("start PTQ")
-        quant_ppq_graph, _ = espdl_quantize_torch(
+        # create a setting for quantizing your network with ESPDL.
+        quant_setting = QuantizationSettingFactory.espdl_setting()
+        quant_setting.dispatcher = "allin"
+        quant_ppq_graph = espdl_quantize_torch(
             model=self.model,
             espdl_export_file=espdl_export_file,
             calib_dataloader=self.calib_dataloader,
@@ -84,8 +88,7 @@ class BaseInferencer:
             target=self.target,
             num_of_bits=self.num_of_bits,
             collate_fn=collate_fn,
-            dispatching_override=None,
-            dispatching_method="allin",
+            setting=quant_setting,
             device=self.device_str,
             error_report=False,
             skip_export=False,

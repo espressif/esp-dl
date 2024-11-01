@@ -8,6 +8,7 @@ from datasets.imagenet_util import (
     evaluate_ppq_module_with_imagenet,
     load_imagenet_from_directory,
 )
+from ppq import QuantizationSettingFactory
 from ppq.api import espdl_quantize_torch, get_target_platform
 from torch.utils.data import DataLoader
 from torchvision.models.mobilenetv2 import MobileNet_V2_Weights
@@ -67,11 +68,17 @@ def collate_fn(batch: torch.Tensor) -> torch.Tensor:
 # --------------------------------------------
 # These layers have large errors in 8-bit quantization, dispatching to 16-bit quantization.
 # You can remove or add layers according to your needs.
-dispatching_override = {
-    "/features/features.1/conv/conv.0/conv.0.0/Conv": get_target_platform(TARGET, 16),
-    "/features/features.1/conv/conv.0/conv.0.2/Clip": get_target_platform(TARGET, 16),
-}
-quant_ppq_graph, _ = espdl_quantize_torch(
+
+# create a setting for quantizing your network with ESPDL.
+quant_setting = QuantizationSettingFactory.espdl_setting()
+quant_setting.dispatching_table.append(
+    "/features/features.1/conv/conv.0/conv.0.0/Conv", get_target_platform(TARGET, 16)
+)
+quant_setting.dispatching_table.append(
+    "/features/features.1/conv/conv.0/conv.0.2/Clip", get_target_platform(TARGET, 16)
+)
+
+quant_ppq_graph = espdl_quantize_torch(
     model=model,
     espdl_export_file=ESPDL_MODLE_PATH,
     calib_dataloader=dataloader,
@@ -80,7 +87,7 @@ quant_ppq_graph, _ = espdl_quantize_torch(
     target=TARGET,
     num_of_bits=NUM_OF_BITS,
     collate_fn=collate_fn,
-    dispatching_override=dispatching_override,
+    setting=quant_setting,
     device=DEVICE,
     error_report=True,
     skip_export=False,

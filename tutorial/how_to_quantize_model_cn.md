@@ -92,15 +92,14 @@ def espdl_quantize_torch(
     target:str = "esp32p4",
     num_of_bits:int = 8,
     collate_fn: Callable = None,
-    dispatching_override: Dict[str, TargetPlatform] = None,
-    dispatching_method: str = "conservative",
+    setting: QuantizationSetting = None,
     device: str = "cpu",
     error_report: bool = True,
     test_output_names: List[str] = None,
     skip_export: bool = False,
     export_config: bool = True,
     verbose: int = 0,
-) -> Tuple[BaseGraph, TorchExecutor]:
+) -> BaseGraph:
 
     """Quantize ONNX model and return quantized ppq graph and executor .
     
@@ -113,8 +112,7 @@ def espdl_quantize_torch(
         target: target chip, support "esp32p4" and "esp32s3"
         num_of_bits: the number of quantizer bits, 8 or 16
         collate_fn (Callable): batch collate func for preprocessing
-        dispatching_override: override dispatching result.
-        dispatching_method: Refer to https://github.com/espressif/esp-ppq/blob/master/ppq/scheduler/__init__.py#L8
+        setting (QuantizationSetting): Quantization setting, default espdl setting will be used when set None
         device (str, optional):  execution device, defaults to 'cpu'.
         error_report (bool, optional): whether to print error report, defaults to True.
         test_output_names (List[str], optional): tensor names of the model want to test, defaults to None.
@@ -124,7 +122,6 @@ def espdl_quantize_torch(
 
     Returns:
         BaseGraph:      The Quantized Graph, containing all information needed for backend execution
-        TorchExecutor:  PPQ Graph Executor 
     """
 ```
 
@@ -135,7 +132,7 @@ def espdl_quantize_torch(
 target="esp32p4"
 num_of_bits=8
 batch_size=32
-dispatching_override=None
+setting=None
 ```
 
 - **量化结果:**
@@ -276,10 +273,9 @@ num_of_bits=8
 batch_size=32
 
 # 以下层使用int16进行量化
-dispatching_override={
-    "/features/features.1/conv/conv.0/conv.0.0/Conv":get_target_platform(target, num_of_bits=16),
-    "/features/features.1/conv/conv.0/conv.0.2/Clip":get_target_platform(target, num_of_bits=16),
-}
+quant_setting = QuantizationSettingFactory.espdl_setting()
+quant_setting.dispatching_table.append("/features/features.1/conv/conv.0/conv.0.0/Conv", get_target_platform(TARGET, 16))
+quant_setting.dispatching_table.append("/features/features.1/conv/conv.0/conv.0.2/Clip", get_target_platform(TARGET, 16))
 ```
 
 - **量化结果:**
