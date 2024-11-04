@@ -3,9 +3,9 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_unaligned_depthwise_conv2d_33c1 series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s8_unaligned_depthwise_conv2d_33s1  input_v0, input_v1, input_v2, input_back, filter_v0, filter_v1, filter_v2, input_ptr, filter_ptr, dilation_x_offset_16, dilation_y_offset_16, next_33s1_16
     esp.ld.128.usar.xp        \input_back, \input_ptr,  \dilation_y_offset_16
@@ -51,7 +51,7 @@
     esp.ld.128.usar.xp        \input_back, \input_ptr,  \dilation_y_offset_16
     esp.vmulas.s8.qacc.ld.ip  \filter_v1,  \filter_ptr, 16,                \input_v0, \filter_v0
     esp.src.q.ld.ip           \input_v0,   \input_ptr,  16,                \input_v2, \input_back
-    
+
     esp.ld.128.usar.xp        \input_back, \input_ptr,  \dilation_x_offset_16
     esp.vmulas.s8.qacc.ld.ip  \filter_v0,  \filter_ptr, 16,                \input_v1, \filter_v1
     esp.src.q.ld.ip           \input_v1,   \input_ptr,  16,                \input_v0, \input_back
@@ -90,14 +90,14 @@
     esp.ld.128.usar.xp  \filter_v0,   \filter_ptr, \c_remainder
     esp.vld.128.ip      \filter_back, \filter_ptr, 0
     esp.src.q           \filter_v0,   \filter_v0,  \filter_back
-    
+
     esp.vmulas.s8.qacc  \input_v0,    \filter_v0
 .endm
 
 
 
 .macro esp32p4_s8_unaligned_depthwise_conv2d_33r1  input_v0, input_front, input_back, filter_v0, filter_front, filter_back, input_ptr, filter_ptr, dilation_x_offset_c_remainder, dilation_y_offset_c_remainder, c_remainder
-    
+
     esp32p4_s8_unaligned_depthwise_conv2d_11r1  \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_remainder, \dilation_x_offset_c_remainder
     esp32p4_s8_unaligned_depthwise_conv2d_11r1  \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_remainder, \dilation_x_offset_c_remainder
     esp32p4_s8_unaligned_depthwise_conv2d_11r1  \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_remainder, \dilation_y_offset_c_remainder
@@ -117,7 +117,7 @@
     esp.ld.128.usar.xp  \filter_v0,   \filter_ptr, \c_remainder
     esp.vld.128.ip      \filter_back, \filter_ptr, 0
     esp.src.q           \filter_v0,   \filter_v0,  \filter_back
-    
+
     esp.vmulas.s8.qacc  \input_v0,    \filter_v0
 .endm
 
@@ -158,20 +158,20 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias:
     # t6: output_sar_byte
 
     # a6(not for extension instructions): tmp value
-    # a7(not for extension instructions): 
+    # a7(not for extension instructions):
     # t0(not for extension instructions): tmp value
-    # t1(not for extension instructions): 
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
+    # s0:
+    # s1:
     # s8: bias_ptr
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_4_stacks_1r  s8
@@ -194,7 +194,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias:
         esp.ld.128.usar.ip  q1, a1, 16
         esp.ld.128.usar.xp  q3, a1, a4
         esp.src.q.ld.ip  q2, a1, 16, q1, q3     // q2: input_v2; q1: input_v1
-    
+
         beqz  t6, esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_128b
             li  a6, 8
             beq  t6, a6, esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_64b
@@ -208,7 +208,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias:
                         esp32p4_s8_32b_unaligned_vector_store  q3, a0, t6
                     esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_32b_loop_end:
                         nop
-                
+
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_32b_last:
                     esp.zero.qacc
                     esp32p4_s8_conv2d_128b_vector_bias  s8
@@ -228,7 +228,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias:
                         esp32p4_s8_64b_unaligned_vector_store  q3, a0
                     esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_64b_loop_end:
                         nop
-                
+
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_64b_last:
                     esp.zero.qacc
                     esp32p4_s8_conv2d_128b_vector_bias  s8
@@ -247,7 +247,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias:
                     esp32p4_s8_128b_vector_shift_result  q3, t4
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_128b_loop_end:
                     esp32p4_s8_128b_aligned_vector_store  q3, a0
-            
+
             esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_128b_last:
                 esp.zero.qacc
                 esp32p4_s8_conv2d_128b_vector_bias  s8
@@ -270,9 +270,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias:
             esp32p4_s8_unaligned_depthwise_conv2d_33r1  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t5
             esp32p4_s8_128b_vector_shift_result  q0, t4
             dl_esp32p4_s8_store_remainder  q0, a3, a4, a5, t3, t0, a0, t5
-        
+
         esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_c_remainder_end:
-    
+
     esp32p4_pop_4_stacks_1r  s8
     ret
 
@@ -298,20 +298,20 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu:
     # t6: output_sar_byte
 
     # a6(not for extension instructions): tmp value
-    # a7(not for extension instructions): 
+    # a7(not for extension instructions):
     # t0(not for extension instructions): tmp value
-    # t1(not for extension instructions): 
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: activation_alpha/_address
     # s1: activation_shift
     # s8: bias_ptr
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s8
@@ -336,7 +336,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu:
         esp.ld.128.usar.ip  q1, a1, 16
         esp.ld.128.usar.xp  q3, a1, a4
         esp.src.q.ld.ip  q2, a1, 16, q1, q3     // q2: input_v2; q1: input_v1
-    
+
         beqz  t6, esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_128b
             li  a6, 8
             beq  t6, a6, esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_64b
@@ -351,7 +351,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu:
                         esp32p4_s8_32b_unaligned_vector_store  q3, a0, t6
                     esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_32b_loop_end:
                         nop
-                
+
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_32b_last:
                     esp.zero.qacc
                     esp32p4_s8_conv2d_128b_vector_bias  s8
@@ -373,7 +373,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu:
                         esp32p4_s8_64b_unaligned_vector_store  q3, a0
                     esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_64b_loop_end:
                         nop
-                
+
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_64b_last:
                     esp.zero.qacc
                     esp32p4_s8_conv2d_128b_vector_bias  s8
@@ -394,7 +394,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu:
                     esp32p4_s8_128b_vector_relu  q3, s0, s1
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_128b_loop_end:
                     esp32p4_s8_128b_aligned_vector_store  q3, a0
-            
+
             esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_128b_last:
                 esp.zero.qacc
                 esp32p4_s8_conv2d_128b_vector_bias  s8
@@ -419,9 +419,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu:
             esp32p4_s8_128b_vector_shift_result  q0, t4
             esp32p4_s8_128b_vector_relu  q0, s0, s1
             dl_esp32p4_s8_store_remainder  q0, a3, a4, a5, t3, t0, a0, t5
-        
+
         esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu_c_remainder_end:
-    
+
     esp32p4_pop_12_stacks_3r  s0, s1, s8
     ret
 
@@ -447,20 +447,20 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1:
     # t6: output_sar_byte
 
     # a6(not for extension instructions): tmp value
-    # a7(not for extension instructions): 
+    # a7(not for extension instructions):
     # t0(not for extension instructions): tmp value
-    # t1(not for extension instructions): 
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s8_unaligned_depthwise_conv2d_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
@@ -480,7 +480,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1:
         esp.ld.128.usar.ip  q1, a1, 16
         esp.ld.128.usar.xp  q3, a1, a4
         esp.src.q.ld.ip  q2, a1, 16, q1, q3     // q2: input_v2; q1: input_v1
-    
+
         beqz  t6, esp32p4_s8_unaligned_depthwise_conv2d_33c1_128b
             li  a6, 8
             beq  t6, a6, esp32p4_s8_unaligned_depthwise_conv2d_33c1_64b
@@ -493,7 +493,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1:
                         esp32p4_s8_32b_unaligned_vector_store  q3, a0, t6
                     esp32p4_s8_unaligned_depthwise_conv2d_33c1_32b_loop_end:
                         nop
-                
+
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_32b_last:
                     esp.zero.qacc
                     esp32p4_s8_unaligned_depthwise_conv2d_33s1_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
@@ -511,7 +511,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1:
                         esp32p4_s8_64b_unaligned_vector_store  q3, a0
                     esp32p4_s8_unaligned_depthwise_conv2d_33c1_64b_loop_end:
                         nop
-                
+
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_64b_last:
                     esp.zero.qacc
                     esp32p4_s8_unaligned_depthwise_conv2d_33s1_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
@@ -528,7 +528,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1:
                     esp32p4_s8_128b_vector_shift_result  q3, t4
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_128b_loop_end:
                     esp32p4_s8_128b_aligned_vector_store  q3, a0
-            
+
             esp32p4_s8_unaligned_depthwise_conv2d_33c1_128b_last:
                 esp.zero.qacc
                 esp32p4_s8_unaligned_depthwise_conv2d_33s1_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
@@ -549,9 +549,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1:
             esp32p4_s8_unaligned_depthwise_conv2d_33r1  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t5
             esp32p4_s8_128b_vector_shift_result  q0, t4
             dl_esp32p4_s8_store_remainder  q0, a3, a4, a5, t3, t0, a0, t5
-        
+
         esp32p4_s8_unaligned_depthwise_conv2d_33c1_c_remainder_end:
-    
+
     ret
 
 
@@ -576,20 +576,20 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
     # t6: output_sar_byte
 
     # a6(not for extension instructions): tmp value
-    # a7(not for extension instructions): 
+    # a7(not for extension instructions):
     # t0(not for extension instructions): tmp value
-    # t1(not for extension instructions): 
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: activation_alpha/_address
     # s1: activation_shift
-    # s8: 
-    # s9: 
-    # s10: 
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s8
@@ -613,7 +613,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
         esp.ld.128.usar.ip  q1, a1, 16
         esp.ld.128.usar.xp  q3, a1, a4
         esp.src.q.ld.ip  q2, a1, 16, q1, q3     // q2: input_v2; q1: input_v1
-    
+
         beqz  t6, esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_128b
             li  a6, 8
             beq  t6, a6, esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_64b
@@ -627,7 +627,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
                         esp32p4_s8_32b_unaligned_vector_store  q3, a0, t6
                     esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_32b_loop_end:
                         nop
-                
+
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_32b_last:
                     esp.zero.qacc
                     esp32p4_s8_unaligned_depthwise_conv2d_33s1_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
@@ -647,7 +647,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
                         esp32p4_s8_64b_unaligned_vector_store  q3, a0
                     esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_64b_loop_end:
                         nop
-                
+
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_64b_last:
                     esp.zero.qacc
                     esp32p4_s8_unaligned_depthwise_conv2d_33s1_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
@@ -666,7 +666,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
                     esp32p4_s8_128b_vector_relu  q3, s0, s1
                 esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_128b_loop_end:
                     esp32p4_s8_128b_aligned_vector_store  q3, a0
-            
+
             esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_128b_last:
                 esp.zero.qacc
                 esp32p4_s8_unaligned_depthwise_conv2d_33s1_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
@@ -689,9 +689,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
             esp32p4_s8_128b_vector_shift_result  q0, t4
             esp32p4_s8_128b_vector_relu  q0, s0, s1
             dl_esp32p4_s8_store_remainder  q0, a3, a4, a5, t3, t0, a0, t5
-        
+
         esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu_c_remainder_end:
-    
+
     esp32p4_pop_12_stacks_3r  s0, s1, s8
     ret
 
@@ -701,9 +701,9 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_unaligned_depthwise_conv2d_hwc1 series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s8_unaligned_depthwise_conv2d_1ws1  input_v0, input_v1, input_back, input_ptr, filter_v0, filter_ptr, dilation_x_offset_16, dilation_y_offset, filter_w, filter_w_rs1_1, filter_y_offset, temp
     blez  \filter_w_rs1_1, 1f
@@ -808,7 +808,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
         j  13f
 
     10:  // filter_w == 1
-        esp.ld.128.usar.ip  \input_v1, \input_ptr, 16 
+        esp.ld.128.usar.ip  \input_v1, \input_ptr, 16
         esp.ld.128.usar.xp  \input_back, \input_ptr, \dilation_y_offset_16
         esp.vld.128.xp  \filter_v0, \filter_ptr, \filter_y_offset   // filter_v0
         esp.src.q  \input_v0, \input_v1, \input_back                // input_v0
@@ -924,15 +924,15 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias:
     # t1(not for extension instructions): filter_w
     # t2(not for extension instructions): filter_w_rs1_1
     # s2(not for extension instructions): tmp value = 8
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
+    # s0:
+    # s1:
     # s8: bias_ptr
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s2, s0, s8
@@ -1038,15 +1038,15 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias_relu:
     # t1(not for extension instructions): filter_w
     # t2(not for extension instructions): filter_w_rs1_1
     # s2(not for extension instructions): tmp value = 8
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: activation_alpha/_address
     # s1: activation_shift
     # s8: bias_ptr
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_20_stacks_5r  s2, s0, s1, s8, s9
@@ -1158,15 +1158,15 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1:
     # t1(not for extension instructions): filter_w
     # t2(not for extension instructions): filter_w_rs1_1
     # s2(not for extension instructions): tmp value = 8
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_4_stacks_1r  s2
@@ -1267,15 +1267,15 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_relu:
     # t1(not for extension instructions): filter_w
     # t2(not for extension instructions): filter_w_rs1_1
     # s2(not for extension instructions): tmp value = 8
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: activation_alpha/_address
     # s1: activation_shift
-    # s8: 
-    # s9: 
-    # s10: 
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s2, s0, s1

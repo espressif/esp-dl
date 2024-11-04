@@ -9,7 +9,7 @@ dl_tie728_s8_prelu_11c:
     .align 4
     entry sp, 16
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
     # a5: c_div_x = n_div_x
@@ -21,7 +21,7 @@ dl_tie728_s8_prelu_11c:
 
     l32i a5, a4, 96   # n_div_x
     l32i a12, a4, 80  # activation_alpha_ptr
-    l32i a13, a4, 84  # activation_shift 
+    l32i a13, a4, 84  # activation_shift
     l32i a14, a4, 172 # output_shift
     l32i a15, a4, 176 # output_scale
 
@@ -32,7 +32,7 @@ dl_tie728_s8_prelu_11c:
     addi a7, a4, 176
     ee.vldbc.8.ip q3, a7, 0 # all output_scale
 
-    loopgtz a5, 0f  
+    loopgtz a5, 0f
         # neg part, alpha * input, right shift: output - alpha - input
         ee.zero.qacc
         ee.vmulas.s8.qacc.ld.ip q1, a12, 16, q0, q1
@@ -62,7 +62,7 @@ dl_tie728_s8_unaligned_prelu_11c:
     .align 4
     entry sp, 16
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
     # a5: c_div_x = n_div_x
@@ -76,7 +76,7 @@ dl_tie728_s8_unaligned_prelu_11c:
     l32i a5, a4, 96   # c_div_x
     l32i a6, a4, 136  # c_remainder
     l32i a12, a4, 80  # activation_alpha_ptr
-    l32i a13, a4, 84  # activation_shift 
+    l32i a13, a4, 84  # activation_shift
     l32i a14, a4, 172 # output_shift
     l32i a15, a4, 176 # output_scale
 

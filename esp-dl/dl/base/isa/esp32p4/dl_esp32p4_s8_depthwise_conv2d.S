@@ -1,9 +1,9 @@
 #include "dl_esp32p4_s8.S"
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_depthwise_conv2d_33c1 series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s8_depthwise_conv2d_33s1 input_v0 filter_v0 input_v1 filter_v1 input_v2 filter_v2 input_ptr filter_ptr dilation_x_offset dilation_y_offset next_33s1
     # dilation_x_offset = input_channel_with_padding * dilation_x * sizeof(T)
@@ -37,7 +37,7 @@
     esp.vmulas.s8.qacc.ld.ip \filter_v0, \filter_ptr, 16, \input_v2, \filter_v2
     esp.vld.128.xp            \input_v1,  \input_ptr,  \dilation_x_offset
 .endm
-    
+
 
 
 .macro esp32p4_s8_depthwise_conv2d_33s1_last input_v0 filter_v0 input_v1 filter_v1 input_ptr filter_ptr dilation_x_offset dilation_y_offset
@@ -67,7 +67,7 @@
 
     esp.vmulas.s8.qacc.ld.ip    \filter_v0, \filter_ptr, 16, \input_v1, \filter_v1
     # block one cycle here
-    
+
     esp.vmulas.s8.qacc                                       \input_v0, \filter_v0
 .endm
 
@@ -108,8 +108,8 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_bias:
     # t5: mac_shift
     # t6: bias_ptr
 
-    # s0: 
-    # s1: 
+    # s0:
+    # s1:
     # s8:
     # s9:
     # s10:
@@ -132,7 +132,7 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_bias:
         esp32p4_s8_128b_vector_shift_result  q3, t5
     1:  esp.vst.128.ip  q3, a0, 16
 
-    esp32p4_s8_depthwise_conv2d_33c1_bias_loop_last: 
+    esp32p4_s8_depthwise_conv2d_33c1_bias_loop_last:
         esp.zero.qacc
         esp32p4_s8_conv2d_128b_vector_bias  t6
         esp32p4_s8_depthwise_conv2d_33s1_last  q0, q1, q2, q3, a1, a3, a4, a5
@@ -193,7 +193,7 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_bias_relu:
         esp32p4_s8_128b_vector_relu  q3, s0, s1
     1:  esp.vst.128.ip  q3, a0, 16
 
-    esp32p4_s8_depthwise_conv2d_33c1_bias_relu_loop_last: 
+    esp32p4_s8_depthwise_conv2d_33c1_bias_relu_loop_last:
         esp.zero.qacc
         esp32p4_s8_conv2d_128b_vector_bias  t6
         esp32p4_s8_depthwise_conv2d_33s1_last  q0, q1, q2, q3, a1, a3, a4, a5
@@ -258,7 +258,7 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_bias_prelu:
         esp32p4_s8_128b_vector_prelu  q3, q4, s0, s1
     1:  esp.vst.128.ip  q3, a0, 16
 
-    esp32p4_s8_depthwise_conv2d_33c1_bias_prelu_loop_last: 
+    esp32p4_s8_depthwise_conv2d_33c1_bias_prelu_loop_last:
         esp.zero.qacc
         esp32p4_s8_conv2d_128b_vector_bias  t6
         esp32p4_s8_depthwise_conv2d_33s1_last  q0, q1, q2, q3, a1, a3, a4, a5
@@ -291,10 +291,10 @@ dl_esp32p4_s8_depthwise_conv2d_33c1:
     # t3: next_33s1
     # t4: c_div_x_1
     # t5: mac_shift
-    # t6: 
+    # t6:
 
-    # s0: 
-    # s1: 
+    # s0:
+    # s1:
     # s8:
     # s9:
     # s10:
@@ -315,7 +315,7 @@ dl_esp32p4_s8_depthwise_conv2d_33c1:
         esp32p4_s8_128b_vector_shift_result  q3, t5
     1:  esp.vst.128.ip  q3, a0, 16
 
-    esp32p4_s8_depthwise_conv2d_33c1_loop_last: 
+    esp32p4_s8_depthwise_conv2d_33c1_loop_last:
         esp.zero.qacc
         esp32p4_s8_depthwise_conv2d_33s1_last  q0, q1, q2, q3, a1, a3, a4, a5
         esp32p4_s8_128b_vector_shift_result  q3, t5
@@ -342,7 +342,7 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_relu:
     # t3: next_33s1
     # t4: c_div_x_1
     # t5: mac_shift
-    # t6: 
+    # t6:
 
     # s0: activation_alpha/_address
     # s1: activation_shift
@@ -373,7 +373,7 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_relu:
         esp32p4_s8_128b_vector_relu  q3, s0, s1
     1:  esp.vst.128.ip  q3, a0, 16
 
-    esp32p4_s8_depthwise_conv2d_33c1_relu_loop_last: 
+    esp32p4_s8_depthwise_conv2d_33c1_relu_loop_last:
         esp.zero.qacc
         esp32p4_s8_depthwise_conv2d_33s1_last  q0, q1, q2, q3, a1, a3, a4, a5
         esp32p4_s8_128b_vector_shift_result  q3, t5
@@ -404,7 +404,7 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_prelu:
     # t3: next_33s1
     # t4: c_div_x_1
     # t5: mac_shift
-    # t6: 
+    # t6:
 
     # s0: activation_alpha/_address
     # s1: activation_shift
@@ -435,7 +435,7 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_prelu:
         esp32p4_s8_128b_vector_prelu  q3, q4, s0, s1
     1:  esp.vst.128.ip  q3, a0, 16
 
-    esp32p4_s8_depthwise_conv2d_33c1_prelu_loop_last: 
+    esp32p4_s8_depthwise_conv2d_33c1_prelu_loop_last:
         esp.zero.qacc
         esp32p4_s8_depthwise_conv2d_33s1_last  q0, q1, q2, q3, a1, a3, a4, a5
         esp32p4_s8_128b_vector_shift_result  q3, t5
@@ -800,7 +800,7 @@ dl_esp32p4_s8_depthwise_conv2d_hwc1:
     # t3: next_hws1
     # t4: c_div_x_1
     # t5: mac_shift
-    # t6: 
+    # t6:
 
     # s0: filter_h / filter_n_offset
     # s1: filter_w
@@ -857,7 +857,7 @@ dl_esp32p4_s8_depthwise_conv2d_hwc1_relu:
     # t3: next_hws1
     # t4: c_div_x_1
     # t5: mac_shift
-    # t6: 
+    # t6:
 
     # s0: filter_h / filter_n_offset
     # s1: filter_w
@@ -924,7 +924,7 @@ dl_esp32p4_s8_depthwise_conv2d_hwc1_prelu:
     # t3: next_hws1
     # t4: c_div_x_1
     # t5: mac_shift
-    # t6: 
+    # t6:
 
     # s0: filter_h / filter_n_offset
     # s1: filter_w

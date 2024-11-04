@@ -1,7 +1,7 @@
 ############################################################################################################################################################
-#### 
+####
 #### dl_tie728_s8_max_pool2d series
-#### 
+####
 ############################################################################################################################################################
 
 #include "dl_tie728_s8.S"
@@ -22,7 +22,7 @@ dl_tie728_s8_max_pool2d_22c1:
     l32i a6, a4, 20     # input_x_offset
     l32i a11, a4, 104   # c_div_x_1
 
-    add a7, a3, a6 
+    add a7, a3, a6
     add a8, a3, a5
     add a9, a8, a6
 
@@ -36,7 +36,7 @@ dl_tie728_s8_max_pool2d_22c1:
         EE.VLD.128.IP q2, a8, 16
         EE.VST.128.IP q7, a2, 16
     0:
-    
+
     EE.VMAX.S8.LD.INCP q3, a9, q7, q0, q1
     EE.VMAX.S8 q7, q7, q2
     EE.VMAX.S8 q7, q7, q3
@@ -66,7 +66,7 @@ dl_tie728_s8_unaligned_max_pool2d_22c1:
     l32i a11, a4, 104   # c_div_x_1
     l32i a12, a4, 60    # c_remainder
 
-    add a7, a3, a6 
+    add a7, a3, a6
     add a8, a3, a5
     add a9, a8, a6
 
@@ -100,7 +100,7 @@ dl_tie728_s8_unaligned_max_pool2d_22c1:
         dl_tie728_s8_unaligned_store0 q7, a2, a14
     0:
     j dl_tie728_s8_unaligned_max_pool2d_22c1_loop_end
-    
+
 
 1:
     loopgtz a11, 0f
@@ -196,7 +196,7 @@ dl_tie728_s8_unaligned_max_pool2d_22c1_end:
 
 .macro dl_tie728_s8_max_pool2d_hw
     4:
-            
+
         EE.VLD.128.XP q0, a13, a6
         loopgtz a10, 0f
             EE.VLD.128.XP q1, a13, a6
@@ -257,7 +257,7 @@ dl_tie728_s8_max_pool2d_hwc1:
         mov a13, a7
         EE.VLD.128.IP q7, a13, 0
         mov a14, a8
-        
+
         dl_tie728_s8_max_pool2d_hw
 
         EE.VST.128.IP q7, a2, 16
@@ -337,7 +337,7 @@ dl_tie728_s8_unaligned_max_pool2d_hwc1:
     rur.sar_byte a15
 
     addi a11, a11, 1
-    
+
     beqi a9, 1, dl_tie728_s8_unaligned_max_pool2d_h1c1 #filter_width == 1
     blti a11, 1, dl_tie728_s8_unaligned_max_pool2d_hw_remainder
 
@@ -348,7 +348,7 @@ dl_tie728_s8_unaligned_max_pool2d_hwc1:
         EE.LD.128.USAR.IP q7, a13, -16
         EE.SRC.Q q7, q6, q7
         mov a14, a8
-        
+
         4:
             EE.LD.128.USAR.IP q0, a13, 16
             EE.LD.128.USAR.XP q1, a13, a6
@@ -398,11 +398,11 @@ dl_tie728_s8_unaligned_max_pool2d_hwc1:
         j 7f
 
         5:
-        EE.VST.128.IP q7, a2, 16 
-        j 7f   
+        EE.VST.128.IP q7, a2, 16
+        j 7f
         6:
         dl_tie728_s8_unaligned_store1 q7, a2
-        
+
         7:
         addi a3, a3, 16
         addi a11, a11, -1
@@ -419,7 +419,7 @@ dl_tie728_s8_unaligned_max_pool2d_hw_remainder:
     mov a14, a8
     addi a6, a6, 16
     sub a6, a6, a12
-    
+
     1:
         loopgtz a9, 0f
             EE.LD.128.USAR.XP q0, a13, a12
@@ -431,11 +431,11 @@ dl_tie728_s8_unaligned_max_pool2d_hw_remainder:
         add a7, a7, a5
         mov a13, a7
     bnez a14, 1b
-    
+
     dl_tie728_s8_store_remainder q7, a8, a9, a10, a11, a2, a12
 dl_tie728_s8_unaligned_max_pool2d_hw_remainder_end:
 
-    retw 
+    retw
 
 
 dl_tie728_s8_unaligned_max_pool2d_h1c1:
@@ -448,7 +448,7 @@ dl_tie728_s8_unaligned_max_pool2d_h1c1:
         EE.LD.128.USAR.IP q6, a13, 16
         EE.VLD.128.XP q7, a13, a5
         EE.SRC.Q q7, q6, q7
-        
+
         loopgtz a8, 0f
             EE.LD.128.USAR.IP q0, a13, 16
             EE.LD.128.USAR.XP q1, a13, a5
@@ -462,8 +462,8 @@ dl_tie728_s8_unaligned_max_pool2d_h1c1:
         dl_tie728_s8_unaligned_store0 q7, a2, a14
         j 3f
         1:
-        EE.VST.128.IP q7, a2, 16 
-        j 3f   
+        EE.VST.128.IP q7, a2, 16
+        j 3f
         2:
         dl_tie728_s8_unaligned_store1 q7, a2
 
@@ -483,14 +483,14 @@ dl_tie728_s8_unaligned_max_pool2d_h1_remainder:
     EE.LD.128.USAR.XP q6, a13, a12
     EE.VLD.128.XP q7, a13, a5
     EE.SRC.Q q7, q6, q7
-    
+
     loopgtz a8, 0f
         EE.LD.128.USAR.XP q0, a13, a12
         EE.VLD.128.XP q1, a13, a5
         EE.SRC.Q q0, q0, q1
         EE.VMAX.S8 q7, q7, q0
     0:
-        
+
     dl_tie728_s8_store_remainder q7, a8, a9, a10, a11, a2, a12
 
 dl_tie728_s8_unaligned_max_pool2d_h1_remainder_end:

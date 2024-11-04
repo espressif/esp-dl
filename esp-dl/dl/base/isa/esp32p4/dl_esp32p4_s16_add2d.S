@@ -2,9 +2,9 @@
 #include "dl_esp32p4_common.S"
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s16_add2d_11c series
-#### 
+####
 ############################################################################################################################################################
 
 .macro dl_esp32p4_s16_rescale_add_rescale_output input0, input1, output, output_scale, output_shift
@@ -24,7 +24,7 @@ dl_esp32p4_s16_add2d_11c:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int16_t *output_ptr  
+    # a0: int16_t *output_ptr
     # a1: int16_t *input0_ptr
     # a2: int16_t *input1_ptr
     # a3: void *args
@@ -65,7 +65,7 @@ dl_esp32p4_s16_add2d_11c:
     esp.vst.128.ip q5, a0, 16
     esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
     ret
-3: 
+3:
     esp.vld.128.ip q0, a1, 16
     esp.vadd.s16.ld.incp q1, a2, q5, q2, q3
     esp.vst.128.ip q5, a0, 16
@@ -106,7 +106,7 @@ dl_esp32p4_s16_rescale_add2d_11c:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int16_t *output_ptr  
+    # a0: int16_t *output_ptr
     # a1: int16_t *input0_ptr
     # a2: int16_t *input1_ptr
     # a3: void *args
@@ -119,7 +119,7 @@ dl_esp32p4_s16_rescale_add2d_11c:
     lw a5, 88(a3)
     lw t3, 96(a3)
     lw t4, 92(a3)
-    
+
     li t0, 1
     beq t3, t0, dl_esp32p4_s16_rescale_add2d_output
 
@@ -190,7 +190,7 @@ dl_esp32p4_s16_add2d_11c_relu:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int16_t *output_ptr  
+    # a0: int16_t *output_ptr
     # a1: int16_t *input0_ptr
     # a2: int16_t *input1_ptr
     # a3: void *args
@@ -238,7 +238,7 @@ dl_esp32p4_s16_add2d_11c_relu:
     esp.vst.128.ip q5, a0, 16
     esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
     ret
-3: 
+3:
     esp.vld.128.ip q0, a1, 16
     esp.vadd.s16.ld.incp q1, a2, q5, q2, q3
     esp.vrelu.s16 q5, s8, s9
@@ -283,7 +283,7 @@ dl_esp32p4_s16_rescale_add2d_11c_relu:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int16_t *output_ptr  
+    # a0: int16_t *output_ptr
     # a1: int16_t *input0_ptr
     # a2: int16_t *input1_ptr
     # a3: void *args
@@ -300,7 +300,7 @@ dl_esp32p4_s16_rescale_add2d_11c_relu:
     lw t4, 92(a3)
     lw s8, 52(a3)
     lw s9, 60(a3)
-    
+
     li t0, 1
     beq t3, t0, dl_esp32p4_s16_rescale_add2d_output_relu
 
@@ -375,7 +375,7 @@ dl_esp32p4_s16_add2d_11c_prelu:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int16_t *output_ptr  
+    # a0: int16_t *output_ptr
     # a1: int16_t *input0_ptr
     # a2: int16_t *input1_ptr
     # a3: void *args
@@ -427,7 +427,7 @@ dl_esp32p4_s16_add2d_11c_prelu:
     esp.vst.128.ip q5, a0, 16
     esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
     ret
-3: 
+3:
     esp.vld.128.ip q0, a1, 16
     esp.vld.128.ip q6, s8, 16
     esp.vadd.s16.ld.incp q1, a2, q5, q2, q3
@@ -476,7 +476,7 @@ dl_esp32p4_s16_rescale_add2d_11c_prelu:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int16_t *output_ptr  
+    # a0: int16_t *output_ptr
     # a1: int16_t *input0_ptr
     # a2: int16_t *input1_ptr
     # a3: void *args
@@ -493,7 +493,7 @@ dl_esp32p4_s16_rescale_add2d_11c_prelu:
     lw t4, 92(a3)
     lw s8, 56(a3)
     lw s9, 60(a3)
-    
+
     li t0, 1
     beq t3, t0, dl_esp32p4_s16_rescale_add2d_output_prelu
 
@@ -568,9 +568,9 @@ dl_esp32p4_s16_rescale_add2d_output_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s16_unaligned_add2d_11c series
-#### 
+####
 ############################################################################################################################################################
 
     .align 2
@@ -582,7 +582,7 @@ dl_esp32p4_s16_unaligned_add2d_11c:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int16_t *output_ptr   
+    # a0: int16_t *output_ptr
     # a1: int16_t *input0_ptr
     # a2: int16_t *input1_ptr
     # a3: void *args
@@ -604,7 +604,7 @@ dl_esp32p4_s16_unaligned_add2d_11c:
     esp.movx.r.sar.bytes s1
 
     bltz a4, dl_esp32p4_s16_unaligned_add2d_11c_small_remainder # channel < 16
-    
+
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
@@ -708,7 +708,7 @@ dl_esp32p4_s16_unaligned_add2d_11c_small_remainder:
 dl_esp32p4_s16_unaligned_add2d_11c_remainder:
 
     beqz t5, dl_esp32p4_s16_unaligned_add2d_end
-    
+
     esp.ld.128.usar.ip q1, a1, 0
     esp.movx.w.sar.bytes t6
     esp.src.q q2, q0, q1
@@ -732,20 +732,20 @@ dl_esp32p4_s16_unaligned_add2d_end:
 dl_esp32p4_s16_unaligned_rescale_add2d_11c:
     lw t3, 96(a3) # output_scale
     lw t4, 92(a3) # output_shift
-    
+
     li t0, 1
     beq t3, t0, dl_esp32p4_s16_rescale_unaligned_add2d_output_shift
 
 
 ### rescaled to output by *scale) >> shift
-dl_esp32p4_s16_rescale_unaligned_add2d_output_scale: 
+dl_esp32p4_s16_rescale_unaligned_add2d_output_scale:
 
     sw t3, 0(sp)
     add s11, sp, x0
     esp.vldbc.16.ip q7, s11, 0 # all output_scale
 
     bltz a4, dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder # channel < 16
-    
+
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
@@ -767,7 +767,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_scale:
         dl_esp32p4_128b_unaligned_store0 q2, a0, s0
         addi t0, t0, -1
         bgtz t0, 6b
-    7: 
+    7:
 
     addi a1, a1, -16
     add a1, a1, t5
@@ -787,7 +787,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_scale:
     j dl_esp32p4_s16_rescale_unaligned_add2d_scale_remainder
 
 
-dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder:    
+dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder:
     esp.ld.128.usar.xp q0, a1, t5
     esp.movx.r.sar.bytes t6 #input0 sar
     esp.ld.128.usar.xp q3, a2, t5
@@ -795,7 +795,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder:
 
 dl_esp32p4_s16_rescale_unaligned_add2d_scale_remainder:
     beqz t5, dl_esp32p4_s16_unaligned_rescale_add2d_output_scale_end # c remainder
-    
+
     esp.ld.128.usar.ip q1, a1, 0
     esp.movx.w.sar.bytes t6
     esp.src.q q2, q0, q1
@@ -825,11 +825,11 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_shift:
     esp.vldbc.16.ip q7, s11, 0 # all 1
 
     bltz a4, dl_esp32p4_s16_rescale_unaligned_add2d_shift_small_remainder # channel < 16
-    
+
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
-    
+
     add t0, a4, x0
     blez t0, 9f
     8:
@@ -865,7 +865,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_shift:
 
     dl_esp32p4_128b_unaligned_store0 q5, a0, s1
     j dl_esp32p4_s16_rescale_unaligned_add2d_shift_remainder
-    
+
 
 
 dl_esp32p4_s16_rescale_unaligned_add2d_shift_small_remainder:
@@ -892,7 +892,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_shift_remainder:
 
     srli t5, t5, 1
     dl_esp32p4_s16_store_remainder q5, t5, s1, a0
-    
+
 dl_esp32p4_s16_unaligned_rescale_add2d_output_shift_end:
     esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
     ret
@@ -908,7 +908,7 @@ dl_esp32p4_s16_unaligned_add2d_11c_relu:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int16_t *output_ptr   
+    # a0: int16_t *output_ptr
     # a1: int16_t *input0_ptr
     # a2: int16_t *input1_ptr
     # a3: void *args
@@ -934,7 +934,7 @@ dl_esp32p4_s16_unaligned_add2d_11c_relu:
     esp.movx.r.sar.bytes s1
 
     bltz a4, dl_esp32p4_s16_unaligned_add2d_11c_small_remainder_relu # channel < 8
-    
+
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
@@ -1045,7 +1045,7 @@ dl_esp32p4_s16_unaligned_add2d_11c_small_remainder_relu:
 dl_esp32p4_s16_unaligned_add2d_11c_remainder_relu:
 
     beqz t5, dl_esp32p4_s16_unaligned_add2d_end_relu
-    
+
     esp.ld.128.usar.ip q1, a1, 0
     esp.movx.w.sar.bytes t6
     esp.src.q q2, q0, q1
@@ -1069,20 +1069,20 @@ dl_esp32p4_s16_unaligned_add2d_end_relu:
 dl_esp32p4_s16_unaligned_rescale_add2d_11c_relu:
     lw t3, 96(a3) # output_scale
     lw t4, 92(a3) # output_shift
-    
+
     li t0, 1
     beq t3, t0, dl_esp32p4_s16_rescale_unaligned_add2d_output_shift_relu
 
 
 ### rescaled to output by *scale) >> shift
-dl_esp32p4_s16_rescale_unaligned_add2d_output_scale_relu: 
+dl_esp32p4_s16_rescale_unaligned_add2d_output_scale_relu:
 
     sw t3, 0(sp)
     add s11, sp, x0
     esp.vldbc.16.ip q7, s11, 0 # all output_scale
 
     bltz a4, dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder_relu # channel < 16
-    
+
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
@@ -1104,7 +1104,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_scale_relu:
         dl_esp32p4_128b_unaligned_store0 q2, a0, s0
         addi t0, t0, -1
         bgtz t0, 6b
-    7: 
+    7:
 
     addi a1, a1, -16
     add a1, a1, t5
@@ -1125,7 +1125,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_scale_relu:
     j dl_esp32p4_s16_rescale_unaligned_add2d_scale_remainder_relu
 
 
-dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder_relu:    
+dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder_relu:
     esp.ld.128.usar.xp q0, a1, t5
     esp.movx.r.sar.bytes t6 #input0 sar
     esp.ld.128.usar.xp q3, a2, t5
@@ -1133,7 +1133,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder_relu:
 
 dl_esp32p4_s16_rescale_unaligned_add2d_scale_remainder_relu:
     beqz t5, dl_esp32p4_s16_unaligned_rescale_add2d_output_scale_end_relu # c remainder
-    
+
     esp.ld.128.usar.ip q1, a1, 0
     esp.movx.w.sar.bytes t6
     esp.src.q q2, q0, q1
@@ -1164,11 +1164,11 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_shift_relu:
     esp.vldbc.16.ip q7, s11, 0 # all 1
 
     bltz a4, dl_esp32p4_s16_rescale_unaligned_add2d_shift_small_remainder_relu # channel < 16
-    
+
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
-    
+
     add t0, a4, x0
     blez t0, 9f
     8:
@@ -1206,7 +1206,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_shift_relu:
     esp.vrelu.s16 q5, s8, s9
     dl_esp32p4_128b_unaligned_store0 q5, a0, s1
     j dl_esp32p4_s16_rescale_unaligned_add2d_shift_remainder_relu
-    
+
 
 
 dl_esp32p4_s16_rescale_unaligned_add2d_shift_small_remainder_relu:
@@ -1251,7 +1251,7 @@ dl_esp32p4_s16_unaligned_add2d_11c_prelu:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int16_t *output_ptr   
+    # a0: int16_t *output_ptr
     # a1: int16_t *input0_ptr
     # a2: int16_t *input1_ptr
     # a3: void *args
@@ -1277,7 +1277,7 @@ dl_esp32p4_s16_unaligned_add2d_11c_prelu:
     esp.movx.r.sar.bytes s1
 
     bltz a4, dl_esp32p4_s16_unaligned_add2d_11c_small_remainder_prelu # channel < 16
-    
+
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
@@ -1294,7 +1294,7 @@ dl_esp32p4_s16_unaligned_add2d_11c_prelu:
         esp.ld.128.usar.ip q4, a2, 16
         esp.src.q.qup q5, q3, q4
         esp.vadd.s16 q2, q2, q5
-        
+
         esp.vld.128.ip q6, s8, 16
         esp.ld.128.usar.ip q1, a1, 16
         esp.vprelu.s16 q2, q2, q6, s9
@@ -1395,7 +1395,7 @@ dl_esp32p4_s16_unaligned_add2d_11c_small_remainder_prelu:
 dl_esp32p4_s16_unaligned_add2d_11c_remainder_prelu:
 
     beqz t5, dl_esp32p4_s16_unaligned_add2d_end_prelu
-    
+
     esp.ld.128.usar.ip q1, a1, 0
     esp.movx.w.sar.bytes t6
     esp.src.q q2, q0, q1
@@ -1420,13 +1420,13 @@ dl_esp32p4_s16_unaligned_add2d_end_prelu:
 dl_esp32p4_s16_unaligned_rescale_add2d_11c_prelu:
     lw t3, 96(a3) # output_scale
     lw t4, 92(a3) # output_shift
-    
+
     li t0, 1
     beq t3, t0, dl_esp32p4_s16_rescale_unaligned_add2d_output_shift_prelu
 
 
 ### rescaled to output by *scale) >> shift
-dl_esp32p4_s16_rescale_unaligned_add2d_output_scale_prelu: 
+dl_esp32p4_s16_rescale_unaligned_add2d_output_scale_prelu:
 
     sw t3, 0(sp)
     add s11, sp, x0
@@ -1435,7 +1435,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_scale_prelu:
     # li s1, 0
 
     bltz a4, dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder_prelu # channel < 16
-    
+
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
@@ -1452,13 +1452,13 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_scale_prelu:
         esp.srcmb.s16.qacc q1, a5, 1
 
         dl_esp32p4_s16_rescale_add_rescale_output q2, q1, q2, q7, t4
-        esp.vld.128.ip q6, s8, 16 
+        esp.vld.128.ip q6, s8, 16
         esp.ld.128.usar.ip q1, a1, 16
         esp.vprelu.s16 q2, q2, q6, s9
         dl_esp32p4_128b_unaligned_store0 q2, a0, s0
         addi t0, t0, -1
         bgtz t0, 6b
-    7: 
+    7:
 
     addi a1, a1, -16
     add a1, a1, t5
@@ -1472,7 +1472,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_scale_prelu:
     esp.mov.s16.qacc q5
     esp.srcmb.s16.qacc q1, a5, 1
 
-    esp.vld.128.ip q6, s8, 16 
+    esp.vld.128.ip q6, s8, 16
     dl_esp32p4_s16_rescale_add_rescale_output q2, q1, q2, q7, t4
 
     esp.vprelu.s16 q2, q2, q6, s9
@@ -1480,7 +1480,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_scale_prelu:
     j dl_esp32p4_s16_rescale_unaligned_add2d_scale_remainder_prelu
 
 
-dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder_prelu:    
+dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder_prelu:
     esp.ld.128.usar.xp q0, a1, t5
     esp.movx.r.sar.bytes t6 #input0 sar
     esp.ld.128.usar.xp q3, a2, t5
@@ -1488,7 +1488,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_scale_small_remainder_prelu:
 
 dl_esp32p4_s16_rescale_unaligned_add2d_scale_remainder_prelu:
     beqz t5, dl_esp32p4_s16_unaligned_rescale_add2d_output_scale_end_prelu # c remainder
-    
+
     esp.ld.128.usar.ip q1, a1, 0
     esp.movx.w.sar.bytes t6
     esp.src.q q2, q0, q1
@@ -1502,7 +1502,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_scale_remainder_prelu:
 
     esp.vld.128.ip q6, s8, 16
     dl_esp32p4_s16_rescale_add_rescale_output q2, q1, q2, q7, t4
-     
+
     esp.vprelu.s16 q2, q2, q6, s9
     srli t5, t5, 1
     dl_esp32p4_s16_store_remainder q2, t5, s1, a0
@@ -1520,11 +1520,11 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_shift_prelu:
     esp.vldbc.16.ip q7, s11, 0 # all 1
 
     bltz a4, dl_esp32p4_s16_rescale_unaligned_add2d_shift_small_remainder_prelu # channel < 16
-    
+
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
-    
+
     add t0, a4, x0
     blez t0, 9f
     8:
@@ -1538,7 +1538,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_shift_prelu:
         esp.vmulas.s16.qacc q2, q7
         esp.srcmb.s16.qacc q5, t4, 1
 
-        esp.vld.128.ip q6, s8, 16 
+        esp.vld.128.ip q6, s8, 16
         esp.ld.128.usar.ip q1, a1, 16
         esp.vprelu.s16 q5, q5, q6, s9
         dl_esp32p4_128b_unaligned_store0 q5, a0, s1
@@ -1564,7 +1564,7 @@ dl_esp32p4_s16_rescale_unaligned_add2d_output_shift_prelu:
     esp.vprelu.s16 q5, q5, q6, s9
     dl_esp32p4_128b_unaligned_store0 q5, a0, s1
     j dl_esp32p4_s16_rescale_unaligned_add2d_shift_remainder_prelu
-    
+
 
 
 dl_esp32p4_s16_rescale_unaligned_add2d_shift_small_remainder_prelu:

@@ -4,9 +4,9 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_unaligned_conv2d_11cn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s8_unaligned_conv2d_11c16  input_v0, input_front_aligned, input_back_aligned, input_ptr, filter_v0, filter_v1, filter_ptr, c_div_x_1, remainder_c, tmp
     # scalar * vecter and accumulate into qacc
@@ -56,7 +56,7 @@
     esp.src.q.qup \input_v0, \input_front_aligned, \input_back_aligned
     addi \input_ptr, \input_ptr, -16
     add \input_ptr, \input_ptr, \remainder_c    #input_ptr and the end of c
-        
+
 
     esp.vsmulas.s8.qacc.ld.incp \filter_v0, \filter_ptr, \filter_v0, \input_v0, 0
     esp.vsmulas.s8.qacc.ld.incp \filter_v1, \filter_ptr, \filter_v1, \input_v0, 1
@@ -78,7 +78,7 @@
 
     beqz \remainder_c, 16f      #no c_remainder
 
-    esp.vld.128.ip \filter_v0, \filter_ptr, 16 
+    esp.vld.128.ip \filter_v0, \filter_ptr, 16
 
     esp.vld.128.ip \input_back_aligned, \input_ptr, 0
     esp.src.q \input_v0, \input_front_aligned, \input_back_aligned
@@ -311,7 +311,7 @@
 
     bltz  \c_div_x_1, 11f     // input_channel < 16
         esp.ld.128.usar.ip  \input_back, \input_ptr, 16
-        
+
         beqz  \c_div_x_1, 10f
         # esp.lp.setup  0, \c_div_x_1, 9f
         # Use the zero register as a loop counter, and the value remains zero after the loop is complete.
@@ -326,7 +326,7 @@
             esp.vmulas.s8.xacc  \filter_v, \input_v
             addi  \zero, \zero, -1
             bgtz  \zero, 9b
-            
+
         10:
         // last entire-128b
         esp.src.q.qup  \input_v, \input_front, \input_back
@@ -337,7 +337,7 @@
         esp.vmulas.s8.xacc  \filter_v, \input_v
 
         beqz  \c_remainder, 12f
-    
+
     11:
         // c_remainder > 0
         esp.ld.128.usar.xp  \input_back, \input_ptr, \c_remainder
@@ -350,7 +350,7 @@
         esp.slcxxp.2q  \filter_back, \filter_v, \c_remainder_shift, \zero
 
         esp.vmulas.s8.xacc  \filter_v, \input_v
-    
+
     12:
         addi  \input_ptr,  \input_ptr, -16
         addi  \filter_ptr, \filter_ptr, -16
@@ -395,8 +395,8 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_bias:
     # s0: output
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s8    // push stacks
@@ -406,7 +406,7 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_bias:
     lw  t6, 68(a2)       // bias
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_11cn_bias_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3            //  t3: output_sar_byte
 
         beqz  t3, esp32p4_s8_unaligned_conv2d_11cn_bias_128b
@@ -522,7 +522,7 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_bias_leakyrelu:
     lw  t6, 68(a2)      // bias
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_11cn_bias_leakyrelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3            //  t3: output_sar_byte
 
         beqz  t3, esp32p4_s8_unaligned_conv2d_11cn_bias_leakyrelu_128b
@@ -641,7 +641,7 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_bias_prelu:
     lw  t6, 68(a2)      // bias
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_11cn_bias_prelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3            //  t3: output_sar_byte
 
         beqz  t3, esp32p4_s8_unaligned_conv2d_11cn_bias_prelu_128b
@@ -737,7 +737,7 @@ dl_esp32p4_s8_unaligned_conv2d_11cn:
     # t3: output_sar_byte / moving_input_ptr
     # t4: c_remainder_shift
     # t5: zero
-    # t6: 
+    # t6:
 
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
@@ -746,8 +746,8 @@ dl_esp32p4_s8_unaligned_conv2d_11cn:
     # s0: output
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s8    // push stacks
@@ -756,7 +756,7 @@ dl_esp32p4_s8_unaligned_conv2d_11cn:
     esp32p4_s8_unaligned_conv2d_11cn_load_args  a2, a3, t0, t1, a5, a4
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_11cn_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3            //  t3: output_sar_byte
 
         beqz  t3, esp32p4_s8_unaligned_conv2d_11cn_128b
@@ -844,7 +844,7 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_leakyrelu:
     # t3: output_sar_byte / moving_input_ptr
     # t4: c_remainder_shift
     # t5: zero
-    # t6: 
+    # t6:
 
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
@@ -866,7 +866,7 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_leakyrelu:
     esp32p4_s8_unaligned_conv2d_11cn_load_args  a2, a3, t0, t1, a5, a4
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_11cn_leakyrelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3            //  t3: output_sar_byte
 
         beqz  t3, esp32p4_s8_unaligned_conv2d_11cn_leakyrelu_128b
@@ -958,7 +958,7 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_prelu:
     # t3: output_sar_byte / moving_input_ptr
     # t4: c_remainder_shift
     # t5: zero
-    # t6: 
+    # t6:
 
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
@@ -980,7 +980,7 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_prelu:
     esp32p4_s8_unaligned_conv2d_11cn_load_args  a2, a3, t0, t1, a5, a4
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_11cn_prelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3            //  t3: output_sar_byte
 
         beqz  t3, esp32p4_s8_unaligned_conv2d_11cn_prelu_128b
@@ -1056,35 +1056,35 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_unaligned_conv2d_33cn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s8_unaligned_conv2d_33c16  input_v0, input_front, input_back, input_ptr, filter_v0, filter_v1, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, temp
     esp32p4_s8_unaligned_conv2d_11c16  \input_v0, \input_front, \input_back, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c16  \input_v0, \input_front, \input_back, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c16  \input_v0, \input_front, \input_back, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c16  \input_v0, \input_front, \input_back, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c16  \input_v0, \input_front, \input_back, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c16  \input_v0, \input_front, \input_back, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c16  \input_v0, \input_front, \input_back, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c16  \input_v0, \input_front, \input_back, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c16  \input_v0, \input_front, \input_back, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     # add  \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -1094,28 +1094,28 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_prelu:
 .macro esp32p4_s8_unaligned_conv2d_33c1  input_v0, input_front, input_back, filter_v0, filter_front, filter_back, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, c_remainder_shift, zero
     esp32p4_s8_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \c_remainder_shift, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \c_remainder_shift, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \c_remainder_shift, \zero
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \c_remainder_shift, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \c_remainder_shift, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \c_remainder_shift, \zero
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \c_remainder_shift, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \c_remainder_shift, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \c_remainder_shift, \zero
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -1158,8 +1158,8 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_bias:
     # s0: output
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s8    // push stacks
@@ -1169,9 +1169,9 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_bias:
     lw  t6, 68(a2)       // bias
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_33cn_bias_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3               #  t3: output_sar_byte
-        
+
         beqz  t3, esp32p4_s8_unaligned_conv2d_33cn_bias_128b
             li  a7, 8
             beq  t3, a7, esp32p4_s8_unaligned_conv2d_33cn_bias_64b
@@ -1286,9 +1286,9 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_bias_leakyrelu:
     lw  t6, 68(a2)      // bias
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_33cn_bias_leakyrelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3               #  t3: output_sar_byte
-        
+
         beqz  t3, esp32p4_s8_unaligned_conv2d_33cn_bias_leakyrelu_128b
             li  a7, 8
             beq  t3, a7, esp32p4_s8_unaligned_conv2d_33cn_bias_leakyrelu_64b
@@ -1406,9 +1406,9 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_bias_prelu:
     lw  t6, 68(a2)      // bias
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_33cn_bias_prelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3               #  t3: output_sar_byte
-        
+
         beqz  t3, esp32p4_s8_unaligned_conv2d_33cn_bias_prelu_128b
             li  a7, 8
             beq  t3, a7, esp32p4_s8_unaligned_conv2d_33cn_bias_prelu_64b
@@ -1504,7 +1504,7 @@ dl_esp32p4_s8_unaligned_conv2d_33cn:
     # t3: output_sar_byte / moving_input_ptr
     # t4: c_remainder_shift
     # t5: zero
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): dilation_y_offset
     # t0(not for extension instructions): c_div_x_1
@@ -1514,8 +1514,8 @@ dl_esp32p4_s8_unaligned_conv2d_33cn:
     # s0: output
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s8    // push stacks
@@ -1524,9 +1524,9 @@ dl_esp32p4_s8_unaligned_conv2d_33cn:
     esp32p4_s8_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_33cn_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3               #  t3: output_sar_byte
-        
+
         beqz  t3, esp32p4_s8_unaligned_conv2d_33cn_128b
             li  a7, 8
             beq  t3, a7, esp32p4_s8_unaligned_conv2d_33cn_64b
@@ -1613,7 +1613,7 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_leakyrelu:
     # t3: output_sar_byte / moving_input_ptr
     # t4: c_remainder_shift
     # t5: zero
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): dilation_y_offset
     # t0(not for extension instructions): c_div_x_1
@@ -1635,9 +1635,9 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_leakyrelu:
     esp32p4_s8_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_33cn_leakyrelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3               #  t3: output_sar_byte
-        
+
         beqz  t3, esp32p4_s8_unaligned_conv2d_33cn_leakyrelu_128b
             li  a7, 8
             beq  t3, a7, esp32p4_s8_unaligned_conv2d_33cn_leakyrelu_64b
@@ -1728,7 +1728,7 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_prelu:
     # t3: output_sar_byte / moving_input_ptr
     # t4: c_remainder_shift
     # t5: zero
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): dilation_y_offset
     # t0(not for extension instructions): c_div_x_1
@@ -1750,9 +1750,9 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_prelu:
     esp32p4_s8_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_33cn_prelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3               #  t3: output_sar_byte
-        
+
         beqz  t3, esp32p4_s8_unaligned_conv2d_33cn_prelu_128b
             li  a7, 8
             beq  t3, a7, esp32p4_s8_unaligned_conv2d_33cn_prelu_64b
@@ -1827,9 +1827,9 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_unaligned_conv2d_hwcn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s8_unaligned_conv2d_hwc16  input_v0, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, filter_h, filter_w, args, filter_y_offset, filter_n_offset, temp
     lw  \filter_h, 52(\args)        // filter_height
@@ -1916,8 +1916,8 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_bias:
     # s0: output
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_28_stacks_7r  s2, s3, s4, s5, s0, s1, s8
@@ -1927,7 +1927,7 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_bias:
     lw  t6, 68(a2)       // bias
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_hwcn_bias_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         lw  s3, 60(a2)              // s3: filter_y_offset
         lw  s4, 144(a2)             // s4: filter_n_offset
         esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
@@ -2054,7 +2054,7 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu:
     lw  t6, 68(a2)       // bias
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         lw  s3, 60(a2)              // s3: filter_y_offset
         lw  s4, 144(a2)             // s4: filter_n_offset
         esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
@@ -2184,7 +2184,7 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_prelu:
     lw  t6, 68(a2)       // bias
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_hwcn_bias_prelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         lw  s3, 60(a2)              // s3: filter_y_offset
         lw  s4, 144(a2)             // s4: filter_n_offset
         esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
@@ -2286,7 +2286,7 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn:
     # t3: output_sar_byte / moving_input_ptr
     # t4: c_remainder_shift
     # t5: zero
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): dilation_y_offset
     # a7(not for extension instructions): filter_h
@@ -2301,8 +2301,8 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn:
     # s0: output
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_28_stacks_7r  s2, s3, s4, s5, s0, s1, s8
@@ -2311,7 +2311,7 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn:
     esp32p4_s8_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_hwcn_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         lw  s3, 60(a2)              // s3: filter_y_offset
         lw  s4, 144(a2)             // s4: filter_n_offset
         esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
@@ -2405,7 +2405,7 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu:
     # t3: output_sar_byte / moving_input_ptr
     # t4: c_remainder_shift
     # t5: zero
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): dilation_y_offset
     # a7(not for extension instructions): filter_h
@@ -2432,7 +2432,7 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu:
     esp32p4_s8_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         lw  s3, 60(a2)              // s3: filter_y_offset
         lw  s4, 144(a2)             // s4: filter_n_offset
         esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
@@ -2530,7 +2530,7 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_prelu:
     # t3: output_sar_byte / moving_input_ptr
     # t4: c_remainder_shift
     # t5: zero
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): dilation_y_offset
     # a7(not for extension instructions): filter_h
@@ -2557,7 +2557,7 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_prelu:
     esp32p4_s8_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
 
     beqz  t1, esp32p4_s8_unaligned_conv2d_hwcn_prelu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         lw  s3, 60(a2)              // s3: filter_y_offset
         lw  s4, 144(a2)             // s4: filter_n_offset
         esp.movx.r.sar.bytes  t3    // t3: output_sar_byte

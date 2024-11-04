@@ -117,45 +117,45 @@ inline void load_depthwise_conv2d_33c1_s16(i_impl_func_s16_t &i_impl_func,
             }
         }
     } else {
-        // if (args.bias_element) {
-        //     switch (args.activation_type) {
-        //     case Linear:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias;
-        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias;
-        //         break;
-        //     case ReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_relu;
-        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
-        //         break;
-        //     case LeakyReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_relu;
-        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
-        //         break;
-        //     case PReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_prelu;
-        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu;
-        //         break;
-        //     }
-        // } else {
-        //     switch (args.activation_type) {
-        //     case Linear:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1;
-        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1;
-        //         break;
-        //     case ReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_relu;
-        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
-        //         break;
-        //     case LeakyReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_relu;
-        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
-        //         break;
-        //     case PReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_prelu;
-        //         i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_prelu;
-        //         break;
-        //     }
-        // }
+        if (args.bias_element) {
+            switch (args.activation_type) {
+            case Linear:
+                i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias;
+                i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias;
+                break;
+            case ReLU:
+                i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_relu;
+                i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
+                break;
+            case LeakyReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_relu;
+                // i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
+                break;
+            case PReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_prelu;
+                // i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu;
+                break;
+            }
+        } else {
+            switch (args.activation_type) {
+            case Linear:
+                i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1;
+                i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1;
+                break;
+            case ReLU:
+                i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_relu;
+                i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
+                break;
+            case LeakyReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_relu;
+                // i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
+                break;
+            case PReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_prelu;
+                // i_impl_func = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_prelu;
+                break;
+            }
+        }
     }
 #elif CONFIG_TIE728_BOOST
     if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
@@ -319,37 +319,37 @@ inline void load_depthwise_conv2d_hwc1_s16(i_impl_func_s16_t &i_impl_func,
             }
         }
     } else {
-        // if (args.bias_element) {
-        //     switch (args.activation_type) {
-        //     case Linear:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias;
-        //         break;
-        //     case ReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
-        //         break;
-        //     case LeakyReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
-        //         break;
-        //     case PReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu;
-        //         break;
-        //     }
-        // } else {
-        //     switch (args.activation_type) {
-        //     case Linear:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1;
-        //         break;
-        //     case ReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
-        //         break;
-        //     case LeakyReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
-        //         break;
-        //     case PReLU:
-        //         i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_prelu;
-        //         break;
-        //     }
-        // }
+        if (args.bias_element) {
+            switch (args.activation_type) {
+            case Linear:
+                i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias;
+                break;
+            case ReLU:
+                i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
+                break;
+            case LeakyReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu;
+                break;
+            case PReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu;
+                break;
+            }
+        } else {
+            switch (args.activation_type) {
+            case Linear:
+                i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1;
+                break;
+            case ReLU:
+                i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
+                break;
+            case LeakyReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu;
+                break;
+            case PReLU:
+                // i_impl_func_sp = dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_prelu;
+                break;
+            }
+        }
     }
 
     i_impl_func = i_impl_func_sp;

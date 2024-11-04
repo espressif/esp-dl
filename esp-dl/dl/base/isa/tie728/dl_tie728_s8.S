@@ -18,7 +18,7 @@
 .endm
 
 
-.macro dl_tie728_s8_last_store_data tmp_q, output_v, tmp_a, c_remainder_bytes    
+.macro dl_tie728_s8_last_store_data tmp_q, output_v, tmp_a, c_remainder_bytes
     movi \tmp_a, 15
     sub  \tmp_a, \tmp_a, \c_remainder_bytes
     movi \c_remainder_bytes, 0
@@ -28,7 +28,7 @@
 
 
 .macro dl_tie728_s8_store_remainder output_v, tmp_a0, tmp_a1, tmp_a2, tmp_a3, output_ptr, remainder_c
-    EE.MOVI.32.A \output_v, \tmp_a0, 0  
+    EE.MOVI.32.A \output_v, \tmp_a0, 0
 615: # remainder_c == 15, 0x1111
     bbci \remainder_c, 3, 607f
     EE.MOVI.32.A \output_v, \tmp_a1, 1
@@ -103,7 +103,7 @@
     s32i \tmp_a0, \output_ptr, 0
     s16i \tmp_a1, \output_ptr, 4
     srai \tmp_a1, \tmp_a1, 16
-    s8i \tmp_a1, \output_ptr, 6 
+    s8i \tmp_a1, \output_ptr, 6
     j 616f
 
 606:  # remainder == 6, 0x110
@@ -140,7 +140,7 @@
     s8i \tmp_a0, \output_ptr, 0
 
 616:
-.endm    
+.endm
 
 
 ############################################################################################################################################################
@@ -213,7 +213,7 @@
     movi \tmp, 20
     EE.SRCMB.S16.QACC \tmp_q1, \tmp, 0 # \tmp_q1: even 16 bit
 
-    l16si \tmp, a1, 5 #re-arrange qacc odd 16 bit 
+    l16si \tmp, a1, 5 #re-arrange qacc odd 16 bit
     s16i \tmp, a1, 2
     l16si \tmp, a1, 10
     s16i \tmp, a1, 4
@@ -229,9 +229,9 @@
     s16i \tmp, a1, 14
 
     EE.VLD.128.IP \output_v, a1, 0 # \output_v: odd 16 bit
-   
+
     EE.VZIP.16 \output_v, \tmp_q1
-    
+
     movi \tmp, 11
     ssr \tmp
 
@@ -242,7 +242,7 @@
     EE.VLD.128.IP \scale_q, \scale_factor, 16
     EE.MOV.S16.QACC \output_v
     EE.VMUL.S16 \tmp_q1, \tmp_q1, \scale_q
-    
+
     EE.SRCMB.S8.QACC \output_v, \tmp, 0
     EE.MOV.S16.QACC \tmp_q1
     EE.SRCMB.S8.QACC \tmp_q1, \tmp, 0
@@ -264,7 +264,7 @@
     movi \tmp, 20
     EE.SRCMB.S16.QACC \tmp_q1, \tmp, 0 # \tmp_q1: even 16 bit
 
-    l16si \tmp, a1, 5 #re-arrange qacc odd 16 bit 
+    l16si \tmp, a1, 5 #re-arrange qacc odd 16 bit
     s16i \tmp, a1, 2
     l16si \tmp, a1, 10
     s16i \tmp, a1, 4
@@ -280,19 +280,19 @@
     s16i \tmp, a1, 14
 
     EE.VLD.128.IP \output_v, a1, 0 # \output_v: odd 16 bit
-   
+
     EE.VZIP.16 \output_v, \tmp_q1
 
 
     EE.VLD.128.IP \scale_q, \bias_ptr, 16 # load bias
     movi \tmp, 11
     EE.VADDS.S16 \output_v, \output_v, \scale_q # add int16 bias with exponent(input+filter-4)
-    
+
 
     EE.VLD.128.IP \scale_q, \bias_ptr, 16 # load bias
     ssr \tmp
     EE.VADDS.S16 \tmp_q1, \tmp_q1, \scale_q
-    
+
 
     EE.VLD.128.IP \scale_q, \scale_factor, 16 # scale factor
     movi \tmp, 0
@@ -301,7 +301,7 @@
     EE.VLD.128.IP \scale_q, \scale_factor, 16
     EE.MOV.S16.QACC \output_v
     EE.VMUL.S16 \tmp_q1, \tmp_q1, \scale_q
-    
+
     EE.SRCMB.S8.QACC \output_v, \tmp, 0
     EE.MOV.S16.QACC \tmp_q1
     EE.SRCMB.S8.QACC \tmp_q1, \tmp, 0
@@ -332,7 +332,7 @@
 
 
 
-.macro tie728_s8_conv2d_bias_relu output_v bias_v bias_ptr activation_alpha activation_shift  
+.macro tie728_s8_conv2d_bias_relu output_v bias_v bias_ptr activation_alpha activation_shift
     EE.VLD.128.IP \bias_v, \bias_ptr, 16 # load bias
 
     # bias
@@ -366,7 +366,7 @@
 
 
 
-.macro tie728_s8_conv2d_prelu output_v activation_v activation_alpha_ptr activation_shift 
+.macro tie728_s8_conv2d_prelu output_v activation_v activation_alpha_ptr activation_shift
     EE.VLD.128.IP   \activation_v,    \activation_alpha_ptr,   16 # load PReLU alph
 
     # PReLU
@@ -377,9 +377,9 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_unaligned_conv2d / depthwise_conv2d
-#### 
+####
 ############################################################################################################################################################
 
 
@@ -396,7 +396,7 @@
 2: // bias
     beqz \bias_ptr, 3f // no bias
         addi \operation_type, \operation_type, 3
-        
+
 3: // activation     dl_tie728_s8_unaligned_conv2d_activation
     bltz \activation_shift, 5f // no activation
 

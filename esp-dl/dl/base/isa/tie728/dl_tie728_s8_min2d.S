@@ -2,11 +2,11 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_min2d_11c series
-#### 
+####
 ############################################################################################################################################################
-    
+
 
     .align 4
     .text
@@ -17,7 +17,7 @@ dl_tie728_s8_min2d_11c:
     .align 4
     entry sp, 16
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -44,9 +44,9 @@ dl_tie728_s8_min2d_11c:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_unaligned_min2d_11c series
-#### 
+####
 ############################################################################################################################################################
     .align 4
     .text
@@ -57,7 +57,7 @@ dl_tie728_s8_unaligned_min2d_11c:
     .align 4
     entry sp, 16
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -70,10 +70,10 @@ dl_tie728_s8_unaligned_min2d_11c:
 
 
     EE.LD.128.USAR.IP q5, a2, 0 #get output_ptr sar_byte
-    rur.sar_byte a13 
+    rur.sar_byte a13
 
     blti a6, 0, dl_tie718_s8_unaligned_min2d_11c_small_remainder # channel < 16
-    
+
 
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
@@ -95,11 +95,11 @@ dl_tie728_s8_unaligned_min2d_11c:
     0:
     addi a3, a3, -16
     add a3, a3, a7
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMIN.S8 q2, q2, q5
@@ -107,7 +107,7 @@ dl_tie728_s8_unaligned_min2d_11c:
     j dl_tie718_s8_unaligned_min2d_11c_remainder
 
 dl_tie718_s8_unaligned_min2d_11c_0:
-    
+
     loopgtz a6, 1f
         EE.SRC.Q.QUP q2, q0, q1
 
@@ -120,11 +120,11 @@ dl_tie718_s8_unaligned_min2d_11c_0:
     1:
     addi a3, a3, -16
     add a3, a3, a7
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMIN.S8 q2, q2, q5
@@ -132,7 +132,7 @@ dl_tie718_s8_unaligned_min2d_11c_0:
     j dl_tie718_s8_unaligned_min2d_11c_remainder
 
 dl_tie718_s8_unaligned_min2d_11c_1:
-    
+
     loopgtz a6, 2f
         EE.SRC.Q.QUP q2, q0, q1
 
@@ -145,11 +145,11 @@ dl_tie718_s8_unaligned_min2d_11c_1:
     2:
     addi a3, a3, -16
     add a3, a3, a7
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMIN.S8 q2, q2, q5
@@ -183,5 +183,3 @@ dl_tie718_s8_unaligned_min2d_11c_remainder:
 
 dl_tie728_s8_unaligned_min2d_11c_end:
     retw
-
-

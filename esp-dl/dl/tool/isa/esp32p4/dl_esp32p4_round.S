@@ -6,16 +6,16 @@
 dl_esp32p4_cfg_round:
 
     # a0: int8_t round_mode
-    # a1: 
-    # a2: 
+    # a1:
+    # a2:
 
-    # a3: 
-    # a4: 
-    # a5: 
-    # t3: 
-    # t4: 
-    # t5: 
-    # t6: 
+    # a3:
+    # a4:
+    # a5:
+    # t3:
+    # t4:
+    # t5:
+    # t6:
 
     # s0:
     # s1:
@@ -42,16 +42,16 @@ dl_esp32p4_round_half_even:
     # fa0: float value
 
     # a0: int32_t ret
-    # a1: 
-    # a2: 
+    # a1:
+    # a2:
 
-    # a3: 
-    # a4: 
-    # a5: 
-    # t3: 
-    # t4: 
-    # t5: 
-    # t6: 
+    # a3:
+    # a4:
+    # a5:
+    # t3:
+    # t4:
+    # t5:
+    # t6:
 
     # s0:
     # s1:

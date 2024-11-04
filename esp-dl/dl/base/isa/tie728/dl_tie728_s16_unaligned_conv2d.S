@@ -1,9 +1,9 @@
 #include "dl_tie728_s16_unaligned.S"
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s16_unaligned_conv2d_11cn series
-#### 
+####
 ############################################################################################################################################################
 .macro tie728_s16_unaligned_conv2d_11c8 input_v, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder
     # input_v:     8 input elements
@@ -33,7 +33,7 @@
         EE.VSMULAS.S16.QACC.LD.INCP \filter_v1, \filter_ptr, \filter_v1, \input_v, 7
 8:
     # last entire-128b
-    EE.SRC.Q.QUP \input_v, \input_front, \input_back 
+    EE.SRC.Q.QUP \input_v, \input_front, \input_back
     EE.VSMULAS.S16.QACC.LD.INCP \filter_v0, \filter_ptr, \filter_v0, \input_v, 0
     EE.VSMULAS.S16.QACC.LD.INCP \filter_v1, \filter_ptr, \filter_v1, \input_v, 1
     EE.VSMULAS.S16.QACC.LD.INCP \filter_v0, \filter_ptr, \filter_v0, \input_v, 2
@@ -190,7 +190,7 @@ dl_tie728_s16_unaligned_conv2d_11cn:
 
     blti a9, 1, tie728_s16_unaligned_conv2d_11cn_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_11cn_n_div_x:
@@ -235,7 +235,7 @@ dl_tie728_s16_unaligned_conv2d_11cn:
     tie728_s16_unaligned_conv2d_11cn_n_remainder:
         l32i a9, a4, 140       # a9: n_remainder
         beqz a9, tie728_s16_unaligned_conv2d_11cn_n_remainder_end
-        
+
         movi a10, 15
         sub  a10, a10, a7       # a10: 15 - c_remainder
         movi a11,  0            # a11: activation_shift = zero
@@ -279,7 +279,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_relu:
 
     blti a9, 1, tie728_s16_unaligned_conv2d_11cn_relu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_11cn_relu_n_div_x:
@@ -324,7 +324,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_relu:
     tie728_s16_unaligned_conv2d_11cn_relu_n_remainder:
         l32i a9, a4, 140       # a9: n_remainder
         beqz a9, tie728_s16_unaligned_conv2d_11cn_relu_n_remainder_end
-        
+
         movi a10, 15
         sub  a10, a10, a7       # a10: 15 - c_remainder
 
@@ -367,7 +367,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_leakyrelu:
 
     blti a9, 1, tie728_s16_unaligned_conv2d_11cn_leakyrelu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_11cn_leakyrelu_n_div_x:
@@ -412,7 +412,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_leakyrelu:
     tie728_s16_unaligned_conv2d_11cn_leakyrelu_n_remainder:
         l32i a9, a4, 140       # a9: n_remainder
         beqz a9, tie728_s16_unaligned_conv2d_11cn_leakyrelu_n_remainder_end
-        
+
         ssr  a11                # ssr: activation_shift
         movi a11, 15
         sub  a11, a11, a7       # a11: 15 - c_remainder
@@ -457,7 +457,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_prelu:
 
     blti a9, 1, tie728_s16_unaligned_conv2d_11cn_prelu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_11cn_prelu_n_div_x:
@@ -502,7 +502,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_prelu:
     tie728_s16_unaligned_conv2d_11cn_prelu_n_remainder:
         l32i a9, a4, 140       # a9: n_remainder
         beqz a9, tie728_s16_unaligned_conv2d_11cn_prelu_n_remainder_end
-        
+
         ssr  a11                # ssr: activation_shift
         movi a11, 15
         sub  a11, a11, a7       # a11: 15 - c_remainder
@@ -546,7 +546,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias:
 
     blti a9, 1, tie728_s16_unaligned_conv2d_11cn_bias_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_11cn_bias_n_div_x:
@@ -591,7 +591,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias:
     tie728_s16_unaligned_conv2d_11cn_bias_n_remainder:
         l32i a9, a4, 140       # a9: n_remainder
         beqz a9, tie728_s16_unaligned_conv2d_11cn_bias_n_remainder_end
-        
+
         movi a11, 15
         sub  a11, a11, a7       # a11: 15 - c_remainder
         movi a12,  0            # a12: zero
@@ -636,7 +636,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_relu:
 
     blti a9, 1, tie728_s16_unaligned_conv2d_11cn_bias_relu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_11cn_bias_relu_n_div_x:
@@ -681,7 +681,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_relu:
     tie728_s16_unaligned_conv2d_11cn_bias_relu_n_remainder:
         l32i a9, a4, 140       # a9: n_remainder
         beqz a9, tie728_s16_unaligned_conv2d_11cn_bias_relu_n_remainder_end
-        
+
         movi a11, 15
         sub  a11, a11, a7       # a11: 15 - c_remainder
 
@@ -725,7 +725,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu:
 
     blti a9, 1, tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu_n_div_x:
@@ -770,7 +770,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu:
     tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu_n_remainder:
         l32i a9, a4, 140       # a9: n_remainder
         beqz a9, tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu_n_remainder_end
-        
+
         ssr  a12                # ssr: activation_shift
         movi a12, 15
         sub  a12, a12, a7       # a12: 15 - c_remainder
@@ -816,7 +816,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu:
 
     blti a9, 1, tie728_s16_unaligned_conv2d_11cn_bias_prelu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_11cn_bias_prelu_n_div_x:
@@ -861,7 +861,7 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu:
     tie728_s16_unaligned_conv2d_11cn_bias_prelu_n_remainder:
         l32i a9, a4, 140       # a9: n_remainder
         beqz a9, tie728_s16_unaligned_conv2d_11cn_bias_prelu_n_remainder_end
-        
+
         ssr  a12                # ssr: activation_shift
         movi a12, 15
         sub  a12, a12, a7       # a12: 15 - c_remainder
@@ -895,35 +895,35 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s16_unaligned_conv2d_33cn series
-#### 
+####
 ############################################################################################################################################################
 .macro tie728_s16_unaligned_conv2d_33c8 input_v0, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset
     tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -931,28 +931,28 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu:
 .macro tie728_s16_unaligned_conv2d_33c1 input_v0, input_front, input_back, filter_v0, filter_front, filter_back, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, temp, zero
     tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -982,7 +982,7 @@ dl_tie728_s16_unaligned_conv2d_33cn:
 
     blti a11, 1, tie728_s16_unaligned_conv2d_33cn_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_33cn_n_div_x:
@@ -1027,7 +1027,7 @@ dl_tie728_s16_unaligned_conv2d_33cn:
     tie728_s16_unaligned_conv2d_33cn_n_remainder:
         l32i a11, a4, 140       # a11: n_remainder
         beqz a11, tie728_s16_unaligned_conv2d_33cn_n_remainder_end
-        
+
         movi a12, 15
         sub  a12, a12, a7       # a12: 15 - c_remainder
         movi a13,  0            # a13: activation_shift = zero
@@ -1073,7 +1073,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_relu:
 
     blti a11, 1, tie728_s16_unaligned_conv2d_33cn_relu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_33cn_relu_n_div_x:
@@ -1118,7 +1118,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_relu:
     tie728_s16_unaligned_conv2d_33cn_relu_n_remainder:
         l32i a11, a4, 140       # a11: n_remainder
         beqz a11, tie728_s16_unaligned_conv2d_33cn_relu_n_remainder_end
-        
+
         movi a12, 15
         sub  a12, a12, a7       # a12: 15 - c_remainder
 
@@ -1163,7 +1163,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_leakyrelu:
 
     blti a11, 1, tie728_s16_unaligned_conv2d_33cn_leakyrelu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_33cn_leakyrelu_n_div_x:
@@ -1208,7 +1208,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_leakyrelu:
     tie728_s16_unaligned_conv2d_33cn_leakyrelu_n_remainder:
         l32i a11, a4, 140       # a11: n_remainder
         beqz a11, tie728_s16_unaligned_conv2d_33cn_leakyrelu_n_remainder_end
-        
+
         ssr  a13                # ssr: activation_shift
         movi a13, 15
         sub  a13, a13, a7       # a13: 15 - c_remainder
@@ -1255,7 +1255,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_prelu:
 
     blti a11, 1, tie728_s16_unaligned_conv2d_33cn_prelu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_33cn_prelu_n_div_x:
@@ -1300,7 +1300,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_prelu:
     tie728_s16_unaligned_conv2d_33cn_prelu_n_remainder:
         l32i a11, a4, 140       # a11: n_remainder
         beqz a11, tie728_s16_unaligned_conv2d_33cn_prelu_n_remainder_end
-        
+
         ssr  a13                # ssr: activation_shift
         movi a13, 15
         sub  a13, a13, a7       # a13: 15 - c_remainder
@@ -1346,7 +1346,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias:
 
     blti a11, 1, tie728_s16_unaligned_conv2d_33cn_bias_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_33cn_bias_n_div_x:
@@ -1391,7 +1391,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias:
     tie728_s16_unaligned_conv2d_33cn_bias_n_remainder:
         l32i a11, a4, 140       # a11: n_remainder
         beqz a11, tie728_s16_unaligned_conv2d_33cn_bias_n_remainder_end
-        
+
         movi a13, 15
         sub  a13, a13, a7       # a13: 15 - c_remainder
 
@@ -1438,7 +1438,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_relu:
 
     blti a11, 1, tie728_s16_unaligned_conv2d_33cn_bias_relu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_33cn_bias_relu_n_div_x:
@@ -1483,7 +1483,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_relu:
     tie728_s16_unaligned_conv2d_33cn_bias_relu_n_remainder:
         l32i a11, a4, 140       # a11: n_remainder
         beqz a11, tie728_s16_unaligned_conv2d_33cn_bias_relu_n_remainder_end
-        
+
         movi a13, 15
         sub  a13, a13, a7       # a13: 15 - c_remainder
 
@@ -1530,7 +1530,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu:
 
     blti a11, 1, tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu_n_div_x:
@@ -1575,7 +1575,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu:
     tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu_n_remainder:
         l32i a11, a4, 140       # a11: n_remainder
         beqz a11, tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu_n_remainder_end
-        
+
         movi a10, 15
         sub  a10, a10, a7       # a10: 15 - c_remainder
         ssr  a14                # ssr: activation_shift
@@ -1626,7 +1626,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
 
     blti a11, 1, tie728_s16_unaligned_conv2d_33cn_bias_prelu_n_remainder
 
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            #  a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_33cn_bias_prelu_n_div_x:
@@ -1671,7 +1671,7 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
     tie728_s16_unaligned_conv2d_33cn_bias_prelu_n_remainder:
         l32i a11, a4, 140       # a11: n_remainder
         beqz a11, tie728_s16_unaligned_conv2d_33cn_bias_prelu_n_remainder_end
-        
+
         movi a10, 15
         sub  a10, a10, a7       # a10: 15 - c_remainder
         ssr  a14                # ssr: activation_shift
@@ -1703,9 +1703,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s16_unaligned_conv2d_hwcn series
-#### 
+####
 ############################################################################################################################################################
 .macro tie728_s16_unaligned_conv2d_hwc8 input_v0, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, filter_h, filter_w, args, filter_offset_q
     l32i \filter_h, \args,  52  # filter_height
@@ -1720,14 +1720,14 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
             bgei \filter_w, 2, 9b
         11:
         tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
-        
+
         EE.MOVI.32.A \filter_offset_q, \filter_w, 1
         add \filter_ptr, \filter_ptr, \filter_w
         add \input_ptr, \input_ptr, \dilation_y_offset
 
         addi \filter_h, \filter_h, -1
         bnez \filter_h, 10b
-    
+
     EE.MOVI.32.A \filter_offset_q, \filter_h, 2
     add \filter_ptr, \filter_ptr, \filter_h
 .endm
@@ -1745,14 +1745,14 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
             bgei \filter_w, 2, 9b
         11:
         tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
-        
+
         EE.MOVI.32.A \filter_offset_q, \filter_w, 1
         add \filter_ptr, \filter_ptr, \filter_w
         add \input_ptr, \input_ptr, \dilation_y_offset
 
         addi \filter_h, \filter_h, -1
         bnez \filter_h, 10b
-    
+
     EE.MOVI.32.A \filter_offset_q, \filter_h, 2
     add \filter_ptr, \filter_ptr, \filter_h
 .endm
@@ -1786,7 +1786,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn:
     l32i a13, a4, 64                # a13: mac_shift         = output.exponent - filter.exponent - input.exponent
 
     blti a12, 1, tie728_s16_unaligned_conv2d_hwcn_n_remainder
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15                # a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_hwcn_n_div_x:
@@ -1837,7 +1837,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn:
         EE.MOVI.32.Q q7, a5, 1
         EE.MOVI.32.Q q7, a15, 2
         l32i a5, a4,  168 # filter_ptr unaligned
-        
+
         movi a13, 15
         sub  a13, a13, a7           # a13: 15 - c_remainder
         movi a14,  0                # a14: zero
@@ -1855,7 +1855,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn:
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_n_remainder_loop
 
         tie728_s16_unaligned_conv2d_hwcn_n_remainder_end:
-    
+
     retw
 
 
@@ -1888,7 +1888,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_relu:
     movi a14, 0                     # a14: zero
 
     blti a12, 1, tie728_s16_unaligned_conv2d_hwcn_relu_n_remainder
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15                # a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_hwcn_relu_n_div_x:
@@ -1945,7 +1945,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_relu:
         EE.MOVI.32.Q q7, a5, 1
         EE.MOVI.32.Q q7, a15, 2
         l32i a5, a4,  168 # filter_ptr unaligned
-        
+
         movi a13, 15
         sub  a13, a13, a7           # a13: 15 - c_remainder
 
@@ -1962,7 +1962,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_relu:
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_relu_n_remainder_loop
 
         tie728_s16_unaligned_conv2d_hwcn_relu_n_remainder_end:
-    
+
     retw
 
 
@@ -1995,7 +1995,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_leakyrelu:
     l32i a14, a4,  84               # a14: activation_shift
 
     blti a12, 1, tie728_s16_unaligned_conv2d_hwcn_leakyrelu_n_remainder
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15                # a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_hwcn_leakyrelu_n_div_x:
@@ -2052,7 +2052,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_leakyrelu:
         EE.MOVI.32.Q q7, a5, 1
         EE.MOVI.32.Q q7, a15, 2
         l32i a5, a4,  168 # filter_ptr unaligned
-        
+
         EE.MOVI.32.Q q6, a13, 0     # q6[0]: activation_alpha
         movi a13, 15
         sub  a13, a13, a7           # a13: 15 - c_remainder
@@ -2073,7 +2073,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_leakyrelu:
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_leakyrelu_n_remainder_loop
 
         tie728_s16_unaligned_conv2d_hwcn_leakyrelu_n_remainder_end:
-    
+
     retw
 
 
@@ -2106,7 +2106,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_prelu:
     l32i a14, a4,  84           # a14: activation_shift
 
     blti a12, 1, tie728_s16_unaligned_conv2d_hwcn_prelu_n_remainder
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            # a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_hwcn_prelu_n_div_x:
@@ -2163,7 +2163,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_prelu:
         EE.MOVI.32.Q q7, a5, 1
         EE.MOVI.32.Q q7, a15, 2
         l32i a5, a4,  168 # filter_ptr unaligned
-        
+
         EE.MOVI.32.Q q6, a13, 0     # q6[0]: activation_alpha_ptr
         movi a13, 15
         sub  a13, a13, a7           # a13: 15 - c_remainder
@@ -2185,7 +2185,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_prelu:
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_prelu_n_remainder_loop
 
         tie728_s16_unaligned_conv2d_hwcn_prelu_n_remainder_end:
-    
+
     retw
 
 
@@ -2218,7 +2218,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias:
     l32i a14, a4,  64               # a14: mac_shift         = output.exponent - filter.exponent - input.exponent
 
     blti a12, 1, tie728_s16_unaligned_conv2d_hwcn_bias_n_remainder
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15                # a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_hwcn_bias_n_div_x:
@@ -2269,7 +2269,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias:
         EE.MOVI.32.Q q7, a5, 1
         EE.MOVI.32.Q q7, a15, 2
         l32i a5, a4,  168 # filter_ptr unaligned
-        
+
         EE.MOVI.32.Q q6, a13, 1     # q6[1]: bias_ptr
         movi a13, 15
         sub  a13, a13, a7           # a13: 15 - c_remainder
@@ -2292,7 +2292,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias:
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_n_remainder_loop
 
         tie728_s16_unaligned_conv2d_hwcn_bias_n_remainder_end:
-    
+
     retw
 
 
@@ -2325,7 +2325,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_relu:
     l32i a14, a4,  76           # a14: activation_alpha
 
     blti a12, 1, tie728_s16_unaligned_conv2d_hwcn_bias_relu_n_remainder
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            # a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_hwcn_bias_relu_n_div_x:
@@ -2385,7 +2385,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_relu:
         EE.MOVI.32.Q q7, a5, 1
         EE.MOVI.32.Q q7, a15, 2
         l32i a5, a4,  168 # filter_ptr unaligned
-        
+
         EE.MOVI.32.Q q6, a13, 1     # q6[1]: bias_ptr
         movi a13, 15
         sub  a13, a13, a7           # a13: 15 - c_remainder
@@ -2408,7 +2408,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_relu:
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_relu_n_remainder_loop
 
         tie728_s16_unaligned_conv2d_hwcn_bias_relu_n_remainder_end:
-    
+
     retw
 
 
@@ -2441,7 +2441,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu:
     l32i a14, a4,  76           # a14: activation_alpha
 
     blti a12, 1, tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu_n_remainder
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            # a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu_n_div_x:
@@ -2501,7 +2501,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu:
         EE.MOVI.32.Q q7, a5, 1
         EE.MOVI.32.Q q7, a15, 2
         l32i a5, a4,  168 # filter_ptr unaligned
-        
+
         EE.MOVI.32.Q q6, a13, 1     # q6[1]: bias_ptr
         EE.MOVI.32.Q q6, a14, 0     # q6[0]: activation_alpha
         movi a13, 15
@@ -2527,7 +2527,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu:
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu_n_remainder_loop
 
         tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu_n_remainder_end:
-    
+
     retw
 
 
@@ -2560,7 +2560,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_prelu:
     l32i a14, a4,  80           # a14: activation_alpha_ptr
 
     blti a12, 1, tie728_s16_unaligned_conv2d_hwcn_bias_prelu_n_remainder
-    EE.LD.128.USAR.IP q0, a2, 0 
+    EE.LD.128.USAR.IP q0, a2, 0
     rur.sar_byte a15            # a15: output_sar_byte
 
     tie728_s16_unaligned_conv2d_hwcn_bias_prelu_n_div_x:
@@ -2620,7 +2620,7 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_prelu:
         EE.MOVI.32.Q q7, a5, 1
         EE.MOVI.32.Q q7, a15, 2
         l32i a5, a4,  168 # filter_ptr unaligned
-        
+
         EE.MOVI.32.Q q6, a13, 1     # q6[1]: bias_ptr
         EE.MOVI.32.Q q6, a14, 0     # q6[0]: activation_alpha_ptr
         movi a13, 15
@@ -2647,5 +2647,5 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_prelu:
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_prelu_n_remainder_loop
 
         tie728_s16_unaligned_conv2d_hwcn_bias_prelu_n_remainder_end:
-    
+
     retw

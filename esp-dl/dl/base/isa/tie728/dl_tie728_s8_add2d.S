@@ -1,9 +1,9 @@
 #include "dl_tie728_s8.S"
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_add2d_11c series
-#### 
+####
 ############################################################################################################################################################
 
 .macro dl_tie728_rescale_add_rescale_output input0, input1, output, output_scale, output_shift
@@ -24,7 +24,7 @@ dl_tie728_s8_add2d_11c:
     .align 4
     entry sp, 32
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -32,7 +32,7 @@ dl_tie728_s8_add2d_11c:
     # a7: c_left_x_1
 
     l32i a6, a5, 68
-    l32i a7, a5, 72 
+    l32i a7, a5, 72
 
     blti a6, 1, dl_tie728_s8_add2d_small_channel
     EE.VLD.128.IP q0, a3, 16
@@ -54,7 +54,7 @@ dl_tie728_s8_add2d_11c:
     EE.VLD.128.IP q2, a3, 16
     EE.VADDS.S8.LD.INCP q3, a4, q4, q0, q1
     EE.VST.128.IP q4, a2, 16
-    
+
     EE.VADDS.S8 q5, q2, q3
     EE.VST.128.IP q5, a2, 16
     retw
@@ -63,9 +63,9 @@ dl_tie728_s8_add2d_11c:
     EE.VLD.128.IP q2, a3, 16
     EE.VADDS.S8.LD.INCP q3, a4, q4, q0, q1
     EE.VST.128.IP q4, a2, 16
-    
+
     EE.VLD.128.IP q0, a3, 16
-    EE.VADDS.S8.LD.INCP q1, a4, q5, q2, q3    
+    EE.VADDS.S8.LD.INCP q1, a4, q5, q2, q3
     EE.VST.128.IP q5, a2, 16
 
     EE.VADDS.S8 q4, q0, q1
@@ -102,10 +102,10 @@ dl_tie728_s8_add2d_small_channel: # channel < 3*s (16)
 dl_tie728_s8_rescale_add2d_11c:
     .align 4
     entry sp, 32
- 
-    # a2: int8_t *output_ptr: >> shift or *scale) >> shift   
+
+    # a2: int8_t *output_ptr: >> shift or *scale) >> shift
     # a3: int8_t *input0_ptr
-    # a4: int8_t *input1_ptr: input1 >> shift + input0 * 1 
+    # a4: int8_t *input1_ptr: input1 >> shift + input0 * 1
     # a5: void *args
     # a6: c_div_x_1
     # a7: input_shift
@@ -117,14 +117,14 @@ dl_tie728_s8_rescale_add2d_11c:
     l32i a7, a5, 88
     l32i a8, a5, 96
     l32i a9, a5, 92
-    
+
     beqi a8, 1, dl_tie728_s8_rescale_add2d_output
 
 dl_tie728_s8_rescale_add2d_output_scale: # *scale) >> shift
 
     s8i a8, a1, 0
     EE.VLDBC.8 q7, a1 # all output_scale
-    
+
     loopgtz a6, 0f
         EE.LDQA.S8.128.IP a4, 16
         EE.VLD.128.IP q0, a3, 16
@@ -179,7 +179,7 @@ dl_tie728_s8_add2d_11c_relu:
     .align 4
     entry sp, 32
 
-    # a2: int8_t *output_ptr    
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -190,7 +190,7 @@ dl_tie728_s8_add2d_11c_relu:
 
 
     l32i a6, a5, 68
-    l32i a7, a5, 72 
+    l32i a7, a5, 72
     l32i a14, a5, 52
     l32i a15, a5, 60
 
@@ -217,7 +217,7 @@ dl_tie728_s8_add2d_11c_relu:
     EE.VADDS.S8.LD.INCP q3, a4, q4, q0, q1
     EE.VRELU.S8 q4, a14, a15
     EE.VST.128.IP q4, a2, 16
-    
+
     EE.VADDS.S8 q5, q2, q3
     EE.VRELU.S8 q5, a14, a15
     EE.VST.128.IP q5, a2, 16
@@ -229,10 +229,10 @@ dl_tie728_s8_add2d_11c_relu:
     EE.VADDS.S8.LD.INCP q3, a4, q4, q0, q1
     EE.VRELU.S8 q4, a14, a15
     EE.VST.128.IP q4, a2, 16
-    
+
     EE.VLD.128.IP q0, a3, 16
-    EE.VADDS.S8.LD.INCP q1, a4, q5, q2, q3  
-    EE.VRELU.S8 q5, a14, a15  
+    EE.VADDS.S8.LD.INCP q1, a4, q5, q2, q3
+    EE.VRELU.S8 q5, a14, a15
     EE.VST.128.IP q5, a2, 16
 
     EE.VADDS.S8 q4, q0, q1
@@ -274,9 +274,9 @@ dl_tie728_s8_rescale_add2d_11c_relu:
     .align 4
     entry sp, 32
 
-    # a2: int8_t *output_ptr: >> shift or *scale) >> shift    
+    # a2: int8_t *output_ptr: >> shift or *scale) >> shift
     # a3: int8_t *input0_ptr
-    # a4: int8_t *input1_ptr: input1 >> shift + input0 * 1 
+    # a4: int8_t *input1_ptr: input1 >> shift + input0 * 1
     # a5: void *args
     # a6: c_div_x_1
     # a7: input_shift
@@ -293,7 +293,7 @@ dl_tie728_s8_rescale_add2d_11c_relu:
     l32i a14, a5, 52
     l32i a15, a5, 60
 
-    
+
     beqi a8, 1, dl_tie728_s8_rescale_add2d_output_relu
 
 dl_tie728_s8_rescale_add2d_output_scale_relu: # *scale) >> shift
@@ -363,7 +363,7 @@ dl_tie728_s8_add2d_11c_prelu:
     .align 4
     entry sp, 32
 
-    # a2: int8_t *output_ptr    
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -404,7 +404,7 @@ dl_tie728_s8_add2d_11c_prelu:
     EE.VADDS.S8.LD.INCP q3, a4, q4, q0, q1
     EE.VPRELU.S8 q4, q4, q6, a15
     EE.VST.128.IP q4, a2, 16
-    
+
     EE.VLD.128.IP q6, a14, 16
     EE.VADDS.S8 q5, q2, q3
 
@@ -418,17 +418,17 @@ dl_tie728_s8_add2d_11c_prelu:
     EE.VADDS.S8.LD.INCP q3, a4, q4, q0, q1
     EE.VPRELU.S8 q4, q4, q6, a15
     EE.VST.128.IP q4, a2, 16
-    
-    EE.VLD.128.IP q0, a3, 16  
+
+    EE.VLD.128.IP q0, a3, 16
     EE.VLD.128.IP q6, a14, 16
     EE.VADDS.S8.LD.INCP q1, a4, q5, q2, q3
-    EE.VPRELU.S8 q5, q5, q6, a15 
+    EE.VPRELU.S8 q5, q5, q6, a15
     EE.VST.128.IP q5, a2, 16
 
     EE.VLD.128.IP q6, a14, 16
     EE.VADDS.S8 q4, q0, q1
 
-    EE.VPRELU.S8 q4, q4, q6, a15 
+    EE.VPRELU.S8 q4, q4, q6, a15
     EE.VST.128.IP q4, a2, 16
     retw
 
@@ -442,7 +442,7 @@ dl_tie728_s8_add2d_prelu_small_channel: # channel < 3*s
         EE.VLD.128.IP q3, a14, 16
         EE.VADDS.S8 q2, q0, q1
 
-        EE.VPRELU.S8 q2, q2, q3, a15 
+        EE.VPRELU.S8 q2, q2, q3, a15
         EE.VST.128.IP q2, a2, 16
     0:
     EE.VLD.128.IP q0, a3, 16
@@ -451,7 +451,7 @@ dl_tie728_s8_add2d_prelu_small_channel: # channel < 3*s
     EE.VLD.128.IP q3, a14, 16
     EE.VADDS.S8 q2, q0, q1
 
-    EE.VPRELU.S8 q2, q2, q3, a15 
+    EE.VPRELU.S8 q2, q2, q3, a15
     EE.VST.128.IP q2, a2, 16
 
     retw
@@ -467,9 +467,9 @@ dl_tie728_s8_rescale_add2d_11c_prelu:
     .align 4
     entry sp, 32
 
-    # a2: int8_t *output_ptr: >> shift or *scale) >> shift   
+    # a2: int8_t *output_ptr: >> shift or *scale) >> shift
     # a3: int8_t *input0_ptr
-    # a4: int8_t *input1_ptr: input1 >> shift + input0 * 1 
+    # a4: int8_t *input1_ptr: input1 >> shift + input0 * 1
     # a5: void *args
     # a6: c_div_x_1
     # a7: input_shift
@@ -486,7 +486,7 @@ dl_tie728_s8_rescale_add2d_11c_prelu:
     l32i a14, a5, 56
     l32i a15, a5, 60
 
-    
+
     beqi a8, 1, dl_tie728_s8_rescale_add2d_output_prelu
 
 
@@ -494,7 +494,7 @@ dl_tie728_s8_rescale_add2d_output_scale_prelu: # *scale) >> shift
 
     s8i a8, a1, 0
     EE.VLDBC.8 q7, a1 # all output_scale
-    
+
     loopgtz a6, 0f
         EE.LDQA.S8.128.IP a4, 16
         EE.VLD.128.IP q0, a3, 16
@@ -506,16 +506,16 @@ dl_tie728_s8_rescale_add2d_output_scale_prelu: # *scale) >> shift
         EE.VPRELU.S8 q1, q1, q5, a15
 
         EE.VST.128.IP q1, a2, 16
-    0: 
+    0:
     EE.LDQA.S8.128.IP a4, 16
     EE.VLD.128.IP q0, a3, 16
     EE.SRCMB.S8.QACC q1, a7, 0
 
     EE.VLD.128.IP q5, a14, 16
     dl_tie728_rescale_add_rescale_output q0, q1, q1, q7, a9
-    
+
     EE.VPRELU.S8 q1, q1, q5, a15
-    EE.VST.128.IP q1, a2, 16   
+    EE.VST.128.IP q1, a2, 16
 
     retw
 
@@ -555,9 +555,9 @@ dl_tie728_s8_rescale_add2d_output_prelu: # >> shift
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_unaligned_add2d_11c series
-#### 
+####
 ############################################################################################################################################################
 
     .align 4
@@ -569,7 +569,7 @@ dl_tie728_s8_unaligned_add2d_11c:
     .align 4
     entry sp, 32
 
-    # a2: int8_t *output_ptr   
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -591,7 +591,7 @@ dl_tie728_s8_unaligned_add2d_11c:
     rur.sar_byte a13
 
     blti a6, 0, dl_tie728_s8_unaligned_add2d_11c_small_remainder # channel < 16
-    
+
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
     EE.LD.128.USAR.IP q1, a3, 16
@@ -686,7 +686,7 @@ dl_tie728_s8_unaligned_add2d_11c_small_remainder:
 dl_tie728_s8_unaligned_add2d_11c_remainder:
 
     beqz a10, dl_tie728_s8_unaligned_add2d_end
-    
+
     EE.LD.128.USAR.IP q1, a3, 0
     wur.sar_byte a11
     EE.SRC.Q q2, q0, q1
@@ -708,18 +708,18 @@ dl_tie728_s8_unaligned_add2d_11c_remainder:
 dl_tie728_s8_unaligned_rescale_add2d_11c:
     l32i a8, a5, 96 # output_scale
     l32i a9, a5, 92 # output_shift
-    
+
     beqi a8, 1, dl_tie728_s8_rescale_unaligned_add2d_output_shift
 
 
 ### rescaled to output by *scale) >> shift
-dl_tie728_s8_rescale_unaligned_add2d_output_scale: 
+dl_tie728_s8_rescale_unaligned_add2d_output_scale:
 
     s8i a8, a1, 0
     EE.VLDBC.8 q7, a1 # all output_scale
 
     blti a6, 0, dl_tie728_s8_rescale_unaligned_add2d_scale_small_remainder # channel < 16
-    
+
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
     EE.LD.128.USAR.IP q1, a3, 16
@@ -737,7 +737,7 @@ dl_tie728_s8_rescale_unaligned_add2d_output_scale:
 
         EE.LD.128.USAR.IP q1, a3, 16
         dl_tie728_s8_unaligned_store0 q2, a2, a12
-    3: 
+    3:
 
     addi a3, a3, -16
     add a3, a3, a10
@@ -757,7 +757,7 @@ dl_tie728_s8_rescale_unaligned_add2d_output_scale:
     j dl_tie728_s8_rescale_unaligned_add2d_scale_remainder
 
 
-dl_tie728_s8_rescale_unaligned_add2d_scale_small_remainder:    
+dl_tie728_s8_rescale_unaligned_add2d_scale_small_remainder:
     EE.LD.128.USAR.XP q0, a3, a10
     rur.sar_byte a11 #input0 sar
     EE.LD.128.USAR.XP q3, a4, a10
@@ -765,7 +765,7 @@ dl_tie728_s8_rescale_unaligned_add2d_scale_small_remainder:
 
 dl_tie728_s8_rescale_unaligned_add2d_scale_remainder:
     beqz a10, dl_tie728_s8_unaligned_rescale_add2d_output_scale_end # c remainder
-    
+
     EE.LD.128.USAR.IP q1, a3, 0
     wur.sar_byte a11
     EE.SRC.Q q2, q0, q1
@@ -793,12 +793,12 @@ dl_tie728_s8_rescale_unaligned_add2d_output_shift:
     EE.VLDBC.8 q7, a1 # all 1
 
     blti a6, 0, dl_tie728_s8_rescale_unaligned_add2d_shift_small_remainder # channel < 16
-    
+
 
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
     EE.LD.128.USAR.IP q1, a3, 16
-    
+
     loopgtz a6, 4f #dl_tie728_s8_rescale_unaligned_add2d_11c_shift
         EE.SRC.Q.QUP q2, q0, q1
 
@@ -830,7 +830,7 @@ dl_tie728_s8_rescale_unaligned_add2d_output_shift:
 
     dl_tie728_s8_unaligned_store0 q5, a2, a13
     j dl_tie728_s8_rescale_unaligned_add2d_shift_remainder
-    
+
 
 
 dl_tie728_s8_rescale_unaligned_add2d_shift_small_remainder:
@@ -877,7 +877,7 @@ dl_tie728_s8_unaligned_add2d_11c_relu:
     .align 4
     entry sp, 32
 
-    # a2: int8_t *output_ptr   
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -903,7 +903,7 @@ dl_tie728_s8_unaligned_add2d_11c_relu:
     rur.sar_byte a13
 
     blti a6, 0, dl_tie728_s8_unaligned_add2d_11c_relu_small_remainder # channel < 16
-    
+
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
     EE.LD.128.USAR.IP q1, a3, 16
@@ -1002,7 +1002,7 @@ dl_tie728_s8_unaligned_add2d_11c_relu_small_remainder:
 dl_tie728_s8_unaligned_add2d_11c_relu_remainder:
 
     beqz a10, dl_tie728_s8_unaligned_add2d_relu_end
-    
+
     EE.LD.128.USAR.IP q1, a3, 0
     wur.sar_byte a11
     EE.SRC.Q q2, q0, q1
@@ -1026,18 +1026,18 @@ dl_tie728_s8_unaligned_add2d_11c_relu_remainder:
 dl_tie728_s8_unaligned_rescale_add2d_11c_relu:
     l32i a8, a5, 96 # output_scale
     l32i a9, a5, 92 # output_shift
-    
+
     beqi a8, 1, dl_tie728_s8_rescale_unaligned_add2d_output_shift_relu
 
 
 ### rescaled to output by *scale) >> shift
-dl_tie728_s8_rescale_unaligned_add2d_output_scale_relu: 
+dl_tie728_s8_rescale_unaligned_add2d_output_scale_relu:
 
     s8i a8, a1, 0
     EE.VLDBC.8 q7, a1 # all output_scale
 
     blti a6, 0, dl_tie728_s8_rescale_unaligned_add2d_scale_relu_small_remainder # channel < 16
-    
+
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
     EE.LD.128.USAR.IP q1, a3, 16
@@ -1056,7 +1056,7 @@ dl_tie728_s8_rescale_unaligned_add2d_output_scale_relu:
         EE.LD.128.USAR.IP q1, a3, 16
         EE.VRELU.S8 q2, a14, a15
         dl_tie728_s8_unaligned_store0 q2, a2, a12
-    3: 
+    3:
 
     addi a3, a3, -16
     add a3, a3, a10
@@ -1077,7 +1077,7 @@ dl_tie728_s8_rescale_unaligned_add2d_output_scale_relu:
     j dl_tie728_s8_rescale_unaligned_add2d_scale_relu_remainder
 
 
-dl_tie728_s8_rescale_unaligned_add2d_scale_relu_small_remainder:    
+dl_tie728_s8_rescale_unaligned_add2d_scale_relu_small_remainder:
     EE.LD.128.USAR.XP q0, a3, a10
     rur.sar_byte a11 #input0 sar
     EE.LD.128.USAR.XP q3, a4, a10
@@ -1085,7 +1085,7 @@ dl_tie728_s8_rescale_unaligned_add2d_scale_relu_small_remainder:
 
 dl_tie728_s8_rescale_unaligned_add2d_scale_relu_remainder:
     beqz a10, dl_tie728_s8_unaligned_rescale_add2d_output_scale_relu_end # c remainder
-    
+
     EE.LD.128.USAR.IP q1, a3, 0
     wur.sar_byte a11
     EE.SRC.Q q2, q0, q1
@@ -1114,12 +1114,12 @@ dl_tie728_s8_rescale_unaligned_add2d_output_shift_relu:
     EE.VLDBC.8 q7, a1 # all 1
 
     blti a6, 0, dl_tie728_s8_rescale_unaligned_add2d_shift_relu_small_remainder # channel < 16
-    
+
 
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
     EE.LD.128.USAR.IP q1, a3, 16
-    
+
     loopgtz a6, 4f #dl_tie728_s8_rescale_unaligned_add2d_11c_shift
         EE.SRC.Q.QUP q2, q0, q1
 
@@ -1152,7 +1152,7 @@ dl_tie728_s8_rescale_unaligned_add2d_output_shift_relu:
     EE.VRELU.S8 q5, a14, a15
     dl_tie728_s8_unaligned_store0 q5, a2, a13
     j dl_tie728_s8_rescale_unaligned_add2d_shift_relu_remainder
-    
+
 
 
 dl_tie728_s8_rescale_unaligned_add2d_shift_relu_small_remainder:
@@ -1196,7 +1196,7 @@ dl_tie728_s8_unaligned_add2d_11c_prelu:
     .align 4
     entry sp, 32
 
-    # a2: int8_t *output_ptr   
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -1222,7 +1222,7 @@ dl_tie728_s8_unaligned_add2d_11c_prelu:
     rur.sar_byte a13
 
     blti a6, 0, dl_tie728_s8_unaligned_add2d_11c_prelu_small_remainder # channel < 16
-    
+
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
     EE.LD.128.USAR.IP q1, a3, 16
@@ -1327,7 +1327,7 @@ dl_tie728_s8_unaligned_add2d_11c_prelu_small_remainder:
 dl_tie728_s8_unaligned_add2d_11c_prelu_remainder:
 
     beqz a10, dl_tie728_s8_unaligned_add2d_prelu_end
-    
+
     EE.LD.128.USAR.IP q1, a3, 0
     wur.sar_byte a11
     EE.SRC.Q q2, q0, q1
@@ -1351,18 +1351,18 @@ dl_tie728_s8_unaligned_add2d_11c_prelu_remainder:
 dl_tie728_s8_unaligned_rescale_add2d_11c_prelu:
     l32i a8, a5, 96 # output_scale
     l32i a9, a5, 92 # output_shift
-    
+
     beqi a8, 1, dl_tie728_s8_rescale_unaligned_add2d_output_shift_prelu
 
 
 ### rescaled to output by *scale) >> shift
-dl_tie728_s8_rescale_unaligned_add2d_output_scale_prelu: 
+dl_tie728_s8_rescale_unaligned_add2d_output_scale_prelu:
 
     s8i a8, a1, 0
     EE.VLDBC.8 q7, a1 # all output_scale
 
     blti a6, 0, dl_tie728_s8_rescale_unaligned_add2d_scale_prelu_small_remainder # channel < 16
-    
+
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
     EE.LD.128.USAR.IP q1, a3, 16
@@ -1378,11 +1378,11 @@ dl_tie728_s8_rescale_unaligned_add2d_output_scale_prelu:
 
         dl_tie728_rescale_add_rescale_output q2, q1, q2, q7, a9
 
-        EE.VLD.128.IP q6, a14, 16 
+        EE.VLD.128.IP q6, a14, 16
         EE.LD.128.USAR.IP q1, a3, 16
         EE.VPRELU.S8 q2, q2, q6, a15
         dl_tie728_s8_unaligned_store0 q2, a2, a12
-    3: 
+    3:
 
     addi a3, a3, -16
     add a3, a3, a10
@@ -1396,7 +1396,7 @@ dl_tie728_s8_rescale_unaligned_add2d_output_scale_prelu:
     EE.MOV.S8.QACC q5
     EE.SRCMB.S8.QACC q1, a7, 0
 
-    EE.VLD.128.IP q6, a14, 16 
+    EE.VLD.128.IP q6, a14, 16
     dl_tie728_rescale_add_rescale_output q2, q1, q2, q7, a9
 
     EE.VPRELU.S8 q2, q2, q6, a15
@@ -1404,7 +1404,7 @@ dl_tie728_s8_rescale_unaligned_add2d_output_scale_prelu:
     j dl_tie728_s8_rescale_unaligned_add2d_scale_prelu_remainder
 
 
-dl_tie728_s8_rescale_unaligned_add2d_scale_prelu_small_remainder:    
+dl_tie728_s8_rescale_unaligned_add2d_scale_prelu_small_remainder:
     EE.LD.128.USAR.XP q0, a3, a10
     rur.sar_byte a11 #input0 sar
     EE.LD.128.USAR.XP q3, a4, a10
@@ -1412,7 +1412,7 @@ dl_tie728_s8_rescale_unaligned_add2d_scale_prelu_small_remainder:
 
 dl_tie728_s8_rescale_unaligned_add2d_scale_prelu_remainder:
     beqz a10, dl_tie728_s8_unaligned_rescale_add2d_output_scale_prelu_end # c remainder
-    
+
     EE.LD.128.USAR.IP q1, a3, 0
     wur.sar_byte a11
     EE.SRC.Q q2, q0, q1
@@ -1424,7 +1424,7 @@ dl_tie728_s8_rescale_unaligned_add2d_scale_prelu_remainder:
     EE.MOV.S8.QACC q5
     EE.SRCMB.S8.QACC q1, a7, 0
 
-    EE.VLD.128.IP q6, a14, 16 
+    EE.VLD.128.IP q6, a14, 16
     dl_tie728_rescale_add_rescale_output q2, q1, q2, q7, a9
 
     EE.VPRELU.S8 q2, q2, q6, a15
@@ -1442,12 +1442,12 @@ dl_tie728_s8_rescale_unaligned_add2d_output_shift_prelu:
     EE.VLDBC.8 q7, a1 # all 1
 
     blti a6, 0, dl_tie728_s8_rescale_unaligned_add2d_shift_prelu_small_remainder # channel < 16
-    
+
 
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
     EE.LD.128.USAR.IP q1, a3, 16
-    
+
     loopgtz a6, 4f #dl_tie728_s8_rescale_unaligned_add2d_11c_shift
         EE.SRC.Q.QUP q2, q0, q1
 
@@ -1459,7 +1459,7 @@ dl_tie728_s8_rescale_unaligned_add2d_output_shift_prelu:
         EE.VMULAS.S8.QACC q2, q7
         EE.SRCMB.S8.QACC q5, a9, 0
 
-        EE.VLD.128.IP q6, a14, 16 
+        EE.VLD.128.IP q6, a14, 16
         EE.LD.128.USAR.IP q1, a3, 16
         EE.VPRELU.S8 q5, q5, q6, a15
         dl_tie728_s8_unaligned_store0 q5, a2, a13
@@ -1482,7 +1482,7 @@ dl_tie728_s8_rescale_unaligned_add2d_output_shift_prelu:
     EE.VPRELU.S8 q5, q5, q6, a15
     dl_tie728_s8_unaligned_store0 q5, a2, a13
     j dl_tie728_s8_rescale_unaligned_add2d_shift_prelu_remainder
-    
+
 
 
 dl_tie728_s8_rescale_unaligned_add2d_shift_prelu_small_remainder:
@@ -1514,4 +1514,3 @@ dl_tie728_s8_rescale_unaligned_add2d_shift_prelu_remainder:
 
     dl_tie728_s8_unaligned_rescale_add2d_output_shift_prelu_end:
     retw
-

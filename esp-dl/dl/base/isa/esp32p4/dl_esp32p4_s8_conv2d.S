@@ -1,9 +1,9 @@
 #include "dl_esp32p4_s8.S"
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_conv2d_11cn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s8_conv2d_11c16 input_v0 input_ptr filter_v0 filter_v1 filter_ptr c_div_x_1
     # scalar * vecter and accumulate into QACC
@@ -67,9 +67,9 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_conv2d_11cn
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s8_conv2d_11cn_load_args args filter_ptr c_div_x_1 n_rs3 mac_shift
     lw  \n_rs3,         96(\args)   // output_channel_div_8
@@ -98,7 +98,7 @@ dl_esp32p4_s8_conv2d_11cn_bias:
     # t3: mac_shift
     # t4: bias_ptr
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0:
     # s1:
@@ -106,7 +106,7 @@ dl_esp32p4_s8_conv2d_11cn_bias:
     # s9:
     # s10:
     # s11:
-    
+
     esp32p4_s8_conv2d_11cn_load_args a2, a3, a4, a5, t3
     # Because the subsequent esp.lp.setup loop instruction compares for a value >= 0 and cannot be negative, we subtract 1 in advance here.
     # addi a4, a4, -1
@@ -144,7 +144,7 @@ dl_esp32p4_s8_conv2d_11cn_bias_relu:
     # t3: mac_shift
     # t4: bias_ptr
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: activation_alpha/_address
     # s1: activation_shift
@@ -198,7 +198,7 @@ dl_esp32p4_s8_conv2d_11cn_bias_prelu:
     # t3: mac_shift
     # t4: bias_ptr
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: activation_alpha/_address
     # s1: activation_shift
@@ -251,9 +251,9 @@ dl_esp32p4_s8_conv2d_11cn:
     # a4: c_div_x_1
     # a5: n_rs3
     # t3: mac_shift
-    # t4: 
+    # t4:
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0:
     # s1:
@@ -295,9 +295,9 @@ dl_esp32p4_s8_conv2d_11cn_relu:
     # a4: c_div_x_1
     # a5: n_rs3
     # t3: mac_shift
-    # t4: 
+    # t4:
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: activation_alpha/_address
     # s1: activation_shift
@@ -347,9 +347,9 @@ dl_esp32p4_s8_conv2d_11cn_prelu:
     # a4: c_div_x_1
     # a5: n_rs3
     # t3: mac_shift
-    # t4: 
+    # t4:
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: activation_alpha/_address
     # s1: activation_shift
@@ -388,9 +388,9 @@ dl_esp32p4_s8_conv2d_11cn_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_conv2d_33cn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s8_conv2d_33c16 input_v0 filter_v0 filter_v1 input_ptr filter_ptr c_div_x_1 dilation_x_offset dilation_y_offset
     # dilation_x_offset = (dilation_x * input_channel_with_padding - input_channel) * sizeof(output_t)
@@ -398,28 +398,28 @@ dl_esp32p4_s8_conv2d_11cn_prelu:
 
     esp32p4_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     esp32p4_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     esp32p4_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -452,7 +452,7 @@ dl_esp32p4_s8_conv2d_33cn_bias:
     # t3: mac_shift
     # t4: bias_ptr
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: input dilation x offset
     # s1: input dilation y offset
@@ -504,7 +504,7 @@ dl_esp32p4_s8_conv2d_33cn_bias_relu:
     # t3: mac_shift
     # t4: bias_ptr
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: input dilation x offset
     # s1: input dilation y offset
@@ -562,7 +562,7 @@ dl_esp32p4_s8_conv2d_33cn_bias_prelu:
     # t3: mac_shift
     # t4: bias_ptr
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: input dilation x offset
     # s1: input dilation y offset
@@ -619,9 +619,9 @@ dl_esp32p4_s8_conv2d_33cn:
     # a4: c_div_x_1
     # a5: n_rs3
     # t3: mac_shift
-    # t4: 
+    # t4:
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: input dilation x offset
     # s1: input dilation y offset
@@ -669,9 +669,9 @@ dl_esp32p4_s8_conv2d_33cn_relu:
     # a4: c_div_x_1
     # a5: n_rs3
     # t3: mac_shift
-    # t4: 
+    # t4:
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: input dilation x offset
     # s1: input dilation y offset
@@ -726,9 +726,9 @@ dl_esp32p4_s8_conv2d_33cn_prelu:
     # a4: c_div_x_1
     # a5: n_rs3
     # t3: mac_shift
-    # t4: 
+    # t4:
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: input dilation x offset
     # s1: input dilation y offset
@@ -769,9 +769,9 @@ dl_esp32p4_s8_conv2d_33cn_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_conv2d_hwcn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s8_conv2d_hwc16  input_v0 filter_v0 filter_v1 input_ptr filter_ptr c_div_x_1 dilation_x_offset dilation_y_offset filter_h filter_w args filter_offset_q
     # dilation_x_offset = (dilation_x * input_channel_with_padding - input_channel) * sizeof(output_t)
@@ -825,7 +825,7 @@ dl_esp32p4_s8_conv2d_hwcn_bias:
     # t3: mac_shift
     # t4: bias_ptr
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: input dilation x offset
     # s1: input dilation y offset
@@ -844,7 +844,7 @@ dl_esp32p4_s8_conv2d_hwcn_bias:
     lw t4, 68(a2)       // bias
     lw s9, 60(a2)       // filter_y_offset
     lw s8, 144(a2)
-    esp.movi.32.q q6, s9, 1  // filter_y_offset 
+    esp.movi.32.q q6, s9, 1  // filter_y_offset
     esp.movi.32.q q6, s8, 2  // filter_n_offset
 
     esp32p4_s8_conv2d_hwcn_bias_loop:
@@ -907,7 +907,7 @@ dl_esp32p4_s8_conv2d_hwcn_bias_relu:
     lw s10, 84(a2)      // activation_shift
     lw s9, 60(a2)       // filter_y_offset
     lw s8, 144(a2)
-    esp.movi.32.q q6, s9, 1  // filter_y_offset 
+    esp.movi.32.q q6, s9, 1  // filter_y_offset
     esp.movi.32.q q6, s8, 2  // filter_n_offset
 
     esp32p4_s8_conv2d_hwcn_bias_relu_loop:
@@ -971,7 +971,7 @@ dl_esp32p4_s8_conv2d_hwcn_bias_prelu:
     lw s10, 84(a2)      // activation_shift
     lw s9, 60(a2)       // filter_y_offset
     lw s8, 144(a2)
-    esp.movi.32.q q6, s9, 1  // filter_y_offset 
+    esp.movi.32.q q6, s9, 1  // filter_y_offset
     esp.movi.32.q q6, s8, 2  // filter_n_offset
 
     esp32p4_s8_conv2d_hwcn_bias_prelu_loop:
@@ -1012,9 +1012,9 @@ dl_esp32p4_s8_conv2d_hwcn:
     # a4: c_div_x_1
     # a5: n_rs3
     # t3: mac_shift
-    # t4: 
+    # t4:
     # t5: moving_input_ptr
-    # t6: 
+    # t6:
 
     # s0: input dilation x offset
     # s1: input dilation y offset
@@ -1032,7 +1032,7 @@ dl_esp32p4_s8_conv2d_hwcn:
     esp32p4_s8_conv2d_hwcn_load_args a2, a3, a4, a5, t3, s0, s1
     lw s9, 60(a2)       // filter_y_offset
     lw s8, 144(a2)
-    esp.movi.32.q q6, s9, 1  // filter_y_offset 
+    esp.movi.32.q q6, s9, 1  // filter_y_offset
     esp.movi.32.q q6, s8, 2  // filter_n_offset
 
     esp32p4_s8_conv2d_hwcn_loop:
@@ -1070,7 +1070,7 @@ dl_esp32p4_s8_conv2d_hwcn_relu:
     # a4: c_div_x_1
     # a5: n_rs3
     # t3: mac_shift
-    # t4: 
+    # t4:
     # t5: moving_input_ptr
     # t6: activation_alpha/_address
 
@@ -1093,7 +1093,7 @@ dl_esp32p4_s8_conv2d_hwcn_relu:
     lw s10, 84(a2)      // activation_shift
     lw s9, 60(a2)       // filter_y_offset
     lw s8, 144(a2)
-    esp.movi.32.q q6, s9, 1  // filter_y_offset 
+    esp.movi.32.q q6, s9, 1  // filter_y_offset
     esp.movi.32.q q6, s8, 2  // filter_n_offset
 
     esp32p4_s8_conv2d_hwcn_relu_loop:
@@ -1133,7 +1133,7 @@ dl_esp32p4_s8_conv2d_hwcn_prelu:
     # a4: c_div_x_1
     # a5: n_rs3
     # t3: mac_shift
-    # t4: 
+    # t4:
     # t5: moving_input_ptr
     # t6: activation_alpha/_address
 
@@ -1156,7 +1156,7 @@ dl_esp32p4_s8_conv2d_hwcn_prelu:
     lw s10, 84(a2)      // activation_shift
     lw s9, 60(a2)       // filter_y_offset
     lw s8, 144(a2)
-    esp.movi.32.q q6, s9, 1  // filter_y_offset 
+    esp.movi.32.q q6, s9, 1  // filter_y_offset
     esp.movi.32.q q6, s8, 2  // filter_n_offset
 
     esp32p4_s8_conv2d_hwcn_prelu_loop:

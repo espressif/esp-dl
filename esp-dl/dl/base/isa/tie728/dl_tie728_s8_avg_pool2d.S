@@ -1,7 +1,7 @@
 ############################################################################################################################################################
-#### 
+####
 #### dl_tie728_s8_avg_pool2d series
-#### 
+####
 ############################################################################################################################################################
 
 #include "dl_tie728_s8.S"
@@ -25,11 +25,11 @@ dl_tie728_s8_avg_pool2d_22c1:
     l32i a10, a4, 4     # input_channel
     l32i a11, a4, 104   # c_div_x_1
     l32i a13, a4, 56    # shift
-    
+
     addi a14, a4, 64
     EE.VLDBC.8 q0, a14  # avg_pool_area_inv
 
-    add a7, a3, a6 
+    add a7, a3, a6
     add a8, a3, a5
     add a9, a8, a6
 
@@ -80,11 +80,11 @@ dl_tie728_s8_unaligned_avg_pool2d_22c1:
     l32i a11, a4, 104   # c_div_x_1
     l32i a12, a4, 60    # c_remainder
     l32i a13, a4, 56    # shift
-    
+
     addi a14, a4, 64
     EE.VLDBC.8 q6, a14  # avg_pool_area_inv
 
-    add a7, a3, a6 
+    add a7, a3, a6
     add a8, a3, a5
     add a9, a8, a6
 
@@ -122,7 +122,7 @@ dl_tie728_s8_unaligned_avg_pool2d_22c1:
         dl_tie728_s8_unaligned_store0 q7, a2, a14
     0:
     j dl_tie728_s8_unaligned_avg_pool2d_22c1_loop_end
-    
+
 
 1:
     loopgtz a11, 0f
@@ -246,7 +246,7 @@ dl_tie728_s8_avg_pool2d_hwc1:
     l32i a9, a4, 52     # filter_width
     l32i a11, a4, 104   # c_div_x_1
     l32i a13, a4, 56    # shift
-    
+
     addi a14, a4, 64
     EE.VLDBC.8 q0, a14 # avg_pool_area_inv
 
@@ -457,11 +457,11 @@ dl_tie728_s8_unaligned_avg_pool2d_hwc1:
         j 7f
 
         5:
-        EE.VST.128.IP q7, a2, 16 
-        j 7f   
+        EE.VST.128.IP q7, a2, 16
+        j 7f
         6:
         dl_tie728_s8_unaligned_store1 q7, a2
-        
+
         7:
         addi a3, a3, 16
         addi a11, a11, -1
@@ -476,7 +476,7 @@ dl_tie728_s8_unaligned_avg_pool2d_hw_small_channel:
     mov a15, a8
     addi a6, a6, 16
     sub a6, a6, a12
-    
+
     EE.ZERO.QACC
     1:
         loopgtz a9, 0f
@@ -489,7 +489,7 @@ dl_tie728_s8_unaligned_avg_pool2d_hw_small_channel:
         add a7, a7, a5
         mov a14, a7
     bnez a15, 1b
-    
+
     # EE.SRCMB.S8.QACC q7, a13, 0
     tie728_s8_vector_round_result q7, a13, a14, q5
     dl_tie728_s8_store_remainder q7, a8, a9, a10, a11, a2, a12
@@ -519,8 +519,8 @@ dl_tie728_s8_unaligned_avg_pool2d_h1c1:
         dl_tie728_s8_unaligned_store0 q7, a2, a9
         j 3f
         1:
-        EE.VST.128.IP q7, a2, 16 
-        j 3f   
+        EE.VST.128.IP q7, a2, 16
+        j 3f
         2:
         dl_tie728_s8_unaligned_store1 q7, a2
 
@@ -528,7 +528,7 @@ dl_tie728_s8_unaligned_avg_pool2d_h1c1:
         addi a3, a3, 16
         addi a11, a11, -1
     bnez a11, 5b
-	
+
 dl_tie728_s8_unaligned_avg_pool2d_h1_remainder:
 	beqz a12, dl_tie728_s8_unaligned_avg_pool2d_hwc1_end
 
@@ -542,10 +542,10 @@ dl_tie728_s8_unaligned_avg_pool2d_h1_remainder:
         EE.SRC.Q q0, q0, q1
         EE.VMULAS.S8.QACC q6, q0
     0:
-    
+
     # EE.SRCMB.S8.QACC q7, a13, 0
     tie728_s8_vector_round_result q7, a13, a14, q5
     dl_tie728_s8_store_remainder q7, a8, a9, a10, a11, a2, a12
-  
+
 dl_tie728_s8_unaligned_avg_pool2d_hwc1_end:
 	retw

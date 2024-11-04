@@ -3,9 +3,9 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s16_unaligned_conv2d_11cn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s16_unaligned_conv2d_11c8  input_v, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, temp
     # input_v:     8 input elements
@@ -14,14 +14,14 @@
     # input_ptr:    input_ptr
     # filter_ptr:   filter_ptr
     # c_div_x_1:    input_channel // 8 - 1
-    
+
     esp.ld.128.usar.ip  \input_front, \input_ptr, 16
 
     bltz  \c_div_x_1, 7f
         esp.ld.128.usar.ip  \input_back, \input_ptr, 16
         esp.vld.128.ip  \filter_v0, \filter_ptr, 16
         esp.vld.128.ip  \filter_v1, \filter_ptr, 16
-        
+
         beqz  \c_div_x_1, 8f
         esp.lp.setup  0, \c_div_x_1, 9f
             esp.src.q.qup  \input_v, \input_front, \input_back
@@ -35,10 +35,10 @@
             esp.vsmulas.s16.qacc.ld.incp  \filter_v1, \filter_ptr, \filter_v1, \input_v, 5
             esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v, 6
         9:  esp.vsmulas.s16.qacc.ld.incp  \filter_v1, \filter_ptr, \filter_v1, \input_v, 7
-            
+
         8:
         # last entire-128b
-        esp.src.q.qup  \input_v, \input_front, \input_back 
+        esp.src.q.qup  \input_v, \input_front, \input_back
         esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v, 0
         esp.vsmulas.s16.qacc.ld.incp  \filter_v1, \filter_ptr, \filter_v1, \input_v, 1
         esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v, 2
@@ -48,7 +48,7 @@
         esp.vsmulas.s16.qacc  \filter_v0, \input_v, 6
         esp.vsmulas.s16.qacc  \filter_v1, \input_v, 7
         beqz  \c_remainder, 0f # jump to c_remainder == 0
-    
+
     # c_remainder
     7:
         esp.ld.128.usar.xp  \input_back, \input_ptr, \c_remainder
@@ -144,7 +144,7 @@
 
     bltz  \c_div_x_1, 7f     // input_channel < 8
         esp.ld.128.usar.ip  \input_back, \input_ptr, 16
-        
+
         beqz  \c_div_x_1, 8f
         # esp.lp.setup  0, \c_div_x_1, (8f - 4)
         # Use the zero register as a loop counter, and the value remains zero after the loop is complete.
@@ -169,7 +169,7 @@
         esp.vmulas.s16.xacc  \filter_v, \input_v
 
         beqz  \c_remainder, 0f
-    
+
     7:
         # c_remainder > 0
         esp.ld.128.usar.xp  \input_back, \input_ptr, \c_remainder
@@ -182,7 +182,7 @@
         esp.slcxxp.2q  \filter_back, \filter_v, \temp, \zero
 
         esp.vmulas.s16.xacc  \filter_v, \input_v
-    
+
     0:
         addi  \input_ptr,  \input_ptr, -16
         addi  \filter_ptr, \filter_ptr, -16
@@ -220,21 +220,21 @@ dl_esp32p4_s16_unaligned_conv2d_11cn_bias:
     # t5: zero
     # t6: bias_ptr
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: output
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s8    // push stacks
@@ -244,7 +244,7 @@ dl_esp32p4_s16_unaligned_conv2d_11cn_bias:
     lw  t6, 68(a2)      // bias
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_11cn_bias_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3     //  t3: output_sar_byte
 
         beqz  t3, esp32p4_s16_unaligned_conv2d_11cn_bias_128b
@@ -338,15 +338,15 @@ dl_esp32p4_s16_unaligned_conv2d_11cn_bias_relu:
     # t5: zero
     # t6: bias_ptr
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: output
     # s1: clamp min value
@@ -364,7 +364,7 @@ dl_esp32p4_s16_unaligned_conv2d_11cn_bias_relu:
     lw  t6, 68(a2)      // bias
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_11cn_bias_relu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3     //  t3: output_sar_byte
 
         beqz  t3, esp32p4_s16_unaligned_conv2d_11cn_bias_relu_128b
@@ -460,23 +460,23 @@ dl_esp32p4_s16_unaligned_conv2d_11cn:
     # t3: output_sar_byte / moving input_ptr / tmp value
     # t4: 15 - c_remainder
     # t5: zero
-    # t6: 
+    # t6:
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: output
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s8    // push stacks
@@ -485,7 +485,7 @@ dl_esp32p4_s16_unaligned_conv2d_11cn:
     esp32p4_s16_unaligned_conv2d_11cn_load_args  a2, a3, t0, t1, a5, a4
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_11cn_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3     //  t3: output_sar_byte
 
         beqz  t3, esp32p4_s16_unaligned_conv2d_11cn_128b
@@ -573,17 +573,17 @@ dl_esp32p4_s16_unaligned_conv2d_11cn_relu:
     # t3: output_sar_byte / moving input_ptr / tmp value
     # t4: 15 - c_remainder
     # t5: zero
-    # t6: 
+    # t6:
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: output
     # s1: clamp min value
@@ -600,7 +600,7 @@ dl_esp32p4_s16_unaligned_conv2d_11cn_relu:
     esp32p4_s16_unaligned_conv2d_11cn_load_args  a2, a3, t0, t1, a5, a4
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_11cn_relu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3     //  t3: output_sar_byte
 
         beqz  t3, esp32p4_s16_unaligned_conv2d_11cn_relu_128b
@@ -678,35 +678,35 @@ dl_esp32p4_s16_unaligned_conv2d_11cn_relu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s16_unaligned_conv2d_33cn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s16_unaligned_conv2d_33c8  input_v0, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, temp
     esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     add  \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
     # add  \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -716,28 +716,28 @@ dl_esp32p4_s16_unaligned_conv2d_11cn_relu:
 .macro esp32p4_s16_unaligned_conv2d_33c1  input_v0, input_front, input_back, filter_v0, filter_front, filter_back, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, temp, zero
     esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     esp32p4_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -777,16 +777,16 @@ dl_esp32p4_s16_unaligned_conv2d_33cn_bias:
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
     # t2(not for extension instructions): dilation_x_offset
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: output
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s8    // push stacks
@@ -797,9 +797,9 @@ dl_esp32p4_s16_unaligned_conv2d_33cn_bias:
     lw  t6, 68(a2)      // bias
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3               //  t3: output_sar_byte
-        
+
         beqz  t3, esp32p4_s16_unaligned_conv2d_33cn_bias_128b
             li  a7, 8
             beq  t3, a7, esp32p4_s16_unaligned_conv2d_33cn_bias_64b
@@ -897,10 +897,10 @@ dl_esp32p4_s16_unaligned_conv2d_33cn_bias_relu:
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
     # t2(not for extension instructions): dilation_x_offset
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: output
     # s1: clamp min value
@@ -919,9 +919,9 @@ dl_esp32p4_s16_unaligned_conv2d_33cn_bias_relu:
     lw  t6, 68(a2)      // bias
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3               //  t3: output_sar_byte
-        
+
         beqz  t3, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_128b
             li  a7, 8
             beq  t3, a7, esp32p4_s16_unaligned_conv2d_33cn_bias_relu_64b
@@ -1016,23 +1016,23 @@ dl_esp32p4_s16_unaligned_conv2d_33cn:
     # t3: output_sar_byte / moving input_ptr / tmp value
     # t4: 15 - c_remainder
     # t5: zero
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): dilation_y_offset
     # a7(not for extension instructions): tmp value
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
     # t2(not for extension instructions): dilation_x_offset
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: output
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s8    // push stacks
@@ -1042,9 +1042,9 @@ dl_esp32p4_s16_unaligned_conv2d_33cn:
     esp32p4_s16_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3               //  t3: output_sar_byte
-        
+
         beqz  t3, esp32p4_s16_unaligned_conv2d_33cn_128b
             li  a7, 8
             beq  t3, a7, esp32p4_s16_unaligned_conv2d_33cn_64b
@@ -1131,17 +1131,17 @@ dl_esp32p4_s16_unaligned_conv2d_33cn_relu:
     # t3: output_sar_byte / moving input_ptr / tmp value
     # t4: 15 - c_remainder
     # t5: zero
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): dilation_y_offset
     # a7(not for extension instructions): tmp value
     # t0(not for extension instructions): c_div_x_1
     # t1(not for extension instructions): n_div_x / n_remainder
     # t2(not for extension instructions): dilation_x_offset
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: output
     # s1: clamp min value
@@ -1159,9 +1159,9 @@ dl_esp32p4_s16_unaligned_conv2d_33cn_relu:
     esp32p4_s16_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_33cn_relu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         esp.movx.r.sar.bytes  t3               //  t3: output_sar_byte
-        
+
         beqz  t3, esp32p4_s16_unaligned_conv2d_33cn_relu_128b
             li  a7, 8
             beq  t3, a7, esp32p4_s16_unaligned_conv2d_33cn_relu_64b
@@ -1238,9 +1238,9 @@ dl_esp32p4_s16_unaligned_conv2d_33cn_relu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s16_unaligned_conv2d_hwcn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s16_unaligned_conv2d_hwc8  input_v0, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, filter_h, filter_w, args, filter_y_offset, filter_n_offset, temp
     lw  \filter_h, 52(\args)  # filter_height
@@ -1256,13 +1256,13 @@ dl_esp32p4_s16_unaligned_conv2d_33cn_relu:
                 bnez  \filter_w, 10b
         12:
         esp32p4_s16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-        
+
         add  \filter_ptr, \filter_ptr, \filter_y_offset
         add  \input_ptr, \input_ptr, \dilation_y_offset
 
         addi  \filter_h, \filter_h, -1
         bnez  \filter_h, 11b
-    
+
     add  \filter_ptr, \filter_ptr, \filter_n_offset
 .endm
 
@@ -1282,13 +1282,13 @@ dl_esp32p4_s16_unaligned_conv2d_33cn_relu:
                 bnez  \filter_w, 10b
         12:
         esp32p4_s16_unaligned_conv2d_11c1  \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
-        
+
         add  \filter_ptr, \filter_ptr, \filter_y_offset
         add  \input_ptr, \input_ptr, \dilation_y_offset
 
         addi  \filter_h, \filter_h, -1
         bnez  \filter_h, 11b
-    
+
     add  \filter_ptr, \filter_ptr, \filter_n_offset
 .endm
 
@@ -1311,7 +1311,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_bias:
     # a5: mac_shift
     # t3: output_sar_byte / moving input_ptr / tmp value / output
     # t4: 15 - c_remainder
-    # t5: tmp value / zero 
+    # t5: tmp value / zero
     # t6: bias_ptr
 
     # a6(not for extension instructions): dilation_y_offset
@@ -1322,13 +1322,13 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_bias:
     # s2(not for extension instructions): filter_w
     # s3(not for extension instructions): filter_y_offset
     # s4(not for extension instructions): filter_n_offset
-    # s5(not for extension instructions): 
+    # s5(not for extension instructions):
 
-    # s0: 
+    # s0:
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_20_stacks_5r  s1, s2, s3, s4, s8
@@ -1339,7 +1339,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_bias:
     lw  t6, 68(a2)      // bias
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_hwcn_bias_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         lw  s3, 60(a2)              // s3: filter_y_offset
         lw  s4, 144(a2)             // s4: filter_n_offset
         esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
@@ -1394,7 +1394,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_bias:
             lw  s3, 160(a2)         // s3: filter_y_offset_unaligned
             lw  s4, 164(a2)         // s4: filter_n_offset_unaligned
             lw  a3, 168(a2)         // a3: filter_ptr_unaligned
-            
+
             li  t4, 15
             sub  t4, t4, a4         // t4: 15 - c_remainder
             li  t5,  0              // t5: zero
@@ -1447,9 +1447,9 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu:
     # s2(not for extension instructions): filter_w
     # s3(not for extension instructions): filter_y_offset
     # s4(not for extension instructions): filter_n_offset
-    # s5(not for extension instructions): 
+    # s5(not for extension instructions):
 
-    # s0: 
+    # s0:
     # s1: clamp min value
     # s8: clamp max value
     # s9: activation_alpha/_address
@@ -1466,7 +1466,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu:
     lw  t6, 68(a2)      // bias
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_hwcn_bias_relu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         lw  s3, 60(a2)              // s3: filter_y_offset
         lw  s4, 144(a2)             // s4: filter_n_offset
         esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
@@ -1524,7 +1524,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu:
             lw  s3, 160(a2)         // s3: filter_y_offset_unaligned
             lw  s4, 164(a2)         // s4: filter_n_offset_unaligned
             lw  a3, 168(a2)         // a3: filter_ptr_unaligned
-            
+
             li  t4, 15
             sub  t4, t4, a4         // t4: 15 - c_remainder
             li  t5,  0              // t5: zero
@@ -1568,7 +1568,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn:
     # t3: output_sar_byte / moving input_ptr / tmp value / output
     # t4: 15 - c_remainder
     # t5: tmp value / zero
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): dilation_y_offset
     # a7(not for extension instructions): filter_h
@@ -1578,13 +1578,13 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn:
     # s2(not for extension instructions): filter_w
     # s3(not for extension instructions): filter_y_offset
     # s4(not for extension instructions): filter_n_offset
-    # s5(not for extension instructions): 
+    # s5(not for extension instructions):
 
-    # s0: 
+    # s0:
     # s1: clamp min value
     # s8: clamp max value
-    # s9: 
-    # s10: 
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_20_stacks_5r  s1, s2, s3, s4, s8
@@ -1594,7 +1594,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn:
     esp32p4_s16_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_hwcn_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         lw  s3, 60(a2)              // s3: filter_y_offset
         lw  s4, 144(a2)             // s4: filter_n_offset
         esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
@@ -1646,7 +1646,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn:
             lw  s3, 160(a2)         // s3: filter_y_offset_unaligned
             lw  s4, 164(a2)         // s4: filter_n_offset_unaligned
             lw  a3, 168(a2)         // a3: filter_ptr_unaligned
-            
+
             li  t4, 15
             sub  t4, t4, a4         // t4: 15 - c_remainder
             li  t5,  0              // t5: zero
@@ -1688,7 +1688,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_relu:
     # t3: output_sar_byte / moving input_ptr / tmp value / output
     # t4: 15 - c_remainder
     # t5: tmp value / zero
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): dilation_y_offset
     # a7(not for extension instructions): filter_h
@@ -1698,9 +1698,9 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_relu:
     # s2(not for extension instructions): filter_w
     # s3(not for extension instructions): filter_y_offset
     # s4(not for extension instructions): filter_n_offset
-    # s5(not for extension instructions): 
+    # s5(not for extension instructions):
 
-    # s0: 
+    # s0:
     # s1: clamp min value
     # s8: clamp max value
     # s9: activation_alpha/_address
@@ -1716,7 +1716,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_relu:
     esp32p4_s16_unaligned_conv2d_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
 
     beqz  t1, esp32p4_s16_unaligned_conv2d_hwcn_relu_n_remainder
-        esp.ld.128.usar.ip  q0, a0, 0 
+        esp.ld.128.usar.ip  q0, a0, 0
         lw  s3, 60(a2)              // s3: filter_y_offset
         lw  s4, 144(a2)             // s4: filter_n_offset
         esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
@@ -1771,7 +1771,7 @@ dl_esp32p4_s16_unaligned_conv2d_hwcn_relu:
             lw  s3, 160(a2)         // s3: filter_y_offset_unaligned
             lw  s4, 164(a2)         // s4: filter_n_offset_unaligned
             lw  a3, 168(a2)         // a3: filter_ptr_unaligned
-            
+
             li  t4, 15
             sub  t4, t4, a4         // t4: 15 - c_remainder
             li  t5,  0              // t5: zero

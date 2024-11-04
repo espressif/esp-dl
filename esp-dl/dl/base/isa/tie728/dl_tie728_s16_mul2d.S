@@ -1,9 +1,9 @@
 # include "dl_tie728_s16.S"
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s16_mul2d_11c series
-#### 
+####
 ############################################################################################################################################################
 
     .align 4
@@ -15,7 +15,7 @@ dl_tie728_s16_mul2d_11c:
     .align 4
     entry sp, 16
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -30,14 +30,14 @@ dl_tie728_s16_mul2d_11c:
     EE.VLD.128.IP q0, a3, 16
     EE.VLD.128.IP q1, a4, 16
     loopgtz a6, 0f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.VMULAS.S16.QACC.LD.IP q0, a3, 16, q0, q1
         EE.VLD.128.IP q1, a4, 16
         EE.SRCMB.S16.QACC q2, a7, 0
         EE.VST.128.IP q2, a2, 16
     0:
 
-    EE.ZERO.QACC 
+    EE.ZERO.QACC
     EE.VMULAS.S16.QACC q0, q1
     EE.SRCMB.S16.QACC q2, a7, 0
     EE.VST.128.IP q2, a2, 16
@@ -55,7 +55,7 @@ dl_tie728_s16_mul2d_11c_relu:
     .align 4
     entry sp, 16
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -75,7 +75,7 @@ dl_tie728_s16_mul2d_11c_relu:
     EE.VLD.128.IP q0, a3, 16
     EE.VLD.128.IP q1, a4, 16
     loopgtz a6, 0f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.VMULAS.S16.QACC.LD.IP q0, a3, 16, q0, q1
         EE.VLD.128.IP q1, a4, 16
         EE.SRCMB.S16.QACC q2, a7, 0
@@ -83,7 +83,7 @@ dl_tie728_s16_mul2d_11c_relu:
         EE.VST.128.IP q2, a2, 16
     0:
 
-    EE.ZERO.QACC 
+    EE.ZERO.QACC
     EE.VMULAS.S16.QACC q0, q1
     EE.SRCMB.S16.QACC q2, a7, 0
     EE.VRELU.S16 q2, a14, a15
@@ -101,7 +101,7 @@ dl_tie728_s16_mul2d_11c_prelu:
     .align 4
     entry sp, 16
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -120,7 +120,7 @@ dl_tie728_s16_mul2d_11c_prelu:
     EE.VLD.128.IP q0, a3, 16
     EE.VLD.128.IP q1, a4, 16
     loopgtz a6, 0f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.VMULAS.S16.QACC.LD.IP q0, a3, 16, q0, q1
         EE.VLD.128.IP q1, a4, 16
 
@@ -130,7 +130,7 @@ dl_tie728_s16_mul2d_11c_prelu:
         EE.VST.128.IP q2, a2, 16
     0:
 
-    EE.ZERO.QACC 
+    EE.ZERO.QACC
     EE.VMULAS.S16.QACC q0, q1
     EE.VLD.128.IP q3, a14, 16
     EE.SRCMB.S16.QACC q2, a7, 0
@@ -141,9 +141,9 @@ dl_tie728_s16_mul2d_11c_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_S16_unaligned_mul2d_11c series
-#### 
+####
 ############################################################################################################################################################
 
     .align 4
@@ -155,7 +155,7 @@ dl_tie728_s16_unaligned_mul2d_11c:
     .align 4
     entry sp, 16
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -166,13 +166,13 @@ dl_tie728_s16_unaligned_mul2d_11c:
 
     l32i a6, a5, 64
     l32i a7, a5, 76
-    l32i a8, a5, 100 
+    l32i a8, a5, 100
 
     EE.LD.128.USAR.IP q5, a2, 0 #get output_ptr sar_byte
-    rur.sar_byte a13 
+    rur.sar_byte a13
 
     blti a6, 0, dl_tie718_S16_unaligned_mul2d_11c_small_remainder # channel < 8
-    
+
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
     EE.LD.128.USAR.IP q1, a3, 16
@@ -181,7 +181,7 @@ dl_tie728_s16_unaligned_mul2d_11c:
     beqi a13, 8, dl_tie718_S16_unaligned_mul2d_11c_1
 
     loopgtz a6, 0f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.SRC.Q.QUP q2, q0, q1
 
         EE.LD.128.USAR.IP q4, a4, 16
@@ -196,11 +196,11 @@ dl_tie728_s16_unaligned_mul2d_11c:
     addi a3, a3, -16
     add a3, a3, a7
     EE.ZERO.QACC
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S16.QACC q2, q5
@@ -209,9 +209,9 @@ dl_tie728_s16_unaligned_mul2d_11c:
     j dl_tie718_S16_unaligned_mul2d_11c_remainder
 
 dl_tie718_S16_unaligned_mul2d_11c_0:
-    
+
     loopgtz a6, 1f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.SRC.Q.QUP q2, q0, q1
 
         EE.LD.128.USAR.IP q4, a4, 16
@@ -226,11 +226,11 @@ dl_tie718_S16_unaligned_mul2d_11c_0:
     addi a3, a3, -16
     add a3, a3, a7
     EE.ZERO.QACC
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S16.QACC q2, q5
@@ -239,9 +239,9 @@ dl_tie718_S16_unaligned_mul2d_11c_0:
     j dl_tie718_S16_unaligned_mul2d_11c_remainder
 
 dl_tie718_S16_unaligned_mul2d_11c_1:
-    
+
     loopgtz a6, 2f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.SRC.Q.QUP q2, q0, q1
 
         EE.LD.128.USAR.IP q4, a4, 16
@@ -256,11 +256,11 @@ dl_tie718_S16_unaligned_mul2d_11c_1:
     addi a3, a3, -16
     add a3, a3, a7
     EE.ZERO.QACC
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S16.QACC q2, q5
@@ -292,7 +292,7 @@ dl_tie718_S16_unaligned_mul2d_11c_remainder:
     EE.ZERO.QACC
     EE.VMULAS.S16.QACC q2, q5
     EE.SRCMB.S16.QACC q2, a8, 0
-    
+
     srli a7, a7, 1
     dl_tie728_s16_store_remainder q2, a7, a12, a2
 
@@ -311,7 +311,7 @@ dl_tie728_s16_unaligned_mul2d_11c_relu:
     .align 4
     entry sp, 16
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -324,17 +324,17 @@ dl_tie728_s16_unaligned_mul2d_11c_relu:
 
     l32i a6, a5, 64
     l32i a7, a5, 76
-    l32i a8, a5, 100 
+    l32i a8, a5, 100
     l32i a14, a5, 52
     l32i a15, a5, 60
 
 
 
     EE.LD.128.USAR.IP q5, a2, 0 #get output_ptr sar_byte
-    rur.sar_byte a13 
+    rur.sar_byte a13
 
     blti a6, 0, dl_tie718_S16_unaligned_mul2d_11c_relu_small_remainder # channel < 8
-    
+
 
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
@@ -345,7 +345,7 @@ dl_tie728_s16_unaligned_mul2d_11c_relu:
 
 
     loopgtz a6, 0f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.SRC.Q.QUP q2, q0, q1
 
         EE.LD.128.USAR.IP q4, a4, 16
@@ -360,11 +360,11 @@ dl_tie728_s16_unaligned_mul2d_11c_relu:
     addi a3, a3, -16
     add a3, a3, a7
     EE.ZERO.QACC
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S16.QACC q2, q5
@@ -374,9 +374,9 @@ dl_tie728_s16_unaligned_mul2d_11c_relu:
     j dl_tie718_S16_unaligned_mul2d_11c_relu_remainder
 
 dl_tie718_S16_unaligned_mul2d_11c_relu_0:
-    
+
     loopgtz a6, 1f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.SRC.Q.QUP q2, q0, q1
 
         EE.LD.128.USAR.IP q4, a4, 16
@@ -391,11 +391,11 @@ dl_tie718_S16_unaligned_mul2d_11c_relu_0:
     addi a3, a3, -16
     add a3, a3, a7
     EE.ZERO.QACC
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S16.QACC q2, q5
@@ -405,9 +405,9 @@ dl_tie718_S16_unaligned_mul2d_11c_relu_0:
     j dl_tie718_S16_unaligned_mul2d_11c_relu_remainder
 
 dl_tie718_S16_unaligned_mul2d_11c_relu_1:
-    
+
     loopgtz a6, 2f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.SRC.Q.QUP q2, q0, q1
 
         EE.LD.128.USAR.IP q4, a4, 16
@@ -422,11 +422,11 @@ dl_tie718_S16_unaligned_mul2d_11c_relu_1:
     addi a3, a3, -16
     add a3, a3, a7
     EE.ZERO.QACC
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S16.QACC q2, q5
@@ -476,7 +476,7 @@ dl_tie728_s16_unaligned_mul2d_11c_prelu:
     .align 4
     entry sp, 16
 
-    # a2: int8_t *output_ptr  
+    # a2: int8_t *output_ptr
     # a3: int8_t *input0_ptr
     # a4: int8_t *input1_ptr
     # a5: void *args
@@ -489,17 +489,17 @@ dl_tie728_s16_unaligned_mul2d_11c_prelu:
 
     l32i a6, a5, 64
     l32i a7, a5, 76
-    l32i a8, a5, 100 
+    l32i a8, a5, 100
     l32i a14, a5, 56
     l32i a15, a5, 60
 
 
 
     EE.LD.128.USAR.IP q5, a2, 0 #get output_ptr sar_byte
-    rur.sar_byte a13 
+    rur.sar_byte a13
 
     blti a6, 0, dl_tie718_S16_unaligned_mul2d_11c_prelu_small_remainder # channel < 8
-    
+
 
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q3, a4, 16
@@ -510,7 +510,7 @@ dl_tie728_s16_unaligned_mul2d_11c_prelu:
 
 
     loopgtz a6, 0f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.SRC.Q.QUP q2, q0, q1
 
         EE.LD.128.USAR.IP q4, a4, 16
@@ -527,11 +527,11 @@ dl_tie728_s16_unaligned_mul2d_11c_prelu:
     addi a3, a3, -16
     add a3, a3, a7
     EE.ZERO.QACC
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S16.QACC q2, q5
@@ -542,9 +542,9 @@ dl_tie728_s16_unaligned_mul2d_11c_prelu:
     j dl_tie718_S16_unaligned_mul2d_11c_prelu_remainder
 
 dl_tie718_S16_unaligned_mul2d_11c_prelu_0:
-    
+
     loopgtz a6, 1f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.SRC.Q.QUP q2, q0, q1
 
         EE.LD.128.USAR.IP q4, a4, 16
@@ -560,11 +560,11 @@ dl_tie718_S16_unaligned_mul2d_11c_prelu_0:
     addi a3, a3, -16
     add a3, a3, a7
     EE.ZERO.QACC
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S16.QACC q2, q5
@@ -575,9 +575,9 @@ dl_tie718_S16_unaligned_mul2d_11c_prelu_0:
     j dl_tie718_S16_unaligned_mul2d_11c_prelu_remainder
 
 dl_tie718_S16_unaligned_mul2d_11c_prelu_1:
-    
+
     loopgtz a6, 2f
-        EE.ZERO.QACC 
+        EE.ZERO.QACC
         EE.SRC.Q.QUP q2, q0, q1
 
         EE.LD.128.USAR.IP q4, a4, 16
@@ -593,11 +593,11 @@ dl_tie718_S16_unaligned_mul2d_11c_prelu_1:
     addi a3, a3, -16
     add a3, a3, a7
     EE.ZERO.QACC
-    rur.sar_byte a11 #input0 sar  
+    rur.sar_byte a11 #input0 sar
     EE.SRC.Q.QUP q2, q0, q1
 
     EE.LD.128.USAR.XP q4, a4, a7
-    rur.sar_byte a12 #input1 sar 
+    rur.sar_byte a12 #input1 sar
     EE.SRC.Q.QUP q5, q3, q4
 
     EE.VMULAS.S16.QACC q2, q5

@@ -33,7 +33,7 @@ dl_tie728_bzero:
 
     movi a10, 0
     EE.LD.128.USAR.IP q1, a2, 0
-    RUR.SAR_BYTE a8    
+    RUR.SAR_BYTE a8
     beqz a8, 1f
     movi a9, 16
     sub a9, a9, a8  # head unaligned bytes
@@ -48,9 +48,9 @@ dl_tie728_bzero:
     blti a3, 1, 4f
 1:
     srli a4, a3, 4  # n // 16
-    slli a5, a4, 4 
+    slli a5, a4, 4
     sub a5, a3, a5  # remainder
-    
+
     srli a6, a5, 2  #remainder_4b
     slli a7, a6, 2
     sub a7, a5, a7 #remainder_1b
@@ -69,5 +69,3 @@ dl_tie728_bzero:
     addi a2, a2, 1
 4:
     retw
-
-    

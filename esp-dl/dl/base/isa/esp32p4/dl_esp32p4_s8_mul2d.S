@@ -3,9 +3,9 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_mul2d_11c series
-#### 
+####
 ############################################################################################################################################################
 
     .align 2
@@ -17,7 +17,7 @@ dl_esp32p4_s8_mul2d_11c:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int8_t *output_ptr  
+    # a0: int8_t *output_ptr
     # a1: int8_t *input0_ptr
     # a2: int8_t *input1_ptr
     # a3: void *args
@@ -25,7 +25,7 @@ dl_esp32p4_s8_mul2d_11c:
     # a5: mul_shift
 
     lw a4, 64(a3)
-    lw a5, 100(a3) 
+    lw a5, 100(a3)
     lw t3, 76(a3)
 
     esp.vld.128.ip q0, a1, 16
@@ -33,7 +33,7 @@ dl_esp32p4_s8_mul2d_11c:
     add t0, a4, x0
     blez t0, 1f
     0:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.vmulas.s8.qacc.ld.ip q0, a1, 16, q0, q1
         esp.vld.128.ip q1, a2, 16
         esp.srcmb.s8.qacc q2, a5, 1
@@ -42,7 +42,7 @@ dl_esp32p4_s8_mul2d_11c:
         bgtz t0, 0b
     1:
 
-    esp.zero.qacc 
+    esp.zero.qacc
     esp.vmulas.s8.qacc q0, q1
     esp.srcmb.s8.qacc q2, a5, 1
 
@@ -63,7 +63,7 @@ dl_esp32p4_s8_mul2d_11c_relu:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int8_t *output_ptr  
+    # a0: int8_t *output_ptr
     # a1: int8_t *input0_ptr
     # a2: int8_t *input1_ptr
     # a3: void *args
@@ -85,7 +85,7 @@ dl_esp32p4_s8_mul2d_11c_relu:
     add t0, a4, x0
     blez t0, 1f
     0:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.vmulas.s8.qacc.ld.ip q0, a1, 16, q0, q1
         esp.vld.128.ip q1, a2, 16
         esp.srcmb.s8.qacc q2, a5, 1
@@ -95,7 +95,7 @@ dl_esp32p4_s8_mul2d_11c_relu:
         bgtz t0, 0b
     1:
 
-    esp.zero.qacc 
+    esp.zero.qacc
     esp.vmulas.s8.qacc q0, q1
     esp.srcmb.s8.qacc q2, a5, 1
 
@@ -117,7 +117,7 @@ dl_esp32p4_s8_mul2d_11c_prelu:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int8_t *output_ptr  
+    # a0: int8_t *output_ptr
     # a1: int8_t *input0_ptr
     # a2: int8_t *input1_ptr
     # a3: void *args
@@ -138,7 +138,7 @@ dl_esp32p4_s8_mul2d_11c_prelu:
     add t0, a4, x0
     blez t0, 1f
     0:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.vmulas.s8.qacc.ld.ip q0, a1, 16, q0, q1
         esp.vld.128.ip q1, a2, 16
 
@@ -150,7 +150,7 @@ dl_esp32p4_s8_mul2d_11c_prelu:
         bgtz t0, 0b
     1:
 
-    esp.zero.qacc 
+    esp.zero.qacc
     esp.vmulas.s8.qacc q0, q1
     esp.vld.128.ip q3, s8, 16
     esp.srcmb.s8.qacc q2, a5, 1
@@ -167,9 +167,9 @@ dl_esp32p4_s8_mul2d_11c_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s8_unaligned_mul2d_11c series
-#### 
+####
 ############################################################################################################################################################
 
     .align 2
@@ -181,7 +181,7 @@ dl_esp32p4_s8_unaligned_mul2d_11c:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int8_t *output_ptr  
+    # a0: int8_t *output_ptr
     # a1: int8_t *input0_ptr
     # a2: int8_t *input1_ptr
     # a3: void *args
@@ -192,15 +192,15 @@ dl_esp32p4_s8_unaligned_mul2d_11c:
 
     lw a4, 64(a3)
     lw a5, 76(a3)
-    lw t3, 100(a3) 
+    lw t3, 100(a3)
 
 
 
     esp.ld.128.usar.ip q5, a0, 0 #get output_ptr sar_byte
-    esp.movx.r.sar.bytes s1 
+    esp.movx.r.sar.bytes s1
 
     bltz a4, dl_tie718_s8_unaligned_mul2d_11c_small_remainder # channel < 16
-    
+
 
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
@@ -214,7 +214,7 @@ dl_esp32p4_s8_unaligned_mul2d_11c:
     add t0, a4, x0
     blez t0, 1f
     0:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.src.q.qup q2, q0, q1
 
         esp.ld.128.usar.ip q4, a2, 16
@@ -231,11 +231,11 @@ dl_esp32p4_s8_unaligned_mul2d_11c:
     addi a1, a1, -16
     add a1, a1, a5
     esp.zero.qacc
-    esp.movx.r.sar.bytes t6 #input0 sar  
+    esp.movx.r.sar.bytes t6 #input0 sar
     esp.src.q.qup q2, q0, q1
 
     esp.ld.128.usar.xp q4, a2, a5
-    esp.movx.r.sar.bytes s0 #input1 sar 
+    esp.movx.r.sar.bytes s0 #input1 sar
     esp.src.q.qup q5, q3, q4
 
     esp.vmulas.s8.qacc q2, q5
@@ -244,11 +244,11 @@ dl_esp32p4_s8_unaligned_mul2d_11c:
     j dl_tie718_s8_unaligned_mul2d_11c_remainder
 
 dl_tie718_s8_unaligned_mul2d_11c_0:
-    
+
     add t0, a4, x0
     blez t0, 3f
     2:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.src.q.qup q2, q0, q1
 
         esp.ld.128.usar.ip q4, a2, 16
@@ -265,11 +265,11 @@ dl_tie718_s8_unaligned_mul2d_11c_0:
     addi a1, a1, -16
     add a1, a1, a5
     esp.zero.qacc
-    esp.movx.r.sar.bytes t6 #input0 sar  
+    esp.movx.r.sar.bytes t6 #input0 sar
     esp.src.q.qup q2, q0, q1
 
     esp.ld.128.usar.xp q4, a2, a5
-    esp.movx.r.sar.bytes s0 #input1 sar 
+    esp.movx.r.sar.bytes s0 #input1 sar
     esp.src.q.qup q5, q3, q4
 
     esp.vmulas.s8.qacc q2, q5
@@ -278,11 +278,11 @@ dl_tie718_s8_unaligned_mul2d_11c_0:
     j dl_tie718_s8_unaligned_mul2d_11c_remainder
 
 dl_tie718_s8_unaligned_mul2d_11c_1:
-    
+
     add t0, a4, x0
     blez t0, 5f
     4:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.src.q.qup q2, q0, q1
 
         esp.ld.128.usar.ip q4, a2, 16
@@ -299,11 +299,11 @@ dl_tie718_s8_unaligned_mul2d_11c_1:
     addi a1, a1, -16
     add a1, a1, a5
     esp.zero.qacc
-    esp.movx.r.sar.bytes t6 #input0 sar  
+    esp.movx.r.sar.bytes t6 #input0 sar
     esp.src.q.qup q2, q0, q1
 
     esp.ld.128.usar.xp q4, a2, a5
-    esp.movx.r.sar.bytes s0 #input1 sar 
+    esp.movx.r.sar.bytes s0 #input1 sar
     esp.src.q.qup q5, q3, q4
 
     esp.vmulas.s8.qacc q2, q5
@@ -357,7 +357,7 @@ dl_esp32p4_s8_unaligned_mul2d_11c_relu:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int8_t *output_ptr  
+    # a0: int8_t *output_ptr
     # a1: int8_t *input0_ptr
     # a2: int8_t *input1_ptr
     # a3: void *args
@@ -370,17 +370,17 @@ dl_esp32p4_s8_unaligned_mul2d_11c_relu:
 
     lw a4, 64(a3)
     lw a5, 76(a3)
-    lw t3, 100(a3) 
+    lw t3, 100(a3)
     lw s8, 52(a3)
     lw s9, 60(a3)
 
 
 
     esp.ld.128.usar.ip q5, a0, 0 #get output_ptr sar_byte
-    esp.movx.r.sar.bytes s1 
+    esp.movx.r.sar.bytes s1
 
     bltz a4, dl_tie718_s8_unaligned_mul2d_11c_relu_small_remainder # channel < 16
-    
+
 
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
@@ -394,7 +394,7 @@ dl_esp32p4_s8_unaligned_mul2d_11c_relu:
     add t0, a4, x0
     blez t0, 1f
     0:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.src.q.qup q2, q0, q1
 
         esp.ld.128.usar.ip q4, a2, 16
@@ -411,11 +411,11 @@ dl_esp32p4_s8_unaligned_mul2d_11c_relu:
     addi a1, a1, -16
     add a1, a1, a5
     esp.zero.qacc
-    esp.movx.r.sar.bytes t6 #input0 sar  
+    esp.movx.r.sar.bytes t6 #input0 sar
     esp.src.q.qup q2, q0, q1
 
     esp.ld.128.usar.xp q4, a2, a5
-    esp.movx.r.sar.bytes s0 #input1 sar 
+    esp.movx.r.sar.bytes s0 #input1 sar
     esp.src.q.qup q5, q3, q4
 
     esp.vmulas.s8.qacc q2, q5
@@ -425,11 +425,11 @@ dl_esp32p4_s8_unaligned_mul2d_11c_relu:
     j dl_tie718_s8_unaligned_mul2d_11c_relu_remainder
 
 dl_tie718_s8_unaligned_mul2d_11c_relu_0:
-    
+
     add t0, a4, x0
     blez t0, 3f
     2:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.src.q.qup q2, q0, q1
 
         esp.ld.128.usar.ip q4, a2, 16
@@ -446,11 +446,11 @@ dl_tie718_s8_unaligned_mul2d_11c_relu_0:
     addi a1, a1, -16
     add a1, a1, a5
     esp.zero.qacc
-    esp.movx.r.sar.bytes t6 #input0 sar  
+    esp.movx.r.sar.bytes t6 #input0 sar
     esp.src.q.qup q2, q0, q1
 
     esp.ld.128.usar.xp q4, a2, a5
-    esp.movx.r.sar.bytes s0 #input1 sar 
+    esp.movx.r.sar.bytes s0 #input1 sar
     esp.src.q.qup q5, q3, q4
 
     esp.vmulas.s8.qacc q2, q5
@@ -460,11 +460,11 @@ dl_tie718_s8_unaligned_mul2d_11c_relu_0:
     j dl_tie718_s8_unaligned_mul2d_11c_relu_remainder
 
 dl_tie718_s8_unaligned_mul2d_11c_relu_1:
-    
+
     add t0, a4, x0
     blez t0, 5f
     4:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.src.q.qup q2, q0, q1
 
         esp.ld.128.usar.ip q4, a2, 16
@@ -481,11 +481,11 @@ dl_tie718_s8_unaligned_mul2d_11c_relu_1:
     addi a1, a1, -16
     add a1, a1, a5
     esp.zero.qacc
-    esp.movx.r.sar.bytes t6 #input0 sar  
+    esp.movx.r.sar.bytes t6 #input0 sar
     esp.src.q.qup q2, q0, q1
 
     esp.ld.128.usar.xp q4, a2, a5
-    esp.movx.r.sar.bytes s0 #input1 sar 
+    esp.movx.r.sar.bytes s0 #input1 sar
     esp.src.q.qup q5, q3, q4
 
     esp.vmulas.s8.qacc q2, q5
@@ -537,7 +537,7 @@ dl_esp32p4_s8_unaligned_mul2d_11c_prelu:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int8_t *output_ptr  
+    # a0: int8_t *output_ptr
     # a1: int8_t *input0_ptr
     # a2: int8_t *input1_ptr
     # a3: void *args
@@ -550,17 +550,17 @@ dl_esp32p4_s8_unaligned_mul2d_11c_prelu:
 
     lw a4, 64(a3)
     lw a5, 76(a3)
-    lw t3, 100(a3) 
+    lw t3, 100(a3)
     lw s8, 56(a3)
     lw s9, 60(a3)
 
 
 
     esp.ld.128.usar.ip q5, a0, 0 #get output_ptr sar_byte
-    esp.movx.r.sar.bytes s1 
+    esp.movx.r.sar.bytes s1
 
     bltz a4, dl_tie718_s8_unaligned_mul2d_11c_prelu_small_remainder # channel < 16
-    
+
 
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
@@ -574,7 +574,7 @@ dl_esp32p4_s8_unaligned_mul2d_11c_prelu:
     add t0, a4, x0
     blez t0, 1f
     0:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.src.q.qup q2, q0, q1
 
         esp.ld.128.usar.ip q4, a2, 16
@@ -593,11 +593,11 @@ dl_esp32p4_s8_unaligned_mul2d_11c_prelu:
     addi a1, a1, -16
     add a1, a1, a5
     esp.zero.qacc
-    esp.movx.r.sar.bytes t6 #input0 sar  
+    esp.movx.r.sar.bytes t6 #input0 sar
     esp.src.q.qup q2, q0, q1
 
     esp.ld.128.usar.xp q4, a2, a5
-    esp.movx.r.sar.bytes s0 #input1 sar 
+    esp.movx.r.sar.bytes s0 #input1 sar
     esp.src.q.qup q5, q3, q4
 
     esp.vmulas.s8.qacc q2, q5
@@ -608,11 +608,11 @@ dl_esp32p4_s8_unaligned_mul2d_11c_prelu:
     j dl_tie718_s8_unaligned_mul2d_11c_prelu_remainder
 
 dl_tie718_s8_unaligned_mul2d_11c_prelu_0:
-    
+
     add t0, a4, x0
     blez t0, 3f
     2:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.src.q.qup q2, q0, q1
 
         esp.ld.128.usar.ip q4, a2, 16
@@ -630,11 +630,11 @@ dl_tie718_s8_unaligned_mul2d_11c_prelu_0:
     addi a1, a1, -16
     add a1, a1, a5
     esp.zero.qacc
-    esp.movx.r.sar.bytes t6 #input0 sar  
+    esp.movx.r.sar.bytes t6 #input0 sar
     esp.src.q.qup q2, q0, q1
 
     esp.ld.128.usar.xp q4, a2, a5
-    esp.movx.r.sar.bytes s0 #input1 sar 
+    esp.movx.r.sar.bytes s0 #input1 sar
     esp.src.q.qup q5, q3, q4
 
     esp.vmulas.s8.qacc q2, q5
@@ -645,11 +645,11 @@ dl_tie718_s8_unaligned_mul2d_11c_prelu_0:
     j dl_tie718_s8_unaligned_mul2d_11c_prelu_remainder
 
 dl_tie718_s8_unaligned_mul2d_11c_prelu_1:
-    
+
     add t0, a4, x0
     blez t0, 5f
     4:
-        esp.zero.qacc 
+        esp.zero.qacc
         esp.src.q.qup q2, q0, q1
 
         esp.ld.128.usar.ip q4, a2, 16
@@ -667,11 +667,11 @@ dl_tie718_s8_unaligned_mul2d_11c_prelu_1:
     addi a1, a1, -16
     add a1, a1, a5
     esp.zero.qacc
-    esp.movx.r.sar.bytes t6 #input0 sar  
+    esp.movx.r.sar.bytes t6 #input0 sar
     esp.src.q.qup q2, q0, q1
 
     esp.ld.128.usar.xp q4, a2, a5
-    esp.movx.r.sar.bytes s0 #input1 sar 
+    esp.movx.r.sar.bytes s0 #input1 sar
     esp.src.q.qup q5, q3, q4
 
     esp.vmulas.s8.qacc q2, q5

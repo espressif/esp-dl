@@ -3,9 +3,9 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s16_conv2d_11cn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s16_conv2d_11c8  input_v0, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1
     # scalar * vecter and accumulate into qacc
@@ -35,7 +35,7 @@
         esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v0, 6
         esp.vsmulas.s16.qacc.ld.incp  \input_v0,  \input_ptr,  \filter_v1, \input_v0, 7
     0:  esp.vld.128.ip                \filter_v1, \filter_ptr, 16
-    
+
     1:
     esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v0, 0
     esp.vsmulas.s16.qacc.ld.incp  \filter_v1, \filter_ptr, \filter_v1, \input_v0, 1
@@ -73,26 +73,26 @@ dl_esp32p4_s16_conv2d_11cn_bias:
     # a3: int16_t *filter_ptr
     # a4: mac_shift
     # a5: bias_ptr
-    # t3: 
-    # t4: 
+    # t3:
+    # t4:
     # t5: moving_input_ptr
     # t6: n_rs3
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
     # t1(not for extension instructions): c_div_x_1
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s16_conv2d_11cn_load_args  a2, a3, t1, t6, a4
@@ -134,21 +134,21 @@ dl_esp32p4_s16_conv2d_11cn_bias_relu:
     # t5: moving_input_ptr
     # t6: n_rs3
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
     # t1(not for extension instructions): c_div_x_1
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s16_conv2d_11cn_load_args  a2, a3, t1, t6, a4
@@ -187,27 +187,27 @@ dl_esp32p4_s16_conv2d_11cn:
 
     # a3: int16_t *filter_ptr
     # a4: mac_shift
-    # a5: 
-    # t3: 
-    # t4: 
+    # a5:
+    # t3:
+    # t4:
     # t5: moving_input_ptr
     # t6: n_rs3
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
     # t1(not for extension instructions): c_div_x_1
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s16_conv2d_11cn_load_args  a2, a3, t1, t6, a4
@@ -219,7 +219,7 @@ dl_esp32p4_s16_conv2d_11cn:
         esp32p4_s16_conv2d_11c8  q0, q1, q2, t5, a3, t1
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
-        
+
         addi  t6, t6, -1
         bnez  t6, esp32p4_s16_conv2d_11cn_loop
 
@@ -241,27 +241,27 @@ dl_esp32p4_s16_conv2d_11cn_relu:
 
     # a3: int16_t *filter_ptr
     # a4: mac_shift
-    # a5: 
+    # a5:
     # t3: activation_alpha/_address
     # t4: activation_shift
     # t5: moving_input_ptr
     # t6: n_rs3
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
     # t1(not for extension instructions): c_div_x_1
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s16_conv2d_11cn_load_args  a2, a3, t1, t6, a4
@@ -288,9 +288,9 @@ dl_esp32p4_s16_conv2d_11cn_relu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s16_conv2d_33cn series
-#### 
+####
 ############################################################################################################################################################
 
 .macro esp32p4_s16_conv2d_33c8  input_v0, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, dilation_x_offset, dilation_y_offset
@@ -350,26 +350,26 @@ dl_esp32p4_s16_conv2d_33cn_bias:
     # a3: int16_t *filter_ptr
     # a4: mac_shift
     # a5: bias_ptr
-    # t3: 
-    # t4: 
+    # t3:
+    # t4:
     # t5: moving_input_ptr
     # t6: n_rs3
 
     # a6(not for extension instructions): input dilation y offset
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): input dilation x offset
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s16_conv2d_hwcn_load_args  a2, a3, t1, t6, a4, t2, a6
@@ -412,20 +412,20 @@ dl_esp32p4_s16_conv2d_33cn_bias_relu:
     # t6: n_rs3
 
     # a6(not for extension instructions): input dilation y offset
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): input dilation x offset
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s16_conv2d_hwcn_load_args  a2, a3, t1, t6, a4, t2, a6
@@ -464,27 +464,27 @@ dl_esp32p4_s16_conv2d_33cn:
 
     # a3: int16_t *filter_ptr
     # a4: mac_shift
-    # a5: 
-    # t3: 
-    # t4: 
+    # a5:
+    # t3:
+    # t4:
     # t5: moving_input_ptr
     # t6: n_rs3
 
     # a6(not for extension instructions): input dilation y offset
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): input dilation x offset
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s16_conv2d_hwcn_load_args  a2, a3, t1, t6, a4, t2, a6
@@ -518,27 +518,27 @@ dl_esp32p4_s16_conv2d_33cn_relu:
 
     # a3: int16_t *filter_ptr
     # a4: mac_shift
-    # a5: 
+    # a5:
     # t3: activation_alpha/_address
     # t4: activation_shift
     # t5: moving_input_ptr
     # t6: n_rs3
 
     # a6(not for extension instructions): input dilation y offset
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): input dilation x offset
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s16_conv2d_hwcn_load_args  a2, a3, t1, t6, a4, t2, a6
@@ -565,9 +565,9 @@ dl_esp32p4_s16_conv2d_33cn_relu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s16_conv2d_hwcn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s16_conv2d_hwc8  input_v0, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, dilation_x_offset, dilation_y_offset, filter_h, filter_w, args, filter_y_offset, filter_n_offset
     # dilation_x_offset = (dilation_x * input_channel_with_padding - input_channel) * sizeof(output_t)
@@ -595,7 +595,7 @@ dl_esp32p4_s16_conv2d_33cn_relu:
 
         addi  \filter_h, \filter_h, -1
         bnez  \filter_h, 2b
-    
+
     add  \filter_ptr, \filter_ptr, \filter_n_offset
 .endm
 
@@ -616,8 +616,8 @@ dl_esp32p4_s16_conv2d_hwcn_bias:
     # a3: int16_t *filter_ptr
     # a4: mac_shift
     # a5: bias_ptr
-    # t3: 
-    # t4: 
+    # t3:
+    # t4:
     # t5: moving_input_ptr
     # t6: n_rs3
 
@@ -628,14 +628,14 @@ dl_esp32p4_s16_conv2d_hwcn_bias:
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions): filter_y_offset
     # s3(not for extension instructions): filter_n_offset
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s2, s3, s4
@@ -689,14 +689,14 @@ dl_esp32p4_s16_conv2d_hwcn_bias_relu:
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions): filter_y_offset
     # s3(not for extension instructions): filter_n_offset
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s2, s3, s4
@@ -740,9 +740,9 @@ dl_esp32p4_s16_conv2d_hwcn:
 
     # a3: int16_t *filter_ptr
     # a4: mac_shift
-    # a5: 
-    # t3: 
-    # t4: 
+    # a5:
+    # t3:
+    # t4:
     # t5: moving_input_ptr
     # t6: n_rs3
 
@@ -753,14 +753,14 @@ dl_esp32p4_s16_conv2d_hwcn:
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions): filter_y_offset
     # s3(not for extension instructions): filter_n_offset
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s2, s3, s4
@@ -799,7 +799,7 @@ dl_esp32p4_s16_conv2d_hwcn_relu:
 
     # a3: int16_t *filter_ptr
     # a4: mac_shift
-    # a5: 
+    # a5:
     # t3: activation_alpha/_address
     # t4: activation_shift
     # t5: moving_input_ptr
@@ -812,14 +812,14 @@ dl_esp32p4_s16_conv2d_hwcn_relu:
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions): filter_y_offset
     # s3(not for extension instructions): filter_n_offset
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s2, s3, s4

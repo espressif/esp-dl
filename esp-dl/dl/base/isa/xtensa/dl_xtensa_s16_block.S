@@ -3,7 +3,7 @@
 ############################################################################################################################################################
 .macro xtensa_clear_accumulator zero
     # zero: any a-register equals 0
-   
+
     wsr \zero, acchi
     wsr \zero, acclo
 .endm
@@ -12,7 +12,7 @@
 .macro xtensa_fetch_accumulator output temp
     # output: output value
     # temp: temporary variable
-   
+
     rsr \output, acchi
     rsr \temp, acclo
 
@@ -22,7 +22,7 @@
 
 .macro xtensa_saturation x
     # x: any a-register
-   
+
     clamps \x, \x, 15
 .endm
 
@@ -32,8 +32,8 @@
     # x: a variable to be added
     # bias_address:
     # temp: a temporary variable keep bias element value
-   
-    l16si \temp,         \bias_address, 0       
+
+    l16si \temp,         \bias_address, 0
     addi  \bias_address, \bias_address, 2
     add   \x,            \x,            \temp
 .endm
@@ -42,7 +42,7 @@
 .macro xtensa_store output_address x
     # output_address:
     # x: a variable to be stored
-   
+
     s16i \x,              \output_address, 0
     addi \output_address, \output_address, 2
 .endm
@@ -51,7 +51,7 @@
 .macro xtensa_relu x zero
     # x: varaible
     # zero: any a-register equals to 0
-   
+
     max \x, \x, \zero
 .endm
 
@@ -65,8 +65,8 @@
     # input__v1: 2 input elements
     # filter_v0: 2 filter elements
     # filter_v1: 2 filter elements
-    # input__ptr: 
-    # filter_ptr: 
+    # input__ptr:
+    # filter_ptr:
     # c: input_channel
     # c_rs2_1: input_channel >> 2 - 1
 
@@ -105,7 +105,7 @@
     ldinc \filter_v0, \filter_ptr
     ldinc \input__v1, \input__ptr
     mula.dd.ll.ldinc \filter_v1, \filter_ptr, \input__v0, \filter_v0
-    
+
     loopgtz \c_rs2_1, 4f
     mula.dd.hh.ldinc \input__v0, \input__ptr, \input__v0, \filter_v0
     mula.dd.ll.ldinc \filter_v0, \filter_ptr, \input__v1, \filter_v1
@@ -188,7 +188,7 @@ xtensa_s16_conv2d_11cn_bias_loop:
     # xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_11cn_bias_loop
     retw
@@ -234,7 +234,7 @@ xtensa_s16_conv2d_11cn_bias_relu_loop:
     xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_11cn_bias_relu_loop
     retw
@@ -280,7 +280,7 @@ xtensa_s16_conv2d_11cn_loop:
     # xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_11cn_loop
     retw
@@ -326,7 +326,7 @@ xtensa_s16_conv2d_11cn_relu_loop:
     xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_11cn_relu_loop
     retw
@@ -341,8 +341,8 @@ xtensa_s16_conv2d_11cn_relu_loop:
     # input__v1: 2 input elements
     # filter_v0: 2 filter elements
     # filter_v1: 2 filter elements
-    # input__ptr: 
-    # filter_ptr: 
+    # input__ptr:
+    # filter_ptr:
     # c: input_channel
     # c_rs2_1: input_channel >> 2 - 1
     # dilation_x_offset: (dilation_x * input_channel_with_padding - input_channel) * sizeof(output_t)
@@ -350,28 +350,28 @@ xtensa_s16_conv2d_11cn_relu_loop:
 
     xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
     add \input__ptr, \input__ptr, \dilation_x_offset                                                                  # go to the next input__ptr
-    
+
     xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
     add \input__ptr, \input__ptr, \dilation_x_offset                                                                  # go to the next input__ptr
-    
+
     xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
     add \input__ptr, \input__ptr, \dilation_y_offset                                                                  # go to the next input__ptr
-    
+
     xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
     add \input__ptr, \input__ptr, \dilation_x_offset                                                                  # go to the next input__ptr
-    
+
     xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
     add \input__ptr, \input__ptr, \dilation_x_offset                                                                  # go to the next input__ptr
-    
+
     xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
     add \input__ptr, \input__ptr, \dilation_y_offset                                                                  # go to the next input__ptr
-    
+
     xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
     add \input__ptr, \input__ptr, \dilation_x_offset                                                                  # go to the next input__ptr
-    
+
     xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
     add \input__ptr, \input__ptr, \dilation_x_offset                                                                  # go to the next input_ptr
-    
+
     xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
 .endm
 
@@ -424,7 +424,7 @@ xtensa_s16_conv2d_33cn_bias_loop:
     # xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_33cn_bias_loop
     retw
@@ -470,7 +470,7 @@ xtensa_s16_conv2d_33cn_bias_relu_loop:
     xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_33cn_bias_relu_loop
     retw
@@ -516,7 +516,7 @@ xtensa_s16_conv2d_33cn_loop:
     # xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_33cn_loop
     retw
@@ -562,7 +562,7 @@ xtensa_s16_conv2d_33cn_relu_loop:
     xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_33cn_relu_loop
     retw
@@ -578,8 +578,8 @@ xtensa_s16_conv2d_33cn_relu_loop:
     # input__v1: 2 input elements
     # filter_v0: 2 filter elements
     # filter_v1: 2 filter elements
-    # input__ptr: 
-    # filter_ptr: 
+    # input__ptr:
+    # filter_ptr:
     # c: input_channel
     # c_rs2_1: input_channel >> 2 - 1
     # dilation_x_offset: dilation_x * input_channel_with_padding - input_channel
@@ -593,21 +593,21 @@ xtensa_s16_conv2d_33cn_relu_loop:
         beqi \filter_w, 1, 9f
         8:
             xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
-            add \input__ptr, \input__ptr, \dilation_x_offset                                                                  
+            add \input__ptr, \input__ptr, \dilation_x_offset
 
             addi \filter_w, \filter_w, -1
             bgei \filter_w, 2, 8b
         9:
         xtensa_s16_conv2d_11c1 \input__v0 \input__v1 \filter_v0 \filter_v1 \input__ptr \filter_ptr \c \c_rs2_1
-        l32i \filter_w, \args, 60 # filter_y_offset 
-        add \input__ptr, \input__ptr, \dilation_y_offset   
-        add \filter_ptr, \filter_ptr, \filter_w                                                          
+        l32i \filter_w, \args, 60 # filter_y_offset
+        add \input__ptr, \input__ptr, \dilation_y_offset
+        add \filter_ptr, \filter_ptr, \filter_w
 
         addi \filter_h, \filter_h, -1
         bnez \filter_h, 7b
-    
+
     l32i \filter_h, \args, 144 # filter_n_offset
-    add \filter_ptr, \filter_ptr, \filter_h 
+    add \filter_ptr, \filter_ptr, \filter_h
 .endm
 
 
@@ -652,7 +652,7 @@ xtensa_s16_conv2d_hwcn_bias_loop:
     # xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_hwcn_bias_loop
     retw
@@ -691,14 +691,14 @@ xtensa_s16_conv2d_hwcn_bias_relu_loop:
 
     xtensa_clear_accumulator a9
 
-    xtensa_s16_conv2d_hwc1 m0, m1, m2, m3, a15, a5, a6, a8, a11, a12, a13, a14, a4 
+    xtensa_s16_conv2d_hwc1 m0, m1, m2, m3, a15, a5, a6, a8, a11, a12, a13, a14, a4
 
     xtensa_fetch_accumulator a13, a14
     xtensa_bias a13, a10, a14
     xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_hwcn_bias_relu_loop
     retw
@@ -723,7 +723,7 @@ dl_xtensa_s16_conv2d_hwcn:
     # a7: n
     # a8: c_rs2_1
     # a9: mac_shift (after set srr a9 will be 0)
-    # a10: 
+    # a10:
     # a11: input dilation x offset
     # a12: input dilation y offset
     # a13: filter_height, output variable
@@ -737,14 +737,14 @@ xtensa_s16_conv2d_hwcn_loop:
 
     xtensa_clear_accumulator a9
 
-    xtensa_s16_conv2d_hwc1 m0, m1, m2, m3, a15, a5, a6, a8, a11, a12, a13, a14, a4 
+    xtensa_s16_conv2d_hwc1 m0, m1, m2, m3, a15, a5, a6, a8, a11, a12, a13, a14, a4
 
     xtensa_fetch_accumulator a13, a14
     # xtensa_bias a13, a10, a14
     # xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_hwcn_loop
     retw
@@ -790,7 +790,7 @@ xtensa_s16_conv2d_hwcn_relu_loop:
     xtensa_relu a13, a9
     xtensa_saturation a13
     xtensa_store a2, a13
-    
+
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_hwcn_relu_loop
     retw

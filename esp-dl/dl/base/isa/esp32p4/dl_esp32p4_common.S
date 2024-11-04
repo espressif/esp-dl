@@ -55,6 +55,28 @@
 
 
 
+.macro esp32p4_push_16_stacks_4r  value_0, value_1, value_2, value_3
+    # The order of register arguments for push and pop must be consistent.
+    addi  sp, sp, -16
+    sw  \value_0, 12(sp)
+    sw  \value_1, 8(sp)
+    sw  \value_2, 4(sp)
+    sw  \value_3, 0(sp)
+.endm
+
+
+
+.macro esp32p4_pop_16_stacks_4r  value_0, value_1, value_2, value_3
+    # The order of register arguments for push and pop must be consistent.
+    lw  \value_0, 12(sp)
+    lw  \value_1, 8(sp)
+    lw  \value_2, 4(sp)
+    lw  \value_3, 0(sp)
+    addi  sp, sp, 16
+.endm
+
+
+
 .macro esp32p4_push_20_stacks_5r  value_0, value_1, value_2, value_3, value_4
     # The order of register arguments for push and pop must be consistent.
     addi  sp, sp, -20

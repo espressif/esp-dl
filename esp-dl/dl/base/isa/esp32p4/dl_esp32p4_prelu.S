@@ -9,7 +9,7 @@ dl_esp32p4_s8_prelu_11c:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int8_t *output_ptr  
+    # a0: int8_t *output_ptr
     # a1: int8_t *input_ptr
     # a2: void *args
     # a3: c_div_x = n_div_x
@@ -21,7 +21,7 @@ dl_esp32p4_s8_prelu_11c:
 
     lw a3, 96(a2)   # n_div_x
     lw s0, 80(a2)  # activation_alpha_ptr
-    lw s1, 84(a2)  # activation_shift 
+    lw s1, 84(a2)  # activation_shift
     lw s8, 172(a2) # output_shift
     lw s9, 176(a2) # output_scale
 
@@ -64,7 +64,7 @@ dl_esp32p4_s8_unaligned_prelu_11c:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
-    # a0: int8_t *output_ptr  
+    # a0: int8_t *output_ptr
     # a1: int8_t *input_ptr
     # a2: void *args
     # a3: c_div_x = n_div_x
@@ -78,7 +78,7 @@ dl_esp32p4_s8_unaligned_prelu_11c:
     lw a3, 96(a2)   # c_div_x
     lw a4, 136(a2)  # c_remainder
     lw s0, 80(a2)  # activation_alpha_ptr
-    lw s1, 84(a2)  # activation_shift 
+    lw s1, 84(a2)  # activation_shift
     lw s8, 172(a2) # output_shift
     lw s9, 176(a2) # output_scale
 

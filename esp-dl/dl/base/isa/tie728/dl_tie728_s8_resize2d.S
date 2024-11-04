@@ -19,9 +19,9 @@ dl_tie728_s8_resize2d_nearest_2x2_c1:
     # a10: output_scale
 
     l32i a5, a4, 20
-    l32i a6, a4, 24 
-    l32i a7, a4, 40 
-    l32i a8, a4, 44 
+    l32i a6, a4, 24
+    l32i a7, a4, 40
+    l32i a8, a4, 44
     l32i a9, a4, 48
     l32i a10, a4, 52
 
@@ -44,7 +44,7 @@ dl_tie728_s8_resize2d_nearest_2x2_c1:
         ee.vst.128.ip q2, a11, 16
         ee.vst.128.ip q2, a12, 16
         ee.vst.128.ip q2, a13, 16
-    0: 
+    0:
     retw
 
     .align 4
@@ -67,9 +67,9 @@ dl_tie728_s8_unaligned_resize2d_nearest_2x2_c1:
 
 
     l32i a5, a4, 20
-    l32i a6, a4, 24 
-    l32i a7, a4, 40 
-    l32i a8, a4, 44 
+    l32i a6, a4, 24
+    l32i a7, a4, 40
+    l32i a8, a4, 44
     l32i a9, a4, 48
     l32i a10, a4, 52
 
@@ -111,5 +111,3 @@ dl_tie728_s8_unaligned_resize2d_nearest_2x2_c1_remainder:
     dl_tie728_s8_store_remainder q4, a5, a6, a7, a10, a12, a8
     dl_tie728_s8_store_remainder q4, a5, a6, a7, a10, a13, a8
     retw
-
-    

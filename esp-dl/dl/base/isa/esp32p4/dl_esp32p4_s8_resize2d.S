@@ -19,9 +19,9 @@ dl_esp32p4_s8_resize2d_nearest_2x2_c1:
     # t5: output_scale
 
     lw a3, 20(a2)
-    lw a4, 24(a2) 
-    lw a5, 40(a2) 
-    lw t3, 44(a2) 
+    lw a4, 24(a2)
+    lw a5, 40(a2)
+    lw t3, 44(a2)
     lw t4, 48(a2)
     lw t5, 52(a2)
 
@@ -49,7 +49,7 @@ dl_esp32p4_s8_resize2d_nearest_2x2_c1:
         esp.vst.128.ip q2, s1, 16
         addi t0, t0, -1
         bgtz t0, 0b
-    1: 
+    1:
 
     esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
     ret
@@ -73,9 +73,9 @@ dl_esp32p4_s8_unaligned_resize2d_nearest_2x2_c1:
 
 
     lw a3, 20(a2)
-    lw a4, 24(a2) 
-    lw a5, 40(a2) 
-    lw t3, 44(a2) 
+    lw a4, 24(a2)
+    lw a5, 40(a2)
+    lw t3, 44(a2)
     lw t4, 48(a2)
     lw t5, 52(a2)
 
@@ -124,5 +124,3 @@ dl_esp32p4_s8_unaligned_resize2d_nearest_2x2_c1_remainder:
     dl_esp32p4_s8_store_remainder q4, t4, t5, s8, s9, t0, s1, t3
     esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
     ret
-
-    
