@@ -171,6 +171,7 @@ if __name__ == "__main__":
         "hardswish",
         "leakyrelu",
         "prelu",
+        "max_pooling",
     ]
     if args.ops:
         op_set = args.ops

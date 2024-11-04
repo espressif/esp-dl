@@ -281,6 +281,36 @@
         stride = [1, 1]
         padding = [1, 1]
 
+    [ops_test.max_pooling]
+    class_name = "MAX_POOLING_TEST"
+        [[ops_test.max_pooling.cfg]]
+        input_shape = [1, 96, 7, 7]
+        export_name_prefix = "max_pooling_ishap_1_96_7_7_kshape_2_3"
+        kernel_size = [2, 3]
+        stride = [1, 2]
+        padding = [0, 0]
+
+        [[ops_test.max_pooling.cfg]]
+        input_shape = [1, 96, 5, 5]
+        export_name_prefix = "max_pooling_ishap_1_96_5_5_kshape_2_2"
+        kernel_size = [2, 2]
+        stride = [2, 2]
+        padding = [0, 0]
+
+        [[ops_test.max_pooling.cfg]]
+        input_shape = [1, 51, 5, 5]
+        export_name_prefix = "max_pooling_ishap_1_51_5_5_kshape_3_1"
+        kernel_size = [3, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+
+        [[ops_test.max_pooling.cfg]]
+        input_shape = [1, 51, 7, 7]
+        export_name_prefix = "max_pooling_ishap_1_51_7_7_kshape_2_2"
+        kernel_size = [2, 2]
+        stride = [1, 1]
+        padding = [1, 1]
+
     [ops_test.resize2d]
     class_name = "RESIZE2D_TEST"
         [[ops_test.resize2d.cfg]]
@@ -501,6 +531,47 @@
         input_shape = [1, 2, 4]
         export_name_prefix = "unsqueeze_ishape_1_2_4_dim_3"
         dim = 3
+
+    class_name = "EXP_TEST"
+        [[ops_test.exp.cfg]]
+        input_shape = [1, 96, 20, 20]
+        export_name_prefix = "exp_ishap_1_96_20_20"
+
+        [[ops_test.exp.cfg]]
+        input_shape = [1, 30, 40]
+        export_name_prefix = "exp_ishap_1_30_40"
+
+        [[ops_test.exp.cfg]]
+        input_shape = [1, 355]
+        export_name_prefix = "exp_ishap_1_355"
+
+    [ops_test.log]
+    class_name = "LOG_TEST"
+        [[ops_test.log.cfg]]
+        input_shape = [1, 96, 20, 20]
+        export_name_prefix = "log_ishap_1_96_20_20"
+
+        [[ops_test.log.cfg]]
+        input_shape = [1, 30, 40]
+        export_name_prefix = "log_ishap_1_30_40"
+
+        [[ops_test.log.cfg]]
+        input_shape = [1, 355]
+        export_name_prefix = "log_ishap_1_355"
+
+    [ops_test.sqrt]
+    class_name = "SQRT_TEST"
+        [[ops_test.sqrt.cfg]]
+        input_shape = [1, 96, 20, 20]
+        export_name_prefix = "sqrt_ishap_1_96_20_20"
+
+        [[ops_test.sqrt.cfg]]
+        input_shape = [1, 30, 40]
+        export_name_prefix = "sqrt_ishap_1_30_40"
+
+        [[ops_test.sqrt.cfg]]
+        input_shape = [1, 355]
+        export_name_prefix = "sqrt_ishap_1_355"
 
 [models_test]
     [models_test.picodet]

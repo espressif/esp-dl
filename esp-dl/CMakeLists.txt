@@ -1,7 +1,7 @@
 idf_build_get_property(target IDF_TARGET)
 
 set(src_dirs        ./dl/tool/src
-                    ./dl/typedef/src
+                    ./dl/tensor/src
                     ./dl/base
                     ./dl/math/src
                     ./dl/model/src
@@ -14,7 +14,7 @@ set(src_dirs        ./dl/tool/src
 
 set(include_dirs    ./dl
                     ./dl/tool/include
-                    ./dl/typedef/include
+                    ./dl/tensor/include
                     ./dl/base
                     ./dl/base/isa
                     ./dl/math/include

@@ -558,4 +558,108 @@ template int32_t TensorBase::get_element<int32_t>(int index);
 template uint32_t TensorBase::get_element<uint32_t>(int index);
 template float TensorBase::get_element<float>(int index);
 
+template <typename T>
+bool TensorBase::compare_elements(const T *gt_elements, float epsilon, bool verbose)
+{
+    T *elements = (T *)this->get_element_ptr();
+    if (elements == gt_elements) {
+        return true;
+    }
+
+    for (int i = 0; i < this->get_size(); i++) {
+        if (elements[i] - gt_elements[i] > epsilon || elements[i] - gt_elements[i] < -epsilon) {
+            if (verbose) {
+                ESP_LOGE(__FUNCTION__,
+                         "Inconsistent values, ground true: %.10f, infer: %.10f, epsilon:%.10f",
+                         gt_elements[i] * 1.0,
+                         elements[i] * 1.0,
+                         epsilon);
+                std::vector<int> position = this->get_axis_index(i);
+                ESP_LOGE(__FUNCTION__, "The position is: %s", shape_to_string(position).c_str());
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
+template bool TensorBase::compare_elements<int8_t>(const int8_t *gt_elements, float epsilon, bool verbose);
+template bool TensorBase::compare_elements<uint8_t>(const uint8_t *gt_elements, float epsilon, bool verbose);
+template bool TensorBase::compare_elements<int16_t>(const int16_t *gt_elements, float epsilon, bool verbose);
+template bool TensorBase::compare_elements<uint16_t>(const uint16_t *gt_elements, float epsilon, bool verbose);
+template bool TensorBase::compare_elements<int32_t>(const int32_t *gt_elements, float epsilon, bool verbose);
+template bool TensorBase::compare_elements<uint32_t>(const uint32_t *gt_elements, float epsilon, bool verbose);
+template bool TensorBase::compare_elements<float>(const float *gt_elements, float epsilon, bool verbose);
+
+bool TensorBase::equal(TensorBase *tensor, float epsilon, bool verbose)
+{
+    if (tensor == nullptr) {
+        return false;
+    }
+
+    // compare data type
+    dtype_t type1 = this->get_dtype();
+    dtype_t type2 = this->get_dtype();
+    if (type1 != type2) {
+        if (verbose) {
+            ESP_LOGE(__FUNCTION__, "data type not equal: %s != %s", dtype_to_string(type1), dtype_to_string(type2));
+        }
+        return false;
+    }
+
+    // compare shape
+    std::vector<int> shape1 = this->get_shape();
+    std::vector<int> shape2 = tensor->get_shape();
+    if (shape1.size() != shape2.size()) {
+        if (verbose) {
+            ESP_LOGE(__FUNCTION__,
+                     "shape not equal: %s != %s",
+                     shape_to_string(shape1).c_str(),
+                     shape_to_string(shape2).c_str());
+        }
+        return false;
+    }
+    for (int i = 0; i < shape1.size(); i++) {
+        if (shape1[i] != shape2[i]) {
+            if (verbose) {
+                ESP_LOGE(__FUNCTION__,
+                         "shape not equal: %s != %s",
+                         shape_to_string(shape1).c_str(),
+                         shape_to_string(shape2).c_str());
+            }
+            return false;
+        }
+    }
+
+    // compare tensor element
+    if (this->exponent != tensor->exponent) {
+        if (verbose) {
+            ESP_LOGE(__FUNCTION__, "exponent not equal: %d != %d", this->exponent, tensor->exponent);
+        }
+        return false;
+    }
+
+    if (verbose || epsilon > 0) {
+        if (type1 == DATA_TYPE_INT8) {
+            return this->compare_elements<int8_t>((int8_t *)tensor->get_element_ptr(), epsilon, verbose);
+        } else if (type1 == DATA_TYPE_INT16) {
+            return this->compare_elements<int16_t>((int16_t *)tensor->get_element_ptr(), epsilon, verbose);
+        } else if (type1 == DATA_TYPE_FLOAT) {
+            return this->compare_elements<float>((float *)tensor->get_element_ptr(), epsilon, verbose);
+        } else if (type1 == DATA_TYPE_UINT8) {
+            return this->compare_elements<uint8_t>((uint8_t *)tensor->get_element_ptr(), epsilon, verbose);
+        } else if (type1 == DATA_TYPE_UINT16) {
+            return this->compare_elements<uint16_t>((uint16_t *)tensor->get_element_ptr(), epsilon, verbose);
+        } else if (type1 == DATA_TYPE_INT32) {
+            return this->compare_elements<int32_t>((int32_t *)tensor->get_element_ptr(), epsilon, verbose);
+        } else if (type1 == DATA_TYPE_UINT32) {
+            return this->compare_elements<uint32_t>((uint32_t *)tensor->get_element_ptr(), epsilon, verbose);
+        }
+    } else {
+        return (memcmp(this->get_element_ptr(), tensor->get_element_ptr(), this->get_bytes()) == 0);
+    }
+
+    return false;
+}
+
 } // namespace dl

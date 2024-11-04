@@ -108,6 +108,26 @@ class AVERAGE_POOLING_TEST(nn.Module):
         return self.avg_pool(input)
 
 
+class MAX_POOLING_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        c = self.config["input_shape"][1]
+        self.pre_max_pool = nn.Sequential(
+            nn.Conv2d(c, c, kernel_size=3, padding=1), nn.ReLU()
+        )
+        self.max_pool = nn.MaxPool2d(
+            kernel_size=config["kernel_size"],
+            stride=config["stride"],
+            padding=config["padding"],
+        )
+
+    def forward(self, input):
+        x = self.pre_max_pool(input)
+        x = self.max_pool(input)
+        return x
+
+
 class RESIZE2D_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -279,6 +299,33 @@ class UNSQUEEZE_TEST(nn.Module):
     def forward(self, inputs):
         output = torch.unsqueeze(inputs, self.config["dim"])
         return output
+
+
+class EXP_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        return torch.exp(input)
+
+
+class LOG_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        return torch.log(input)
+
+
+class SQRT_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        return torch.sqrt(input)
 
 
 if __name__ == "__main__":

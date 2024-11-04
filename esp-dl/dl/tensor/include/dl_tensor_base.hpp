@@ -197,12 +197,12 @@ public:
      */
     virtual std::vector<int> get_axis_index(int element_index);
 
-    virtual void preload()
-    {
-        if (this->cache) {
-            tool::copy_memory(this->cache, this->cache, this->get_bytes());
-        }
-    }
+    /**
+     * @brief Get the shape of Tensor.
+     *
+     * @return std::vector<int> the shape of Tensor
+     */
+    std::vector<int> get_shape() { return this->shape; }
 
     /**
      * @brief Set the shape of Tensor.
@@ -211,13 +211,12 @@ public:
      */
     TensorBase &set_shape(const std::vector<int> shape);
 
-    std::vector<int> get_shape() { return this->shape; }
-
+    /**
+     * @brief Get the data type of Tensor
+     *
+     * @return dtype_t the data type of Tensor
+     */
     dtype_t get_dtype() { return this->dtype; }
-
-    size_t set_preload_addr(void *addr, size_t size);
-
-    void reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise);
 
     /**
      * @brief Change a new shape to the Tensor without changing its data.
@@ -226,12 +225,6 @@ public:
      * @return TensorBase&  self
      */
     TensorBase &reshape(std::vector<int> shape);
-
-    template <typename T>
-    TensorBase *transpose(T *input_element,
-                          std::vector<int> &input_shape,
-                          std::vector<int> &input_axis_offset,
-                          std::vector<int> &perm);
 
     /**
      * @brief Reverse or permute the axes of the input Tensor
@@ -243,6 +236,45 @@ public:
     TensorBase *transpose(TensorBase *input, std::vector<int> perm = {});
 
     /**
+     * @brief Reverse or permute the axes of the input Tensor
+     *
+     * @param input_element the input data pointer
+     * @param input_shape   the input data shape
+     * @param input_axis_offset the input data axis offset
+     * @param perm the new arangement of the dims. if perm == {}, the dims arangement will be reversed.
+     *
+     * @return TensorBase *self
+     */
+    template <typename T>
+    TensorBase *transpose(T *input_element,
+                          std::vector<int> &input_shape,
+                          std::vector<int> &input_axis_offset,
+                          std::vector<int> &perm);
+
+    /**
+     * @brief Compare the shape and data of two Tensor
+     *
+     * @param tensor Input tensor
+     * @param epsilon The max error of two element
+     * @param If true, print the detail of results
+     *
+     * @return true if two tensor is equal otherwise false
+     */
+    bool equal(TensorBase *tensor, float epsilon = 1e-6, bool verbose = false);
+
+    /**
+     * @brief Compare the elements of two Tensor
+     *
+     * @param gt_elements The ground truth elements
+     * @param epsilon The max error of two element
+     * @param If true, print the detail of results
+     *
+     * @return true if all elements are equal otherwise false
+     */
+    template <typename T>
+    bool compare_elements(const T *gt_elements, float epsilon = 1e-6, bool verbose = false);
+
+    /**
      * @brief Get the index of element
      *
      * @param axis_index the index of each dims
@@ -251,12 +283,34 @@ public:
     int get_element_index(const std::vector<int> axis_index);
 
     /**
-     * @brief Get a element of tensor
+     * @brief Get a element of Tensor
      *
      * @param index  The index of element
      * @return   The element of tensor
      */
     template <typename T>
     T get_element(int index);
+
+    /**
+     * @brief Set preload address of Tensor
+     */
+    size_t set_preload_addr(void *addr, size_t size);
+
+    /**
+     * @brief Preload the data of Tensor
+     */
+    virtual void preload()
+    {
+        if (this->cache) {
+            tool::copy_memory(this->cache, this->cache, this->get_bytes());
+        }
+    }
+
+    /**
+     * @brief Reset the layout of Tensor
+     *
+     * @warning Only available for Convolution. Don't use it unless you know exactly what it does.
+     */
+    void reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise);
 };
 } // namespace dl
