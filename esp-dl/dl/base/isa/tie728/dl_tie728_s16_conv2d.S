@@ -2,7 +2,7 @@
 ############################################################################################################################################################
 # result process
 ############################################################################################################################################################
-.macro tie728_s16_conv2d_shift_bias_relu_store output_v output_ptr mac_shift bias_v bias_ptr activation_alpha activation_shift  
+.macro tie728_s16_conv2d_shift_bias_relu_store output_v output_ptr mac_shift bias_v bias_ptr activation_alpha activation_shift
     EE.VLD.128.IP \bias_v, \bias_ptr, 16 # load bias
     EE.SRCMB.S16.QACC \output_v, \mac_shift, 0        # QACC -> QR without round, roud operation is wrong in this instruction
 
@@ -60,7 +60,7 @@
 
 
 
-.macro tie728_s16_conv2d_shift_prelu_store output_v output_ptr mac_shift activation_v activation_alpha_ptr activation_shift 
+.macro tie728_s16_conv2d_shift_prelu_store output_v output_ptr mac_shift activation_v activation_alpha_ptr activation_shift
     EE.VLD.128.IP   \activation_v,    \activation_alpha_ptr,   16 # load PReLU alph
     EE.SRCMB.S16.QACC \output_v, \mac_shift, 0        # QACC -> QR without round, roud operation is wrong in this instruction
 
@@ -110,9 +110,9 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s16_conv2d_11cn series
-#### 
+####
 ############################################################################################################################################################
 .macro tie728_s16_conv2d_11c8 input_v0 filter_v0 filter_v1 input_ptr filter_ptr c_div_x_1
     # scalar * vecter and accumulate into QACC
@@ -171,7 +171,7 @@
 dl_tie728_s16_conv2d_11cn_bias:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -215,7 +215,7 @@ tie728_s16_conv2d_11cn_bias_loop:
 dl_tie728_s16_conv2d_11cn_bias_relu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -242,7 +242,7 @@ tie728_s16_conv2d_11cn_bias_relu_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_11c8 q0, q1, q2, a15, a5, a6
-    tie728_s16_conv2d_shift_bias_relu_store q0, a2, a8, q1, a11, a12, a13  
+    tie728_s16_conv2d_shift_bias_relu_store q0, a2, a8, q1, a11, a12, a13
 
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_11cn_bias_relu_loop
@@ -259,7 +259,7 @@ tie728_s16_conv2d_11cn_bias_relu_loop:
 dl_tie728_s16_conv2d_11cn_bias_prelu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -303,7 +303,7 @@ tie728_s16_conv2d_11cn_bias_prelu_loop:
 dl_tie728_s16_conv2d_11cn:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -347,7 +347,7 @@ tie728_s16_conv2d_11cn_loop:
 dl_tie728_s16_conv2d_11cn_relu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -391,7 +391,7 @@ tie728_s16_conv2d_11cn_relu_loop:
 dl_tie728_s16_conv2d_11cn_prelu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -455,9 +455,9 @@ tie728_s16_conv2d_11cn_prelu_loop:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s16_conv2d_33cn series
-#### 
+####
 ############################################################################################################################################################
 .macro tie728_s16_conv2d_33c8 input_v0 filter_v0 filter_v1 input_ptr filter_ptr c_div_x_1 dilation_x_offset dilation_y_offset
     # dilation_x_offset = (dilation_x * input_channel_with_padding - input_channel) * sizeof(output_t)
@@ -465,28 +465,28 @@ tie728_s16_conv2d_11cn_prelu_loop:
 
     tie728_s16_conv2d_11c8 \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_conv2d_11c8 \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_conv2d_11c8 \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s16_conv2d_11c8 \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_conv2d_11c8 \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_conv2d_11c8 \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s16_conv2d_11c8 \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_conv2d_11c8 \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s16_conv2d_11c8 \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -537,7 +537,7 @@ tie728_s16_conv2d_33cn_bias_loop:
 
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
     tie728_s16_conv2d_shift_bias_store q0, a2, a8, q1, a11
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_33cn_bias_loop
 
@@ -553,7 +553,7 @@ tie728_s16_conv2d_33cn_bias_loop:
 dl_tie728_s16_conv2d_33cn_bias_relu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -580,8 +580,8 @@ tie728_s16_conv2d_33cn_bias_relu_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
-    tie728_s16_conv2d_shift_bias_relu_store q0, a2, a8, q1, a11, a12, a13  
-    
+    tie728_s16_conv2d_shift_bias_relu_store q0, a2, a8, q1, a11, a12, a13
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_33cn_bias_relu_loop
 
@@ -597,7 +597,7 @@ tie728_s16_conv2d_33cn_bias_relu_loop:
 dl_tie728_s16_conv2d_33cn_bias_prelu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -625,7 +625,7 @@ tie728_s16_conv2d_33cn_bias_prelu_loop:
 
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
     tie728_s16_conv2d_shift_bias_prelu_store q0, a2, a8, q1, a11, q2, a12, a13
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_33cn_bias_prelu_loop
 
@@ -641,7 +641,7 @@ tie728_s16_conv2d_33cn_bias_prelu_loop:
 dl_tie728_s16_conv2d_33cn:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -653,9 +653,9 @@ dl_tie728_s16_conv2d_33cn:
     # a9: input dilation x offset
     # a10: input dilation y offset
     # a11:
-    # a12: 
+    # a12:
     # a13:
-    # a14: 
+    # a14:
     # a15: moving_input_ptr
     tie728_s16_conv2d_hwcn_load_args a4, a5, a6, a7, a8, a9, a10
 
@@ -669,7 +669,7 @@ tie728_s16_conv2d_33cn_loop:
 
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
     tie728_s16_conv2d_shift_store q0, a2, a8
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_33cn_loop
 
@@ -685,7 +685,7 @@ tie728_s16_conv2d_33cn_loop:
 dl_tie728_s16_conv2d_33cn_relu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -696,7 +696,7 @@ dl_tie728_s16_conv2d_33cn_relu:
     # a8: mac_shift
     # a9: input dilation x offset
     # a10: input dilation y offset
-    # a11: 
+    # a11:
     # a12: activation_alpha/_address
     # a13: activation_shift
     # a14:
@@ -713,7 +713,7 @@ tie728_s16_conv2d_33cn_relu_loop:
 
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
     tie728_s16_conv2d_shift_relu_store q0, a2, a8, a12, a13
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_33cn_relu_loop
 
@@ -729,7 +729,7 @@ tie728_s16_conv2d_33cn_relu_loop:
 dl_tie728_s16_conv2d_33cn_prelu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -740,7 +740,7 @@ dl_tie728_s16_conv2d_33cn_prelu:
     # a8: mac_shift
     # a9: input dilation x offset
     # a10: input dilation y offset
-    # a11: 
+    # a11:
     # a12: activation_alpha_ptr
     # a13: activation_shift
     # a14:
@@ -757,7 +757,7 @@ tie728_s16_conv2d_33cn_prelu_loop:
 
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
     tie728_s16_conv2d_shift_prelu_store q0, a2, a8, q1, a12, a13
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_33cn_prelu_loop
 
@@ -798,9 +798,9 @@ tie728_s16_conv2d_33cn_prelu_loop:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s16_conv2d_hwcn series
-#### 
+####
 ############################################################################################################################################################
 .macro tie728_s16_conv2d_hwc8 input_v0 filter_v0 filter_v1 input_ptr filter_ptr c_div_x_1 dilation_x_offset dilation_y_offset filter_h filter_w args filter_offset_q
     # dilation_x_offset = (dilation_x * input_channel_with_padding - input_channel) * sizeof(output_t)
@@ -827,7 +827,7 @@ tie728_s16_conv2d_33cn_prelu_loop:
 
         addi \filter_h, \filter_h, -1
         bnez \filter_h, 1b
-    
+
     EE.MOVI.32.A \filter_offset_q, \filter_h, 2
     add \filter_ptr, \filter_ptr, \filter_h
 
@@ -845,7 +845,7 @@ tie728_s16_conv2d_33cn_prelu_loop:
 dl_tie728_s16_conv2d_hwcn_bias:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -859,12 +859,12 @@ dl_tie728_s16_conv2d_hwcn_bias:
     # a11: filter_height
     # a12: filter_width
     # a13: bias_ptr
-    # a14: 
+    # a14:
     # a15: moving_input_ptr
     tie728_s16_conv2d_hwcn_load_args a4, a5, a6, a7, a8, a9, a10
     l32i a12, a4, 60    # filter_y_offset
-    l32i a11, a4, 144  
-    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset 
+    l32i a11, a4, 144
+    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset
     EE.MOVI.32.Q q6, a11, 2 #filter_n_offset
 
     l32i a13, a4, 68  // bias
@@ -875,7 +875,7 @@ tie728_s16_conv2d_hwcn_bias_loop:
 
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
     tie728_s16_conv2d_shift_bias_store q0, a2, a8, q1, a13
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_hwcn_bias_loop
 
@@ -892,7 +892,7 @@ tie728_s16_conv2d_hwcn_bias_loop:
 dl_tie728_s16_conv2d_hwcn_bias_relu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -911,8 +911,8 @@ dl_tie728_s16_conv2d_hwcn_bias_relu:
     tie728_s16_conv2d_hwcn_load_args a4, a5, a6, a7, a8, a9, a10
 
     l32i a12, a4, 60    # filter_y_offset
-    l32i a11, a4, 144  
-    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset 
+    l32i a11, a4, 144
+    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset
     EE.MOVI.32.Q q6, a11, 2 #filter_n_offset
 
     l32i a13, a4, 68  // bias
@@ -925,7 +925,7 @@ tie728_s16_conv2d_hwcn_bias_relu_loop:
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
     l32i a11, a4, 84  // activation_shift
     tie728_s16_conv2d_shift_bias_relu_store q0, a2, a8, q1, a13, a14, a11
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_hwcn_bias_relu_loop
 
@@ -942,7 +942,7 @@ tie728_s16_conv2d_hwcn_bias_relu_loop:
 dl_tie728_s16_conv2d_hwcn_bias_prelu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -961,8 +961,8 @@ dl_tie728_s16_conv2d_hwcn_bias_prelu:
     tie728_s16_conv2d_hwcn_load_args a4, a5, a6, a7, a8, a9, a10
 
     l32i a12, a4, 60    # filter_y_offset
-    l32i a11, a4, 144  
-    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset 
+    l32i a11, a4, 144
+    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset
     EE.MOVI.32.Q q6, a11, 2 #filter_n_offset
 
     l32i a13, a4, 68  // bias_ptr
@@ -975,7 +975,7 @@ tie728_s16_conv2d_hwcn_bias_prelu_loop:
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
     l32i a11, a4, 84  // activation_shift
     tie728_s16_conv2d_shift_bias_prelu_store q0, a2, a8, q1, a13, q2, a14, a11
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_hwcn_bias_prelu_loop
 
@@ -992,7 +992,7 @@ tie728_s16_conv2d_hwcn_bias_prelu_loop:
 dl_tie728_s16_conv2d_hwcn:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -1005,14 +1005,14 @@ dl_tie728_s16_conv2d_hwcn:
     # a10: input dilation y offset
     # a11: filter_height
     # a12: filter_width
-    # a13: 
-    # a14: 
+    # a13:
+    # a14:
     # a15: moving_input_ptr
 
     tie728_s16_conv2d_hwcn_load_args a4, a5, a6, a7, a8, a9, a10
     l32i a12, a4, 60    # filter_y_offset
-    l32i a11, a4, 144  
-    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset 
+    l32i a11, a4, 144
+    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset
     EE.MOVI.32.Q q6, a11, 2 #filter_n_offset
 
     # l32i a13, a4, 68  // bias
@@ -1023,7 +1023,7 @@ tie728_s16_conv2d_hwcn_loop:
 
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
     tie728_s16_conv2d_shift_store q0, a2, a8
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_hwcn_loop
 
@@ -1040,7 +1040,7 @@ tie728_s16_conv2d_hwcn_loop:
 dl_tie728_s16_conv2d_hwcn_relu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -1059,8 +1059,8 @@ dl_tie728_s16_conv2d_hwcn_relu:
 
     tie728_s16_conv2d_hwcn_load_args a4, a5, a6, a7, a8, a9, a10
     l32i a12, a4, 60    # filter_y_offset
-    l32i a11, a4, 144  
-    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset 
+    l32i a11, a4, 144
+    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset
     EE.MOVI.32.Q q6, a11, 2 #filter_n_offset
 
     l32i a13, a4, 76  // activation_alpha
@@ -1072,7 +1072,7 @@ tie728_s16_conv2d_hwcn_relu_loop:
 
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
     tie728_s16_conv2d_shift_relu_store q0, a2, a8, a13, a14
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_hwcn_relu_loop
 
@@ -1089,7 +1089,7 @@ tie728_s16_conv2d_hwcn_relu_loop:
 dl_tie728_s16_conv2d_hwcn_prelu:
     .align 4
     entry sp, 16
-    
+
     # a2: int16_t *output_ptr
     # a3: int16_t *input_ptr
     # a4: void *args
@@ -1105,11 +1105,11 @@ dl_tie728_s16_conv2d_hwcn_prelu:
     # a13: activation_prelu_ptr
     # a14: activation_shift
     # a15: moving_input_ptr
-    
+
     tie728_s16_conv2d_hwcn_load_args a4, a5, a6, a7, a8, a9, a10
     l32i a12, a4, 60    # filter_y_offset
-    l32i a11, a4, 144  
-    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset 
+    l32i a11, a4, 144
+    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset
     EE.MOVI.32.Q q6, a11, 2 #filter_n_offset
 
     l32i a13, a4, 80  // activation_alpha_ptr
@@ -1121,7 +1121,7 @@ tie728_s16_conv2d_hwcn_prelu_loop:
 
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
     tie728_s16_conv2d_shift_prelu_store q0, a2, a8, q1, a13, a14
-    
+
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_hwcn_prelu_loop
 

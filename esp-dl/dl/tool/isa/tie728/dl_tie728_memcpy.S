@@ -11,12 +11,12 @@ dl_tie728_memcpy:
     # a4: length(bytes)
 
     EE.LD.128.USAR.IP q0, a3, 0
-    RUR.SAR_BYTE a13    
+    RUR.SAR_BYTE a13
     movi a11, 16
     sub a11, a11, a13  # head unaligned bytes 1
 
     EE.LD.128.USAR.IP q1, a2, 0
-    RUR.SAR_BYTE a9    
+    RUR.SAR_BYTE a9
     movi a12, 16
     sub a12, a12, a9  # head unaligned bytes 2
 
@@ -49,13 +49,13 @@ dl_tie728_memcpy:
     sub a6, a4, a6  # remainder
 
     srli a7, a5, 1 # len // 32
-    slli a8, a7, 1 
+    slli a8, a7, 1
     sub a8, a5, a8 # odd_flag
 
     srli a9, a6, 2  #remainder_4b
     slli a10, a9, 2
     sub a10, a6, a10 #remainder_1b
-    
+
     loopgtz a7, 12f
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q1, a3, 16
@@ -78,13 +78,13 @@ dl_tie728_memcpy:
     sub a6, a4, a6  # remainder
 
     srli a7, a5, 1 # len // 32
-    slli a8, a7, 1 
+    slli a8, a7, 1
     sub a8, a5, a8 # odd_flag
 
     srli a9, a6, 2  #remainder_4b
     slli a10, a9, 2
     sub a10, a6, a10 #remainder_1b
-    
+
     loopgtz a7, 2f
     EE.VLD.128.IP q0, a3, 16
     EE.VLD.128.IP q1, a3, 16

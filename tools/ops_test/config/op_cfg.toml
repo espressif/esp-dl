@@ -308,7 +308,7 @@
         [[ops_test.sigmoid.cfg]]
         input_shape = [1, 355]
         export_name_prefix = "sigmoid_ishap_1_355"
-    
+
     [ops_test.tanh]
     class_name = "TANH_TEST"
         [[ops_test.tanh.cfg]]
@@ -322,7 +322,7 @@
         [[ops_test.tanh.cfg]]
         input_shape = [1, 355]
         export_name_prefix = "tanh_ishap_1_355"
-    
+
     [ops_test.leakyrelu]
     class_name = "LEAKYRELU_TEST"
         [[ops_test.leakyrelu.cfg]]
@@ -353,26 +353,26 @@
         [[ops_test.hardsigmoid.cfg]]
         input_shape = [1, 355]
         export_name_prefix = "hardsigmoid_ishap_1_355"
-    
+
     [ops_test.hardswish]
     class_name = "HARDSWISH_TEST"
         [[ops_test.hardswish.cfg]]
         input_shape = [1, 96, 20, 20]
         export_name_prefix = "hardswish_ishap_1_96_20_20"
-    
+
     [ops_test.prelu]
     class_name = "PRELU_TEST"
         [[ops_test.prelu.cfg]]
         input_shape = [1, 20, 20, 20]
         num_parameters = 1
         export_name_prefix = "prelu_ishap_1_20_20_20_1"
-    
+
     class_name = "PRELU_TEST"
         [[ops_test.prelu.cfg]]
         input_shape = [1, 96, 20, 20]
         num_parameters = 1
         export_name_prefix = "prelu_ishap_1_96_20_20_1"
-    
+
 
     [ops_test.concat]
     class_name = "CONCAT_TEST"
@@ -442,7 +442,7 @@
         export_name_prefix = "transpose_ishape_1_33_perm_1_0"
         export_path = ""
         perm = [1, 0]
-    
+
     [ops_test.softmax]
     class_name = "SOFTMAX_TEST"
         [[ops_test.softmax.cfg]]
@@ -462,7 +462,7 @@
         export_name_prefix = "softmax_ishape_1_33_dim_-1"
         dim = -1
         relu = false
-    
+
     [ops_test.squeeze]
     class_name = "SQUEEZE_TEST"
         [[ops_test.squeeze.cfg]]

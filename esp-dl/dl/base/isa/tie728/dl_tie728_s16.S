@@ -18,7 +18,7 @@
 .macro dl_tie728_128b_last_store_data tmp_q, output_v, tmp_a, c_remainder_bytes
     beqi \c_remainder_bytes, 0, 600f
     movi \tmp_a, 15
-    sub  \tmp_a, \tmp_a, \c_remainder_bytes 
+    sub  \tmp_a, \tmp_a, \c_remainder_bytes
     movi \c_remainder_bytes, 0
     EE.SLCXXP.2Q \tmp_q, \output_v, \tmp_a, \c_remainder_bytes #left shift to make the rest part 0
     EE.SRCXXP.2Q \output_v, \tmp_q, \tmp_a, \c_remainder_bytes #right shift to lower bits

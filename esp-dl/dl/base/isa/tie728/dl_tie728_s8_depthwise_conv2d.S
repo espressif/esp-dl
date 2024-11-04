@@ -2,15 +2,15 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_depthwise_conv2d_33c1 series
-#### 
+####
 ############################################################################################################################################################
 .macro tie728_s8_depthwise_conv2d_33s1 input_v0 filter_v0 input_v1 filter_v1 input_v2 filter_v2 input_ptr filter_ptr dilation_x_offset dilation_y_offset next_33s1
     # dilation_x_offset = input_channel_with_padding * dilation_x * sizeof(T)
     # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T)
     # next_33s1 = (-(filter_width - 1) * dilation_x * input_channel_with_padding - (filter_height - 1) * dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T) + 16
-    
+
     # EE.ZERO.QACC
 
     EE.VMULAS.S8.QACC.LD.IP \filter_v1, \filter_ptr, 16, \input_v0, \filter_v0
@@ -40,13 +40,13 @@
     EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v2, \filter_v2
     EE.VLD.128.XP            \input_v1,  \input_ptr,  \dilation_x_offset
 .endm
-    
+
 
 
 .macro tie728_s8_depthwise_conv2d_33s1_last input_v0 filter_v0 input_v1 filter_v1 input_ptr filter_ptr dilation_x_offset dilation_y_offset
     # dilation_x_offset = input_channel_with_padding * dilation_x * sizeof(T)
     # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T)
-    
+
     # EE.ZERO.QACC
 
     EE.VMULAS.S8.QACC.LD.IP    \filter_v1, \filter_ptr, 16, \input_v0, \filter_v0
@@ -72,7 +72,7 @@
 
     EE.VMULAS.S8.QACC.LD.IP    \filter_v0, \filter_ptr, 16, \input_v1, \filter_v1
     # block one cycle here
-    
+
     EE.VMULAS.S8.QACC                                       \input_v0, \filter_v0
 .endm
 
@@ -101,7 +101,7 @@
 dl_tie728_s8_depthwise_conv2d_33c1:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -116,7 +116,7 @@ dl_tie728_s8_depthwise_conv2d_33c1:
     # a12:
     # a13:
     # a14:
-    # a15: 
+    # a15:
     tie728_s8_depthwise_conv2d_33c1_load_args a4, a5, a6, a7, a8, a9
 
     l32i a10, a4, 64  # mac shift
@@ -130,7 +130,7 @@ dl_tie728_s8_depthwise_conv2d_33c1:
 
 
 dl_tie728_s8_depthwise_conv2d_per_layer_33c1:
-    
+
     beqz a11, tie728_s8_depthwise_conv2d_per_layer_33c1_no_bias
 
     loopgtz a9, tie728_s8_depthwise_conv2d_per_layer_33c1_bias_loop
@@ -211,7 +211,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1:
 dl_tie728_s8_depthwise_conv2d_33c1_relu:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -226,7 +226,7 @@ dl_tie728_s8_depthwise_conv2d_33c1_relu:
     # a12: activation_alpha/_address
     # a13: activation_shift
     # a14:
-    # a15: 
+    # a15:
     tie728_s8_depthwise_conv2d_33c1_load_args a4, a5, a6, a7, a8, a9
 
     l32i a10, a4, 64  # mac shift
@@ -242,7 +242,7 @@ dl_tie728_s8_depthwise_conv2d_33c1_relu:
 
 
 dl_tie728_s8_depthwise_conv2d_per_layer_33c1_relu:
-    
+
     beqz a11, tie728_s8_depthwise_conv2d_per_layer_33c1_no_bias_relu
 
     loopgtz a9, tie728_s8_depthwise_conv2d_per_layer_33c1_bias_relu_loop
@@ -331,7 +331,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_relu:
 dl_tie728_s8_depthwise_conv2d_33c1_prelu:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -346,7 +346,7 @@ dl_tie728_s8_depthwise_conv2d_33c1_prelu:
     # a12: activation_alpha/_address
     # a13: activation_shift
     # a14:
-    # a15: 
+    # a15:
     tie728_s8_depthwise_conv2d_33c1_load_args a4, a5, a6, a7, a8, a9
 
     l32i a10, a4, 64  # mac shift
@@ -362,7 +362,7 @@ dl_tie728_s8_depthwise_conv2d_33c1_prelu:
 
 
 dl_tie728_s8_depthwise_conv2d_per_layer_33c1_prelu:
-    
+
     beqz a11, tie728_s8_depthwise_conv2d_per_layer_33c1_no_bias_prelu
 
     loopgtz a9, tie728_s8_depthwise_conv2d_per_layer_33c1_bias_prelu_loop
@@ -455,7 +455,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
     # dilation_x_offset = input_channel_with_padding * dilation_x * sizeof(T)
     # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T)
     # next_33s1 = (-(filter_width - 1) * dilation_x * input_channel_with_padding - (filter_height - 1) * dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T) + 16
-    
+
     # EE.ZERO.QACC
 
     # EE.LD.128.USAR.IP \input_v2, \input_ptr, 16
@@ -495,18 +495,18 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
     EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v2, \filter_v2
     EE.SRC.Q.LD.IP \input_v2, \input_ptr, 16, \input_v1, \input_back_aligned
 .endm
-    
+
 
 .macro tie728_s8_unaligned_depthwise_conv2d_33s1_last input_v0 input_v1 input_v2 input_back_aligned input_ptr filter_v0 filter_v1 filter_ptr dilation_x_offset dilation_y_offset next_33s1
     # dilation_x_offset = input_channel_with_padding * dilation_x * sizeof(T)
     # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T)
-    
+
     # EE.ZERO.QACC
 
     EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_y_offset
     EE.VMULAS.S8.QACC.LD.IP \filter_v1, \filter_ptr, 16, \input_v0, \filter_v0
     EE.SRC.Q.LD.IP \input_v0, \input_ptr, 16, \input_v2, \input_back_aligned
-    
+
     EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_x_offset
     EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v1, \filter_v1
     EE.SRC.Q.LD.IP \input_v1, \input_ptr, 16, \input_v0, \input_back_aligned
@@ -552,12 +552,12 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
     # wur.sar_byte \filter_sar #filter sar
     EE.VLD.128.IP \filter_back_aligned, \filter_ptr, 0
     EE.SRC.Q \filter_v0, \filter_front_aligned, \filter_back_aligned
-    
+
     EE.VMULAS.S8.QACC \input_v0, \filter_v0
 .endm
 
 
-.macro tie728_s8_depthwise_conv2d_unaligned_c_slice_updatey input_v0 input_front_aligned input_back_aligned input_ptr filter_v0 filter_front_aligned filter_back_aligned filter_ptr dilation_y_offset remainder_c 
+.macro tie728_s8_depthwise_conv2d_unaligned_c_slice_updatey input_v0 input_front_aligned input_back_aligned input_ptr filter_v0 filter_front_aligned filter_back_aligned filter_ptr dilation_y_offset remainder_c
     # input remainder is in one 128bit then input_back_aligned = input_front_aligned
     EE.LD.128.USAR.XP \input_front_aligned, \input_ptr, \remainder_c
     # rur.sar_byte \input_sar #input sar
@@ -572,7 +572,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
     # wur.sar_byte \filter_sar #filter sar
     EE.VLD.128.IP \filter_back_aligned, \filter_ptr, 0
     EE.SRC.Q \filter_v0, \filter_front_aligned, \filter_back_aligned
-    
+
     EE.VMULAS.S8.QACC \input_v0, \filter_v0
 .endm
 
@@ -607,7 +607,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
     # wur.sar_byte \filter_sar #filter sar
     EE.VLD.128.IP \filter_back_aligned, \filter_ptr, 0
     EE.SRC.Q \filter_v0, \filter_front_aligned, \filter_back_aligned
-    
+
     EE.VMULAS.S8.QACC \input_v0, \filter_v0
 
 .endm
@@ -624,7 +624,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
 dl_tie728_s8_unaligned_depthwise_conv2d_33c1:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -639,10 +639,10 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1:
     # a12: activation_alpha/_address
     # a13: activation_shift
     # a14:
-    # a15: operation_type / 
+    # a15: operation_type /
     tie728_s8_depthwise_conv2d_33c1_load_args a4, a5, a6, a7, a8, a9
 
-    
+
     l32i a10, a4, 64  # mac_shift
     l32i a11, a4, 68  # bias
     #l32i a12, a4, 76  # activation_alpha
@@ -653,17 +653,17 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1:
 
     addi a6, a6, -16
     addi a7, a7, -16
-    
+
     l32i a14, a4, 4
     blti a14, 16, tie728_s8_unaligned_depthwise_conv2d_33c1_c_loop_end # input_channel < 16
 
-    EE.LD.128.USAR.IP q2, a3, 16 
+    EE.LD.128.USAR.IP q2, a3, 16
     EE.LD.128.USAR.XP q3, a3, a6
     EE.VLD.128.IP q4, a5, 16 # filter_v0
     EE.SRC.Q.QUP q0, q2, q3 # input_v0
 
 
-    EE.LD.128.USAR.IP q2, a3, 16 
+    EE.LD.128.USAR.IP q2, a3, 16
     EE.LD.128.USAR.XP q3, a3, a6
     addi a8, a8, -16
     EE.SRC.Q.QUP q1, q2, q3 # input_v1
@@ -672,7 +672,7 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1:
 
     EE.LD.128.USAR.IP q6, a2, 0 #get output_ptr sar_byte
     rur.sar_byte a14
-    
+
     beqi a14, 0, tie728_s8_unaligned_depthwise_conv2d_33c1_0
     beqi a14, 8, tie728_s8_unaligned_depthwise_conv2d_33c1_8
 
@@ -680,7 +680,7 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1:
 # output sar_byte != 0 && != 8
     beqi a9, 0, tie728_s8_unaligned_depthwise_conv2d_33c1_loop_last
 
-    
+
 
     tie728_s8_unaligned_depthwise_conv2d_33c1_loop:
     # loopgtz a9, tie728_s8_unaligned_depthwise_conv2d_33c1_loop   # Internal error in istack_push_space
@@ -694,7 +694,7 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1:
         tie728_s8_unaligned_depthwise_conv2d_33s1 q0, q1, q2, q3, a3, q4, q5, q6, a5, a6, a7, a8
         tie728_s8_conv2d_1_1_unaligned_c_result a15, q3, a10, a11, a12, a13, a14, q5, q6
         # tie728_s8_conv2d_per_layer_result q3, a10
-        
+
         #store to unaligned address
         dl_tie728_s8_unaligned_store0 q3, a2, a14
 
@@ -723,7 +723,7 @@ tie728_s8_unaligned_depthwise_conv2d_33c1_loop_last:
 tie728_s8_unaligned_depthwise_conv2d_33c1_0:
 
     beqi a9, 0, tie728_s8_unaligned_depthwise_conv2d_33c1_loop0_last
-    
+
     tie728_s8_unaligned_depthwise_conv2d_33c1_loop0:
     # loopgtz a9, tie728_s8_unaligned_depthwise_conv2d_33c1_loop0
         EE.ZERO.QACC
@@ -826,9 +826,9 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1_end:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_depthwise_conv2d_hwc1 series
-#### 
+####
 ############################################################################################################################################################
 
 
@@ -839,15 +839,15 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1_end:
 
         EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v1, \filter_v1
         EE.VLD.128.XP            \input_v1,  \input_ptr,  \dilation_x_offset
-    1:    
+    1:
     bbci \filter_w, 0, 2f
     # three 8-input-element left
     EE.VMULAS.S8.QACC.LD.IP \filter_v1, \filter_ptr, 16, \input_v0, \filter_v0
     EE.VLD.128.XP            \input_v2,  \input_ptr,  \dilation_y_offset
-    
+
     EE.VMULAS.S8.QACC.LD.XP \filter_v2, \filter_ptr, \filter_y_offset, \input_v1, \filter_v1
     EE.VLD.128.XP            \input_v0,  \input_ptr,  \dilation_x_offset
-    
+
     EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v2, \filter_v2     # block one cyle here
     EE.VLD.128.XP            \input_v1,  \input_ptr,  \dilation_x_offset
     j 3f
@@ -859,7 +859,7 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1_end:
 
     EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v1, \filter_v1   # block one cyle here
     EE.VLD.128.XP            \input_v1,  \input_ptr,  \dilation_x_offset
-3:  
+3:
 .endm
 
 
@@ -877,17 +877,17 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1_end:
     # three 8-input-element left
     EE.VMULAS.S8.QACC.LD.IP \filter_v1, \filter_ptr, 16, \input_v0, \filter_v0
     EE.VLD.128.XP            \input_v0,  \input_ptr,  \next_hws1
-    
+
     EE.VMULAS.S8.QACC.LD.XP \filter_v0, \filter_ptr, \filter_y_offset, \input_v1, \filter_v1
     # block one cyle here
-    EE.VMULAS.S8.QACC                                    \input_v0, \filter_v0     
+    EE.VMULAS.S8.QACC                                    \input_v0, \filter_v0
     j 6f
 5:  # two 8-input-element left
     EE.VMULAS.S8.QACC.LD.XP \filter_v1, \filter_ptr, \filter_y_offset, \input_v0, \filter_v0
     sub \input_ptr, \input_ptr, \dilation_x_offset
     add \input_ptr, \input_ptr, \next_hws1
-    EE.VMULAS.S8.QACC                                    \input_v1, \filter_v1   
-6:  
+    EE.VMULAS.S8.QACC                                    \input_v1, \filter_v1
+6:
 
 .endm
 
@@ -933,7 +933,7 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1_end:
     EE.VMULAS.S8.QACC \input_v0, \filter_v0
     sub \input_ptr, \input_ptr, \dilation_y_offset
     add \input_ptr, \input_ptr, \next_hws1
-   
+
 12:
     EE.MOVI.32.A \filter_offset_q, \filter_h, 2
     add \filter_ptr, \filter_ptr, \filter_h
@@ -960,7 +960,7 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1_end:
 dl_tie728_s8_depthwise_conv2d_hwc1:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -975,7 +975,7 @@ dl_tie728_s8_depthwise_conv2d_hwc1:
     # a12: filter_w
     # a13: filter_w_rs1_1
     # a14: bias_ptr
-    # a15: 
+    # a15:
 
     l32i a15, a4, 60
     l32i a11, a4, 144
@@ -990,13 +990,13 @@ dl_tie728_s8_depthwise_conv2d_hwc1:
 
 
 dl_tie728_s8_depthwise_conv2d_per_layer_hwc1:
-    
+
     beqz a14, tie728_s8_depthwise_conv2d_per_layer_hwc1_no_bias
 
     tie728_s8_depthwise_conv2d_per_layer_hwc1_bias_loop:
         EE.ZERO.QACC
         tie728_s8_conv2d_128b_vector_bias a14
-        tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15 
+        tie728_s8_depthwise_conv2d_hws1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
         tie728_s8_vector_round_result q3, a10, a11, q6
         EE.VST.128.IP q3, a2, 16
         addi a9, a9, -1
@@ -1052,7 +1052,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1:
 dl_tie728_s8_depthwise_conv2d_hwc1_relu:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -1086,7 +1086,7 @@ dl_tie728_s8_depthwise_conv2d_hwc1_relu:
 
 
 dl_tie728_s8_depthwise_conv2d_per_layer_hwc1_relu:
-    
+
     beqz a14, tie728_s8_depthwise_conv2d_per_layer_hwc1_no_bias_relu
 
     tie728_s8_depthwise_conv2d_per_layer_hwc1_bias_relu_loop:
@@ -1167,7 +1167,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_relu:
 dl_tie728_s8_depthwise_conv2d_hwc1_prelu:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -1201,7 +1201,7 @@ dl_tie728_s8_depthwise_conv2d_hwc1_prelu:
 
 
 dl_tie728_s8_depthwise_conv2d_per_layer_hwc1_prelu:
-    
+
     beqz a14, tie728_s8_depthwise_conv2d_per_layer_hwc1_no_bias_prelu
 
     tie728_s8_depthwise_conv2d_per_layer_hwc1_bias_prelu_loop:
@@ -1279,14 +1279,14 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_unaligned_depthwise_conv2d_hwc1 series
-#### 
+####
 ############################################################################################################################################################
 
 .macro tie728_s8_depthwise_conv2d_unaligned_c_slice_updatey_padding input_v0 input_front_aligned input_back_aligned input_ptr filter_v0 filter_front_aligned filter_back_aligned filter_ptr dilation_y_offset remainder_c filter_y_offset
     EE.LD.128.USAR.XP \input_front_aligned, \input_ptr, \remainder_c
-    
+
     EE.VLD.128.XP \input_back_aligned, \input_ptr, \dilation_y_offset
     EE.SRC.Q \input_v0, \input_front_aligned, \input_back_aligned
 
@@ -1294,23 +1294,23 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
 
     EE.VLD.128.XP \filter_back_aligned, \filter_ptr, \filter_y_offset
     EE.SRC.Q \filter_v0, \filter_front_aligned, \filter_back_aligned
-    
+
     EE.VMULAS.S8.QACC \input_v0, \filter_v0
 .endm
 
 
 
 .macro tie728_s8_unaligned_depthwise_conv2d_1ws1 input_v0 input_v1 input_back_aligned input_ptr filter_v0 filter_ptr dilation_x_offset dilation_y_offset filter_w filter_w_rs1_1 filter_y_offset
-    
+
     loopgtz \filter_w_rs1_1, 1f
         EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_x_offset
         EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v0, \filter_v0
         EE.SRC.Q.LD.IP \input_v0, \input_ptr, 16, \input_v1, \input_back_aligned
-        
+
         EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_x_offset
         EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v1, \filter_v0
         EE.SRC.Q.LD.IP \input_v1, \input_ptr, 16, \input_v0, \input_back_aligned
-    1:  
+    1:
     bbci \filter_w, 0, 2f
 
     # three 8-input-element left
@@ -1336,7 +1336,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
     EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_x_offset
     EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v1, \filter_v0
     EE.SRC.Q.LD.IP \input_v1, \input_ptr, 16, \input_v0, \input_back_aligned
-3:  
+3:
 .endm
 
 
@@ -1346,14 +1346,14 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
         EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_x_offset
         EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v0, \filter_v0
         EE.SRC.Q.LD.IP \input_v0, \input_ptr, 16, \input_v1, \input_back_aligned
-        
+
         EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_x_offset
         EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v1, \filter_v0
         EE.SRC.Q.LD.IP \input_v1, \input_ptr, 16, \input_v0, \input_back_aligned
     4:
     bbci \filter_w, 0, 5f
 
-    # three 16byte left 
+    # three 16byte left
     EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_x_offset
     EE.VMULAS.S8.QACC.LD.IP \filter_v0, \filter_ptr, 16, \input_v0, \filter_v0
     EE.SRC.Q.LD.IP \input_v0, \input_ptr, 16, \input_v1, \input_back_aligned
@@ -1370,8 +1370,8 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
     EE.VMULAS.S8.QACC.LD.XP \filter_v0, \filter_ptr, \filter_y_offset, \input_v0, \filter_v0
     EE.SRC.Q \input_v1, \input_v1, \input_back_aligned
 
-    EE.VMULAS.S8.QACC                                    \input_v1, \filter_v0    
-6:  
+    EE.VMULAS.S8.QACC                                    \input_v1, \filter_v0
+6:
 
 .endm
 
@@ -1392,7 +1392,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
 
     blti \filter_w, 2, 9f
 
-    EE.LD.128.USAR.IP \input_v1, \input_ptr, 16 
+    EE.LD.128.USAR.IP \input_v1, \input_ptr, 16
     EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_x_offset
     EE.VLD.128.IP \filter_v0, \filter_ptr, 16 # filter_v0
     EE.SRC.Q \input_v0, \input_v1, \input_back_aligned # input_v0
@@ -1411,7 +1411,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
 
     # filter_w == 1
     9:
-    EE.LD.128.USAR.IP \input_v1, \input_ptr, 16 
+    EE.LD.128.USAR.IP \input_v1, \input_ptr, 16
     EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \dilation_y_offset
     EE.VLD.128.XP \filter_v0, \filter_ptr, \filter_y_offset # filter_v0
     EE.SRC.Q \input_v0, \input_v1, \input_back_aligned # input_v0
@@ -1431,7 +1431,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
     EE.VMULAS.S8.QACC \input_v0, \filter_v0
     sub \input_ptr, \input_ptr, \dilation_y_offset
     add \input_ptr, \input_ptr, \next_hws1
-   
+
 12:
     EE.MOVI.32.A \filter_offset_q, \filter_h, 2
     add \filter_ptr, \filter_ptr, \filter_h
@@ -1454,7 +1454,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
         loopgtz \filter_w_rs1_1, 1f
             tie728_s8_depthwise_conv2d_unaligned_c_slice_updatex \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \dilation_x_offset, \remainder_c
             tie728_s8_depthwise_conv2d_unaligned_c_slice_updatex \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \dilation_x_offset, \remainder_c
-        1: 
+        1:
         bbci \filter_w, 0, 2f
         # 3 left
         tie728_s8_depthwise_conv2d_unaligned_c_slice_updatex \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \dilation_x_offset, \remainder_c
@@ -1478,7 +1478,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
         tie728_s8_depthwise_conv2d_unaligned_c_slice_updatey_padding \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \dilation_y_offset, \remainder_c, \filter_y_offset
     6:
 
-    
+
 7:
 
 .endm
@@ -1493,7 +1493,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
 dl_tie728_s8_unaligned_depthwise_conv2d_hwc1:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -1513,8 +1513,8 @@ dl_tie728_s8_unaligned_depthwise_conv2d_hwc1:
     l32i a12, a4, 60
     l32i a11, a4, 144
     EE.MOVI.32.Q q7, a12, 1
-    EE.MOVI.32.Q q7, a11, 2 
-    
+    EE.MOVI.32.Q q7, a11, 2
+
 
     l32i a10, a4, 64  # mac shift
     l32i a14, a4, 68  # bias
@@ -1572,7 +1572,7 @@ tie728_s8_unaligned_depthwise_conv2d_hwc1_with_activation:
     j tie728_s8_unaligned_depthwise_conv2d_hwc1_c_loop_end
 
 
-tie728_s8_unaligned_depthwise_conv2d_hwc1_no_activation:  
+tie728_s8_unaligned_depthwise_conv2d_hwc1_no_activation:
     # EE.MOVI.32.A q7, a15, 0 #operation type
 
     tie728_s8_unaligned_depthwise_conv2d_hwc1_loop_no_act:
@@ -1598,7 +1598,7 @@ tie728_s8_unaligned_depthwise_conv2d_hwc1_no_activation:
 
 tie728_s8_unaligned_depthwise_conv2d_hwc1_c_loop_end:
     l32i a8, a4, 136  # c_remainder
-    
+
     beqz a8, dl_tie728_s8_unaligned_depthwise_conv2d_hwc1_end
 
     l32i a12, a4, 160
@@ -1611,7 +1611,7 @@ tie728_s8_unaligned_depthwise_conv2d_hwc1_c_loop_end:
     sub a7, a7, a8
 
     EE.MOVI.32.A q7, a9, 0 # operation type
-    
+
 
     l32i a13, a4, 148 # filter_w_rs1_1
     l32i a12, a4, 56 # filter_w
@@ -1623,7 +1623,7 @@ tie728_s8_unaligned_depthwise_conv2d_hwc1_c_loop_end:
         tie728_s8_conv2d_128b_vector_bias a14
     tie728_s8_unaligned_depthwise_conv2d_hwc1_c_loop_end_no_preload_bias:
     tie728_s8_unaligned_depthwise_conv2d_hws1_c_remainder q0, q1, q2, a3, q3, q4, q5, a5, a6, a7, a11, a12, a13, a8, a4, a15
-    
+
     l32i a12, a4, 84  # activation_shift
     EE.MOVI.32.A q7, a15, 3
     tie728_s8_conv2d_1_1_unaligned_c_result a9, q3, a10, a14, a15, a12, a11, q4, q5
@@ -1635,4 +1635,3 @@ dl_tie728_s8_unaligned_depthwise_conv2d_hwc1_end:
     # addi a2, a2, -16
 
     retw
-

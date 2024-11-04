@@ -86,7 +86,7 @@
 .macro dl_esp32p4_128b_last_store_data tmp_q, output_v, tmp_a, c_remainder_bytes
     beqz \c_remainder_bytes, 600f
     li \tmp_a, 15
-    sub  \tmp_a, \tmp_a, \c_remainder_bytes 
+    sub  \tmp_a, \tmp_a, \c_remainder_bytes
     li \c_remainder_bytes, 0
     esp.slcxxp.2q \tmp_q, \output_v, \tmp_a, \c_remainder_bytes #left shift to make the rest part 0
     esp.srcxxp.2q \output_v, \tmp_q, \tmp_a, \c_remainder_bytes #right shift to lower bits

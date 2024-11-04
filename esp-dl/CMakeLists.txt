@@ -11,10 +11,10 @@ set(src_dirs        ./dl/tool/src
                     ./vision/image
                     ./vision/recognition
                     )
-                    
+
 set(include_dirs    ./dl
                     ./dl/tool/include
-                    ./dl/typedef/include    
+                    ./dl/typedef/include
                     ./dl/base
                     ./dl/base/isa
                     ./dl/math/include
@@ -39,15 +39,15 @@ elseif(CONFIG_IDF_TARGET_ESP32S3)
     list(APPEND src_dirs        dl/base/isa/xtensa)
     list(APPEND src_dirs        dl/base/isa/tie728)
 
-elseif(CONFIG_IDF_TARGET_ESP32C3)   
+elseif(CONFIG_IDF_TARGET_ESP32C3)
 
-elseif(CONFIG_IDF_TARGET_ESP32P4)  
+elseif(CONFIG_IDF_TARGET_ESP32P4)
     list(APPEND src_dirs        dl/tool/isa/esp32p4)
     list(APPEND src_dirs        dl/base/isa/esp32p4)
 endif()
-       
+
 set(requires        esp_mm
-                    esp_driver_ppa  
+                    esp_driver_ppa
                     esp_partition
                     esp_timer
                     mbedtls

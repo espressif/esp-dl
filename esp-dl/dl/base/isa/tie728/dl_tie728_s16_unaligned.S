@@ -100,7 +100,7 @@
     tie728_64b_aligned_vector_store \output_v, \output_ptr                          # store
 .endm
 
-.macro tie728_s16_64b_aligned_vector_shift_prelu_store output_v, output_ptr, mac_shift, activation_v, activation_alpha_ptr, activation_shift 
+.macro tie728_s16_64b_aligned_vector_shift_prelu_store output_v, output_ptr, mac_shift, activation_v, activation_alpha_ptr, activation_shift
     EE.VLD.128.IP                   \activation_v, \activation_alpha_ptr, 16                               # load PReLU alph
     EE.SRCMB.S16.QACC               \output_v,     \mac_shift,             0                               # QACC -> QR without round, roud operation is wrong in this instruction
     EE.VPRELU.S16                   \output_v,     \output_v,             \activation_v, \activation_shift # PReLU
@@ -152,7 +152,7 @@
     tie728_128b_aligned_vector_store \output_v, \output_ptr                          # store
 .endm
 
-.macro tie728_s16_128b_aligned_vector_shift_prelu_store output_v, output_ptr, mac_shift, activation_v, activation_alpha_ptr, activation_shift 
+.macro tie728_s16_128b_aligned_vector_shift_prelu_store output_v, output_ptr, mac_shift, activation_v, activation_alpha_ptr, activation_shift
     EE.VLD.128.IP                    \activation_v, \activation_alpha_ptr, 16                               # load PReLU alph
     EE.SRCMB.S16.QACC                \output_v,     \mac_shift,             0                               # QACC -> QR without round, roud operation is wrong in this instruction
     EE.VPRELU.S16                    \output_v,     \output_v,             \activation_v, \activation_shift # PReLU
@@ -195,7 +195,7 @@
 .macro tie728_s16_element_prelu output, alpha_ptr, alpha
     l16si \alpha,     \alpha_ptr, 0
     addi  \alpha_ptr, \alpha_ptr, 2
-    
+
     bgez  \output, 0f
     mull  \output, \output, \alpha
     sra   \output, \output
@@ -261,11 +261,11 @@
 # tie728_s16_variable_vector series
 ############################################################################################################################################################
 .macro tie728_s16_variable_vector_store output_ptr, vector, number, temp
-    7:    
+    7:
         bbci \number, 2, 3f
         bbci \number, 1, 5f
         bbci \number, 0, 6f
-        
+
         # number == 0x111
         EE.MOVI.32.A \vector, \temp, 0
         s32i \temp, \output_ptr, 0
@@ -276,7 +276,7 @@
         EE.MOVI.32.A \vector, \temp, 3
         s16i \temp, \output_ptr, 12
         j 0f
-    6:    
+    6:
         # number == 0x110
         EE.MOVI.32.A \vector, \temp, 0
         s32i \temp, \output_ptr, 0
@@ -288,7 +288,7 @@
     5:
         # number == 0x10_
         bbci \number, 0, 4f
-        
+
         # number == 0x101
         EE.MOVI.32.A \vector, \temp, 0
         s32i \temp, \output_ptr, 0
@@ -297,7 +297,7 @@
         EE.MOVI.32.A \vector, \temp, 2
         s16i \temp, \output_ptr, 8
         j 0f
-    4:    
+    4:
         # number == 0x100
         EE.MOVI.32.A \vector, \temp, 0
         s32i \temp, \output_ptr, 0

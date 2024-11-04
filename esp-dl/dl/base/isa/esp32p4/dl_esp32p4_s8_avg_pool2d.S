@@ -1,7 +1,7 @@
 ############################################################################################################################################################
-#### 
+####
 #### dl_esp32p4_s8_avg_pool2d series
-#### 
+####
 ############################################################################################################################################################
 
 #include "dl_esp32p4_s8.S"
@@ -26,11 +26,11 @@ dl_esp32p4_s8_avg_pool2d_22c1:
     lw t5, 4(a2)     # input_channel
     lw t6, 104(a2)   # c_div_x_1
     lw s1, 56(a2)    # shift
-    
+
     addi s8, a2, 64
     esp.vldbc.8.ip q0, s8, 0  # avg_pool_area_inv
 
-    add a5, a1, a4 
+    add a5, a1, a4
     add t3, a1, a3
     add t4, t3, a4
 
@@ -84,11 +84,11 @@ dl_esp32p4_s8_unaligned_avg_pool2d_22c1:
     lw t6, 104(a2)   # c_div_x_1
     lw s0, 60(a2)    # c_remainder
     lw s1, 56(a2)    # shift
-    
+
     addi s8, a2, 64
     esp.vldbc.8.ip q6, s8, 0  # avg_pool_area_inv
 
-    add a5, a1, a4 
+    add a5, a1, a4
     add t3, a1, a3
     add t4, t3, a4
 
@@ -130,7 +130,7 @@ dl_esp32p4_s8_unaligned_avg_pool2d_22c1:
         bgtz t0, 0b
     1:
     j dl_esp32p4_s8_unaligned_avg_pool2d_22c1_loop_end
-    
+
 
 2:
     add t0, t6, x0
@@ -259,7 +259,7 @@ dl_esp32p4_s8_avg_pool2d_hwc1:
     lw t4, 52(a2)     # filter_width
     lw t6, 104(a2)   # c_div_x_1
     lw s1, 56(a2)    # shift
-    
+
     addi s8, a2, 64
     esp.vldbc.8.ip q0, s8, 0 # avg_pool_area_inv
 
@@ -496,11 +496,11 @@ dl_esp32p4_s8_unaligned_avg_pool2d_hwc1:
         j 8f
 
         6:
-        esp.vst.128.ip q7, a0, 16 
-        j 8f   
+        esp.vst.128.ip q7, a0, 16
+        j 8f
         7:
         esp32p4_s8_64b_unaligned_vector_store q7, a0
-        
+
         8:
         addi a1, a1, 16
         addi t6, t6, -1
@@ -515,7 +515,7 @@ dl_esp32p4_s8_unaligned_avg_pool2d_hw_small_channel:
     add s9, t3, x0
     addi a4, a4, 16
     sub a4, a4, s0
-    
+
     esp.zero.qacc
     2:
         add t0, t4, x0
@@ -532,7 +532,7 @@ dl_esp32p4_s8_unaligned_avg_pool2d_hw_small_channel:
         add a5, a5, a3
         add s8, a5, x0
     bnez s9, 2b
-    
+
     esp.srcmb.s8.qacc q7, s1, 1
     dl_esp32p4_s8_store_remainder q7, t3, t4, t5, t6, t0, a0, s0
 
@@ -567,8 +567,8 @@ dl_esp32p4_s8_unaligned_avg_pool2d_h1c1:
         esp32p4_s8_32b_unaligned_vector_store q7, a0, t4
         j 3f
         2:
-        esp.vst.128.ip q7, a0, 16 
-        j 4f   
+        esp.vst.128.ip q7, a0, 16
+        j 4f
         3:
         esp32p4_s8_64b_unaligned_vector_store q7, a0
 
@@ -576,7 +576,7 @@ dl_esp32p4_s8_unaligned_avg_pool2d_h1c1:
         addi a1, a1, 16
         addi t6, t6, -1
     bnez t6, 5b
-	
+
 dl_esp32p4_s8_unaligned_avg_pool2d_h1_remainder:
 	beqz s0, dl_esp32p4_s8_unaligned_avg_pool2d_hwc1_end
 
@@ -594,10 +594,10 @@ dl_esp32p4_s8_unaligned_avg_pool2d_h1_remainder:
         addi t0, t0, -1
         bgtz t0, 0b
     1:
-    
+
     esp.srcmb.s8.qacc q7, s1, 1
     dl_esp32p4_s8_store_remainder q7, t3, t4, t5, t6, t0, a0, s0
-  
+
 dl_esp32p4_s8_unaligned_avg_pool2d_hwc1_end:
 	esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
 	ret

@@ -1,9 +1,9 @@
 #include "dl_tie728_s16.S"
 
 ############################################################################################################################################################
-#### 
+####
 #### dl_tie728_s16_max_pool2d series
-#### 
+####
 ############################################################################################################################################################
 
     .align 4
@@ -25,12 +25,12 @@ dl_tie728_s16_max_pool2d_22c1:
     l32i a6, a4, 20     # input_x_offset_bytes
     l32i a10, a4, 104     # c_div_x_1
 
-    add a7, a3, a6 
+    add a7, a3, a6
     add a8, a3, a5
     add a9, a8, a6
 
 0:
-    
+
     EE.VLD.128.IP q0, a3, 16
     EE.VLD.128.IP q1, a7, 16
     loopgtz a10, 1f
@@ -66,25 +66,25 @@ dl_tie728_s16_unaligned_max_pool2d_22c1:
 
     l32i a5, a4, 16     # input_y_offset
     l32i a6, a4, 20     # input_x_offset
-    l32i a10, a4, 104 
+    l32i a10, a4, 104
     l32i a12, a4, 60    # c_remainder
 
-    add a7, a3, a6 
+    add a7, a3, a6
     add a8, a3, a5
     add a9, a8, a6
-    
+
     blti a10, 0, dl_tie728_s16_unaligned_max_pool2d_22c1_remainder
-    
+
     EE.LD.128.USAR.IP q0, a2, 0
     RUR.SAR_BYTE a13
-    
+
     EE.LD.128.USAR.IP q0, a3, 16
     EE.LD.128.USAR.IP q1, a3, 0
-    
+
     beqi a13, 0, 0f
     beqi a13, 8, 8f
 
-    loopgtz a10, 1f 
+    loopgtz a10, 1f
         EE.SRC.Q.LD.IP q2, a7, 16, q0, q1
         EE.LD.128.USAR.IP q3, a7, 0
         EE.SRC.Q.LD.IP q4, a8, 16, q2, q3
@@ -102,10 +102,10 @@ dl_tie728_s16_unaligned_max_pool2d_22c1:
 
         dl_tie728_128b_unaligned_store0 q7, a2, a13
 1:
-    j  dl_tie728_s16_unaligned_max_pool2d_22c1_end    
+    j  dl_tie728_s16_unaligned_max_pool2d_22c1_end
 
 0:
-    loopgtz a10, 2f 
+    loopgtz a10, 2f
         EE.SRC.Q.LD.IP q2, a7, 16, q0, q1
         EE.LD.128.USAR.IP q3, a7, 0
         EE.SRC.Q.LD.IP q4, a8, 16, q2, q3
@@ -125,7 +125,7 @@ dl_tie728_s16_unaligned_max_pool2d_22c1:
 2:
     j  dl_tie728_s16_unaligned_max_pool2d_22c1_end
 8:
-    loopgtz a10, 3f 
+    loopgtz a10, 3f
         EE.SRC.Q.LD.IP q2, a7, 16, q0, q1
         EE.LD.128.USAR.IP q3, a7, 0
         EE.SRC.Q.LD.IP q4, a8, 16, q2, q3
@@ -171,7 +171,7 @@ dl_tie728_s16_unaligned_max_pool2d_22c1_remainder:
     EE.LD.128.USAR.XP q2, a7, a12
     EE.VLD.128.IP q3, a7, 0
     EE.SRC.Q q2, q2, q3
-    
+
     EE.LD.128.USAR.XP q4, a8, a12
     EE.VLD.128.IP q5, a8, 0
     EE.VMAX.S16 q7, q0, q2
@@ -214,7 +214,7 @@ dl_tie728_s16_max_pool2d_hwc1:
     l32i a7, a4, 104    # c_div_x_1
     l32i a8, a4, 48     # filter_height
     l32i a9, a4, 52     # filter_width
-    
+
     srli a10, a9, 1
     addi a10, a10, -1    # w / 2 - 1
 
@@ -296,7 +296,7 @@ dl_tie728_s16_max_pool2d_hwc1_small_channel:
     mov a13, a11
     bnez a14, 2b
 6:
-    EE.VST.128.IP q7, a2, 16  
+    EE.VST.128.IP q7, a2, 16
     retw
 
 dl_tie728_s16_max_pool2d_h1c1_loop:
@@ -310,8 +310,8 @@ dl_tie728_s16_max_pool2d_h1c1_loop:
 2:
     EE.VST.128.IP q7, a2, 16
     addi a3, a3, 16
-    addi a7, a7, -1 
-    bnez a7, 1b  
+    addi a7, a7, -1
+    bnez a7, 1b
 
 dl_tie728_s16_max_pool2d_h1c1_small_channel:
     mov a13, a3
@@ -342,7 +342,7 @@ dl_tie728_s16_unaligned_max_pool2d_hwc1:
     # a7: c_div_x_1
     # a8: filter_height
     # a9: filter_width
-    # a10: filter_width/2 - 1 
+    # a10: filter_width/2 - 1
     # a12: c_remainder_bytes
 
     l32i a5, a4, 16     # input_y_offset
@@ -351,7 +351,7 @@ dl_tie728_s16_unaligned_max_pool2d_hwc1:
     l32i a8, a4, 48     # filter_height
     l32i a9, a4, 52     # filter_width
     l32i a12, a4, 60    # c_remainder_bytes
-    
+
     srli a10, a9, 1
     addi a10, a10, -1    # w/2-1
 
@@ -420,7 +420,7 @@ dl_tie728_s16_unaligned_max_pool2d_hwc1:
 7:
     EE.VST.128.IP q7, a2, 16
     j 9f
-8:  
+8:
     dl_tie728_128b_unaligned_store1 q7, a2
 9:
     addi a3, a3, 16
@@ -430,7 +430,7 @@ dl_tie728_s16_unaligned_max_pool2d_hwc1:
 
 dl_tie728_s16_unaligned_max_pool2d_hwc1_small_channel:
     beqz a12, 9f
-    
+
     mov a11, a3
     mov a13, a11
     EE.LD.128.USAR.IP q0, a13, 16
@@ -484,7 +484,7 @@ dl_tie728_s16_unaligned_max_pool2d_hwc1_small_channel:
     dl_tie728_s16_store_remainder q7, a12, a14, a2
 9:
     retw
-    
+
 
 dl_tie728_s16_unaligned_max_pool2d_h1c1_loop:
     addi a5, a5, -16
@@ -510,14 +510,14 @@ dl_tie728_s16_unaligned_max_pool2d_h1c1_loop:
     j 5f
 4:
     dl_tie728_128b_unaligned_store1 q7, a2
-5: 
+5:
     addi a3, a3, 16
-    addi a7, a7, -1 
-    bnez a7, 1b  
+    addi a7, a7, -1
+    bnez a7, 1b
 
 dl_tie728_s16_unaligned_max_pool2d_h1c1_small_channel:
     beqz a12, 5f
-    
+
     mov a13, a3
     EE.LD.128.USAR.XP q0, a13, a12
     EE.VLD.128.IP q1, a13, 0
@@ -534,5 +534,5 @@ dl_tie728_s16_unaligned_max_pool2d_h1c1_small_channel:
 1:
     srli a12, a12, 1
     dl_tie728_s16_store_remainder q7, a12, a14, a2
-5: 
+5:
     retw

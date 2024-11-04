@@ -20,27 +20,27 @@ dl_esp32p4_memcpy:
     # t6: load_ptr sar_bytes
 
     # a6(not for extension instructions): head unaligned bytes 2
-    # a7(not for extension instructions): 
+    # a7(not for extension instructions):
     # t0(not for extension instructions): tmp value
-    # t1(not for extension instructions): 
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions):  
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp.ld.128.usar.ip q0, a1, 0
     esp.movx.r.sar.bytes t6
 
     esp.ld.128.usar.ip q1, a0, 0
-    esp.movx.r.sar.bytes t4    
+    esp.movx.r.sar.bytes t4
     li a6, 16
     sub a6, a6, t4      // head unaligned bytes 2
 
@@ -83,7 +83,7 @@ dl_esp32p4_memcpy_done_min:
     sub a4, a2, a4      // remainder
 
     srli a5, a3, 1      // len // 32
-    slli t3, a5, 1 
+    slli t3, a5, 1
     sub t3, a3, t3      // odd_flag
 
     srli t4, a4, 2      //remainder_4b
@@ -117,7 +117,7 @@ dl_esp32p4_memcpy_done_min:
     sub a4, a2, a4      // remainder
 
     srli a5, a3, 1      // len // 32
-    slli t3, a5, 1 
+    slli t3, a5, 1
     sub t3, a3, t3      // odd_flag
 
     srli t4, a4, 2      //remainder_4b

@@ -79,7 +79,7 @@
 
 
 
-.macro dl_esp32p4_s8_last_store_data tmp_q, output_v, tmp_a, c_remainder_bytes    
+.macro dl_esp32p4_s8_last_store_data tmp_q, output_v, tmp_a, c_remainder_bytes
     movi \tmp_a, 15
     sub  \tmp_a, \tmp_a, \c_remainder_bytes
     movi \c_remainder_bytes, 0
@@ -90,7 +90,7 @@
 
 
 .macro dl_esp32p4_s8_store_remainder output_v, tmp_a0, tmp_a1, tmp_a2, tmp_a3, tmp_a4, output_ptr, remainder_c
-    esp.movi.32.a \output_v, \tmp_a0, 0  
+    esp.movi.32.a \output_v, \tmp_a0, 0
 615: # remainder_c == 15, 0x1111
     andi \tmp_a4, \remainder_c, 8
     beqz \tmp_a4, 607f
@@ -176,7 +176,7 @@
     sw \tmp_a0, 0(\output_ptr)
     sh \tmp_a1, 4(\output_ptr)
     srai \tmp_a1, \tmp_a1, 16
-    sb \tmp_a1, 6(\output_ptr) 
+    sb \tmp_a1, 6(\output_ptr)
     j 616f
 
 606:  # remainder == 6, 0x110
@@ -216,7 +216,7 @@
     sb \tmp_a0, 0(\output_ptr)
 
 616:
-.endm    
+.endm
 
 
 

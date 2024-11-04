@@ -1,9 +1,9 @@
 #include "dl_tie728_s8.S"
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_conv2d_11cn series
-#### 
+####
 ############################################################################################################################################################
 .macro tie728_s8_conv2d_11c16 input_v0 input_ptr filter_v0 filter_v1 filter_ptr c_div_x_1
     # scalar * vecter and accumulate into QACC
@@ -60,9 +60,9 @@
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_conv2d_11cn
-#### 
+####
 ############################################################################################################################################################
 .macro tie728_s8_conv2d_11cn_load_args args filter_ptr c_div_x_1 n_rs3
     l32i \n_rs3,          \args,  96  // output_channel_div_8
@@ -80,7 +80,7 @@
 dl_tie728_s8_conv2d_11cn:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -89,12 +89,12 @@ dl_tie728_s8_conv2d_11cn:
     # a6: c_div_x_1
     # a7: n_rs3
     # a8: mac_shift
-    # a9: 
-    # a10: 
+    # a9:
+    # a10:
     # a11: bias_ptr
-    # a12: 
+    # a12:
     # a13:
-    # a14: 
+    # a14:
     # a15: moving_input_ptr
     tie728_s8_conv2d_11cn_load_args a4, a5, a6, a7
 
@@ -104,7 +104,7 @@ dl_tie728_s8_conv2d_11cn:
 
 
 dl_tie728_s8_conv2d_per_layer_11cn:
-    
+
     beqz a11, tie728_s8_conv2d_per_layer_11cn_no_bias_loop
 
     tie728_s8_conv2d_per_layer_11cn_bias_loop:
@@ -144,11 +144,11 @@ dl_tie728_s8_conv2d_per_channel_11cn:
         EE.ZERO.QACC
 
         tie728_s8_conv2d_11c16 q0, a15, q1, q2, a5, a6
-        # tie728_s8_conv2d_per_channel_result q0, q1, a8, a15, q2 
+        # tie728_s8_conv2d_per_channel_result q0, q1, a8, a15, q2
         # tie728_s8_conv2d_bias q0, q1, a11
         tie728_s8_conv2d_per_channel_with_bias_result q0, q1, a8, a11, a15, q2
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_11cn_bias_loop
     retw
@@ -161,7 +161,7 @@ dl_tie728_s8_conv2d_per_channel_11cn:
         tie728_s8_conv2d_11c16 q0, a15, q1, q2, a5, a6
         tie728_s8_conv2d_per_channel_result q0, q1, a8, a15, q2
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_11cn_no_bias_loop
     retw
@@ -176,7 +176,7 @@ dl_tie728_s8_conv2d_per_channel_11cn:
 dl_tie728_s8_conv2d_11cn_relu:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -190,7 +190,7 @@ dl_tie728_s8_conv2d_11cn_relu:
     # a11: bias_ptr
     # a12: activation_alpha
     # a13: activation_shift
-    # a14: 
+    # a14:
     # a15: moving_input_ptr
     tie728_s8_conv2d_11cn_load_args a4, a5, a6, a7
 
@@ -203,7 +203,7 @@ dl_tie728_s8_conv2d_11cn_relu:
 
 
 dl_tie728_s8_conv2d_per_layer_11cn_relu:
-    
+
     beqz a11, tie728_s8_conv2d_per_layer_11cn_no_bias_relu_loop
 
     tie728_s8_conv2d_per_layer_11cn_bias_relu_loop:
@@ -250,7 +250,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_relu:
         tie728_s8_conv2d_per_channel_with_bias_result q0, q1, a8, a11, a15, q2
         tie728_s8_conv2d_relu q0, a12, a13
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_11cn_bias_relu_loop
     retw
@@ -264,7 +264,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_relu:
         tie728_s8_conv2d_per_channel_result q0, q1, a8, a15, q2
         tie728_s8_conv2d_relu q0, a12, a13
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_11cn_no_bias_relu_loop
     retw
@@ -279,7 +279,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_relu:
 dl_tie728_s8_conv2d_11cn_prelu:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -288,12 +288,12 @@ dl_tie728_s8_conv2d_11cn_prelu:
     # a6: c_div_x_1
     # a7: n_rs3
     # a8: mac_shift
-    # a9: 
-    # a10: 
+    # a9:
+    # a10:
     # a11: bias_ptr
     # a12: activation_alpha
     # a13: activation_shift
-    # a14: 
+    # a14:
     # a15: moving_input_ptr
     tie728_s8_conv2d_11cn_load_args a4, a5, a6, a7
 
@@ -306,7 +306,7 @@ dl_tie728_s8_conv2d_11cn_prelu:
 
 
 dl_tie728_s8_conv2d_per_layer_11cn_prelu:
-    
+
     beqz a11, tie728_s8_conv2d_per_layer_11cn_no_bias_prelu_loop
 
     tie728_s8_conv2d_per_layer_11cn_bias_prelu_loop:
@@ -353,7 +353,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
         tie728_s8_conv2d_per_channel_with_bias_result q0, q1, a8, a11, a15, q2
         tie728_s8_conv2d_prelu q0, q2, a12, a13
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_11cn_bias_prelu_loop
     retw
@@ -367,7 +367,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
         tie728_s8_conv2d_per_channel_result q0, q1, a8, a15, q2
         tie728_s8_conv2d_prelu q0, q2, a12, a13
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_11cn_no_bias_prelu_loop
     retw
@@ -379,9 +379,9 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_unaligned_conv2d_11cn
-#### 
+####
 ############################################################################################################################################################
 
 .macro tie728_s8_conv2d_1_1_n_remainder_result operation_type output output_ptr mac_shift bias_ptr activation_alpha activation_shift tmp tmp_q1
@@ -397,7 +397,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     # l16si \tmp, \mac_shift, 0
     # addi \mac_shift, \mac_shift, 2
     # EE.SRS.ACCX \output, \tmp, 0
-    
+
     # # add bias
     # l8ui \tmp, \bias_ptr, 0 # load bias
     # addi \bias_ptr, \bias_ptr, 1
@@ -406,7 +406,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
 
     movi \tmp, 4
     EE.SRS.ACCX \output, \tmp, 0
-    
+
     l16si \tmp, \bias_ptr, 0 # load bias
     addi \bias_ptr, \bias_ptr, 2
 
@@ -426,14 +426,14 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     sext \tmp, \tmp, 7
     mull \output, \output, \tmp
     ssr \activation_shift  # activation_shift
-    sra \output, \output 
+    sra \output, \output
 
     j 17f  # jump to 17f
 10:  # per_channel bias + relu, 0x1010
     # l16si \tmp, \mac_shift, 0
     # addi \mac_shift, \mac_shift, 2
     # EE.SRS.ACCX \output, \tmp, 0
-    
+
     # # add bias
     # l8ui \tmp, \bias_ptr, 0 # load bias
     # addi \bias_ptr, \bias_ptr, 1
@@ -442,7 +442,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
 
     movi \tmp, 4
     EE.SRS.ACCX \output, \tmp, 0
-    
+
     l16si \tmp, \bias_ptr, 0 # load bias
     addi \bias_ptr, \bias_ptr, 2
 
@@ -468,7 +468,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     # l16si \tmp, \mac_shift, 0
     # addi \mac_shift, \mac_shift, 2
     # EE.SRS.ACCX \output, \tmp, 0
-    
+
     # # add bias
     # l8ui \tmp, \bias_ptr, 0 # load bias
     # addi \bias_ptr, \bias_ptr, 1
@@ -476,7 +476,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     # add \output, \output, \tmp
     movi \tmp, 4
     EE.SRS.ACCX \output, \tmp, 0
-    
+
     l16si \tmp, \bias_ptr, 0 # load bias
     addi \bias_ptr, \bias_ptr, 2
 
@@ -494,7 +494,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     l16si \tmp, \mac_shift, 0
     addi \mac_shift, \mac_shift, 2
     EE.SRS.ACCX \output, \tmp, 0
-    
+
     # prelu
     bgez \output, 17f
 
@@ -502,7 +502,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     sext \tmp, \tmp, 7
     mull \output, \output, \tmp
     ssr \activation_shift  # activation_shift
-    sra \output, \output 
+    sra \output, \output
 
     j 17f  # jump to 16f
 
@@ -515,7 +515,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
 
     addi \mac_shift, \mac_shift, 2
     EE.SRS.ACCX \output, \tmp, 0
-    
+
     # Relu or LeakyRelu
     bgez \output, 16f
     mull \output, \output, \activation_alpha
@@ -537,7 +537,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     # per_layer bias + prelu, 0x101
     # EE.SRS.ACCX \output, \mac_shift, 0
     tie728_s8_element_round_result  \output, \mac_shift, \tmp, \tmp_q1
-    
+
     # bias will be preload
     # # add bias
     # l8ui \tmp, \bias_ptr, 0 # load bias
@@ -552,14 +552,14 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     sext \tmp, \tmp, 7
     mull \output, \output, \tmp
     ssr \activation_shift  # activation_shift
-    sra \output, \output 
+    sra \output, \output
 
     j 17f  # jump to 17f
 
 4:  # per_layer bias + relu, 0x100
     # EE.SRS.ACCX \output, \mac_shift, 0
     tie728_s8_element_round_result  \output, \mac_shift, \tmp, \tmp_q1
-    
+
     # bias will be preload
     # # add bias
     # l8ui \tmp, \bias_ptr, 0 # load bias
@@ -582,7 +582,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     # per_layer bias, 0x011
     # EE.SRS.ACCX \output, \mac_shift, 0
     tie728_s8_element_round_result  \output, \mac_shift, \tmp, \tmp_q1
-    
+
     # bias will be preload
     # # add bias
     # l8ui \tmp, \bias_ptr, 0 # load bias
@@ -686,7 +686,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     EE.SRC.Q.QUP \input_v0, \input_front_aligned, \input_back_aligned
     addi \input_ptr, \input_ptr, -16
     add \input_ptr, \input_ptr, \remainder_c #input_ptr and the end of c
-        
+
 
     EE.VSMULAS.S8.QACC.LD.INCP \filter_v0, \filter_ptr, \filter_v0, \input_v0, 0
     EE.VSMULAS.S8.QACC.LD.INCP \filter_v1, \filter_ptr, \filter_v1, \input_v0, 1
@@ -708,7 +708,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
 
     beqz \remainder_c, 16f #no c_remainder
 
-    EE.VLD.128.IP \filter_v0, \filter_ptr, 16 
+    EE.VLD.128.IP \filter_v0, \filter_ptr, 16
 
     # rur.sar_byte \input_sar #input sar
     # EE.LD.128.USAR.IP \input_back_aligned, \input_ptr, 0
@@ -946,7 +946,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
         EE.LD.128.USAR.IP \input_back_aligned, \input_ptr, 16
         EE.VMULAS.S8.ACCX \filter_v0, \input_v0
     0:
-    
+
 
     # EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \remainder_c
     EE.SRC.Q.QUP \input_v0, \input_front_aligned, \input_back_aligned
@@ -968,17 +968,17 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     # wur.sar_byte \filter_sar #filter sar
     EE.VLD.128.IP \filter_back_aligned, \filter_ptr, 0
     EE.SRC.Q \filter_v0, \filter_front_aligned, \filter_back_aligned
-    
+
 
     # input remainder is in one 128bit then input_back_aligned = input_front_aligned
     EE.LD.128.USAR.IP \input_back_aligned, \input_ptr, 0
     wur.sar_byte \input_sar #input sar
     EE.SRC.Q \input_v0, \input_front_aligned, \input_back_aligned #right shift delete the low sar_byte
-    
+
 
     #left shift to make the rest part(15 - remainder_c) 0 EE.SLXCCP left shift a0+1
     movi \filter_sar, 15
-    sub  \filter_sar, \filter_sar, \remainder_c 
+    sub  \filter_sar, \filter_sar, \remainder_c
     movi \input_sar, 0
     EE.SLCXXP.2Q \input_back_aligned, \input_v0, \filter_sar, \input_sar #left shift to make the rest part 0
     EE.SLCXXP.2Q \filter_back_aligned, \filter_v0, \filter_sar, \input_sar
@@ -995,7 +995,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
     # wur.sar_byte \filter_sar #filter sar
     EE.VLD.128.IP \filter_back_aligned, \filter_ptr, 0
     EE.SRC.Q \filter_v0, \filter_front_aligned, \filter_back_aligned
-    
+
 
     # input remainder is in one 128bit then input_back_aligned = input_front_aligned
     EE.LD.128.USAR.XP \input_front_aligned, \input_ptr, \remainder_c
@@ -1008,7 +1008,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
 
     #left shift to make the rest part(15 - remainder_c) 0 EE.SLXCCP left shift a0+1
     movi \filter_sar, 15
-    sub  \filter_sar, \filter_sar, \remainder_c 
+    sub  \filter_sar, \filter_sar, \remainder_c
     movi \input_sar, 0
     EE.SLCXXP.2Q \input_back_aligned, \input_v0, \filter_sar, \input_sar #left shift to make the rest part 0
     EE.SLCXXP.2Q \filter_back_aligned, \filter_v0, \filter_sar, \input_sar
@@ -1028,7 +1028,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
 dl_tie728_s8_unaligned_conv2d_11cn:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -1040,7 +1040,7 @@ dl_tie728_s8_unaligned_conv2d_11cn:
     # a9: c_remainder
     # a10: operation_type / n_remainder
     # a11: bias_ptr
-    # a12: 
+    # a12:
     # a13:
     # a14: input_sar
     # a15: moving_input_ptr
@@ -1119,7 +1119,7 @@ dl_tie728_s8_unaligned_conv2d_11cn:
         tie728_s8_unaligned_conv2d_11cn_loop8_no_preload_bias:
         tie728_s8_conv2d_1_1_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a14
         tie728_s8_conv2d_1_1_unaligned_c_result a10, q0, a8, a11, a12, a13, a15, q1, q2
-        
+
         #store to unaligned address
         dl_tie728_s8_unaligned_store1 q0, a2
 
@@ -1129,7 +1129,7 @@ dl_tie728_s8_unaligned_conv2d_11cn:
 
 
 tie728_s8_conv2d_1_1_unaligned_c_n_loop_end:
-    
+
 
     # handle the n remainder
     # s16i a10, a1, 0
@@ -1178,9 +1178,9 @@ dl_tie728_s8_unaligned_conv2d_11cn_end:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s16_conv2d_33cn series
-#### 
+####
 ############################################################################################################################################################
 .macro tie728_s8_conv2d_33c16 input_v0 filter_v0 filter_v1 input_ptr filter_ptr c_div_x_1 dilation_x_offset dilation_y_offset
     # dilation_x_offset = (dilation_x * input_channel_with_padding - input_channel) * sizeof(output_t)
@@ -1188,28 +1188,28 @@ dl_tie728_s8_unaligned_conv2d_11cn_end:
 
     tie728_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -1234,7 +1234,7 @@ dl_tie728_s8_unaligned_conv2d_11cn_end:
 dl_tie728_s8_conv2d_33cn:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -1246,9 +1246,9 @@ dl_tie728_s8_conv2d_33cn:
     # a9: input dilation x offset
     # a10: input dilation y offset
     # a11: bias_ptr
-    # a12: 
+    # a12:
     # a13:
-    # a14: 
+    # a14:
     # a15: moving_input_ptr
     tie728_s8_conv2d_hwcn_load_args a4, a5, a6, a7, a9, a10
 
@@ -1258,7 +1258,7 @@ dl_tie728_s8_conv2d_33cn:
 
 
 dl_tie728_s8_conv2d_per_layer_33cn:
-    
+
     beqz a11, tie728_s8_conv2d_per_layer_33cn_no_bias_loop
 
     tie728_s8_conv2d_per_layer_33cn_bias_loop:
@@ -1302,7 +1302,7 @@ dl_tie728_s8_conv2d_per_channel_33cn:
         # tie728_s8_conv2d_bias q0, q1, a11
         tie728_s8_conv2d_per_channel_with_bias_result q0, q1, a8, a11, a15, q2
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_33cn_bias_loop
     retw
@@ -1315,7 +1315,7 @@ dl_tie728_s8_conv2d_per_channel_33cn:
         tie728_s8_conv2d_33c16 q0, q1, q2, a15, a5, a6, a9, a10
         tie728_s8_conv2d_per_channel_result q0, q1, a8, a15, q2
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_33cn_no_bias_loop
     retw
@@ -1330,7 +1330,7 @@ dl_tie728_s8_conv2d_per_channel_33cn:
 dl_tie728_s8_conv2d_33cn_relu:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -1344,7 +1344,7 @@ dl_tie728_s8_conv2d_33cn_relu:
     # a11: bias_ptr
     # a12: activation_alpha
     # a13: activation_shift
-    # a14: 
+    # a14:
     # a15: moving_input_ptr
     tie728_s8_conv2d_hwcn_load_args a4, a5, a6, a7, a9, a10
 
@@ -1357,7 +1357,7 @@ dl_tie728_s8_conv2d_33cn_relu:
 
 
 dl_tie728_s8_conv2d_per_layer_33cn_relu:
-    
+
     beqz a11, tie728_s8_conv2d_per_layer_33cn_no_bias_relu_loop
 
     tie728_s8_conv2d_per_layer_33cn_bias_relu_loop:
@@ -1404,7 +1404,7 @@ dl_tie728_s8_conv2d_per_channel_33cn_relu:
         tie728_s8_conv2d_per_channel_with_bias_result q0, q1, a8, a11, a15, q2
         tie728_s8_conv2d_relu q0, a12, a13
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_33cn_bias_relu_loop
     retw
@@ -1418,7 +1418,7 @@ dl_tie728_s8_conv2d_per_channel_33cn_relu:
         tie728_s8_conv2d_per_channel_result q0, q1, a8, a15, q2
         tie728_s8_conv2d_relu q0, a12, a13
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_33cn_no_bias_relu_loop
     retw
@@ -1433,7 +1433,7 @@ dl_tie728_s8_conv2d_per_channel_33cn_relu:
 dl_tie728_s8_conv2d_33cn_prelu:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -1447,7 +1447,7 @@ dl_tie728_s8_conv2d_33cn_prelu:
     # a11: bias_ptr
     # a12: activation_alpha
     # a13: activation_shift
-    # a14: 
+    # a14:
     # a15: moving_input_ptr
     tie728_s8_conv2d_hwcn_load_args a4, a5, a6, a7, a9, a10
 
@@ -1460,7 +1460,7 @@ dl_tie728_s8_conv2d_33cn_prelu:
 
 
 dl_tie728_s8_conv2d_per_layer_33cn_prelu:
-    
+
     beqz a11, tie728_s8_conv2d_per_layer_33cn_no_bias_prelu_loop
 
     tie728_s8_conv2d_per_layer_33cn_bias_prelu_loop:
@@ -1507,7 +1507,7 @@ dl_tie728_s8_conv2d_per_channel_33cn_prelu:
         tie728_s8_conv2d_per_channel_with_bias_result q0, q1, a8, a11, a15, q2
         tie728_s8_conv2d_prelu q0, q2, a12, a13
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_33cn_bias_prelu_loop
     retw
@@ -1521,7 +1521,7 @@ dl_tie728_s8_conv2d_per_channel_33cn_prelu:
         tie728_s8_conv2d_per_channel_result q0, q1, a8, a15, q2
         tie728_s8_conv2d_prelu q0, q2, a12, a13
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_33cn_no_bias_prelu_loop
     retw
@@ -1530,9 +1530,9 @@ dl_tie728_s8_conv2d_per_channel_33cn_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_unaligned_conv2d_33cn
-#### 
+####
 ############################################################################################################################################################
 
 
@@ -1542,28 +1542,28 @@ dl_tie728_s8_conv2d_per_channel_33cn_prelu:
 
     tie728_s8_conv2d_1_1_unaligned_c \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_unaligned_c \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_unaligned_c \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s8_conv2d_1_1_unaligned_c \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_unaligned_c \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_unaligned_c \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s8_conv2d_1_1_unaligned_c \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_unaligned_c \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_unaligned_c \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -1575,28 +1575,28 @@ dl_tie728_s8_conv2d_per_channel_33cn_prelu:
 
     tie728_s8_conv2d_1_1_c_n_remainder \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar, \filter_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_c_n_remainder \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar, \filter_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_c_n_remainder \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar, \filter_sar
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s8_conv2d_1_1_c_n_remainder \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar, \filter_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_c_n_remainder \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar, \filter_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_c_n_remainder \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar, \filter_sar
     add \input_ptr, \input_ptr, \dilation_y_offset
-    
+
     tie728_s8_conv2d_1_1_c_n_remainder \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar, \filter_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_c_n_remainder \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar, \filter_sar
     add \input_ptr, \input_ptr, \dilation_x_offset
-    
+
     tie728_s8_conv2d_1_1_c_n_remainder \input_v0, \input_front_aligned, \input_back_aligned, \input_ptr, \filter_v0, \filter_front_aligned, \filter_back_aligned, \filter_ptr, \c_div_x_1, \remainder_c, \input_sar, \filter_sar
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
@@ -1611,7 +1611,7 @@ dl_tie728_s8_conv2d_per_channel_33cn_prelu:
 dl_tie728_s8_unaligned_conv2d_33cn:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -1642,7 +1642,7 @@ dl_tie728_s8_unaligned_conv2d_33cn:
 
     tie728_s8_unaligned_conv2d_operation_type a14, a8, a11, a13, a12, a4
     EE.MOVI.32.Q q7, a14, 0  # operation_type q7[0]
-    
+
     beqz a7, tie728_s8_conv2d_3_3_unaligned_c_n_loop_end # output_channel < 16
 
     EE.LD.128.USAR.IP q1, a2, 0  # output sar_byte
@@ -1703,7 +1703,7 @@ dl_tie728_s8_unaligned_conv2d_33cn:
             tie728_s8_conv2d_3_3_unaligned_c_n_loop8_no_preload_bias:
             tie728_s8_conv2d_3_3_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a10, a13, a14
             tie728_s8_conv2d_1_1_unaligned_c_result a12, q0, a8, a11, a12, a13, a15, q1, q2
-            
+
             #store to unaligned address
             dl_tie728_s8_unaligned_store1 q0, a2
 
@@ -1775,7 +1775,7 @@ dl_tie728_s8_unaligned_conv2d_33cn:
             EE.MOVI.32.A q7, a14, 0 # operation_type
             l32i a13, a4, 84  # activation_shift
             tie728_s8_conv2d_1_1_unaligned_c_result a14, q0, a8, a11, a12, a13, a15, q1, q2
-            
+
             #store to unaligned address
             dl_tie728_s8_unaligned_store1 q0, a2
 
@@ -1850,9 +1850,9 @@ dl_tie728_s8_unaligned_conv2d_33cn_end:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_conv2d_hwcn series
-#### 
+####
 ############################################################################################################################################################
 
 .macro tie728_s8_conv2d_hwc16 input_v0 input_ptr filter_v0 filter_v1 filter_ptr c_div_x_1 dilation_x_offset dilation_y_offset filter_h filter_w filter_offset_q, args
@@ -1875,7 +1875,7 @@ dl_tie728_s8_unaligned_conv2d_33cn_end:
         bgei \filter_w, 2, 2b
 
         tie728_s8_conv2d_11c16 \input_v0, \input_ptr, \filter_v0, \filter_v1, \filter_ptr, \c_div_x_1
-        
+
         EE.MOVI.32.A \filter_offset_q, \filter_w, 1
         add \filter_ptr, \filter_ptr, \filter_w
         add \input_ptr, \input_ptr, \dilation_y_offset
@@ -1895,7 +1895,7 @@ dl_tie728_s8_unaligned_conv2d_33cn_end:
 
         addi \filter_h, \filter_h, -1
     bnez \filter_h, 4b
-    
+
     5:
     EE.MOVI.32.A \filter_offset_q, \filter_h, 2
     add \filter_ptr, \filter_ptr, \filter_h
@@ -1911,7 +1911,7 @@ dl_tie728_s8_unaligned_conv2d_33cn_end:
 dl_tie728_s8_conv2d_hwcn:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -1932,12 +1932,12 @@ dl_tie728_s8_conv2d_hwcn:
     l32i a13, a4, 68  # bias
     l32i a8, a4, 64 # mac shift
     l32i a12, a4, 60    # filter_y_offset
-    l32i a11, a4, 144  
-    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset 
+    l32i a11, a4, 144
+    EE.MOVI.32.Q q6, a12, 1 #filter_y_offset
     EE.MOVI.32.Q q6, a11, 2 #filter_n_offset
 
 dl_tie728_s8_conv2d_per_layer_hwcn:
-    
+
     beqz a13, tie728_s8_conv2d_per_layer_hwcn_no_bias_loop
 
     tie728_s8_conv2d_per_layer_hwcn_bias_loop:
@@ -1981,7 +1981,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn:
         # tie728_s8_conv2d_bias q0, q1, a13
         tie728_s8_conv2d_per_channel_with_bias_result q0, q1, a8, a13, a15, q2
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_hwcn_bias_loop
     retw
@@ -1994,7 +1994,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn:
         tie728_s8_conv2d_hwc16 q0, a15, q1, q2, a5, a6, a9, a10, a11, a12, q6, a4
         tie728_s8_conv2d_per_channel_result q0, q1, a8, a15, q2
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_hwcn_no_bias_loop
     retw
@@ -2009,7 +2009,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn:
 dl_tie728_s8_conv2d_hwcn_relu:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -2034,13 +2034,13 @@ dl_tie728_s8_conv2d_hwcn_relu:
     l32i a8, a4, 64 # mac shift
     l32i a12, a4, 60    # filter_y_offset
     l32i a11, a4, 144   # filter_n_offset
-    EE.MOVI.32.Q q6, a12, 1 
+    EE.MOVI.32.Q q6, a12, 1
     EE.MOVI.32.Q q6, a11, 2
     blti a8, 0, dl_tie728_s8_conv2d_per_channel_hwcn_relu
 
 
 dl_tie728_s8_conv2d_per_layer_hwcn_relu:
-    
+
     beqz a13, tie728_s8_conv2d_per_layer_hwcn_no_bias_relu
 
     tie728_s8_conv2d_per_layer_hwcn_bias_relu_loop:
@@ -2095,7 +2095,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn_relu:
         tie728_s8_conv2d_relu q0, a14, a11
 
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_hwcn_bias_relu_loop
     retw
@@ -2127,7 +2127,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn_relu:
 dl_tie728_s8_conv2d_hwcn_prelu:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -2158,7 +2158,7 @@ dl_tie728_s8_conv2d_hwcn_prelu:
 
 
 dl_tie728_s8_conv2d_per_layer_hwcn_prelu:
-    
+
     beqz a13, tie728_s8_conv2d_per_layer_hwcn_no_bias_prelu
 
     tie728_s8_conv2d_per_layer_hwcn_bias_prelu_loop:
@@ -2211,7 +2211,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn_prelu:
         l32i a11, a4, 84  # activation_shift
         tie728_s8_conv2d_prelu q0, q2, a14, a11
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_hwcn_bias_prelu_loop
     retw
@@ -2228,7 +2228,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn_prelu:
         tie728_s8_conv2d_per_channel_result q0, q1, a8, a15, q2
         tie728_s8_conv2d_prelu q0, q2, a14, a13
         EE.VST.128.IP q0, a2, 16
-        
+
         addi a7, a7, -1
     bnez a7, tie728_s8_conv2d_per_channel_hwcn_no_bias_prelu_loop
     retw
@@ -2238,9 +2238,9 @@ dl_tie728_s8_conv2d_per_channel_hwcn_prelu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### tie728_s8_unaligned_conv2d_hwcn series
-#### 
+####
 ############################################################################################################################################################
 
 
@@ -2357,7 +2357,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn_prelu:
 dl_tie728_s8_unaligned_conv2d_hwcn:
     .align 4
     entry sp, 128
-    
+
     # a2: int8_t *output_ptr
     # a3: int8_t *input_ptr
     # a4: void *args
@@ -2373,7 +2373,7 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
     # a13: bias_ptr
     # a14: activation_alpha_ptr
     # a15: moving_input_ptr
- 
+
     tie728_s8_conv2d_hwcn_load_args a4, a5, a6, a7, a9, a10
     # l32i a7, a4,  96  // output_channel_div_8
     # l32i a5, a4,  48  // filter
@@ -2383,7 +2383,7 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
     l32i a11, a4, 144
     EE.MOVI.32.Q q6, a12, 1
     EE.MOVI.32.Q q6, a11, 2
-    
+
     l32i a8,  a4, 64  // mac_shift
     l32i a13, a4, 68  // bias
     #l32i a14, a4, 76  // activation_alpha
@@ -2392,7 +2392,7 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
 
     tie728_s8_unaligned_conv2d_operation_type a12, a8, a13, a11, a14, a4
     EE.MOVI.32.Q q7, a12, 0  # operation_type q7[0]
-    
+
     beqz a7, tie728_s8_conv2d_h_w_unaligned_c_n_loop_end # output_channel < 16
 
     EE.LD.128.USAR.IP q1, a2, 0  # output sar_byte
@@ -2453,7 +2453,7 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
             tie728_s8_conv2d_h_w_unaligned_c_n_loop8_no_preload_bias:
             tie728_s8_conv2d_h_w_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a11, a12, a4, a9, a14, q6
             tie728_s8_conv2d_1_1_unaligned_c_result a10, q0, a8, a13, a11, a11, a11, q1, q2
-            
+
             #store to unaligned address
             dl_tie728_s8_unaligned_store1 q0, a2
 
@@ -2524,7 +2524,7 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
             EE.MOVI.32.A q7, a10, 0  # operation_type
             l32i a11, a4, 84  # activation_shift
             tie728_s8_conv2d_1_1_unaligned_c_result a10, q0, a8, a13, a14, a11, a15, q1, q2
-            
+
             #store to unaligned address
             dl_tie728_s8_unaligned_store1 q0, a2
 
@@ -2544,7 +2544,7 @@ tie728_s8_conv2d_h_w_unaligned_c_n_loop_end:
     EE.MOVI.32.Q q6, a5, 1
     EE.MOVI.32.Q q6, a11, 2
     l32i a5, a4,  168 # filter_ptr unaligned
-    
+
     l32i a11, a4, 84  # activation_shift
     l32i a9, a4, 136  # c_remainder: c % 16
 

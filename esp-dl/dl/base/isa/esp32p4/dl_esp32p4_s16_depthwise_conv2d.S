@@ -2,9 +2,9 @@
 #include "dl_esp32p4_common.S"
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s16_depthwise_conv2d_33c1 series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s16_depthwise_conv2d_3381  input_v0, filter_v0, input_v1, filter_v1, input_v2, filter_v2, input_ptr, filter_ptr, dilation_x_offset, dilation_y_offset, next_hw81
     # dilation_x_offset = input_channel_with_padding * dilation_x * sizeof(t)
@@ -67,7 +67,7 @@
     esp.vld.128.ip             \input_v0,  \input_ptr,  0
 
     esp.vmulas.s16.qacc.ld.ip  \filter_v0, \filter_ptr, 16, \input_v1, \filter_v1
-    # block one cycle here   
+    # block one cycle here
     esp.vmulas.s16.qacc                                     \input_v0, \filter_v0
 .endm
 
@@ -108,21 +108,21 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_bias:
     # t5: c_div_x_1
     # t6: bias_ptr
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
-    # t1(not for extension instructions): 
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s16_depthwise_conv2d_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
@@ -131,7 +131,7 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_bias:
     esp.vld.128.xp  q0, a1, a4
     esp.vld.128.ip  q1, a3, 16
     esp.vld.128.xp  q2, a1, a4
-    
+
     beqz  t5, esp32p4_s16_depthwise_conv2d_33c1_bias_loop_last
     esp.lp.setup  0, t5, 1f
         esp.zero.qacc
@@ -171,21 +171,21 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu:
     # t5: c_div_x_1
     # t6: bias_ptr
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
-    # t1(not for extension instructions): 
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: activation_alpha/_address
     # s1: activation_shift
-    # s8: 
-    # s9: 
-    # s10: 
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_8_stacks_2r  s0, s1
@@ -198,7 +198,7 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu:
     esp.vld.128.xp  q0, a1, a4
     esp.vld.128.ip  q1, a3, 16
     esp.vld.128.xp  q2, a1, a4
-    
+
     beqz  t5, esp32p4_s16_depthwise_conv2d_33c1_bias_relu_loop_last
     esp.lp.setup  0, t5, 1f
         esp.zero.qacc
@@ -239,23 +239,23 @@ dl_esp32p4_s16_depthwise_conv2d_33c1:
     # t3: next_hw81
     # t4: mac_shift
     # t5: c_div_x_1
-    # t6: 
+    # t6:
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
-    # t1(not for extension instructions): 
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_s16_depthwise_conv2d_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
@@ -263,7 +263,7 @@ dl_esp32p4_s16_depthwise_conv2d_33c1:
     esp.vld.128.xp  q0, a1, a4
     esp.vld.128.ip  q1, a3, 16
     esp.vld.128.xp  q2, a1, a4
-    
+
     beqz  t5, esp32p4_s16_depthwise_conv2d_33c1_loop_last
     esp.lp.setup  0, t5, 1f
         esp.zero.qacc
@@ -299,23 +299,23 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
     # t3: next_hw81
     # t4: mac_shift
     # t5: c_div_x_1
-    # t6: 
+    # t6:
 
-    # a6(not for extension instructions): 
-    # a7(not for extension instructions): 
-    # t0(not for extension instructions): 
-    # t1(not for extension instructions): 
-    # t2(not for extension instructions): 
-    # s2(not for extension instructions): 
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: activation_alpha/_address
     # s1: activation_shift
-    # s8: 
-    # s9: 
-    # s10: 
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_8_stacks_2r  s0, s1
@@ -327,7 +327,7 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
     esp.vld.128.xp  q0, a1, a4
     esp.vld.128.ip  q1, a3, 16
     esp.vld.128.xp  q2, a1, a4
-    
+
     beqz  t5, esp32p4_s16_depthwise_conv2d_33c1_relu_loop_last
     esp.lp.setup  0, t5, 1f
         esp.zero.qacc
@@ -352,9 +352,9 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
 
 
 ############################################################################################################################################################
-#### 
+####
 #### esp32p4_s16_depthwise_conv2d_hwcn series
-#### 
+####
 ############################################################################################################################################################
 .macro esp32p4_s16_depthwise_conv2d_1w81  input_v0, input_v1, input_v2, filter_v0, filter_v1, filter_v2, input_ptr, filter_ptr, dilation_x_offset, dilation_y_offset, filter_w, filter_w_rs1_1, filter_y_offset, tmp
     beqz  \filter_w_rs1_1, 2f
@@ -374,10 +374,10 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
         # three 8-input-element left
         esp.vmulas.s16.qacc.ld.ip \filter_v1, \filter_ptr, 16, \input_v0, \filter_v0
         esp.vld.128.xp            \input_v2,  \input_ptr,  \dilation_y_offset
-        
+
         esp.vmulas.s16.qacc.ld.xp \filter_v2, \filter_ptr, \filter_y_offset, \input_v1, \filter_v1
         esp.vld.128.xp            \input_v0,  \input_ptr,  \dilation_x_offset
-        
+
         esp.vmulas.s16.qacc.ld.ip \filter_v0, \filter_ptr, 16, \input_v2, \filter_v2 # block one cyle here
         esp.vld.128.xp            \input_v1,  \input_ptr,  \dilation_x_offset
         j 4f
@@ -412,16 +412,16 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
         # three 8-input-element left
         esp.vmulas.s16.qacc.ld.ip \filter_v1, \filter_ptr, 16, \input_v0, \filter_v0
         esp.vld.128.xp            \input_v0,  \input_ptr,  \next_hw81
-        
+
         esp.vmulas.s16.qacc.ld.xp \filter_v0, \filter_ptr, \filter_y_offset, \input_v1, \filter_v1
         # block one cyle here
-        esp.vmulas.s16.qacc                                    \input_v0, \filter_v0     
+        esp.vmulas.s16.qacc                                    \input_v0, \filter_v0
         j 4f
     3:  # two 8-input-element left
         esp.vmulas.s16.qacc.ld.xp \filter_v1, \filter_ptr, \filter_y_offset, \input_v0, \filter_v0
         sub \input_ptr, \input_ptr, \dilation_x_offset
         add \input_ptr, \input_ptr, \next_hw81
-        esp.vmulas.s16.qacc                                    \input_v1, \filter_v1   
+        esp.vmulas.s16.qacc                                    \input_v1, \filter_v1
     4:
 .endm
 
@@ -440,7 +440,7 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
         esp.vld.128.ip  \filter_v0, \filter_ptr, 16
         esp.vld.128.xp  \input_v0,  \input_ptr,  \dilation_x_offset
         esp.vld.128.xp  \input_v1,  \input_ptr,  \dilation_x_offset
-        
+
         addi  \filter_h, \filter_h, -1
         beqz  \filter_h, 8f
             // esp.lp.setup  1, \filter_h, (7f - 4)
@@ -452,13 +452,13 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
         esp32p4_s16_depthwise_conv2d_1w81_last  \input_v0, \input_v1, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \dilation_x_offset, \dilation_y_offset, \filter_w, \filter_w_rs1_1, \next_hw81, \filter_y_offset, \tmp
         j 12f
 
-    
+
     9:  # filter_w == 1
         esp.vld.128.xp  \filter_v0, \filter_ptr, \filter_y_offset
         esp.vld.128.xp  \input_v0,  \input_ptr,  \dilation_y_offset
 
         addi  \filter_h, \filter_h, -1
-        beqz  \filter_h, 11f        
+        beqz  \filter_h, 11f
             // esp.lp.setup  1, \filter_h, (10f - 4)
             10:
                 esp.vmulas.s16.qacc.ld.xp  \filter_v0, \filter_ptr, \filter_y_offset, \input_v0, \filter_v0
@@ -510,15 +510,15 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1_bias:
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): filter_h
     # s2(not for extension instructions): tmp value
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_4_stacks_1r  s2
@@ -568,15 +568,15 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu:
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): filter_h
     # s2(not for extension instructions): tmp value
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: activation_alpha
     # s1: activation_shift
-    # s8: 
-    # s9: 
-    # s10: 
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s2
@@ -621,7 +621,7 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1:
     # t3: next_hw81
     # t4: mac_shift
     # t5: filter_y_offset
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): filter_w
     # a7(not for extension instructions): filter_w_rs1_1
@@ -629,15 +629,15 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1:
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): filter_h
     # s2(not for extension instructions): tmp value
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
-    # s0: 
-    # s1: 
-    # s8: 
-    # s9: 
-    # s10: 
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_4_stacks_1r  s2
@@ -677,7 +677,7 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1_relu:
     # t3: next_hw81
     # t4: mac_shift
     # t5: filter_y_offset
-    # t6: 
+    # t6:
 
     # a6(not for extension instructions): filter_w
     # a7(not for extension instructions): filter_w_rs1_1
@@ -685,15 +685,15 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1_relu:
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): filter_h
     # s2(not for extension instructions): tmp value
-    # s3(not for extension instructions): 
-    # s4(not for extension instructions): 
-    # s5(not for extension instructions): 
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
 
     # s0: activation_alpha
     # s1: activation_shift
-    # s8: 
-    # s9: 
-    # s10: 
+    # s8:
+    # s9:
+    # s10:
     # s11:
 
     esp32p4_push_12_stacks_3r  s0, s1, s2

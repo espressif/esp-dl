@@ -11,15 +11,15 @@ dl_tie728_memset_8b:
     # a4: length(n)
 
     s8i a3, a1, 0   // store to stack
-    mov a7, a1                 
+    mov a7, a1
     EE.VLDBC.8 q0, a7
 
     EE.LD.128.USAR.IP q1, a2, 0
-    RUR.SAR_BYTE a10    
+    RUR.SAR_BYTE a10
     beqz a10, 2f
     movi a11, 16
     sub a11, a11, a10  # head unaligned bytes
-    
+
     min a11, a11, a4
     loopgtz a11, 1f
     s8i a3, a2, 0
@@ -42,7 +42,7 @@ dl_tie728_memset_8b:
     addi a2, a2, 1
 4:
     retw
-    
+
 
 
     .align 4
@@ -58,11 +58,11 @@ dl_tie728_memset_16b:
     # a4: length(n)
 
     s16i a3, a1, 0   // store to stack
-    mov a7, a1                 
+    mov a7, a1
     EE.VLDBC.16 q0, a7
 
     EE.LD.128.USAR.IP q1, a2, 0
-    RUR.SAR_BYTE a10    
+    RUR.SAR_BYTE a10
     beqz a10, 2f
     movi a11, 16
     sub a11, a11, a10  # head unaligned bytes
@@ -76,14 +76,14 @@ dl_tie728_memset_16b:
 5:
     retw
 
-0: 
+0:
     srli a11, a11, 1
     min a11, a11, a4
     loopgtz a11, 1f
     s16i a3, a2, 0
     addi a2, a2, 2
 
-1: 
+1:
     sub a4, a4, a11
     blti a4, 1, 4f
 
@@ -115,11 +115,11 @@ dl_tie728_memset_32b:
     # a4: length(n)
 
     s32i a3, a1, 0   // store to stack
-    mov a7, a1                 
+    mov a7, a1
     EE.VLDBC.32 q0, a7
 
     EE.LD.128.USAR.IP q1, a2, 0
-    RUR.SAR_BYTE a10    
+    RUR.SAR_BYTE a10
     beqz a10, 2f
     movi a11, 16
     sub a11, a11, a10  # head unaligned bytes
@@ -132,7 +132,7 @@ dl_tie728_memset_32b:
     addi a2, a2, 4
 5:
     retw
-0:   
+0:
     srli a11, a11, 2
     min a11, a11, a4
     loopgtz a11, 1f

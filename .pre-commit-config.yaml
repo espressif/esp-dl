@@ -16,7 +16,7 @@ repos:
         # 4 - protobuf auto-generated files
         exclude: &whitespace_excludes |
           (?x)^(
-            .+\.(md|rst|map|bin)|
+            .+\.(md|rst|map|bin|yml|ini|svg|fbs|info|jpg)|
             .+test.*\/.*expected.*|
             .+\/testdata\/.+|
             .*_pb2.py|
@@ -25,8 +25,7 @@ repos:
             .*.yuv|
             .*.rgb|
             .+\/flatbuffers\/.+|
-            .schema_generated.h|
-            .*.fbs
+            .schema_generated.h
           )$
       - id: end-of-file-fixer
         exclude: *whitespace_excludes
