@@ -328,6 +328,23 @@ class SQRT_TEST(nn.Module):
         return torch.sqrt(input)
 
 
+class SLICE_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        input = nn.ReLU()(input)
+        if self.config["dim"] == 4:
+            return input[0:1, 1:20:2, 1:-1, :]
+        elif self.config["dim"] == 3:
+            return input[0:1, 1:9:3, 1:-1:2]
+        elif self.config["dim"] == 2:
+            return input[:, 10:-10]
+        elif self.config["dim"] == 1:
+            return input[0:2]
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 

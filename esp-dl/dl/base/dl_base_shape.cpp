@@ -65,5 +65,36 @@ std::vector<int> get_unidirectional_broadcasting_shape(const std::vector<int> &s
     return std::vector<int>(shape1);
 }
 
+std::vector<int> get_slice_shape(const std::vector<int> &shape,
+                                 std::vector<int> start,
+                                 std::vector<int> end,
+                                 std::vector<int> axes,
+                                 std::vector<int> step)
+{
+    std::vector<int> output_shape = std::vector<int>(shape);
+    int dim = shape.size();
+
+    for (int i = 0; i < start.size(); i++) {
+        int axis = i;
+        if (!axes.empty()) {
+            axis = (axes[i] + dim) % dim;
+        }
+        int start_i = start[i] < 0 ? start[i] + shape[axis] : start[i] % (shape[axis] + 1);
+        int end_i = end[i] < 0 ? end[i] + shape[axis] : end[i] % (shape[axis] + 1);
+        if (start_i >= end_i) {
+            assert(false);
+            return {};
+        } else {
+            if (step.empty()) {
+                output_shape[axis] = end_i - start_i;
+            } else {
+                output_shape[axis] = 1 + (end_i - start_i - 1) / step[i];
+            }
+        }
+    }
+
+    return output_shape;
+}
+
 } // namespace base
 } // namespace dl

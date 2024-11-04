@@ -573,6 +573,28 @@
         input_shape = [1, 355]
         export_name_prefix = "sqrt_ishap_1_355"
 
+    [ops_test.slice]
+    class_name = "SLICE_TEST"
+        [[ops_test.slice.cfg]]
+        input_shape = [1, 96, 20, 20]
+        dim = 4
+        export_name_prefix = "slice_ishap_1_96_20_20"
+
+        [[ops_test.slice.cfg]]
+        input_shape = [1, 10, 10]
+        dim = 3
+        export_name_prefix = "slice_ishap_1_10_10"
+
+        [[ops_test.slice.cfg]]
+        input_shape = [15, 133]
+        dim = 2
+        export_name_prefix = "slice_ishap_15_133"
+
+        [[ops_test.slice.cfg]]
+        input_shape = [38, 2, 2]
+        dim = 1
+        export_name_prefix = "slice_ishap_38"
+
 [models_test]
     [models_test.picodet]
         input_shape = [1, 3, 224, 224]

@@ -190,6 +190,22 @@ public:
     }
 
     /**
+     * @brief Get element pointer by the specified template.
+     * If cache(preload data pointer) is not null, return cache pointer, otherwise return data pointer.
+     *
+     * @return  the pointer of Tensor's element
+     */
+    template <typename T>
+    T *get_element_ptr()
+    {
+        if (this->cache) {
+            return (T *)this->cache; // If preload cache is not null, use this pointer
+        }
+
+        return (T *)this->data;
+    }
+
+    /**
      * @brief Get the index of each dims
      *
      * @param element_index the index of the element
@@ -252,6 +268,16 @@ public:
                           std::vector<int> &perm);
 
     /**
+     * @brief Check the shape is the same as the shape of input.
+     *
+     * @param tensor Input tensor pointer
+     * @return
+     *         - true: same shape
+     *         - false: not
+     */
+    bool is_same_shape(TensorBase *tensor);
+
+    /**
      * @brief Compare the shape and data of two Tensor
      *
      * @param tensor Input tensor
@@ -261,6 +287,45 @@ public:
      * @return true if two tensor is equal otherwise false
      */
     bool equal(TensorBase *tensor, float epsilon = 1e-6, bool verbose = false);
+
+    /**
+     * @brief Produces a slice of the this tensor along multiple axes
+     *
+     * @warning The length of start, end and step must be same as the shape of input tensor
+     *
+     * @param output_element Data pointer of output tensor
+     * @param start Starting indicesd
+     * @param end Ending indices
+     * @param axes Axes that starts and ends apply to. axes = 0:len(start) if axes is not specified
+     * @param step Slice step, step = 1 if step is not specified
+     *
+     * @return Output tensor pointer
+     */
+    template <typename T>
+    TensorBase *slice(T *output_element,
+                      const std::vector<int> &start,
+                      const std::vector<int> &end,
+                      const std::vector<int> &axes = {},
+                      const std::vector<int> &step = {});
+
+    /**
+     * @brief Produces a slice of the this tensor along multiple axes
+     *
+     * @warning The length of start, end and step must be same as the shape of input tensor
+     *
+     * @param input  Input
+     * @param start Starting indicesd
+     * @param end Ending indices
+     * @param axes Axes that starts and ends apply to.
+     * @param step Slice step, step = 1 if step is not specified
+     *
+     * @return Output tensor pointer
+     */
+    TensorBase *slice(TensorBase *input,
+                      const std::vector<int> &start,
+                      const std::vector<int> &end,
+                      const std::vector<int> &axes = {},
+                      const std::vector<int> &step = {});
 
     /**
      * @brief Compare the elements of two Tensor
@@ -280,7 +345,24 @@ public:
      * @param axis_index the index of each dims
      * @return int the index of element
      */
-    int get_element_index(const std::vector<int> axis_index);
+    int get_element_index(const std::vector<int> &axis_index);
+
+    /**
+     * @brief Get the index of element
+     *
+     * @param axis_index the index of each dims
+     * @return int the index of element
+     */
+    int64_t get_element_index(const std::vector<int64_t> &axis_index);
+
+    /**
+     * @brief Get a element of Tensor by index
+     *
+     * @param index  The index of element
+     * @return   The element of tensor
+     */
+    template <typename T>
+    T get_element(int index);
 
     /**
      * @brief Get a element of Tensor
@@ -289,7 +371,7 @@ public:
      * @return   The element of tensor
      */
     template <typename T>
-    T get_element(int index);
+    T get_element(const std::vector<int> &axis_index);
 
     /**
      * @brief Set preload address of Tensor
