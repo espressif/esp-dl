@@ -15,7 +15,7 @@ public:
     /**
      * @brief Construct a new HumanFaceFeat object
      */
-    HumanFaceFeat();
+    HumanFaceFeat(int model_type);
 
     /**
      * @brief Destroy the HumanFaceFeat object
@@ -42,14 +42,16 @@ private:
     HumanFaceFeat *feat_extract;
     float thr;
     int top_k;
+    int model_type;
 
 public:
     FaceRecognizer(dl::recognition::db_type_t db_type = dl::recognition::DB_FATFS_FLASH,
                    float thr = 0.5,
-                   int top_k = 1) :
+                   int top_k = 1,
+                   int model_type = 0) :
         dl::recognition::DB(db_type, 512, "face"),
         detect(new HumanFaceDetect()),
-        feat_extract(new HumanFaceFeat()),
+        feat_extract(new HumanFaceFeat(model_type)),
         thr(thr),
         top_k(top_k)
     {

@@ -26,3 +26,22 @@ menu "models: human_face_recognition"
         string "fatfs flash mount partition"
         default "storage"
 endmenu
+
+menu "model type: human_face_recognition"
+    choice HUMAN_FACE_RECOGNITION_MODEL
+        prompt "model name for HumanFaceFeat"
+        default HUMAN_FACE_RECOG_MODEL_1
+        help
+            support human_face_recognition_mfn_s8_p4_v1.espdl, human_face_recognition_mbf_s8_p4_v1.espdl
+        config HUMAN_FACE_RECOG_MODEL_1
+            bool "human_face_recognition_mfn_s8_p4_v1.espdl"
+        config HUMAN_FACE_RECOG_MODEL_2
+            bool "human_face_recognition_mbf_s8_p4_v1.espdl"
+    endchoice
+
+    config HUMAN_FACE_RECOGNITION_MODEL
+        int
+        default 0 if HUMAN_FACE_RECOG_MODEL_1
+        default 1 if HUMAN_FACE_RECOG_MODEL_2
+
+endmenu

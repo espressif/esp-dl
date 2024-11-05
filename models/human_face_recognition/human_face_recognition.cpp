@@ -2,9 +2,16 @@
 
 extern const uint8_t mfn_espdl[] asm("_binary_mfn_espdl_start");
 
-HumanFaceFeat::HumanFaceFeat()
+HumanFaceFeat::HumanFaceFeat(int model_type)
 {
-    this->model = (void *)new model_zoo::MFN<int8_t>({127.5, 127.5, 127.5}, {128, 128, 128});
+    switch (model_type) {
+    case 0:
+        this->model = (void *)new model_zoo::MFN<int8_t>({127.5, 127.5, 127.5}, {128, 128, 128});
+        break;
+    case 1:
+        this->model = (void *)new model_zoo::MFN<int8_t>({127.5, 127.5, 127.5}, {127.5, 127.5, 127.5});
+        break;
+    }
 }
 
 HumanFaceFeat::~HumanFaceFeat()

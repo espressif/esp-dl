@@ -1,7 +1,7 @@
 ############################################################################################################################################################
-#### 
+####
 #### dl_esp32p4_s8_max_pool2d series
-#### 
+####
 ############################################################################################################################################################
 
 #include "dl_esp32p4_s8.S"
@@ -23,7 +23,7 @@ dl_esp32p4_s8_max_pool2d_22c1:
     lw a4, 20(a2)     # input_x_offset
     lw t6, 104(a2)   # c_div_x_1
 
-    add a5, a1, a4 
+    add a5, a1, a4
     add t3, a1, a3
     add t4, t3, a4
 
@@ -41,7 +41,7 @@ dl_esp32p4_s8_max_pool2d_22c1:
         addi t0, t0, -1
         bgtz t0, 0b
     1:
-    
+
     esp.vmax.s8.ld.incp q3, t4, q7, q0, q1
     esp.vmax.s8 q7, q7, q2
     esp.vmax.s8 q7, q7, q3
@@ -72,7 +72,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_22c1:
     lw t6, 104(a2)   # c_div_x_1
     lw s0, 60(a2)    # c_remainder
 
-    add a5, a1, a4 
+    add a5, a1, a4
     add t3, a1, a3
     add t4, t3, a4
 
@@ -111,7 +111,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_22c1:
         bgtz t0, 0b
     1:
     j dl_esp32p4_s8_unaligned_max_pool2d_22c1_loop_end
-    
+
 
 2:
     add t0, t6, x0
@@ -216,7 +216,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_22c1_end:
 
 .macro dl_esp32p4_s8_max_pool2d_hw
     4:
-            
+
         esp.vld.128.xp q0, s1, a4
         add t0, t5, x0
         blez t0, 1f
@@ -232,7 +232,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_22c1_end:
 
         andi t0, t4, 1
         beqz t0, 2f
-        
+
         #three left
         esp.vld.128.xp q1, s1, a4
         esp.vmax.s8 q7, q7, q0
@@ -285,7 +285,7 @@ dl_esp32p4_s8_max_pool2d_hwc1:
         add s1, a5, x0
         esp.vld.128.ip q7, s1, 0
         add s8, t3, x0
-        
+
         dl_esp32p4_s8_max_pool2d_hw
 
         esp.vst.128.ip q7, a0, 16
@@ -376,7 +376,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_hwc1:
     esp.movx.r.sar.bytes s9
 
     addi t6, t6, 1
-    
+
     li t0, 1
     beq t4, t0, dl_esp32p4_s8_unaligned_max_pool2d_h1c1 #filter_width == 1
     li t0, 1
@@ -389,7 +389,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_hwc1:
         esp.ld.128.usar.ip q7, s1, -16
         esp.src.q q7, q6, q7
         add s8, t3, x0
-        
+
         4:
             esp.ld.128.usar.ip q0, s1, 16
             esp.ld.128.usar.xp q1, s1, a4
@@ -409,7 +409,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_hwc1:
 
             andi t0, t4, 1
             beqz t0, 2f
-            
+
             #three left
             esp.src.q.ld.ip q2, s1, 16, q0, q1
             esp.ld.128.usar.xp q1, s1, a4
@@ -446,11 +446,11 @@ dl_esp32p4_s8_unaligned_max_pool2d_hwc1:
         j 7f
 
         5:
-        esp.vst.128.ip q7, a0, 16 
-        j 7f   
+        esp.vst.128.ip q7, a0, 16
+        j 7f
         6:
         esp32p4_s8_64b_unaligned_vector_store q7, a0
-        
+
         7:
         addi a1, a1, 16
         addi t6, t6, -1
@@ -467,7 +467,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_hw_remainder:
     add s8, t3, x0
     addi a4, a4, 16
     sub a4, a4, s0
-    
+
     2:
         add t0, t4, x0
         blez t0, 1f
@@ -483,12 +483,12 @@ dl_esp32p4_s8_unaligned_max_pool2d_hw_remainder:
         add a5, a5, a3
         add s1, a5, x0
     bnez s8, 2b
-    
+
     dl_esp32p4_s8_store_remainder q7, t3, t4, t5, t6, t0, a0, s0
 dl_esp32p4_s8_unaligned_max_pool2d_hw_remainder_end:
 
     esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
-    ret 
+    ret
 
 
 dl_esp32p4_s8_unaligned_max_pool2d_h1c1:
@@ -502,7 +502,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_h1c1:
         esp.ld.128.usar.ip q6, s1, 16
         esp.vld.128.xp q7, s1, a3
         esp.src.q q7, q6, q7
-        
+
         add t0, t3, x0
         blez t0, 1f
         0:
@@ -521,8 +521,8 @@ dl_esp32p4_s8_unaligned_max_pool2d_h1c1:
         esp32p4_s8_32b_unaligned_vector_store q7, a0, s8
         j 4f
         2:
-        esp.vst.128.ip q7, a0, 16 
-        j 4f   
+        esp.vst.128.ip q7, a0, 16
+        j 4f
         3:
         esp32p4_s8_64b_unaligned_vector_store q7, a0
 
@@ -542,7 +542,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_h1_remainder:
     esp.ld.128.usar.xp q6, s1, s0
     esp.vld.128.xp q7, s1, a3
     esp.src.q q7, q6, q7
-    
+
     add t0, t3, x0
     blez t0, 1f
     0:
@@ -553,7 +553,7 @@ dl_esp32p4_s8_unaligned_max_pool2d_h1_remainder:
         addi t0, t0, -1
         bgtz t0, 0b
     1:
-        
+
     dl_esp32p4_s8_store_remainder q7, t3, t4, t5, t6, t0, a0, s0
 
 dl_esp32p4_s8_unaligned_max_pool2d_h1_remainder_end:
