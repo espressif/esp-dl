@@ -40,10 +40,8 @@ extern "C" void app_main(void)
     uint8_t *musk1 = get_image(musk1_jpg_start, musk1_jpg_end - musk1_jpg_start, 300, 300);
     uint8_t *musk2 = get_image(musk2_jpg_start, musk2_jpg_end - musk2_jpg_start, 300, 300);
 
-    // printf("---------------model type=%d-----------------\n", CONFIG_HUMAN_FACE_RECOGNITION_MODEL);
-
-    auto face_recognizer = new FaceRecognizer(
-        static_cast<dl::recognition::db_type_t>(CONFIG_DB_FILE_SYSTEM), 0.5, 1, CONFIG_HUMAN_FACE_RECOGNITION_MODEL);
+    auto face_recognizer = new FaceRecognizer(static_cast<dl::recognition::db_type_t>(CONFIG_DB_FILE_SYSTEM),
+                                              static_cast<HumanFaceFeat::model_type_t>(CONFIG_HUMAN_FACE_FEAT_MODEL));
     face_recognizer->enroll(bill1, {300, 300, 3});
     face_recognizer->enroll(bill2, {300, 300, 3});
     face_recognizer->enroll(musk1, {300, 300, 3});
