@@ -5,11 +5,19 @@
 
 ## Run the Example
 
-Run the example with default setting following steps in [ESP-WHO](https://github.com/espressif/esp-who/blob/master/README.md).
+Run the example with default setting following steps:
+
+```
+idf.py set-target [Soc]
+```
+
+```
+idf.py flash monitor
+```
 
 ## Configure Human Face Feat Model
 
-In addition to default setting, this example allows you to configure model version. Human face Recognition Model now support two different versions of models. You can choose one of them in menuconfig  HUMAN_FACE_FEAT_MODEL option. For model performance, please refer to [Models README](.../../models/human_face_recognition/README.md) for more information. 
+In addition to default setting, this example allows you to configure model version. Human face Recognition Model now support two different versions of models. You can choose one of them in menuconfig  HUMAN_FACE_FEAT_MODEL option. For model performance, please refer to [Models README](../../models/human_face_recognition/README.md) for more information. 
 
 Steps to configure human face feat model is as follows:
 
@@ -33,11 +41,11 @@ Besides model version, Human face Recognition Model also support three different
 
 - fatfs_flash and spiffs save features to a 1MB flash partition.  
 - fatfs_sdcard save features to sdcard.  
-- Each feature cosumes 2050 bytes, including bytes for id and 2048 bytes for feature data. 
+- Each feature cosumes 2050 bytes, including 2 bytes for id and 2048 bytes for feature data. 
 
 # Example Output
 
-By default, after the flashing you should see the output at idf monitor:
+If using ESP32-S3, after the flashing you should see the output at idf monitor by default:
 
 ```
 I (1545) dl::Model: model:torch-jit-export, version:0
