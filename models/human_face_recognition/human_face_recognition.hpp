@@ -12,10 +12,11 @@ private:
     void *model;
 
 public:
+    typedef enum { MODEL_MFN, MODEL_MBF } model_type_t;
     /**
      * @brief Construct a new HumanFaceFeat object
      */
-    HumanFaceFeat();
+    HumanFaceFeat(model_type_t model_type);
 
     /**
      * @brief Destroy the HumanFaceFeat object
@@ -42,14 +43,16 @@ private:
     HumanFaceFeat *feat_extract;
     float thr;
     int top_k;
+    int model_type;
 
 public:
     FaceRecognizer(dl::recognition::db_type_t db_type = dl::recognition::DB_FATFS_FLASH,
+                   HumanFaceFeat::model_type_t model_type = HumanFaceFeat::model_type_t::MODEL_MFN,
                    float thr = 0.5,
                    int top_k = 1) :
         dl::recognition::DB(db_type, 512, "face"),
         detect(new HumanFaceDetect()),
-        feat_extract(new HumanFaceFeat()),
+        feat_extract(new HumanFaceFeat(model_type)),
         thr(thr),
         top_k(top_k)
     {
