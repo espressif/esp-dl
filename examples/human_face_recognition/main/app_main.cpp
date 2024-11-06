@@ -43,10 +43,10 @@ extern "C" void app_main(void)
     auto face_recognizer = new FaceRecognizer(static_cast<dl::recognition::db_type_t>(CONFIG_DB_FILE_SYSTEM),
                                               static_cast<HumanFaceFeat::model_type_t>(CONFIG_HUMAN_FACE_FEAT_MODEL));
     face_recognizer->enroll(bill1, {300, 300, 3});
-    face_recognizer->enroll(bill2, {300, 300, 3});
+    face_recognizer->enroll(musk2, {300, 300, 3});
     face_recognizer->enroll(musk1, {300, 300, 3});
 
-    auto res = face_recognizer->recognize(musk2, {300, 300, 3});
+    auto res = face_recognizer->recognize(bill2, {300, 300, 3});
     for (const auto &top_k : res) {
         for (const auto &k : top_k) {
             printf("id: %d, sim: %f\n", k.id, k.similarity);

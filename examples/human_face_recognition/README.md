@@ -1,18 +1,43 @@
 | Supported Targets | ESP32-S3 | ESP32-P4 |
 | ----------------- | -------- | -------- |
 
-
 # Human Face Recognition Example
-Human face Recognition Model now support three different types of feature database.  
-You can choose one of them in menuconfig DB_FILE_SYSTEM option.  
-fatfs_flash and spiffs save features to a 1MB flash partition.  
-fatfs_sdcard save features to sdcard.  
-Each feature cosumes 2050 bytes, including bytes for id and 2048 bytes for feature data. 
 
+## Run the Example
+
+Run the example with default setting following steps in [ESP-WHO](https://github.com/espressif/esp-who/blob/master/README.md).
+
+## Configure Human Face Feat Model
+
+In addition to default setting, this example allows you to configure model version. Human face Recognition Model now support two different versions of models. You can choose one of them in menuconfig  HUMAN_FACE_FEAT_MODEL option. For model performance, please refer to [Models README](.../../models/human_face_recognition/README.md) for more information. 
+
+Steps to configure human face feat model is as follows:
+
+Run `idf.py menuconfig` in the terminal and click (Top) -> Component config -> models: human_face_recognition to enter the model configuration interface, as shown below:
+
+![](./img/step1.png)
+
+Click Human Face Feat Model to make the human face feat model configuration according to your needs, as shown in the following figure:
+
+![](./img/step2.png)
+
+If you want to run your own model, which is not shown in the figure above, you can register your own model and configure the model correspondingly. 
+
+Once you have finished the human face feat model configuration, Flash and Monitor the model.
+
+```
+idf.py flash monitor
+```
+
+Besides model version, Human face Recognition Model also support three different types of feature database. You can choose one of them in menuconfig DB_FILE_SYSTEM option.  
+
+- fatfs_flash and spiffs save features to a 1MB flash partition.  
+- fatfs_sdcard save features to sdcard.  
+- Each feature cosumes 2050 bytes, including bytes for id and 2048 bytes for feature data. 
 
 # Example Output
 
-After the flashing you should see the output at idf monitor:
+By default, after the flashing you should see the output at idf monitor:
 
 ```
 I (1545) dl::Model: model:torch-jit-export, version:0

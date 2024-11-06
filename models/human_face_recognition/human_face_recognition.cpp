@@ -144,9 +144,9 @@ dl::TensorBase *MFN<feature_t>::run(T *input_element,
     dl::TensorBase *feat = this->postprocessor->postprocess();
     latency[2].end();
 
-    latency[0].print("detect", "preprocess");
-    latency[1].print("detect", "forward");
-    latency[2].print("detect", "postprocess");
+    latency[0].print("recognition", "preprocess");
+    latency[1].print("recognition", "forward");
+    latency[2].print("recognition", "postprocess");
 
     return feat;
 }
