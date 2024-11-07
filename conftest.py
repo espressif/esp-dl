@@ -243,8 +243,12 @@ class IdfPytestEmbedded:
                 if match:
                     number1 = int(match.group(1))
                     number2 = int(match.group(2))
-                    step = int(math.ceil(len(items) / number1))
-                    start = number2 * step
+                    left_num = len(items)
+                    step = int(math.ceil(left_num / number1))
+                    for i in range(number2):
+                        left_num = left_num - step
+                        step = int(math.ceil(left_num / (number1 - i - 1)))
+                    start = len(items) - left_num
                     end = start + step
                     if end > len(items):
                         end = len(items)
