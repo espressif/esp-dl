@@ -120,3 +120,48 @@ build_example_mobilenet_v2:
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/mobilenet_v2
+
+.build_docs_template:
+  stage: build
+  image: "$CI_DOCKER_REGISTRY/esp-idf-doc-env-v5.3:1-1"
+
+build_esp_dl_html:
+  extends:
+    - .build_docs_template
+  variables:
+    DOCS_DIR: $CI_PROJECT_DIR/docs
+  artifacts:
+    when: always
+    paths:
+      - $DOCS_DIR/_build/*/*/html/*
+      - $DOCS_DIR/_build/*/*/*.txt
+    expire_in: 4 days
+  script:
+    - cd $DOCS_DIR
+    - bash ./check_lang_folder_sync.sh
+    - pip install -r requirements.txt
+    - build-docs --skip-reqs-check -l $DOCLANG
+    - echo "ESP-DL documentation preview available at $CI_JOB_URL/artifacts/file/docs/_build/$DOCLANG/$DOCTGT/html/index.html"
+  parallel:
+    matrix:
+      - DOCLANG: ["en", "zh_CN"]
+
+build_esp_dl_pdf:
+  extends:
+    - .build_docs_template
+  variables:
+    DOCS_DIR: $CI_PROJECT_DIR/docs
+  artifacts:
+    when: always
+    paths:
+      - $DOCS_DIR/_build/*/*/latex/*
+      - $DOCS_DIR/_build/*/*/*.txt
+    expire_in: 4 days
+  script:
+    - cd $DOCS_DIR
+    - bash ./check_lang_folder_sync.sh
+    - pip install -r requirements.txt
+    - build-docs --skip-reqs-check -bs latex -l $DOCLANG
+  parallel:
+    matrix:
+      - DOCLANG: ["en", "zh_CN"]
