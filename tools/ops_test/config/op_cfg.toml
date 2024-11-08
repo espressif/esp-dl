@@ -364,6 +364,142 @@
         input_shape = [[8, 2, 5], [2, 1]]
         export_name_prefix = "add4d_broadcast_to_8_2_5_2_1"
         activation_func = ""        
+    [ops_test.sub4d]
+    class_name = "SUB4D_TEST"
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 96, 5, 5], [1, 96, 5, 5]]
+        export_name_prefix = "sub4d_ishap_1_96_5_5"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 96, 5, 16], [1, 96, 5, 16]]
+        export_name_prefix = "sub4d_ishap_1_96_5_16"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 96, 5, 16], [1, 96, 5, 1]]
+        export_name_prefix = "sub4d_ishap_1_96_5_16_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 96, 5, 1], [1, 96, 5, 16]]
+        export_name_prefix = "sub4d_ishap_1_96_5_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 96, 5, 48], [1, 96, 5, 48]]
+        export_name_prefix = "sub4d_ishap_1_96_5_16"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 96, 5, 48], [1, 96, 5, 1]]
+        export_name_prefix = "sub4d_ishap_1_96_5_16_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 96, 5, 1], [1, 96, 5, 48]]
+        export_name_prefix = "sub4d_ishap_1_96_5_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 5, 5, 31], [1, 1, 1, 31]]
+        export_name_prefix = "sub4d_ishap_1_96_1_1"
+        activation_func = ""
+
+        # Case 3: Scalar broadcasting
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[2, 3, 4, 5], [1, 1, 1, 1]]
+        export_name_prefix = "sub4d_ishap_2_3_4_5_scalar"
+        activation_func = ""
+
+        # Case 4: Broadcasting a lower dimension tensor across a higher one
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[2, 3, 4, 5], [1, 1, 1, 5]]
+        export_name_prefix = "sub4d_ishap_2_3_4_5_vec"
+        activation_func = ""
+
+        # Case 5: Fully broadcasting a smaller shape to a larger one
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 1, 4, 5], [2, 3, 4, 5]]
+        export_name_prefix = "sub4d_ishap_4_5_to_2_3_4_5"
+        activation_func = ""
+
+        # Case 6: Using dimensions of size 1 for broadcasting
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 1, 4, 5], [2, 3, 1, 1]]
+        export_name_prefix = "sub4d_ishap_1_4_5_to_2_3_4_5"
+        activation_func = ""
+
+        # Case 7: Additional edge case with more complex broadcasting
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 3, 4, 5], [2, 1, 1, 1]]
+        export_name_prefix = "sub4d_ishap_3_4_5_to_2_3_4_5"
+        activation_func = ""
+
+        # Case 8: Large batch dimension, checking efficient handling
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[10, 1, 5, 5], [1, 1, 5, 5]]
+        export_name_prefix = "sub4d_large_batch"
+        activation_func = ""
+
+        # Case 9: High number of channels, testing computational efficiency
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 512, 7, 7], [1, 512, 7, 7]]
+        export_name_prefix = "sub4d_high_channels"
+        activation_func = ""
+
+        # Case 10: Minimal shape, edge case testing
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 1, 1, 1], [1, 1, 1, 1]]
+        export_name_prefix = "sub4d_minimal_shape"
+        activation_func = ""
+
+        # Case 11: Broadcasting a (1, 1, 1, 5) tensor to (2, 3, 4, 5)
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 1, 1, 5], [2, 3, 4, 5]]
+        export_name_prefix = "sub4d_broadcast_to_2_3_4_5"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[5], [1]]
+        export_name_prefix = "sub4d_broadcast_to_5_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[48], [1]]
+        export_name_prefix = "sub4d_broadcast_to_48_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[2, 48], [1]]
+        export_name_prefix = "sub4d_broadcast_to_2_48_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[2, 5], [1]]
+        export_name_prefix = "sub4d_broadcast_to_2_5_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[2, 5], [2, 1]]
+        export_name_prefix = "sub4d_broadcast_to_2_5_2_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[5, 2, 48], [1]]
+        export_name_prefix = "sub4d_broadcast_to_5_2_48_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[8, 2, 5], [1]]
+        export_name_prefix = "sub4d_broadcast_to_8_2_5_1"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[8, 2, 5], [2, 1]]
+        export_name_prefix = "sub4d_broadcast_to_8_2_5_2_1"
+        activation_func = ""
+
 
     [ops_test.mul2d]
     class_name = "MUL2D_TEST"

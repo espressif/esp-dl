@@ -26,7 +26,7 @@ loop:
     esp.vld.128.ip q1, a2, 16
     esp.vsub.s8 q2, q0, q1
     esp.vst.128.ip q2, a0, 16
-    subi t0, t0, 1      
+    addi t0, t0, 1      
     j loop              
 end:
     ret
@@ -56,7 +56,7 @@ loop_:
     esp.vldbc.8.ip q1, a2, 0
     esp.vsub.s8 q2, q0, q1
     esp.vst.128.ip q2, a0, 16
-    subi t0, t0, 1      
+    addi t0, t0, 1      
     j loop_              
 end_:
     ret
@@ -86,7 +86,7 @@ loop__:
     esp.vld.128.ip q1, a2, 16
     esp.vsub.s8 q2, q0, q1
     esp.vst.128.ip q2, a0, 16
-    subi t0, t0, 1      
+    addi t0, t0, 1      
     j loop__              
 end__:
     ret

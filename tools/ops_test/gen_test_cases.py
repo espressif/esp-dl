@@ -173,6 +173,7 @@ if __name__ == "__main__":
         "prelu",
         "max_pooling",
         "add4d",
+        "sub4d",
     ]
     if args.ops:
         op_set = args.ops
