@@ -456,6 +456,11 @@ void dl_esp32p4_s16_add4d_bchw_w1_8_w2_8_simdadd(int16_t *output_ptr, int16_t *i
 void dl_esp32p4_s16_add4d_bchw_w1_8_w2_1_simdadd(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 void dl_esp32p4_s16_add4d_bchw_w1_1_w2_8_simdadd(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 
-
+void dl_esp32p4_s8_sub4d_bchw_w1_16_w2_16_simdsub(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, int lenght);
+void dl_esp32p4_s8_sub4d_bchw_w1_16_w2_1_simdsub(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, int lenght);
+void dl_esp32p4_s8_sub4d_bchw_w1_1_w2_16_simdsub(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, int lenght);
+void dl_esp32p4_s16_sub4d_bchw_w1_8_w2_8_simdsub(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
+void dl_esp32p4_s16_sub4d_bchw_w1_8_w2_1_simdsub(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
+void dl_esp32p4_s16_sub4d_bchw_w1_1_w2_8_simdsub(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 #endif
 }
