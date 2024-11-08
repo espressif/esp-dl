@@ -172,6 +172,7 @@ if __name__ == "__main__":
         "leakyrelu",
         "prelu",
         "max_pooling",
+        "add4d",
     ]
     if args.ops:
         op_set = args.ops

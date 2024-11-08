@@ -68,6 +68,7 @@ TEST_CASE("Test espdl model", "[dl_model]")
         return;
     }
     int model_num = fbs_loader->get_model_num();
+    printf("model_num = %d\n", model_num);
     for (int i = 0; i < model_num; i++) {
         fbs::FbsModel *fbs_model = fbs_loader->load(i);
         Model *model = new Model(fbs_model);

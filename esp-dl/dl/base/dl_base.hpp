@@ -2198,6 +2198,36 @@ struct arithArgsType {
     int output_scale;                  /*<! 24 */
     int mul_shift;                     /*<! 25 */
     int neg_output_scale;              /*<! 26 */
+
+    int input0_b;                    /*<! 27 */
+    int input0_c;                    /*<! 28 */
+    int input0_h;                    /*<! 29 */
+    int input0_w;                    /*<! 30 */
+
+    int input1_b;                    /*<! 31 */
+    int input1_c;                    /*<! 32 */
+    int input1_h;                    /*<! 33 */
+    int input1_w;                    /*<! 34 */
+
+    int output_b;                   /*<! 35 */
+    int output_c;                   /*<! 36 */
+    int output_h;                   /*<! 37 */
+    int output_w;                   /*<! 38 */
+
+    int output_max_dims;           /*<! 39 */
+
+    int input0_b_same;             /*<! 40 */
+    int input0_c_same;               /*<! 41 */
+    int input0_h_same;               /*<! 42 */
+    int input0_w_same;               /*<! 43 */
+
+    int input1_b_same;             /*<! 44 */
+    int input1_c_same;               /*<! 45 */
+    int input1_h_same;               /*<! 46 */
+    int input1_w_same;               /*<! 47 */
+
+
+
 };
 
 template <typename feature_t>
@@ -2305,6 +2335,159 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(Tensor<feature_t>
         break;
     }
 
+    // for multidirectional_broadcasting
+    int size = input0.shape.size();
+    if (size == 4) {
+        args.input0_b = input0.shape[0];
+        args.input0_c = input0.shape[1];
+        args.input0_h = input0.shape[2];
+        args.input0_w = input0.shape[3];
+    }
+    else if (size == 3) {
+        args.input0_b = 1;
+        args.input0_c = input0.shape[0];
+        args.input0_h = input0.shape[1];
+        args.input0_w = input0.shape[2];
+    }
+    else if (size == 2) {
+        args.input0_b = 1;
+        args.input0_c = 1;
+        args.input0_h = input0.shape[0];
+        args.input0_w = input0.shape[1];
+    }
+    else {
+        args.input0_b = 1;
+        args.input0_c = 1;
+        args.input0_h = 1;
+        args.input0_w = input0.shape[0];
+    }
+
+    size = input1.shape.size();
+    if (size == 4) {
+        args.input1_b = input1.shape[0];
+        args.input1_c = input1.shape[1];
+        args.input1_h = input1.shape[2];
+        args.input1_w = input1.shape[3];
+    }
+    else if (size == 3) {
+        args.input1_b = 1;
+        args.input1_c = input1.shape[0];
+        args.input1_h = input1.shape[1];
+        args.input1_w = input1.shape[2];
+    }
+    else if (size == 2) {
+        args.input1_b = 1;
+        args.input1_c = 1;
+        args.input1_h = input1.shape[0];
+        args.input1_w = input1.shape[1];
+    }
+    else {
+        args.input1_b = 1;
+        args.input1_c = 1;
+        args.input1_h = 1;
+        args.input1_w = input1.shape[0];
+    }
+
+    size = output.shape.size();
+    args.output_max_dims = size;
+    if (size == 4) {  
+        args.output_b = output.shape[0];
+        args.output_c = output.shape[1];
+        args.output_h = output.shape[2];
+        args.output_w = output.shape[3];
+    }
+    else if (size == 3) {
+        args.output_b = 1;
+        args.output_c = output.shape[0];
+        args.output_h = output.shape[1];
+        args.output_w = output.shape[2];
+    }
+    else if (size == 2) {
+        args.output_b = 1;
+        args.output_c = 1;
+        args.output_h = output.shape[0];
+        args.output_w = output.shape[1];
+    }
+    else {
+        args.output_b = 1;
+        args.output_c = 1;
+        args.output_h = 1;
+        args.output_w = output.shape[0];
+    }
+
+    if (args.input0_b == args.output_b)
+    {
+        args.input0_b_same = 1;
+    }
+    else
+    {
+        args.input0_b_same = 0;
+    }
+
+    if (args.input0_c == args.output_c)
+    {
+        args.input0_c_same = 1;
+    }
+    else
+    {
+        args.input0_c_same = 0;
+    }
+
+    if (args.input0_h == args.output_h)
+    {
+        args.input0_h_same = 1;
+    }
+    else
+    {
+        args.input0_h_same = 0;
+    }
+
+    if (args.input0_w == args.output_w)
+    {
+        args.input0_w_same = 1;
+    }
+    else
+    {
+        args.input0_w_same = 0;
+    }
+
+    if (args.input1_b == args.output_b)
+    {
+        args.input1_b_same = 1;
+    }
+    else
+    {
+        args.input1_b_same = 0;
+    }
+
+    if (args.input1_c == args.output_c)
+    {
+        args.input1_c_same = 1;
+    }
+    else
+    {
+        args.input1_c_same = 0;
+    }
+
+    if (args.input1_h == args.output_h)
+    {
+        args.input1_h_same = 1;
+    }
+    else
+    {
+        args.input1_h_same = 0;
+    }
+
+    if (args.input1_w == args.output_w)
+    {
+        args.input1_w_same = 1;
+    }
+    else
+    {
+        args.input1_w_same = 0;
+    }
+
+
     // for ISA
     int u = 16 / sizeof(feature_t);
     int c_div_x = input0.shape[2] / u;
@@ -2337,7 +2520,7 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(TensorBase *outpu
     bool is_same_channel_num = input0->shape[3] == input1->shape[3];
     bool is_11c_and_hwc = is_same_channel_num && (is_hw_input0_11 || is_hw_input1_11);
     bool is_same_shape = input0->shape == input1->shape;
-    assert(is_same_shape || is_11c_and_hwc);
+    //assert(is_same_shape || is_11c_and_hwc);
     if (is_same_shape) {
         args.height = input0->shape[1]; // inputs and output are the same shape
         args.width = input0->shape[2];
@@ -2436,6 +2619,162 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(TensorBase *outpu
     args.c_div_2x_1 = DL_MAX(c_div_x / 2 - 1, 0);
     args.c_left_x_1 = c_div_x - 2 * args.c_div_2x_1 - 1;
 
+    // for multidirectional_broadcasting
+    int size = input0->shape.size();
+    if (size == 4) {
+        args.input0_b = input0->shape[0];
+        args.input0_c = input0->shape[1];
+        args.input0_h = input0->shape[2];
+        args.input0_w = input0->shape[3];
+    }
+    else if (size == 3) {
+        args.input0_b = 1;
+        args.input0_c = input0->shape[0];
+        args.input0_h = input0->shape[1];
+        args.input0_w = input0->shape[2];
+    }
+    else if (size == 2) {
+        args.input0_b = 1;
+        args.input0_c = 1;
+        args.input0_h = input0->shape[0];
+        args.input0_w = input0->shape[1];
+    }
+    else {
+        args.input0_b = 1;
+        args.input0_c = 1;
+        args.input0_h = 1;
+        args.input0_w = input0->shape[0];
+    }
+
+    size = input1->shape.size();
+    if (size == 4) {
+        args.input1_b = input1->shape[0];
+        args.input1_c = input1->shape[1];
+        args.input1_h = input1->shape[2];
+        args.input1_w = input1->shape[3];
+    }
+    else if (size == 3) {
+        args.input1_b = 1;
+        args.input1_c = input1->shape[0];
+        args.input1_h = input1->shape[1];
+        args.input1_w = input1->shape[2];
+    }
+    else if (size == 2) {
+        args.input1_b = 1;
+        args.input1_c = 1;
+        args.input1_h = input1->shape[0];
+        args.input1_w = input1->shape[1];
+    }
+    else {
+        args.input1_b = 1;
+        args.input1_c = 1;
+        args.input1_h = 1;
+        args.input1_w = input1->shape[0];
+    }
+
+    size = output->shape.size();
+    args.output_max_dims = size;
+    if (size == 4) {  
+        args.output_b = output->shape[0];
+        args.output_c = output->shape[1];
+        args.output_h = output->shape[2];
+        args.output_w = output->shape[3];
+    }
+    else if (size == 3) {
+        args.output_b = 1;
+        args.output_c = output->shape[0];
+        args.output_h = output->shape[1];
+        args.output_w = output->shape[2];
+    }
+    else if (size == 2) {
+        args.output_b = 1;
+        args.output_c = 1;
+        args.output_h = output->shape[0];
+        args.output_w = output->shape[1];
+    }
+    else {
+        args.output_b = 1;
+        args.output_c = 1;
+        args.output_h = 1;
+        args.output_w = output->shape[0];
+    }
+
+    if (args.input0_b == args.output_b)
+    {
+        args.input0_b_same = 1;
+    }
+    else
+    {
+        args.input0_b_same = 0;
+    }
+
+    if (args.input0_c == args.output_c)
+    {
+        args.input0_c_same = 1;
+    }
+    else
+    {
+        args.input0_c_same = 0;
+    }
+
+    if (args.input0_h == args.output_h)
+    {
+        args.input0_h_same = 1;
+    }
+    else
+    {
+        args.input0_h_same = 0;
+    }
+
+    if (args.input0_w == args.output_w)
+    {
+        args.input0_w_same = 1;
+    }
+    else
+    {
+        args.input0_w_same = 0;
+    }
+
+    if (args.input1_b == args.output_b)
+    {
+        args.input1_b_same = 1;
+    }
+    else
+    {
+        args.input1_b_same = 0;
+    }
+
+    if (args.input1_c == args.output_c)
+    {
+        args.input1_c_same = 1;
+    }
+    else
+    {
+        args.input1_c_same = 0;
+    }
+
+    if (args.input1_h == args.output_h)
+    {
+        args.input1_h_same = 1;
+    }
+    else
+    {
+        args.input1_h_same = 0;
+    }
+
+    if (args.input1_w == args.output_w)
+    {
+        args.input1_w_same = 1;
+    }
+    else
+    {
+        args.input1_w_same = 0;
+    }
+
+
+
+
+
     // slice
     std::vector<arithArgsType<feature_t>> m_args(1, args);
     if (runtime_mode == RUNTIME_MODE_MULTI_CORE) {
@@ -2470,6 +2809,103 @@ void arith_operation_shell(
     activation_args.activation_shift = args.activation_shift;
     activation_args.activation_alpha_ptr = args.activation_alpha_ptr;
     size_t loop_size = args.height * args.width;
+
+    if (arith_i_impl_func) {
+        if (arith_n_wise_tail) {
+            if (args.rescale_input < 2) {
+                for (size_t i = 0; i < loop_size; i++) {
+                    arith_i_impl_func(output_ptr, input0_ptr, input1_ptr, (void *const)&args);
+                    arith_n_wise_tail(output_ptr, activation_args);
+                    input0_ptr += args.input0_x_offset;
+                    input1_ptr += args.input1_x_offset;
+                    output_ptr += args.output_x_offset;
+                }
+            } else {
+                for (size_t i = 0; i < loop_size; i++) {
+                    arith_i_impl_func(output_ptr, input1_ptr, input0_ptr, (void *const)&args);
+                    arith_n_wise_tail(output_ptr, activation_args);
+                    input0_ptr += args.input0_x_offset;
+                    input1_ptr += args.input1_x_offset;
+                    output_ptr += args.output_x_offset;
+                }
+            }
+        } else {
+            if (args.rescale_input < 2) {
+                for (size_t i = 0; i < loop_size; i++) {
+                    arith_i_impl_func(output_ptr, input0_ptr, input1_ptr, (void *const)&args);
+                    input0_ptr += args.input0_x_offset;
+                    input1_ptr += args.input1_x_offset;
+                    output_ptr += args.output_x_offset;
+                }
+            } else {
+                for (size_t i = 0; i < loop_size; i++) {
+                    arith_i_impl_func(output_ptr, input1_ptr, input0_ptr, (void *const)&args);
+                    input0_ptr += args.input0_x_offset;
+                    input1_ptr += args.input1_x_offset;
+                    output_ptr += args.output_x_offset;
+                }
+            }
+        }
+    } else // run c_impl_func
+    {
+        if (arith_n_wise_tail) {
+            if (args.rescale_input < 2) {
+                for (size_t i = 0; i < loop_size; i++) {
+                    arith_c_impl_func(output_ptr, input0_ptr, input1_ptr, args);
+                    arith_n_wise_tail(output_ptr, activation_args);
+                    input0_ptr += args.input0_x_offset;
+                    input1_ptr += args.input1_x_offset;
+                    output_ptr += args.output_x_offset;
+                }
+            } else {
+                for (size_t i = 0; i < loop_size; i++) {
+                    arith_c_impl_func(output_ptr, input1_ptr, input0_ptr, args);
+                    arith_n_wise_tail(output_ptr, activation_args);
+                    input0_ptr += args.input0_x_offset;
+                    input1_ptr += args.input1_x_offset;
+                    output_ptr += args.output_x_offset;
+                }
+            }
+        } else {
+            if (args.rescale_input < 2) {
+                for (size_t i = 0; i < loop_size; i++) {
+                    arith_c_impl_func(output_ptr, input0_ptr, input1_ptr, args);
+                    input0_ptr += args.input0_x_offset;
+                    input1_ptr += args.input1_x_offset;
+                    output_ptr += args.output_x_offset;
+                }
+            } else {
+                for (size_t i = 0; i < loop_size; i++) {
+                    arith_c_impl_func(output_ptr, input1_ptr, input0_ptr, args);
+                    input0_ptr += args.input0_x_offset;
+                    input1_ptr += args.input1_x_offset;
+                    output_ptr += args.output_x_offset;
+                }
+            }
+        }
+    }
+
+    return;
+}
+
+template <typename feature_t>
+void arith_operation_shell_(
+    const arithArgsType<feature_t> &args,
+    void (*arith_i_impl_func)(feature_t *, feature_t *, feature_t *, void *),
+    void (*arith_c_impl_func)(feature_t *, feature_t *, feature_t *, const arithArgsType<feature_t> &),
+    void (*arith_n_wise_tail)(feature_t *, const arithArgsType<void> &))
+{
+    feature_t *input0_ptr = args.input0_element;
+    feature_t *input1_ptr = args.input1_element;
+    feature_t *output_ptr = args.output_element;
+
+    arithArgsType<void> activation_args;
+    activation_args.channel = args.channel;
+    activation_args.activation_type = args.activation_type;
+    activation_args.activation_alpha = args.activation_alpha;
+    activation_args.activation_shift = args.activation_shift;
+    activation_args.activation_alpha_ptr = args.activation_alpha_ptr;
+    size_t loop_size = 1;
 
     if (arith_i_impl_func) {
         if (arith_n_wise_tail) {
