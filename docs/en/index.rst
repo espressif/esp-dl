@@ -1,3 +1,6 @@
+.. toctree::
+    how_to_quantize_model
+
 API Reference
 -------------
 
