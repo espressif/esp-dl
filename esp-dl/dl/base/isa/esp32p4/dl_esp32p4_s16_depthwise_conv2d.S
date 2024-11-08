@@ -133,12 +133,15 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_bias:
     esp.vld.128.xp  q2, a1, a4
 
     beqz  t5, esp32p4_s16_depthwise_conv2d_33c1_bias_loop_last
-    esp.lp.setup  0, t5, 1f
+    // esp.lp.setup  0, t5, 1f
+    1:
         esp.zero.qacc
         esp32p4_s16_conv2d_128b_vector_bias  t6
         esp32p4_s16_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
         esp32p4_s16_128b_vector_shift_result  q3, t4
-    1:  esp.vst.128.ip  q3, a0, 16
+        esp.vst.128.ip  q3, a0, 16
+        addi  t5, t5, -1
+        bgtz  t5, 1b
 
     esp32p4_s16_depthwise_conv2d_33c1_bias_loop_last:
         esp.zero.qacc
@@ -200,13 +203,16 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu:
     esp.vld.128.xp  q2, a1, a4
 
     beqz  t5, esp32p4_s16_depthwise_conv2d_33c1_bias_relu_loop_last
-    esp.lp.setup  0, t5, 1f
+    // esp.lp.setup  0, t5, 1f
+    1:
         esp.zero.qacc
         esp32p4_s16_conv2d_128b_vector_bias  t6
         esp32p4_s16_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
         esp32p4_s16_128b_vector_shift_result  q3, t4
         esp32p4_s16_128b_vector_relu  q3, s0, s1
-    1:  esp.vst.128.ip  q3, a0, 16
+        esp.vst.128.ip  q3, a0, 16
+        addi  t5, t5, -1
+        bgtz  t5, 1b
 
     esp32p4_s16_depthwise_conv2d_33c1_bias_relu_loop_last:
         esp.zero.qacc
@@ -265,11 +271,14 @@ dl_esp32p4_s16_depthwise_conv2d_33c1:
     esp.vld.128.xp  q2, a1, a4
 
     beqz  t5, esp32p4_s16_depthwise_conv2d_33c1_loop_last
-    esp.lp.setup  0, t5, 1f
+    // esp.lp.setup  0, t5, 1f
+    1:
         esp.zero.qacc
         esp32p4_s16_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
         esp32p4_s16_128b_vector_shift_result  q3, t4
-    1:  esp.vst.128.ip  q3, a0, 16
+        esp.vst.128.ip  q3, a0, 16
+        addi  t5, t5, -1
+        bgtz  t5, 1b
 
     esp32p4_s16_depthwise_conv2d_33c1_loop_last:
         esp.zero.qacc
@@ -329,12 +338,15 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
     esp.vld.128.xp  q2, a1, a4
 
     beqz  t5, esp32p4_s16_depthwise_conv2d_33c1_relu_loop_last
-    esp.lp.setup  0, t5, 1f
+    // esp.lp.setup  0, t5, 1f
+    1:
         esp.zero.qacc
         esp32p4_s16_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
         esp32p4_s16_128b_vector_shift_result  q3, t4
         esp32p4_s16_128b_vector_relu  q3, s0, s1
-    1:  esp.vst.128.ip  q3, a0, 16
+        esp.vst.128.ip  q3, a0, 16
+        addi  t5, t5, -1
+        bgtz  t5, 1b
 
     esp32p4_s16_depthwise_conv2d_33c1_relu_loop_last:
         esp.zero.qacc
