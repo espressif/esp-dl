@@ -21,14 +21,14 @@ Note that PPQ needs to be uninstalled before installing ESP-PPQ to avoid conflic
 
 Currently, ESP-PPQ supports ONNX, PyTorch, and TensorFlow models. During the quantization process, PyTorch and TensorFlow models are first converted to ONNX models, so ensure that your model can be converted to an ONNX model. We provide the following quantization script templates to help users modify them according to their models:
 
-- For ONNX models, refer to the script :project_file:`quantize_onnx_model.py <tools/quantization/quantize_onnx_model.py>`
-- For PyTorch models, refer to the script :project_file:`quantize_pytorch_model.py <tools/quantization/quantize_torch_model.py>`
-- For TensorFlow models, refer to the script :project_file:`quantize_tf_model.py <tools/quantization/quantize_tf_model.py>`
+- For ONNX models, refer to the script `quantize_onnx_model.py <tools/quantization/quantize_onnx_model.py>`__
+- For PyTorch models, refer to the script `quantize_pytorch_model.py <tools/quantization/quantize_torch_model.py>`__
+- For TensorFlow models, refer to the script `quantize_tf_model.py <tools/quantization/quantize_tf_model.py>`__
 
 Model Quantization Example
 --------------------------
 
-We will use the `MobileNet_v2 <https://arxiv.org/abs/1801.04381>`__ model as an example to demonstrate how to use the :project_file:`quantize_torch_model.py <tools/quantization/quantize_torch_model.py>` script to quantize the model.
+We will use the `MobileNet_v2 <https://arxiv.org/abs/1801.04381>`__ model as an example to demonstrate how to use the `quantize_torch_model.py <tools/quantization/quantize_torch_model.py>`__ script to quantize the model.
 
 1. Prepare the Pre-trained Model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -64,7 +64,7 @@ The calibration dataset needs to match the input format of your model. The calib
       calib_dataset = datasets.ImageNet(root=CALIB_DIR, split='val', transform=transform)
       dataloader = DataLoader(calib_dataset, batch_size=BATCH_SIZE, shuffle=false)
 
--  Use the provided :project_file:`imagenet_util.py <tools/quantization/datasets/imagenet_util.py>` script and the `ImageNet calibration dataset <https://dl.espressif.com/public/imagenet_calib.zip>`__ to quickly download and test.
+-  Use the provided `imagenet_util.py <tools/quantization/datasets/imagenet_util.py>`__  script and the `ImageNet calibration dataset <https://dl.espressif.com/public/imagenet_calib.zip>`__ to quickly download and test.
 
    .. code-block:: python
 
@@ -136,8 +136,8 @@ The function parameters are described as follows:
            BaseGraph:      The Quantized Graph, containing all information needed for backend execution
        """
 
-Quantization Test 1
-^^^^^^^^^^^^^^^^^^^
+8-bit Quantization Test
+^^^^^^^^^^^^^^^^^^^^^^^
 
 -  **Quantization Settings:**
 
@@ -263,7 +263,7 @@ Quantization Test 1
       /features/features.10/conv/conv.0/conv.0.0/Conv: |                      | 0.002%
       /features/features.8/conv/conv.0/conv.0.0/Conv:  |                      | 0.002%
 
-      Test: [0 / 125] *Prec@1 60.500 Prec@5 83.275*
+      * Prec@1 60.500 Prec@5 83.275*
 
 -  **Quantization Error Analysis:**
 
@@ -275,10 +275,10 @@ Quantization Test 1
 
    + **Layerwise Error:**
       
-      Observing the Layerwise error, it is found that the errors for most layers are below 1%, indicating that the quantization errors for most layers are small. Only a few layers have larger errors, and we can choose to quantize these layers using int16. Please refer to Test 2 for details.
+      Observing the Layerwise error, it is found that the errors for most layers are below 1%, indicating that the quantization errors for most layers are small. Only a few layers have larger errors, and we can choose to quantize these layers using int16. Please refer to Mixed-Precision Quantization Test for details.
 
-Quantization Test 2
-^^^^^^^^^^^^^^^^^^^
+Mixed-Precision Quantization Test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  **Quantization Settings:**
 
@@ -409,7 +409,7 @@ Quantization Test 2
       /features/features.10/conv/conv.0/conv.0.0/Conv: |                      | 0.002%
       /features/features.8/conv/conv.0/conv.0.0/Conv:  |                      | 0.002%
 
-      Test: [0 / 125] *Prec@1 69.550 Prec@5 88.450*
+      * Prec@1 69.550 Prec@5 88.450*
 
 -  **Quantization Error Analysis:**
 
@@ -417,7 +417,152 @@ Quantization Test 2
 
    The graphwise error for the last layer of the model, /classifier/classifier.1/Gemm, is 9.117%.
 
+Layerwise Equalization Quantization Test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+-  **Quantization Settings:**
+
+   .. code-block:: python
+
+      import torch.nn as nn
+      def convert_relu6_to_relu(model):
+         for child_name, child in model.named_children():
+            if isinstance(child, nn.ReLU6):
+                  setattr(model, child_name, nn.ReLU())
+            else:
+                  convert_relu6_to_relu(child)
+         return model
+      
+      # replace ReLU6 with ReLU
+      model = convert_relu6_to_relu(model)
+      # adopt layerwise equalization
+      quant_setting = QuantizationSettingFactory.espdl_setting()
+      quant_setting.equalization = True
+      quant_setting.equalization_setting.iterations = 4
+      quant_setting.equalization_setting.value_threshold = .4
+      quant_setting.equalization_setting.opt_level = 2
+      quant_setting.equalization_setting.interested_layers = None
+
+-  **Quantization Results:**
+
+   .. code-block::
+
+      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      /features/features.16/conv/conv.2/Conv:          | ████████████████████ | 34.497%
+      /features/features.15/conv/conv.2/Conv:          | ██████████████████   | 30.813%
+      /features/features.14/conv/conv.2/Conv:          | ███████████████      | 25.876%
+      /features/features.17/conv/conv.0/conv.0.0/Conv: | ██████████████       | 24.498%
+      /features/features.17/conv/conv.2/Conv:          | ████████████         | 20.290%
+      /features/features.13/conv/conv.2/Conv:          | ████████████         | 20.177%
+      /features/features.16/conv/conv.0/conv.0.0/Conv: | ████████████         | 19.993%
+      /features/features.18/features.18.0/Conv:        | ███████████          | 19.536%
+      /features/features.16/conv/conv.1/conv.1.0/Conv: | ██████████           | 17.879%
+      /features/features.12/conv/conv.2/Conv:          | ██████████           | 17.150%
+      /features/features.15/conv/conv.0/conv.0.0/Conv: | █████████            | 15.970%
+      /features/features.15/conv/conv.1/conv.1.0/Conv: | █████████            | 15.254%
+      /features/features.1/conv/conv.1/Conv:           | █████████            | 15.122%
+      /features/features.10/conv/conv.2/Conv:          | █████████            | 14.917%
+      /features/features.6/conv/conv.2/Conv:           | ████████             | 13.446%
+      /features/features.11/conv/conv.2/Conv:          | ███████              | 12.533%
+      /features/features.9/conv/conv.2/Conv:           | ███████              | 11.479%
+      /features/features.14/conv/conv.1/conv.1.0/Conv: | ███████              | 11.470%
+      /features/features.5/conv/conv.2/Conv:           | ██████               | 10.669%
+      /features/features.3/conv/conv.2/Conv:           | ██████               | 10.526%
+      /features/features.14/conv/conv.0/conv.0.0/Conv: | ██████               | 9.529%
+      /features/features.7/conv/conv.2/Conv:           | █████                | 9.500%
+      /classifier/classifier.1/Gemm:                   | █████                | 8.965%
+      /features/features.4/conv/conv.2/Conv:           | █████                | 8.674%
+      /features/features.12/conv/conv.1/conv.1.0/Conv: | █████                | 8.349%
+      /features/features.13/conv/conv.1/conv.1.0/Conv: | █████                | 8.068%
+      /features/features.8/conv/conv.2/Conv:           | █████                | 7.961%
+      /features/features.13/conv/conv.0/conv.0.0/Conv: | ████                 | 7.451%
+      /features/features.10/conv/conv.1/conv.1.0/Conv: | ████                 | 6.714%
+      /features/features.9/conv/conv.1/conv.1.0/Conv:  | ████                 | 6.399%
+      /features/features.8/conv/conv.1/conv.1.0/Conv:  | ████                 | 6.369%
+      /features/features.11/conv/conv.1/conv.1.0/Conv: | ████                 | 6.222%
+      /features/features.2/conv/conv.2/Conv:           | ███                  | 5.867%
+      /features/features.5/conv/conv.1/conv.1.0/Conv:  | ███                  | 5.719%
+      /features/features.12/conv/conv.0/conv.0.0/Conv: | ███                  | 5.546%
+      /features/features.6/conv/conv.1/conv.1.0/Conv:  | ███                  | 5.414%
+      /features/features.10/conv/conv.0/conv.0.0/Conv: | ███                  | 5.093%
+      /features/features.17/conv/conv.1/conv.1.0/Conv: | ███                  | 4.951%
+      /features/features.11/conv/conv.0/conv.0.0/Conv: | ███                  | 4.941%
+      /features/features.2/conv/conv.1/conv.1.0/Conv:  | ███                  | 4.825%
+      /features/features.7/conv/conv.0/conv.0.0/Conv:  | ██                   | 4.330%
+      /features/features.2/conv/conv.0/conv.0.0/Conv:  | ██                   | 4.299%
+      /features/features.3/conv/conv.1/conv.1.0/Conv:  | ██                   | 4.283%
+      /features/features.4/conv/conv.0/conv.0.0/Conv:  | ██                   | 3.477%
+      /features/features.4/conv/conv.1/conv.1.0/Conv:  | ██                   | 3.287%
+      /features/features.8/conv/conv.0/conv.0.0/Conv:  | ██                   | 2.787%
+      /features/features.9/conv/conv.0/conv.0.0/Conv:  | ██                   | 2.774%
+      /features/features.6/conv/conv.0/conv.0.0/Conv:  | ██                   | 2.705%
+      /features/features.7/conv/conv.1/conv.1.0/Conv:  | ██                   | 2.636%
+      /features/features.5/conv/conv.0/conv.0.0/Conv:  | █                    | 1.846%
+      /features/features.3/conv/conv.0/conv.0.0/Conv:  | █                    | 1.170%
+      /features/features.1/conv/conv.0/conv.0.0/Conv:  |                      | 0.389%
+      /features/features.0/features.0.0/Conv:          |                      | 0.025%
+      Analysing Layerwise quantization error:: 100%|██████████| 53/53 [07:46<00:00,  8.80s/it]
+      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      /features/features.1/conv/conv.0/conv.0.0/Conv:  | ████████████████████ | 0.989%
+      /features/features.0/features.0.0/Conv:          | █████████████████    | 0.845%
+      /features/features.16/conv/conv.2/Conv:          | █████                | 0.238%
+      /features/features.17/conv/conv.2/Conv:          | ████                 | 0.202%
+      /features/features.14/conv/conv.2/Conv:          | ████                 | 0.198%
+      /features/features.1/conv/conv.1/Conv:           | ████                 | 0.192%
+      /features/features.15/conv/conv.2/Conv:          | ███                  | 0.145%
+      /features/features.4/conv/conv.2/Conv:           | ██                   | 0.120%
+      /features/features.2/conv/conv.2/Conv:           | ██                   | 0.111%
+      /features/features.2/conv/conv.1/conv.1.0/Conv:  | ██                   | 0.079%
+      /classifier/classifier.1/Gemm:                   | █                    | 0.062%
+      /features/features.13/conv/conv.2/Conv:          | █                    | 0.050%
+      /features/features.3/conv/conv.2/Conv:           | █                    | 0.050%
+      /features/features.12/conv/conv.2/Conv:          | █                    | 0.050%
+      /features/features.5/conv/conv.1/conv.1.0/Conv:  | █                    | 0.047%
+      /features/features.3/conv/conv.1/conv.1.0/Conv:  | █                    | 0.046%
+      /features/features.7/conv/conv.2/Conv:           | █                    | 0.045%
+      /features/features.5/conv/conv.2/Conv:           | █                    | 0.030%
+      /features/features.11/conv/conv.2/Conv:          | █                    | 0.028%
+      /features/features.6/conv/conv.2/Conv:           | █                    | 0.027%
+      /features/features.6/conv/conv.1/conv.1.0/Conv:  | █                    | 0.026%
+      /features/features.4/conv/conv.0/conv.0.0/Conv:  |                      | 0.025%
+      /features/features.15/conv/conv.1/conv.1.0/Conv: |                      | 0.023%
+      /features/features.8/conv/conv.1/conv.1.0/Conv:  |                      | 0.021%
+      /features/features.10/conv/conv.2/Conv:          |                      | 0.020%
+      /features/features.11/conv/conv.1/conv.1.0/Conv: |                      | 0.020%
+      /features/features.16/conv/conv.1/conv.1.0/Conv: |                      | 0.017%
+      /features/features.14/conv/conv.0/conv.0.0/Conv: |                      | 0.016%
+      /features/features.4/conv/conv.1/conv.1.0/Conv:  |                      | 0.012%
+      /features/features.13/conv/conv.1/conv.1.0/Conv: |                      | 0.012%
+      /features/features.13/conv/conv.0/conv.0.0/Conv: |                      | 0.012%
+      /features/features.12/conv/conv.1/conv.1.0/Conv: |                      | 0.012%
+      /features/features.17/conv/conv.0/conv.0.0/Conv: |                      | 0.011%
+      /features/features.12/conv/conv.0/conv.0.0/Conv: |                      | 0.011%
+      /features/features.2/conv/conv.0/conv.0.0/Conv:  |                      | 0.010%
+      /features/features.9/conv/conv.2/Conv:           |                      | 0.008%
+      /features/features.8/conv/conv.2/Conv:           |                      | 0.008%
+      /features/features.10/conv/conv.1/conv.1.0/Conv: |                      | 0.008%
+      /features/features.16/conv/conv.0/conv.0.0/Conv: |                      | 0.008%
+      /features/features.7/conv/conv.0/conv.0.0/Conv:  |                      | 0.008%
+      /features/features.10/conv/conv.0/conv.0.0/Conv: |                      | 0.006%
+      /features/features.15/conv/conv.0/conv.0.0/Conv: |                      | 0.005%
+      /features/features.3/conv/conv.0/conv.0.0/Conv:  |                      | 0.004%
+      /features/features.11/conv/conv.0/conv.0.0/Conv: |                      | 0.004%
+      /features/features.18/features.18.0/Conv:        |                      | 0.003%
+      /features/features.5/conv/conv.0/conv.0.0/Conv:  |                      | 0.003%
+      /features/features.9/conv/conv.1/conv.1.0/Conv:  |                      | 0.003%
+      /features/features.6/conv/conv.0/conv.0.0/Conv:  |                      | 0.003%
+      /features/features.7/conv/conv.1/conv.1.0/Conv:  |                      | 0.003%
+      /features/features.17/conv/conv.1/conv.1.0/Conv: |                      | 0.002%
+      /features/features.14/conv/conv.1/conv.1.0/Conv: |                      | 0.002%
+      /features/features.8/conv/conv.0/conv.0.0/Conv:  |                      | 0.001%
+      /features/features.9/conv/conv.0/conv.0.0/Conv:  |                      | 0.001%
+
+      * Prec@1 69.800 Prec@5 88.550  
+
+-  **Quantization Error Analysis:**
+
+   Note that applying layerwise equalization on 8-bit quantization is helpful to achieve smaller quantization error. The graphwise error of the model's last layer, /classifier/classifier.1/Gemm, is 8.965%. The top-1 accuracy after quantization is 69.800%, which is closer to the accuracy of the float model (71.878%), even compared to Mixed-Precision Test.
+
    If you wish to further reduce the quantization error, you can try using Quantization Aware Training (QAT). For specific methods, please refer to the `ppq QAT example <https://github.com/OpenPPL/ppq/blob/master/ppq/samples/TensorRT/Example_QAT.py>`__.
 
-   .. note::
-      The model in :example:`mobilenet_v2` comes from Test 1. The 16-bit conv operator is still under development.
+   Note: `examples/mobilenet_v2 <examples/mobilenet_v2>`__  comes from 8-bit Quantization Test. The 16-bit conv operator is still under development.
