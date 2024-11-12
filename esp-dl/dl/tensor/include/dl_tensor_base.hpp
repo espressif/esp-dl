@@ -328,6 +328,40 @@ public:
                       const std::vector<int> &step = {});
 
     /**
+     * @brief Pad input tensor
+     *
+     * @param input_element Data pointer of input tensor
+     * @param input_shape   Shape of input tensor
+     * @param pads   The number of padding elements to add, pads format should be: [x1_begin, x2_begin, …, x1_end,
+     * x2_end,…]
+     * @param mode   Supported modes: constant(default), reflect, edge
+     * @param const_value (Optional) A scalar value to be used if the mode chosen is constant
+     *
+     * @return Output tensor pointer
+     */
+    template <typename T>
+    TensorBase *pad(T *input_element,
+                    const std::vector<int> &input_shape,
+                    const std::vector<int> &pads,
+                    const padding_mode_t mode,
+                    TensorBase *const_value = nullptr);
+
+    /**
+     * @brief Pad input tensor
+     *
+     * @param input  Input tensor pointer
+     * @param pads   Padding elements to add, pads format should be: [x1_begin, x2_begin, …, x1_end, x2_end,…]
+     * @param mode   Supported modes: constant(default), reflect, edge
+     * @param const_value (Optional) A scalar value to be used if the mode chosen is constant
+     *
+     * @return Output tensor pointer
+     */
+    TensorBase *pad(TensorBase *input,
+                    const std::vector<int> &pads,
+                    const padding_mode_t mode,
+                    TensorBase *const_value = nullptr);
+
+    /**
      * @brief Compare the elements of two Tensor
      *
      * @param gt_elements The ground truth elements

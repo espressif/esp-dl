@@ -1,4 +1,5 @@
 #include "dl_tensor_base.hpp"
+#include "dl_base_pad.hpp"
 #include <iostream>
 namespace dl {
 int quantize(float input, float inv_scale, float quant_min, float quant_max)
@@ -849,6 +850,141 @@ TensorBase *TensorBase::slice(TensorBase *input,
         return input->slice<int32_t>(this->get_element_ptr<int32_t>(), start, end, axes, step);
     } else if (dtype == DATA_TYPE_UINT32) {
         return input->slice<uint32_t>(this->get_element_ptr<uint32_t>(), start, end, axes, step);
+    } else {
+        ESP_LOGE(__FUNCTION__, "Unsupported data type");
+    }
+
+    return this;
+}
+
+template <typename T>
+TensorBase *TensorBase::pad(T *input_element,
+                            const std::vector<int> &input_shape,
+                            const std::vector<int> &pads,
+                            const padding_mode_t mode,
+                            TensorBase *const_value)
+{
+    T const_value_element = 0;
+    if (const_value) {
+        const_value_element = const_value->get_element<T>(0);
+    }
+
+    T *output_element = this->get_element_ptr<T>();
+    int dims = input_shape.size();
+
+    if (dims == 4) {
+        base::pad4D<T>(input_element, output_element, input_shape, pads, mode, const_value_element);
+    } else if (dims == 3) {
+        base::pad3D<T>(input_element, output_element, input_shape, pads, mode, const_value_element);
+    } else if (dims == 2) {
+        base::pad2D<T>(input_element, output_element, input_shape, pads, mode, const_value_element);
+    } else if (dims == 1) {
+        base::pad1D<T>(input_element, output_element, input_shape, pads, mode, const_value_element);
+    } else if (dims > 4 && mode == PADDING_CONSTANT) {
+        std::vector<int> loop_start(dims, 0);
+        std::vector<int> loop_end(dims, 0);
+        T *slice_ptr = nullptr;
+        int last_axis = dims - 1;
+        int min_offset = input_shape[last_axis];
+        int min_offset_bytes = min_offset * sizeof(T);
+
+        for (int i = 0; i < dims; i++) {
+            loop_start[i] = pads[i];
+            loop_end[i] = loop_start[i] + input_shape[i];
+        }
+
+        // step1: set value
+        if (const_value_element == 0) {
+            tool::set_zero(output_element, this->get_bytes());
+        } else {
+            tool::set_value<T>(output_element, const_value_element, this->get_size());
+        }
+
+        // step2: copy input into output, like slice op
+        if (dims == 1) {
+            slice_ptr = output_element + this->get_element_index(loop_start);
+            tool::copy_memory(slice_ptr, input_element, min_offset_bytes);
+        } else {
+            std::vector<int> loop_index = loop_start;
+            while (loop_index[0] < loop_end[0]) {
+                slice_ptr = output_element + this->get_element_index(loop_index);
+                tool::copy_memory(slice_ptr, input_element, min_offset_bytes);
+                input_element += min_offset;
+
+                loop_index[last_axis - 1] += 1;
+                for (int i = last_axis - 1; i > 0; --i) {
+                    if (loop_index[i] == loop_end[i]) {
+                        loop_index[i] = loop_start[i];
+                        loop_index[i - 1] += 1;
+                    } else
+                        break;
+                }
+            }
+        }
+    } else {
+        ESP_LOGE("Pad", "Not implemented dim: %d", dims);
+    }
+
+    return this;
+}
+template TensorBase *TensorBase::pad(int8_t *input_element,
+                                     const std::vector<int> &input_shape,
+                                     const std::vector<int> &pads,
+                                     const padding_mode_t mode,
+                                     TensorBase *const_value);
+template TensorBase *TensorBase::pad(uint8_t *input_element,
+                                     const std::vector<int> &input_shape,
+                                     const std::vector<int> &pads,
+                                     const padding_mode_t mode,
+                                     TensorBase *const_value);
+template TensorBase *TensorBase::pad(int16_t *input_element,
+                                     const std::vector<int> &input_shape,
+                                     const std::vector<int> &pads,
+                                     const padding_mode_t mode,
+                                     TensorBase *const_value);
+template TensorBase *TensorBase::pad(uint16_t *input_element,
+                                     const std::vector<int> &input_shape,
+                                     const std::vector<int> &pads,
+                                     const padding_mode_t mode,
+                                     TensorBase *const_value);
+template TensorBase *TensorBase::pad(int32_t *input_element,
+                                     const std::vector<int> &input_shape,
+                                     const std::vector<int> &pads,
+                                     const padding_mode_t mode,
+                                     TensorBase *const_value);
+template TensorBase *TensorBase::pad(uint32_t *input_element,
+                                     const std::vector<int> &input_shape,
+                                     const std::vector<int> &pads,
+                                     const padding_mode_t mode,
+                                     TensorBase *const_value);
+template TensorBase *TensorBase::pad(float *input_element,
+                                     const std::vector<int> &input_shape,
+                                     const std::vector<int> &pads,
+                                     const padding_mode_t mode,
+                                     TensorBase *const_value);
+
+TensorBase *TensorBase::pad(TensorBase *input,
+                            const std::vector<int> &pads,
+                            const padding_mode_t mode,
+                            TensorBase *const_value)
+{
+    dtype_t dtype = this->get_dtype();
+    assert(dtype == input->get_dtype());
+
+    if (dtype == DATA_TYPE_INT8) {
+        return this->pad<int8_t>(input->get_element_ptr<int8_t>(), input->get_shape(), pads, mode, const_value);
+    } else if (dtype == DATA_TYPE_INT16) {
+        return this->pad<int16_t>(input->get_element_ptr<int16_t>(), input->get_shape(), pads, mode, const_value);
+    } else if (dtype == DATA_TYPE_FLOAT) {
+        return this->pad<float>(input->get_element_ptr<float>(), input->get_shape(), pads, mode, const_value);
+    } else if (dtype == DATA_TYPE_UINT8) {
+        return this->pad<uint8_t>(input->get_element_ptr<uint8_t>(), input->get_shape(), pads, mode, const_value);
+    } else if (dtype == DATA_TYPE_UINT16) {
+        return this->pad<uint16_t>(input->get_element_ptr<uint16_t>(), input->get_shape(), pads, mode, const_value);
+    } else if (dtype == DATA_TYPE_INT32) {
+        return this->pad<int32_t>(input->get_element_ptr<int32_t>(), input->get_shape(), pads, mode, const_value);
+    } else if (dtype == DATA_TYPE_UINT32) {
+        return this->pad<uint32_t>(input->get_element_ptr<uint32_t>(), input->get_shape(), pads, mode, const_value);
     } else {
         ESP_LOGE(__FUNCTION__, "Unsupported data type");
     }

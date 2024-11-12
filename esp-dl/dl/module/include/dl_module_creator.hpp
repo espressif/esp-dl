@@ -15,6 +15,7 @@
 #include "dl_module_lut.hpp"
 #include "dl_module_max_pool2d.hpp"
 #include "dl_module_mul.hpp"
+#include "dl_module_pad.hpp"
 #include "dl_module_prelu.hpp"
 #include "dl_module_relu.hpp"
 #include "dl_module_requantize_linear.hpp"
@@ -94,6 +95,7 @@ public:
             this->register_module("Softmax", Softmax::deserialize);
             this->register_module("MaxPool", MaxPool2D::deserialize);
             this->register_module("Slice", Slice::deserialize);
+            this->register_module("Pad", Pad::deserialize);
         }
     }
 
