@@ -136,8 +136,8 @@
            BaseGraph:      The Quantized Graph, containing all information needed for backend execution
        """
 
-量化测试 1
-^^^^^^^^^^
+8-bit 量化测试
+^^^^^^^^^^^^^^
 
 -  **量化设置：**
 
@@ -263,7 +263,7 @@
       /features/features.10/conv/conv.0/conv.0.0/Conv: |                      | 0.002%
       /features/features.8/conv/conv.0/conv.0.0/Conv:  |                      | 0.002%
 
-      Test: [0 / 125] *Prec@1 60.500 Prec@5 83.275*
+      * Prec@1 60.500 Prec@5 83.275*
 
 -  **量化误差分析：**
 
@@ -275,10 +275,10 @@
 
    + **逐层误差 (Layerwise error)：** 
       
-      观察 Layerwise error，发现大部分层的误差都在 1% 以下，说明大部分层的量化误差较小，只有少数几层误差较大，我们可以选择将误差较大的层使用 int16 进行量化。具体请看测试 2。
+      观察 Layerwise error，发现大部分层的误差都在 1% 以下，说明大部分层的量化误差较小，只有少数几层误差较大，我们可以选择将误差较大的层使用 int16 进行量化。具体请看混合精度量化。
 
-量化测试 2
-^^^^^^^^^^
+混合精度量化测试
+^^^^^^^^^^^^^^^^
 
 -  **量化设置:**
 
@@ -409,7 +409,7 @@
       /features/features.10/conv/conv.0/conv.0.0/Conv: |                      | 0.002%
       /features/features.8/conv/conv.0/conv.0.0/Conv:  |                      | 0.002%
 
-      Test: [0 / 125] *Prec@1 69.550 Prec@5 88.450*
+      * Prec@1 69.550 Prec@5 88.450*
 
 -  **量化误差分析:**
    
@@ -417,7 +417,155 @@
    
    该模型的最后一层 /classifier/classifier.1/Gemm 的累计误差为 9.117%。
 
+
+层间均衡量化测试
+^^^^^^^^^^^^^^^^
+
+-  **量化设置:**
+
+   .. code-block:: python
+
+      import torch.nn as nn
+      def convert_relu6_to_relu(model):
+         for child_name, child in model.named_children():
+            if isinstance(child, nn.ReLU6):
+                  setattr(model, child_name, nn.ReLU())
+            else:
+                  convert_relu6_to_relu(child)
+         return model
+
+      # 将ReLU6 替换为 ReLU
+      model = convert_relu6_to_relu(model)
+      # 使用层间均衡
+      quant_setting = QuantizationSettingFactory.espdl_setting()
+      quant_setting.equalization = True
+      quant_setting.equalization_setting.iterations = 4
+      quant_setting.equalization_setting.value_threshold = .4
+      quant_setting.equalization_setting.opt_level = 2
+      quant_setting.equalization_setting.interested_layers = None
+
+-  **量化结果:**
+
+   .. code-block::
+
+      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      /features/features.16/conv/conv.2/Conv:          | ████████████████████ | 34.497%
+      /features/features.15/conv/conv.2/Conv:          | ██████████████████   | 30.813%
+      /features/features.14/conv/conv.2/Conv:          | ███████████████      | 25.876%
+      /features/features.17/conv/conv.0/conv.0.0/Conv: | ██████████████       | 24.498%
+      /features/features.17/conv/conv.2/Conv:          | ████████████         | 20.290%
+      /features/features.13/conv/conv.2/Conv:          | ████████████         | 20.177%
+      /features/features.16/conv/conv.0/conv.0.0/Conv: | ████████████         | 19.993%
+      /features/features.18/features.18.0/Conv:        | ███████████          | 19.536%
+      /features/features.16/conv/conv.1/conv.1.0/Conv: | ██████████           | 17.879%
+      /features/features.12/conv/conv.2/Conv:          | ██████████           | 17.150%
+      /features/features.15/conv/conv.0/conv.0.0/Conv: | █████████            | 15.970%
+      /features/features.15/conv/conv.1/conv.1.0/Conv: | █████████            | 15.254%
+      /features/features.1/conv/conv.1/Conv:           | █████████            | 15.122%
+      /features/features.10/conv/conv.2/Conv:          | █████████            | 14.917%
+      /features/features.6/conv/conv.2/Conv:           | ████████             | 13.446%
+      /features/features.11/conv/conv.2/Conv:          | ███████              | 12.533%
+      /features/features.9/conv/conv.2/Conv:           | ███████              | 11.479%
+      /features/features.14/conv/conv.1/conv.1.0/Conv: | ███████              | 11.470%
+      /features/features.5/conv/conv.2/Conv:           | ██████               | 10.669%
+      /features/features.3/conv/conv.2/Conv:           | ██████               | 10.526%
+      /features/features.14/conv/conv.0/conv.0.0/Conv: | ██████               | 9.529%
+      /features/features.7/conv/conv.2/Conv:           | █████                | 9.500%
+      /classifier/classifier.1/Gemm:                   | █████                | 8.965%
+      /features/features.4/conv/conv.2/Conv:           | █████                | 8.674%
+      /features/features.12/conv/conv.1/conv.1.0/Conv: | █████                | 8.349%
+      /features/features.13/conv/conv.1/conv.1.0/Conv: | █████                | 8.068%
+      /features/features.8/conv/conv.2/Conv:           | █████                | 7.961%
+      /features/features.13/conv/conv.0/conv.0.0/Conv: | ████                 | 7.451%
+      /features/features.10/conv/conv.1/conv.1.0/Conv: | ████                 | 6.714%
+      /features/features.9/conv/conv.1/conv.1.0/Conv:  | ████                 | 6.399%
+      /features/features.8/conv/conv.1/conv.1.0/Conv:  | ████                 | 6.369%
+      /features/features.11/conv/conv.1/conv.1.0/Conv: | ████                 | 6.222%
+      /features/features.2/conv/conv.2/Conv:           | ███                  | 5.867%
+      /features/features.5/conv/conv.1/conv.1.0/Conv:  | ███                  | 5.719%
+      /features/features.12/conv/conv.0/conv.0.0/Conv: | ███                  | 5.546%
+      /features/features.6/conv/conv.1/conv.1.0/Conv:  | ███                  | 5.414%
+      /features/features.10/conv/conv.0/conv.0.0/Conv: | ███                  | 5.093%
+      /features/features.17/conv/conv.1/conv.1.0/Conv: | ███                  | 4.951%
+      /features/features.11/conv/conv.0/conv.0.0/Conv: | ███                  | 4.941%
+      /features/features.2/conv/conv.1/conv.1.0/Conv:  | ███                  | 4.825%
+      /features/features.7/conv/conv.0/conv.0.0/Conv:  | ██                   | 4.330%
+      /features/features.2/conv/conv.0/conv.0.0/Conv:  | ██                   | 4.299%
+      /features/features.3/conv/conv.1/conv.1.0/Conv:  | ██                   | 4.283%
+      /features/features.4/conv/conv.0/conv.0.0/Conv:  | ██                   | 3.477%
+      /features/features.4/conv/conv.1/conv.1.0/Conv:  | ██                   | 3.287%
+      /features/features.8/conv/conv.0/conv.0.0/Conv:  | ██                   | 2.787%
+      /features/features.9/conv/conv.0/conv.0.0/Conv:  | ██                   | 2.774%
+      /features/features.6/conv/conv.0/conv.0.0/Conv:  | ██                   | 2.705%
+      /features/features.7/conv/conv.1/conv.1.0/Conv:  | ██                   | 2.636%
+      /features/features.5/conv/conv.0/conv.0.0/Conv:  | █                    | 1.846%
+      /features/features.3/conv/conv.0/conv.0.0/Conv:  | █                    | 1.170%
+      /features/features.1/conv/conv.0/conv.0.0/Conv:  |                      | 0.389%
+      /features/features.0/features.0.0/Conv:          |                      | 0.025%
+      Analysing Layerwise quantization error:: 100%|██████████| 53/53 [07:46<00:00,  8.80s/it]
+      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      /features/features.1/conv/conv.0/conv.0.0/Conv:  | ████████████████████ | 0.989%
+      /features/features.0/features.0.0/Conv:          | █████████████████    | 0.845%
+      /features/features.16/conv/conv.2/Conv:          | █████                | 0.238%
+      /features/features.17/conv/conv.2/Conv:          | ████                 | 0.202%
+      /features/features.14/conv/conv.2/Conv:          | ████                 | 0.198%
+      /features/features.1/conv/conv.1/Conv:           | ████                 | 0.192%
+      /features/features.15/conv/conv.2/Conv:          | ███                  | 0.145%
+      /features/features.4/conv/conv.2/Conv:           | ██                   | 0.120%
+      /features/features.2/conv/conv.2/Conv:           | ██                   | 0.111%
+      /features/features.2/conv/conv.1/conv.1.0/Conv:  | ██                   | 0.079%
+      /classifier/classifier.1/Gemm:                   | █                    | 0.062%
+      /features/features.13/conv/conv.2/Conv:          | █                    | 0.050%
+      /features/features.3/conv/conv.2/Conv:           | █                    | 0.050%
+      /features/features.12/conv/conv.2/Conv:          | █                    | 0.050%
+      /features/features.5/conv/conv.1/conv.1.0/Conv:  | █                    | 0.047%
+      /features/features.3/conv/conv.1/conv.1.0/Conv:  | █                    | 0.046%
+      /features/features.7/conv/conv.2/Conv:           | █                    | 0.045%
+      /features/features.5/conv/conv.2/Conv:           | █                    | 0.030%
+      /features/features.11/conv/conv.2/Conv:          | █                    | 0.028%
+      /features/features.6/conv/conv.2/Conv:           | █                    | 0.027%
+      /features/features.6/conv/conv.1/conv.1.0/Conv:  | █                    | 0.026%
+      /features/features.4/conv/conv.0/conv.0.0/Conv:  |                      | 0.025%
+      /features/features.15/conv/conv.1/conv.1.0/Conv: |                      | 0.023%
+      /features/features.8/conv/conv.1/conv.1.0/Conv:  |                      | 0.021%
+      /features/features.10/conv/conv.2/Conv:          |                      | 0.020%
+      /features/features.11/conv/conv.1/conv.1.0/Conv: |                      | 0.020%
+      /features/features.16/conv/conv.1/conv.1.0/Conv: |                      | 0.017%
+      /features/features.14/conv/conv.0/conv.0.0/Conv: |                      | 0.016%
+      /features/features.4/conv/conv.1/conv.1.0/Conv:  |                      | 0.012%
+      /features/features.13/conv/conv.1/conv.1.0/Conv: |                      | 0.012%
+      /features/features.13/conv/conv.0/conv.0.0/Conv: |                      | 0.012%
+      /features/features.12/conv/conv.1/conv.1.0/Conv: |                      | 0.012%
+      /features/features.17/conv/conv.0/conv.0.0/Conv: |                      | 0.011%
+      /features/features.12/conv/conv.0/conv.0.0/Conv: |                      | 0.011%
+      /features/features.2/conv/conv.0/conv.0.0/Conv:  |                      | 0.010%
+      /features/features.9/conv/conv.2/Conv:           |                      | 0.008%
+      /features/features.8/conv/conv.2/Conv:           |                      | 0.008%
+      /features/features.10/conv/conv.1/conv.1.0/Conv: |                      | 0.008%
+      /features/features.16/conv/conv.0/conv.0.0/Conv: |                      | 0.008%
+      /features/features.7/conv/conv.0/conv.0.0/Conv:  |                      | 0.008%
+      /features/features.10/conv/conv.0/conv.0.0/Conv: |                      | 0.006%
+      /features/features.15/conv/conv.0/conv.0.0/Conv: |                      | 0.005%
+      /features/features.3/conv/conv.0/conv.0.0/Conv:  |                      | 0.004%
+      /features/features.11/conv/conv.0/conv.0.0/Conv: |                      | 0.004%
+      /features/features.18/features.18.0/Conv:        |                      | 0.003%
+      /features/features.5/conv/conv.0/conv.0.0/Conv:  |                      | 0.003%
+      /features/features.9/conv/conv.1/conv.1.0/Conv:  |                      | 0.003%
+      /features/features.6/conv/conv.0/conv.0.0/Conv:  |                      | 0.003%
+      /features/features.7/conv/conv.1/conv.1.0/Conv:  |                      | 0.003%
+      /features/features.17/conv/conv.1/conv.1.0/Conv: |                      | 0.002%
+      /features/features.14/conv/conv.1/conv.1.0/Conv: |                      | 0.002%
+      /features/features.8/conv/conv.0/conv.0.0/Conv:  |                      | 0.001%
+      /features/features.9/conv/conv.0/conv.0.0/Conv:  |                      | 0.001%
+
+      * Prec@1 69.800 Prec@5 88.550
+
+-  **量化误差分析:**
+   
+   注意到对8-bit量化应用层间均衡有助于降低量化损失。模型最后一层，/classifier/classifier.1/Gemm的累积误差为8.965%。量化后的top1准确率为69.800%，和float模型的准确率(71.878%)更加接近，比混合精度量化的量化精度更高。 
+
    如果想进一步降低量化误差，可以尝试使用 QAT (Auantization Aware Training)。具体方法请参考 `PPQ QAT example <https://github.com/OpenPPL/ppq/blob/master/ppq/samples/TensorRT/Example_QAT.py>`__。
 
    .. note::
-      :example:`mobilenet_v2` 来自测试 1。16 位的卷积算子还在开发中，完成后可以部署测试 2 模型。
+      :example:`mobilenet_v2` 来自8-bit量化测试。16 位的卷积算子还在开发中，完成后可以部署混合精度量化模型。
+
