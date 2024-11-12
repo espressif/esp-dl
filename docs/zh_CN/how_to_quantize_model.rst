@@ -21,14 +21,14 @@
 
 目前支持 ONNX、PyTorch、TensorFlow 模型。在量化过程中，PyTorch 和 TensorFlow 会先转化为 ONNX 模型，因此请确保你的模型可以转化为 ONNX 模型。我们提供了以下量化脚本模板，方便用户根据自己的模型选择合适的模板进行修改：
 
-- ONNX 模型请参考脚本 `quantize_onnx_model.py <tools/quantization/quantize_onnx_model.py>`__
-- PyTorch 模型请参考脚本 `quantize_pytorch_model.py <tools/quantization/quantize_torch_model.py>`__
-- TensorFlow 模型请参考脚本 `quantize_tf_model.py <tools/quantization/quantize_tf_model.py>`__
+- ONNX 模型请参考脚本 :project_file:`quantize_onnx_model.py <tools/quantization/quantize_onnx_model.py>`
+- PyTorch 模型请参考脚本 :project_file:`quantize_pytorch_model.py <tools/quantization/quantize_torch_model.py>`
+- TensorFlow 模型请参考脚本 :project_file:`quantize_tf_model.py <tools/quantization/quantize_tf_model.py>`
 
 模型量化示例
 ------------
 
-我们将以 `MobileNet_v2 <https://arxiv.org/abs/1801.04381>`__ 模型为例，介绍如何使用 `quantize_torch_model.py <tools/quantization/quantize_torch_model.py>`__ 脚本量化模型。
+我们将以 `MobileNet_v2 <https://arxiv.org/abs/1801.04381>`__ 模型为例，介绍如何使用 :project_file:`quantize_torch_model.py <tools/quantization/quantize_torch_model.py>` 脚本量化模型。
 
 1. 准备预训练模型
 ~~~~~~~~~~~~~~~~~
@@ -64,7 +64,7 @@
       calib_dataset = datasets.ImageNet(root=CALIB_DIR, split='val', transform=transform)
       dataloader = DataLoader(calib_dataset, batch_size=BATCH_SIZE, shuffle=false)
 
--  使用我们提供的 `imagenet_util.py <tools/quantization/datasets/imagenet_util.py>`__ 脚本和 `ImageNet 校准数据集 <https://dl.espressif.com/public/imagenet_calib.zip>`__ ，快速下载和测试。
+-  使用我们提供的 :project_file:`imagenet_util.py <tools/quantization/datasets/imagenet_util.py>` 脚本和 `ImageNet 校准数据集 <https://dl.espressif.com/public/imagenet_calib.zip>`__ ，快速下载和测试。
 
    .. code-block:: python
 
@@ -566,4 +566,6 @@
 
    如果想进一步降低量化误差，可以尝试使用 QAT (Auantization Aware Training)。具体方法请参考 `PPQ QAT example <https://github.com/OpenPPL/ppq/blob/master/ppq/samples/TensorRT/Example_QAT.py>`__。
 
- Note: `examples/mobilenet_v2 <examples/mobilenet_v2>`__ 中的模型来自8-bit量化测试。16-bit的卷积算子还在开发中，完成后可以部署混合精度量化模型。
+   .. note::
+      :example:`mobilenet_v2` 来自8-bit量化测试。16 位的卷积算子还在开发中，完成后可以部署混合精度量化模型。
+

@@ -21,14 +21,14 @@ Note that PPQ needs to be uninstalled before installing ESP-PPQ to avoid conflic
 
 Currently, ESP-PPQ supports ONNX, PyTorch, and TensorFlow models. During the quantization process, PyTorch and TensorFlow models are first converted to ONNX models, so ensure that your model can be converted to an ONNX model. We provide the following quantization script templates to help users modify them according to their models:
 
-- For ONNX models, refer to the script `quantize_onnx_model.py <tools/quantization/quantize_onnx_model.py>`__
-- For PyTorch models, refer to the script `quantize_pytorch_model.py <tools/quantization/quantize_torch_model.py>`__
-- For TensorFlow models, refer to the script `quantize_tf_model.py <tools/quantization/quantize_tf_model.py>`__
+- For ONNX models, refer to the script :project_file:`quantize_onnx_model.py <tools/quantization/quantize_onnx_model.py>`
+- For PyTorch models, refer to the script :project_file:`quantize_pytorch_model.py <tools/quantization/quantize_torch_model.py>`
+- For TensorFlow models, refer to the script :project_file:`quantize_tf_model.py <tools/quantization/quantize_tf_model.py>`
 
 Model Quantization Example
 --------------------------
 
-We will use the `MobileNet_v2 <https://arxiv.org/abs/1801.04381>`__ model as an example to demonstrate how to use the `quantize_torch_model.py <tools/quantization/quantize_torch_model.py>`__ script to quantize the model.
+We will use the `MobileNet_v2 <https://arxiv.org/abs/1801.04381>`__ model as an example to demonstrate how to use the :project_file:`quantize_torch_model.py <tools/quantization/quantize_torch_model.py>` script to quantize the model.
 
 1. Prepare the Pre-trained Model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -64,7 +64,7 @@ The calibration dataset needs to match the input format of your model. The calib
       calib_dataset = datasets.ImageNet(root=CALIB_DIR, split='val', transform=transform)
       dataloader = DataLoader(calib_dataset, batch_size=BATCH_SIZE, shuffle=false)
 
--  Use the provided `imagenet_util.py <tools/quantization/datasets/imagenet_util.py>`__  script and the `ImageNet calibration dataset <https://dl.espressif.com/public/imagenet_calib.zip>`__ to quickly download and test.
+-  Use the provided :project_file:`imagenet_util.py <tools/quantization/datasets/imagenet_util.py>` script and the `ImageNet calibration dataset <https://dl.espressif.com/public/imagenet_calib.zip>`__ to quickly download and test.
 
    .. code-block:: python
 
@@ -565,4 +565,6 @@ Layerwise Equalization Quantization Test
 
    If you wish to further reduce the quantization error, you can try using Quantization Aware Training (QAT). For specific methods, please refer to the `ppq QAT example <https://github.com/OpenPPL/ppq/blob/master/ppq/samples/TensorRT/Example_QAT.py>`__.
 
-   Note: `examples/mobilenet_v2 <examples/mobilenet_v2>`__  comes from 8-bit Quantization Test. The 16-bit conv operator is still under development.
+   .. note::
+      The model in :example:`mobilenet_v2` comes from 8-bit Quantization Test. The 16-bit conv operator is still under development.
+
