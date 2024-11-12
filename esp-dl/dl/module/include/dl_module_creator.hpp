@@ -63,7 +63,7 @@ public:
     {
         if (creators.empty()) {
             this->register_module("Conv", Conv2D::deserialize);
-            this->register_module("Mul", Mul2D::deserialize);
+            this->register_module("Mul", Mul4D::deserialize);
             this->register_module("Add", Add4D::deserialize);
             this->register_module("Sub", Sub4D::deserialize);
             this->register_module("Resize", Resize2D::deserialize);

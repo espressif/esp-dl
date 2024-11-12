@@ -1,0 +1,31 @@
+graph main_graph (
+  %onnx::Mul_1[INT16, 2x1], exponents: [-17]
+  %onnx::Mul_0[INT16, 2x5], exponents: [-14]
+) {
+  %2 = Mul[quant_type = 'S16'](%onnx::Mul_0, %onnx::Mul_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%onnx::Mul_1[INT16, 2x1], exponents: [-17]
+%onnx::Mul_0[INT16, 2x5], exponents: [-14]
+%2[INT16, 2x5], exponents: [-16]
+
+
+test inputs value:
+%onnx::Mul_0, shape: [2, 5], exponents: [-14], 
+value: array([  589,  3148,  9027, 12811,  2547,  5776, 10437,  9534, 10244,
+        3531], dtype=int16)
+%onnx::Mul_1, shape: [2, 1], exponents: [-17], 
+value: array([25386, 32767], dtype=int16)
+
+
+test outputs value:
+%2, shape: [2, 5], exponents: [-16], 
+value: array([  456,  2439,  6993,  9925,  1973,  5776, 10437,  9534, 10244,
+        3531], dtype=int16)
