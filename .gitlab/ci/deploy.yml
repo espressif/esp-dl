@@ -1,3 +1,6 @@
+variables:
+  ESP_DOCS_ENV_IMAGE: "$CI_DOCKER_REGISTRY/esp-idf-doc-env-v5.3:1-1" 
+
 push_to_github:
   stage: deploy
   only:
@@ -43,4 +46,4 @@ deploy_docs_preview:
     DOCS_DEPLOY_SERVER: "$DOCS_PREVIEW_SERVER"
     DOCS_DEPLOY_SERVER_USER: "$DOCS_PREVIEW_SERVER_USER"
     DOCS_DEPLOY_PATH: "$DOCS_PREVIEW_PATH"
-    DOCS_DEPLOY_URL_BASE: "https://$DOCS_PREVIEW_SERVER_URL/docs/esp-dl"
+    DOCS_DEPLOY_URL_BASE: "$DOCS_PREVIEW_URL_BASE"
