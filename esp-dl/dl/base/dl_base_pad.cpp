@@ -136,7 +136,7 @@ void pad2D(T *input_element,
             }
         }
         if (pad_tail > 0) {
-            output_ptr = output_element + (pad_tail + input_shape[0]) * output_offset;
+            output_ptr = output_element + (pad_head + input_shape[0]) * output_offset;
             T *edge_line = output_ptr - output_offset;
             for (int i = 0; i < pad_tail; i++) {
                 tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
@@ -248,7 +248,7 @@ void pad3D(T *input_element,
             }
         }
         if (pad_tail > 0) {
-            output_ptr = output_element + (pad_tail + input_shape[0]) * output_offset;
+            output_ptr = output_element + (pad_head + input_shape[0]) * output_offset;
             T *edge_line = output_ptr - output_offset;
             for (int i = 0; i < pad_tail; i++) {
                 tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
@@ -368,7 +368,7 @@ void pad4D(T *input_element,
             }
         }
         if (pad_tail > 0) {
-            output_ptr = output_element + (pad_tail + input_shape[0]) * output_offset;
+            output_ptr = output_element + (pad_head + input_shape[0]) * output_offset;
             T *edge_line = output_ptr - output_offset;
             for (int i = 0; i < pad_tail; i++) {
                 tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));

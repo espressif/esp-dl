@@ -656,17 +656,31 @@
 
         [[ops_test.pad.cfg]]
         input_shape = [2, 4, 15, 33]
-        pads = [1,2,2,2,1,1]
+        pads = [1,2,1,2,3,4]
         mode = "replicate"
         const_value = 0
-        export_name_prefix = "pad_ishap_2_4_15_33_pads_1_2_2_2_1_1_replicate"
+        export_name_prefix = "pad_ishap_2_4_15_33_pads_1_2_1_2_3_4_replicate"
 
         [[ops_test.pad.cfg]]
         input_shape = [1, 5, 9, 33]
-        pads = [1,1,1,2,3,4]
+        pads = [1,2,1,2,3,4]
         mode = "reflect"
         const_value = 0
-        export_name_prefix = "pad_ishap_1_5_9_33_pads_1_1_1_2_3_4_reflect"
+        export_name_prefix = "pad_ishap_1_5_9_33_pads_1_2_1_2_3_4_reflect"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [2, 2, 5, 10, 50]
+        pads = [2,1,1,2,1,2]
+        mode = "reflect"
+        const_value = 0
+        export_name_prefix = "pad_ishap_2_2_5_10_50_pads_2_1_1_2_1_2_reflect"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [2, 4, 5, 10, 20]
+        pads = [1,3,1,3,3,1]
+        mode = "replicate"
+        const_value = 0
+        export_name_prefix = "pad_ishap_2_4_5_10_20_pads_1_3_1_3_3_1_replicate"
 
         [[ops_test.pad.cfg]]
         input_shape = [2, 2, 5, 10, 50]

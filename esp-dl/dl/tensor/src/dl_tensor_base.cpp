@@ -880,6 +880,13 @@ TensorBase *TensorBase::pad(T *input_element,
         base::pad2D<T>(input_element, output_element, input_shape, pads, mode, const_value_element);
     } else if (dims == 1) {
         base::pad1D<T>(input_element, output_element, input_shape, pads, mode, const_value_element);
+    } else if (dims == 5 && mode != PADDING_CONSTANT) {
+        if (pads[0] == 0 && pads[5] == 0) {
+            std::vector<int> new_pads = {pads[1], pads[2], pads[3], pads[4], pads[6], pads[7], pads[8], pads[9]};
+            std::vector<int> new_shape = {
+                input_shape[0] * input_shape[1], input_shape[2], input_shape[3], input_shape[4]};
+            base::pad4D<T>(input_element, output_element, new_shape, new_pads, mode, const_value_element);
+        }
     } else if (dims > 4 && mode == PADDING_CONSTANT) {
         std::vector<int> loop_start(dims, 0);
         std::vector<int> loop_end(dims, 0);
