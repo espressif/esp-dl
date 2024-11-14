@@ -7,6 +7,7 @@ import sys
 import toml
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class CONV2D_TEST(nn.Module):
@@ -343,6 +344,18 @@ class SLICE_TEST(nn.Module):
             return input[:, 10:-10]
         elif self.config["dim"] == 1:
             return input[0:2]
+
+
+class PAD_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.pads = [int(i) for i in self.config["pads"]]
+        print(self.pads)
+
+    def forward(self, input):
+        input = nn.ReLU()(input)
+        return F.pad(input, self.pads, self.config["mode"], self.config["const_value"])
 
 
 if __name__ == "__main__":

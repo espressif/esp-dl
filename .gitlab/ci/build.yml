@@ -70,7 +70,7 @@ build_espdl_ops:
     - .rules:build:espdl_ops
   parallel:
     matrix:
-      - IMAGE: espressif/idf:release-v5.3
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: test_apps/esp-dl
@@ -82,7 +82,7 @@ build_example_human_face_recognition:
     - .rules:build:example_human_face_recognition
   parallel:
     matrix:
-      - IMAGE: espressif/idf:release-v5.3
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/human_face_recognition
@@ -93,7 +93,7 @@ build_example_human_face_detect:
     - .rules:build:example_human_face_detect
   parallel:
     matrix:
-      - IMAGE: espressif/idf:release-v5.3
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/human_face_detect
@@ -104,7 +104,7 @@ build_example_pedestrian_detect:
     - .rules:build:example_pedestrian_detect
   parallel:
     matrix:
-      - IMAGE: espressif/idf:release-v5.3
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/pedestrian_detect
@@ -116,7 +116,7 @@ build_example_mobilenet_v2:
     - .rules:build:example_mobilenet_v2
   parallel:
     matrix:
-      - IMAGE: espressif/idf:release-v5.3
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/mobilenet_v2
