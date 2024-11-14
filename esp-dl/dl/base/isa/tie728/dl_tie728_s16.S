@@ -10,10 +10,14 @@
     addi \output_ptr, \output_ptr, 16
 .endm
 
+
+
 .macro dl_tie728_128b_unaligned_store1 output_v, output_ptr
     EE.VST.L.64.IP \output_v, \output_ptr, 8
     EE.VST.H.64.IP \output_v, \output_ptr, 8
 .endm
+
+
 
 .macro dl_tie728_128b_last_store_data tmp_q, output_v, tmp_a, c_remainder_bytes
     beqi \c_remainder_bytes, 0, 600f
@@ -25,50 +29,6 @@
 600:
 .endm
 
-
-.macro dl_tie728_s16_store_aligned_remainder remainder_data, c_remainder, tmp_a, output_ptr
-607:    # remainder == 1, 0x111
-    bbci \c_remainder, 2, 603f
-    bbci \c_remainder, 1, 605f
-    bbci \c_remainder, 0, 606f
-    EE.VST.L.64.IP \remainder_data, \output_ptr, 0
-    EE.MOVI.32.A \remainder_data, \tmp_a, 2
-    s32i \tmp_a, \output_ptr, 8
-    EE.MOVI.32.A \remainder_data, \tmp_a, 3
-    s16i \tmp_a, \output_ptr, 12
-    j 600f
-606:    # remainder == 1, 0x110
-    EE.VST.L.64.IP \remainder_data, \output_ptr, 0
-    EE.MOVI.32.A \remainder_data, \tmp_a, 2
-    s32i \tmp_a, \output_ptr, 8
-    j 600f
-605:    # remainder == 1, 0x101
-    bbci \c_remainder, 0, 604f
-    EE.VST.L.64.IP \remainder_data, \output_ptr, 0
-    EE.MOVI.32.A \remainder_data, \tmp_a, 2
-    s16i \tmp_a, \output_ptr, 8
-    j 600f
-604:    # remainder == 1, 0x100
-    EE.VST.L.64.IP \remainder_data, \output_ptr, 0
-    j 600f
-603:    # remainder == 1, 0x011
-    bbci \c_remainder, 1, 601f
-    bbci \c_remainder, 0, 602f
-    EE.MOVI.32.A \remainder_data, \tmp_a, 0
-    s32i \tmp_a, \output_ptr, 0
-    EE.MOVI.32.A \remainder_data, \tmp_a, 1
-    s16i \tmp_a, \output_ptr, 4
-    j 600f
-602:    # remainder == 1, 0x010
-    EE.MOVI.32.A \remainder_data, \tmp_a, 0
-    s32i \tmp_a, \output_ptr, 0
-    j 600f
-601:    # remainder == 1, 0x001
-    bbci \c_remainder, 0, 600f
-    EE.MOVI.32.A \remainder_data, \tmp_a, 0
-    s16i \tmp_a, \output_ptr, 0
-600:
-.endm
 
 
 .macro dl_tie728_s16_store_remainder remainder_data, c_remainder, tmp_a, output_ptr
@@ -125,4 +85,44 @@
     EE.MOVI.32.A \remainder_data, \tmp_a, 0
     s16i \tmp_a, \output_ptr, 0
 600:
+.endm
+
+
+
+############################################################################################################################################################
+# result process for Conv2D / Depthwise_Conv2D
+############################################################################################################################################################
+.macro tie728_s16_conv2d_per_layer_result  output_v, mac_shift
+    EE.SRCMB.S16.QACC  \output_v, \mac_shift, 0
+.endm
+
+
+
+.macro tie728_s16_conv2d_128b_vector_bias  bias_ptr
+    EE.LD.QACC_L.L.128.IP  \bias_ptr, 16
+    EE.LD.QACC_L.H.32.IP  \bias_ptr, 16
+    EE.LD.QACC_H.L.128.IP  \bias_ptr, 16
+    EE.LD.QACC_H.H.32.IP  \bias_ptr, 16
+.endm
+
+
+
+.macro tie728_s16_conv2d_element_bias  bias_ptr
+    EE.LD.ACCX.IP  \bias_ptr, 8
+.endm
+
+
+
+.macro tie728_s16_conv2d_relu  output_v, activation_alpha, activation_shift
+    # LeakyReLU
+    EE.VRELU.S16  \output_v, \activation_alpha, \activation_shift
+.endm
+
+
+
+.macro tie728_s16_conv2d_prelu  output_v, activation_v, activation_alpha_ptr activation_shift
+    EE.VLD.128.IP   \activation_v,    \activation_alpha_ptr,   16 # load PReLU alph
+
+    # PReLU
+    EE.VPRELU.S16 \output_v, \output_v, \activation_v, \activation_shift
 .endm
