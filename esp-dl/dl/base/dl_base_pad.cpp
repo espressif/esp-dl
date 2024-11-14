@@ -51,6 +51,14 @@ void pad1D(T *input_element,
         for (int i = 0; i < right; i++) {
             output_element[i + right_start] = input_element[start - i];
         }
+    } else if (mode == PADDING_WRAP) {
+        int start = input_len - 1;
+        for (int i = 0; i < left; i++) {
+            output_element[i] = input_element[start - i];
+        }
+        for (int i = 0; i < right; i++) {
+            output_element[i + right_start] = input_element[i];
+        }
     }
 }
 
@@ -98,6 +106,141 @@ template void pad1D(float *input_element,
                     const float const_value);
 
 template <typename T>
+void pad_head_and_tail(T *input_element,
+                       T *output_element,
+                       std::vector<int> input_shape,
+                       const int pad_head,
+                       const int pad_tail,
+                       const int output_offset,
+                       const padding_mode_t mode,
+                       const T const_value)
+{
+    T *output_ptr = nullptr;
+    int tail_offset = (pad_head + input_shape[0]) * output_offset;
+    if (mode == PADDING_CONSTANT) {
+        if (pad_head > 0) {
+            tool::set_value<T>(output_element, const_value, output_offset * pad_head);
+        }
+        output_ptr = output_element + tail_offset;
+        if (pad_tail > 0) {
+            tool::set_value<T>(output_ptr, const_value, output_offset * pad_tail);
+        }
+    } else if (mode == PADDING_EDGE) {
+        if (pad_head > 0) {
+            T *edge_line = output_element + pad_head * output_offset;
+            output_ptr = output_element;
+            for (int i = 0; i < pad_head; i++) {
+                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
+                output_ptr += output_offset;
+            }
+        }
+        if (pad_tail > 0) {
+            output_ptr = output_element + tail_offset;
+            T *edge_line = output_ptr - output_offset;
+            for (int i = 0; i < pad_tail; i++) {
+                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
+                output_ptr += output_offset;
+            }
+        }
+    } else if (mode == PADDING_REFLECT) {
+        if (pad_head > 0) {
+            T *edge_line = output_element + 2 * pad_head * output_offset;
+            output_ptr = output_element;
+            for (int i = 0; i < pad_head; i++) {
+                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
+                output_ptr += output_offset;
+                edge_line -= output_offset;
+            }
+        }
+        if (pad_tail > 0) {
+            output_ptr = output_element + tail_offset;
+            T *edge_line = output_ptr - 2 * output_offset;
+            for (int i = 0; i < pad_tail; i++) {
+                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
+                output_ptr += output_offset;
+                edge_line -= output_offset;
+            }
+        }
+    } else if (mode == PADDING_WRAP) {
+        if (pad_head > 0) {
+            T *edge_line = output_element + tail_offset - output_offset;
+            output_ptr = output_element;
+            for (int i = 0; i < pad_head; i++) {
+                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
+                output_ptr += output_offset;
+                edge_line -= output_offset;
+            }
+        }
+        if (pad_tail > 0) {
+            output_ptr = output_element + tail_offset;
+            T *edge_line = output_element + pad_head * output_offset;
+            for (int i = 0; i < pad_tail; i++) {
+                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
+                output_ptr += output_offset;
+                edge_line += output_offset;
+            }
+        }
+    }
+}
+
+template void pad_head_and_tail(int8_t *input_element,
+                                int8_t *output_element,
+                                std::vector<int> input_shape,
+                                const int pad_head,
+                                const int pad_tail,
+                                const int output_offset,
+                                const padding_mode_t mode,
+                                const int8_t const_value);
+template void pad_head_and_tail(uint8_t *input_element,
+                                uint8_t *output_element,
+                                std::vector<int> input_shape,
+                                const int pad_head,
+                                const int pad_tail,
+                                const int output_offset,
+                                const padding_mode_t mode,
+                                const uint8_t const_value);
+template void pad_head_and_tail(int16_t *input_element,
+                                int16_t *output_element,
+                                std::vector<int> input_shape,
+                                const int pad_head,
+                                const int pad_tail,
+                                const int output_offset,
+                                const padding_mode_t mode,
+                                const int16_t const_value);
+template void pad_head_and_tail(uint16_t *input_element,
+                                uint16_t *output_element,
+                                std::vector<int> input_shape,
+                                const int pad_head,
+                                const int pad_tail,
+                                const int output_offset,
+                                const padding_mode_t mode,
+                                const uint16_t const_value);
+template void pad_head_and_tail(int32_t *input_element,
+                                int32_t *output_element,
+                                std::vector<int> input_shape,
+                                const int pad_head,
+                                const int pad_tail,
+                                const int output_offset,
+                                const padding_mode_t mode,
+                                const int32_t const_value);
+template void pad_head_and_tail(uint32_t *input_element,
+                                uint32_t *output_element,
+                                std::vector<int> input_shape,
+                                const int pad_head,
+                                const int pad_tail,
+                                const int output_offset,
+                                const padding_mode_t mode,
+                                const uint32_t const_value);
+template void pad_head_and_tail(float *input_element,
+                                float *output_element,
+                                std::vector<int> input_shape,
+                                const int pad_head,
+                                const int pad_tail,
+                                const int output_offset,
+                                const padding_mode_t mode,
+                                const float const_value);
+
+template <typename T>
 void pad2D(T *input_element,
            T *output_element,
            std::vector<int> input_shape,
@@ -119,50 +262,8 @@ void pad2D(T *input_element,
         output_ptr += output_offset;
     }
 
-    if (mode == PADDING_CONSTANT) {
-        if (pad_head > 0) {
-            tool::set_value<T>(output_element, const_value, output_offset * pad_head);
-        }
-        if (pad_tail > 0) {
-            tool::set_value<T>(output_ptr, const_value, output_offset * pad_tail);
-        }
-    } else if (mode == PADDING_EDGE) {
-        if (pad_head > 0) {
-            T *edge_line = output_element + pad_head * output_offset;
-            output_ptr = output_element;
-            for (int i = 0; i < pad_head; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-            }
-        }
-        if (pad_tail > 0) {
-            output_ptr = output_element + (pad_head + input_shape[0]) * output_offset;
-            T *edge_line = output_ptr - output_offset;
-            for (int i = 0; i < pad_tail; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-            }
-        }
-    } else if (mode == PADDING_REFLECT) {
-        if (pad_head > 0) {
-            T *edge_line = output_element + 2 * pad_head * output_offset;
-            output_ptr = output_element;
-            for (int i = 0; i < pad_head; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-                edge_line -= output_offset;
-            }
-        }
-        if (pad_tail > 0) {
-            output_ptr = output_element + (pad_head + input_shape[0]) * output_offset;
-            T *edge_line = output_ptr - 2 * output_offset;
-            for (int i = 0; i < pad_tail; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-                edge_line -= output_offset;
-            }
-        }
-    }
+    pad_head_and_tail<T>(
+        input_element, output_element, input_shape, pad_head, pad_tail, output_offset, mode, const_value);
 }
 template void pad2D(int8_t *input_element,
                     int8_t *output_element,
@@ -231,50 +332,8 @@ void pad3D(T *input_element,
         output_ptr += output_offset;
     }
 
-    if (mode == PADDING_CONSTANT) {
-        if (pad_head > 0) {
-            tool::set_value<T>(output_element, const_value, output_offset * pad_head);
-        }
-        if (pad_tail > 0) {
-            tool::set_value<T>(output_ptr, const_value, output_offset * pad_tail);
-        }
-    } else if (mode == PADDING_EDGE) {
-        if (pad_head > 0) {
-            T *edge_line = output_element + pad_head * output_offset;
-            output_ptr = output_element;
-            for (int i = 0; i < pad_head; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-            }
-        }
-        if (pad_tail > 0) {
-            output_ptr = output_element + (pad_head + input_shape[0]) * output_offset;
-            T *edge_line = output_ptr - output_offset;
-            for (int i = 0; i < pad_tail; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-            }
-        }
-    } else if (mode == PADDING_REFLECT) {
-        if (pad_head > 0) {
-            T *edge_line = output_element + 2 * pad_head * output_offset;
-            output_ptr = output_element;
-            for (int i = 0; i < pad_head; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-                edge_line -= output_offset;
-            }
-        }
-        if (pad_tail > 0) {
-            output_ptr = output_element + (pad_head + input_shape[0]) * output_offset;
-            T *edge_line = output_ptr - 2 * output_offset;
-            for (int i = 0; i < pad_tail; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-                edge_line -= output_offset;
-            }
-        }
-    }
+    pad_head_and_tail<T>(
+        input_element, output_element, input_shape, pad_head, pad_tail, output_offset, mode, const_value);
 }
 template void pad3D(int8_t *input_element,
                     int8_t *output_element,
@@ -351,50 +410,8 @@ void pad4D(T *input_element,
         output_ptr += output_offset;
     }
 
-    if (mode == PADDING_CONSTANT) {
-        if (pad_head > 0) {
-            tool::set_value<T>(output_element, const_value, output_offset * pad_head);
-        }
-        if (pad_tail > 0) {
-            tool::set_value<T>(output_ptr, const_value, output_offset * pad_tail);
-        }
-    } else if (mode == PADDING_EDGE) {
-        if (pad_head > 0) {
-            T *edge_line = output_element + pad_head * output_offset;
-            output_ptr = output_element;
-            for (int i = 0; i < pad_head; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-            }
-        }
-        if (pad_tail > 0) {
-            output_ptr = output_element + (pad_head + input_shape[0]) * output_offset;
-            T *edge_line = output_ptr - output_offset;
-            for (int i = 0; i < pad_tail; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-            }
-        }
-    } else if (mode == PADDING_REFLECT) {
-        if (pad_head > 0) {
-            T *edge_line = output_element + 2 * pad_head * output_offset;
-            output_ptr = output_element;
-            for (int i = 0; i < pad_head; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-                edge_line -= output_offset;
-            }
-        }
-        if (pad_tail > 0) {
-            output_ptr = output_element + (pad_head + input_shape[0]) * output_offset;
-            T *edge_line = output_ptr - 2 * output_offset;
-            for (int i = 0; i < pad_tail; i++) {
-                tool::copy_memory(output_ptr, edge_line, output_offset * sizeof(T));
-                output_ptr += output_offset;
-                edge_line -= output_offset;
-            }
-        }
-    }
+    pad_head_and_tail<T>(
+        input_element, output_element, input_shape, pad_head, pad_tail, output_offset, mode, const_value);
 }
 template void pad4D(int8_t *input_element,
                     int8_t *output_element,
