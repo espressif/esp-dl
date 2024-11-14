@@ -23,41 +23,12 @@ PROJECT_NAME = "ESP-DL"
 INPUT = \
     $(PROJECT_PATH)/esp-dl/fbs_loader/include/fbs_loader.hpp \
     $(PROJECT_PATH)/esp-dl/fbs_loader/include/fbs_model.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_hardswish.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_softmax.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_relu.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_base.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_add.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_leakyrelu.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_hardsigmoid.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_lut.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_conv2d.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_requantize_linear.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_transpose.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_sqrt.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_global_avg_pool2d.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_gemm.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_resize2d.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_tanh.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_concat.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_mul.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_reshape.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_sigmoid.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_max_pool2d.hpp \
     $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_creator.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_exp.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_flatten.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_unsqueeze.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_squeeze.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_slice.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_clip.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_log.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_prelu.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_avg_pool2d.hpp \
+    $(PROJECT_PATH)/esp-dl/dl/module/include/dl_module_base.hpp \
     $(PROJECT_PATH)/esp-dl/dl/tensor/include/dl_tensor_base.hpp \
     $(PROJECT_PATH)/esp-dl/dl/model/include/dl_memory_manager_greedy.hpp \
-    $(PROJECT_PATH)/esp-dl/dl/model/include/dl_model_base.hpp \
     $(PROJECT_PATH)/esp-dl/dl/model/include/dl_memory_manager.hpp \
+    $(PROJECT_PATH)/esp-dl/dl/model/include/dl_model_base.hpp \
 
 ## Get warnings for functions that have no documentation for their parameters or return value
 ##

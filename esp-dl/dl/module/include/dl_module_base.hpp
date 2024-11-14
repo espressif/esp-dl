@@ -11,9 +11,9 @@
 namespace dl {
 // Define the enum type for module in-place operation mode
 typedef enum {
-    MODULE_NON_INPLACE = 0,              /*<! Non inplace operation. the output will store to a separate memory>*/
-    MODULE_INPLACE_UNCHANGED_BUFFER = 1, /*<! Inplace operation which don't change the buffer data.>*/
-    MODULE_INPLACE_CHANGED_BUFFER = 2    /*<! Inplace operation which will change the buffer data. >*/
+    MODULE_NON_INPLACE = 0,              ///< Non inplace operation. the output will store to a separate memory
+    MODULE_INPLACE_UNCHANGED_BUFFER = 1, ///< Inplace operation which don't change the buffer data.
+    MODULE_INPLACE_CHANGED_BUFFER = 2    ///< Inplace operation which will change the buffer data.
 } module_inplace_t;
 
 namespace module {
@@ -22,16 +22,18 @@ namespace module {
  */
 class Module {
 public:
-    char *name; /*<! name of module >*/
-    module_inplace_t inplace;
-    quant_type_t quant_type;
-    std::vector<int> m_inputs_index;  /*<! tensor index of model's tensors that used for inputs >*/
-    std::vector<int> m_outputs_index; /*<! tensor index of model's tensors that used for outputs >*/
+    char *name;                       ///< Name of module
+    module_inplace_t inplace;         ///< Inplace type
+    quant_type_t quant_type;          ///< Quantization type
+    std::vector<int> m_inputs_index;  ///< Tensor index of model's tensors that used for inputs
+    std::vector<int> m_outputs_index; ///< Tensor index of model's tensors that used for outputs
 
     /**
      * @brief Construct a new Module object.
      *
-     * @param name name of module.
+     * @param name Name of module.
+     * @param inplace   Inplace operation mode
+     * @param quant_type Quantization type
      */
     Module(const char *name = NULL,
            module_inplace_t inplace = MODULE_NON_INPLACE,
@@ -44,16 +46,16 @@ public:
     virtual ~Module();
 
     /**
-     * @brief get the tensor index of this module's outputs
+     * @brief Get the tensor index of this module's outputs
      *
-     * @return tensor index of model's tensors
+     * @return Tensor index of model's tensors
      */
     virtual std::vector<int> get_outputs_index() { return m_outputs_index; }
 
     /**
-     * @brief calculate output shape by input shape
+     * @brief Calculate output shape by input shape
      *
-     * @param input_shapes   input shapes
+     * @param input_shapes   Input shapes
      *
      * @return outputs shapes
      */
@@ -63,7 +65,7 @@ public:
      * @brief Run the module, high-level inferface for model layer
      *
      * @param tensors       All inputs and outputs from MemoryManager
-     * @param assign_core   not effective yet
+     * @param mode    Runtime mode, default is RUNTIME_MODE_AUTO
      *
      */
     virtual void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode = RUNTIME_MODE_AUTO) = 0;
@@ -96,11 +98,14 @@ public:
      * @param addr Internal RAM address, should be aligned to 16 bytes
      * @param size The size of RAM address
      *
+     * @return
      */
     virtual void set_preload_addr(void *addr, size_t size) {}
 
     /**
-     * @brief perform a preload operation
+     * @brief Perform a preload operation
+     *
+     * @warning Not implemented
      */
     virtual void preload() {}
 
@@ -119,6 +124,8 @@ public:
      * @param input   Input tensor
      * @param output  Output tensor
      * @param mode    Runtime mode
+     *
+     * @return
      */
     virtual void run(TensorBase *input, TensorBase *output, runtime_mode_t mode = RUNTIME_MODE_AUTO);
 
@@ -128,6 +135,8 @@ public:
      * @param inputs   Input tensors
      * @param outputs  Output tensors
      * @param mode    Runtime mode
+     *
+     * @return
      */
     virtual void run(std::vector<dl::TensorBase *> inputs,
                      std::vector<dl::TensorBase *> outputs,
@@ -138,9 +147,9 @@ public:
  * @brief The data struct of module task. Pack all necessary information as the input for module task.
  */
 typedef struct {
-    Module *op;
-    void *args;
-    SemaphoreHandle_t &semaphore; // recommend xSemaphoreCreateCounting
+    Module *op;                   ///< Module instance pointer
+    void *args;                   ///< ArgsType, arithArgsType, resizeArgsType and so on
+    SemaphoreHandle_t &semaphore; ///< recommend xSemaphoreCreateCounting
 } module_task_data_t;
 
 /**
