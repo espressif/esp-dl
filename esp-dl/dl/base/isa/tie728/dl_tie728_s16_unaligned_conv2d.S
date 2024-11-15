@@ -1,4 +1,5 @@
 #include "dl_tie728_s16_unaligned.S"
+#include "dl_tie728_s16.S"
 
 ############################################################################################################################################################
 ####
@@ -557,8 +558,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_32b_aligned_vector_shift_bias_store q0, a2, a8, q1, a10, a15
+                tie728_s16_32b_aligned_vector_shift_store  q0, a2, a8, a15
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_32b_multiple_loop
@@ -569,8 +571,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_64b_aligned_vector_shift_bias_store q0, a2, a8, q1, a10
+                tie728_s16_64b_aligned_vector_shift_store  q0, a2, a8
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_64b_multiple_loop
@@ -581,8 +584,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_128b_aligned_vector_shift_bias_store q0, a2, a8, q1, a10
+                tie728_s16_128b_aligned_vector_shift_store  q0, a2, a8
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_128b_multiple_loop
@@ -600,8 +604,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias:
             mov a15, a3         # a15: input_ptr
             EE.ZERO.ACCX
 
+            tie728_s16_conv2d_element_bias  a10
             tie728_s16_unaligned_conv2d_11c1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a11, a12
-            tie728_s16_element_shift_bias_store a2, a8, a10, a14, a15
+            tie728_s16_element_shift_store  a2, a8, a14
 
             addi a9, a9, -1
             bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_n_remainder_loop
@@ -647,8 +652,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_relu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_32b_aligned_vector_shift_bias_relu_store q0, a2, a8, q1, a10, a11, a12, a15
+                tie728_s16_32b_aligned_vector_shift_relu_store  q0, a2, a8, a11, a12, a15
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_relu_32b_multiple_loop
@@ -659,8 +665,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_relu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_64b_aligned_vector_shift_bias_relu_store q0, a2, a8, q1, a10, a11, a12
+                tie728_s16_64b_aligned_vector_shift_relu_store  q0, a2, a8, a11, a12
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_relu_64b_multiple_loop
@@ -671,8 +678,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_relu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_128b_aligned_vector_shift_bias_relu_store q0, a2, a8, q1, a10, a11, a12
+                tie728_s16_128b_aligned_vector_shift_relu_store  q0, a2, a8, a11, a12
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_relu_128b_multiple_loop
@@ -689,8 +697,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_relu:
             mov a15, a3         # a15: input_ptr
             EE.ZERO.ACCX
 
+            tie728_s16_conv2d_element_bias  a10
             tie728_s16_unaligned_conv2d_11c1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a11, a12
-            tie728_s16_element_shift_bias_relu_store a2, a8, a10, a13, a15
+            tie728_s16_element_shift_relu_store  a2, a8, a13
 
             addi a9, a9, -1
             bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_relu_n_remainder_loop
@@ -736,8 +745,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_32b_aligned_vector_shift_bias_relu_store q0, a2, a8, q1, a10, a11, a12, a15
+                tie728_s16_32b_aligned_vector_shift_relu_store  q0, a2, a8, a11, a12, a15
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu_32b_multiple_loop
@@ -748,8 +758,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_64b_aligned_vector_shift_bias_relu_store q0, a2, a8, q1, a10, a11, a12
+                tie728_s16_64b_aligned_vector_shift_relu_store  q0, a2, a8, a11, a12
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu_64b_multiple_loop
@@ -760,8 +771,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_128b_aligned_vector_shift_bias_relu_store q0, a2, a8, q1, a10, a11, a12
+                tie728_s16_128b_aligned_vector_shift_relu_store  q0, a2, a8, a11, a12
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu_128b_multiple_loop
@@ -780,8 +792,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu:
             mov a15, a3         # a15: input_ptr
             EE.ZERO.ACCX
 
+            tie728_s16_conv2d_element_bias  a10
             tie728_s16_unaligned_conv2d_11c1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a12, a13
-            tie728_s16_element_shift_bias_leakyrelu_store a2, a8, a10, a11, a14, a15
+            tie728_s16_element_shift_leakyrelu_store  a2, a8, a11, a14
 
             addi a9, a9, -1
             bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu_n_remainder_loop
@@ -827,8 +840,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_32b_aligned_vector_shift_bias_prelu_store q0, a2, a8, q1, a10, q2, a11, a12, a15
+                tie728_s16_32b_aligned_vector_shift_prelu_store  q0, a2, a8, q2, a11, a12, a15
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_prelu_32b_multiple_loop
@@ -839,8 +853,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_64b_aligned_vector_shift_bias_prelu_store q0, a2, a8, q1, a10, q2, a11, a12
+                tie728_s16_64b_aligned_vector_shift_prelu_store  q0, a2, a8, q2, a11, a12
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_prelu_64b_multiple_loop
@@ -851,8 +866,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a10
                 tie728_s16_unaligned_conv2d_11c8 q0, q1, q2, q3, q4, a15, a5, a6, a7
-                tie728_s16_128b_aligned_vector_shift_bias_prelu_store q0, a2, a8, q1, a10, q2, a11, a12
+                tie728_s16_128b_aligned_vector_shift_prelu_store  q0, a2, a8, q2, a11, a12
 
                 addi a9, a9, -1
                 bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_prelu_128b_multiple_loop
@@ -871,8 +887,9 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu:
             mov a15, a3         # a15: input_ptr
             EE.ZERO.ACCX
 
+            tie728_s16_conv2d_element_bias  a10
             tie728_s16_unaligned_conv2d_11c1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a12, a13
-            tie728_s16_element_shift_bias_prelu_store a2, a8, a10, a11, a14, a15
+            tie728_s16_element_shift_prelu_store  a2, a8, a11, a14, a15
 
             addi a9, a9, -1
             bnez a9, tie728_s16_unaligned_conv2d_11cn_bias_prelu_n_remainder_loop
@@ -880,14 +897,6 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu:
         tie728_s16_unaligned_conv2d_11cn_bias_prelu_n_remainder_end:
 
     retw
-
-
-
-
-
-
-
-
 
 
 
@@ -927,6 +936,8 @@ dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu:
     tie728_s16_unaligned_conv2d_11c8 \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
+
+
 
 .macro tie728_s16_unaligned_conv2d_33c1 input_v0, input_front, input_back, filter_v0, filter_front, filter_back, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, temp, zero
     tie728_s16_unaligned_conv2d_11c1 \input_v0, \input_front, \input_back, \filter_v0, \filter_front, \filter_back, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp, \zero
@@ -1357,8 +1368,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_32b_aligned_vector_shift_bias_store q0, a2, a10, q1, a12, a15
+                tie728_s16_32b_aligned_vector_shift_store  q0, a2, a10, a15
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_32b_multiple_loop
@@ -1369,8 +1381,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_64b_aligned_vector_shift_bias_store q0, a2, a10, q1, a12
+                tie728_s16_64b_aligned_vector_shift_store  q0, a2, a10
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_64b_multiple_loop
@@ -1381,8 +1394,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_128b_aligned_vector_shift_bias_store q0, a2, a10, q1, a12
+                tie728_s16_128b_aligned_vector_shift_store  q0, a2, a10
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_128b_multiple_loop
@@ -1399,9 +1413,10 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias:
             mov a15, a3         # a15: input_ptr
             EE.ZERO.ACCX
 
+            tie728_s16_conv2d_element_bias  a12
             movi a14,  0        # a14: zero
             tie728_s16_unaligned_conv2d_33c1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a8, a9, a13, a14
-            tie728_s16_element_shift_bias_store a2, a10, a12, a14, a15
+            tie728_s16_element_shift_store  a2, a10, a14
 
             addi a11, a11, -1
             bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_n_remainder_loop
@@ -1449,8 +1464,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_relu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_32b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a12, a13, a14, a15
+                tie728_s16_32b_aligned_vector_shift_relu_store  q0, a2, a10, a13, a14, a15
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_relu_32b_multiple_loop
@@ -1461,8 +1477,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_relu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_64b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a12, a13, a14
+                tie728_s16_64b_aligned_vector_shift_relu_store  q0, a2, a10, a13, a14
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_relu_64b_multiple_loop
@@ -1473,8 +1490,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_relu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_128b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a12, a13, a14
+                tie728_s16_128b_aligned_vector_shift_relu_store  q0, a2, a10, a13, a14
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_relu_128b_multiple_loop
@@ -1491,9 +1509,10 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_relu:
             mov a15, a3         # a15: input_ptr
             EE.ZERO.ACCX
 
+            tie728_s16_conv2d_element_bias  a12
             movi a14,  0        # a14: zero
             tie728_s16_unaligned_conv2d_33c1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a8, a9, a13, a14
-            tie728_s16_element_shift_bias_relu_store a2, a10, a12, a14, a15
+            tie728_s16_element_shift_relu_store  a2, a10, a14
 
             addi a11, a11, -1
             bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_relu_n_remainder_loop
@@ -1541,8 +1560,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_32b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a12, a13, a14, a15
+                tie728_s16_32b_aligned_vector_shift_relu_store  q0, a2, a10, a13, a14, a15
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu_32b_multiple_loop
@@ -1553,8 +1573,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_64b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a12, a13, a14
+                tie728_s16_64b_aligned_vector_shift_relu_store  q0, a2, a10, a13, a14
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu_64b_multiple_loop
@@ -1565,8 +1586,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_128b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a12, a13, a14
+                tie728_s16_128b_aligned_vector_shift_relu_store  q0, a2, a10, a13, a14
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu_128b_multiple_loop
@@ -1584,12 +1606,13 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu:
             mov a15, a3         # a15: input_ptr
             EE.ZERO.ACCX
 
+            tie728_s16_conv2d_element_bias  a12
             l32i  a9, a4, 112   #  a9: dilation_y_offset
             movi a14,  0        # a14: zero
             tie728_s16_unaligned_conv2d_33c1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a8, a9, a10, a14
 
             l32i  a9, a4,  64   #  a9: mac_shift         = output.exponent - filter.exponent - input.exponent
-            tie728_s16_element_shift_bias_leakyrelu_store a2, a9, a12, a13, a14, a15
+            tie728_s16_element_shift_leakyrelu_store  a2, a9, a13, a14
 
             addi a11, a11, -1
             bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu_n_remainder_loop
@@ -1637,8 +1660,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_32b_aligned_vector_shift_bias_prelu_store q0, a2, a10, q1, a12, q2, a13, a14, a15
+                tie728_s16_32b_aligned_vector_shift_prelu_store  q0, a2, a10, q2, a13, a14, a15
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_prelu_32b_multiple_loop
@@ -1649,8 +1673,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_64b_aligned_vector_shift_bias_prelu_store q0, a2, a10, q1, a12, q2, a13, a14
+                tie728_s16_64b_aligned_vector_shift_prelu_store  q0, a2, a10, q2, a13, a14
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_prelu_64b_multiple_loop
@@ -1661,8 +1686,9 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
                 mov a15, a3     # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a12
                 tie728_s16_unaligned_conv2d_33c8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9
-                tie728_s16_128b_aligned_vector_shift_bias_prelu_store q0, a2, a10, q1, a12, q2, a13, a14
+                tie728_s16_128b_aligned_vector_shift_prelu_store  q0, a2, a10, q2, a13, a14
 
                 addi a11, a11, -1
                 bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_prelu_128b_multiple_loop
@@ -1680,12 +1706,13 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
             mov a15, a3         # a15: input_ptr
             EE.ZERO.ACCX
 
+            tie728_s16_conv2d_element_bias  a12
             l32i  a9, a4, 112   #  a9: dilation_y_offset
             movi a14,  0        # a14: zero
             tie728_s16_unaligned_conv2d_33c1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a8, a9, a10, a14
 
             l32i  a9, a4,  64   # a9: mac_shift         = output.exponent - filter.exponent - input.exponent
-            tie728_s16_element_shift_bias_prelu_store a2, a9, a12, a13, a14, a15
+            tie728_s16_element_shift_prelu_store  a2, a9, a13, a14, a15
 
             addi a11, a11, -1
             bnez a11, tie728_s16_unaligned_conv2d_33cn_bias_prelu_n_remainder_loop
@@ -1693,9 +1720,6 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
         tie728_s16_unaligned_conv2d_33cn_bias_prelu_n_remainder_end:
 
     retw
-
-
-
 
 
 
@@ -1731,6 +1755,8 @@ dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu:
     EE.MOVI.32.A \filter_offset_q, \filter_h, 2
     add \filter_ptr, \filter_ptr, \filter_h
 .endm
+
+
 
 .macro tie728_s16_unaligned_conv2d_hwc1 input_v0, input_front, input_back, filter_v0, filter_front, filter_back, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, filter_h, filter_w, args, temp, zero, filter_offset_q
     l32i \filter_h, \args,  52  # filter_height
@@ -2229,8 +2255,9 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
-                tie728_s16_32b_aligned_vector_shift_bias_store q0, a2, a14, q1, a13, a15
+                tie728_s16_32b_aligned_vector_shift_store  q0, a2, a14, a15
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_32b_multiple_loop
@@ -2241,8 +2268,9 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
-                tie728_s16_64b_aligned_vector_shift_bias_store q0, a2, a14, q1, a13
+                tie728_s16_64b_aligned_vector_shift_store  q0, a2, a14
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_64b_multiple_loop
@@ -2253,8 +2281,9 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
-                tie728_s16_128b_aligned_vector_shift_bias_store q0, a2, a14, q1, a13
+                tie728_s16_128b_aligned_vector_shift_store  q0, a2, a14
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_128b_multiple_loop
@@ -2280,13 +2309,14 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias:
             mov a15, a3             # a15: input_ptr
             EE.ZERO.ACCX
 
+            EE.MOVI.32.A q6, a14, 1 # a14: bias_ptr
+            tie728_s16_conv2d_element_bias  a14
+            EE.MOVI.32.Q q6, a14, 1 # q6[1]: bias_ptr
             movi a14, 0             # a14: zero
             tie728_s16_unaligned_conv2d_hwc1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a8, a9, a10, a11, a4, a13, a14, q7
 
             l32i a10, a4, 64        # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
-            EE.MOVI.32.A q6, a11, 1 # a11: bias_ptr
-            tie728_s16_element_shift_bias_store a2, a10, a11, a14, a15
-            EE.MOVI.32.Q q6, a11, 1 # q6[1]: bias_ptr
+            tie728_s16_element_shift_store  a2, a10, a14
 
             addi a12, a12, -1
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_n_remainder_loop
@@ -2336,11 +2366,12 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_relu:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
 
                 l32i a10, a4, 64    # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
                 l32i a11, a4, 84    # a11: activation_shift
-                tie728_s16_32b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a13, a14, a11, a15
+                tie728_s16_32b_aligned_vector_shift_relu_store  q0, a2, a10, a14, a11, a15
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_relu_32b_multiple_loop
@@ -2351,11 +2382,12 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_relu:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
 
                 l32i a10, a4, 64    # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
                 l32i a11, a4, 84    # a11: activation_shift
-                tie728_s16_64b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a13, a14, a11
+                tie728_s16_64b_aligned_vector_shift_relu_store  q0, a2, a10, a14, a11
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_relu_64b_multiple_loop
@@ -2366,11 +2398,12 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_relu:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
 
                 l32i a10, a4, 64    # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
                 l32i a11, a4, 84    # a11: activation_shift
-                tie728_s16_128b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a13, a14, a11
+                tie728_s16_128b_aligned_vector_shift_relu_store  q0, a2, a10, a14, a11
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_relu_128b_multiple_loop
@@ -2396,13 +2429,14 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_relu:
             mov a15, a3             # a15: input_ptr
             EE.ZERO.ACCX
 
+            EE.MOVI.32.A q6, a14, 1 # a14: bias_ptr
+            tie728_s16_conv2d_element_bias  a14
+            EE.MOVI.32.Q q6, a14, 1 # q6[1]: bias_ptr
             movi a14, 0             # a14: zero
             tie728_s16_unaligned_conv2d_hwc1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a8, a9, a10, a11, a4, a13, a14, q7
 
             l32i a10, a4, 64        # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
-            EE.MOVI.32.A q6, a11, 1 # a11: bias_ptr
-            tie728_s16_element_shift_bias_relu_store a2, a10, a11, a14, a15
-            EE.MOVI.32.Q q6, a11, 1 # q6[1]: bias_ptr
+            tie728_s16_element_shift_relu_store  a2, a10, a14
 
             addi a12, a12, -1
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_relu_n_remainder_loop
@@ -2452,11 +2486,12 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
 
                 l32i a10, a4, 64    # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
                 l32i a11, a4, 84    # a11: activation_shift
-                tie728_s16_32b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a13, a14, a11, a15
+                tie728_s16_32b_aligned_vector_shift_relu_store  q0, a2, a10, a14, a11, a15
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu_32b_multiple_loop
@@ -2467,11 +2502,12 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
 
                 l32i a10, a4, 64    # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
                 l32i a11, a4, 84    # a11: activation_shift
-                tie728_s16_64b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a13, a14, a11
+                tie728_s16_64b_aligned_vector_shift_relu_store  q0, a2, a10, a14, a11
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu_64b_multiple_loop
@@ -2482,11 +2518,12 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
 
                 l32i a10, a4, 64    # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
                 l32i a11, a4, 84    # a11: activation_shift
-                tie728_s16_128b_aligned_vector_shift_bias_relu_store q0, a2, a10, q1, a13, a14, a11
+                tie728_s16_128b_aligned_vector_shift_relu_store  q0, a2, a10, a14, a11
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu_128b_multiple_loop
@@ -2513,15 +2550,16 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu:
             mov a15, a3             # a15: input_ptr
             EE.ZERO.ACCX
 
+            EE.MOVI.32.A q6, a14, 1 # a14: bias_ptr
+            tie728_s16_conv2d_element_bias  a14
+            EE.MOVI.32.Q q6, a14, 1 # q6[1]: bias_ptr
             l32i  a9, a4, 112       #  a9: dilation_y_offset
             movi a14, 0             # a14: zero
             tie728_s16_unaligned_conv2d_hwc1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a8, a9, a10, a11, a4, a13, a14, q7
 
             l32i a9, a4, 64         #  a9: mac_shift         = output.exponent - filter.exponent - input.exponent
-            EE.MOVI.32.A q6, a10, 1 # a10: bias_ptr
             EE.MOVI.32.A q6, a11, 0 # a11: activation_alpha
-            tie728_s16_element_shift_bias_leakyrelu_store a2, a9, a10, a11, a14, a15
-            EE.MOVI.32.Q q6, a10, 1 # q6[1]: bias_ptr
+            tie728_s16_element_shift_leakyrelu_store  a2, a9, a11, a14
 
             addi a12, a12, -1
             bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu_n_remainder_loop
@@ -2571,11 +2609,12 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_prelu:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
 
                 l32i a10, a4, 64    # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
                 l32i a11, a4, 84    # a11: activation_shift
-                tie728_s16_32b_aligned_vector_shift_bias_prelu_store q0, a2, a10, q1, a13, q2, a14, a11, a15
+                tie728_s16_32b_aligned_vector_shift_prelu_store  q0, a2, a10, q2, a14, a11, a15
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_prelu_32b_multiple_loop
@@ -2586,11 +2625,12 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_prelu:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
 
                 l32i a10, a4, 64    # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
                 l32i a11, a4, 84    # a11: activation_shift
-                tie728_s16_64b_aligned_vector_shift_bias_prelu_store q0, a2, a10, q1, a13, q2, a14, a11
+                tie728_s16_64b_aligned_vector_shift_prelu_store  q0, a2, a10, q2, a14, a11
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_prelu_64b_multiple_loop
@@ -2601,11 +2641,12 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_prelu:
                 mov a15, a3         # a15: input_ptr
                 EE.ZERO.QACC
 
+                tie728_s16_conv2d_128b_vector_bias  a13
                 tie728_s16_unaligned_conv2d_hwc8 q0, q1, q2, q3, q4, a15, a5, a6, a7, a8, a9, a10, a11, a4, q7
 
                 l32i a10, a4, 64    # a10: mac_shift         = output.exponent - filter.exponent - input.exponent
                 l32i a11, a4, 84    # a11: activation_shift
-                tie728_s16_128b_aligned_vector_shift_bias_prelu_store q0, a2, a10, q1, a13, q2, a14, a11
+                tie728_s16_128b_aligned_vector_shift_prelu_store  q0, a2, a10, q2, a14, a11
 
                 addi a12, a12, -1
                 bnez a12, tie728_s16_unaligned_conv2d_hwcn_bias_prelu_128b_multiple_loop
@@ -2632,15 +2673,16 @@ dl_tie728_s16_unaligned_conv2d_hwcn_bias_prelu:
             mov a15, a3             # a15: input_ptr
             EE.ZERO.ACCX
 
+            EE.MOVI.32.A q6, a14, 1 # a14: bias_ptr
+            tie728_s16_conv2d_element_bias  a14
+            EE.MOVI.32.Q q6, a14, 1 # q6[1]: bias_ptr
             l32i  a9, a4, 112       #  a9: dilation_y_offset
             movi a14, 0             # a14: zero
             tie728_s16_unaligned_conv2d_hwc1 q0, q1, q2, q3, q4, q5, a15, a5, a6, a7, a8, a9, a10, a11, a4, a13, a14, q7
 
             l32i a9, a4, 64         #  a9: mac_shift         = output.exponent - filter.exponent - input.exponent
-            EE.MOVI.32.A q6, a10, 1 # a10: bias_ptr
             EE.MOVI.32.A q6, a11, 0 # a11: activation_alpha_ptr
-            tie728_s16_element_shift_bias_prelu_store a2, a9, a10, a11, a14, a15
-            EE.MOVI.32.Q q6, a10, 1 # q6[1]: bias_ptr
+            tie728_s16_element_shift_prelu_store  a2, a9, a11, a14, a15
             EE.MOVI.32.Q q6, a11, 0 # q6[0]: activation_alpha_ptr
 
             addi a12, a12, -1
