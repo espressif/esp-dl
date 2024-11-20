@@ -98,6 +98,53 @@
 
 
 
+.macro tie728_s16_vector_round_result output_v mac_shift tmp tmp_q1
+    beqz  \mac_shift, 500f
+
+    movi  \tmp, 1                             // 0000 0000 0000 0000 0000 0000 0000 0001
+    EE.MOVI.32.Q  \output_v, \tmp, 0
+    EE.MOVI.32.Q  \output_v, \tmp, 1
+    EE.MOVI.32.Q  \output_v, \tmp, 2
+    EE.MOVI.32.Q  \output_v, \tmp, 3
+    movi.n  \tmp, 16
+    wsr.sar  \tmp
+    EE.VSL.32  \tmp_q1, \output_v
+    EE.ORQ  \tmp_q1, \tmp_q1, \output_v         // 0000 0000 0000 0001 0000 0000 0000 0001
+
+    addi  \tmp, \mac_shift, -1
+    EE.SRCMB.S16.QACC  \output_v, \tmp, 0
+
+    movi.n  \tmp, 1
+    EE.MOVI.32.Q  \output_v, \tmp, 0
+    EE.VSMULAS.S16.QACC  \tmp_q1, \output_v, 0   // qacc[0:16] += round
+    EE.SRCMB.S16.QACC  \output_v, \tmp, 0
+    j  501f
+500:
+    EE.SRCMB.S16.QACC  \output_v, \mac_shift, 0
+501:
+.endm
+
+
+
+.macro tie728_s16_element_round_result  output mac_shift tmp tmp_q1
+    beqz  \mac_shift, 505f
+
+    addi  \tmp, \mac_shift, -1
+    EE.SRS.ACCX  \output, \tmp, 0
+
+    movi.n  \tmp, 1
+    EE.ZERO.Q  \tmp_q1
+    EE.MOVI.32.Q  \tmp_q1, \tmp, 0
+    EE.VMULAS.S16.ACCX  \tmp_q1, \tmp_q1
+    EE.SRS.ACCX  \output, \tmp, 0
+    j  506f
+505:
+    EE.SRS.ACCX  \output, \mac_shift, 0
+506:
+.endm
+
+
+
 .macro tie728_s16_conv2d_128b_vector_bias  bias_ptr
     EE.LD.QACC_L.L.128.IP  \bias_ptr, 16
     EE.LD.QACC_L.H.32.IP  \bias_ptr, 16
