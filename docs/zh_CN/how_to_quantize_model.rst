@@ -1,6 +1,8 @@
 使用 ESP-PPQ 量化模型 (PTQ)
 ===========================
 
+:link_to_translation:`en:[English]`
+
 在本教程中，我们将介绍如何使用 ESP-PPQ 量化预训练模型，并分析量化误差，量化方法为 Post Training Quantization (PTQ)。ESP-PPQ 在 `PPQ <https://github.com/OpenPPL/ppq>`__ 的基础上添加了乐鑫定制的 quantizer 和 exporter，方便用户根据不同的芯片选择和 ESP-DL 匹配的量化规则，并导出为 ESP-DL 可以直接加载的标准模型文件。ESP-PPQ 兼容 PPQ 所有的 API 和量化脚本。更多细节请参考 `PPQ 文档和视频 <https://github.com/OpenPPL/ppq>`__。
 
 准备工作
@@ -47,7 +49,7 @@
 
 校准数据集需要和你的模型输入格式一致，校准数据集需要尽可能覆盖你的模型输入的所有可能情况，以便更好地量化模型。这里以 ImageNet 数据集为例，演示如何准备校准数据集。
 
-- 使用 torchvision 加载 ImageNet 数据集:
+- 使用 torchvision 加载 ImageNet 数据集：
 
    .. code-block:: python
 
@@ -64,7 +66,7 @@
       calib_dataset = datasets.ImageNet(root=CALIB_DIR, split='val', transform=transform)
       dataloader = DataLoader(calib_dataset, batch_size=BATCH_SIZE, shuffle=false)
 
--  使用我们提供的 :project_file:`imagenet_util.py <tools/quantization/datasets/imagenet_util.py>` 脚本和 `ImageNet 校准数据集 <https://dl.espressif.com/public/imagenet_calib.zip>`__ ，快速下载和测试。
+-  使用我们提供的 :project_file:`imagenet_util.py <tools/quantization/datasets/imagenet_util.py>` 脚本和 `ImageNet 校准数据集 <https://dl.espressif.com/public/imagenet_calib.zip>`__，快速下载和测试。
 
    .. code-block:: python
 
@@ -82,7 +84,7 @@
 3. 量化模型并导出 ESPDL 模型
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-使用 ``espdl_quantize_torch`` API 量化模型并导出 ESPDL 模型文件，量化后会导出三个文件，分别是
+使用 ``espdl_quantize_torch`` API 量化模型并导出 ESPDL 模型文件，量化后会导出三个文件，分别是：
 
 - ``**.espdl``：ESPDL 模型二进制文件，可以直接用于芯片的推理。
 - ``**.info``：ESPDL 模型文本文件，用于调试和确定 ESPDL 模型是否被正确导出。
@@ -114,7 +116,7 @@
    ) -> BaseGraph:
 
        """Quantize ONNX model and return quantized ppq graph and executor .
-       
+
        Args:
            model (torch.nn.Module): torch model
            calib_dataloader (DataLoader): calibration data loader
@@ -208,7 +210,7 @@
       /features/features.1/conv/conv.0/conv.0.0/Conv:  |                      | 0.875%
       /features/features.0/features.0.0/Conv:          |                      | 0.119%
       Analysing Layerwise quantization error:: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 53/53 [08:44<00:00,  9.91s/it]
-      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      Layer                                            | NOISE:SIGNAL POWER RATIO
       /features/features.1/conv/conv.0/conv.0.0/Conv:  | ████████████████████ | 14.303%
       /features/features.0/features.0.0/Conv:          | █                    | 0.844%
       /features/features.1/conv/conv.1/Conv:           | █                    | 0.667%
@@ -270,11 +272,11 @@
    量化后的 top1 准确率只有 60.5%，和 float 模型的准确率 (71.878%) 相差较远，量化模型精度损失较大，其中：
 
    + **累计误差 (Graphwise Error)：**
-      
+
       该模型的最后一层为 /classifier/classifier.1/Gemm，该层的累计误差为 25.591%。经验来说最后一层的累计误差小于 10%，量化模型的精度损失较小。
 
-   + **逐层误差 (Layerwise error)：** 
-      
+   + **逐层误差 (Layerwise error)：**
+
       观察 Layerwise error，发现大部分层的误差都在 1% 以下，说明大部分层的量化误差较小，只有少数几层误差较大，我们可以选择将误差较大的层使用 int16 进行量化。具体请看混合精度量化。
 
 混合精度量化测试
@@ -298,7 +300,7 @@
 
    .. code-block::
 
-      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      Layer                                            | NOISE:SIGNAL POWER RATIO
       /features/features.16/conv/conv.2/Conv:          | ████████████████████ | 31.585%
       /features/features.15/conv/conv.2/Conv:          | ███████████████████  | 29.253%
       /features/features.17/conv/conv.0/conv.0.0/Conv: | ████████████████     | 25.077%
@@ -353,8 +355,8 @@
       /features/features.1/conv/conv.0/conv.0.0/Conv:  |                      | 0.433%
       /features/features.0/features.0.0/Conv:          |                      | 0.119%
       Analysing Layerwise quantization error:: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 53/53 [08:27<00:00,  9.58s/it]
-      * 
-      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      *
+      Layer                                            | NOISE:SIGNAL POWER RATIO
       /features/features.1/conv/conv.1/Conv:           | ████████████████████ | 1.096%
       /features/features.0/features.0.0/Conv:          | ███████████████      | 0.844%
       /features/features.2/conv/conv.1/conv.1.0/Conv:  | ██████████           | 0.574%
@@ -412,9 +414,9 @@
       * Prec@1 69.550 Prec@5 88.450*
 
 -  **量化误差分析:**
-   
+
    将之前误差最大的层替换为 16 位量化后，可以观察到模型准确度明显提升，量化后的 top1 准确率为 69.550%，和 float 模型的准确率 (71.878%) 比较接近。
-   
+
    该模型的最后一层 /classifier/classifier.1/Gemm 的累计误差为 9.117%。
 
 
@@ -448,7 +450,7 @@
 
    .. code-block::
 
-      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      Layer                                            | NOISE:SIGNAL POWER RATIO
       /features/features.16/conv/conv.2/Conv:          | ████████████████████ | 34.497%
       /features/features.15/conv/conv.2/Conv:          | ██████████████████   | 30.813%
       /features/features.14/conv/conv.2/Conv:          | ███████████████      | 25.876%
@@ -503,7 +505,7 @@
       /features/features.1/conv/conv.0/conv.0.0/Conv:  |                      | 0.389%
       /features/features.0/features.0.0/Conv:          |                      | 0.025%
       Analysing Layerwise quantization error:: 100%|██████████| 53/53 [07:46<00:00,  8.80s/it]
-      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      Layer                                            | NOISE:SIGNAL POWER RATIO
       /features/features.1/conv/conv.0/conv.0.0/Conv:  | ████████████████████ | 0.989%
       /features/features.0/features.0.0/Conv:          | █████████████████    | 0.845%
       /features/features.16/conv/conv.2/Conv:          | █████                | 0.238%
@@ -561,8 +563,8 @@
       * Prec@1 69.800 Prec@5 88.550
 
 -  **量化误差分析:**
-   
-   注意到对8-bit量化应用层间均衡有助于降低量化损失。模型最后一层，/classifier/classifier.1/Gemm的累积误差为8.965%。量化后的top1准确率为69.800%，和float模型的准确率(71.878%)更加接近，比混合精度量化的量化精度更高。 
+
+   注意到对8-bit量化应用层间均衡有助于降低量化损失。模型最后一层，/classifier/classifier.1/Gemm的累积误差为8.965%。量化后的top1准确率为69.800%，和float模型的准确率(71.878%)更加接近，比混合精度量化的量化精度更高。
 
    如果想进一步降低量化误差，可以尝试使用 QAT (Auantization Aware Training)。具体方法请参考 `PPQ QAT example <https://github.com/OpenPPL/ppq/blob/master/ppq/samples/TensorRT/Example_QAT.py>`__。
 

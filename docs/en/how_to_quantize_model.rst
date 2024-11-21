@@ -1,6 +1,8 @@
 Using ESP-PPQ for Model Quantization (PTQ)
 ==========================================
 
+:link_to_translation:`zh_CN:[中文]`
+
 In this tutorial, we will guide you through the process of quantizing a pre-trained model using ESP-PPQ and analyzing the quantization error. The quantization method used is Post Training Quantization (PTQ). ESP-PPQ builds upon `PPQ <https://github.com/OpenPPL/ppq>`__ and adds Espressif-customized quantizers and exporters, allowing users to select quantization rules that match different chips and export them as standard model files that ESP-DL can directly load. ESP-PPQ is compatible with all PPQ APIs and quantization scripts. For more details, please refer to the `PPQ documentation and videos <https://github.com/OpenPPL/ppq>`__.
 
 Prerequisites
@@ -114,7 +116,7 @@ The function parameters are described as follows:
    ) -> BaseGraph:
 
        """Quantize ONNX model and return quantized ppq graph and executor .
-       
+
        Args:
            model (torch.nn.Module): torch model
            calib_dataloader (DataLoader): calibration data loader
@@ -208,7 +210,7 @@ The function parameters are described as follows:
       /features/features.1/conv/conv.0/conv.0.0/Conv:  |                      | 0.875%
       /features/features.0/features.0.0/Conv:          |                      | 0.119%
       Analysing Layerwise quantization error:: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 53/53 [08:44<00:00,  9.91s/it]
-      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      Layer                                            | NOISE:SIGNAL POWER RATIO
       /features/features.1/conv/conv.0/conv.0.0/Conv:  | ████████████████████ | 14.303%
       /features/features.0/features.0.0/Conv:          | █                    | 0.844%
       /features/features.1/conv/conv.1/Conv:           | █                    | 0.667%
@@ -270,11 +272,11 @@ The function parameters are described as follows:
    The top-1 accuracy after quantization is only 60.5%, which is significantly lower than the accuracy of the float model (71.878%). The quantization model has a substantial loss in accuracy, with:
 
    + **Graphwise Error:**
-      
+
       The last layer of the model is /classifier/classifier.1/Gemm, and the cumulative error for this layer is 25.591%. Generally, if the cumulative error of the last layer is less than 10%, the loss in accuracy of the quantized model is minimal.
 
    + **Layerwise Error:**
-      
+
       Observing the Layerwise error, it is found that the errors for most layers are below 1%, indicating that the quantization errors for most layers are small. Only a few layers have larger errors, and we can choose to quantize these layers using int16. Please refer to Mixed-Precision Quantization Test for details.
 
 Mixed-Precision Quantization Test
@@ -298,7 +300,7 @@ Mixed-Precision Quantization Test
 
    .. code-block::
 
-      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      Layer                                            | NOISE:SIGNAL POWER RATIO
       /features/features.16/conv/conv.2/Conv:          | ████████████████████ | 31.585%
       /features/features.15/conv/conv.2/Conv:          | ███████████████████  | 29.253%
       /features/features.17/conv/conv.0/conv.0.0/Conv: | ████████████████     | 25.077%
@@ -353,8 +355,8 @@ Mixed-Precision Quantization Test
       /features/features.1/conv/conv.0/conv.0.0/Conv:  |                      | 0.433%
       /features/features.0/features.0.0/Conv:          |                      | 0.119%
       Analysing Layerwise quantization error:: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 53/53 [08:27<00:00,  9.58s/it]
-      * 
-      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      *
+      Layer                                            | NOISE:SIGNAL POWER RATIO
       /features/features.1/conv/conv.1/Conv:           | ████████████████████ | 1.096%
       /features/features.0/features.0.0/Conv:          | ███████████████      | 0.844%
       /features/features.2/conv/conv.1/conv.1.0/Conv:  | ██████████           | 0.574%
@@ -432,7 +434,7 @@ Layerwise Equalization Quantization Test
             else:
                   convert_relu6_to_relu(child)
          return model
-      
+
       # replace ReLU6 with ReLU
       model = convert_relu6_to_relu(model)
       # adopt layerwise equalization
@@ -447,7 +449,7 @@ Layerwise Equalization Quantization Test
 
    .. code-block::
 
-      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      Layer                                            | NOISE:SIGNAL POWER RATIO
       /features/features.16/conv/conv.2/Conv:          | ████████████████████ | 34.497%
       /features/features.15/conv/conv.2/Conv:          | ██████████████████   | 30.813%
       /features/features.14/conv/conv.2/Conv:          | ███████████████      | 25.876%
@@ -502,7 +504,7 @@ Layerwise Equalization Quantization Test
       /features/features.1/conv/conv.0/conv.0.0/Conv:  |                      | 0.389%
       /features/features.0/features.0.0/Conv:          |                      | 0.025%
       Analysing Layerwise quantization error:: 100%|██████████| 53/53 [07:46<00:00,  8.80s/it]
-      Layer                                            | NOISE:SIGNAL POWER RATIO 
+      Layer                                            | NOISE:SIGNAL POWER RATIO
       /features/features.1/conv/conv.0/conv.0.0/Conv:  | ████████████████████ | 0.989%
       /features/features.0/features.0.0/Conv:          | █████████████████    | 0.845%
       /features/features.16/conv/conv.2/Conv:          | █████                | 0.238%
@@ -557,7 +559,7 @@ Layerwise Equalization Quantization Test
       /features/features.8/conv/conv.0/conv.0.0/Conv:  |                      | 0.001%
       /features/features.9/conv/conv.0/conv.0.0/Conv:  |                      | 0.001%
 
-      * Prec@1 69.800 Prec@5 88.550  
+      * Prec@1 69.800 Prec@5 88.550
 
 -  **Quantization Error Analysis:**
 

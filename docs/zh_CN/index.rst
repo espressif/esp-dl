@@ -1,5 +1,9 @@
 .. toctree::
     how_to_quantize_model
+    how_to_load_model
+    how_to_deploy_mobilenet
+    how_to_add_a_new_module(operator)
+
 
 API 参考
 --------
