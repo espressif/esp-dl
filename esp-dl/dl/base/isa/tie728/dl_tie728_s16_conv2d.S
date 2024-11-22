@@ -202,7 +202,7 @@ tie728_s16_conv2d_11cn_bias_loop:
 
     tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_conv2d_11c8 q0, q1, q2, a15, a5, a6
-    tie728_s16_conv2d_per_layer_result  q0, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
@@ -248,7 +248,7 @@ tie728_s16_conv2d_11cn_bias_relu_loop:
 
     tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_conv2d_11c8 q0, q1, q2, a15, a5, a6
-    tie728_s16_conv2d_per_layer_result  q0, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
     tie728_s16_conv2d_relu  q0, a12, a13
     EE.VST.128.IP  q0, a2, 16
 
@@ -295,7 +295,7 @@ tie728_s16_conv2d_11cn_bias_prelu_loop:
 
     tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_conv2d_11c8 q0, q1, q2, a15, a5, a6
-    tie728_s16_conv2d_per_layer_result  q0, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
     tie728_s16_conv2d_prelu  q0, q2, a12, a13
     EE.VST.128.IP  q0, a2, 16
 
@@ -341,7 +341,8 @@ tie728_s16_conv2d_11cn_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_11c8 q0, q1, q2, a15, a5, a6
-    tie728_s16_conv2d_shift_store q0, a2, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
+    EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_11cn_loop
@@ -385,7 +386,9 @@ tie728_s16_conv2d_11cn_relu_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_11c8 q0, q1, q2, a15, a5, a6
-    tie728_s16_conv2d_shift_relu_store q0, a2, a8, a12, a13
+    tie728_s16_vector_round_result  q0, a8, a15, q3
+    tie728_s16_conv2d_relu  q0, a12, a13
+    EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_11cn_relu_loop
@@ -429,7 +432,9 @@ tie728_s16_conv2d_11cn_prelu_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_11c8 q0, q1, q2, a15, a5, a6
-    tie728_s16_conv2d_shift_prelu_store q0, a2, a8, q1, a12, a13
+    tie728_s16_vector_round_result  q0, a8, a15, q3
+    tie728_s16_conv2d_prelu  q0, q1, a12, a13
+    EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_11cn_prelu_loop
@@ -523,7 +528,7 @@ tie728_s16_conv2d_33cn_bias_loop:
 
     tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
-    tie728_s16_conv2d_per_layer_result  q0, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
@@ -569,7 +574,7 @@ tie728_s16_conv2d_33cn_bias_relu_loop:
 
     tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
-    tie728_s16_conv2d_per_layer_result  q0, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
     tie728_s16_conv2d_relu  q0, a12, a13
     EE.VST.128.IP  q0, a2, 16
 
@@ -616,7 +621,7 @@ tie728_s16_conv2d_33cn_bias_prelu_loop:
 
     tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
-    tie728_s16_conv2d_per_layer_result  q0, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
     tie728_s16_conv2d_prelu  q0, q2, a12, a13
     EE.VST.128.IP  q0, a2, 16
 
@@ -662,7 +667,8 @@ tie728_s16_conv2d_33cn_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
-    tie728_s16_conv2d_shift_store q0, a2, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
+    EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_33cn_loop
@@ -706,7 +712,9 @@ tie728_s16_conv2d_33cn_relu_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
-    tie728_s16_conv2d_shift_relu_store q0, a2, a8, a12, a13
+    tie728_s16_vector_round_result  q0, a8, a15, q3
+    tie728_s16_conv2d_relu  q0, a12, a13
+    EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_33cn_relu_loop
@@ -750,7 +758,9 @@ tie728_s16_conv2d_33cn_prelu_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_33c8 q0, q1, q2, a15, a5, a6, a9, a10
-    tie728_s16_conv2d_shift_prelu_store q0, a2, a8, q1, a12, a13
+    tie728_s16_vector_round_result  q0, a8, a15, q3
+    tie728_s16_conv2d_prelu  q0, q1, a12, a13
+    EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_33cn_prelu_loop
@@ -840,7 +850,7 @@ tie728_s16_conv2d_hwcn_bias_loop:
 
     tie728_s16_conv2d_128b_vector_bias  a13
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
-    tie728_s16_conv2d_per_layer_result  q0, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
@@ -892,7 +902,7 @@ tie728_s16_conv2d_hwcn_bias_relu_loop:
     tie728_s16_conv2d_128b_vector_bias  a13
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
     l32i a11, a4, 84  // activation_shift
-    tie728_s16_conv2d_per_layer_result  q0, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
     tie728_s16_conv2d_relu  q0, a14, a11
     EE.VST.128.IP  q0, a2, 16
 
@@ -945,7 +955,7 @@ tie728_s16_conv2d_hwcn_bias_prelu_loop:
     tie728_s16_conv2d_128b_vector_bias  a13
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
     l32i a11, a4, 84  // activation_shift
-    tie728_s16_conv2d_per_layer_result  q0, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
     tie728_s16_conv2d_prelu  q0, q2, a14, a11
     EE.VST.128.IP  q0, a2, 16
 
@@ -995,7 +1005,8 @@ tie728_s16_conv2d_hwcn_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
-    tie728_s16_conv2d_shift_store q0, a2, a8
+    tie728_s16_vector_round_result  q0, a8, a15, q3
+    EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_hwcn_loop
@@ -1044,7 +1055,9 @@ tie728_s16_conv2d_hwcn_relu_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
-    tie728_s16_conv2d_shift_relu_store q0, a2, a8, a13, a14
+    tie728_s16_vector_round_result  q0, a8, a15, q3
+    tie728_s16_conv2d_relu  q0, a13, a14
+    EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_hwcn_relu_loop
@@ -1093,7 +1106,9 @@ tie728_s16_conv2d_hwcn_prelu_loop:
     EE.ZERO.QACC
 
     tie728_s16_conv2d_hwc8 q0, q1, q2, a15, a5, a6, a9, a10, a11, a12, a4, q6
-    tie728_s16_conv2d_shift_prelu_store q0, a2, a8, q1, a13, a14
+    tie728_s16_vector_round_result  q0, a8, a15, q3
+    tie728_s16_conv2d_prelu  q0, q1, a13, a14
+    EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
     bnez a7, tie728_s16_conv2d_hwcn_prelu_loop

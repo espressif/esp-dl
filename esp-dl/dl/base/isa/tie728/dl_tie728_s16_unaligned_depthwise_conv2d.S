@@ -163,12 +163,14 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1:
             loopgtz a9, tie728_s16_unaligned_depthwise_conv2d_33c1_32b_last
                 EE.ZERO.QACC
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_32b_aligned_vector_shift_store q3, a2, a10, a14
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_32b_aligned_vector_store  q3, a2, a15
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_32b_last:
             EE.ZERO.QACC
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_32b_aligned_vector_shift_store q3, a2, a10, a14
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_32b_aligned_vector_store  q3, a2, a15
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_c_remainder
 
@@ -176,12 +178,14 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1:
             loopgtz a9, tie728_s16_unaligned_depthwise_conv2d_33c1_64b_last
                 EE.ZERO.QACC
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_64b_aligned_vector_shift_store q3, a2, a10
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_64b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_64b_last:
             EE.ZERO.QACC
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_64b_aligned_vector_shift_store q3, a2, a10
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_64b_aligned_vector_store  q3, a2
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_c_remainder
 
@@ -189,12 +193,14 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1:
             loopgtz a9, tie728_s16_unaligned_depthwise_conv2d_33c1_128b_last
                 EE.ZERO.QACC
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_128b_aligned_vector_shift_store q3, a2, a10
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_128b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_128b_last:
             EE.ZERO.QACC
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_128b_aligned_vector_shift_store q3, a2, a10
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_128b_aligned_vector_store  q3, a2
 
 
     tie728_s16_unaligned_depthwise_conv2d_33c1_c_remainder:
@@ -203,7 +209,8 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1:
             EE.ZERO.QACC
             srli a14, a9, 1
             tie728_s16_unaligned_depthwise_conv2d_33r1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9
-            tie728_s16_variable_vector_shift_store q0, a2, a10, a14, a15
+            tie728_s16_vector_round_result  q0, a10, a15, q5
+            tie728_s16_variable_vector_store  a2, q0, a14, a15
 
         tie728_s16_unaligned_depthwise_conv2d_33c1_c_remainder_end:
 
@@ -257,12 +264,16 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_relu:
             loopgtz a9, tie728_s16_unaligned_depthwise_conv2d_33c1_relu_32b_last
                 EE.ZERO.QACC
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_32b_aligned_vector_shift_relu_store q3, a2, a10, a12, a13, a14
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_relu  q3, a12, a13
+                tie728_32b_aligned_vector_store  q3, a2, a15
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_relu_32b_last:
             EE.ZERO.QACC
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_32b_aligned_vector_shift_relu_store q3, a2, a10, a12, a13, a14
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_relu  q3, a12, a13
+            tie728_32b_aligned_vector_store  q3, a2, a15
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_relu_c_remainder
 
@@ -270,12 +281,16 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_relu:
             loopgtz a9, tie728_s16_unaligned_depthwise_conv2d_33c1_relu_64b_last
                 EE.ZERO.QACC
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_64b_aligned_vector_shift_relu_store q3, a2, a10, a12, a13
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_relu  q3, a12, a13
+                tie728_64b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_relu_64b_last:
             EE.ZERO.QACC
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_64b_aligned_vector_shift_relu_store q3, a2, a10, a12, a13
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_relu  q3, a12, a13
+            tie728_64b_aligned_vector_store  q3, a2
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_relu_c_remainder
 
@@ -283,12 +298,16 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_relu:
             loopgtz a9, tie728_s16_unaligned_depthwise_conv2d_33c1_relu_128b_last
                 EE.ZERO.QACC
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_128b_aligned_vector_shift_relu_store q3, a2, a10, a12, a13
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_relu  q3, a12, a13
+                tie728_128b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_relu_128b_last:
             EE.ZERO.QACC
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_128b_aligned_vector_shift_relu_store q3, a2, a10, a12, a13
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_relu  q3, a12, a13
+            tie728_128b_aligned_vector_store  q3, a2
 
 
     tie728_s16_unaligned_depthwise_conv2d_33c1_relu_c_remainder:
@@ -297,7 +316,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_relu:
             EE.ZERO.QACC
             srli a14, a9, 1
             tie728_s16_unaligned_depthwise_conv2d_33r1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9
-            tie728_s16_variable_vector_shift_relu_store q0, a2, a10, a12, a13, a14, a15
+            tie728_s16_vector_round_result  q0, a10, a15, q5
+            tie728_s16_conv2d_relu  q0, a12, a13
+            tie728_s16_variable_vector_store  a2, q0, a14, a15
 
         tie728_s16_unaligned_depthwise_conv2d_33c1_relu_c_remainder_end:
 
@@ -351,12 +372,16 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_prelu:
             loopgtz a9, tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_32b_last
                 EE.ZERO.QACC
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_32b_aligned_vector_shift_prelu_store q3, a2, a10, q5, a12, a13, a14
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_prelu  q3, q5, a12, a13
+                tie728_32b_aligned_vector_store  q3, a2, a15
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_32b_last:
             EE.ZERO.QACC
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_32b_aligned_vector_shift_prelu_store q3, a2, a10, q5, a12, a13, a14
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_prelu  q3, q5, a12, a13
+            tie728_32b_aligned_vector_store  q3, a2, a15
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_c_remainder
 
@@ -364,12 +389,16 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_prelu:
             loopgtz a9, tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_64b_last
                 EE.ZERO.QACC
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_64b_aligned_vector_shift_prelu_store q3, a2, a10, q5, a12, a13
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_prelu  q3, q5, a12, a13
+                tie728_64b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_64b_last:
             EE.ZERO.QACC
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_64b_aligned_vector_shift_prelu_store q3, a2, a10, q5, a12, a13
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_prelu  q3, q5, a12, a13
+            tie728_64b_aligned_vector_store  q3, a2
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_c_remainder
 
@@ -377,12 +406,16 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_prelu:
             loopgtz a9, tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_128b_last
                 EE.ZERO.QACC
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_128b_aligned_vector_shift_prelu_store q3, a2, a10, q5, a12, a13
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_prelu  q3, q5, a12, a13
+                tie728_128b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_128b_last:
             EE.ZERO.QACC
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_128b_aligned_vector_shift_prelu_store q3, a2, a10, q5, a12, a13
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_prelu  q3, q5, a12, a13
+            tie728_128b_aligned_vector_store  q3, a2
 
 
     tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_c_remainder:
@@ -391,7 +424,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_prelu:
             EE.ZERO.QACC
             srli a14, a9, 1
             tie728_s16_unaligned_depthwise_conv2d_33r1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9
-            tie728_s16_variable_vector_shift_prelu_store q0, a2, a10, q1, a12, a13, a14, a15
+            tie728_s16_vector_round_result  q0, a10, a15, q5
+            tie728_s16_conv2d_prelu  q0, q5, a12, a13
+            tie728_s16_variable_vector_store  a2, q0, a14, a15
 
         tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_c_remainder_end:
 
@@ -446,13 +481,15 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias:
                 EE.ZERO.QACC
                 tie728_s16_conv2d_128b_vector_bias  a11
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_32b_aligned_vector_shift_store  q3, a2, a10, a14
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_32b_aligned_vector_store  q3, a2, a15
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_bias_32b_last:
             EE.ZERO.QACC
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_32b_aligned_vector_shift_store  q3, a2, a10, a14
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_32b_aligned_vector_store  q3, a2, a15
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_bias_c_remainder
 
@@ -461,13 +498,15 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias:
                 EE.ZERO.QACC
                 tie728_s16_conv2d_128b_vector_bias  a11
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_64b_aligned_vector_shift_store  q3, a2, a10
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_64b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_bias_64b_last:
             EE.ZERO.QACC
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_64b_aligned_vector_shift_store  q3, a2, a10
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_64b_aligned_vector_store  q3, a2
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_bias_c_remainder
 
@@ -476,13 +515,15 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias:
                 EE.ZERO.QACC
                 tie728_s16_conv2d_128b_vector_bias  a11
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_128b_aligned_vector_shift_store  q3, a2, a10
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_128b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_bias_128b_last:
             EE.ZERO.QACC
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_128b_aligned_vector_shift_store  q3, a2, a10
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_128b_aligned_vector_store  q3, a2
 
 
     tie728_s16_unaligned_depthwise_conv2d_33c1_bias_c_remainder:
@@ -492,7 +533,8 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias:
             srli a14, a9, 1
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_33r1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9
-            tie728_s16_variable_vector_shift_store  q0, a2, a10, a14, a15
+            tie728_s16_vector_round_result  q0, a10, a15, q5
+            tie728_s16_variable_vector_store  a2, q0, a14, a15
 
         tie728_s16_unaligned_depthwise_conv2d_33c1_bias_c_remainder_end:
 
@@ -548,13 +590,17 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu:
                 EE.ZERO.QACC
                 tie728_s16_conv2d_128b_vector_bias  a11
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_32b_aligned_vector_shift_relu_store  q3, a2, a10, a12, a13, a14
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_relu  q3, a12, a13
+                tie728_32b_aligned_vector_store  q3, a2, a15
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu_32b_last:
             EE.ZERO.QACC
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_32b_aligned_vector_shift_relu_store  q3, a2, a10, a12, a13, a14
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_relu  q3, a12, a13
+            tie728_32b_aligned_vector_store  q3, a2, a15
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu_c_remainder
 
@@ -563,13 +609,17 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu:
                 EE.ZERO.QACC
                 tie728_s16_conv2d_128b_vector_bias  a11
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_64b_aligned_vector_shift_relu_store  q3, a2, a10, a12, a13
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_relu  q3, a12, a13
+                tie728_64b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu_64b_last:
             EE.ZERO.QACC
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_64b_aligned_vector_shift_relu_store  q3, a2, a10, a12, a13
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_relu  q3, a12, a13
+            tie728_64b_aligned_vector_store  q3, a2
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu_c_remainder
 
@@ -578,13 +628,17 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu:
                 EE.ZERO.QACC
                 tie728_s16_conv2d_128b_vector_bias  a11
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_128b_aligned_vector_shift_relu_store  q3, a2, a10, a12, a13
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_relu  q3, a12, a13
+                tie728_128b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu_128b_last:
             EE.ZERO.QACC
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_128b_aligned_vector_shift_relu_store  q3, a2, a10, a12, a13
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_relu  q3, a12, a13
+            tie728_128b_aligned_vector_store  q3, a2
 
 
     tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu_c_remainder:
@@ -594,7 +648,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu:
             srli a14, a9, 1
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_33r1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9
-            tie728_s16_variable_vector_shift_relu_store  q0, a2, a10, a12, a13, a14, a15
+            tie728_s16_vector_round_result  q0, a10, a15, q5
+            tie728_s16_conv2d_relu  q0, a12, a13
+            tie728_s16_variable_vector_store  a2, q0, a14, a15
 
         tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu_c_remainder_end:
 
@@ -649,13 +705,17 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu:
                 EE.ZERO.QACC
                 tie728_s16_conv2d_128b_vector_bias  a11
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_32b_aligned_vector_shift_prelu_store  q3, a2, a10, q6, a12, a13, a14
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_prelu  q3, q5, a12, a13
+                tie728_32b_aligned_vector_store  q3, a2, a15
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu_32b_last:
             EE.ZERO.QACC
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_32b_aligned_vector_shift_prelu_store  q3, a2, a10, q6, a12, a13, a14
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_prelu  q3, q5, a12, a13
+            tie728_32b_aligned_vector_store  q3, a2, a15
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu_c_remainder
 
@@ -664,13 +724,17 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu:
                 EE.ZERO.QACC
                 tie728_s16_conv2d_128b_vector_bias  a11
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_64b_aligned_vector_shift_prelu_store  q3, a2, a10, q6, a12, a13
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_prelu  q3, q5, a12, a13
+                tie728_64b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu_64b_last:
             EE.ZERO.QACC
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_64b_aligned_vector_shift_prelu_store  q3, a2, a10, q6, a12, a13
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_prelu  q3, q5, a12, a13
+            tie728_64b_aligned_vector_store  q3, a2
 
             j tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu_c_remainder
 
@@ -679,13 +743,17 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu:
                 EE.ZERO.QACC
                 tie728_s16_conv2d_128b_vector_bias  a11
                 tie728_s16_unaligned_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, q6, a3, a5, a6, a7, a8
-                tie728_s16_128b_aligned_vector_shift_prelu_store  q3, a2, a10, q6, a12, a13
+                tie728_s16_vector_round_result  q3, a10, a15, q5
+                tie728_s16_conv2d_prelu  q3, q5, a12, a13
+                tie728_128b_aligned_vector_store  q3, a2
 
             tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu_128b_last:
             EE.ZERO.QACC
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_3381_last q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-            tie728_s16_128b_aligned_vector_shift_prelu_store  q3, a2, a10, q6, a12, a13
+            tie728_s16_vector_round_result  q3, a10, a15, q5
+            tie728_s16_conv2d_prelu  q3, q5, a12, a13
+            tie728_128b_aligned_vector_store  q3, a2
 
 
     tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu_c_remainder:
@@ -695,7 +763,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu:
             srli a14, a9, 1
             tie728_s16_conv2d_128b_vector_bias  a11
             tie728_s16_unaligned_depthwise_conv2d_33r1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9
-            tie728_s16_variable_vector_shift_prelu_store  q0, a2, a10, q2, a12, a13, a14, a15
+            tie728_s16_vector_round_result  q0, a10, a15, q5
+            tie728_s16_conv2d_prelu  q0, q5, a12, a13
+            tie728_s16_variable_vector_store  a2, q0, a14, a15
         tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu_c_remainder_end:
 
     retw
@@ -934,7 +1004,8 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1:
                 tie728_s16_unaligned_depthwise_conv2d_hwc1_32b_multiple_loop:
                     EE.ZERO.QACC
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a15
-                    tie728_s16_32b_aligned_vector_shift_store q0, a2, a13, a9
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_32b_aligned_vector_store  q0, a2, a9
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_32b_multiple_loop
@@ -944,7 +1015,8 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1:
                 tie728_s16_unaligned_depthwise_conv2d_hwc1_64b_multiple_loop:
                     EE.ZERO.QACC
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a15
-                    tie728_s16_64b_aligned_vector_shift_store q0, a2, a13
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_64b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_64b_multiple_loop
@@ -954,7 +1026,8 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1:
                 tie728_s16_unaligned_depthwise_conv2d_hwc1_128b_multiple_loop:
                     EE.ZERO.QACC
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a15
-                    tie728_s16_128b_aligned_vector_shift_store q0, a2, a13
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_128b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_128b_multiple_loop
@@ -968,7 +1041,8 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1:
             l32i a5, a4,  168 # filter_ptr unaligned
             l32i a15, a4, 160
             tie728_s16_unaligned_depthwise_conv2d_hwr1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9, a10, a11, a12, a4, a15
-            tie728_s16_variable_vector_shift_store q0, a2, a13, a8, a9
+            tie728_s16_vector_round_result  q0, a13, a9, q5
+            tie728_s16_variable_vector_store  a2, q0, a8, a9
 
         tie728_s16_unaligned_depthwise_conv2d_hwc1_c_remainder_end:
 
@@ -1026,7 +1100,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_relu:
                     EE.ZERO.QACC
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_32b_aligned_vector_shift_relu_store q0, a2, a13, a14, a15, a9
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_s16_conv2d_relu  q0, a14, a15
+                    tie728_32b_aligned_vector_store  q0, a2, a9
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_relu_32b_multiple_loop
@@ -1038,7 +1114,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_relu:
                     EE.ZERO.QACC
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_64b_aligned_vector_shift_relu_store q0, a2, a13, a14, a15
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_s16_conv2d_relu  q0, a14, a15
+                    tie728_64b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_relu_64b_multiple_loop
@@ -1050,7 +1128,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_relu:
                     EE.ZERO.QACC
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_128b_aligned_vector_shift_relu_store q0, a2, a13, a14, a15
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_s16_conv2d_relu  q0, a14, a15
+                    tie728_128b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_relu_128b_multiple_loop
@@ -1065,7 +1145,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_relu:
             l32i a13, a4, 160
             tie728_s16_unaligned_depthwise_conv2d_hwr1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9, a10, a11, a12, a4, a13
             EE.MOVI.32.A q7, a13, 3
-            tie728_s16_variable_vector_shift_relu_store q0, a2, a13, a14, a15, a8, a9
+            tie728_s16_vector_round_result  q0, a13, a9, q5
+            tie728_s16_conv2d_relu  q0, a14, a15
+            tie728_s16_variable_vector_store  a2, q0, a8, a9
 
         tie728_s16_unaligned_depthwise_conv2d_hwc1_relu_c_remainder_end:
 
@@ -1123,7 +1205,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu:
                     EE.ZERO.QACC
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_32b_aligned_vector_shift_prelu_store q0, a2, a13, q1, a14, a15, a9
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_s16_conv2d_prelu  q0, q5, a14, a15
+                    tie728_32b_aligned_vector_store  q0, a2, a9
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu_32b_multiple_loop
@@ -1135,7 +1219,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu:
                     EE.ZERO.QACC
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_64b_aligned_vector_shift_prelu_store q0, a2, a13, q1, a14, a15
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_s16_conv2d_prelu  q0, q5, a14, a15
+                    tie728_64b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu_64b_multiple_loop
@@ -1147,7 +1233,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu:
                     EE.ZERO.QACC
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_128b_aligned_vector_shift_prelu_store q0, a2, a13, q1, a14, a15
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_s16_conv2d_prelu  q0, q5, a14, a15
+                    tie728_128b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu_128b_multiple_loop
@@ -1162,7 +1250,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu:
             l32i a13, a4, 160
             tie728_s16_unaligned_depthwise_conv2d_hwr1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9, a10, a11, a12, a4, a13
             EE.MOVI.32.A q7, a13, 3
-            tie728_s16_variable_vector_shift_prelu_store q0, a2, a13, q1, a14, a15, a8, a9
+            tie728_s16_vector_round_result  q0, a13, a9, q5
+            tie728_s16_conv2d_prelu  q0, q5, a14, a15
+            tie728_s16_variable_vector_store  a2, q0, a8, a9
 
         tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu_c_remainder_end:
 
@@ -1216,7 +1306,8 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias:
                     EE.ZERO.QACC
                     tie728_s16_conv2d_128b_vector_bias  a14
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a15
-                    tie728_s16_32b_aligned_vector_shift_store  q0, a2, a13, a10
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_32b_aligned_vector_store  q0, a2, a9
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_32b_multiple_loop
@@ -1227,7 +1318,8 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias:
                     EE.ZERO.QACC
                     tie728_s16_conv2d_128b_vector_bias  a14
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a15
-                    tie728_s16_64b_aligned_vector_shift_store  q0, a2, a13
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_64b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_64b_multiple_loop
@@ -1238,7 +1330,8 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias:
                     EE.ZERO.QACC
                     tie728_s16_conv2d_128b_vector_bias  a14
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a15
-                    tie728_s16_128b_aligned_vector_shift_store  q0, a2, a13
+                    tie728_s16_vector_round_result  q0, a13, a9, q5
+                    tie728_128b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_128b_multiple_loop
@@ -1253,7 +1346,8 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias:
             l32i a15, a4, 160
             tie728_s16_conv2d_128b_vector_bias  a14
             tie728_s16_unaligned_depthwise_conv2d_hwr1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9, a10, a11, a12, a4, a15
-            tie728_s16_variable_vector_shift_store  q0, a2, a13, a8, a10
+            tie728_s16_vector_round_result  q0, a13, a9, q5
+            tie728_s16_variable_vector_store  a2, q0, a8, a9
 
         tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_c_remainder_end:
 
@@ -1313,7 +1407,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu:
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     l32i a9, a4, 84     # a9: activation_shift
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_32b_aligned_vector_shift_relu_store  q0, a2, a13, a15, a9, a10
+                    tie728_s16_vector_round_result  q0, a13, a10, q5
+                    tie728_s16_conv2d_relu  q0, a15, a9
+                    tie728_32b_aligned_vector_store  q0, a2, a10
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu_32b_multiple_loop
@@ -1327,7 +1423,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu:
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     l32i a9, a4, 84     # a9: activation_shift
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_64b_aligned_vector_shift_relu_store  q0, a2, a13, a15, a9
+                    tie728_s16_vector_round_result  q0, a13, a10, q5
+                    tie728_s16_conv2d_relu  q0, a15, a9
+                    tie728_64b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu_64b_multiple_loop
@@ -1341,7 +1439,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu:
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     l32i a9, a4, 84     # a9: activation_shift
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_128b_aligned_vector_shift_relu_store  q0, a2, a13, a15, a9
+                    tie728_s16_vector_round_result  q0, a13, a10, q5
+                    tie728_s16_conv2d_relu  q0, a15, a9
+                    tie728_128b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu_128b_multiple_loop
@@ -1358,7 +1458,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu:
             tie728_s16_unaligned_depthwise_conv2d_hwr1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9, a10, a11, a12, a4, a13
             l32i a9, a4, 84             # a9: activation_shift
             EE.MOVI.32.A q7, a13, 3
-            tie728_s16_variable_vector_shift_relu_store  q0, a2, a13, a15, a9, a8, a10
+            tie728_s16_vector_round_result  q0, a13, a10, q5
+            tie728_s16_conv2d_relu  q0, a15, a9
+            tie728_s16_variable_vector_store  a2, q0, a8, a10
 
         tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu_c_remainder_end:
 
@@ -1417,7 +1519,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu:
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     l32i a9, a4, 84     # a9: activation_shift
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_32b_aligned_vector_shift_prelu_store  q0, a2, a13, q2, a15, a9, a10
+                    tie728_s16_vector_round_result  q0, a13, a10, q5
+                    tie728_s16_conv2d_prelu  q0, q5, a15, a9
+                    tie728_32b_aligned_vector_store  q0, a2, a10
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu_32b_multiple_loop
@@ -1431,7 +1535,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu:
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     l32i a9, a4, 84     # a9: activation_shift
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_64b_aligned_vector_shift_prelu_store  q0, a2, a13, q2, a15, a9
+                    tie728_s16_vector_round_result  q0, a13, a10, q5
+                    tie728_s16_conv2d_prelu  q0, q5, a15, a9
+                    tie728_64b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu_64b_multiple_loop
@@ -1445,7 +1551,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu:
                     tie728_s16_unaligned_depthwise_conv2d_hw81 q0, q1, q2, q3, a3, a5, a6, a7, a8, a9, a10, a11, a4, q7, a13
                     l32i a9, a4, 84     # a9: activation_shift
                     EE.MOVI.32.A q7, a13, 3
-                    tie728_s16_128b_aligned_vector_shift_prelu_store  q0, a2, a13, q2, a15, a9
+                    tie728_s16_vector_round_result  q0, a13, a10, q5
+                    tie728_s16_conv2d_prelu  q0, q5, a15, a9
+                    tie728_128b_aligned_vector_store  q0, a2
 
                     addi a12, a12, -1
                     bgei a12, 0, tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu_128b_multiple_loop
@@ -1462,7 +1570,9 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu:
             tie728_s16_unaligned_depthwise_conv2d_hwr1 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a9, a10, a11, a12, a4, a13
             l32i a9, a4, 84             # a9: activation_shift
             EE.MOVI.32.A q7, a13, 3
-            tie728_s16_variable_vector_shift_prelu_store  q0, a2, a13, q2, a15, a9, a8, a10
+            tie728_s16_vector_round_result  q0, a13, a10, q5
+            tie728_s16_conv2d_prelu  q0, q5, a15, a9
+            tie728_s16_variable_vector_store  a2, q0, a8, a10
 
         tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu_c_remainder_end:
 

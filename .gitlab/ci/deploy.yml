@@ -19,7 +19,7 @@ push_to_github:
   script:
     - git remote remove github &>/dev/null || true
     - git remote add github https://${GITHUB_PUSH_TOKEN}@github.com/espressif/esp-dl.git
-    - ${CI_PROJECT_DIR}/.gitlab/tool/push_to_github.sh
+    - source ${CI_PROJECT_DIR}/.gitlab/tool/push_to_github.sh
 
 .deploy_docs_template:
   stage: deploy
