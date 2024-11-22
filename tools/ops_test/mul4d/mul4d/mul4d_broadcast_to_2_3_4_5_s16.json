@@ -16,8 +16,8 @@
                 "state": "ACTIVATED",
                 "quant_min": -32768,
                 "quant_max": 32767,
-                "hash": 3069031918,
-                "dominator": 3069031918
+                "hash": 3374871867,
+                "dominator": 3374871867
             },
             "onnx::Mul_1": {
                 "bit_width": 16,
@@ -34,8 +34,8 @@
                 "state": "ACTIVATED",
                 "quant_min": -32768,
                 "quant_max": 32767,
-                "hash": 561689849,
-                "dominator": 561689849
+                "hash": 3280071442,
+                "dominator": 3280071442
             },
             "2": {
                 "bit_width": 16,
@@ -52,8 +52,8 @@
                 "state": "ACTIVATED",
                 "quant_min": -32768,
                 "quant_max": 32767,
-                "hash": 1387504600,
-                "dominator": 1387504600
+                "hash": 4182222221,
+                "dominator": 4182222221
             }
         }
     },
@@ -61,15 +61,15 @@
         "/Mul": "ESPDL_INT16"
     },
     "values": {
-        "3069031918": {
-            "scale": 0.0001220703125,
+        "3374871867": {
+            "scale": 3.0517578125e-05,
             "zero_point": 0.0
         },
-        "561689849": {
+        "3280071442": {
             "scale": 6.103515625e-05,
             "zero_point": 0.0
         },
-        "1387504600": {
+        "4182222221": {
             "scale": 0.0001220703125,
             "zero_point": 0.0
         }

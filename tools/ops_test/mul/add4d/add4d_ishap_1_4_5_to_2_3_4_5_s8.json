@@ -1,0 +1,77 @@
+{
+    "configs": {
+        "/Add": {
+            "onnx::Add_0": {
+                "bit_width": 8,
+                "policy": {
+                    "PER_TENSOR": true,
+                    "PER_CHANNEL": false,
+                    "LINEAR": true,
+                    "FLOATING": false,
+                    "SYMMETRICAL": true,
+                    "ASYMMETRICAL": false,
+                    "POWER_OF_2": true,
+                    "DYNAMIC": false
+                },
+                "state": "PASSIVE",
+                "quant_min": -128,
+                "quant_max": 127,
+                "hash": 3068121479,
+                "dominator": 3068121479
+            },
+            "onnx::Add_1": {
+                "bit_width": 8,
+                "policy": {
+                    "PER_TENSOR": true,
+                    "PER_CHANNEL": false,
+                    "LINEAR": true,
+                    "FLOATING": false,
+                    "SYMMETRICAL": true,
+                    "ASYMMETRICAL": false,
+                    "POWER_OF_2": true,
+                    "DYNAMIC": false
+                },
+                "state": "PASSIVE",
+                "quant_min": -128,
+                "quant_max": 127,
+                "hash": 3284403758,
+                "dominator": 3284403758
+            },
+            "2": {
+                "bit_width": 8,
+                "policy": {
+                    "PER_TENSOR": true,
+                    "PER_CHANNEL": false,
+                    "LINEAR": true,
+                    "FLOATING": false,
+                    "SYMMETRICAL": true,
+                    "ASYMMETRICAL": false,
+                    "POWER_OF_2": true,
+                    "DYNAMIC": false
+                },
+                "state": "ACTIVATED",
+                "quant_min": -128,
+                "quant_max": 127,
+                "hash": 3641230393,
+                "dominator": 3641230393
+            }
+        }
+    },
+    "dispatchings": {
+        "/Add": "ESPDL_INT8"
+    },
+    "values": {
+        "3068121479": {
+            "scale": 0.03125,
+            "zero_point": 0.0
+        },
+        "3284403758": {
+            "scale": 0.03125,
+            "zero_point": 0.0
+        },
+        "3641230393": {
+            "scale": 0.03125,
+            "zero_point": 0.0
+        }
+    }
+}

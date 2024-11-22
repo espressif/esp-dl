@@ -1,0 +1,31 @@
+graph main_graph (
+  %onnx::Add_0[INT16, 2x5], exponents: [-15]
+  %onnx::Add_1[INT16, 1], exponents: [-15]
+) {
+  %2 = Add[quant_type = 'S16'](%onnx::Add_0, %onnx::Add_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%onnx::Add_0[INT16, 2x5], exponents: [-15]
+%onnx::Add_1[INT16, 1], exponents: [-15]
+%2[INT16, 2x5], exponents: [-15]
+
+
+test inputs value:
+%onnx::Add_0, shape: [2, 5], exponents: [-15], 
+value: array([30344, 30073, 27348, 22162,  7475, 28068,  2208, 13808, 20443,
+       30718], dtype=int16)
+%onnx::Add_1, shape: [1], exponents: [-15], 
+value: array([4606], dtype=int16)
+
+
+test outputs value:
+%2, shape: [2, 5], exponents: [-15], 
+value: array([32767, 32767, 31954, 26768, 12081, 32674,  6814, 18414, 25049,
+       32767], dtype=int16)

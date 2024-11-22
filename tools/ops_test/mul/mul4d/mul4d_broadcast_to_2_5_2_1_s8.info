@@ -1,0 +1,29 @@
+graph main_graph (
+  %onnx::Mul_0[INT8, 2x5], exponents: [-6]
+  %onnx::Mul_1[INT8, 2x1], exponents: [-10]
+) {
+  %2 = Mul[quant_type = 'S8'](%onnx::Mul_0, %onnx::Mul_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%2[INT8, 2x5], exponents: [-9]
+%onnx::Mul_0[INT8, 2x5], exponents: [-6]
+%onnx::Mul_1[INT8, 2x1], exponents: [-10]
+
+
+test inputs value:
+%onnx::Mul_0, shape: [2, 5], exponents: [-6], 
+value: array([55, 38, 42,  8, 47,  9, 38, 35, 28, 53], dtype=int8)
+%onnx::Mul_1, shape: [2, 1], exponents: [-10], 
+value: array([127,  69], dtype=int8)
+
+
+test outputs value:
+%2, shape: [2, 5], exponents: [-9], 
+value: array([55, 38, 42,  8, 47,  5, 20, 19, 15, 29], dtype=int8)

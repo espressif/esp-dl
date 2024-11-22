@@ -2199,35 +2199,32 @@ struct arithArgsType {
     int mul_shift;                     /*<! 25 */
     int neg_output_scale;              /*<! 26 */
 
-    int input0_b;                    /*<! 27 */
-    int input0_c;                    /*<! 28 */
-    int input0_h;                    /*<! 29 */
-    int input0_w;                    /*<! 30 */
+    int input0_b; /*<! 27 */
+    int input0_c; /*<! 28 */
+    int input0_h; /*<! 29 */
+    int input0_w; /*<! 30 */
 
-    int input1_b;                    /*<! 31 */
-    int input1_c;                    /*<! 32 */
-    int input1_h;                    /*<! 33 */
-    int input1_w;                    /*<! 34 */
+    int input1_b; /*<! 31 */
+    int input1_c; /*<! 32 */
+    int input1_h; /*<! 33 */
+    int input1_w; /*<! 34 */
 
-    int output_b;                   /*<! 35 */
-    int output_c;                   /*<! 36 */
-    int output_h;                   /*<! 37 */
-    int output_w;                   /*<! 38 */
+    int output_b; /*<! 35 */
+    int output_c; /*<! 36 */
+    int output_h; /*<! 37 */
+    int output_w; /*<! 38 */
 
-    int output_max_dims;           /*<! 39 */
+    int output_max_dims; /*<! 39 */
 
-    int input0_b_same;             /*<! 40 */
-    int input0_c_same;               /*<! 41 */
-    int input0_h_same;               /*<! 42 */
-    int input0_w_same;               /*<! 43 */
+    int input0_b_same; /*<! 40 */
+    int input0_c_same; /*<! 41 */
+    int input0_h_same; /*<! 42 */
+    int input0_w_same; /*<! 43 */
 
-    int input1_b_same;             /*<! 44 */
-    int input1_c_same;               /*<! 45 */
-    int input1_h_same;               /*<! 46 */
-    int input1_w_same;               /*<! 47 */
-
-
-
+    int input1_b_same; /*<! 44 */
+    int input1_c_same; /*<! 45 */
+    int input1_h_same; /*<! 46 */
+    int input1_w_same; /*<! 47 */
 };
 
 template <typename feature_t>
@@ -2342,20 +2339,17 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(Tensor<feature_t>
         args.input0_c = input0.shape[1];
         args.input0_h = input0.shape[2];
         args.input0_w = input0.shape[3];
-    }
-    else if (size == 3) {
+    } else if (size == 3) {
         args.input0_b = 1;
         args.input0_c = input0.shape[0];
         args.input0_h = input0.shape[1];
         args.input0_w = input0.shape[2];
-    }
-    else if (size == 2) {
+    } else if (size == 2) {
         args.input0_b = 1;
         args.input0_c = 1;
         args.input0_h = input0.shape[0];
         args.input0_w = input0.shape[1];
-    }
-    else {
+    } else {
         args.input0_b = 1;
         args.input0_c = 1;
         args.input0_h = 1;
@@ -2368,20 +2362,17 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(Tensor<feature_t>
         args.input1_c = input1.shape[1];
         args.input1_h = input1.shape[2];
         args.input1_w = input1.shape[3];
-    }
-    else if (size == 3) {
+    } else if (size == 3) {
         args.input1_b = 1;
         args.input1_c = input1.shape[0];
         args.input1_h = input1.shape[1];
         args.input1_w = input1.shape[2];
-    }
-    else if (size == 2) {
+    } else if (size == 2) {
         args.input1_b = 1;
         args.input1_c = 1;
         args.input1_h = input1.shape[0];
         args.input1_w = input1.shape[1];
-    }
-    else {
+    } else {
         args.input1_b = 1;
         args.input1_c = 1;
         args.input1_h = 1;
@@ -2390,103 +2381,75 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(Tensor<feature_t>
 
     size = output.shape.size();
     args.output_max_dims = size;
-    if (size == 4) {  
+    if (size == 4) {
         args.output_b = output.shape[0];
         args.output_c = output.shape[1];
         args.output_h = output.shape[2];
         args.output_w = output.shape[3];
-    }
-    else if (size == 3) {
+    } else if (size == 3) {
         args.output_b = 1;
         args.output_c = output.shape[0];
         args.output_h = output.shape[1];
         args.output_w = output.shape[2];
-    }
-    else if (size == 2) {
+    } else if (size == 2) {
         args.output_b = 1;
         args.output_c = 1;
         args.output_h = output.shape[0];
         args.output_w = output.shape[1];
-    }
-    else {
+    } else {
         args.output_b = 1;
         args.output_c = 1;
         args.output_h = 1;
         args.output_w = output.shape[0];
     }
 
-    if (args.input0_b == args.output_b)
-    {
+    if (args.input0_b == args.output_b) {
         args.input0_b_same = 1;
-    }
-    else
-    {
+    } else {
         args.input0_b_same = 0;
     }
 
-    if (args.input0_c == args.output_c)
-    {
+    if (args.input0_c == args.output_c) {
         args.input0_c_same = 1;
-    }
-    else
-    {
+    } else {
         args.input0_c_same = 0;
     }
 
-    if (args.input0_h == args.output_h)
-    {
+    if (args.input0_h == args.output_h) {
         args.input0_h_same = 1;
-    }
-    else
-    {
+    } else {
         args.input0_h_same = 0;
     }
 
-    if (args.input0_w == args.output_w)
-    {
+    if (args.input0_w == args.output_w) {
         args.input0_w_same = 1;
-    }
-    else
-    {
+    } else {
         args.input0_w_same = 0;
     }
 
-    if (args.input1_b == args.output_b)
-    {
+    if (args.input1_b == args.output_b) {
         args.input1_b_same = 1;
-    }
-    else
-    {
+    } else {
         args.input1_b_same = 0;
     }
 
-    if (args.input1_c == args.output_c)
-    {
+    if (args.input1_c == args.output_c) {
         args.input1_c_same = 1;
-    }
-    else
-    {
+    } else {
         args.input1_c_same = 0;
     }
 
-    if (args.input1_h == args.output_h)
-    {
+    if (args.input1_h == args.output_h) {
         args.input1_h_same = 1;
-    }
-    else
-    {
+    } else {
         args.input1_h_same = 0;
     }
 
-    if (args.input1_w == args.output_w)
-    {
+    if (args.input1_w == args.output_w) {
         args.input1_w_same = 1;
-    }
-    else
-    {
+    } else {
         args.input1_w_same = 0;
     }
-
 
     // for ISA
     int u = 16 / sizeof(feature_t);
@@ -2495,6 +2458,18 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(Tensor<feature_t>
     args.c_div_x_1 = c_div_x - 1;
     args.c_div_2x_1 = DL_MAX(c_div_x / 2 - 1, 0);
     args.c_left_x_1 = c_div_x - 2 * args.c_div_2x_1 - 1;
+    // args.c_div_x_1 = 2; // test
+
+    // for ISA 4d
+    // if (args.output_max_dims == 4 && args.input0_w_same == 1 && args.input1_w_same == 1)
+    if (args.output_max_dims == 4) {
+        int u = 16 / sizeof(feature_t);
+        int c_div_x = args.output_w / u;
+        args.c_remainder = (args.output_w % u) * sizeof(feature_t);
+        args.c_div_x_1 = c_div_x - 1;
+        args.c_div_2x_1 = DL_MAX(c_div_x / 2 - 1, 0);
+        args.c_left_x_1 = c_div_x - 2 * args.c_div_2x_1 - 1;
+    }
 
     // slice
     std::vector<arithArgsType<feature_t>> m_args(core_number, args);
@@ -2520,7 +2495,7 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(TensorBase *outpu
     bool is_same_channel_num = input0->shape[3] == input1->shape[3];
     bool is_11c_and_hwc = is_same_channel_num && (is_hw_input0_11 || is_hw_input1_11);
     bool is_same_shape = input0->shape == input1->shape;
-    //assert(is_same_shape || is_11c_and_hwc);
+    // assert(is_same_shape || is_11c_and_hwc);
     if (is_same_shape) {
         args.height = input0->shape[1]; // inputs and output are the same shape
         args.width = input0->shape[2];
@@ -2619,6 +2594,8 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(TensorBase *outpu
     args.c_div_2x_1 = DL_MAX(c_div_x / 2 - 1, 0);
     args.c_left_x_1 = c_div_x - 2 * args.c_div_2x_1 - 1;
 
+    // args.rescale_input = 1; // test
+
     // for multidirectional_broadcasting
     int size = input0->shape.size();
     if (size == 4) {
@@ -2626,20 +2603,17 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(TensorBase *outpu
         args.input0_c = input0->shape[1];
         args.input0_h = input0->shape[2];
         args.input0_w = input0->shape[3];
-    }
-    else if (size == 3) {
+    } else if (size == 3) {
         args.input0_b = 1;
         args.input0_c = input0->shape[0];
         args.input0_h = input0->shape[1];
         args.input0_w = input0->shape[2];
-    }
-    else if (size == 2) {
+    } else if (size == 2) {
         args.input0_b = 1;
         args.input0_c = 1;
         args.input0_h = input0->shape[0];
         args.input0_w = input0->shape[1];
-    }
-    else {
+    } else {
         args.input0_b = 1;
         args.input0_c = 1;
         args.input0_h = 1;
@@ -2652,20 +2626,17 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(TensorBase *outpu
         args.input1_c = input1->shape[1];
         args.input1_h = input1->shape[2];
         args.input1_w = input1->shape[3];
-    }
-    else if (size == 3) {
+    } else if (size == 3) {
         args.input1_b = 1;
         args.input1_c = input1->shape[0];
         args.input1_h = input1->shape[1];
         args.input1_w = input1->shape[2];
-    }
-    else if (size == 2) {
+    } else if (size == 2) {
         args.input1_b = 1;
         args.input1_c = 1;
         args.input1_h = input1->shape[0];
         args.input1_w = input1->shape[1];
-    }
-    else {
+    } else {
         args.input1_b = 1;
         args.input1_c = 1;
         args.input1_h = 1;
@@ -2674,106 +2645,84 @@ std::vector<arithArgsType<feature_t>> get_arith_operation_args(TensorBase *outpu
 
     size = output->shape.size();
     args.output_max_dims = size;
-    if (size == 4) {  
+    if (size == 4) {
         args.output_b = output->shape[0];
         args.output_c = output->shape[1];
         args.output_h = output->shape[2];
         args.output_w = output->shape[3];
-    }
-    else if (size == 3) {
+    } else if (size == 3) {
         args.output_b = 1;
         args.output_c = output->shape[0];
         args.output_h = output->shape[1];
         args.output_w = output->shape[2];
-    }
-    else if (size == 2) {
+    } else if (size == 2) {
         args.output_b = 1;
         args.output_c = 1;
         args.output_h = output->shape[0];
         args.output_w = output->shape[1];
-    }
-    else {
+    } else {
         args.output_b = 1;
         args.output_c = 1;
         args.output_h = 1;
         args.output_w = output->shape[0];
     }
 
-    if (args.input0_b == args.output_b)
-    {
+    if (args.input0_b == args.output_b) {
         args.input0_b_same = 1;
-    }
-    else
-    {
+    } else {
         args.input0_b_same = 0;
     }
 
-    if (args.input0_c == args.output_c)
-    {
+    if (args.input0_c == args.output_c) {
         args.input0_c_same = 1;
-    }
-    else
-    {
+    } else {
         args.input0_c_same = 0;
     }
 
-    if (args.input0_h == args.output_h)
-    {
+    if (args.input0_h == args.output_h) {
         args.input0_h_same = 1;
-    }
-    else
-    {
+    } else {
         args.input0_h_same = 0;
     }
 
-    if (args.input0_w == args.output_w)
-    {
+    if (args.input0_w == args.output_w) {
         args.input0_w_same = 1;
-    }
-    else
-    {
+    } else {
         args.input0_w_same = 0;
     }
 
-    if (args.input1_b == args.output_b)
-    {
+    if (args.input1_b == args.output_b) {
         args.input1_b_same = 1;
-    }
-    else
-    {
+    } else {
         args.input1_b_same = 0;
     }
 
-    if (args.input1_c == args.output_c)
-    {
+    if (args.input1_c == args.output_c) {
         args.input1_c_same = 1;
-    }
-    else
-    {
+    } else {
         args.input1_c_same = 0;
     }
 
-    if (args.input1_h == args.output_h)
-    {
+    if (args.input1_h == args.output_h) {
         args.input1_h_same = 1;
-    }
-    else
-    {
+    } else {
         args.input1_h_same = 0;
     }
 
-    if (args.input1_w == args.output_w)
-    {
+    if (args.input1_w == args.output_w) {
         args.input1_w_same = 1;
-    }
-    else
-    {
+    } else {
         args.input1_w_same = 0;
     }
 
-
-
-
+    if (args.output_max_dims == 4) {
+        int u = 16 / sizeof(feature_t);
+        int c_div_x = args.output_w / u;
+        args.c_remainder = (args.output_w % u) * sizeof(feature_t);
+        args.c_div_x_1 = c_div_x - 1;
+        args.c_div_2x_1 = DL_MAX(c_div_x / 2 - 1, 0);
+        args.c_left_x_1 = c_div_x - 2 * args.c_div_2x_1 - 1;
+    }
 
     // slice
     std::vector<arithArgsType<feature_t>> m_args(1, args);
@@ -2906,6 +2855,7 @@ void arith_operation_shell_(
     activation_args.activation_shift = args.activation_shift;
     activation_args.activation_alpha_ptr = args.activation_alpha_ptr;
     size_t loop_size = 1;
+    // args.rescale_input = 1;
 
     if (arith_i_impl_func) {
         if (arith_n_wise_tail) {

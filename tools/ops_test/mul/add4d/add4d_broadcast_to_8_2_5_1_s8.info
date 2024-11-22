@@ -1,0 +1,37 @@
+graph main_graph (
+  %onnx::Add_0[INT8, 8x2x5], exponents: [-5]
+  %onnx::Add_1[INT8, 1], exponents: [-5]
+) {
+  %2 = Add[quant_type = 'S8'](%onnx::Add_0, %onnx::Add_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%onnx::Add_0[INT8, 8x2x5], exponents: [-5]
+%2[INT8, 8x2x5], exponents: [-5]
+%onnx::Add_1[INT8, 1], exponents: [-5]
+
+
+test inputs value:
+%onnx::Add_0, shape: [8, 2, 5], exponents: [-5], 
+value: array([14,  4, 27, 32, 14, 18,  5,  1, 12, 11, 16, 10, 20,  1,  7, 22, 16,
+       18, 25, 20, 17,  7, 12,  6, 11, 12, 14, 29, 20, 25, 10, 16, 26, 13,
+       18, 30,  2, 20, 24, 22,  7, 14, 17, 20,  2, 30, 15, 27, 25, 11, 15,
+       18, 27, 23, 10,  2,  8, 12, 12,  1, 17, 21, 13, 19, 16, 26,  2, 31,
+       16,  4, 24, 29, 32,  9, 21, 27, 32,  6,  8, 30], dtype=int8)
+%onnx::Add_1, shape: [1], exponents: [-5], 
+value: array([28], dtype=int8)
+
+
+test outputs value:
+%2, shape: [8, 2, 5], exponents: [-5], 
+value: array([42, 32, 55, 60, 42, 46, 33, 29, 40, 39, 44, 38, 48, 29, 35, 50, 44,
+       46, 53, 48, 45, 35, 40, 34, 39, 40, 42, 57, 48, 53, 38, 44, 54, 41,
+       46, 58, 30, 48, 52, 50, 35, 42, 45, 48, 30, 58, 43, 55, 53, 39, 43,
+       46, 55, 51, 38, 30, 36, 40, 40, 29, 45, 49, 41, 47, 44, 54, 30, 59,
+       44, 32, 52, 57, 60, 37, 49, 55, 60, 34, 36, 58], dtype=int8)

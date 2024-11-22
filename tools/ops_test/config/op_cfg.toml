@@ -244,12 +244,12 @@
         [[ops_test.add4d.cfg]]
         input_shape = [[1, 96, 5, 16], [1, 96, 5, 1]]
         export_name_prefix = "add4d_ishap_1_96_5_16_1"
-        activation_func = ""        
+        activation_func = ""
 
         [[ops_test.add4d.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 16]]
         export_name_prefix = "add4d_ishap_1_96_5_1"
-        activation_func = ""   
+        activation_func = ""
 
         [[ops_test.add4d.cfg]]
         input_shape = [[1, 96, 5, 48], [1, 96, 5, 48]]
@@ -259,12 +259,12 @@
         [[ops_test.add4d.cfg]]
         input_shape = [[1, 96, 5, 48], [1, 96, 5, 1]]
         export_name_prefix = "add4d_ishap_1_96_5_16_1"
-        activation_func = ""        
+        activation_func = ""
 
         [[ops_test.add4d.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 48]]
         export_name_prefix = "add4d_ishap_1_96_5_1"
-        activation_func = ""   
+        activation_func = ""
 
         [[ops_test.add4d.cfg]]
         input_shape = [[1, 5, 5, 31], [1, 1, 1, 31]]
@@ -363,7 +363,22 @@
         [[ops_test.add4d.cfg]]
         input_shape = [[8, 2, 5], [2, 1]]
         export_name_prefix = "add4d_broadcast_to_8_2_5_2_1"
-        activation_func = ""  
+        activation_func = ""
+
+        [[ops_test.add4d.cfg]]
+        input_shape = [[1, 96, 5, 49], [1, 96, 5, 49]]
+        export_name_prefix = "add4d_ishap_1_96_5_49_un"
+        activation_func = ""
+
+        [[ops_test.add4d.cfg]]
+        input_shape = [[1, 96, 5, 49], [1, 96, 5, 1]]
+        export_name_prefix = "add4d_ishap_1_96_5_49_un2"
+        activation_func = ""
+
+        [[ops_test.add4d.cfg]]
+        input_shape = [[1, 96, 5, 1], [1, 96, 5, 49]]
+        export_name_prefix = "add4d_ishap_1_96_5_49_un3"
+        activation_func = ""
 
     [ops_test.sub4d]
     class_name = "SUB4D_TEST"
@@ -500,6 +515,21 @@
         input_shape = [[8, 2, 5], [2, 1]]
         export_name_prefix = "sub4d_broadcast_to_8_2_5_2_1"
         activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 96, 5, 49], [1, 96, 5, 49]]
+        export_name_prefix = "sub4d_ishap_1_96_5_49_un"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 96, 5, 49], [1, 96, 5, 1]]
+        export_name_prefix = "sub4d_ishap_1_96_5_49_un2"
+        activation_func = ""
+
+        [[ops_test.sub4d.cfg]]
+        input_shape = [[1, 96, 5, 1], [1, 96, 5, 49]]
+        export_name_prefix = "sub4d_ishap_1_96_5_49_un3"
+        activation_func = ""
     [ops_test.mul4d]
     class_name = "MUL4D_TEST"
         [[ops_test.mul4d.cfg]]
@@ -634,6 +664,21 @@
         [[ops_test.mul4d.cfg]]
         input_shape = [[8, 2, 5], [2, 1]]
         export_name_prefix = "mul4d_broadcast_to_8_2_5_2_1"
+        activation_func = ""
+
+        [[ops_test.mul4d.cfg]]
+        input_shape = [[1, 96, 5, 49], [1, 96, 5, 49]]
+        export_name_prefix = "mul4d_ishap_1_96_5_49_un"
+        activation_func = ""
+
+        [[ops_test.mul4d.cfg]]
+        input_shape = [[1, 96, 5, 49], [1, 96, 5, 1]]
+        export_name_prefix = "mul4d_ishap_1_96_5_49_un2"
+        activation_func = ""
+
+        [[ops_test.mul4d.cfg]]
+        input_shape = [[1, 96, 5, 1], [1, 96, 5, 49]]
+        export_name_prefix = "mul4d_ishap_1_96_5_49_un3"
         activation_func = ""
 
 

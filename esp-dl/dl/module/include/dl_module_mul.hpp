@@ -103,7 +103,6 @@ public:
     void print() { ESP_LOGI("Mul2D", "quant_type: %s.", quant_type_to_string(quant_type)); }
 };
 
-
 /**
  * NOTE: addition is element-wise, i.e., output[i,j,k] = input0[i,j,k] + input1[i,j,k]
  *
@@ -166,7 +165,6 @@ public:
         TensorBase *input1 = tensors[m_inputs_index[1]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
-
         // 获取用于4D加法运算的参数
         std::vector<base::arithArgsType<T>> m_args =
             base::get_arith_operation_args<T>(output, input0, input1, Linear, nullptr, mode);
@@ -191,7 +189,7 @@ public:
 
         //
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new Mul4D(NULL, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            op = new Mul4D(NULL, MODULE_NON_INPLACE, quant_type); // test1234
         }
         return op;
     }

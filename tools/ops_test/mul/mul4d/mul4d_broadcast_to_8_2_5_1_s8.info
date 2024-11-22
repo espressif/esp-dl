@@ -1,0 +1,37 @@
+graph main_graph (
+  %onnx::Mul_0[INT8, 8x2x5], exponents: [-6]
+  %onnx::Mul_1[INT8, 1], exponents: [-10]
+) {
+  %2 = Mul[quant_type = 'S8'](%onnx::Mul_0, %onnx::Mul_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%2[INT8, 8x2x5], exponents: [-9]
+%onnx::Mul_0[INT8, 8x2x5], exponents: [-6]
+%onnx::Mul_1[INT8, 1], exponents: [-10]
+
+
+test inputs value:
+%onnx::Mul_0, shape: [8, 2, 5], exponents: [-6], 
+value: array([14, 51, 17,  0, 53,  8, 15, 57, 14, 46, 46, 18, 13, 26, 15, 53,  6,
+       25, 14, 14, 52, 15, 26, 57,  3, 30,  2, 57,  2, 53, 28, 35, 34, 61,
+       15, 11, 42, 34, 50, 48, 45, 28, 42, 19, 20, 52, 34, 46, 11, 27, 54,
+       29, 16, 21, 50, 38, 29, 46, 11,  1, 61, 44, 45, 57, 28, 47,  6, 41,
+       30, 55, 49, 14, 52, 18, 40,  9, 52, 61,  6, 10], dtype=int8)
+%onnx::Mul_1, shape: [1], exponents: [-10], 
+value: array([127], dtype=int8)
+
+
+test outputs value:
+%2, shape: [8, 2, 5], exponents: [-9], 
+value: array([14, 51, 17,  0, 53,  8, 15, 57, 14, 46, 46, 18, 13, 26, 15, 53,  6,
+       25, 14, 14, 52, 15, 26, 57,  3, 30,  2, 57,  2, 53, 28, 35, 34, 61,
+       15, 11, 42, 34, 50, 48, 45, 28, 42, 19, 20, 52, 34, 46, 11, 27, 54,
+       29, 16, 21, 50, 38, 29, 46, 11,  1, 61, 44, 45, 57, 28, 47,  6, 41,
+       30, 55, 49, 14, 52, 18, 40,  9, 52, 61,  6, 10], dtype=int8)
