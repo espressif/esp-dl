@@ -1,0 +1,77 @@
+{
+    "configs": {
+        "/Sub": {
+            "onnx::Sub_0": {
+                "bit_width": 16,
+                "policy": {
+                    "PER_TENSOR": true,
+                    "PER_CHANNEL": false,
+                    "LINEAR": true,
+                    "FLOATING": false,
+                    "SYMMETRICAL": true,
+                    "ASYMMETRICAL": false,
+                    "POWER_OF_2": true,
+                    "DYNAMIC": false
+                },
+                "state": "PASSIVE",
+                "quant_min": -32768,
+                "quant_max": 32767,
+                "hash": 1387590122,
+                "dominator": 1387590122
+            },
+            "onnx::Sub_1": {
+                "bit_width": 16,
+                "policy": {
+                    "PER_TENSOR": true,
+                    "PER_CHANNEL": false,
+                    "LINEAR": true,
+                    "FLOATING": false,
+                    "SYMMETRICAL": true,
+                    "ASYMMETRICAL": false,
+                    "POWER_OF_2": true,
+                    "DYNAMIC": false
+                },
+                "state": "PASSIVE",
+                "quant_min": -32768,
+                "quant_max": 32767,
+                "hash": 3993497861,
+                "dominator": 3993497861
+            },
+            "2": {
+                "bit_width": 16,
+                "policy": {
+                    "PER_TENSOR": true,
+                    "PER_CHANNEL": false,
+                    "LINEAR": true,
+                    "FLOATING": false,
+                    "SYMMETRICAL": true,
+                    "ASYMMETRICAL": false,
+                    "POWER_OF_2": true,
+                    "DYNAMIC": false
+                },
+                "state": "ACTIVATED",
+                "quant_min": -32768,
+                "quant_max": 32767,
+                "hash": 623058868,
+                "dominator": 623058868
+            }
+        }
+    },
+    "dispatchings": {
+        "/Sub": "ESPDL_INT16"
+    },
+    "values": {
+        "1387590122": {
+            "scale": 6.103515625e-05,
+            "zero_point": 0.0
+        },
+        "3993497861": {
+            "scale": 6.103515625e-05,
+            "zero_point": 0.0
+        },
+        "623058868": {
+            "scale": 6.103515625e-05,
+            "zero_point": 0.0
+        }
+    }
+}

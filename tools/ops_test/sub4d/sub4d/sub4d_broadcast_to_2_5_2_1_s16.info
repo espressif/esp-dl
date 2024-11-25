@@ -1,0 +1,31 @@
+graph main_graph (
+  %onnx::Sub_1[INT16, 2x1], exponents: [-14]
+  %onnx::Sub_0[INT16, 2x5], exponents: [-14]
+) {
+  %2 = Sub[quant_type = 'S16'](%onnx::Sub_0, %onnx::Sub_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%2[INT16, 2x5], exponents: [-14]
+%onnx::Sub_1[INT16, 2x1], exponents: [-14]
+%onnx::Sub_0[INT16, 2x5], exponents: [-14]
+
+
+test inputs value:
+%onnx::Sub_0, shape: [2, 5], exponents: [-14], 
+value: array([ 6608, 12111,  6471,  9461, 14807,  7077, 11579,  5955,  2679,
+       14561], dtype=int16)
+%onnx::Sub_1, shape: [2, 1], exponents: [-14], 
+value: array([ 7759, 15807], dtype=int16)
+
+
+test outputs value:
+%2, shape: [2, 5], exponents: [-14], 
+value: array([ -1151,   4352,  -1288,   1702,   7048,  -8730,  -4228,  -9852,
+       -13128,  -1246], dtype=int16)

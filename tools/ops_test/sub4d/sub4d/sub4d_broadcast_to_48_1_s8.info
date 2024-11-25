@@ -1,0 +1,35 @@
+graph main_graph (
+  %onnx::Sub_1[INT8, 1], exponents: [-7]
+  %onnx::Sub_0[INT8, 48], exponents: [-7]
+) {
+  %2 = Sub[quant_type = 'S8'](%onnx::Sub_0, %onnx::Sub_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%onnx::Sub_1[INT8, 1], exponents: [-7]
+%onnx::Sub_0[INT8, 48], exponents: [-7]
+%2[INT8, 48], exponents: [-7]
+
+
+test inputs value:
+%onnx::Sub_0, shape: [48], exponents: [-7], 
+value: array([ 11,  16,  13,  75,  56,  92, 125,  77,  98,   2,   5,  40, 113,
+         2,  50,  24,  65,  21,   4,  19,  42,  36,  48,  94,  99,  29,
+        74,  83,  38,  80,  76, 110, 126,   5, 103,  69,  59,   2,  47,
+       120,  14,   4,  63, 116,  61,  32,  94,  76], dtype=int8)
+%onnx::Sub_1, shape: [1], exponents: [-7], 
+value: array([83], dtype=int8)
+
+
+test outputs value:
+%2, shape: [48], exponents: [-7], 
+value: array([-72, -67, -70,  -8, -27,   9,  42,  -6,  15, -81, -78, -43,  30,
+       -81, -33, -59, -18, -62, -79, -64, -41, -47, -35,  11,  16, -54,
+        -9,   0, -45,  -3,  -7,  27,  43, -78,  20, -14, -24, -81, -36,
+        37, -69, -79, -20,  33, -22, -51,  11,  -7], dtype=int8)

@@ -542,6 +542,30 @@ void dl_esp32p4_s16_mul4d_bchw_w1_8_w2_1_simdmul_unaligned(int16_t *output_ptr,
                                                            int16_t *input0_ptr,
                                                            int16_t *input1_ptr,
                                                            void *args_ptr);
+void dl_esp32p4_s8_sub4d_bchw_w1_16_w2_16_simdsub_unaligned(int8_t *output_ptr,
+                                                            int8_t *input0_ptr,
+                                                            int8_t *input1_ptr,
+                                                            void *args_ptr);
+void dl_esp32p4_s8_sub4d_bchw_w1_16_w2_1_simdsub_unaligned(int8_t *output_ptr,
+                                                           int8_t *input0_ptr,
+                                                           int8_t *input1_ptr,
+                                                           void *args_ptr);
+void dl_esp32p4_s8_sub4d_bchw_w1_1_w2_16_simdsub_unaligned(int8_t *output_ptr,
+                                                           int8_t *input0_ptr,
+                                                           int8_t *input1_ptr,
+                                                           void *args_ptr);
+void dl_esp32p4_s16_sub4d_bchw_w1_8_w2_8_simdsub_unaligned(int16_t *output_ptr,
+                                                           int16_t *input0_ptr,
+                                                           int16_t *input1_ptr,
+                                                           void *args_ptr);
+void dl_esp32p4_s16_sub4d_bchw_w1_8_w2_1_simdsub_unaligned(int16_t *output_ptr,
+                                                           int16_t *input0_ptr,
+                                                           int16_t *input1_ptr,
+                                                           void *args_ptr);
+void dl_esp32p4_s16_sub4d_bchw_w1_1_w2_8_simdsub_unaligned(int16_t *output_ptr,
+                                                           int16_t *input0_ptr,
+                                                           int16_t *input1_ptr,
+                                                           void *args_ptr);
 
 #endif
 }

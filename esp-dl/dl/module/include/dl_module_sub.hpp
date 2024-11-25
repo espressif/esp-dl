@@ -1,7 +1,7 @@
 #pragma once
 
-#include "dl_base_sub4d.hpp"
 #include "dl_base_shape.hpp"
+#include "dl_base_sub4d.hpp"
 #include "dl_module_base.hpp"
 
 namespace dl {
@@ -68,14 +68,13 @@ public:
         TensorBase *input1 = tensors[m_inputs_index[1]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
-
         // 获取用于4D加法运算的参数
         std::vector<base::arithArgsType<T>> m_args =
             base::get_arith_operation_args<T>(output, input0, input1, Linear, nullptr, mode);
         int task_size = m_args.size();
-        if (task_size == 1) { 
+        if (task_size == 1) {
             forward_args((void *)&m_args[0]); // 单任务
-        } else if (task_size == 2) { 
+        } else if (task_size == 2) {
             module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]); // 多任务
         } else {
             ESP_LOGE("Sub4D", "Only support task size is 1 or 2, currently task size is %d", task_size);
@@ -91,16 +90,17 @@ public:
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
 
-        // 
+        //
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new Sub4D(NULL, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            op = new Sub4D(NULL, MODULE_NON_INPLACE, quant_type);
         }
         return op;
     }
 
     void print() { ESP_LOGI("Sub4D", "quant_type: %s.", quant_type_to_string(quant_type)); }
+    // void print() { ESP_LOGI("Sub4D", "quant_type: %s, input0_sahep: %s.", quant_type_to_string(quant_type),
+    // shape_to_string().c_str()); }
 };
-
 
 } // namespace module
 } // namespace dl

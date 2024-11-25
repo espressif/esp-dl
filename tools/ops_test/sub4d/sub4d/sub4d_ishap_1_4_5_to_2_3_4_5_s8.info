@@ -1,0 +1,39 @@
+graph main_graph (
+  %onnx::Sub_1[INT8, 2x3x1x1], exponents: [-5]
+  %onnx::Sub_0[INT8, 1x1x4x5], exponents: [-5]
+) {
+  %2 = Sub[quant_type = 'S8'](%onnx::Sub_0, %onnx::Sub_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%onnx::Sub_1[INT8, 2x3x1x1], exponents: [-5]
+%onnx::Sub_0[INT8, 1x1x4x5], exponents: [-5]
+%2[INT8, 2x3x4x5], exponents: [-5]
+
+
+test inputs value:
+%onnx::Sub_0, shape: [1, 1, 4, 5], exponents: [-5], 
+value: array([24, 20,  4,  5, 23, 23,  1,  8, 11,  4, 31, 21, 12, 13, 26,  5, 27,
+       27, 28, 13], dtype=int8)
+%onnx::Sub_1, shape: [2, 3, 1, 1], exponents: [-5], 
+value: array([25,  2,  0,  1,  3, 21], dtype=int8)
+
+
+test outputs value:
+%2, shape: [2, 3, 4, 5], exponents: [-5], 
+value: array([ -1,  -5, -21, -20,  -2,  -2, -24, -17, -14, -21,   6,  -4, -13,
+       -12,   1, -20,   2,   2,   3, -12,  22,  18,   2,   3,  21,  21,
+        -1,   6,   9,   2,  29,  19,  10,  11,  24,   3,  25,  25,  26,
+        11,  24,  20,   4,   5,  23,  23,   1,   8,  11,   4,  31,  21,
+        12,  13,  26,   5,  27,  27,  28,  13,  23,  19,   3,   4,  22,
+        22,   0,   7,  10,   3,  30,  20,  11,  12,  25,   4,  26,  26,
+        27,  12,  21,  17,   1,   2,  20,  20,  -2,   5,   8,   1,  28,
+        18,   9,  10,  23,   2,  24,  24,  25,  10,   3,  -1, -17, -16,
+         2,   2, -20, -13, -10, -17,  10,   0,  -9,  -8,   5, -16,   6,
+         6,   7,  -8], dtype=int8)
