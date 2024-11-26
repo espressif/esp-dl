@@ -37,20 +37,22 @@ dl_tie728_s16_avg_pool2d_22c1:
     EE.VLD.128.IP q1, a3, 16
     EE.VLD.128.IP q2, a7, 16
     loopgtz a11, 1f
-    EE.ZERO.QACC
-    EE.VMULAS.S16.QACC.LD.IP q3, a8, 16, q0, q1
-    EE.VMULAS.S16.QACC.LD.IP q4, a9, 16, q0, q2
-    EE.VMULAS.S16.QACC.LD.IP q1, a3, 16, q0, q3
-    EE.VMULAS.S16.QACC.LD.IP q2, a7, 16, q0, q4
-    EE.SRCMB.S16.QACC q7, a14, 0
-    EE.VST.128.IP q7, a2, 16
-1:
+        EE.ZERO.QACC
+        EE.VMULAS.S16.QACC.LD.IP q3, a8, 16, q0, q1
+        EE.VMULAS.S16.QACC.LD.IP q4, a9, 16, q0, q2
+        EE.VMULAS.S16.QACC.LD.IP q1, a3, 16, q0, q3
+        EE.VMULAS.S16.QACC.LD.IP q2, a7, 16, q0, q4
+        # EE.SRCMB.S16.QACC q7, a14, 0
+        tie728_s16_vector_round_result  q7, a14, a15, q6
+        EE.VST.128.IP q7, a2, 16
+    1:
     EE.ZERO.QACC
     EE.VMULAS.S16.QACC.LD.IP q3, a8, 16, q0, q1
     EE.VMULAS.S16.QACC.LD.IP q4, a9, 16, q0, q2
     EE.VMULAS.S16.QACC q0, q3
     EE.VMULAS.S16.QACC q0, q4
-    EE.SRCMB.S16.QACC q7, a14, 0
+    # EE.SRCMB.S16.QACC q7, a14, 0
+    tie728_s16_vector_round_result  q7, a14, a15, q6
     EE.VST.128.IP q7, a2, 0
     retw
 
@@ -115,7 +117,8 @@ dl_tie728_s16_unaligned_avg_pool2d_22c1:
     EE.LD.128.USAR.IP q2, a3, 0
     EE.VMULAS.S16.QACC q0, q3
 
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a15, q6
     dl_tie728_128b_unaligned_store0 q7, a2, a14
 
 3:
@@ -141,7 +144,8 @@ dl_tie728_s16_unaligned_avg_pool2d_22c1:
     EE.LD.128.USAR.IP q2, a3, 0
     EE.VMULAS.S16.QACC q0, q3
 
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a15, q6
     EE.VST.128.IP q7, a2, 16
 
 4:
@@ -166,7 +170,8 @@ dl_tie728_s16_unaligned_avg_pool2d_22c1:
     EE.LD.128.USAR.IP q2, a3, 0
     EE.VMULAS.S16.QACC q0, q3
 
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a15, q6
     dl_tie728_128b_unaligned_store1 q7, a2
 
 5:
@@ -187,7 +192,8 @@ dl_tie728_s16_unaligned_avg_pool2d_22c1_remainder:
     EE.VMULAS.S16.QACC q0, q5
     EE.SRC.Q q3, q3, q4
     EE.VMULAS.S16.QACC q0, q3
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a15, q6
     srli a12, a12, 1
     dl_tie728_s16_store_remainder q7, a12, a14, a2
 6:
@@ -257,7 +263,8 @@ dl_tie728_s16_avg_pool2d_hwc1:
     mov a14, a7
     bnez a15, 2b
 6:
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a15, q6
     EE.VST.128.IP q7, a2, 16
     addi a3, a3, 16
     addi a11, a11, -1
@@ -291,7 +298,8 @@ dl_tie728_s16_avg_pool2d_hwc1_small_channel:
     add a7, a7, a5
     mov a14, a7
     bnez a15, 2b
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a15, q6
     EE.VST.128.IP q7, a2, 0
     retw
 
@@ -304,7 +312,8 @@ dl_tie728_s16_avg_pool2d_h1c1_loop:
     loopgtz a8, 2f
     EE.VMULAS.S16.QACC.LD.XP q1, a14, a5, q0, q1
 2:
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a15, q6
     EE.VST.128.IP q7, a2, 16
     addi a3, a3, 16
     addi a11, a11, -1
@@ -317,7 +326,8 @@ dl_tie728_s16_max_pool2d_h1c1_small_channel:
     loopgtz a8, 2f
     EE.VMULAS.S16.QACC.LD.XP q1, a14, a5, q0, q1
 2:
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a15, q6
     EE.VST.128.IP q7, a2, 16
     retw
 
@@ -409,7 +419,8 @@ dl_tie728_s16_unaligned_avg_pool2d_hwc1:
     mov a14, a7
     bnez a4, 2b
 6:
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a14, q6
 
     beqi a15, 0, 7f
     beqi a15, 8, 8f
@@ -474,7 +485,8 @@ dl_tie728_s16_unaligned_avg_pool2d_hwc1_small_channel:
     mov a14, a7
     bnez a4, 2b
 6:
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a14, q6
     srli a12, a12, 1
     dl_tie728_s16_store_remainder q7, a12, a14, a2
 9:
@@ -494,7 +506,8 @@ dl_tie728_s16_unaligned_avg_pool2d_h1c1_loop:
     EE.SRC.Q q1, q1, q2
     EE.VMULAS.S16.QACC q0, q1
 2:
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a14, q6
     beqi a15, 0, 3f
     beqi a15, 8, 4f
     dl_tie728_128b_unaligned_store0 q7, a2, a14
@@ -523,7 +536,8 @@ dl_tie728_s16_unaligned_avg_pool2d_h1c1_small_channel:
     EE.SRC.Q q1, q1, q2
     EE.VMULAS.S16.QACC q0, q1
 2:
-    EE.SRCMB.S16.QACC q7, a13, 0
+    # EE.SRCMB.S16.QACC q7, a13, 0
+    tie728_s16_vector_round_result  q7, a13, a14, q6
     srli a12, a12, 1
     dl_tie728_s16_store_remainder q7, a12, a14, a2
 5:

@@ -460,28 +460,6 @@ inline void load_depthwise_conv2d_hwc1_s16(i_impl_func_s16_t &i_impl_func,
 }
 
 template <>
-void depthwise_conv2d<int16_t, int16_t, DL_S16_BUFFER_TYPE>(void *args_ptr)
-{
-    ArgsType<int16_t> &args = *((ArgsType<int16_t> *)args_ptr);
-
-    i_impl_func_s16_t i_impl_func = NULL;
-    i_impl_func_s16_t i_impl_func_sp = NULL;
-    c_impl_func_s16_t c_impl_func = NULL;
-    c_impl_func_s16_t c_impl_func_sp = NULL;
-    n_wise_func_s16_t n_wise_func = NULL;
-
-    if (args.filter_height == 3 && args.filter_width == 3) // Filter shape = [3, 3, C, N]
-    {
-        load_depthwise_conv2d_33c1_s16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
-    } else // Filter shape = [H, W, C, N]
-    {
-        load_depthwise_conv2d_hwc1_s16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
-    }
-    dwconv_operation_shell<int16_t, DL_S16_BUFFER_TYPE>(
-        args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
-}
-
-template <>
 void depthwise_conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
 {
     ArgsType<int16_t> &args = *((ArgsType<int16_t> *)args_ptr);
@@ -807,58 +785,6 @@ inline void load_depthwise_conv2d_s8_per_channel_c_func(c_impl_func_s8_t &c_impl
             break;
         }
     }
-}
-
-template <>
-void depthwise_conv2d<int8_t, int8_t, int32_t>(void *args_ptr)
-{
-    ArgsType<int8_t> &args = *((ArgsType<int8_t> *)args_ptr);
-
-    i_impl_func_s8_t i_impl_func = NULL;
-    i_impl_func_s8_t i_impl_func_sp = NULL;
-    c_impl_func_s8_t c_impl_func = NULL;
-    c_impl_func_s8_t c_impl_func_sp = NULL;
-    n_wise_func_s8_t n_wise_func = NULL;
-
-#if CONFIG_TIE728_BOOST
-    if (args.filter_height == 3 && args.filter_width == 3) // Filter shape = [3, 3, C, N]
-    {
-        load_depthwise_conv2d_33c1_s8(i_impl_func, i_impl_func_sp, args);
-    } else // Filter shape = [H, W, C, N]
-    {
-        load_depthwise_conv2d_hwc1_s8(i_impl_func, i_impl_func_sp, args);
-    }
-#else
-    load_depthwise_conv2d_s8_per_tensor_c_func(c_impl_func, c_impl_func_sp, n_wise_func, args);
-#endif
-    dwconv_operation_shell<int8_t, int32_t>(
-        args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
-}
-
-template <>
-void depthwise_conv2d<int8_t, int16_t, int32_t>(void *args_ptr)
-{
-    ArgsType<int8_t> &args = *((ArgsType<int8_t> *)args_ptr);
-
-    i_impl_func_s8_t i_impl_func = NULL;
-    i_impl_func_s8_t i_impl_func_sp = NULL;
-    c_impl_func_s8_t c_impl_func = NULL;
-    c_impl_func_s8_t c_impl_func_sp = NULL;
-    n_wise_func_s8_t n_wise_func = NULL;
-
-#if CONFIG_TIE728_BOOST
-    if (args.filter_height == 3 && args.filter_width == 3) // Filter shape = [3, 3, C, N]
-    {
-        load_depthwise_conv2d_33c1_s8(i_impl_func, i_impl_func_sp, args);
-    } else // Filter shape = [H, W, C, N]
-    {
-        load_depthwise_conv2d_hwc1_s8(i_impl_func, i_impl_func_sp, args);
-    }
-#else
-    load_depthwise_conv2d_s8_per_channel_c_func(c_impl_func, c_impl_func_sp, n_wise_func, args);
-#endif
-    dwconv_operation_shell<int8_t, int32_t>(
-        args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
 }
 
 template <>
