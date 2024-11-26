@@ -38,3 +38,6 @@ examples/*/**/build_*
 test_apps/esp-dl/models/*/**/*.onnx
 test_apps/esp-dl/models/*/**/*.info
 test_apps/esp-dl/models/*/**/*.json
+
+.DS_Store
+docs/_build/

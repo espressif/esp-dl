@@ -25,4 +25,20 @@ menu "models: human_face_recognition"
     config SPIFLASH_MOUNT_PARTITION
         string "fatfs flash mount partition"
         default "storage"
+
+    choice HUMAN_FACE_FEAT_MODEL
+        prompt "Human Face Feat Model"
+        default HUMAN_FACE_FEAT_MFN_S8_V1
+        help
+            support human_face_feat_mfn_s8_v1, human_face_feat_mbf_s8_v1
+        config HUMAN_FACE_FEAT_MFN_S8_V1
+            bool "human_face_feat_mfn_s8_v1"
+        config HUMAN_FACE_FEAT_MBF_S8_V1
+            bool "human_face_feat_mbf_s8_v1"
+    endchoice
+
+    config HUMAN_FACE_FEAT_MODEL
+        int
+        default 0 if HUMAN_FACE_FEAT_MFN_S8_V1
+        default 1 if HUMAN_FACE_FEAT_MBF_S8_V1
 endmenu
