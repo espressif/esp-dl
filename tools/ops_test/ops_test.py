@@ -70,6 +70,7 @@ class ADD2D_TEST(nn.Module):
             output = self.act(output)
         return output
 
+
 class ADD4D_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -82,6 +83,7 @@ class ADD4D_TEST(nn.Module):
         if hasattr(self, "act"):
             output = self.act(output)
         return output
+
 
 class SUB4D_TEST(nn.Module):
     def __init__(self, config):
@@ -96,6 +98,7 @@ class SUB4D_TEST(nn.Module):
             output = self.act(output)
         return output
 
+
 class MUL2D_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -109,6 +112,7 @@ class MUL2D_TEST(nn.Module):
             output = self.act(output)
         return output
 
+
 class MUL4D_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -121,6 +125,7 @@ class MUL4D_TEST(nn.Module):
         if hasattr(self, "act"):
             output = self.act(output)
         return output
+
 
 class GLOBAL_AVERAGE_POOLING_TEST(nn.Module):
     def __init__(self, config):

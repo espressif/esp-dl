@@ -1,6 +1,5 @@
 #pragma once
 #include "dl_module_add.hpp"
-#include "dl_module_sub.hpp"
 #include "dl_module_avg_pool2d.hpp"
 #include "dl_module_clip.hpp"
 #include "dl_module_concat.hpp"
@@ -27,6 +26,7 @@
 #include "dl_module_softmax.hpp"
 #include "dl_module_sqrt.hpp"
 #include "dl_module_squeeze.hpp"
+#include "dl_module_sub.hpp"
 #include "dl_module_tanh.hpp"
 #include "dl_module_transpose.hpp"
 #include "dl_module_unsqueeze.hpp"
