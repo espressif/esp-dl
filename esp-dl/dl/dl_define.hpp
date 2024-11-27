@@ -118,7 +118,7 @@ typedef enum {
     PADDING_CONSTANT,
     PADDING_EDGE,
     PADDING_REFLECT,
-    PADDING_SYMMETRIC,
+    PADDING_WRAP,
 } padding_mode_t;
 
 typedef enum { RESIZE_NEAREST, RESIZE_LINEAR, RESIZE_CUBIC } resize_mode_t;

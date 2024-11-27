@@ -7,7 +7,7 @@
 #### esp32p4_s16_conv2d_11cn series
 ####
 ############################################################################################################################################################
-.macro esp32p4_s16_conv2d_11c8  input_v0, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1
+.macro esp32p4_s16_conv2d_11c8  input_v0, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, tmp
     # scalar * vecter and accumulate into qacc
     # input_ptr += (c_div_x_1 + 1) * 16 in the end
     # filter_ptr point to the next 16 bytes in the end
@@ -24,8 +24,9 @@
     esp.vld.128.ip  \filter_v1, \filter_ptr, 16
     beqz            \c_div_x_1, 1f
 
-    # lp.setup  0, \c_div_x_1, 0f
-    esp.lp.setup  0, \c_div_x_1, 0f
+    # esp.lp.setup  0, \c_div_x_1, 0f
+    mv  \tmp, \c_div_x_1
+    0:
         esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v0, 0
         esp.vsmulas.s16.qacc.ld.incp  \filter_v1, \filter_ptr, \filter_v1, \input_v0, 1
         esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v0, 2
@@ -34,7 +35,9 @@
         esp.vsmulas.s16.qacc.ld.incp  \filter_v1, \filter_ptr, \filter_v1, \input_v0, 5
         esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v0, 6
         esp.vsmulas.s16.qacc.ld.incp  \input_v0,  \input_ptr,  \filter_v1, \input_v0, 7
-    0:  esp.vld.128.ip                \filter_v1, \filter_ptr, 16
+        esp.vld.128.ip                \filter_v1, \filter_ptr, 16
+        addi  \tmp, \tmp, -1
+        bgtz  \tmp, 0b
 
     1:
     esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v0, 0
@@ -80,7 +83,7 @@ dl_esp32p4_s16_conv2d_11cn_bias:
 
     # a6(not for extension instructions):
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp_value
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions):
     # s2(not for extension instructions):
@@ -103,7 +106,7 @@ dl_esp32p4_s16_conv2d_11cn_bias:
         esp.zero.qacc
 
         esp32p4_s16_conv2d_128b_vector_bias  a5
-        esp32p4_s16_conv2d_11c8  q0, q1, q2, t5, a3, t1
+        esp32p4_s16_conv2d_11c8  q0, q1, q2, t5, a3, t1, t0
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
 
@@ -136,7 +139,7 @@ dl_esp32p4_s16_conv2d_11cn_bias_relu:
 
     # a6(not for extension instructions):
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp_value
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions):
     # s2(not for extension instructions):
@@ -161,7 +164,7 @@ dl_esp32p4_s16_conv2d_11cn_bias_relu:
         esp.zero.qacc
 
         esp32p4_s16_conv2d_128b_vector_bias  a5
-        esp32p4_s16_conv2d_11c8  q0, q1, q2, t5, a3, t1
+        esp32p4_s16_conv2d_11c8  q0, q1, q2, t5, a3, t1, t0
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_vector_relu  q0, t3, t4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
@@ -195,7 +198,7 @@ dl_esp32p4_s16_conv2d_11cn:
 
     # a6(not for extension instructions):
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp_value
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions):
     # s2(not for extension instructions):
@@ -216,7 +219,7 @@ dl_esp32p4_s16_conv2d_11cn:
         mv  t5, a1      // reload input_ptr
         esp.zero.qacc
 
-        esp32p4_s16_conv2d_11c8  q0, q1, q2, t5, a3, t1
+        esp32p4_s16_conv2d_11c8  q0, q1, q2, t5, a3, t1, t0
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
 
@@ -249,7 +252,7 @@ dl_esp32p4_s16_conv2d_11cn_relu:
 
     # a6(not for extension instructions):
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp_value
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions):
     # s2(not for extension instructions):
@@ -272,7 +275,7 @@ dl_esp32p4_s16_conv2d_11cn_relu:
         mv  t5, a1      // reload input_ptr
         esp.zero.qacc
 
-        esp32p4_s16_conv2d_11c8  q0, q1, q2, t5, a3, t1
+        esp32p4_s16_conv2d_11c8  q0, q1, q2, t5, a3, t1, t0
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_vector_relu  q0, t3, t4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
@@ -293,35 +296,35 @@ dl_esp32p4_s16_conv2d_11cn_relu:
 ####
 ############################################################################################################################################################
 
-.macro esp32p4_s16_conv2d_33c8  input_v0, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, dilation_x_offset, dilation_y_offset
+.macro esp32p4_s16_conv2d_33c8  input_v0, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, dilation_x_offset, dilation_y_offset, tmp
     # dilation_x_offset = (dilation_x * input_channel_with_padding - input_channel) * sizeof(output_t)
     # dilation_y_offset = (dilation_y * input_width_with_padding * input_channel_with_padding - input_channel - dilation_x * input_channel_with_padding * (filter_width - 1)) * sizeof(output_t)
 
-    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
     add  \input_ptr, \input_ptr, \dilation_x_offset
 
-    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
     add  \input_ptr, \input_ptr, \dilation_x_offset
 
-    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
     add  \input_ptr, \input_ptr, \dilation_y_offset
 
-    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
     add  \input_ptr, \input_ptr, \dilation_x_offset
 
-    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
     add  \input_ptr, \input_ptr, \dilation_x_offset
 
-    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
     add  \input_ptr, \input_ptr, \dilation_y_offset
 
-    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
     add  \input_ptr, \input_ptr, \dilation_x_offset
 
-    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
     add  \input_ptr, \input_ptr, \dilation_x_offset
 
-    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+    esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
     # add \input_ptr, \input_ptr, \dilation_y_offset
 .endm
 
@@ -357,7 +360,7 @@ dl_esp32p4_s16_conv2d_33cn_bias:
 
     # a6(not for extension instructions): input dilation y offset
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp_value
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions):
@@ -380,7 +383,7 @@ dl_esp32p4_s16_conv2d_33cn_bias:
         esp.zero.qacc
 
         esp32p4_s16_conv2d_128b_vector_bias  a5
-        esp32p4_s16_conv2d_33c8  q0, q1, q2, t5, a3, t1, t2, a6
+        esp32p4_s16_conv2d_33c8  q0, q1, q2, t5, a3, t1, t2, a6, t0
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
 
@@ -413,7 +416,7 @@ dl_esp32p4_s16_conv2d_33cn_bias_relu:
 
     # a6(not for extension instructions): input dilation y offset
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp_value
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions):
@@ -438,7 +441,7 @@ dl_esp32p4_s16_conv2d_33cn_bias_relu:
         esp.zero.qacc
 
         esp32p4_s16_conv2d_128b_vector_bias  a5
-        esp32p4_s16_conv2d_33c8  q0, q1, q2, t5, a3, t1, t2, a6
+        esp32p4_s16_conv2d_33c8  q0, q1, q2, t5, a3, t1, t2, a6, t0
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_vector_relu  q0, t3, t4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
@@ -472,7 +475,7 @@ dl_esp32p4_s16_conv2d_33cn:
 
     # a6(not for extension instructions): input dilation y offset
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp_value
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions):
@@ -493,7 +496,7 @@ dl_esp32p4_s16_conv2d_33cn:
         mv  t5, a1     // reload input_ptr
         esp.zero.qacc
 
-        esp32p4_s16_conv2d_33c8  q0, q1, q2, t5, a3, t1, t2, a6
+        esp32p4_s16_conv2d_33c8  q0, q1, q2, t5, a3, t1, t2, a6, t0
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
 
@@ -526,7 +529,7 @@ dl_esp32p4_s16_conv2d_33cn_relu:
 
     # a6(not for extension instructions): input dilation y offset
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp_value
     # t1(not for extension instructions): c_div_x_1
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions):
@@ -549,7 +552,7 @@ dl_esp32p4_s16_conv2d_33cn_relu:
         mv  t5, a1     // reload input_ptr
         esp.zero.qacc
 
-        esp32p4_s16_conv2d_33c8  q0, q1, q2, t5, a3, t1, t2, a6
+        esp32p4_s16_conv2d_33c8  q0, q1, q2, t5, a3, t1, t2, a6, t0
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_vector_relu  q0, t3, t4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
@@ -569,7 +572,7 @@ dl_esp32p4_s16_conv2d_33cn_relu:
 #### esp32p4_s16_conv2d_hwcn series
 ####
 ############################################################################################################################################################
-.macro esp32p4_s16_conv2d_hwc8  input_v0, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, dilation_x_offset, dilation_y_offset, filter_h, filter_w, args, filter_y_offset, filter_n_offset
+.macro esp32p4_s16_conv2d_hwc8  input_v0, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, dilation_x_offset, dilation_y_offset, filter_h, filter_w, args, filter_y_offset, filter_n_offset, tmp
     # dilation_x_offset = (dilation_x * input_channel_with_padding - input_channel) * sizeof(output_t)
     # dilation_y_offset = (dilation_y * input_width_with_padding * input_channel_with_padding - input_channel - dilation_x * input_channel_with_padding * (filter_width - 1)) * sizeof(output_t)
     # filter_h
@@ -581,15 +584,15 @@ dl_esp32p4_s16_conv2d_33cn_relu:
         addi  \filter_w, \filter_w, -1
         beqz  \filter_w, 4f
             // lp.setup 1, \filter_w, 3f
-            //     esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+            //     esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
             // 3:  add  \input_ptr, \input_ptr, \dilation_x_offset
             3:
-                esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+                esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
                 add  \input_ptr, \input_ptr, \dilation_x_offset
                 addi  \filter_w, \filter_w, -1
                 bgtz  \filter_w, 3b
         4:
-        esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1
+        esp32p4_s16_conv2d_11c8  \input_v0, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \tmp
         add  \filter_ptr, \filter_ptr, \filter_y_offset
         add  \input_ptr, \input_ptr, \dilation_y_offset
 
@@ -628,7 +631,7 @@ dl_esp32p4_s16_conv2d_hwcn_bias:
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions): filter_y_offset
     # s3(not for extension instructions): filter_n_offset
-    # s4(not for extension instructions):
+    # s4(not for extension instructions): tmp_value
     # s5(not for extension instructions):
 
     # s0:
@@ -650,7 +653,7 @@ dl_esp32p4_s16_conv2d_hwcn_bias:
         esp.zero.qacc
 
         esp32p4_s16_conv2d_128b_vector_bias  a5
-        esp32p4_s16_conv2d_hwc8  q0, q1, q2, t5, a3, t1, t2, a6, a7, t0, a2, s2, s3
+        esp32p4_s16_conv2d_hwc8  q0, q1, q2, t5, a3, t1, t2, a6, a7, t0, a2, s2, s3, s4
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
 
@@ -689,7 +692,7 @@ dl_esp32p4_s16_conv2d_hwcn_bias_relu:
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions): filter_y_offset
     # s3(not for extension instructions): filter_n_offset
-    # s4(not for extension instructions):
+    # s4(not for extension instructions): tmp_value
     # s5(not for extension instructions):
 
     # s0:
@@ -713,7 +716,7 @@ dl_esp32p4_s16_conv2d_hwcn_bias_relu:
         esp.zero.qacc
 
         esp32p4_s16_conv2d_128b_vector_bias  a5
-        esp32p4_s16_conv2d_hwc8  q0, q1, q2, t5, a3, t1, t2, a6, a7, t0, a2, s2, s3
+        esp32p4_s16_conv2d_hwc8  q0, q1, q2, t5, a3, t1, t2, a6, a7, t0, a2, s2, s3, s4
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_vector_relu  q0, t3, t4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
@@ -753,7 +756,7 @@ dl_esp32p4_s16_conv2d_hwcn:
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions): filter_y_offset
     # s3(not for extension instructions): filter_n_offset
-    # s4(not for extension instructions):
+    # s4(not for extension instructions): tmp_value
     # s5(not for extension instructions):
 
     # s0:
@@ -773,7 +776,7 @@ dl_esp32p4_s16_conv2d_hwcn:
         mv  t5, a1      // reload input_ptr
         esp.zero.qacc
 
-        esp32p4_s16_conv2d_hwc8  q0, q1, q2, t5, a3, t1, t2, a6, a7, t0, a2, s2, s3
+        esp32p4_s16_conv2d_hwc8  q0, q1, q2, t5, a3, t1, t2, a6, a7, t0, a2, s2, s3, s4
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_aligned_vector_store  q0, a0
 
@@ -812,7 +815,7 @@ dl_esp32p4_s16_conv2d_hwcn_relu:
     # t2(not for extension instructions): input dilation x offset
     # s2(not for extension instructions): filter_y_offset
     # s3(not for extension instructions): filter_n_offset
-    # s4(not for extension instructions):
+    # s4(not for extension instructions): tmp_value
     # s5(not for extension instructions):
 
     # s0:
@@ -834,7 +837,7 @@ dl_esp32p4_s16_conv2d_hwcn_relu:
         mv  t5, a1      // reload input_ptr
         esp.zero.qacc
 
-        esp32p4_s16_conv2d_hwc8  q0, q1, q2, t5, a3, t1, t2, a6, a7, t0, a2, s2, s3
+        esp32p4_s16_conv2d_hwc8  q0, q1, q2, t5, a3, t1, t2, a6, a7, t0, a2, s2, s3, s4
         esp32p4_s16_128b_vector_shift_result  q0, a4
         esp32p4_s16_128b_vector_relu  q0, t3, t4
         esp32p4_s16_128b_aligned_vector_store  q0, a0

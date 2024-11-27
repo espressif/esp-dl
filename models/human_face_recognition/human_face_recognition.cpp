@@ -1,10 +1,17 @@
 #include "human_face_recognition.hpp"
 
-extern const uint8_t mfn_espdl[] asm("_binary_mfn_espdl_start");
+extern const uint8_t human_face_feat_espdl[] asm("_binary_human_face_feat_espdl_start");
 
-HumanFaceFeat::HumanFaceFeat()
+HumanFaceFeat::HumanFaceFeat(HumanFaceFeat::model_type_t model_type)
 {
-    this->model = (void *)new model_zoo::MFN<int8_t>({127.5, 127.5, 127.5}, {128, 128, 128});
+    switch (model_type) {
+    case HumanFaceFeat::model_type_t::MODEL_MFN:
+        this->model = (void *)new model_zoo::MFN<int8_t>({127.5, 127.5, 127.5}, {128, 128, 128});
+        break;
+    case HumanFaceFeat::model_type_t::MODEL_MBF:
+        this->model = (void *)new model_zoo::MFN<int8_t>({127.5, 127.5, 127.5}, {127.5, 127.5, 127.5});
+        break;
+    }
 }
 
 HumanFaceFeat::~HumanFaceFeat()
@@ -88,7 +95,7 @@ namespace model_zoo {
 
 template <typename feature_t>
 MFN<feature_t>::MFN(const std::vector<float> &mean, const std::vector<float> &std) :
-    model(new dl::Model((const char *)mfn_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA, 0))
+    model(new dl::Model((const char *)human_face_feat_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA, 0))
 {
     std::map<std::string, dl::TensorBase *> model_inputs_map = this->model->get_inputs();
     assert(model_inputs_map.size() == 1);
@@ -137,9 +144,9 @@ dl::TensorBase *MFN<feature_t>::run(T *input_element,
     dl::TensorBase *feat = this->postprocessor->postprocess();
     latency[2].end();
 
-    latency[0].print("detect", "preprocess");
-    latency[1].print("detect", "forward");
-    latency[2].print("detect", "postprocess");
+    latency[0].print("recognition", "preprocess");
+    latency[1].print("recognition", "forward");
+    latency[2].print("recognition", "postprocess");
 
     return feat;
 }

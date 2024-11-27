@@ -23,7 +23,9 @@
         esp.vld.128.ip  \filter_v1, \filter_ptr, 16
 
         beqz  \c_div_x_1, 8f
-        esp.lp.setup  0, \c_div_x_1, 9f
+        mv  \temp, \c_div_x_1
+        // esp.lp.setup  0, \c_div_x_1, 9f
+        9:
             esp.src.q.qup  \input_v, \input_front, \input_back
             esp.ld.128.usar.ip  \input_back, \input_ptr, 16
 
@@ -34,7 +36,9 @@
             esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v, 4
             esp.vsmulas.s16.qacc.ld.incp  \filter_v1, \filter_ptr, \filter_v1, \input_v, 5
             esp.vsmulas.s16.qacc.ld.incp  \filter_v0, \filter_ptr, \filter_v0, \input_v, 6
-        9:  esp.vsmulas.s16.qacc.ld.incp  \filter_v1, \filter_ptr, \filter_v1, \input_v, 7
+            esp.vsmulas.s16.qacc.ld.incp  \filter_v1, \filter_ptr, \filter_v1, \input_v, 7
+            addi  \temp, \temp, -1
+            bgtz  \temp, 9b
 
         8:
         # last entire-128b
@@ -146,7 +150,7 @@
         esp.ld.128.usar.ip  \input_back, \input_ptr, 16
 
         beqz  \c_div_x_1, 8f
-        # esp.lp.setup  0, \c_div_x_1, (8f - 4)
+        // esp.lp.setup  0, \c_div_x_1, (8f - 4)
         # Use the zero register as a loop counter, and the value remains zero after the loop is complete.
         mv  \zero, \c_div_x_1
         9:

@@ -1,6 +1,5 @@
 #pragma once
 #include "dl_module_add.hpp"
-#include "dl_module_sub.hpp"
 #include "dl_module_avg_pool2d.hpp"
 #include "dl_module_clip.hpp"
 #include "dl_module_concat.hpp"
@@ -16,6 +15,7 @@
 #include "dl_module_lut.hpp"
 #include "dl_module_max_pool2d.hpp"
 #include "dl_module_mul.hpp"
+#include "dl_module_pad.hpp"
 #include "dl_module_prelu.hpp"
 #include "dl_module_relu.hpp"
 #include "dl_module_requantize_linear.hpp"
@@ -26,6 +26,7 @@
 #include "dl_module_softmax.hpp"
 #include "dl_module_sqrt.hpp"
 #include "dl_module_squeeze.hpp"
+#include "dl_module_sub.hpp"
 #include "dl_module_tanh.hpp"
 #include "dl_module_transpose.hpp"
 #include "dl_module_unsqueeze.hpp"
@@ -36,19 +37,43 @@
 #include <map>
 namespace dl {
 namespace module {
+
 class ModuleCreator {
 public:
-    using Creator = std::function<Module *(fbs::FbsModel *, std::string)>;
+    using Creator = std::function<Module *(fbs::FbsModel *, std::string)>; ///< Module creator function type
 
+    /**
+     * @brief Get instance of ModuleCreator by this function. It is only safe method to get instance of ModuleCreator
+     * becase ModuleCreator is a singleton class.
+     *
+     * @return ModuleCreator instance pointer
+     */
     static ModuleCreator *get_instance()
     {
         // This is thread safe for C++11, please refer to `Meyers' implementation of the Singleton pattern`
         static ModuleCreator instance;
         return &instance;
     }
-
+    /**
+     * @brief Register a module creator to the module creator map
+     *        This function allows for the dynamic registration of new module types and their corresponding creator
+     * functions at runtime. By associating the module type name with the creator function, the system can flexibly
+     * create instances of various modules.
+     *
+     * @param op_type The module type name, used as the key in the map
+     * @param creator The module creator function, used to create modules of a specific type
+     */
     void register_module(const std::string &op_type, Creator creator) { ModuleCreator::creators[op_type] = creator; }
 
+    /**
+     * @brief Create module instance pointer
+     *
+     * @param fbs_model  Flatbuffer model pointer
+     * @param op_type    Module/Operator type
+     * @param name       Module name
+     *
+     * @return Module instance pointer
+     */
     Module *create(fbs::FbsModel *fbs_model, const std::string &op_type, const std::string name)
     {
         this->register_dl_modules();
@@ -59,13 +84,16 @@ public:
         return nullptr;
     }
 
+    /**
+     * @brief Pre-register the already implemented modules
+     */
     void register_dl_modules()
     {
         if (creators.empty()) {
             this->register_module("Conv", Conv2D::deserialize);
             this->register_module("Mul", Mul4D::deserialize);
-            this->register_module("Add", Add4D::deserialize);
-            this->register_module("Sub", Sub4D::deserialize);
+            this->register_module("Add", Add::deserialize);
+            this->register_module("Sub", Sub::deserialize);
             this->register_module("Resize", Resize2D::deserialize);
             this->register_module("GlobalAveragePool", GlobalAveragePool2D::deserialize);
             this->register_module("AveragePool", AveragePool2D::deserialize);
@@ -96,9 +124,13 @@ public:
             this->register_module("Softmax", Softmax::deserialize);
             this->register_module("MaxPool", MaxPool2D::deserialize);
             this->register_module("Slice", Slice::deserialize);
+            this->register_module("Pad", Pad::deserialize);
         }
     }
 
+    /**
+     * @brief Print all modules has been registered
+     */
     void print()
     {
         if (!creators.empty()) {
@@ -110,6 +142,9 @@ public:
         }
     }
 
+    /**
+     * @brief Clear all modules has been registered
+     */
     void clear()
     {
         if (!creators.empty()) {

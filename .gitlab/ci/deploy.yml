@@ -1,3 +1,6 @@
+variables:
+  ESP_DOCS_ENV_IMAGE: "$CI_DOCKER_REGISTRY/esp-idf-doc-env-v5.3:1-1" 
+
 push_to_github:
   stage: deploy
   only:
@@ -16,4 +19,31 @@ push_to_github:
   script:
     - git remote remove github &>/dev/null || true
     - git remote add github https://${GITHUB_PUSH_TOKEN}@github.com/espressif/esp-dl.git
-    - ${CI_PROJECT_DIR}/.gitlab/tool/push_to_github.sh
+    - source ${CI_PROJECT_DIR}/.gitlab/tool/push_to_github.sh
+
+.deploy_docs_template:
+  stage: deploy
+  image: $ESP_DOCS_ENV_IMAGE
+  tags:
+    - deploy_docs
+  needs:
+    - build_esp_dl_html
+    - build_esp_dl_pdf
+  script:
+    - source ${CI_PROJECT_DIR}/.gitlab/tool/utils.sh
+    - add_doc_server_ssh_keys $DOCS_DEPLOY_PRIVATEKEY $DOCS_DEPLOY_SERVER $DOCS_DEPLOY_SERVER_USER
+    - export GIT_VER=$(git describe --always)
+    - pip install -r ${CI_PROJECT_DIR}/docs/requirements.txt
+    - deploy-docs
+
+deploy_docs_preview:
+  extends:
+    - .deploy_docs_template
+  variables:
+    TYPE: "preview"
+    DOCS_BUILD_DIR: "${CI_PROJECT_DIR}/docs/_build/"
+    DOCS_DEPLOY_PRIVATEKEY: "$DOCS_PREVIEW_DEPLOY_KEY"
+    DOCS_DEPLOY_SERVER: "$DOCS_PREVIEW_SERVER"
+    DOCS_DEPLOY_SERVER_USER: "$DOCS_PREVIEW_SERVER_USER"
+    DOCS_DEPLOY_PATH: "$DOCS_PREVIEW_PATH"
+    DOCS_DEPLOY_URL_BASE: "$DOCS_PREVIEW_URL_BASE"

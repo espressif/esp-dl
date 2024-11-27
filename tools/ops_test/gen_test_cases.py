@@ -152,33 +152,14 @@ if __name__ == "__main__":
 
     # generate test cases
     pkg = importlib.import_module(config["ops_test"]["class_package"])
-    op_set = [
-        "conv2d",
-        "add2d",
-        "mul2d",
-        "sigmoid",
-        "average_pooling",
-        "global_average_pooling",
-        "linear",
-        "concat",
-        "resize2d",
-        "clip",
-        "flatten",
-        "reshape",
-        "transpose",
-        "tanh",
-        "hardsigmoid",
-        "hardswish",
-        "leakyrelu",
-        "prelu",
-        "max_pooling",
-        "add4d",
-        "sub4d",
-        "mul4d",
-        "equal4d",
-    ]
     if args.ops:
         op_set = args.ops
+    else:
+        op_set = []
+        for op_type in config["ops_test"]:
+            if op_type == "class_package":
+                continue
+            op_set.append(op_type)
 
     for op_type in op_set:
         op_configs = config["ops_test"][op_type]["cfg"]

@@ -77,15 +77,15 @@ std::string shape_to_string(std::vector<int> shape);
  */
 class TensorBase {
 public:
-    int size;                     /*<! size of element including padding */
-    std::vector<int> shape;       /*<! shape of Tensor */
-    dtype_t dtype;                /*<! data type of element */
-    int exponent;                 /*<! exponent of element */
-    bool auto_free;               /*<! free element when object destroy */
-    std::vector<int> axis_offset; /*<! element offset of each axis */
-    void *data;                   /*<! data pointer */
-    void *cache;                  /*<! cache pointer， used for preload and do not need to free */
-    uint32_t caps;                /*<! flags indicating the type of memory */
+    int size;                     ///< size of element including padding
+    std::vector<int> shape;       ///< shape of Tensor
+    dtype_t dtype;                ///< data type of element
+    int exponent;                 ///<  exponent of element
+    bool auto_free;               ///<  free element when object destroy
+    std::vector<int> axis_offset; ///<  element offset of each axis
+    void *data;                   ///<  data pointer
+    void *cache;                  ///<  cache pointer， used for preload and do not need to free
+    uint32_t caps;                ///<  flags indicating the type of memory
 
     TensorBase()
     {
@@ -100,6 +100,17 @@ public:
         this->caps = MALLOC_CAP_8BIT;
     }
 
+    /**
+     * @brief Construct a TensorBase object
+     *
+     * @param shape  Shape of tensor
+     * @param element  Pointer of data
+     * @param exponent Exponent of tensor, default is 0
+     * @param dtype    Data type of element, default is float
+     * @param deep     True: malloc memory and copy data, false: use the pointer directly
+     * @param caps     Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
+     *
+     */
     TensorBase(std::vector<int> shape,
                const void *element,
                int exponent = 0,
@@ -107,6 +118,9 @@ public:
                bool deep = true,
                uint32_t caps = MALLOC_CAP_8BIT);
 
+    /**
+     * @brief Destroy the TensorBase object.
+     */
     virtual ~TensorBase()
     {
         if (this->auto_free) {
@@ -282,7 +296,7 @@ public:
      *
      * @param tensor Input tensor
      * @param epsilon The max error of two element
-     * @param If true, print the detail of results
+     * @param verbose If true, print the detail of results
      *
      * @return true if two tensor is equal otherwise false
      */
@@ -328,11 +342,45 @@ public:
                       const std::vector<int> &step = {});
 
     /**
+     * @brief Pad input tensor
+     *
+     * @param input_element Data pointer of input tensor
+     * @param input_shape   Shape of input tensor
+     * @param pads   The number of padding elements to add, pads format should be: [x1_begin, x2_begin, …, x1_end,
+     * x2_end,…]
+     * @param mode   Supported modes: constant(default), reflect, edge
+     * @param const_value (Optional) A scalar value to be used if the mode chosen is constant
+     *
+     * @return Output tensor pointer
+     */
+    template <typename T>
+    TensorBase *pad(T *input_element,
+                    const std::vector<int> &input_shape,
+                    const std::vector<int> &pads,
+                    const padding_mode_t mode,
+                    TensorBase *const_value = nullptr);
+
+    /**
+     * @brief Pad input tensor
+     *
+     * @param input  Input tensor pointer
+     * @param pads   Padding elements to add, pads format should be: [x1_begin, x2_begin, …, x1_end, x2_end,…]
+     * @param mode   Supported modes: constant(default), reflect, edge
+     * @param const_value (Optional) A scalar value to be used if the mode chosen is constant
+     *
+     * @return Output tensor pointer
+     */
+    TensorBase *pad(TensorBase *input,
+                    const std::vector<int> &pads,
+                    const padding_mode_t mode,
+                    TensorBase *const_value = nullptr);
+
+    /**
      * @brief Compare the elements of two Tensor
      *
      * @param gt_elements The ground truth elements
      * @param epsilon The max error of two element
-     * @param If true, print the detail of results
+     * @param verbose If true, print the detail of results
      *
      * @return true if all elements are equal otherwise false
      */
@@ -367,7 +415,7 @@ public:
     /**
      * @brief Get a element of Tensor
      *
-     * @param index  The index of element
+     * @param axis_index  The index of element
      * @return   The element of tensor
      */
     template <typename T>
@@ -375,11 +423,17 @@ public:
 
     /**
      * @brief Set preload address of Tensor
+     *
+     * @param addr  The address of preload data
+     * @param size  Size of preload data
+     *
+     * @return The size of preload data
      */
     size_t set_preload_addr(void *addr, size_t size);
 
     /**
      * @brief Preload the data of Tensor
+     *
      */
     virtual void preload()
     {
@@ -392,6 +446,10 @@ public:
      * @brief Reset the layout of Tensor
      *
      * @warning Only available for Convolution. Don't use it unless you know exactly what it does.
+     *
+     * @param op_quant_type  The quant type of operation
+     * @param is_depthwise   Whether is depthwise convolution
+     *
      */
     void reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise);
 };

@@ -90,7 +90,7 @@ TEST_CASE("Test dl module API: run()", "[api]")
     }
 
     // multiple inputs and multiple outputs
-    module::Module *add_op = new module::Add4D("add", MODULE_NON_INPLACE, QUANT_TYPE_SYMM_8BIT);
+    module::Module *add_op = new module::Add("add", MODULE_NON_INPLACE, QUANT_TYPE_SYMM_8BIT);
     add_op->run({input1, input2}, {output});
 
     for (int i = 0; i < output->get_size(); i++) {

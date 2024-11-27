@@ -1199,6 +1199,100 @@
         dim = 1
         export_name_prefix = "slice_ishap_38"
 
+    [ops_test.pad]
+    class_name = "PAD_TEST"
+    description = "only support constant mode"
+        [[ops_test.pad.cfg]]
+        input_shape = [64]
+        pads = [3,3]
+        mode = "constant"
+        const_value = 1
+        export_name_prefix = "pad_ishap_64_pads_3_3_constant_1"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [10, 100]
+        pads = [1,0,5,5]
+        mode = "constant"
+        const_value = 0
+        export_name_prefix = "pad_ishap_10_100_pads_1_0_5_5_constant_0"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [15, 133]
+        pads = [11,12]
+        mode = "replicate"
+        const_value = 0
+        export_name_prefix = "pad_ishap_15_133_pads_11_12_replicate"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [9, 33]
+        pads = [4,4]
+        mode = "reflect"
+        const_value = 0
+        export_name_prefix = "pad_ishap_9_33_pads_4_4_reflect"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [2, 10, 100]
+        pads = [1,1,2,2]
+        mode = "constant"
+        const_value = 2
+        export_name_prefix = "pad_ishap_2_10_100_pads_1_1_2_2_constant_2"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [1, 15, 133]
+        pads = [1,1,10,10]
+        mode = "replicate"
+        const_value = 0
+        export_name_prefix = "pad_ishap_1_15_133_pads_1_1_10_10_replicate"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [5, 9, 33]
+        pads = [1,2,3,4]
+        mode = "reflect"
+        const_value = 0
+        export_name_prefix = "pad_ishap_5_9_33_pads_1_2_3_4_reflect"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [2, 5, 10, 50]
+        pads = [2,1,1,1,1,1,2,2]
+        mode = "constant"
+        const_value = 1
+        export_name_prefix = "pad_ishap_2_5_10_50_pads_2_1_1_1_1_1_2_2_constant_1"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [2, 4, 15, 33]
+        pads = [1,2,1,2,3,4]
+        mode = "replicate"
+        const_value = 0
+        export_name_prefix = "pad_ishap_2_4_15_33_pads_1_2_1_2_3_4_replicate"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [1, 5, 9, 33]
+        pads = [1,2,1,2,3,4]
+        mode = "reflect"
+        const_value = 0
+        export_name_prefix = "pad_ishap_1_5_9_33_pads_1_2_1_2_3_4_reflect"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [2, 2, 5, 10, 50]
+        pads = [2,1,1,2,1,2]
+        mode = "reflect"
+        const_value = 0
+        export_name_prefix = "pad_ishap_2_2_5_10_50_pads_2_1_1_2_1_2_reflect"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [2, 4, 5, 10, 20]
+        pads = [1,3,1,3,3,1]
+        mode = "replicate"
+        const_value = 0
+        export_name_prefix = "pad_ishap_2_4_5_10_20_pads_1_3_1_3_3_1_replicate"
+
+        [[ops_test.pad.cfg]]
+        input_shape = [2, 2, 5, 10, 50]
+        pads = [2,1,1,1,1,1,1,1,1,1]
+        mode = "constant"
+        const_value = 1
+        export_name_prefix = "pad_ishap_2_2_5_10_50_pads_2_1_1_1_1_1_1_1_1_1_constant_1"
+
 [models_test]
     [models_test.picodet]
         input_shape = [1, 3, 224, 224]

@@ -42,7 +42,6 @@ inline void load_add2d_11c_s16(arith_i_impl_func_s16_t &i_impl_func,
                                arith_n_wise_tail_s16_t &n_wise_tail,
                                const arithArgsType<int16_t> &args)
 {
-
 #if CONFIG_ESP32P4_BOOST
     if (args.input0_x_offset % 8 == 0 && args.input1_x_offset % 8 == 0 && args.output_x_offset % 8 == 0 &&
         !((unsigned)&args.input0_element[0] & 15) && !((unsigned)&args.input1_element[0] & 15) &&
@@ -174,7 +173,6 @@ inline void load_add2d_11c_s8(arith_i_impl_func_s8_t &i_impl_func,
                               arith_n_wise_tail_s8_t &n_wise_tail,
                               const arithArgsType<int8_t> &args)
 {
-
 #if CONFIG_ESP32P4_BOOST
     if (args.input0_x_offset % 16 == 0 && args.input1_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 &&
         !((unsigned)&args.input0_element[0] & 15) && !((unsigned)&args.input1_element[0] & 15) &&
