@@ -76,16 +76,24 @@ void elemwise_sub(elemwiseArgsType<int8_t> *args)
         } else {
             elemwise_func = dl_esp32p4_s8_sub4d_bchw_w1_16_w2_16_simdsub_unaligned;
         }
-#elif CONFIG_IDF_TARGET_ESP32S3
-        if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-            elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_16_simdsub;
-        } else if (args->input0_d0 % ilen == 0 && args->input1_d0 == 1) {
-            elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_1_simdsub;
-        } else if (args->input0_d0 == 1 && args->input1_d0 % ilen == 0) {
-            elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_1_w2_16_simdsub;
-        } else {
-            elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_16_simdsub_unaligned;
-        }
+// #elif CONFIG_IDF_TARGET_ESP32S3
+//         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
+//             elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_16_simdsub;
+//         } else if (args->input1_d0 == 1) {
+//             if (args->input0_d0 % ilen == 0) {
+//                 elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_1_simdsub;
+//             } else {
+//                 elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_1_simdsub_unaligned;
+//             }
+//         } else if (args->input0_d0 == 1) {
+//             if (args->input1_d0 % ilen == 0) {
+//                 elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_1_w2_16_simdsub;
+//             } else {
+//                 elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_1_w2_16_simdsub_unaligned;
+//             }
+//         } else {
+//             elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_16_simdsub_unaligned;
+//         }
 #else
         if (args->input1_d0 == 1) {
             elemwise_func = c_impl_sub_n_1<int8_t>;
@@ -125,12 +133,6 @@ void elemwise_sub(elemwiseArgsType<int16_t> *args)
     std::function<void(int16_t *, int16_t *, int16_t *, elemwiseArgsType<int16_t> *)> elemwise_func =
         c_impl_sub_n_n<int16_t>;
 
-    // if (args->input1_d0 == 1) {
-    //     elemwise_func = c_impl_sub_n_1<int16_t>;
-    // } else if (args->input0_d0 == 1) {
-    //     elemwise_func = c_impl_sub_1_n<int16_t>;
-    // }
-
     if (args->output_d0 >= ilen) {
 #if CONFIG_IDF_TARGET_ESP32P4
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
@@ -150,16 +152,24 @@ void elemwise_sub(elemwiseArgsType<int16_t> *args)
         } else {
             elemwise_func = dl_esp32p4_s16_sub4d_bchw_w1_8_w2_8_simdsub_unaligned;
         }
-#elif CONFIG_IDF_TARGET_ESP32S3
-        if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-            elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_8_simdsub;
-        } else if (args->input0_d0 % ilen == 0 && args->input1_d0 == 1) {
-            elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_1_simdsub;
-        } else if (args->input0_d0 == 1 && args->input1_d0 % ilen == 0) {
-            elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_1_w2_8_simdsub;
-        } else {
-            elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_8_simdsub_unaligned;
-        }
+// #elif CONFIG_IDF_TARGET_ESP32S3
+//         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
+//             elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_8_simdsub;
+//         } else if (args->input1_d0 == 1) {
+//             if (args->input0_d0 % ilen == 0) {
+//                 elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_1_simdsub;
+//             } else {
+//                 elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_1_simdsub_unaligned;
+//             }
+//         } else if (args->input0_d0 == 1) {
+//             if (args->input1_d0 % ilen == 0) {
+//                 elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_1_w2_8_simdsub;
+//             } else {
+//                 elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_1_w2_8_simdsub_unaligned;
+//             }
+//         } else {
+//             elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_8_simdsub_unaligned;
+//         }
 #else
         if (args->input1_d0 == 1) {
             elemwise_func = c_impl_sub_n_1<int16_t>;
