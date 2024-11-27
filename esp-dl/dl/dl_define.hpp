@@ -43,6 +43,10 @@
     }
 #endif
 
+#ifndef DL_EQUAL
+#define DL_EQUAL(x, y) (((x) == (y)) ? (1) : (0))
+#endif
+
 #ifndef DL_MAX
 #define DL_MAX(x, y) (((x) < (y)) ? (y) : (x))
 #endif

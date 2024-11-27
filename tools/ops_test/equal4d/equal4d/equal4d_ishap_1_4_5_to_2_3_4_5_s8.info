@@ -1,0 +1,47 @@
+graph main_graph (
+  %onnx::Equal_1[FLOAT, 2x3x1x1], exponents: [0]
+  %onnx::Equal_0[FLOAT, 1x1x4x5], exponents: [0]
+) {
+  %2 = Equal[quant_type = 'F32'](%onnx::Equal_0, %onnx::Equal_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%onnx::Equal_1[FLOAT, 2x3x1x1], exponents: [0]
+%onnx::Equal_0[FLOAT, 1x1x4x5], exponents: [0]
+%2[BOOL, 2x3x4x5], exponents: [0]
+
+
+test inputs value:
+%onnx::Equal_0, shape: [1, 1, 4, 5], exponents: [0], 
+value: array([0.17825347, 0.18628275, 0.21270758, 0.05031192, 0.16810054,
+       0.52634954, 0.28287786, 0.5842204 , 0.9783734 , 0.15931362,
+       0.9572709 , 0.27716696, 0.96083313, 0.8992308 , 0.01992244,
+       0.224289  , 0.86796945, 0.38550448, 0.89400655, 0.33824754],
+      dtype=float32)
+%onnx::Equal_1, shape: [2, 3, 1, 1], exponents: [0], 
+value: array([0.90839136, 0.4089924 , 0.38397843, 0.8549414 , 0.39324576,
+       0.08923447], dtype=float32)
+
+
+test outputs value:
+%2, shape: [2, 3, 4, 5], exponents: [0], 
+value: array([False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False])

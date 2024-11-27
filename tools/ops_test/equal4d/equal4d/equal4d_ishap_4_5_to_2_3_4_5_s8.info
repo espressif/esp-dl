@@ -1,0 +1,70 @@
+graph main_graph (
+  %onnx::Equal_1[FLOAT, 2x3x4x5], exponents: [0]
+  %onnx::Equal_0[FLOAT, 1x1x4x5], exponents: [0]
+) {
+  %2 = Equal[quant_type = 'F32'](%onnx::Equal_0, %onnx::Equal_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%onnx::Equal_1[FLOAT, 2x3x4x5], exponents: [0]
+%onnx::Equal_0[FLOAT, 1x1x4x5], exponents: [0]
+%2[BOOL, 2x3x4x5], exponents: [0]
+
+
+test inputs value:
+%onnx::Equal_0, shape: [1, 1, 4, 5], exponents: [0], 
+value: array([0.30405676, 0.34152538, 0.7920884 , 0.37052983, 0.14092445,
+       0.7662526 , 0.4291306 , 0.45162112, 0.15631324, 0.49421477,
+       0.06051856, 0.79369843, 0.03951055, 0.96827865, 0.6011744 ,
+       0.5591763 , 0.3093745 , 0.73427474, 0.6252678 , 0.34937507],
+      dtype=float32)
+%onnx::Equal_1, shape: [2, 3, 4, 5], exponents: [0], 
+value: array([0.4883129 , 0.08836722, 0.997727  , 0.71163315, 0.35560328,
+       0.27454907, 0.47519314, 0.00841081, 0.42571157, 0.45290756,
+       0.7304635 , 0.92764   , 0.79687434, 0.38177258, 0.2268359 ,
+       0.67170805, 0.36354756, 0.14027238, 0.5917443 , 0.33294815,
+       0.15469223, 0.9078407 , 0.7319201 , 0.74582076, 0.4032669 ,
+       0.3922078 , 0.07514274, 0.181813  , 0.41573602, 0.8697819 ,
+       0.11781746, 0.9926136 , 0.48998684, 0.7276515 , 0.51638454,
+       0.67543334, 0.08636796, 0.4413818 , 0.50776845, 0.9687071 ,
+       0.79330933, 0.07318252, 0.6761266 , 0.0950613 , 0.15350372,
+       0.01895368, 0.3262244 , 0.11965132, 0.5491304 , 0.7519758 ,
+       0.9592946 , 0.3604303 , 0.8232414 , 0.75539404, 0.44599664,
+       0.73303306, 0.20840114, 0.09034681, 0.818532  , 0.6441937 ,
+       0.983722  , 0.99568564, 0.28993332, 0.23385233, 0.5025277 ,
+       0.8779709 , 0.5094706 , 0.08537191, 0.32401538, 0.50913864,
+       0.54676133, 0.22814262, 0.7768833 , 0.45798796, 0.45909023,
+       0.14737296, 0.2700879 , 0.25752205, 0.57143754, 0.9019698 ,
+       0.69184667, 0.5622887 , 0.5191682 , 0.68963337, 0.08908188,
+       0.23954844, 0.8692884 , 0.5216033 , 0.15227455, 0.5871264 ,
+       0.357391  , 0.5869723 , 0.49578714, 0.8865442 , 0.0951401 ,
+       0.56975347, 0.55216354, 0.07756841, 0.68226403, 0.41534477,
+       0.7790873 , 0.00262815, 0.5334766 , 0.11370468, 0.28305936,
+       0.9082608 , 0.38534647, 0.29945868, 0.06950468, 0.09924078,
+       0.43258083, 0.15322304, 0.85968536, 0.04801774, 0.6657123 ,
+       0.41420108, 0.45415843, 0.07754433, 0.7089397 , 0.77042586],
+      dtype=float32)
+
+
+test outputs value:
+%2, shape: [2, 3, 4, 5], exponents: [0], 
+value: array([False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False])

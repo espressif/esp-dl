@@ -174,7 +174,8 @@ if __name__ == "__main__":
         "max_pooling",
         "add4d",
         "sub4d",
-        "mul4d"
+        "mul4d",
+        "equal4d",
     ]
     if args.ops:
         op_set = args.ops

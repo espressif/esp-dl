@@ -1,0 +1,54 @@
+graph main_graph (
+  %onnx::Equal_1[FLOAT, 2x1x1x1], exponents: [0]
+  %onnx::Equal_0[FLOAT, 1x3x4x5], exponents: [0]
+) {
+  %2 = Equal[quant_type = 'F32'](%onnx::Equal_0, %onnx::Equal_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%onnx::Equal_1[FLOAT, 2x1x1x1], exponents: [0]
+%onnx::Equal_0[FLOAT, 1x3x4x5], exponents: [0]
+%2[BOOL, 2x3x4x5], exponents: [0]
+
+
+test inputs value:
+%onnx::Equal_0, shape: [1, 3, 4, 5], exponents: [0], 
+value: array([0.45558524, 0.78964734, 0.7450583 , 0.27560937, 0.7065017 ,
+       0.6534228 , 0.03115863, 0.7540591 , 0.04406577, 0.791733  ,
+       0.5586744 , 0.70814455, 0.40127128, 0.2035436 , 0.24366277,
+       0.9953571 , 0.38463283, 0.83152   , 0.07014143, 0.00493103,
+       0.52167577, 0.12110561, 0.6645305 , 0.1846469 , 0.9442614 ,
+       0.48643476, 0.84769154, 0.49166232, 0.60247475, 0.31442374,
+       0.9342593 , 0.29271275, 0.5803849 , 0.72806567, 0.22707462,
+       0.43319756, 0.06534463, 0.264679  , 0.04890519, 0.49539828,
+       0.32716346, 0.19783479, 0.94576895, 0.43772006, 0.08691591,
+       0.48892516, 0.57605016, 0.63265616, 0.61735296, 0.19743466,
+       0.6867507 , 0.11296183, 0.79066825, 0.7151418 , 0.5252911 ,
+       0.8712843 , 0.93845683, 0.756583  , 0.9556015 , 0.27049047],
+      dtype=float32)
+%onnx::Equal_1, shape: [2, 1, 1, 1], exponents: [0], 
+value: array([0.3597722, 0.7575549], dtype=float32)
+
+
+test outputs value:
+%2, shape: [2, 3, 4, 5], exponents: [0], 
+value: array([False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False])

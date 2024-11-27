@@ -1,0 +1,111 @@
+graph main_graph (
+  %onnx::Equal_1[FLOAT, 1x1x5x5], exponents: [0]
+  %onnx::Equal_0[FLOAT, 10x1x5x5], exponents: [0]
+) {
+  %2 = Equal[quant_type = 'F32'](%onnx::Equal_0, %onnx::Equal_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%onnx::Equal_1[FLOAT, 1x1x5x5], exponents: [0]
+%onnx::Equal_0[FLOAT, 10x1x5x5], exponents: [0]
+%2[BOOL, 10x1x5x5], exponents: [0]
+
+
+test inputs value:
+%onnx::Equal_0, shape: [10, 1, 5, 5], exponents: [0], 
+value: array([0.8776988 , 0.59960985, 0.5396059 , 0.57997304, 0.5432675 ,
+       0.95372695, 0.08128417, 0.9291273 , 0.4658153 , 0.2026183 ,
+       0.64288217, 0.8594941 , 0.5389139 , 0.40752578, 0.383761  ,
+       0.27494574, 0.61390287, 0.47656   , 0.8284564 , 0.92062336,
+       0.6936473 , 0.7661803 , 0.2632519 , 0.26188475, 0.93886423,
+       0.14824855, 0.01186043, 0.19100559, 0.06631607, 0.13218713,
+       0.6297928 , 0.13332003, 0.93890107, 0.4161451 , 0.37969667,
+       0.11197966, 0.24040288, 0.8293947 , 0.5037602 , 0.24598968,
+       0.6173163 , 0.23235804, 0.5562895 , 0.49124455, 0.00160265,
+       0.07540095, 0.11358094, 0.6608917 , 0.4792239 , 0.62874407,
+       0.10034782, 0.99378324, 0.93470705, 0.5118666 , 0.97114617,
+       0.86079353, 0.00631577, 0.43862766, 0.9573151 , 0.18663526,
+       0.04976839, 0.8815194 , 0.34006208, 0.5491594 , 0.04892176,
+       0.49847186, 0.19599241, 0.9111413 , 0.52427715, 0.88456523,
+       0.4961198 , 0.07891768, 0.05635911, 0.4350834 , 0.8364648 ,
+       0.8463824 , 0.13584179, 0.2994641 , 0.44348705, 0.1514237 ,
+       0.9349754 , 0.5862361 , 0.8583503 , 0.9510706 , 0.4473306 ,
+       0.12533098, 0.69470173, 0.07565224, 0.38739574, 0.1946978 ,
+       0.40014768, 0.5597418 , 0.6699292 , 0.7197996 , 0.09777689,
+       0.86593705, 0.5387662 , 0.15744913, 0.84290576, 0.21002448,
+       0.14476693, 0.55615383, 0.9361076 , 0.54416   , 0.43026006,
+       0.7485148 , 0.760072  , 0.5136886 , 0.32423782, 0.760962  ,
+       0.9234142 , 0.8287938 , 0.25149727, 0.2958641 , 0.4388507 ,
+       0.7996084 , 0.5309524 , 0.3502881 , 0.19800776, 0.89931977,
+       0.8033445 , 0.64571977, 0.92409855, 0.68058383, 0.9738863 ,
+       0.40138078, 0.3329233 , 0.79151106, 0.4469309 , 0.6788666 ,
+       0.48238903, 0.41701192, 0.4867705 , 0.56706196, 0.37877107,
+       0.6717569 , 0.15183526, 0.73663086, 0.04154366, 0.5217348 ,
+       0.9380613 , 0.10104191, 0.61314994, 0.62718576, 0.33384496,
+       0.3388456 , 0.77612406, 0.75248706, 0.950981  , 0.8608916 ,
+       0.41052938, 0.18043512, 0.07964075, 0.76160794, 0.50447756,
+       0.53978175, 0.827712  , 0.47043914, 0.41581005, 0.24867576,
+       0.24971133, 0.6299104 , 0.54876626, 0.71213937, 0.19222087,
+       0.45327234, 0.8456232 , 0.7060242 , 0.19257706, 0.2736013 ,
+       0.43422437, 0.36388767, 0.59581214, 0.9369829 , 0.4185974 ,
+       0.73092645, 0.1436817 , 0.52570325, 0.42683947, 0.9247729 ,
+       0.69410354, 0.622804  , 0.5552187 , 0.86371607, 0.63713163,
+       0.45468706, 0.6003429 , 0.8276788 , 0.2554983 , 0.02684766,
+       0.39150995, 0.62507105, 0.84058285, 0.18193388, 0.73848164,
+       0.57586056, 0.9617043 , 0.13329166, 0.39127964, 0.01236588,
+       0.48420244, 0.2086932 , 0.9995887 , 0.9718786 , 0.63247496,
+       0.30885518, 0.31465042, 0.2874909 , 0.27548456, 0.45417535,
+       0.6851756 , 0.06203121, 0.53753895, 0.10693449, 0.7835429 ,
+       0.5090542 , 0.8390407 , 0.09074265, 0.10888231, 0.04936516,
+       0.03681517, 0.66470855, 0.980046  , 0.5139596 , 0.84646714,
+       0.98009384, 0.44082987, 0.49179035, 0.02214992, 0.41532904,
+       0.17040622, 0.7405446 , 0.73807263, 0.22507077, 0.11171061,
+       0.9625846 , 0.59934664, 0.70949125, 0.00966877, 0.14719528,
+       0.914668  , 0.12113059, 0.12623757, 0.5755473 , 0.26739043,
+       0.02741987, 0.19831681, 0.8803849 , 0.5890297 , 0.18388426],
+      dtype=float32)
+%onnx::Equal_1, shape: [1, 1, 5, 5], exponents: [0], 
+value: array([0.6782529 , 0.08887792, 0.23872644, 0.87162787, 0.09074551,
+       0.50745654, 0.30387527, 0.3615374 , 0.856154  , 0.48787248,
+       0.14004487, 0.00270933, 0.8726579 , 0.91168875, 0.6457483 ,
+       0.43035024, 0.17980367, 0.1505652 , 0.28606457, 0.4424191 ,
+       0.3663295 , 0.18179786, 0.18986863, 0.38345855, 0.92691255],
+      dtype=float32)
+
+
+test outputs value:
+%2, shape: [10, 1, 5, 5], exponents: [0], 
+value: array([False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False, False, False,
+       False, False, False, False, False, False, False])

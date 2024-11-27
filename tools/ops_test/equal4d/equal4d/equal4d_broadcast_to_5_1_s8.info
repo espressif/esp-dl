@@ -1,0 +1,30 @@
+graph main_graph (
+  %onnx::Equal_1[FLOAT, 1], exponents: [0]
+  %onnx::Equal_0[FLOAT, 5], exponents: [0]
+) {
+  %2 = Equal[quant_type = 'F32'](%onnx::Equal_0, %onnx::Equal_1)
+  return %2
+}
+
+
+initializers value:
+
+
+
+values info:
+%onnx::Equal_1[FLOAT, 1], exponents: [0]
+%onnx::Equal_0[FLOAT, 5], exponents: [0]
+%2[BOOL, 5], exponents: [0]
+
+
+test inputs value:
+%onnx::Equal_0, shape: [5], exponents: [0], 
+value: array([0.16018528, 0.7062292 , 0.5954917 , 0.5177304 , 0.3173331 ],
+      dtype=float32)
+%onnx::Equal_1, shape: [1], exponents: [0], 
+value: array([0.48220545], dtype=float32)
+
+
+test outputs value:
+%2, shape: [5], exponents: [0], 
+value: array([False, False, False, False, False])
