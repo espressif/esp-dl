@@ -40,6 +40,8 @@ struct elemwiseArgsType {
     int c_div_2x_1;       /*<! 17 */
     int c_left_x_1;       /*<! 18 */
     int c_remainder;      /*<! 19 */
+
+    int mul_shift; /*<! 20 */
 };
 
 template <typename feature_t>
