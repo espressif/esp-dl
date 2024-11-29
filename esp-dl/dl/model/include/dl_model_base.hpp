@@ -100,14 +100,14 @@ public:
     /**
      * @brief Run the model module by module.
      */
-    virtual void run(runtime_mode_t mode = RUNTIME_MODE_AUTO);
+    virtual void run(runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE);
 
     /**
      * @brief Run the model module by module.
      *
      * @param input  The model input.
      */
-    virtual void run(TensorBase *input, runtime_mode_t mode = RUNTIME_MODE_AUTO);
+    virtual void run(TensorBase *input, runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE);
 
     /**
      * @brief Run the model module by module.
@@ -118,7 +118,7 @@ public:
      * graphical output, which can be obtained through Model::get_outputs().
      */
     virtual void run(std::map<std::string, TensorBase *> &user_inputs,
-                     runtime_mode_t mode = RUNTIME_MODE_AUTO,
+                     runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE,
                      std::map<std::string, TensorBase *> user_outputs = {});
 
     /**

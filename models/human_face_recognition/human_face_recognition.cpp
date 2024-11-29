@@ -123,8 +123,7 @@ dl::TensorBase *MFN::run(const dl::image::img_t &img, const std::vector<int> &la
     latency[0].end();
 
     latency[1].start();
-    // m_model->run();
-    m_model->run(dl::RUNTIME_MODE_SINGLE_CORE);
+    m_model->run();
     latency[1].end();
 
     latency[2].start();

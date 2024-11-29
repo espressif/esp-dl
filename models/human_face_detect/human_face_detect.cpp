@@ -73,8 +73,7 @@ std::list<dl::detect::result_t> &MSR01::run(const dl::image::img_t &img)
     latency[0].end();
 
     latency[1].start();
-    m_model->run(dl::RUNTIME_MODE_SINGLE_CORE);
-    // m_model->run();
+    m_model->run();
     latency[1].end();
 
     latency[2].start();
@@ -143,8 +142,7 @@ std::list<dl::detect::result_t> &MNP01::run(const dl::image::img_t &img, std::li
         latency[0].end();
 
         latency[1].start();
-        m_model->run(dl::RUNTIME_MODE_SINGLE_CORE);
-        // m_model->run();
+        m_model->run();
         latency[1].end();
 
         latency[2].start();
