@@ -2,18 +2,31 @@
 #include "dl_base_pad.hpp"
 #include <iostream>
 namespace dl {
-int quantize(float input, float inv_scale, float quant_min, float quant_max)
+template <>
+int8_t quantize<int8_t>(float input, float inv_scale)
 {
     int output = tool::round(input * inv_scale);
-    output = DL_CLIP(output, quant_min, quant_max);
+    output = DL_CLIP(output, DL_QUANT8_MIN, DL_QUANT8_MAX);
     return output;
 }
 
-float dequantize(int input, float scale)
+template <>
+int16_t quantize<int16_t>(float input, float inv_scale)
+{
+    int output = tool::round(input * inv_scale);
+    output = DL_CLIP(output, DL_QUANT16_MIN, DL_QUANT16_MAX);
+    return output;
+}
+
+template <typename T>
+float dequantize(T input, float scale)
 {
     float output = input * scale;
     return output;
 }
+
+template float dequantize(int8_t input, float scale);
+template float dequantize(int16_t input, float scale);
 
 size_t dtype_sizeof(dtype_t dtype)
 {
@@ -171,17 +184,17 @@ bool TensorBase::assign(TensorBase *tensor)
         tool::copy_memory(this->data, tensor->data, this->get_bytes());
     } else if (tensor->dtype == DATA_TYPE_FLOAT) {
         float *src_data = (float *)tensor->data;
-        float scale = 1.0 / (DL_SCALE(this->exponent));
+        float inv_scale = 1.0 / (DL_SCALE(this->exponent));
 
         if (this->dtype == DATA_TYPE_INT8) {
             int8_t *data = (int8_t *)this->data;
             for (int i = 0; i < this->get_size(); i++) {
-                data[i] = static_cast<int8_t>(quantize(src_data[i], scale, DL_QUANT8_MIN, DL_QUANT8_MAX));
+                data[i] = quantize<int8_t>(src_data[i], inv_scale);
             }
         } else if (this->dtype == DATA_TYPE_INT16) {
             int16_t *data = (int16_t *)this->data;
             for (int i = 0; i < this->get_size(); i++) {
-                data[i] = static_cast<int16_t>(quantize(src_data[i], scale, DL_QUANT16_MIN, DL_QUANT16_MAX));
+                data[i] = quantize<int16_t>(src_data[i], inv_scale);
             }
         } else {
             return false;
@@ -223,35 +236,35 @@ bool TensorBase::assign(TensorBase *tensor)
             }
         } else {
             float src_scale = DL_SCALE(tensor->exponent);
-            float scale = 1.0 / (DL_SCALE(this->exponent));
+            float inv_scale = 1.0 / (DL_SCALE(this->exponent));
 
             if (this->dtype == DATA_TYPE_INT8 && tensor->dtype == DATA_TYPE_INT8) {
                 int8_t *src_data = static_cast<int8_t *>(tensor->data);
                 int8_t *data = static_cast<int8_t *>(this->data);
                 for (int i = 0; i < this->get_size(); i++) {
                     float tmp = dequantize(src_data[i], src_scale);
-                    data[i] = static_cast<int8_t>(quantize(tmp, scale, DL_QUANT8_MIN, DL_QUANT8_MAX));
+                    data[i] = quantize<int8_t>(tmp, inv_scale);
                 }
             } else if (this->dtype == DATA_TYPE_INT16 && tensor->dtype == DATA_TYPE_INT16) {
                 int16_t *src_data = static_cast<int16_t *>(tensor->data);
                 int16_t *data = static_cast<int16_t *>(this->data);
                 for (int i = 0; i < this->get_size(); i++) {
                     float tmp = dequantize(src_data[i], src_scale);
-                    data[i] = static_cast<int16_t>(quantize(tmp, scale, DL_QUANT16_MIN, DL_QUANT16_MAX));
+                    data[i] = quantize<int16_t>(tmp, inv_scale);
                 }
             } else if (this->dtype == DATA_TYPE_INT8 && tensor->dtype == DATA_TYPE_INT16) {
                 int16_t *src_data = static_cast<int16_t *>(tensor->data);
                 int8_t *data = static_cast<int8_t *>(this->data);
                 for (int i = 0; i < this->get_size(); i++) {
                     float tmp = dequantize(src_data[i], src_scale);
-                    data[i] = static_cast<int8_t>(quantize(tmp, scale, DL_QUANT8_MIN, DL_QUANT8_MAX));
+                    data[i] = quantize<int8_t>(tmp, inv_scale);
                 }
             } else if (this->dtype == DATA_TYPE_INT16 && tensor->dtype == DATA_TYPE_INT8) {
                 int8_t *src_data = static_cast<int8_t *>(tensor->data);
                 int16_t *data = static_cast<int16_t *>(this->data);
                 for (int i = 0; i < this->get_size(); i++) {
                     float tmp = dequantize(src_data[i], src_scale);
-                    data[i] = static_cast<int16_t>(quantize(tmp, scale, DL_QUANT16_MIN, DL_QUANT16_MAX));
+                    data[i] = quantize<int16_t>(tmp, inv_scale);
                 }
             } else {
                 return false;

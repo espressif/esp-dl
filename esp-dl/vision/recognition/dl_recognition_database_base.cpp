@@ -6,185 +6,182 @@ namespace dl {
 namespace recognition {
 void DataBase::init(int feat_len)
 {
-    ESP_ERROR_CHECK(this->mount());
-    FILE *f = fopen(this->db_path, "rb");
+    ESP_ERROR_CHECK(mount());
+    FILE *f = fopen(m_db_path, "rb");
     if (f == NULL) {
-        this->create_empty_database_in_storage(feat_len);
+        create_empty_database_in_storage(feat_len);
     } else {
         fclose(f);
-        this->load_database_from_storage(feat_len);
+        load_database_from_storage(feat_len);
     }
 }
 
 void DataBase::deinit()
 {
-    this->clear_all_feats_in_memory();
-    ESP_ERROR_CHECK(this->unmount());
+    clear_all_feats_in_memory();
+    ESP_ERROR_CHECK(unmount());
 }
 
 esp_err_t DataBase::create_empty_database_in_storage(int feat_len)
 {
-    FILE *f = fopen(this->db_path, "wb");
+    FILE *f = fopen(m_db_path, "wb");
     size_t size = 0;
-    if (f) {
-        this->meta.num_feats_total = 0;
-        this->meta.num_feats_valid = 0;
-        this->meta.feat_len = feat_len;
-        size = fwrite(&this->meta, sizeof(database_meta), 1, f);
-        if (size != 1) {
-            ESP_LOGE(TAG, "Failed to write db meta data.");
-            return ESP_FAIL;
-        }
-        fclose(f);
-        return ESP_OK;
-    } else {
+    if (!f) {
         ESP_LOGE(TAG, "Failed to open db.");
         return ESP_FAIL;
     }
+    m_meta.num_feats_total = 0;
+    m_meta.num_feats_valid = 0;
+    m_meta.feat_len = feat_len;
+    size = fwrite(&m_meta, sizeof(database_meta), 1, f);
+    if (size != 1) {
+        ESP_LOGE(TAG, "Failed to write db meta data.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    fclose(f);
+    return ESP_OK;
 }
 
 esp_err_t DataBase::clear_all_feats()
 {
-    if (remove(this->db_path) == -1) {
+    if (remove(m_db_path) == -1) {
         ESP_LOGE(TAG, "Failed to remove db.");
         return ESP_FAIL;
     }
     ESP_RETURN_ON_ERROR(
-        this->create_empty_database_in_storage(this->meta.feat_len), TAG, "Failed to create empty db in storage.");
-    this->clear_all_feats_in_memory();
+        create_empty_database_in_storage(m_meta.feat_len), TAG, "Failed to create empty db in storage.");
+    clear_all_feats_in_memory();
     return ESP_OK;
 }
 
 void DataBase::clear_all_feats_in_memory()
 {
-    for (auto it = this->feats.begin(); it != this->feats.end(); it++) {
+    for (auto it = m_feats.begin(); it != m_feats.end(); it++) {
         heap_caps_free(it->feat);
     }
-    this->feats.clear();
-    this->meta.num_feats_total = 0;
-    this->meta.num_feats_valid = 0;
+    m_feats.clear();
+    m_meta.num_feats_total = 0;
+    m_meta.num_feats_valid = 0;
 }
 
 esp_err_t DataBase::load_database_from_storage(int feat_len)
 {
-    this->clear_all_feats_in_memory();
-    FILE *f = fopen(this->db_path, "rb");
+    clear_all_feats_in_memory();
+    FILE *f = fopen(m_db_path, "rb");
     size_t size = 0;
-    if (f) {
-        size = fread(&this->meta, sizeof(database_meta), 1, f);
-        if (size != 1) {
-            ESP_LOGE(TAG, "Failed to read database meta.");
-            fclose(f);
-            return ESP_FAIL;
-        }
-        if (feat_len != this->meta.feat_len) {
-            ESP_LOGE(TAG, "Feature len in storage does not match feature len in db.");
-            fclose(f);
-            return ESP_FAIL;
-        }
-        uint16_t id;
-        for (int i = 0; i < this->meta.num_feats_total; i++) {
-            size = fread(&id, sizeof(uint16_t), 1, f);
-            if (size != 1) {
-                ESP_LOGE(TAG, "Failed to read feature id.");
-                fclose(f);
-                return ESP_FAIL;
-            }
-            if (id == 0) {
-                if (fseek(f, sizeof(float) * this->meta.feat_len, SEEK_CUR) == -1) {
-                    ESP_LOGE(TAG, "Failed to seek db file.");
-                    fclose(f);
-                    return ESP_FAIL;
-                }
-                continue;
-            }
-            float *feat = (float *)tool::malloc_aligned(
-                this->meta.feat_len, sizeof(float), 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
-            size = fread(feat, sizeof(float), this->meta.feat_len, f);
-            if (size != this->meta.feat_len) {
-                ESP_LOGE(TAG, "Failed to read feature data.");
-                fclose(f);
-                return ESP_FAIL;
-            }
-            this->feats.emplace_back(id, feat);
-        }
-        if (this->feats.size() != this->meta.num_feats_valid) {
-            ESP_LOGE(TAG, "Incorrect valid feature num.");
-            fclose(f);
-            return ESP_FAIL;
-        }
-        fclose(f);
-    } else {
+    if (!f) {
         ESP_LOGE(TAG, "Failed to open db.");
         return ESP_FAIL;
     }
+    size = fread(&m_meta, sizeof(database_meta), 1, f);
+    if (size != 1) {
+        ESP_LOGE(TAG, "Failed to read database meta.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    if (feat_len != m_meta.feat_len) {
+        ESP_LOGE(TAG, "Feature len in storage does not match feature len in db.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    uint16_t id;
+    for (int i = 0; i < m_meta.num_feats_total; i++) {
+        size = fread(&id, sizeof(uint16_t), 1, f);
+        if (size != 1) {
+            ESP_LOGE(TAG, "Failed to read feature id.");
+            fclose(f);
+            return ESP_FAIL;
+        }
+        if (id == 0) {
+            if (fseek(f, sizeof(float) * m_meta.feat_len, SEEK_CUR) != 0) {
+                ESP_LOGE(TAG, "Failed to seek db file.");
+                fclose(f);
+                return ESP_FAIL;
+            }
+            continue;
+        }
+        float *feat =
+            (float *)tool::malloc_aligned(m_meta.feat_len, sizeof(float), 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
+        size = fread(feat, sizeof(float), m_meta.feat_len, f);
+        if (size != m_meta.feat_len) {
+            ESP_LOGE(TAG, "Failed to read feature data.");
+            fclose(f);
+            return ESP_FAIL;
+        }
+        m_feats.emplace_back(id, feat);
+    }
+    if (m_feats.size() != m_meta.num_feats_valid) {
+        ESP_LOGE(TAG, "Incorrect valid feature num.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    fclose(f);
     return ESP_OK;
 }
 
 esp_err_t DataBase::enroll_feat(TensorBase *feat)
 {
-    ESP_RETURN_ON_ERROR(this->check_enough_free_space(), TAG, "No more space in storage.");
+    ESP_RETURN_ON_ERROR(check_enough_free_space(), TAG, "No more space in storage.");
     if (feat->dtype != DATA_TYPE_FLOAT) {
         ESP_LOGE(TAG, "Only support float feature.");
         return ESP_FAIL;
     }
-    if (feat->size != this->meta.feat_len) {
+    if (feat->size != m_meta.feat_len) {
         ESP_LOGE(TAG, "Feature len to enroll does not match feature len in db.");
         return ESP_FAIL;
     }
     float *feat_copy =
-        (float *)tool::malloc_aligned(this->meta.feat_len, sizeof(float), 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
+        (float *)tool::malloc_aligned(m_meta.feat_len, sizeof(float), 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
     memcpy(feat_copy, feat->data, feat->get_bytes());
 
-    this->feats.emplace_back(this->meta.num_feats_total + 1, feat_copy);
-    this->meta.num_feats_total++;
-    this->meta.num_feats_valid++;
+    m_feats.emplace_back(m_meta.num_feats_total + 1, feat_copy);
+    m_meta.num_feats_total++;
+    m_meta.num_feats_valid++;
 
     size_t size = 0;
-    FILE *f = fopen(this->db_path, "rb+");
-    if (f) {
-        size = fwrite(&this->meta, sizeof(database_meta), 1, f);
-        if (size != 1) {
-            ESP_LOGE(TAG, "Failed to write database meta.");
-            fclose(f);
-            return ESP_FAIL;
-        }
-        if (fseek(f, 0, SEEK_END) == 0) {
-            size = fwrite(&this->feats.back().id, sizeof(uint16_t), 1, f);
-            if (size != 1) {
-                ESP_LOGE(TAG, "Failed to write feature id.");
-                fclose(f);
-                return ESP_FAIL;
-            }
-            size = fwrite(this->feats.back().feat, sizeof(float), this->meta.feat_len, f);
-            if (size != this->meta.feat_len) {
-                ESP_LOGE(TAG, "Failed to write feature.");
-                fclose(f);
-                return ESP_FAIL;
-            }
-        } else {
-            ESP_LOGE(TAG, "Failed to seek db file.");
-            fclose(f);
-            return ESP_FAIL;
-        }
-        fclose(f);
-    } else {
+    FILE *f = fopen(m_db_path, "rb+");
+    if (!f) {
         ESP_LOGE(TAG, "Failed to open db.");
         return ESP_FAIL;
     }
+    size = fwrite(&m_meta, sizeof(database_meta), 1, f);
+    if (size != 1) {
+        ESP_LOGE(TAG, "Failed to write database meta.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    if (fseek(f, 0, SEEK_END) != 0) {
+        ESP_LOGE(TAG, "Failed to seek db file.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    size = fwrite(&m_feats.back().id, sizeof(uint16_t), 1, f);
+    if (size != 1) {
+        ESP_LOGE(TAG, "Failed to write feature id.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    size = fwrite(m_feats.back().feat, sizeof(float), m_meta.feat_len, f);
+    if (size != m_meta.feat_len) {
+        ESP_LOGE(TAG, "Failed to write feature.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    fclose(f);
     return ESP_OK;
 }
 
 esp_err_t DataBase::delete_feat(uint16_t id)
 {
     bool invalid_id = true;
-    for (auto it = this->feats.begin(); it != this->feats.end(); it++) {
+    for (auto it = m_feats.begin(); it != m_feats.end();) {
         if (it->id != id) {
-            continue;
+            it++;
         } else {
             heap_caps_free(it->feat);
-            it = this->feats.erase(it);
-            this->meta.num_feats_valid--;
+            it = m_feats.erase(it);
+            m_meta.num_feats_valid--;
             invalid_id = false;
             break;
         }
@@ -194,96 +191,97 @@ esp_err_t DataBase::delete_feat(uint16_t id)
         return ESP_FAIL;
     }
     size_t size = 0;
-    FILE *f = fopen(this->db_path, "rb+");
-    if (f) {
-        long int offset = sizeof(database_meta) + (sizeof(uint16_t) + sizeof(float) * this->meta.feat_len) * (id - 1);
-        uint16_t id = 0;
-        if (fseek(f, offset, SEEK_SET) == 0) {
-            size = fwrite(&id, sizeof(uint16_t), 1, f);
-            if (size != 1) {
-                ESP_LOGE(TAG, "Failed to write feature id.");
-                fclose(f);
-                return ESP_FAIL;
-            }
-        } else {
-            ESP_LOGE(TAG, "Failed to seek db file.");
-            fclose(f);
-            return ESP_FAIL;
-        }
-
-        offset = sizeof(uint16_t);
-        if (fseek(f, offset, SEEK_SET) == 0) {
-            size = fwrite(&this->meta.num_feats_valid, sizeof(uint16_t), 1, f);
-            if (size != 1) {
-                ESP_LOGE(TAG, "Failed to write valid feature num.");
-                fclose(f);
-                return ESP_FAIL;
-            }
-        } else {
-            ESP_LOGE(TAG, "Failed to seek db file.");
-            fclose(f);
-            return ESP_FAIL;
-        }
-        fclose(f);
-    } else {
+    FILE *f = fopen(m_db_path, "rb+");
+    if (!f) {
         ESP_LOGE(TAG, "Failed to open db.");
         return ESP_FAIL;
     }
+    long int offset = sizeof(database_meta) + (sizeof(uint16_t) + sizeof(float) * m_meta.feat_len) * (id - 1);
+    uint16_t id_invalid = 0;
+    if (fseek(f, offset, SEEK_SET) != 0) {
+        ESP_LOGE(TAG, "Failed to seek db file.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    size = fwrite(&id_invalid, sizeof(uint16_t), 1, f);
+    if (size != 1) {
+        ESP_LOGE(TAG, "Failed to write feature id.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+
+    offset = sizeof(uint16_t);
+    if (fseek(f, offset, SEEK_SET) != 0) {
+        ESP_LOGE(TAG, "Failed to seek db file.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    size = fwrite(&m_meta.num_feats_valid, sizeof(uint16_t), 1, f);
+    if (size != 1) {
+        ESP_LOGE(TAG, "Failed to write valid feature num.");
+        fclose(f);
+        return ESP_FAIL;
+    }
+    fclose(f);
     return ESP_OK;
 }
 
 esp_err_t DataBase::delete_last_feat()
 {
-    if (!this->feats.empty()) {
-        uint16_t id = this->feats.back().id;
-        return this->delete_feat(id);
-    } else {
+    if (m_feats.empty()) {
         ESP_LOGW(TAG, "Empty db, nothing to delete");
         return ESP_FAIL;
     }
+    uint16_t id = m_feats.back().id;
+    return delete_feat(id);
 }
 
 float DataBase::cal_similarity(float *feat1, float *feat2)
 {
     float sum = 0;
-    for (int i = 0; i < this->meta.feat_len; i++) {
+    for (int i = 0; i < m_meta.feat_len; i++) {
         sum += feat1[i] * feat2[i];
     }
     return sum;
 }
 
-std::list<query_info> DataBase::query_feat(TensorBase *feat, float thr, int top_k)
+std::vector<result_t> DataBase::query_feat(TensorBase *feat, float thr, int top_k)
 {
-    std::list<query_info> res;
     if (top_k < 1) {
         ESP_LOGW(TAG, "Top_k should be greater than 0.");
-        return res;
+        return {};
     }
+    std::vector<result_t> results;
     float sim;
-    for (auto it = this->feats.begin(); it != this->feats.end(); it++) {
-        sim = this->cal_similarity(it->feat, (float *)feat->data);
+    int i = 1;
+    for (auto it = m_feats.begin(); it != m_feats.end(); it++, i++) {
+        sim = cal_similarity(it->feat, (float *)feat->data);
         if (sim <= thr) {
             continue;
         }
-        query_info q = {it->id, sim};
-        res.insert(std::upper_bound(res.begin(), res.end(), q, greater_query_info), q);
-        if (res.size() > top_k)
-            res.pop_back();
+        // results.emplace_back(it->id, sim);
+        results.emplace_back(i, sim);
     }
-    return res;
+    std::sort(results.begin(), results.end(), [](const result_t &a, const result_t &b) -> bool {
+        return a.similarity > b.similarity;
+    });
+    if (results.size() > top_k) {
+        results.resize(top_k);
+    }
+    return results;
 }
 
 void DataBase::print()
 {
     printf("\n");
     printf("[db meta]\nnum_feats_total: %d, num_feats_valid: %d, feat_len: %d\n",
-           this->meta.num_feats_total,
-           this->meta.num_feats_valid,
-           this->meta.feat_len);
+           m_meta.num_feats_total,
+           m_meta.num_feats_valid,
+           m_meta.feat_len);
     printf("[feats]\n");
-    for (auto it : this->feats) {
+    for (auto it : m_feats) {
         printf("id: %d feat: ", it.id);
-        for (int i = 0; i < this->meta.feat_len; i++) {
+        for (int i = 0; i < m_meta.feat_len; i++) {
             printf("%f, ", it.feat[i]);
         }
         printf("\n");

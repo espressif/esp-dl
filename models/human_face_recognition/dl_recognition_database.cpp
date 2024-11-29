@@ -6,30 +6,30 @@ namespace dl {
 namespace recognition {
 FatFsFlashDataBase::FatFsFlashDataBase(int feat_len, const char *name) : DataBase(name)
 {
-    this->init(feat_len);
+    init(feat_len);
 }
 
 FatFsFlashDataBase::~FatFsFlashDataBase()
 {
-    this->deinit();
+    deinit();
 }
 
 esp_err_t FatFsFlashDataBase::mount()
 {
-    snprintf(this->db_path, sizeof(db_path), "%s/%s.db", CONFIG_SPIFLASH_MOUNT_POINT, this->name);
+    snprintf(m_db_path, sizeof(m_db_path), "%s/%s.db", CONFIG_SPIFLASH_MOUNT_POINT, m_name);
     esp_vfs_fat_mount_config_t mount_config;
     memset(&mount_config, 0, sizeof(esp_vfs_fat_mount_config_t));
     mount_config.max_files = 5;
     mount_config.format_if_mount_failed = true;
     ESP_ERROR_CHECK(esp_vfs_fat_spiflash_mount_rw_wl(
-        CONFIG_SPIFLASH_MOUNT_POINT, CONFIG_SPIFLASH_MOUNT_PARTITION, &mount_config, &this->wl_handle));
+        CONFIG_SPIFLASH_MOUNT_POINT, CONFIG_SPIFLASH_MOUNT_PARTITION, &mount_config, &m_wl_handle));
     return ESP_OK;
 }
 
 esp_err_t FatFsFlashDataBase::unmount()
 {
     ESP_RETURN_ON_ERROR(
-        esp_vfs_fat_spiflash_unmount_rw_wl(CONFIG_SPIFLASH_MOUNT_POINT, this->wl_handle), TAG, "Failed to unmount.");
+        esp_vfs_fat_spiflash_unmount_rw_wl(CONFIG_SPIFLASH_MOUNT_POINT, m_wl_handle), TAG, "Failed to unmount.");
     return ESP_OK;
 }
 
@@ -48,17 +48,17 @@ esp_err_t FatFsFlashDataBase::check_enough_free_space()
 
 FatFsSDCardDataBase::FatFsSDCardDataBase(int feat_len, const char *name) : DataBase(name)
 {
-    this->init(feat_len);
+    init(feat_len);
 }
 
 FatFsSDCardDataBase::~FatFsSDCardDataBase()
 {
-    this->deinit();
+    deinit();
 }
 
 esp_err_t FatFsSDCardDataBase::mount()
 {
-    snprintf(this->db_path, sizeof(db_path), "%s/%s.db", CONFIG_BSP_SD_MOUNT_POINT, this->name);
+    snprintf(m_db_path, sizeof(m_db_path), "%s/%s.db", CONFIG_BSP_SD_MOUNT_POINT, m_name);
     return bsp_sdcard_mount();
 }
 
@@ -81,17 +81,17 @@ esp_err_t FatFsSDCardDataBase::check_enough_free_space()
 
 SPIFFSDataBase::SPIFFSDataBase(int feat_len, const char *name) : DataBase(name)
 {
-    this->init(feat_len);
+    init(feat_len);
 }
 
 SPIFFSDataBase::~SPIFFSDataBase()
 {
-    this->deinit();
+    deinit();
 }
 
 esp_err_t SPIFFSDataBase::mount()
 {
-    snprintf(this->db_path, sizeof(db_path), "%s/%s.db", CONFIG_BSP_SPIFFS_MOUNT_POINT, this->name);
+    snprintf(m_db_path, sizeof(m_db_path), "%s/%s.db", CONFIG_BSP_SPIFFS_MOUNT_POINT, m_name);
     return bsp_spiffs_mount();
 }
 
@@ -116,22 +116,22 @@ DB::DB(db_type_t db_type, int feat_len, const char *name)
 {
     switch (db_type) {
     case DB_FATFS_FLASH:
-        this->db = new FatFsFlashDataBase(feat_len, name);
+        m_db = new FatFsFlashDataBase(feat_len, name);
         break;
     case DB_FATFS_SDCARD:
-        this->db = new FatFsSDCardDataBase(feat_len, name);
+        m_db = new FatFsSDCardDataBase(feat_len, name);
         break;
     case DB_SPIFFS:
-        this->db = new SPIFFSDataBase(feat_len, name);
+        m_db = new SPIFFSDataBase(feat_len, name);
         break;
     }
 }
 
 DB::~DB()
 {
-    if (this->db) {
-        delete this->db;
-        this->db = nullptr;
+    if (m_db) {
+        delete m_db;
+        m_db = nullptr;
     }
 }
 } // namespace recognition

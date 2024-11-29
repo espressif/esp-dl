@@ -5,21 +5,23 @@
 
 namespace dl {
 namespace detect {
-template <typename feature_t>
-void MNP01Postprocessor<feature_t>::parse_stage(TensorBase *score,
-                                                TensorBase *box,
-                                                TensorBase *landmark,
-                                                const int stage_index)
+template <typename T>
+void MNP01Postprocessor::parse_stage(TensorBase *score, TensorBase *box, TensorBase *landmark, const int stage_index)
 {
-    std::vector<std::vector<int>> &anchor_shape = this->stages[stage_index].anchor_shape;
+    std::vector<std::vector<int>> &anchor_shape = m_stages[stage_index].anchor_shape;
 
     int H = score->shape[1];
     int W = score->shape[2];
     int A = anchor_shape.size();
     int C = score->shape[3] / A;
-    feature_t *score_element = (feature_t *)score->get_element_ptr();
-    feature_t *box_element = (feature_t *)box->get_element_ptr();
-    feature_t *landmark_element = (feature_t *)landmark->get_element_ptr();
+    T *score_ptr = (T *)score->data;
+    T *box_ptr = (T *)box->data;
+    T *landmark_ptr = (T *)landmark->data;
+    float score_exp = DL_SCALE(score->exponent);
+    float box_exp = DL_SCALE(box->exponent);
+    float landmark_exp = DL_SCALE(landmark->exponent);
+    float inv_resize_scale_x = 1.f / m_resize_scale_x;
+    float inv_resize_scale_y = 1.f / m_resize_scale_y;
 
     for (size_t y = 0; y < H; y++) // height
     {
@@ -29,11 +31,11 @@ void MNP01Postprocessor<feature_t>::parse_stage(TensorBase *score,
             {
                 // softmax
                 float scores[C];
-                scores[0] = score_element[0] * DL_SCALE(score->exponent);
+                scores[0] = dequantize(score_ptr[0], score_exp);
                 float max_score = scores[0];
                 int max_score_c = 0;
                 for (int i = 1; i < C; i++) {
-                    scores[i] = score_element[i] * DL_SCALE(score->exponent);
+                    scores[i] = dequantize(score_ptr[i], score_exp);
                     if (max_score < scores[i]) {
                         max_score_c = i;
                         max_score = scores[i];
@@ -45,65 +47,62 @@ void MNP01Postprocessor<feature_t>::parse_stage(TensorBase *score,
                 }
                 max_score = 1. / sum;
 
-                if (max_score > score_threshold) {
+                if (max_score > m_score_thr) {
                     int anchor_h = anchor_shape[a][0];
                     int anchor_w = anchor_shape[a][1];
                     result_t new_box = {
                         max_score_c,
                         max_score,
-                        {(int)(anchor_w * box_element[0] * DL_SCALE(box->exponent) / this->resize_scale_x +
-                               this->top_left_x),
-                         (int)(anchor_h * box_element[1] * DL_SCALE(box->exponent) / this->resize_scale_y +
-                               this->top_left_y),
-                         (int)((anchor_w * box_element[2] * DL_SCALE(box->exponent) + anchor_w) / this->resize_scale_x +
-                               this->top_left_x),
-                         (int)((anchor_h * box_element[3] * DL_SCALE(box->exponent) + anchor_h) / this->resize_scale_y +
-                               this->top_left_y)},
+                        {(int)(anchor_w * dequantize(box_ptr[0], box_exp) * inv_resize_scale_x + m_top_left_x),
+                         (int)(anchor_h * dequantize(box_ptr[1], box_exp) * inv_resize_scale_y + m_top_left_y),
+                         (int)((anchor_w * dequantize(box_ptr[2], box_exp) + anchor_w) * inv_resize_scale_x +
+                               m_top_left_x),
+                         (int)((anchor_h * dequantize(box_ptr[3], box_exp) + anchor_h) * inv_resize_scale_y +
+                               m_top_left_y)},
                         {
-                            (int)(anchor_w * landmark_element[0] * DL_SCALE(landmark->exponent) / this->resize_scale_x +
-                                  this->top_left_x),
-                            (int)(anchor_h * landmark_element[1] * DL_SCALE(landmark->exponent) / this->resize_scale_y +
-                                  this->top_left_y),
-                            (int)(anchor_w * landmark_element[2] * DL_SCALE(landmark->exponent) / this->resize_scale_x +
-                                  this->top_left_x),
-                            (int)(anchor_h * landmark_element[3] * DL_SCALE(landmark->exponent) / this->resize_scale_y +
-                                  this->top_left_y),
-                            (int)(anchor_w * landmark_element[4] * DL_SCALE(landmark->exponent) / this->resize_scale_x +
-                                  this->top_left_x),
-                            (int)(anchor_h * landmark_element[5] * DL_SCALE(landmark->exponent) / this->resize_scale_y +
-                                  this->top_left_y),
-                            (int)(anchor_w * landmark_element[6] * DL_SCALE(landmark->exponent) / this->resize_scale_x +
-                                  this->top_left_x),
-                            (int)(anchor_h * landmark_element[7] * DL_SCALE(landmark->exponent) / this->resize_scale_y +
-                                  this->top_left_y),
-                            (int)(anchor_w * landmark_element[8] * DL_SCALE(landmark->exponent) / this->resize_scale_x +
-                                  this->top_left_x),
-                            (int)(anchor_h * landmark_element[9] * DL_SCALE(landmark->exponent) / this->resize_scale_y +
-                                  this->top_left_y),
+                            (int)(anchor_w * dequantize(landmark_ptr[0], landmark_exp) * inv_resize_scale_x +
+                                  m_top_left_x),
+                            (int)(anchor_h * dequantize(landmark_ptr[1], landmark_exp) * inv_resize_scale_y +
+                                  m_top_left_y),
+                            (int)(anchor_w * dequantize(landmark_ptr[2], landmark_exp) * inv_resize_scale_x +
+                                  m_top_left_x),
+                            (int)(anchor_h * dequantize(landmark_ptr[3], landmark_exp) * inv_resize_scale_y +
+                                  m_top_left_y),
+                            (int)(anchor_w * dequantize(landmark_ptr[4], landmark_exp) * inv_resize_scale_x +
+                                  m_top_left_x),
+                            (int)(anchor_h * dequantize(landmark_ptr[5], landmark_exp) * inv_resize_scale_y +
+                                  m_top_left_y),
+                            (int)(anchor_w * dequantize(landmark_ptr[6], landmark_exp) * inv_resize_scale_x +
+                                  m_top_left_x),
+                            (int)(anchor_h * dequantize(landmark_ptr[7], landmark_exp) * inv_resize_scale_y +
+                                  m_top_left_y),
+                            (int)(anchor_w * dequantize(landmark_ptr[8], landmark_exp) * inv_resize_scale_x +
+                                  m_top_left_x),
+                            (int)(anchor_h * dequantize(landmark_ptr[9], landmark_exp) * inv_resize_scale_y +
+                                  m_top_left_y),
                         }};
 
-                    this->box_list.insert(
-                        std::upper_bound(this->box_list.begin(), this->box_list.end(), new_box, compare_greater_box),
-                        new_box);
+                    m_box_list.insert(std::upper_bound(m_box_list.begin(), m_box_list.end(), new_box, greater_box),
+                                      new_box);
                 }
-                score_element += C;
-                box_element += 4;
-                landmark_element += 10;
+                score_ptr += C;
+                box_ptr += 4;
+                landmark_ptr += 10;
             }
         }
     }
 }
 
-template <typename feature_t>
-void MNP01Postprocessor<feature_t>::postprocess()
+void MNP01Postprocessor::postprocess()
 {
-    TensorBase *score = this->get_model_output("score");
-    TensorBase *bbox = this->get_model_output("box");
-    TensorBase *landmark = this->get_model_output("landmark");
-    this->parse_stage(score, bbox, landmark, 0);
+    TensorBase *score = m_model->get_intermediate("score");
+    TensorBase *bbox = m_model->get_intermediate("box");
+    TensorBase *landmark = m_model->get_intermediate("landmark");
+    if (score->dtype == DATA_TYPE_INT8) {
+        parse_stage<int8_t>(score, bbox, landmark, 0);
+    } else {
+        parse_stage<int16_t>(score, bbox, landmark, 0);
+    }
 }
-
-template class MNP01Postprocessor<int8_t>;
-template class MNP01Postprocessor<int16_t>;
 } // namespace detect
 } // namespace dl

@@ -790,10 +790,9 @@ bool Tensor<T>::convert_from(const Tensor<int8_t> &input)
                     tool::copy_memory(element, in_element, this->get_size() * sizeof(T));
                 } else {
                     // TODO:: more effective implementation
-                    float scale = 1.0 / (DL_SCALE(this->exponent));
+                    float inv_scale = 1.0 / (DL_SCALE(this->exponent));
                     for (int i = 0; i < this->get_size(); i++) {
-                        element[i] = quantize(
-                            dequantize(in_element[i], DL_SCALE(input.exponent)), scale, DL_QUANT8_MIN, DL_QUANT8_MAX);
+                        element[i] = quantize<int8_t>(dequantize(in_element[i], DL_SCALE(input.exponent)), inv_scale);
                     }
                 }
             } else if (std::is_same<T, int16_t>::value) { // int8 -> int16
@@ -804,10 +803,9 @@ bool Tensor<T>::convert_from(const Tensor<int8_t> &input)
                     }
                 } else {
                     // TODO:: more effective implementation
-                    float scale = 1.0 / (DL_SCALE(this->exponent));
+                    float inv_scale = 1.0 / (DL_SCALE(this->exponent));
                     for (int i = 0; i < this->get_size(); i++) {
-                        element[i] = quantize(
-                            dequantize(in_element[i], DL_SCALE(input.exponent)), scale, DL_QUANT16_MIN, DL_QUANT16_MAX);
+                        element[i] = quantize<int16_t>(dequantize(in_element[i], DL_SCALE(input.exponent)), inv_scale);
                     }
                 }
             } else if (std::is_same<T, float>::value) { // int8 -> float
@@ -838,10 +836,9 @@ bool Tensor<T>::convert_from(const Tensor<int16_t> &input)
         if (this->is_same_shape(input)) {
             if (std::is_same<T, int8_t>::value) { // int16 -> int8
                 // TODO:: more effective implementation
-                float scale = 1.0 / (DL_SCALE(this->exponent));
+                float inv_scale = 1.0 / (DL_SCALE(this->exponent));
                 for (int i = 0; i < this->get_size(); i++) {
-                    element[i] = quantize(
-                        dequantize(in_element[i], DL_SCALE(input.exponent)), scale, DL_QUANT8_MIN, DL_QUANT8_MAX);
+                    element[i] = quantize<int8_t>(dequantize(in_element[i], DL_SCALE(input.exponent)), inv_scale);
                 }
             } else if (std::is_same<T, int16_t>::value) { // int16 -> int16
                 int exponent = input.exponent - this->exponent;
@@ -849,10 +846,9 @@ bool Tensor<T>::convert_from(const Tensor<int16_t> &input)
                     tool::copy_memory(element, in_element, this->get_size() * sizeof(T));
                 } else {
                     // TODO:: more effective implementation
-                    float scale = 1.0 / (DL_SCALE(this->exponent));
+                    float inv_scale = 1.0 / (DL_SCALE(this->exponent));
                     for (int i = 0; i < this->get_size(); i++) {
-                        element[i] = quantize(
-                            dequantize(in_element[i], DL_SCALE(input.exponent)), scale, DL_QUANT16_MIN, DL_QUANT16_MAX);
+                        element[i] = quantize<int16_t>(dequantize(in_element[i], DL_SCALE(input.exponent)), inv_scale);
                     }
                 }
             } else if (std::is_same<T, float>::value) { // int16 -> float
@@ -883,14 +879,14 @@ bool Tensor<T>::convert_from(const Tensor<float> &input)
         if (this->is_same_shape(input)) {
             if (std::is_same<T, int8_t>::value) { // float -> int8
                 // TODO:: more effective implementation
-                float scale = 1.0 / (DL_SCALE(this->exponent));
+                float inv_scale = 1.0 / (DL_SCALE(this->exponent));
                 for (int i = 0; i < this->get_size(); i++) {
-                    element[i] = quantize(in_element[i], scale, DL_QUANT8_MIN, DL_QUANT8_MAX);
+                    element[i] = quantize<int8_t>(in_element[i], inv_scale);
                 }
             } else if (std::is_same<T, int16_t>::value) { // float -> int16
-                float scale = 1.0 / (DL_SCALE(this->exponent));
+                float inv_scale = 1.0 / (DL_SCALE(this->exponent));
                 for (int i = 0; i < this->get_size(); i++) {
-                    element[i] = quantize(in_element[i], scale, DL_QUANT16_MIN, DL_QUANT16_MAX);
+                    element[i] = quantize<int16_t>(in_element[i], inv_scale);
                 }
             } else if (std::is_same<T, float>::value) { // float -> float
                 tool::copy_memory(element, in_element, this->get_size() * sizeof(T));

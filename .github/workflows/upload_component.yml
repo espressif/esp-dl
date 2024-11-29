@@ -18,5 +18,6 @@ jobs:
             models/human_face_detect;
             models/human_face_recognition;
             models/pedestrian_detect;
+            models/imagenet_cls;
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}

@@ -2,9 +2,10 @@
 
 #include "cmath"
 #include "dl_image.hpp"
-#include "stdint.h"
-// #include "dl_detect_define.hpp"
+#include "dl_model_base.hpp"
+#include "dl_tensor_base.hpp"
 #include "esp_cache.h"
+#include "stdint.h"
 #include "driver/ppa.h"
 #include "esp_private/esp_cache_private.h"
 
@@ -18,54 +19,43 @@ namespace image {
  *         - int16_t: stands for operation in int16_t quantize
  *         - int8_t: stands for operation in int8_t quantize
  */
-template <typename feature_t>
 class ImagePreprocessor {
 public:
-    TensorBase *model_input;
+    TensorBase *m_model_input;
 
 private:
-    const std::vector<float> mean;
-    const std::vector<float> std;
-    bool rgb_swap;
-    bool byte_swap;
-    bool use_ppa;
-    feature_t *norm_lut;
-    int input_area_x_start;
-    int input_area_y_start;
-    int input_area_x_end;
-    int input_area_y_end;
-    float resize_scale_x;
-    float resize_scale_y;
+    const std::vector<float> m_mean;
+    const std::vector<float> m_std;
+    uint32_t m_caps;
+    void *m_norm_lut;
+    std::vector<int> m_crop_area;
+    float m_resize_scale_x;
+    float m_resize_scale_y;
+    img_t m_output;
 #if CONFIG_IDF_TARGET_ESP32P4
-    ppa_client_handle_t ppa_client_srm_handle;
-    ppa_client_config_t ppa_client_config;
-    ppa_srm_oper_config_t srm_oper_config;
-    size_t ppa_buffer_size;
-    void *ppa_buffer;
+    ppa_client_handle_t m_ppa_srm_handle;
+    size_t m_ppa_buffer_size;
+    void *m_ppa_buffer;
 #endif
+    template <typename T>
     void create_norm_lut();
 
 public:
-    ImagePreprocessor(TensorBase *model_input,
+    ImagePreprocessor(Model *model,
                       const std::vector<float> &mean,
                       const std::vector<float> &std,
-                      bool byte_rgb = false,
-#if CONFIG_IDF_TARGET_ESP32S3
-                      bool byte_swap = true,
-#else
-                      bool byte_swap = false,
-#endif
-                      bool use_ppa = false);
+                      uint32_t caps = 0,
+                      const std::string &input_name = "");
 
     ~ImagePreprocessor();
 
-    float get_resize_scale_x() { return this->resize_scale_x; };
-    float get_resize_scale_y() { return this->resize_scale_y; };
-    float get_top_left_x() { return this->input_area_x_start; };
-    float get_top_left_y() { return this->input_area_y_start; };
+    float get_resize_scale_x() { return m_resize_scale_x; };
+    float get_resize_scale_y() { return m_resize_scale_y; };
+    float get_top_left_x() { return m_crop_area[0]; };
+    float get_top_left_y() { return m_crop_area[1]; };
 
-    template <typename T>
-    void preprocess(T *input_element, const std::vector<int> &input_shape, const std::vector<int> &crop_area = {});
+    void preprocess(const img_t &img, const std::vector<int> &crop_area = {});
+    void preprocess(const img_t &img, dl::math::Matrix<float> *M_inv);
 };
 
 } // namespace image

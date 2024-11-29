@@ -10,6 +10,7 @@ set(src_dirs        ./dl/tool/src
                     ./vision/detect
                     ./vision/image
                     ./vision/recognition
+                    ./vision/classification
                     )
 
 set(include_dirs    ./dl
@@ -25,6 +26,7 @@ set(include_dirs    ./dl
                     ./vision/detect
                     ./vision/image
                     ./vision/recognition
+                    ./vision/classification
                     )
 
 if(CONFIG_IDF_TARGET_ESP32)
@@ -47,6 +49,8 @@ elseif(CONFIG_IDF_TARGET_ESP32P4)
 endif()
 
 set(requires        esp_mm
+                    esp_jpeg
+                    esp_driver_jpeg
                     esp_driver_ppa
                     esp_partition
                     esp_timer

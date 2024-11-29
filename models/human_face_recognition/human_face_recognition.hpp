@@ -1,16 +1,13 @@
 #pragma once
 
+#include "dl_detect_define.hpp"
 #include "dl_model_base.hpp"
 #include "dl_recognition_database.hpp"
-#include "dl_recognition_face_image_preprocessor.hpp"
+#include "dl_recognition_human_face_image_preprocessor.hpp"
 #include "dl_recognition_postprocessor.hpp"
 #include "dl_tensor_base.hpp"
-#include "human_face_detect.hpp"
 
 class HumanFaceFeat {
-private:
-    void *model;
-
 public:
     typedef enum { MODEL_MFN, MODEL_MBF } model_type_t;
     /**
@@ -23,65 +20,53 @@ public:
      */
     ~HumanFaceFeat();
 
-    /**
-     * @brief Inference.
-     *
-     * @tparam T supports uint8_t and uint16_t
-     *         - uint8_t: input image is RGB888
-     *         - uint16_t: input image is RGB565
-     * @param input_element pointer of input image
-     * @param input_shape   shape of input image
-     * @return detection result
-     */
-    template <typename T>
-    dl::TensorBase *run(T *input_element, const std::vector<int> &input_shape, const std::vector<int> &landmarks);
+    dl::TensorBase *run(const dl::image::img_t &img, const std::vector<int> &landmarks);
+
+private:
+    void *m_model;
+    model_type_t m_model_type;
 };
 
-class FaceRecognizer : public dl::recognition::DB {
+class HumanFaceRecognizer : public dl::recognition::DB {
 private:
-    HumanFaceDetect *detect;
-    HumanFaceFeat *feat_extract;
-    float thr;
-    int top_k;
-    int model_type;
+    HumanFaceFeat *m_feat_extract;
+    float m_thr;
+    int m_top_k;
 
 public:
-    FaceRecognizer(dl::recognition::db_type_t db_type = dl::recognition::DB_FATFS_FLASH,
-                   HumanFaceFeat::model_type_t model_type = HumanFaceFeat::model_type_t::MODEL_MFN,
-                   float thr = 0.5,
-                   int top_k = 1) :
+    HumanFaceRecognizer(
+        dl::recognition::db_type_t db_type = static_cast<dl::recognition::db_type_t>(CONFIG_DB_FILE_SYSTEM),
+        HumanFaceFeat::model_type_t model_type = static_cast<HumanFaceFeat::model_type_t>(CONFIG_HUMAN_FACE_FEAT_MODEL),
+        float thr = 0.5,
+        int top_k = 1) :
         dl::recognition::DB(db_type, 512, "face"),
-        detect(new HumanFaceDetect()),
-        feat_extract(new HumanFaceFeat(model_type)),
-        thr(thr),
-        top_k(top_k)
+        m_feat_extract(new HumanFaceFeat(model_type)),
+        m_thr(thr),
+        m_top_k(top_k)
     {
     }
 
-    ~FaceRecognizer();
+    ~HumanFaceRecognizer();
 
-    template <typename T>
-    std::vector<std::list<dl::recognition::query_info>> recognize(T *input_element,
-                                                                  const std::vector<int> &input_shape);
-    template <typename T>
-    esp_err_t enroll(T *input_element, const std::vector<int> &input_shape);
+    std::vector<dl::recognition::result_t> recognize(const dl::image::img_t &img,
+                                                     std::list<dl::detect::result_t> &detect_res);
+    esp_err_t enroll(const dl::image::img_t &img, std::list<dl::detect::result_t> &detect_res);
 };
 
 namespace model_zoo {
 
-template <typename feature_t>
 class MFN {
 private:
-    dl::recognition::FaceImagePreprocessor<feature_t> *image_preprocessor;
-    dl::Model *model;
-    dl::recognition::RecognitionPostprocessor<feature_t> *postprocessor;
+    dl::Model *m_model;
+    dl::recognition::HumanFaceImagePreprocessor *m_image_preprocessor;
+    dl::recognition::RecognitionPostprocessor *m_postprocessor;
 
 public:
     MFN(const std::vector<float> &mean, const std::vector<float> &std);
     ~MFN();
 
-    template <typename T>
-    dl::TensorBase *run(T *input_element, const std::vector<int> &input_shape, const std::vector<int> &landmarks);
+    dl::TensorBase *run(const dl::image::img_t &img, const std::vector<int> &landmarks);
 };
 
+using MBF = MFN;
 } // namespace model_zoo
