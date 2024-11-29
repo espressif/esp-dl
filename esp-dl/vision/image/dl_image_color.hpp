@@ -64,7 +64,6 @@ inline void convert_pixel_from_rgb888_to_rgb565(uint8_t *src_ptr, uint16_t *dst_
         if (caps & DL_IMAGE_CAP_RGB_SWAP) {
             *dst_ptr = ((src_ptr[2] >> 3) << 11) | ((src_ptr[1] >> 2) << 5) | (src_ptr[0] >> 3);
         } else {
-            printf("asdf");
             *dst_ptr = ((src_ptr[0] >> 3) << 11) | ((src_ptr[1] >> 2) << 5) | (src_ptr[2] >> 3);
         }
     } else {
