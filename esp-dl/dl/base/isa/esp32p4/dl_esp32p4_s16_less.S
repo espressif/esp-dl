@@ -17,7 +17,8 @@ dl_esp32p4_s16_less4d_bchw_w1_8_w2_8_simdless:
     # a2: int16_t *input1_ptr
     # a3: length
 
-    srai a3, a3, 3
+    lw a4, 44(a3)
+    srai a3, a4, 3
 
     li t0, 0
 loop:
@@ -46,8 +47,8 @@ dl_esp32p4_s16_less4d_bchw_w1_8_w2_1_simdless:
     # a1: int16_t *input0_ptr
     # a2: int16_t *input1_ptr
     # a3: length
-
-    srai a3, a3, 3
+    lw a4, 44(a3)
+    srai a3, a4, 3
 
     li t0, 0
 loop_:
@@ -76,7 +77,8 @@ dl_esp32p4_s16_less4d_bchw_w1_1_w2_8_simdless:
     # a2: int16_t *input1_ptr
     # a3: length
 
-    srai a3, a3, 3
+    lw a4, 44(a3)
+    srai a3, a4, 3
 
     li t0, 0
 loop__:

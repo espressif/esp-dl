@@ -1,32 +1,32 @@
 #pragma once
 
 #include "dl_base_elemwise.hpp"
-#include "dl_base_equal.hpp"
+#include "dl_base_min.hpp"
 #include "dl_base_shape.hpp"
 #include "dl_module_base.hpp"
 
 namespace dl {
 namespace module {
 
-class Equal : public Module {
+class Min : public Module {
 public:
     /**
-     * @brief Construct a new Equal2D object.
+     * @brief Construct a new Min2D object.
      *
      * @param name            name of module
      * @param inplace         inplace type.
      */
-    Equal(const char *name = NULL,
-          module_inplace_t inplace = MODULE_NON_INPLACE,
-          quant_type_t quant_type = QUANT_TYPE_NONE) :
+    Min(const char *name = NULL,
+        module_inplace_t inplace = MODULE_NON_INPLACE,
+        quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, inplace, quant_type)
     {
     }
 
     /**
-     * @brief Destroy the Equal2D object.
+     * @brief Destroy the Min2D object.
      */
-    ~Equal() {}
+    ~Min() {}
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
@@ -47,15 +47,15 @@ public:
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(tensors, mode);
         }
-        // DL_LOG_LAYER_LATENCY_END(this->name, "Equal2D");
+        // DL_LOG_LAYER_LATENCY_END(this->name, "Min2D");
     }
 
     void forward_args(void *args)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            base::elemwise_equal((base::elemwiseArgsType<int8_t> *)args);
+            base::elemwise_min((base::elemwiseArgsType<int8_t> *)args);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            base::elemwise_equal((base::elemwiseArgsType<int16_t> *)args);
+            base::elemwise_min((base::elemwiseArgsType<int16_t> *)args);
         }
     }
 
@@ -74,12 +74,12 @@ public:
         } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
             module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]);
         } else {
-            ESP_LOGE("Equal2D", "Only support task size is 1 or 2, currently task size is %d", task_size);
+            ESP_LOGE("Min2D", "Only support task size is 1 or 2, currently task size is %d", task_size);
         }
     }
 
     /**
-     * @brief deserialize Equal module instance by node serialization information
+     * @brief deserialize Min module instance by node serialization information
      */
     static Module *deserialize(fbs::FbsModel *fbs_model, std::string node_name)
     {
@@ -89,12 +89,12 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new Equal(NULL, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            op = new Min(NULL, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }
         return op;
     }
 
-    void print() { ESP_LOGI("Equal", "quant_type: %s.", quant_type_to_string(quant_type)); }
+    void print() { ESP_LOGI("Min", "quant_type: %s.", quant_type_to_string(quant_type)); }
 };
 
 } // namespace module

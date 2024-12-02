@@ -17,7 +17,8 @@ dl_esp32p4_s8_greaterorequal4d_bchw_w1_16_w2_16_simdgreaterorequal:
     # a2: int8_t *input1_ptr
     # a3: length
 
-    srai a3, a3, 4
+    lw a4, 44(a3)
+    srai a3, a4, 4
 
     li t0, 0
 loop:
@@ -50,7 +51,8 @@ dl_esp32p4_s8_greaterorequal4d_bchw_w1_16_w2_1_simdgreaterorequal:
     # a2: int8_t *input1_ptr
     # a3: length
 
-    srai a3, a3, 4
+    lw a4, 44(a3)
+    srai a3, a4, 4
 
     li t0, 0
 loop_:
@@ -82,7 +84,8 @@ dl_esp32p4_s8_greaterorequal4d_bchw_w1_1_w2_16_simdgreaterorequal:
     # a2: int8_t *input1_ptr
     # a3: length
 
-    srai a3, a3, 4
+    lw a4, 44(a3)
+    srai a3, a4, 4
 
     li t0, 0
 loop__:

@@ -2,14 +2,14 @@
 #include "dl_esp32p4_common.S"
 
 
-#void dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
+#void dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal
-    .type   dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal, @function
+    .global dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor
+    .type   dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor, @function
     #.section .iram1
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor:
     .align 2
 
     # a0: int16_t *output_ptr
@@ -25,10 +25,7 @@ loop:
     beq t0, a3, end
     esp.vld.128.ip q0, a1, 16
     esp.vld.128.ip q1, a2, 16
-    esp.vcmp.gt.s16 q2, q0, q1
-    esp.vcmp.eq.s16 q3, q0, q1
-    esp.vmax.s16 q2, q2, q3
-
+    esp.orq q2, q0, q1
     esp.vst.128.ip q2, a0, 16
     addi t0, t0, 1
     j loop
@@ -36,14 +33,14 @@ end:
     ret
 
 
-#void dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
+#void dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal
-    .type   dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal, @function
+    .global dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor
+    .type   dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor, @function
     #.section .iram1
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor:
     .align 2
 
     # a0: int16_t *output_ptr
@@ -59,23 +56,21 @@ loop_:
     beq t0, a3, end_
     esp.vld.128.ip q0, a1, 16
     esp.vldbc.16.ip q1, a2, 0
-    esp.vcmp.gt.s16 q2, q0, q1
-        esp.vcmp.eq.s16 q3, q0, q1
-    esp.vmax.s16 q2, q2, q3
+    esp.orq q2, q0, q1
     esp.vst.128.ip q2, a0, 16
     addi t0, t0, 1
     j loop_
 end_:
     ret
 
-#void dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
+#void dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal
-    .type   dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal, @function
+    .global dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor
+    .type   dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor, @function
     #.section .iram1
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal:
+dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor:
     .align 2
 
     # a0: int16_t *output_ptr
@@ -91,9 +86,7 @@ loop__:
     beq t0, a3, end__
     esp.vldbc.16.ip q0, a1, 0
     esp.vld.128.ip q1, a2, 16
-    esp.vcmp.gt.s16 q2, q0, q1
-        esp.vcmp.eq.s16 q3, q0, q1
-    esp.vmax.s16 q2, q2, q3
+    esp.orq q2, q0, q1
     esp.vst.128.ip q2, a0, 16
     addi t0, t0, 1
     j loop__
@@ -103,10 +96,10 @@ end__:
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned
-    .type   dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned, @function
+    .global dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned
+    .type   dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned, @function
     #.section .iram1
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
@@ -131,15 +124,15 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned:
     esp.ld.128.usar.ip q5, a0, 0 #get output_ptr sar_byte
     esp.movx.r.sar.bytes s1
 
-    bltz a4, dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_small_remainder # channel < 16
+    bltz a4, dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned_small_remainder # channel < 16
 
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
 
-    beqz s1, dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_0
+    beqz s1, dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned_0
     li t0, 8
-    beq s1, t0, dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_1
+    beq s1, t0, dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned_1
 
     add t0, a4, x0
     blez t0, 1f
@@ -147,9 +140,7 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned:
         esp.src.q.qup q2, q0, q1
         esp.ld.128.usar.ip q4, a2, 16
         esp.src.q.qup q5, q3, q4
-        esp.vcmp.gt.s16 q2, q2, q5
-                esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+        esp.orq q2, q2, q5
         esp.ld.128.usar.ip q1, a1, 16
         dl_esp32p4_128b_unaligned_store0 q2, a0, s1
         addi t0, t0, -1
@@ -164,14 +155,12 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned:
     esp.movx.r.sar.bytes s0
     esp.src.q.qup q5, q3, q4
 
-    esp.vcmp.gt.s16 q2, q2, q5
-            esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q2, q5
     dl_esp32p4_128b_unaligned_store0 q2, a0, s1
-    j dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_remainder
+    j dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned_remainder
 
     #output sar = 0
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_0:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned_0:
     add t0, a4, x0
     blez t0, 3f
     2:
@@ -180,9 +169,7 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_0:
         esp.ld.128.usar.ip q4, a2, 16
         esp.src.q.qup q5, q3, q4
 
-        esp.vcmp.gt.s16 q2, q2, q5
-                esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+        esp.orq q2, q2, q5
 
         esp.ld.128.usar.ip q1, a1, 16
         esp.vst.128.ip q2, a0, 16
@@ -198,14 +185,12 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_0:
     esp.movx.r.sar.bytes s0
     esp.src.q.qup q5, q3, q4
 
-    esp.vcmp.gt.s16 q2, q2, q5
-            esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q2, q5
     esp.vst.128.ip q2, a0, 16
-    j dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_remainder
+    j dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned_remainder
 
     #output sar = 8
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_1:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned_1:
     add t0, a4, x0
     blez t0, 5f
     4:
@@ -214,9 +199,8 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_1:
         esp.ld.128.usar.ip q4, a2, 16
         esp.src.q.qup q5, q3, q4
 
-        esp.vcmp.gt.s16 q2, q2, q5
-        esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+        esp.orq q2, q2, q5
+
         esp.ld.128.usar.ip q1, a1, 16
         dl_esp32p4_128b_unaligned_store1 q2, a0
         addi t0, t0, -1
@@ -231,20 +215,18 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_1:
     esp.movx.r.sar.bytes s0
     esp.src.q.qup q5, q3, q4
 
-    esp.vcmp.gt.s16 q2, q2, q5
-            esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q2, q5
     dl_esp32p4_128b_unaligned_store1 q2, a0
-    j dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_remainder
+    j dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned_remainder
 
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_small_remainder:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned_small_remainder:
     esp.ld.128.usar.xp q0, a1, t5
     esp.movx.r.sar.bytes t6
 
     esp.ld.128.usar.xp q3, a2, t5
     esp.movx.r.sar.bytes s0
 
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_remainder:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_8_simdor_unaligned_remainder:
 
     beqz t5, dl_esp32p4_s16_unaligned_add2d_end
 
@@ -256,9 +238,8 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_8_simdgreaterorequal_unaligned_rema
     esp.movx.w.sar.bytes s0
     esp.src.q q5, q3, q4
 
-    esp.vcmp.gt.s16 q2, q2, q5
-        esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q2, q5
+
     srli t5, t5, 1
     dl_esp32p4_s16_store_remainder q2, t5, s1, a0
 
@@ -271,10 +252,10 @@ dl_esp32p4_s16_unaligned_add2d_end:
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned
-    .type   dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned, @function
+    .global dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned
+    .type   dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned, @function
     #.section .iram1
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
@@ -299,15 +280,15 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned:
     esp.ld.128.usar.ip q5, a0, 0 #get output_ptr sar_byte
     esp.movx.r.sar.bytes s1
 
-    bltz a4, dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_small_remainder # channel < 16
+    bltz a4, dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned_small_remainder # channel < 16
 
     esp.ld.128.usar.ip q0, a1, 16
     #esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
 
-    beqz s1, dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_0
+    beqz s1, dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned_0
     li t0, 8
-    beq s1, t0, dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_1
+    beq s1, t0, dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned_1
 
     add t0, a4, x0
     blez t0, 1f
@@ -316,9 +297,7 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned:
         #esp.ld.128.usar.ip q4, a2, 16
         #esp.src.q.qup q5, q3, q4
         esp.vldbc.16.ip q5, a2, 0
-        esp.vcmp.gt.s16 q2, q2, q5
-                esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+        esp.orq q2, q2, q5
         esp.ld.128.usar.ip q1, a1, 16
         dl_esp32p4_128b_unaligned_store0 q2, a0, s1
         addi t0, t0, -1
@@ -335,14 +314,12 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned:
     esp.vldbc.16.ip q5, a2, 0
     addi s0, a2, 0
 
-    esp.vcmp.gt.s16 q2, q2, q5
-            esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q2, q5
     dl_esp32p4_128b_unaligned_store0 q2, a0, s1
-    j dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_remainder
+    j dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned_remainder
 
     #output sar = 0
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_0:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned_0:
     add t0, a4, x0
     blez t0, 3f
     2:
@@ -352,9 +329,7 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_0:
         #esp.src.q.qup q5, q3, q4
         esp.vldbc.16.ip q5, a2, 0
 
-        esp.vcmp.gt.s16 q2, q2, q5
-                esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+        esp.orq q2, q2, q5
 
         esp.ld.128.usar.ip q1, a1, 16
         esp.vst.128.ip q2, a0, 16
@@ -372,14 +347,12 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_0:
     esp.vldbc.16.ip q5, a2, 0
     addi s0, a2, 0
 
-    esp.vcmp.gt.s16 q2, q2, q5
-            esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q2, q5
     esp.vst.128.ip q2, a0, 16
-    j dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_remainder
+    j dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned_remainder
 
     #output sar = 8
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_1:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned_1:
     add t0, a4, x0
     blez t0, 5f
     4:
@@ -389,9 +362,8 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_1:
         #esp.src.q.qup q5, q3, q4
         esp.vldbc.16.ip q5, a2, 0
 
-        esp.vcmp.gt.s16 q2, q2, q5
-        esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+        esp.orq q2, q2, q5
+
         esp.ld.128.usar.ip q1, a1, 16
         dl_esp32p4_128b_unaligned_store1 q2, a0
         addi t0, t0, -1
@@ -408,13 +380,11 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_1:
     esp.vldbc.16.ip q5, a2, 0
     addi s0, a2, 0
 
-    esp.vcmp.gt.s16 q2, q2, q5
-            esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q2, q5
     dl_esp32p4_128b_unaligned_store1 q2, a0
-    j dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_remainder
+    j dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned_remainder
 
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_small_remainder:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned_small_remainder:
     esp.ld.128.usar.xp q0, a1, t5
     esp.movx.r.sar.bytes t6
 
@@ -422,7 +392,7 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_smal
     #esp.movx.r.sar.bytes s0
     esp.vldbc.16.ip q5, a2, 0
 
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_remainder:
+dl_esp32p4_s16_or4d_bchw_w1_8_w2_1_simdor_unaligned_remainder:
 
     beqz t5, dl_esp32p4_s16_unaligned_add2d_end__
 
@@ -436,9 +406,8 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_8_w2_1_simdgreaterorequal_unaligned_rema
     esp.vldbc.16.ip q5, a2, 0
     addi s0, a2, 0
 
-    esp.vcmp.gt.s16 q2, q2, q5
-        esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q2, q5
+
     srli t5, t5, 1
     dl_esp32p4_s16_store_remainder q2, t5, s1, a0
 
@@ -451,10 +420,10 @@ dl_esp32p4_s16_unaligned_add2d_end__:
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned
-    .type   dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned, @function
+    .global dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned
+    .type   dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned, @function
     #.section .iram1
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned:
+dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
@@ -479,15 +448,15 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned:
     esp.ld.128.usar.ip q5, a0, 0 #get output_ptr sar_byte
     esp.movx.r.sar.bytes s1
 
-    bltz a4, dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_small_remainder # channel < 16
+    bltz a4, dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned_small_remainder # channel < 16
 
     esp.ld.128.usar.ip q0, a2, 16
     #esp.ld.128.usar.ip q3, a1, 16
     esp.ld.128.usar.ip q1, a2, 16
 
-    beqz s1, dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_0
+    beqz s1, dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned_0
     li t0, 8
-    beq s1, t0, dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_1
+    beq s1, t0, dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned_1
 
     add t0, a4, x0
     blez t0, 1f
@@ -496,9 +465,7 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned:
         #esp.ld.128.usar.ip q4, a1, 16
         #esp.src.q.qup q5, q3, q4
         esp.vldbc.16.ip q5, a1, 0
-        esp.vcmp.gt.s16 q2, q5, q2  #esp.vcmp.gt.s16 q2, q2, q5
-                esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+        esp.orq q2, q5, q2  #esp.orq q2, q2, q5
         esp.ld.128.usar.ip q1, a2, 16
         dl_esp32p4_128b_unaligned_store0 q2, a0, s1
         addi t0, t0, -1
@@ -515,14 +482,12 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned:
     esp.vldbc.16.ip q5, a1, 0
     addi s0, a1, 0
 
-    esp.vcmp.gt.s16 q2, q5, q2  #esp.vcmp.gt.s16 q2, q2, q5
-            esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q5, q2  #esp.orq q2, q2, q5
     dl_esp32p4_128b_unaligned_store0 q2, a0, s1
-    j dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_remainder
+    j dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned_remainder
 
     #output sar = 0
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_0:
+dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned_0:
     add t0, a4, x0
     blez t0, 3f
     2:
@@ -532,9 +497,8 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_0:
         #esp.src.q.qup q5, q3, q4
         esp.vldbc.16.ip q5, a1, 0
 
-        esp.vcmp.gt.s16 q2, q5, q2  #esp.vcmp.gt.s16 q2, q2, q5
-        esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+        esp.orq q2, q5, q2  #esp.orq q2, q2, q5
+
         esp.ld.128.usar.ip q1, a2, 16
         esp.vst.128.ip q2, a0, 16
         addi t0, t0, -1
@@ -551,14 +515,12 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_0:
     esp.vldbc.16.ip q5, a1, 0
     addi s0, a1, 0
 
-    esp.vcmp.gt.s16 q2, q5, q2  #esp.vcmp.gt.s16 q2, q2, q5
-            esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q5, q2  #esp.orq q2, q2, q5
     esp.vst.128.ip q2, a0, 16
-    j dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_remainder
+    j dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned_remainder
 
     #output sar = 8
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_1:
+dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned_1:
     add t0, a4, x0
     blez t0, 5f
     4:
@@ -568,9 +530,7 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_1:
         #esp.src.q.qup q5, q3, q4
         esp.vldbc.16.ip q5, a1, 0
 
-        esp.vcmp.gt.s16 q2, q5, q2  #esp.vcmp.gt.s16 q2, q2, q5
-                esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+        esp.orq q2, q5, q2  #esp.orq q2, q2, q5
 
         esp.ld.128.usar.ip q1, a2, 16
         dl_esp32p4_128b_unaligned_store1 q2, a0
@@ -588,13 +548,11 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_1:
     esp.vldbc.16.ip q5, a1, 0
     addi s0, a1, 0
 
-    esp.vcmp.gt.s16 q2, q5, q2  #esp.vcmp.gt.s16 q2, q2, q5
-            esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q5, q2  #esp.orq q2, q2, q5
     dl_esp32p4_128b_unaligned_store1 q2, a0
-    j dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_remainder
+    j dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned_remainder
 
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_small_remainder:
+dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned_small_remainder:
     esp.ld.128.usar.xp q0, a2, t5
     esp.movx.r.sar.bytes t6
 
@@ -602,7 +560,7 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_smal
     #esp.movx.r.sar.bytes s0
     esp.vldbc.16.ip q5, a1, 0
 
-dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_remainder:
+dl_esp32p4_s16_or4d_bchw_w1_1_w2_8_simdor_unaligned_remainder:
 
     beqz t5, dl_esp32p4_s16_unaligned_add2d_endtest
 
@@ -616,9 +574,8 @@ dl_esp32p4_s16_greaterorequal4d_bchw_w1_1_w2_8_simdgreaterorequal_unaligned_rema
     esp.vldbc.16.ip q5, a1, 0
     addi s0, a1, 0
 
-    esp.vcmp.gt.s16 q2, q5, q2  #esp.vcmp.gt.s16 q2, q2, q5
-        esp.vcmp.eq.s16 q6, q2, q5
-        esp.vmax.s16 q2, q2, q6
+    esp.orq q2, q5, q2  #esp.orq q2, q2, q5
+
     srli t5, t5, 1
     dl_esp32p4_s16_store_remainder q2, t5, s1, a0
 
