@@ -93,7 +93,7 @@ class BaseInferencer:
             error_report=False,
             skip_export=False,
             export_test_values=True,
-            export_config=False,
+            export_config=True,
             verbose=1,
         )
 
