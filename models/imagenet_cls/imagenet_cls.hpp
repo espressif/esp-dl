@@ -1,51 +1,20 @@
 #pragma once
 
-#include "dl_image_preprocessor.hpp"
-#include "dl_model_base.hpp"
+#include "dl_cls_base.hpp"
 #include "imagenet_cls_postprocessor.hpp"
 
-class ImageNetCls {
-private:
-    void *m_model;
+namespace imagenet_cls {
 
+class MobileNetV2 : public dl::cls::ClsImpl {
 public:
-    /**
-     * @brief Construct a new ImageNetCls object
-     */
-    ImageNetCls();
-
-    /**
-     * @brief Destroy the ImageNetCls object
-     */
-    ~ImageNetCls();
-
-    /**
-     * @brief Inference.
-     *
-     * @param img input image
-     * @return detection result
-     */
-    std::vector<dl::cls::result_t> &run(const dl::image::img_t &img);
+    MobileNetV2(const char *model_name, const int top_k);
 };
 
-namespace model_zoo {
+} // namespace imagenet_cls
 
-class ImageNetClsModel {
-private:
-    dl::Model *m_model;
-    dl::image::ImagePreprocessor *m_image_preprocessor;
-    dl::cls::ImageNetClsPostprocessor *m_postprocessor;
-
+class ImageNetCls : public dl::cls::ClsWrapper {
 public:
-    ImageNetClsModel(const int top_k,
-                     bool need_softmax,
-                     const std::vector<float> &mean,
-                     const std::vector<float> &std,
-                     const float score_thr = std::numeric_limits<float>::lowest());
-
-    ~ImageNetClsModel();
-
-    std::vector<dl::cls::result_t> &run(const dl::image::img_t &img);
+    typedef enum { MOBILENETV2_S8_V1 } model_type_t;
+    ImageNetCls(model_type_t model_type = static_cast<model_type_t>(CONFIG_IMAGENET_CLS_MODEL_TYPE),
+                const int top_k = 5);
 };
-
-} // namespace model_zoo

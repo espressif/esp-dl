@@ -1,11 +1,11 @@
-#include "dl_recognition_human_face_image_preprocessor.hpp"
+#include "dl_feat_image_preprocessor.hpp"
 
 namespace dl {
-namespace recognition {
-std::vector<float> HumanFaceImagePreprocessor::s_std_ldks_112 = {
+namespace image {
+std::vector<float> FeatImagePreprocessor::s_std_ldks_112 = {
     38.2946, 51.6963, 41.5493, 92.3655, 56.0252, 71.7366, 73.5318, 51.5014, 70.7299, 92.2041};
 
-HumanFaceImagePreprocessor::~HumanFaceImagePreprocessor()
+FeatImagePreprocessor::~FeatImagePreprocessor()
 {
     if (m_image_preprocessor) {
         delete m_image_preprocessor;
@@ -13,7 +13,7 @@ HumanFaceImagePreprocessor::~HumanFaceImagePreprocessor()
     }
 }
 
-void HumanFaceImagePreprocessor::preprocess(const dl::image::img_t &img, const std::vector<int> &landmarks)
+void FeatImagePreprocessor::preprocess(const dl::image::img_t &img, const std::vector<int> &landmarks)
 {
     assert(landmarks.size() == 10);
     // align face
@@ -29,5 +29,5 @@ void HumanFaceImagePreprocessor::preprocess(const dl::image::img_t &img, const s
     dl::math::Matrix<float> M_inv = dl::math::get_similarity_transform(source_coord, dest_coord);
     m_image_preprocessor->preprocess(img, &M_inv);
 }
-} // namespace recognition
+} // namespace image
 } // namespace dl

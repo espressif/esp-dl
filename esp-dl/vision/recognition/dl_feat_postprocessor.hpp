@@ -5,17 +5,17 @@
 #include <map>
 
 namespace dl {
-namespace recognition {
-class RecognitionPostprocessor {
+namespace feat {
+class FeatPostprocessor {
 private:
     TensorBase *m_model_output;
     TensorBase *m_feat;
     void l2_norm();
 
 public:
-    RecognitionPostprocessor(Model *model, const std::string &output_name = "");
+    FeatPostprocessor(Model *model, const std::string &output_name = "");
     TensorBase *postprocess();
-    ~RecognitionPostprocessor()
+    ~FeatPostprocessor()
     {
         if (m_feat) {
             delete m_feat;
@@ -23,5 +23,5 @@ public:
         }
     }
 };
-} // namespace recognition
+} // namespace feat
 } // namespace dl

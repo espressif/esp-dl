@@ -1,4 +1,4 @@
-#include "dl_detect_pedestrian_postprocessor.hpp"
+#include "dl_detect_pico_postprocessor.hpp"
 #include "dl_math.hpp"
 #include <algorithm>
 #include <cmath>
@@ -6,7 +6,7 @@
 namespace dl {
 namespace detect {
 template <typename T>
-void PedestrianPostprocessor::parse_stage(TensorBase *score, TensorBase *box, const int stage_index)
+void PicoPostprocessor::parse_stage(TensorBase *score, TensorBase *box, const int stage_index)
 {
     int stride_y = m_stages[stage_index].stride_y;
     int stride_x = m_stages[stage_index].stride_x;
@@ -60,10 +60,10 @@ void PedestrianPostprocessor::parse_stage(TensorBase *score, TensorBase *box, co
     }
 }
 
-template void PedestrianPostprocessor::parse_stage<int8_t>(TensorBase *score, TensorBase *box, const int stage_index);
-template void PedestrianPostprocessor::parse_stage<int16_t>(TensorBase *score, TensorBase *box, const int stage_index);
+template void PicoPostprocessor::parse_stage<int8_t>(TensorBase *score, TensorBase *box, const int stage_index);
+template void PicoPostprocessor::parse_stage<int16_t>(TensorBase *score, TensorBase *box, const int stage_index);
 
-void PedestrianPostprocessor::postprocess()
+void PicoPostprocessor::postprocess()
 {
     TensorBase *score0 = m_model->get_intermediate("score0");
     TensorBase *bbox0 = m_model->get_intermediate("bbox0");

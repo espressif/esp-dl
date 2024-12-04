@@ -1,52 +1,17 @@
 #pragma once
 
-#include "dl_detect_pedestrian_postprocessor.hpp"
-#include "dl_image_preprocessor.hpp"
-#include "dl_model_base.hpp"
+#include "dl_detect_base.hpp"
+#include "dl_detect_pico_postprocessor.hpp"
 
-class PedestrianDetect {
-private:
-    void *m_model;
-
+namespace pedestrian_detect {
+class Pico : public dl::detect::DetectImpl {
 public:
-    /**
-     * @brief Construct a new PedestrianDetect object
-     */
-    PedestrianDetect();
-
-    /**
-     * @brief Destroy the PedestrianDetect object
-     */
-    ~PedestrianDetect();
-
-    /**
-     * @brief Inference.
-     *
-     * @param img input image
-     * @return detection result
-     */
-    std::list<dl::detect::result_t> &run(const dl::image::img_t &img);
+    Pico(const char *model_name);
 };
+} // namespace pedestrian_detect
 
-namespace model_zoo {
-
-class Pedestrian {
-private:
-    dl::Model *m_model;
-    dl::image::ImagePreprocessor *m_image_preprocessor;
-    dl::detect::PedestrianPostprocessor *m_postprocessor;
-
+class PedestrianDetect : public dl::detect::DetectWrapper {
 public:
-    Pedestrian(const float score_thr,
-               const float nms_thr,
-               const int top_k,
-               const std::vector<dl::detect::anchor_point_stage_t> &stages,
-               const std::vector<float> &mean,
-               const std::vector<float> &std);
-
-    ~Pedestrian();
-
-    std::list<dl::detect::result_t> &run(const dl::image::img_t &img);
+    typedef enum { PICO_S8_V1 } model_type_t;
+    PedestrianDetect(model_type_t model_type = static_cast<model_type_t>(CONFIG_PEDESTRIAN_DETECT_MODEL_TYPE));
 };
-
-} // namespace model_zoo

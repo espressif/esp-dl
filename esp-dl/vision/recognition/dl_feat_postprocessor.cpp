@@ -1,9 +1,9 @@
-#include "dl_recognition_postprocessor.hpp"
+#include "dl_feat_postprocessor.hpp"
 
 namespace dl {
-namespace recognition {
+namespace feat {
 
-RecognitionPostprocessor::RecognitionPostprocessor(Model *model, const std::string &output_name)
+FeatPostprocessor::FeatPostprocessor(Model *model, const std::string &output_name)
 {
     if (output_name.empty()) {
         std::map<std::string, dl::TensorBase *> model_outputs_map = model->get_outputs();
@@ -15,14 +15,14 @@ RecognitionPostprocessor::RecognitionPostprocessor(Model *model, const std::stri
     m_feat = new TensorBase(m_model_output->shape, nullptr, 0, DATA_TYPE_FLOAT);
 }
 
-TensorBase *RecognitionPostprocessor::postprocess()
+TensorBase *FeatPostprocessor::postprocess()
 {
     m_feat->assign(m_model_output);
     l2_norm();
     return m_feat;
 }
 
-void RecognitionPostprocessor::l2_norm()
+void FeatPostprocessor::l2_norm()
 {
     float norm = 0;
     float *ptr = (float *)m_feat->data;
@@ -34,5 +34,5 @@ void RecognitionPostprocessor::l2_norm()
         ptr[i] /= norm;
     }
 }
-} // namespace recognition
+} // namespace feat
 } // namespace dl

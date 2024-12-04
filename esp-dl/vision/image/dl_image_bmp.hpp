@@ -7,7 +7,6 @@
 
 namespace dl {
 namespace image {
-esp_err_t write_rgb888_or_gray_bmp(const img_t &img, const char *file_name);
 esp_err_t write_bmp(const img_t &img, const char *file_name, uint32_t caps = 0);
 esp_err_t read_bmp(img_t &img, const char *file_name);
 } // namespace image

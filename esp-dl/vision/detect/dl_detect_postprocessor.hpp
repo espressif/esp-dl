@@ -18,7 +18,6 @@ protected:
     float m_top_left_x;
     float m_top_left_y;
     std::list<result_t> m_box_list; /*<! Detected box list */
-    TensorBase *get_model_output(const char *output_name);
 
 public:
     DetectPostprocessor(Model *model, const float score_thr, const float nms_thr, const int top_k) :

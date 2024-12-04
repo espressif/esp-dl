@@ -1,4 +1,4 @@
-#include "dl_detect_mnp01_postprocessor.hpp"
+#include "dl_detect_mnp_postprocessor.hpp"
 #include "dl_math.hpp"
 #include <algorithm>
 #include <cmath>
@@ -6,7 +6,7 @@
 namespace dl {
 namespace detect {
 template <typename T>
-void MNP01Postprocessor::parse_stage(TensorBase *score, TensorBase *box, TensorBase *landmark, const int stage_index)
+void MNPPostprocessor::parse_stage(TensorBase *score, TensorBase *box, TensorBase *landmark, const int stage_index)
 {
     std::vector<std::vector<int>> &anchor_shape = m_stages[stage_index].anchor_shape;
 
@@ -93,7 +93,7 @@ void MNP01Postprocessor::parse_stage(TensorBase *score, TensorBase *box, TensorB
     }
 }
 
-void MNP01Postprocessor::postprocess()
+void MNPPostprocessor::postprocess()
 {
     TensorBase *score = m_model->get_intermediate("score");
     TensorBase *bbox = m_model->get_intermediate("box");

@@ -1,113 +1,41 @@
 #include "human_face_detect.hpp"
 
+#if CONFIG_HUMAN_FACE_DETECT_MODEL_IN_FLASH_RODATA
 extern const uint8_t human_face_detect_espdl[] asm("_binary_human_face_detect_espdl_start");
-
-HumanFaceDetect::HumanFaceDetect()
-{
-    m_stage1_model =
-        (void *)new model_zoo::MSR01(0.5,
-                                     0.5,
-                                     10,
-                                     {{8, 8, 9, 9, {{16, 16}, {32, 32}}}, {16, 16, 9, 9, {{64, 64}, {128, 128}}}},
-                                     {0, 0, 0},
-                                     {1, 1, 1});
-    m_stage2_model = (void *)new model_zoo::MNP01(0.5, 0.5, 10, {{1, 1, 0, 0, {{48, 48}}}}, {0, 0, 0}, {1, 1, 1});
-}
-
-HumanFaceDetect::~HumanFaceDetect()
-{
-    if (m_stage1_model) {
-        delete (model_zoo::MSR01 *)m_stage1_model;
-        m_stage1_model = nullptr;
-    }
-    if (m_stage2_model) {
-        delete (model_zoo::MNP01 *)m_stage2_model;
-        m_stage2_model = nullptr;
-    }
-}
-
-std::list<dl::detect::result_t> &HumanFaceDetect::run(const dl::image::img_t &img)
-{
-    std::list<dl::detect::result_t> &candidates = ((model_zoo::MSR01 *)m_stage1_model)->run(img);
-    return ((model_zoo::MNP01 *)m_stage2_model)->run(img, candidates);
-}
-namespace model_zoo {
-
-MSR01::MSR01(const float score_thr,
-             const float nms_thr,
-             const int top_k,
-             const std::vector<dl::detect::anchor_box_stage_t> &stages,
-             const std::vector<float> &mean,
-             const std::vector<float> &std) :
-    m_model(new dl::Model((const char *)human_face_detect_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA, 1)),
-#if CONFIG_IDF_TARGET_ESP32P4
-    m_image_preprocessor(new dl::image::ImagePreprocessor(m_model, mean, std, DL_IMAGE_CAP_RGB565_BIG_ENDIAN)),
-#else
-    m_image_preprocessor(new dl::image::ImagePreprocessor(m_model, mean, std)),
+static const char *path = (const char *)human_face_detect_espdl;
+#elif CONFIG_HUMAN_FACE_DETECT_MODEL_IN_FLASH_PARTITION
+static const char *path = "human_face_det";
 #endif
-    m_postprocessor(new dl::detect::MSR01Postprocessor(m_model, score_thr, nms_thr, top_k, stages))
+namespace human_face_detect {
+
+MSR::MSR(const char *model_name)
 {
-}
-
-MSR01::~MSR01()
-{
-    if (m_model) {
-        delete m_model;
-        m_model = nullptr;
-    }
-    if (m_image_preprocessor) {
-        delete m_image_preprocessor;
-        m_image_preprocessor = nullptr;
-    }
-    if (m_postprocessor) {
-        delete m_postprocessor;
-        m_postprocessor = nullptr;
-    }
-}
-
-std::list<dl::detect::result_t> &MSR01::run(const dl::image::img_t &img)
-{
-    dl::tool::Latency latency[3] = {dl::tool::Latency(), dl::tool::Latency(), dl::tool::Latency()};
-    latency[0].start();
-    m_image_preprocessor->preprocess(img);
-    latency[0].end();
-
-    latency[1].start();
-    m_model->run();
-    latency[1].end();
-
-    latency[2].start();
-    m_postprocessor->clear_result();
-    m_postprocessor->set_resize_scale_x(m_image_preprocessor->get_resize_scale_x());
-    m_postprocessor->set_resize_scale_y(m_image_preprocessor->get_resize_scale_y());
-    m_postprocessor->postprocess();
-    std::list<dl::detect::result_t> &result = m_postprocessor->get_result(img.width, img.height);
-    latency[2].end();
-
-    latency[0].print("detect", "preprocess");
-    latency[1].print("detect", "forward");
-    latency[2].print("detect", "postprocess");
-
-    return result;
-}
-
-MNP01::MNP01(const float score_thr,
-             const float nms_thr,
-             const int top_k,
-             const std::vector<dl::detect::anchor_box_stage_t> &stages,
-             const std::vector<float> &mean,
-             const std::vector<float> &std) :
-    m_model(new dl::Model((const char *)human_face_detect_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA, 0)),
+    m_model = new dl::Model(
+        path, model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
 #if CONFIG_IDF_TARGET_ESP32P4
-    m_image_preprocessor(new dl::image::ImagePreprocessor(m_model, mean, std, DL_IMAGE_CAP_RGB565_BIG_ENDIAN)),
+    m_image_preprocessor =
+        new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
 #else
-    m_image_preprocessor(new dl::image::ImagePreprocessor(m_model, mean, std)),
+    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1});
 #endif
-    m_postprocessor(new dl::detect::MNP01Postprocessor(m_model, score_thr, nms_thr, top_k, stages))
-{
+    m_postprocessor = new dl::detect::MSRPostprocessor(
+        m_model, 0.5, 0.5, 10, {{8, 8, 9, 9, {{16, 16}, {32, 32}}}, {16, 16, 9, 9, {{64, 64}, {128, 128}}}});
 }
 
-MNP01::~MNP01()
+MNP::MNP(const char *model_name)
+{
+    m_model = new dl::Model(
+        path, model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
+#if CONFIG_IDF_TARGET_ESP32P4
+    m_image_preprocessor =
+        new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
+#else
+    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1});
+#endif
+    m_postprocessor = new dl::detect::MNPPostprocessor(m_model, 0.5, 0.5, 10, {{1, 1, 0, 0, {{48, 48}}}});
+}
+
+MNP::~MNP()
 {
     if (m_model) {
         delete m_model;
@@ -123,7 +51,7 @@ MNP01::~MNP01()
     }
 };
 
-std::list<dl::detect::result_t> &MNP01::run(const dl::image::img_t &img, std::list<dl::detect::result_t> &candidates)
+std::list<dl::detect::result_t> &MNP::run(const dl::image::img_t &img, std::list<dl::detect::result_t> &candidates)
 {
     dl::tool::Latency latency[3] = {dl::tool::Latency(10), dl::tool::Latency(10), dl::tool::Latency(10)};
     m_postprocessor->clear_result();
@@ -163,4 +91,36 @@ std::list<dl::detect::result_t> &MNP01::run(const dl::image::img_t &img, std::li
     return result;
 }
 
-} // namespace model_zoo
+MSRMNP::~MSRMNP()
+{
+    if (m_msr) {
+        delete m_msr;
+        m_msr = nullptr;
+    }
+    if (m_mnp) {
+        delete m_mnp;
+        m_mnp = nullptr;
+    }
+}
+
+std::list<dl::detect::result_t> &MSRMNP::run(const dl::image::img_t &img)
+{
+    std::list<dl::detect::result_t> &candidates = m_msr->run(img);
+    return m_mnp->run(img, candidates);
+}
+
+} // namespace human_face_detect
+
+HumanFaceDetect::HumanFaceDetect(model_type_t model_type)
+{
+    switch (model_type) {
+    case model_type_t::MSRMNP_S8_V1:
+#if CONFIG_HUMAN_FACE_DETECT_MSRMNP_S8_V1
+        m_model =
+            new human_face_detect::MSRMNP("human_face_detect_msr_s8_v1.espdl", "human_face_detect_mnp_s8_v1.espdl");
+#else
+        ESP_LOGE("human_face_detect", "human_face_detect_msrmnp_s8_v1 is not selected in menuconfig.");
+#endif
+        break;
+    }
+}

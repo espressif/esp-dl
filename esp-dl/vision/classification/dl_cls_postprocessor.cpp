@@ -3,8 +3,8 @@
 namespace dl {
 namespace cls {
 ClsPostprocessor::ClsPostprocessor(
-    Model *model, const float score_thr, const int top_k, bool need_softmax, const std::string &output_name) :
-    m_score_thr(score_thr), m_top_k(top_k), m_need_softmax(need_softmax)
+    Model *model, const int top_k, const float score_thr, bool need_softmax, const std::string &output_name) :
+    m_top_k(top_k), m_score_thr(score_thr), m_need_softmax(need_softmax)
 {
     if (output_name.empty()) {
         std::map<std::string, dl::TensorBase *> model_outputs_map = model->get_outputs();

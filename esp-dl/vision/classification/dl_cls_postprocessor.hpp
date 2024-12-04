@@ -10,7 +10,7 @@ namespace cls {
 class ClsPostprocessor {
 public:
     ClsPostprocessor(
-        Model *model, const float score_thr, const int top_k, bool need_softmax, const std::string &output_name);
+        Model *model, const int top_k, const float score_thr, bool need_softmax, const std::string &output_name);
     virtual ~ClsPostprocessor();
     virtual std::vector<dl::cls::result_t> &postprocess();
 
@@ -19,8 +19,8 @@ protected:
 
 private:
     TensorBase *m_model_output;
-    float m_score_thr;
     int m_top_k;
+    float m_score_thr;
     bool m_need_softmax;
     dl::module::Softmax *m_softmax_module;
     TensorBase *m_output;

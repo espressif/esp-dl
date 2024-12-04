@@ -1,4 +1,4 @@
-#include "dl_detect_msr01_postprocessor.hpp"
+#include "dl_detect_msr_postprocessor.hpp"
 #include "dl_math.hpp"
 #include <algorithm>
 #include <cmath>
@@ -6,7 +6,7 @@
 namespace dl {
 namespace detect {
 template <typename T>
-void MSR01Postprocessor::parse_stage(TensorBase *score, TensorBase *box, const int stage_index)
+void MSRPostprocessor::parse_stage(TensorBase *score, TensorBase *box, const int stage_index)
 {
     int stride_y = m_stages[stage_index].stride_y;
     int stride_x = m_stages[stage_index].stride_x;
@@ -67,10 +67,10 @@ void MSR01Postprocessor::parse_stage(TensorBase *score, TensorBase *box, const i
     }
 }
 
-template void MSR01Postprocessor::parse_stage<int8_t>(TensorBase *score, TensorBase *box, const int stage_index);
-template void MSR01Postprocessor::parse_stage<int16_t>(TensorBase *score, TensorBase *box, const int stage_index);
+template void MSRPostprocessor::parse_stage<int8_t>(TensorBase *score, TensorBase *box, const int stage_index);
+template void MSRPostprocessor::parse_stage<int16_t>(TensorBase *score, TensorBase *box, const int stage_index);
 
-void MSR01Postprocessor::postprocess()
+void MSRPostprocessor::postprocess()
 {
     TensorBase *score0 = m_model->get_intermediate("score0");
     TensorBase *bbox0 = m_model->get_intermediate("box0");

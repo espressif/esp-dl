@@ -3,7 +3,7 @@
 
 namespace dl {
 namespace detect {
-class MNP01Postprocessor : public AnchorBoxDetectPostprocessor {
+class MNPPostprocessor : public AnchorBoxDetectPostprocessor {
 private:
     template <typename T>
     void parse_stage(TensorBase *score, TensorBase *box, TensorBase *landmark, const int stage_index);
