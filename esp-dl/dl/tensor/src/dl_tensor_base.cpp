@@ -578,15 +578,15 @@ int TensorBase::get_element_index(const std::vector<int> &axis_index)
     return element_index;
 }
 
-int64_t TensorBase::get_element_index(const std::vector<int64_t> &axis_index)
-{
-    assert(axis_index.size() == this->shape.size());
-    int element_index = 0;
-    for (int i = 0; i < axis_index.size(); i++) {
-        element_index += axis_index[i] * this->axis_offset[i];
-    }
-    return element_index;
-}
+// int64_t TensorBase::get_element_index(const std::vector<int64_t> &axis_index)
+// {
+//     assert(axis_index.size() == this->shape.size());
+//     int element_index = 0;
+//     for (int i = 0; i < axis_index.size(); i++) {
+//         element_index += axis_index[i] * this->axis_offset[i];
+//     }
+//     return element_index;
+// }
 
 template <typename T>
 T TensorBase::get_element(int index)

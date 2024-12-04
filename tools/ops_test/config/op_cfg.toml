@@ -689,6 +689,60 @@
         const_value = 1
         export_name_prefix = "pad_ishap_2_2_5_10_50_pads_2_1_1_1_1_1_1_1_1_1_constant_1"
 
+
+    [ops_test.matmul]
+    class_name = "MATMUL_TEST"
+        [[ops_test.matmul.cfg]]
+        input_shape = [[1, 10], [1, 10]]
+        export_name_prefix = "matmul_ishape0_10_ishape1_10"
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.matmul.cfg]]
+        input_shape = [[1, 3, 10], [1, 10, 32]]
+        export_name_prefix = "matmul_ishape0_3_10_ishape1_10_32"
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.matmul.cfg]]
+        input_shape = [[1, 10], [1, 10, 32]]
+        export_name_prefix = "matmul_ishape0_10_ishape1_10_32"
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.matmul.cfg]]
+        input_shape = [[1, 16, 10], [1, 10]]
+        export_name_prefix = "matmul_ishape0_16_10_ishape1_10"
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.matmul.cfg]]
+        input_shape = [[1, 10], [1, 5, 10, 32]]
+        export_name_prefix = "matmul_ishape0_10_ishape1_5_10_32"
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.matmul.cfg]]
+        input_shape = [[1, 5, 32, 10], [1, 10]]
+        export_name_prefix = "matmul_ishape0_5_32_10_ishape1_10"
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.matmul.cfg]]
+        input_shape = [[1, 5, 32, 10], [1, 10, 32]]
+        export_name_prefix = "matmul_ishape0_5_32_10_ishape1_10_32"
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.matmul.cfg]]
+        input_shape = [[1, 32, 10], [1, 5, 10, 32]]
+        export_name_prefix = "matmul_ishape0_32_10_ishape1_5_10_32"
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.matmul.cfg]]
+        input_shape = [[1, 32, 10], [1, 7, 5, 10, 32]]
+        export_name_prefix = "matmul_ishape0_32_10_ishape1_7_5_10_32"
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.matmul.cfg]]
+        input_shape = [[1, 7, 32, 10], [1, 7, 1, 10, 32]]
+        export_name_prefix = "matmul_ishape0_7_32_10_ishape1_7_1_10_32"
+        activation_func = ""    # "", "ReLU"
+
+
 [models_test]
     [models_test.picodet]
         input_shape = [1, 3, 224, 224]

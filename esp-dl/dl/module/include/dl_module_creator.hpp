@@ -29,6 +29,7 @@
 #include "dl_module_tanh.hpp"
 #include "dl_module_transpose.hpp"
 #include "dl_module_unsqueeze.hpp"
+#include "dl_module_matmul.hpp"
 #include "fbs_loader.hpp"
 #include <functional>
 #include <iostream>
@@ -123,6 +124,7 @@ public:
             this->register_module("MaxPool", MaxPool2D::deserialize);
             this->register_module("Slice", Slice::deserialize);
             this->register_module("Pad", Pad::deserialize);
+            this->register_module("MatMul", MatMul::deserialize);
         }
     }
 

@@ -358,6 +358,18 @@ class PAD_TEST(nn.Module):
         return F.pad(input, self.pads, self.config["mode"], self.config["const_value"])
 
 
+class MATMUL_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input1, input2):
+        # By applying squeeze, the input is transformed to adapt the dimensions of matmul.
+        input1 = torch.squeeze(input1, 0)
+        input2 = torch.squeeze(input2, 0)
+        return torch.matmul(input1, input2)
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 
