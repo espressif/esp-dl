@@ -1,6 +1,5 @@
 ## IDF Component Manager Manifest File
 dependencies:
-  espressif/esp_jpeg: "^1.0.5~3"
   espressif/human_face_detect:
-    version: "^0.1.0"
+    version: "^0.1.1"
     override_path: "../../../models/human_face_detect"

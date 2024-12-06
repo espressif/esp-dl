@@ -1,167 +1,94 @@
 #include "human_face_recognition.hpp"
 
+#if CONFIG_HUMAN_FACE_FEAT_MODEL_IN_FLASH_RODATA
 extern const uint8_t human_face_feat_espdl[] asm("_binary_human_face_feat_espdl_start");
+static const char *path = (const char *)human_face_feat_espdl;
+#elif CONFIG_HUMAN_FACE_FEAT_MODEL_IN_FLASH_PARTITION
+static const char *path = "human_face_feat";
+#endif
+namespace human_face_recognition {
 
-HumanFaceFeat::HumanFaceFeat(HumanFaceFeat::model_type_t model_type)
+MFN::MFN(const char *model_name)
+{
+    m_model =
+        new dl::Model(path, model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_FEAT_MODEL_LOCATION));
+#if CONFIG_IDF_TARGET_ESP32P4
+    m_image_preprocessor = new dl::image::FeatImagePreprocessor(
+        m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
+#elif CONFIG_IDF_TARGET_ESP32S3
+    m_image_preprocessor = new dl::image::FeatImagePreprocessor(m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5});
+#endif
+    m_postprocessor = new dl::feat::FeatPostprocessor(m_model);
+}
+
+} // namespace human_face_recognition
+
+HumanFaceFeat::HumanFaceFeat(model_type_t model_type)
 {
     switch (model_type) {
-    case HumanFaceFeat::model_type_t::MODEL_MFN:
-        this->model = (void *)new model_zoo::MFN<int8_t>({127.5, 127.5, 127.5}, {128, 128, 128});
+    case model_type_t::MFN_S8_V1:
+#if CONFIG_HUMAN_FACE_FEAT_MFN_S8_V1
+        m_model = new human_face_recognition::MFN("human_face_feat_mfn_s8_v1.espdl");
+#else
+        ESP_LOGE("human_face_feat", "human_face_feat_mfn_s8_v1 is not selected in menuconfig.");
+#endif
         break;
-    case HumanFaceFeat::model_type_t::MODEL_MBF:
-        this->model = (void *)new model_zoo::MFN<int8_t>({127.5, 127.5, 127.5}, {127.5, 127.5, 127.5});
+    case model_type_t::MBF_S8_V1:
+#if CONFIG_HUMAN_FACE_FEAT_MBF_S8_V1
+        m_model = new human_face_recognition::MBF("human_face_feat_mbf_s8_v1.espdl");
+#else
+        ESP_LOGE("human_face_feat", "human_face_feat_mbf_s8_v1 is not selected in menuconfig.");
+#endif
         break;
     }
 }
 
-HumanFaceFeat::~HumanFaceFeat()
+HumanFaceRecognizer::~HumanFaceRecognizer()
 {
-    if (this->model) {
-        delete (model_zoo::MFN<int8_t> *)this->model;
-        this->model = nullptr;
+    if (m_feat_extract) {
+        delete m_feat_extract;
+        m_feat_extract = nullptr;
     }
 }
 
-template <typename T>
-dl::TensorBase *HumanFaceFeat::run(T *input_element,
-                                   const std::vector<int> &input_shape,
-                                   const std::vector<int> &landmarks)
+std::vector<dl::recognition::result_t> HumanFaceRecognizer::recognize(const dl::image::img_t &img,
+                                                                      std::list<dl::detect::result_t> &detect_res)
 {
-    return ((model_zoo::MFN<int8_t> *)this->model)->run(input_element, input_shape, landmarks);
-}
-template dl::TensorBase *HumanFaceFeat::run(uint8_t *input_element,
-                                            const std::vector<int> &input_shape,
-                                            const std::vector<int> &landmarks);
-template dl::TensorBase *HumanFaceFeat::run(uint16_t *input_element,
-                                            const std::vector<int> &input_shape,
-                                            const std::vector<int> &landmarks);
-
-FaceRecognizer::~FaceRecognizer()
-{
-    if (this->detect) {
-        delete this->detect;
-        this->detect = nullptr;
-    }
-    if (this->feat_extract) {
-        delete this->feat_extract;
-        this->feat_extract = nullptr;
-    }
-}
-
-template <typename T>
-std::vector<std::list<dl::recognition::query_info>> FaceRecognizer::recognize(T *input_element,
-                                                                              const std::vector<int> &input_shape)
-{
-    auto detect_results = this->detect->run(input_element, input_shape);
-    std::vector<std::list<dl::recognition::query_info>> res;
-    if (detect_results.empty()) {
-        ESP_LOGW("FaceRecognizer", "Failed to recognize. No face detected.");
+    std::vector<std::vector<dl::recognition::result_t>> res;
+    if (detect_res.empty()) {
+        ESP_LOGW("HumanFaceRecognizer", "Failed to recognize. No face detected.");
         return {};
-    } else if (detect_results.size() == 1) {
-        auto feat = this->feat_extract->run(input_element, input_shape, detect_results.back().keypoint);
-        res.emplace_back(this->query_feat(feat, this->thr, this->top_k));
+    } else if (detect_res.size() == 1) {
+        auto feat = m_feat_extract->run(img, detect_res.back().keypoint);
+        return query_feat(feat, m_thr, m_top_k);
     } else {
-        for (const auto &detect_res : detect_results) {
-            auto feat = this->feat_extract->run(input_element, input_shape, detect_res.keypoint);
-            res.emplace_back(this->query_feat(feat, this->thr, this->top_k));
-        }
+        auto max_detect_res =
+            std::max_element(detect_res.begin(),
+                             detect_res.end(),
+                             [](const dl::detect::result_t &a, const dl::detect::result_t &b) -> bool {
+                                 return a.box_area() > b.box_area();
+                             });
+        auto feat = m_feat_extract->run(img, max_detect_res->keypoint);
+        return query_feat(feat, m_thr, m_top_k);
     }
-    return res;
 }
-template std::vector<std::list<dl::recognition::query_info>> FaceRecognizer::recognize(
-    uint8_t *input_element, const std::vector<int> &input_shape);
-template std::vector<std::list<dl::recognition::query_info>> FaceRecognizer::recognize(
-    uint16_t *input_element, const std::vector<int> &input_shape);
 
-template <typename T>
-esp_err_t FaceRecognizer::enroll(T *input_element, const std::vector<int> &input_shape)
+esp_err_t HumanFaceRecognizer::enroll(const dl::image::img_t &img, std::list<dl::detect::result_t> &detect_res)
 {
-    auto &detect_results = this->detect->run(input_element, input_shape);
-    if (detect_results.empty()) {
-        ESP_LOGW("FaceRecognizer", "Failed to enroll. No face detected.");
+    if (detect_res.empty()) {
+        ESP_LOGW("HumanFaceRecognizer", "Failed to enroll. No face detected.");
         return ESP_FAIL;
-    } else if (detect_results.size() == 1) {
-        auto feat = this->feat_extract->run(input_element, input_shape, detect_results.back().keypoint);
-        return this->enroll_feat(feat);
+    } else if (detect_res.size() == 1) {
+        auto feat = m_feat_extract->run(img, detect_res.back().keypoint);
+        return enroll_feat(feat);
     } else {
-        ESP_LOGW("FaceRecognizer", "Failed to enroll. Multiple faces detected, please keep one face in picture.");
-        return ESP_FAIL;
+        auto max_detect_res =
+            std::max_element(detect_res.begin(),
+                             detect_res.end(),
+                             [](const dl::detect::result_t &a, const dl::detect::result_t &b) -> bool {
+                                 return a.box_area() > b.box_area();
+                             });
+        auto feat = m_feat_extract->run(img, max_detect_res->keypoint);
+        return enroll_feat(feat);
     }
 }
-template esp_err_t FaceRecognizer::enroll(uint8_t *input_element, const std::vector<int> &input_shape);
-template esp_err_t FaceRecognizer::enroll(uint16_t *input_element, const std::vector<int> &input_shape);
-
-namespace model_zoo {
-
-template <typename feature_t>
-MFN<feature_t>::MFN(const std::vector<float> &mean, const std::vector<float> &std) :
-    model(new dl::Model((const char *)human_face_feat_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA, 0))
-{
-    std::map<std::string, dl::TensorBase *> model_inputs_map = this->model->get_inputs();
-    assert(model_inputs_map.size() == 1);
-    dl::TensorBase *model_input = model_inputs_map.begin()->second;
-    this->image_preprocessor = new dl::recognition::FaceImagePreprocessor<feature_t>(model_input, mean, std);
-
-    std::map<std::string, dl::TensorBase *> model_outputs_map = this->model->get_outputs();
-    assert(model_outputs_map.size() == 1);
-    dl::TensorBase *model_output = model_outputs_map.begin()->second;
-    this->postprocessor = new dl::recognition::RecognitionPostprocessor<feature_t>(model_output);
-}
-
-template <typename feature_t>
-MFN<feature_t>::~MFN()
-{
-    if (this->model) {
-        delete this->model;
-        this->model = nullptr;
-    }
-    if (this->image_preprocessor) {
-        delete this->image_preprocessor;
-        this->image_preprocessor = nullptr;
-    }
-    if (this->postprocessor) {
-        delete this->postprocessor;
-        this->postprocessor = nullptr;
-    }
-}
-
-template <typename feature_t>
-template <typename T>
-dl::TensorBase *MFN<feature_t>::run(T *input_element,
-                                    const std::vector<int> &input_shape,
-                                    const std::vector<int> &landmarks)
-{
-    dl::tool::Latency latency[3] = {dl::tool::Latency(), dl::tool::Latency(), dl::tool::Latency()};
-    latency[0].start();
-    this->image_preprocessor->preprocess(input_element, input_shape, landmarks);
-    latency[0].end();
-
-    latency[1].start();
-    this->model->run();
-    latency[1].end();
-
-    latency[2].start();
-    dl::TensorBase *feat = this->postprocessor->postprocess();
-    latency[2].end();
-
-    latency[0].print("recognition", "preprocess");
-    latency[1].print("recognition", "forward");
-    latency[2].print("recognition", "postprocess");
-
-    return feat;
-}
-
-template dl::TensorBase *MFN<int8_t>::run(uint8_t *input_element,
-                                          const std::vector<int> &input_shape,
-                                          const std::vector<int> &landmarks);
-template dl::TensorBase *MFN<int8_t>::run(uint16_t *input_element,
-                                          const std::vector<int> &input_shape,
-                                          const std::vector<int> &landmarks);
-template dl::TensorBase *MFN<int16_t>::run(uint8_t *input_element,
-                                           const std::vector<int> &input_shape,
-                                           const std::vector<int> &landmarks);
-template dl::TensorBase *MFN<int16_t>::run(uint16_t *input_element,
-                                           const std::vector<int> &input_shape,
-                                           const std::vector<int> &landmarks);
-
-} // namespace model_zoo

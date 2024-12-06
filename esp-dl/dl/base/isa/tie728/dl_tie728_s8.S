@@ -1,4 +1,3 @@
-#pragma once
 
 .macro dl_tie728_s8_unaligned_store0 output_v, output_ptr, tmp32
     EE.MOVI.32.A \output_v, \tmp32, 0

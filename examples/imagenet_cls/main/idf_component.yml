@@ -1,0 +1,5 @@
+## IDF Component Manager Manifest File
+dependencies:
+  espressif/imagenet_cls:
+    version: "^0.1.0"
+    override_path: "../../../models/imagenet_cls"

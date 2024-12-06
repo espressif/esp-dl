@@ -18,11 +18,7 @@ typedef struct {
 typedef struct {
     uint16_t id;
     float similarity;
-} query_info;
+} result_t;
 
-inline bool greater_query_info(const query_info &a, const query_info &b)
-{
-    return a.similarity > b.similarity;
-}
 } // namespace recognition
 } // namespace dl

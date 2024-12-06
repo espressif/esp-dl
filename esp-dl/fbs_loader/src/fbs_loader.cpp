@@ -89,6 +89,24 @@ esp_err_t get_model_offset_by_index(const uint8_t *fbs_buf, uint32_t index, uint
     return ESP_OK;
 }
 
+esp_err_t get_model_offset_by_name(const uint8_t *fbs_buf, const char *name, uint32_t &offset)
+{
+    const uint32_t *header = (const uint32_t *)fbs_buf;
+    uint32_t model_num = header[1];
+    uint32_t name_offset, name_length;
+    for (int i = 0; i < model_num; i++) {
+        name_offset = header[2 + 3 * i + 1];
+        name_length = header[2 + 3 * i + 2];
+        std::string model_name((const char *)fbs_buf + name_offset, name_length);
+        if (model_name == std::string(name)) {
+            offset = header[2 + 3 * i];
+            return ESP_OK;
+        }
+    }
+    ESP_LOGE(TAG, "Model %s is not found.", name);
+    return ESP_FAIL;
+}
+
 FbsModel *create_fbs_model(const uint8_t *model_buf, const uint8_t *key)
 {
     if (model_buf == nullptr) {
@@ -184,7 +202,7 @@ FbsModel *FbsLoader::load(const int model_index, const uint8_t *key)
     } else if (format == FBS_FILE_FORMAT_EDL1) {
         // single espdl model
         if (model_index > 0) {
-            ESP_LOGW(TAG, "There are only one model in the flatbuffers, ignore the input model index!");
+            ESP_LOGW(TAG, "There is only one model in the flatbuffers, ignore the input model index!");
         }
         offset = 0;
     } else {
@@ -201,7 +219,30 @@ FbsModel *FbsLoader::load(const uint8_t *key)
 
 FbsModel *FbsLoader::load(const char *model_name, const uint8_t *key)
 {
-    return this->load(0, key);
+    if (this->m_fbs_buf == nullptr) {
+        ESP_LOGE(TAG, "Model's flatbuffers is empty.");
+        return nullptr;
+    }
+
+    uint8_t *model_buf = (uint8_t *)m_fbs_buf;
+    uint32_t offset = 0;
+    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf);
+    if (format == FBS_FILE_FORMAT_PDL1) {
+        // packed multiple espdl models
+        if (get_model_offset_by_name(model_buf, model_name, offset) != ESP_OK) {
+            return nullptr;
+        }
+    } else if (format == FBS_FILE_FORMAT_EDL1) {
+        // single espdl model
+        if (model_name) {
+            ESP_LOGW(TAG, "There is only one model in the flatbuffers, ignore the input model name!");
+        }
+        offset = 0;
+    } else {
+        ESP_LOGE(TAG, "Unsupported format, or the model file is corrupted!");
+        return nullptr;
+    }
+    return create_fbs_model(model_buf + offset, key);
 }
 
 int FbsLoader::get_model_num()
@@ -247,7 +288,7 @@ void FbsLoader::list_models()
             ESP_LOGI(TAG, "model name: %s, index:%d", name.c_str(), i);
         }
     } else if (format == FBS_FILE_FORMAT_EDL1) {
-        ESP_LOGI(TAG, "There are only one model in the flatbuffers without model name.");
+        ESP_LOGI(TAG, "There is only one model in the flatbuffers without model name.");
     }
 }
 

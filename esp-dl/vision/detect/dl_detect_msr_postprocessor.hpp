@@ -3,10 +3,10 @@
 
 namespace dl {
 namespace detect {
-template <typename feature_t>
-class MNP01Postprocessor : public AnchorBoxDetectPostprocessor {
+class MSRPostprocessor : public AnchorBoxDetectPostprocessor {
 private:
-    void parse_stage(TensorBase *score, TensorBase *box, TensorBase *landmark, const int stage_index);
+    template <typename T>
+    void parse_stage(TensorBase *score, TensorBase *box, const int stage_index);
 
 public:
     void postprocess() override;
