@@ -39,6 +39,7 @@ push_to_github:
 deploy_docs_preview:
   extends:
     - .deploy_docs_template
+    - .rules:deploy:docs_preview
   variables:
     TYPE: "preview"
     DOCS_BUILD_DIR: "${CI_PROJECT_DIR}/docs/_build/"
@@ -52,6 +53,7 @@ deploy_docs_preview:
 deploy_docs_production:
   extends:
     - .deploy_docs_template
+    - .rules:deploy:docs_production
   variables:
     TYPE: "production"
     DOCS_BUILD_DIR: "${CI_PROJECT_DIR}/docs/_build/"

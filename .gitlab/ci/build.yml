@@ -128,6 +128,7 @@ build_example_mobilenet_v2:
 build_esp_dl_html:
   extends:
     - .build_docs_template
+    - .rules:build:docs
   variables:
     DOCS_DIR: $CI_PROJECT_DIR/docs
   artifacts:
@@ -149,6 +150,7 @@ build_esp_dl_html:
 build_esp_dl_pdf:
   extends:
     - .build_docs_template
+    - .rules:build:docs
   variables:
     DOCS_DIR: $CI_PROJECT_DIR/docs
   artifacts:
