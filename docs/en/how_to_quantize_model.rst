@@ -49,37 +49,34 @@ Load the pre-trained MobileNet_v2 model from torchvision. You can also download 
 
 The calibration dataset needs to match the input format of your model. The calibration dataset should cover all possible input scenarios to better quantize the model. Here, we use the ImageNet dataset as an example to demonstrate how to prepare the calibration dataset.
 
--  Load the ImageNet dataset using torchvision:
+Load the ImageNet dataset using torchvision:
 
    .. code-block:: python
-
-      from torchvision import datasets, transforms
-      from torch.utils.data import DataLoader
-
-      transform = transforms.Compose([
-         transforms.Resize(256),
-         transforms.CenterCrop(224),
-         transforms.ToTensor(),
-         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-      ])
-
-      calib_dataset = datasets.ImageNet(root=CALIB_DIR, split='val', transform=transform)
-      dataloader = DataLoader(calib_dataset, batch_size=BATCH_SIZE, shuffle=false)
-
--  Use the provided :project_file:`imagenet_util.py <tools/quantization/datasets/imagenet_util.py>` script and the `ImageNet calibration dataset <https://dl.espressif.com/public/imagenet_calib.zip>`__ to quickly download and test.
-
-   .. code-block:: python
-
-      # Load
-      from datasets.imagenet_util import load_imagenet_from_directory
-      dataloader = load_imagenet_from_directory(
-            directory=CALIB_DIR,
-            batchsize=BATCH_SIZE,
-            shuffle=False,
-            subset=1024,
-            require_label=False,
-            num_of_workers=4,
-         )
+      
+      import torchvision.datasets as datasets
+      from torch.utils.data.dataset import Subset
+      dataset = datasets.ImageFolder(
+         CALIB_DIR,
+         transforms.Compose(
+               [
+                  transforms.Resize(256),
+                  transforms.CenterCrop(224),
+                  transforms.ToTensor(),
+                  transforms.Normalize(
+                     mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                  ),
+               ]
+         ),
+      )
+      dataset = Subset(dataset, indices=[_ for _ in range(0, 1024)])
+      dataloader = DataLoader(
+         dataset=dataset,
+         batch_size=BATCH_SIZE,
+         shuffle=False,
+         num_workers=4,
+         pin_memory=False,
+         collate_fn=collate_fn1,
+      )
 
 3. Quantize the Model and Export the ESPDL Model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -138,8 +135,8 @@ The function parameters are described as follows:
            BaseGraph:      The Quantized Graph, containing all information needed for backend execution
        """
 
-8-bit Quantization Test
-^^^^^^^^^^^^^^^^^^^^^^^
+3.1 8-bit Quantization Test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  **Quantization Settings:**
 
@@ -148,7 +145,7 @@ The function parameters are described as follows:
       target="esp32p4"
       num_of_bits=8
       batch_size=32
-      setting=None
+      quant_setting = QuantizationSettingFactory.espdl_setting() # default setting
 
 -  **Quantization Results:**
 
@@ -279,8 +276,8 @@ The function parameters are described as follows:
 
       Observing the Layerwise error, it is found that the errors for most layers are below 1%, indicating that the quantization errors for most layers are small. Only a few layers have larger errors, and we can choose to quantize these layers using int16. Please refer to Mixed-Precision Quantization Test for details.
 
-Mixed-Precision Quantization Test
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3.2 Mixed-Precision Quantization Test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  **Quantization Settings:**
 
@@ -419,8 +416,8 @@ Mixed-Precision Quantization Test
 
    The graphwise error for the last layer of the model, /classifier/classifier.1/Gemm, is 9.117%.
 
-Layerwise Equalization Quantization Test
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3.3 Layerwise Equalization Quantization Test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  **Quantization Settings:**
 
@@ -566,7 +563,3 @@ Layerwise Equalization Quantization Test
    Note that applying layerwise equalization on 8-bit quantization is helpful to achieve smaller quantization error. The graphwise error of the model's last layer, /classifier/classifier.1/Gemm, is 8.965%. The top-1 accuracy after quantization is 69.800%, which is closer to the accuracy of the float model (71.878%), even compared to Mixed-Precision Test.
 
    If you wish to further reduce the quantization error, you can try using Quantization Aware Training (QAT). For specific methods, please refer to the `ppq QAT example <https://github.com/OpenPPL/ppq/blob/master/ppq/samples/TensorRT/Example_QAT.py>`__.
-
-   .. note::
-      The model in :example:`mobilenet_v2` comes from 8-bit Quantization Test. The 16-bit conv operator is still under development.
-

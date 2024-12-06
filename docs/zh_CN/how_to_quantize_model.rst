@@ -49,37 +49,34 @@
 
 校准数据集需要和你的模型输入格式一致，校准数据集需要尽可能覆盖你的模型输入的所有可能情况，以便更好地量化模型。这里以 ImageNet 数据集为例，演示如何准备校准数据集。
 
-- 使用 torchvision 加载 ImageNet 数据集：
+使用 torchvision 加载 ImageNet 数据集：
 
    .. code-block:: python
-
-      from torchvision import datasets, transforms
-      from torch.utils.data import DataLoader
-
-      transform = transforms.Compose([
-         transforms.Resize(256),
-         transforms.CenterCrop(224),
-         transforms.ToTensor(),
-         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-      ])
-
-      calib_dataset = datasets.ImageNet(root=CALIB_DIR, split='val', transform=transform)
-      dataloader = DataLoader(calib_dataset, batch_size=BATCH_SIZE, shuffle=false)
-
--  使用我们提供的 :project_file:`imagenet_util.py <tools/quantization/datasets/imagenet_util.py>` 脚本和 `ImageNet 校准数据集 <https://dl.espressif.com/public/imagenet_calib.zip>`__，快速下载和测试。
-
-   .. code-block:: python
-
-      # Load
-      from datasets.imagenet_util import load_imagenet_from_directory
-      dataloader = load_imagenet_from_directory(
-            directory=CALIB_DIR,
-            batchsize=BATCH_SIZE,
-            shuffle=False,
-            subset=1024,
-            require_label=False,
-            num_of_workers=4,
-         )
+      
+      import torchvision.datasets as datasets
+      from torch.utils.data.dataset import Subset
+      dataset = datasets.ImageFolder(
+         CALIB_DIR,
+         transforms.Compose(
+               [
+                  transforms.Resize(256),
+                  transforms.CenterCrop(224),
+                  transforms.ToTensor(),
+                  transforms.Normalize(
+                     mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                  ),
+               ]
+         ),
+      )
+      dataset = Subset(dataset, indices=[_ for _ in range(0, 1024)])
+      dataloader = DataLoader(
+         dataset=dataset,
+         batch_size=BATCH_SIZE,
+         shuffle=False,
+         num_workers=4,
+         pin_memory=False,
+         collate_fn=collate_fn1,
+      )
 
 3. 量化模型并导出 ESPDL 模型
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -138,8 +135,8 @@
            BaseGraph:      The Quantized Graph, containing all information needed for backend execution
        """
 
-8-bit 量化测试
-^^^^^^^^^^^^^^
+3.1 8-bit 量化测试
+^^^^^^^^^^^^^^^^^^^
 
 -  **量化设置：**
 
@@ -148,7 +145,7 @@
       target="esp32p4"
       num_of_bits=8
       batch_size=32
-      setting=None
+      quant_setting = QuantizationSettingFactory.espdl_setting() # default setting
 
 -  **量化结果：**
 
@@ -279,8 +276,8 @@
 
       观察 Layerwise error，发现大部分层的误差都在 1% 以下，说明大部分层的量化误差较小，只有少数几层误差较大，我们可以选择将误差较大的层使用 int16 进行量化。具体请看混合精度量化。
 
-混合精度量化测试
-^^^^^^^^^^^^^^^^
+3.2 混合精度量化测试
+^^^^^^^^^^^^^^^^^^^^^
 
 -  **量化设置:**
 
@@ -420,8 +417,8 @@
    该模型的最后一层 /classifier/classifier.1/Gemm 的累计误差为 9.117%。
 
 
-层间均衡量化测试
-^^^^^^^^^^^^^^^^
+3.3 层间均衡量化测试
+^^^^^^^^^^^^^^^^^^^^^
 
 -  **量化设置:**
 
@@ -567,7 +564,3 @@
    注意到对8-bit量化应用层间均衡有助于降低量化损失。模型最后一层，/classifier/classifier.1/Gemm的累积误差为8.965%。量化后的top1准确率为69.800%，和float模型的准确率(71.878%)更加接近，比混合精度量化的量化精度更高。
 
    如果想进一步降低量化误差，可以尝试使用 QAT (Auantization Aware Training)。具体方法请参考 `PPQ QAT example <https://github.com/OpenPPL/ppq/blob/master/ppq/samples/TensorRT/Example_QAT.py>`__。
-
-   .. note::
-      :example:`mobilenet_v2` 来自8-bit量化测试。16 位的卷积算子还在开发中，完成后可以部署混合精度量化模型。
-
