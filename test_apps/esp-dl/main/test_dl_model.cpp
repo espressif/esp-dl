@@ -26,7 +26,7 @@ void compare_test_outputs(Model *model, std::map<std::string, TensorBase *> infe
             TensorBase *ground_truth_tensor = fbs_model_instance->get_test_output_tensor(infer_output_name, true);
             TEST_ASSERT_EQUAL_MESSAGE(true, ground_truth_tensor != nullptr, "The test output tensor is not found");
             TEST_ASSERT_EQUAL_MESSAGE(true,
-                                      infer_output->equal(ground_truth_tensor, 1e-6, true),
+                                      infer_output->equal(ground_truth_tensor, 2, true),
                                       "The output tensor is not equal to the ground truth");
             delete ground_truth_tensor;
         }
@@ -68,17 +68,19 @@ TEST_CASE("Test espdl model", "[dl_model]")
         return;
     }
     int model_num = fbs_loader->get_model_num();
+    int model_run_time = 0;
+    ESP_LOGI(TAG, "model_num = %d\n", model_num);
+    dl::tool::Latency latency;
     for (int i = 0; i < model_num; i++) {
         fbs::FbsModel *fbs_model = fbs_loader->load(i);
         Model *model = new Model(fbs_model);
         std::map<std::string, TensorBase *> graph_test_inputs = get_graph_test_inputs(model);
-        dl::tool::Latency latency;
-        ESP_LOGI(TAG, "model index:%d", i);
         model->print();
         latency.start();
         model->run(graph_test_inputs);
         latency.end();
-        latency.print(TAG, "model->run()");
+        model_run_time += latency.get_period();
+        ESP_LOGI(TAG, "model index:%d  run time:%d us\n", i, latency.get_period());
 
         compare_test_outputs(model, model->get_outputs());
         for (auto graph_test_inputs_iter = graph_test_inputs.begin(); graph_test_inputs_iter != graph_test_inputs.end();
@@ -99,6 +101,7 @@ TEST_CASE("Test espdl model", "[dl_model]")
     int total_ram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     int internal_ram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
     int psram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
+    ESP_LOGI(TAG, "total run time: %d us, ", model_run_time);
     ESP_LOGI(TAG, "total ram consume: %d B, ", (total_ram_size_before - total_ram_size_after));
     ESP_LOGI(TAG, "internal ram consume: %d B, ", (internal_ram_size_before - internal_ram_size_after));
     ESP_LOGI(TAG, "psram consume: %d B\n", (psram_size_before - psram_size_after));

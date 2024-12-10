@@ -124,6 +124,7 @@ inline void load_add2d_11c_s16(arith_i_impl_func_s16_t &i_impl_func,
     }
 
 #else
+
     if (args.input_shift == -1)
         c_impl_func = add2d_11c<int16_t, int32_t>;
     else
@@ -253,6 +254,7 @@ inline void load_add2d_11c_s8(arith_i_impl_func_s8_t &i_impl_func,
         }
     }
 #else
+
     if (args.input_shift == -1)
         c_impl_func = add2d_11c<int8_t, int16_t>;
     else

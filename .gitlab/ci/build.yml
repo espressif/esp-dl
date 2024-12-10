@@ -98,17 +98,16 @@ build_example_human_face_detect:
   variables:
     EXAMPLE_DIR: examples/human_face_detect
 
-build_example_pedestrian_detect:
+build_example_imagenet_cls:
   extends:
     - .build_examples_template
-    - .rules:build:example_pedestrian_detect
+    - .rules:build:example_imagenet_cls
   parallel:
     matrix:
       - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
         TARGET: [esp32p4, esp32s3]
   variables:
-    EXAMPLE_DIR: examples/pedestrian_detect
-
+    EXAMPLE_DIR: examples/imagenet_cls
 
 build_example_mobilenet_v2:
   extends:
@@ -125,9 +124,21 @@ build_example_mobilenet_v2:
   stage: build
   image: "$CI_DOCKER_REGISTRY/esp-idf-doc-env-v5.3:1-1"
 
+build_example_pedestrian_detect:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_pedestrian_detect
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
+        TARGET: [esp32p4, esp32s3]
+  variables:
+    EXAMPLE_DIR: examples/pedestrian_detect
+
 build_esp_dl_html:
   extends:
     - .build_docs_template
+    - .rules:build:docs
   variables:
     DOCS_DIR: $CI_PROJECT_DIR/docs
   artifacts:
@@ -149,6 +160,7 @@ build_esp_dl_html:
 build_esp_dl_pdf:
   extends:
     - .build_docs_template
+    - .rules:build:docs
   variables:
     DOCS_DIR: $CI_PROJECT_DIR/docs
   artifacts:

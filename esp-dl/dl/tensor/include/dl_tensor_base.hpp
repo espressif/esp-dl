@@ -36,12 +36,14 @@ typedef enum {
 /**
  * quantize float data into integer data
  */
-int quantize(float input, float scale, float quant_min, float quant_max);
+template <typename T>
+T quantize(float input, float inv_scale);
 
 /**
  * @brief dequantize integer data into float data
  */
-float dequantize(int input, float scale);
+template <typename T>
+float dequantize(T input, float scale);
 
 /**
  * @brief Return the bytes of data type

@@ -71,6 +71,34 @@ class ADD2D_TEST(nn.Module):
         return output
 
 
+class ADD4D_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+
+    def forward(self, input1, input2):
+        output = input1 + input2
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
+class SUB4D_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+
+    def forward(self, input1, input2):
+        output = input1 - input2
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
 class MUL2D_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -80,6 +108,34 @@ class MUL2D_TEST(nn.Module):
 
     def forward(self, input1, input2):
         output = input1 * input2
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
+class MUL4D_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+
+    def forward(self, input1, input2):
+        output = input1 * input2
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
+class EQUAL4D_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+
+    def forward(self, input1, input2):
+        output = torch.eq(input1, input2)
         if hasattr(self, "act"):
             output = self.act(output)
         return output

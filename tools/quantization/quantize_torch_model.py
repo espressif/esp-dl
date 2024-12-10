@@ -1,6 +1,6 @@
 import os
 import subprocess
-from typing import Iterable
+from typing import Iterable, List, Tuple
 
 import torch
 import torchvision
@@ -11,8 +11,13 @@ from datasets.imagenet_util import (
 from ppq import QuantizationSettingFactory, QuantizationSetting
 from ppq.api import espdl_quantize_torch, get_target_platform
 from torch.utils.data import DataLoader
+import torchvision.datasets as datasets
+import torchvision.transforms as transforms
+from torch.utils.data.dataset import Subset
 from torchvision.models.mobilenetv2 import MobileNet_V2_Weights
 import torch.nn as nn
+import urllib.request
+import zipfile
 
 
 def convert_relu6_to_relu(model):
@@ -26,8 +31,8 @@ def convert_relu6_to_relu(model):
 
 def quant_setting_mobilenet_v2(
     model: nn.Module,
-    optim_quant_method: list[str] = None,
-) -> tuple[QuantizationSetting, nn.Module]:
+    optim_quant_method: List[str] = None,
+) -> Tuple[QuantizationSetting, nn.Module]:
     """Quantize torch model with optim_quant_method.
 
     Args:
@@ -72,93 +77,121 @@ def quant_setting_mobilenet_v2(
     return quant_setting, model
 
 
-BATCH_SIZE = 32
-INPUT_SHAPE = [3, 224, 224]
-DEVICE = (
-    "cpu"  #  'cuda' or 'cpu', if you use cuda, please make sure that cuda is available
-)
-TARGET = "esp32p4"
-NUM_OF_BITS = 8
-ESPDL_MODLE_PATH = "models/torch/mobilenet_v2.espdl"
-CALIB_DIR = "./imagenet/calib"
-
-if not os.path.exists(CALIB_DIR):
-    os.makedirs(CALIB_DIR)
-# Download mobilenet_v2 from torchvision and dataset
-model = torchvision.models.mobilenet.mobilenet_v2(
-    weights=MobileNet_V2_Weights.IMAGENET1K_V1
-)
-model = model.to(DEVICE)
-imagenet_url = "https://dl.espressif.com/public/imagenet_calib.zip"
-subprocess.run(["wget", imagenet_url])
-subprocess.run(["unzip", "imagenet_calib.zip", "-d", CALIB_DIR])
-CALIB_DIR = os.path.join(CALIB_DIR, "calib")
-
-# -------------------------------------------
-# Prepare Calibration Dataset
-# --------------------------------------------
-if os.path.exists(CALIB_DIR):
-    print(f"load imagenet calibration dataset from directory: {CALIB_DIR}")
-    dataloader = load_imagenet_from_directory(
-        directory=CALIB_DIR,
-        batchsize=BATCH_SIZE,
-        shuffle=False,
-        subset=1024,
-        require_label=False,
-        num_of_workers=4,
-    )
-else:
-    # Random calibration dataset only for debug
-    print("load random calibration dataset")
-
-    def load_random_calibration_dataset() -> Iterable:
-        return [torch.rand(size=INPUT_SHAPE) for _ in range(BATCH_SIZE)]
-
-    # Load training data for creating a calibration dataloader.
-    dataloader = DataLoader(
-        dataset=load_random_calibration_dataset(), batch_size=BATCH_SIZE, shuffle=False
-    )
+def collate_fn1(x: Tuple) -> torch.Tensor:
+    return torch.cat([sample[0].unsqueeze(0) for sample in x], dim=0)
 
 
-def collate_fn(batch: torch.Tensor) -> torch.Tensor:
+def collate_fn2(batch: torch.Tensor) -> torch.Tensor:
     return batch.to(DEVICE)
 
 
-# -------------------------------------------
-# Quantize Torch Model.
-# --------------------------------------------
+def report_hook(blocknum, blocksize, total):
+    downloaded = blocknum * blocksize
+    percent = downloaded / total * 100
+    print(f"\rDownloading calibration dataset: {percent:.2f}%", end="")
 
-# create a setting for quantizing your network with ESPDL.
-# if you don't need to optimize quantization, set the input 1 of the quant_setting_mobilenet_v2 function None
-# Example: Using LayerwiseEqualization_quantization
-quant_setting, model = quant_setting_mobilenet_v2(
-    model, ["LayerwiseEqualization_quantization"]
-)
 
-quant_ppq_graph = espdl_quantize_torch(
-    model=model,
-    espdl_export_file=ESPDL_MODLE_PATH,
-    calib_dataloader=dataloader,
-    calib_steps=32,
-    input_shape=[1] + INPUT_SHAPE,
-    target=TARGET,
-    num_of_bits=NUM_OF_BITS,
-    collate_fn=collate_fn,
-    setting=quant_setting,
-    device=DEVICE,
-    error_report=True,
-    skip_export=False,
-    export_test_values=False,
-    verbose=1,
-)
+if __name__ == "__main__":
+    BATCH_SIZE = 32
+    INPUT_SHAPE = [3, 224, 224]
+    DEVICE = "cpu"  #  'cuda' or 'cpu', if you use cuda, please make sure that cuda is available
+    TARGET = "esp32p4"
+    NUM_OF_BITS = 8
+    ESPDL_MODLE_PATH = "models/torch/mobilenet_v2.espdl"
+    CALIB_DIR = "./imagenet"
 
-# -------------------------------------------
-# Evaluate Quantized Model.
-# --------------------------------------------
-evaluate_ppq_module_with_imagenet(
-    model=quant_ppq_graph,
-    imagenet_validation_dir=CALIB_DIR,
-    batchsize=BATCH_SIZE,
-    device=DEVICE,
-    verbose=1,
-)
+    # Download mobilenet_v2 from torchvision and dataset
+    model = torchvision.models.mobilenet.mobilenet_v2(
+        weights=MobileNet_V2_Weights.IMAGENET1K_V1
+    )
+    model = model.to(DEVICE)
+    imagenet_url = "https://dl.espressif.com/public/imagenet_calib.zip"
+    os.makedirs(CALIB_DIR, exist_ok=True)
+    if not os.path.exists("imagenet_calib.zip"):
+        urllib.request.urlretrieve(
+            imagenet_url, "imagenet_calib.zip", reporthook=report_hook
+        )
+    if not os.path.exists(os.path.join(CALIB_DIR, "calib")):
+        with zipfile.ZipFile("imagenet_calib.zip", "r") as zip_file:
+            zip_file.extractall(CALIB_DIR)
+    CALIB_DIR = os.path.join(CALIB_DIR, "calib")
+
+    # -------------------------------------------
+    # Prepare Calibration Dataset
+    # --------------------------------------------
+    if os.path.exists(CALIB_DIR):
+        print(f"load imagenet calibration dataset from directory: {CALIB_DIR}")
+        dataset = datasets.ImageFolder(
+            CALIB_DIR,
+            transforms.Compose(
+                [
+                    transforms.Resize(256),
+                    transforms.CenterCrop(224),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                    ),
+                ]
+            ),
+        )
+        dataset = Subset(dataset, indices=[_ for _ in range(0, 1024)])
+        dataloader = DataLoader(
+            dataset=dataset,
+            batch_size=BATCH_SIZE,
+            shuffle=False,
+            num_workers=4,
+            pin_memory=False,
+            collate_fn=collate_fn1,
+        )
+    else:
+        # Random calibration dataset only for debug
+        print("load random calibration dataset")
+
+        def load_random_calibration_dataset() -> Iterable:
+            return [torch.rand(size=INPUT_SHAPE) for _ in range(BATCH_SIZE)]
+
+        # Load training data for creating a calibration dataloader.
+        dataloader = DataLoader(
+            dataset=load_random_calibration_dataset(),
+            batch_size=BATCH_SIZE,
+            shuffle=False,
+        )
+
+    # -------------------------------------------
+    # Quantize Torch Model.
+    # --------------------------------------------
+
+    # create a setting for quantizing your network with ESPDL.
+    # if you don't need to optimize quantization, set the input 1 of the quant_setting_mobilenet_v2 function None
+    # Example: Using LayerwiseEqualization_quantization
+    quant_setting, model = quant_setting_mobilenet_v2(
+        model, ["LayerwiseEqualization_quantization"]
+    )
+
+    quant_ppq_graph = espdl_quantize_torch(
+        model=model,
+        espdl_export_file=ESPDL_MODLE_PATH,
+        calib_dataloader=dataloader,
+        calib_steps=32,
+        input_shape=[1] + INPUT_SHAPE,
+        target=TARGET,
+        num_of_bits=NUM_OF_BITS,
+        collate_fn=collate_fn2,
+        setting=quant_setting,
+        device=DEVICE,
+        error_report=True,
+        skip_export=False,
+        export_test_values=False,
+        verbose=1,
+    )
+
+    # -------------------------------------------
+    # Evaluate Quantized Model.
+    # --------------------------------------------
+    evaluate_ppq_module_with_imagenet(
+        model=quant_ppq_graph,
+        imagenet_validation_dir=CALIB_DIR,
+        batchsize=BATCH_SIZE,
+        device=DEVICE,
+        verbose=1,
+    )

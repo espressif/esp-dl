@@ -1,7 +1,5 @@
 #include "dl_detect_postprocessor.hpp"
 
-static const char *TAG = "dl::detect::DetectPostprocessor";
-
 namespace dl {
 namespace detect {
 void DetectPostprocessor::nms()
@@ -9,11 +7,11 @@ void DetectPostprocessor::nms()
     dl::tool::Latency latency;
     latency.start();
     int kept_number = 0;
-    for (std::list<result_t>::iterator kept = this->box_list.begin(); kept != this->box_list.end(); kept++) {
+    for (std::list<result_t>::iterator kept = m_box_list.begin(); kept != m_box_list.end(); kept++) {
         kept_number++;
 
-        if (kept_number >= this->top_k) {
-            this->box_list.erase(++kept, this->box_list.end());
+        if (kept_number >= m_top_k) {
+            m_box_list.erase(++kept, m_box_list.end());
             break;
         }
 
@@ -21,7 +19,7 @@ void DetectPostprocessor::nms()
 
         std::list<result_t>::iterator other = kept;
         other++;
-        for (; other != this->box_list.end();) {
+        for (; other != m_box_list.end();) {
             int inter_lt_x = DL_MAX(kept->box[0], other->box[0]);
             int inter_lt_y = DL_MAX(kept->box[1], other->box[1]);
             int inter_rb_x = DL_MIN(kept->box[2], other->box[2]);
@@ -34,8 +32,8 @@ void DetectPostprocessor::nms()
                 int other_area = (other->box[2] - other->box[0] + 1) * (other->box[3] - other->box[1] + 1);
                 int inter_area = inter_height * inter_width;
                 float iou = (float)inter_area / (kept_area + other_area - inter_area);
-                if (iou > this->nms_threshold) {
-                    other = this->box_list.erase(other);
+                if (iou > m_nms_thr) {
+                    other = m_box_list.erase(other);
                     continue;
                 }
             }
@@ -46,35 +44,13 @@ void DetectPostprocessor::nms()
     latency.print("detect", "postprocess::nms");
 }
 
-TensorBase *DetectPostprocessor::get_model_output(const char *output_name)
+std::list<result_t> &DetectPostprocessor::get_result(int width, int height)
 {
-    TensorBase *output = nullptr;
-    auto iter = this->model_outputs_map.find(output_name);
-    if (iter != this->model_outputs_map.end()) {
-        output = iter->second;
-    } else {
-        ESP_LOGE(TAG, "Invalid key: %s, it is not in model outputs map.", output_name);
+    for (result_t &res : m_box_list) {
+        res.limit_box(width, height);
+        res.limit_keypoint(width, height);
     }
-    return output;
-}
-
-std::list<result_t> &DetectPostprocessor::get_result(const std::vector<int> &input_shape)
-{
-    for (result_t &res : this->box_list) {
-        for (int i = 0; i < res.box.size(); i++) {
-            if (i % 2 == 0)
-                res.box[i] = DL_CLIP(res.box[i], 0, input_shape[1] - 1);
-            else
-                res.box[i] = DL_CLIP(res.box[i], 0, input_shape[0] - 1);
-        }
-        for (int i = 0; i < res.keypoint.size(); i++) {
-            if (i % 2 == 0)
-                res.keypoint[i] = DL_CLIP(res.keypoint[i], 0, input_shape[1] - 1);
-            else
-                res.keypoint[i] = DL_CLIP(res.keypoint[i], 0, input_shape[0] - 1);
-        }
-    }
-    return this->box_list;
+    return m_box_list;
 }
 } // namespace detect
 } // namespace dl

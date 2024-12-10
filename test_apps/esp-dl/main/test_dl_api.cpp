@@ -17,7 +17,7 @@ TEST_CASE("Test dl model API: load()", "[api]")
     ESP_LOGI(TAG, "Test dl model API: load()");
     int internal_ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
     int psram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
-    Model *model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION, 0, 0, MEMORY_MANAGER_GREEDY, key);
+    Model *model = new Model("model", 0, fbs::MODEL_LOCATION_IN_FLASH_PARTITION, 0, MEMORY_MANAGER_GREEDY, key);
     delete model;
     module::ModuleCreator::get_instance()->clear();
 
@@ -54,7 +54,7 @@ TEST_CASE("Test dl model API: run()", "[api]")
 
     dl::tool::Latency latency;
     for (int i = 0; i < 15; i++) {
-        model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION, 0, i * 20000);
+        model = new Model("model", 0, fbs::MODEL_LOCATION_IN_FLASH_PARTITION, i * 20000);
 
         latency.start();
         model->run();
@@ -90,7 +90,7 @@ TEST_CASE("Test dl module API: run()", "[api]")
     }
 
     // multiple inputs and multiple outputs
-    module::Module *add_op = new module::Add2D("add", MODULE_NON_INPLACE, QUANT_TYPE_SYMM_8BIT);
+    module::Module *add_op = new module::Add("add", MODULE_NON_INPLACE, QUANT_TYPE_SYMM_8BIT);
     add_op->run({input1, input2}, {output});
 
     for (int i = 0; i < output->get_size(); i++) {
