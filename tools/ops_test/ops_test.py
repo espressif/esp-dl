@@ -362,12 +362,27 @@ class MATMUL_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+        if config["input1_is_weight"] and config["input_weight_shape"]:
+            self.static_weight = nn.Parameter(torch.randn(size=config["input_weight_shape"]))
 
-    def forward(self, input1, input2):
+    def forward(self, input1, *args):
         # By applying squeeze, the input is transformed to adapt the dimensions of matmul.
         input1 = torch.squeeze(input1, 0)
-        input2 = torch.squeeze(input2, 0)
-        return torch.matmul(input1, input2)
+        input2 = None
+        if len(args) > 0:
+            input2 = args[0]
+            input2 = torch.squeeze(input2, 0)
+        elif hasattr(self, "static_weight"):
+            input2 = self.static_weight
+        else:
+            raise ValueError(f"Config of MatMul is error.")
+
+        output = torch.matmul(input1, input2)
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
 
 
 if __name__ == "__main__":

@@ -16,7 +16,8 @@ namespace module {
  */
 class MatMul : public Module {
 private:
-    activation_type_t activation; /*<! activation of MatMul, if you don't specify anything, no activation is applied >*/
+    TensorBase *m_filter;           /*<! filter of MatMul. If matmul has a constant input, the value is not NULL; otherwise, it is NULL >*/
+    activation_type_t m_activation;   /*<! activation of MatMul, if you don't specify anything, no activation is applied >*/
 
 public:
     /**
@@ -25,10 +26,11 @@ public:
      * @param activation      activation of MatMul, if you don't specify anything, no activation is applied
      * @param name            name of module
      */
-    MatMul(activation_type_t activation = Linear,
-         const char *name = nullptr,
-         quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, MODULE_NON_INPLACE, quant_type), activation(activation)
+    MatMul(TensorBase *filter,
+        activation_type_t activation = Linear,
+        const char *name = nullptr,
+        quant_type_t quant_type = QUANT_TYPE_NONE) :
+        Module(name, MODULE_NON_INPLACE, quant_type), m_filter(filter), m_activation(activation)
     {
     }
 
@@ -38,6 +40,9 @@ public:
      */
     ~MatMul()
     {
+        if (m_filter) {
+            delete m_filter;
+        }
     }
 
     /**
@@ -49,56 +54,64 @@ public:
      */
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 2);
+        assert(input_shapes.size() == 1 || input_shapes.size() == 2);
+
+        std::vector<int> input1_shape;
+        if (input_shapes.size() == 1) {
+            assert(m_filter);
+            input1_shape = m_filter->get_shape();
+        } else {
+            input1_shape = input_shapes[1];
+        }
 
         // refer to https://pytorch.org/docs/stable/generated/torch.matmul.html#torch-matmul
         std::vector<int> output_shape;
-        if (input_shapes[0].size() == 1 && input_shapes[1].size() == 1) {
-            assert(input_shapes[0][0] == input_shapes[1][0]);
+        if (input_shapes[0].size() == 1 && input1_shape.size() == 1) {
+            assert(input_shapes[0][0] == input1_shape[0]);
             output_shape.push_back(1);
 
-        } else if (input_shapes[0].size() == 2 && input_shapes[1].size() == 2) {
-            assert(input_shapes[0][1] == input_shapes[1][0]);
-            output_shape = {input_shapes[0][0], input_shapes[1][1]};
+        } else if (input_shapes[0].size() == 2 && input1_shape.size() == 2) {
+            assert(input_shapes[0][1] == input1_shape[0]);
+            output_shape = {input_shapes[0][0], input1_shape[1]};
 
-        } else if (input_shapes[0].size() == 1 && input_shapes[1].size() == 2) {
-            assert(input_shapes[0][0] == input_shapes[1][0]);
-            output_shape = {input_shapes[1][1]};
+        } else if (input_shapes[0].size() == 1 && input1_shape.size() == 2) {
+            assert(input_shapes[0][0] == input1_shape[0]);
+            output_shape = {input1_shape[1]};
 
-        } else if (input_shapes[0].size() == 2 && input_shapes[1].size() == 1) {
-            assert(input_shapes[0][1] == input_shapes[1][0]);
+        } else if (input_shapes[0].size() == 2 && input1_shape.size() == 1) {
+            assert(input_shapes[0][1] == input1_shape[0]);
             output_shape = {input_shapes[0][0]};
 
-        } else if (input_shapes[0].size() == 1 && input_shapes[1].size() > 2) {
-            assert(input_shapes[0][0] == input_shapes[1][input_shapes[1].size() - 2]);
-            output_shape.assign(input_shapes[1].begin(), input_shapes[1].begin() + input_shapes[1].size() - 2);
-            output_shape.push_back(input_shapes[1][input_shapes[1].size() - 1]);
+        } else if (input_shapes[0].size() == 1 && input1_shape.size() > 2) {
+            assert(input_shapes[0][0] == input1_shape[input1_shape.size() - 2]);
+            output_shape.assign(input1_shape.begin(), input1_shape.begin() + input1_shape.size() - 2);
+            output_shape.push_back(input1_shape[input1_shape.size() - 1]);
 
-        } else if (input_shapes[0].size() > 2 && input_shapes[1].size() == 1) {
-            assert(input_shapes[0].back() == input_shapes[1][0]);
+        } else if (input_shapes[0].size() > 2 && input1_shape.size() == 1) {
+            assert(input_shapes[0].back() == input1_shape[0]);
             output_shape.assign(input_shapes[0].begin(), input_shapes[0].begin() + input_shapes[0].size() - 1);
 
-        } else if (std::max(input_shapes[0].size(), input_shapes[1].size()) == 3) {
-            assert(input_shapes[0].back() == input_shapes[1][input_shapes[1].size() - 2]);
+        } else if (std::max(input_shapes[0].size(), input1_shape.size()) == 3) {
+            assert(input_shapes[0].back() == input1_shape[input1_shape.size() - 2]);
             int input0_batch = input_shapes[0].size() == 2 ? 1 : input_shapes[0][0];
-            int input1_batch = input_shapes[1].size() == 2 ? 1 : input_shapes[1][0];
+            int input1_batch = input1_shape.size() == 2 ? 1 : input1_shape[0];
             assert(input0_batch == 1 || input1_batch == 1);
-            output_shape = {std::max(input0_batch, input1_batch), input_shapes[0][input_shapes[0].size() - 2], input_shapes[1].back()};
+            output_shape = {std::max(input0_batch, input1_batch), input_shapes[0][input_shapes[0].size() - 2], input1_shape.back()};
 
-        } else if (std::max(input_shapes[0].size(), input_shapes[1].size()) == 4) {
-            assert(input_shapes[0].back() == input_shapes[1][input_shapes[1].size() - 2]);
+        } else if (std::max(input_shapes[0].size(), input1_shape.size()) == 4) {
+            assert(input_shapes[0].back() == input1_shape[input1_shape.size() - 2]);
             int input0_batch0 = input_shapes[0].size() == 2 ? 1 : input_shapes[0].size() == 3 ? 1 : input_shapes[0][0];
-            int input1_batch0 = input_shapes[1].size() == 2 ? 1 : input_shapes[1].size() == 3 ? 1 : input_shapes[1][0];
+            int input1_batch0 = input1_shape.size() == 2 ? 1 : input1_shape.size() == 3 ? 1 : input1_shape[0];
             assert(input0_batch0 == 1 || input1_batch0 == 1);
 
             int input0_batch1 = input_shapes[0].size() == 2 ? 1 : input_shapes[0].size() == 3 ? input_shapes[0][0] : input_shapes[0][1];
-            int input1_batch1 = input_shapes[1].size() == 2 ? 1 : input_shapes[1].size() == 3 ? input_shapes[1][0] : input_shapes[1][1];
+            int input1_batch1 = input1_shape.size() == 2 ? 1 : input1_shape.size() == 3 ? input1_shape[0] : input1_shape[1];
             assert(input0_batch1 == 1 || input1_batch1 == 1);
 
-            output_shape = {std::max(input0_batch0, input1_batch0), std::max(input0_batch1, input1_batch1), input_shapes[0][input_shapes[0].size() - 2], input_shapes[1].back()};
+            output_shape = {std::max(input0_batch0, input1_batch0), std::max(input0_batch1, input1_batch1), input_shapes[0][input_shapes[0].size() - 2], input1_shape.back()};
 
         } else {
-            ESP_LOGE("MatMul", "Impossible matmul, input0 dims: %d, input1 dims: %d", input_shapes[0].size(), input_shapes[1].size());
+            ESP_LOGE("MatMul", "Impossible matmul, input0 dims: %d, input1 dims: %d", input_shapes[0].size(), input1_shape.size());
         }
         std::vector<std::vector<int>> output_shapes(1, output_shape);
         return output_shapes;
@@ -118,11 +131,19 @@ public:
     {
         std::vector<int> padding(4, 0);
         TensorBase *input0 = tensors[m_inputs_index[0]];
-        TensorBase *input1 = tensors[m_inputs_index[1]];
+        TensorBase *input1 = nullptr;
         TensorBase *output = tensors[m_outputs_index[0]];
         std::vector<int> origin_input0_shape = input0->get_shape();
-        std::vector<int> origin_input1_shape = input1->get_shape();
+        std::vector<int> origin_input1_shape;
         std::vector<int> origin_output_shape = output->get_shape();
+
+        if (m_inputs_index.size() == 1) {
+            input1 = m_filter;
+            origin_input1_shape = m_filter->get_shape();
+        } else {
+            input1 = tensors[m_inputs_index[1]];
+            origin_input1_shape = input1->get_shape();
+        }
 
         // input: MK -> NHWC; filter: KN -> HWIO; output: MN -> NHWC
         if (origin_input0_shape.size() <= 2 && origin_input1_shape.size() <= 2) {
@@ -172,7 +193,7 @@ public:
                                                 1 /*dilation_x*/,
                                                 1 /*group*/,
                                                 nullptr /*bias*/,
-                                                this->activation,
+                                                m_activation,
                                                 nullptr,
                                                 mode); // do not support PReLU and Leaky RelU
             int task_size = m_args.size();
@@ -204,14 +225,20 @@ public:
                 size_t output_dtype_bytes = output->get_dtype_bytes();
                 void *output_element = output->get_element_ptr();
 
+                TensorBase input1_tmp({1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()}/*shape*/, 
+                                    nullptr/*element*/, 
+                                    input1->exponent/*exponent*/, 
+                                    input1->dtype/*dtype*/, 
+                                    false/*deep*/, 
+                                    input1->caps/*caps*/);
+
                 for (int i = 0; i < input1_batch_size; i++) {
                     // filter: HWIO
-                    TensorBase input1_tmp({1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()}/*shape*/, 
-                                        static_cast<char *>(input1_element) + input1_dtype_bytes * input1->get_element_index({i, 0, 0})/*element*/, 
-                                        input1->exponent/*exponent*/, 
-                                        input1->dtype/*dtype*/, 
-                                        false/*deep*/, 
-                                        input1->caps/*caps*/);
+                    input1_tmp.assign({1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()}/*shape*/,
+                                        static_cast<char *>(input1_element) + input1_dtype_bytes * input1->get_element_index({i, 0, 0})/*element*/,
+                                        input1->exponent/*exponent*/,
+                                        input1->dtype/*dtype*/);
+
                     // output: NHWC
                     TensorBase output_tmp({1, 1, 1, origin_output_shape.back()}/*shape*/, 
                                         static_cast<char *>(output_element) + output_dtype_bytes * output->get_element_index({i, 0})/*element*/, 
@@ -231,7 +258,7 @@ public:
                                                         1 /*dilation_x*/,
                                                         1 /*group*/,
                                                         nullptr /*bias*/,
-                                                        this->activation,
+                                                        m_activation,
                                                         nullptr,
                                                         mode); // do not support PReLU and Leaky RelU
                     int task_size = m_args.size();
@@ -288,7 +315,7 @@ public:
                                                         1 /*dilation_x*/,
                                                         1 /*group*/,
                                                         nullptr /*bias*/,
-                                                        this->activation,
+                                                        m_activation,
                                                         nullptr,
                                                         mode); // do not support PReLU and Leaky RelU
                     int task_size = m_args.size();
@@ -316,6 +343,13 @@ public:
                 size_t output_dtype_bytes = output->get_dtype_bytes();
                 void *output_element = output->get_element_ptr();
 
+                TensorBase input1_tmp({1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()}/*shape*/, 
+                                    nullptr/*element*/, 
+                                    input1->exponent/*exponent*/, 
+                                    input1->dtype/*dtype*/, 
+                                    false/*deep*/, 
+                                    input1->caps/*caps*/);
+
                 for (int i = 0; i < max_batch; i++) {
                     // input: NHWC
                     int input0_i = input0_batch == 1 ? 0 : i;
@@ -325,14 +359,14 @@ public:
                                         input0->dtype/*dtype*/, 
                                         false/*deep*/, 
                                         input0->caps/*caps*/);
+
                     // filter: HWIO
                     int input1_i = input1_batch == 1 ? 0 : i;
-                    TensorBase input1_tmp({1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()}/*shape*/, 
-                                        static_cast<char *>(input1_element) + input1_dtype_bytes * input1->get_element_index({input1_i, 0, 0})/*element*/, 
-                                        input1->exponent/*exponent*/, 
-                                        input1->dtype/*dtype*/, 
-                                        false/*deep*/, 
-                                        input1->caps/*caps*/);
+                    input1_tmp.assign({1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()}/*shape*/,
+                                        static_cast<char *>(input1_element) + input1_dtype_bytes * input1->get_element_index({input1_i, 0, 0})/*element*/,
+                                        input1->exponent/*exponent*/,
+                                        input1->dtype/*dtype*/);
+
                     // output: NHWC
                     TensorBase output_tmp({1, 1, origin_output_shape[origin_output_shape.size() - 2], origin_output_shape.back()}/*shape*/, 
                                         static_cast<char *>(output_element) + output_dtype_bytes * output->get_element_index({i, 0, 0})/*element*/, 
@@ -352,7 +386,7 @@ public:
                                                         1 /*dilation_x*/,
                                                         1 /*group*/,
                                                         nullptr /*bias*/,
-                                                        this->activation,
+                                                        m_activation,
                                                         nullptr,
                                                         mode); // do not support PReLU and Leaky RelU
                     int task_size = m_args.size();
@@ -384,6 +418,13 @@ public:
                 size_t output_dtype_bytes = output->get_dtype_bytes();
                 void *output_element = output->get_element_ptr();
 
+                TensorBase input1_tmp({1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()}/*shape*/, 
+                                    nullptr/*element*/, 
+                                    input1->exponent/*exponent*/, 
+                                    input1->dtype/*dtype*/, 
+                                    false/*deep*/, 
+                                    input1->caps/*caps*/);
+
                 for (int i = 0; i < max_batch0; i++) {
                     int input0_i = input0_batch0 == 1 ? 0 : i;
                     int input1_i = input1_batch0 == 1 ? 0 : i;
@@ -401,12 +442,11 @@ public:
                                             input0->caps/*caps*/);
 
                         // filter: HWIO
-                        TensorBase input1_tmp({1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()}/*shape*/, 
-                                            static_cast<char *>(input1_element) + input1_dtype_bytes * input1->get_element_index({input1_i, input1_j, 0, 0})/*element*/, 
-                                            input1->exponent/*exponent*/, 
-                                            input1->dtype/*dtype*/, 
-                                            false/*deep*/, 
-                                            input1->caps/*caps*/);
+                        input1_tmp.assign({1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()}/*shape*/,
+                                        static_cast<char *>(input1_element) + input1_dtype_bytes * input1->get_element_index({input1_i, input1_j, 0, 0})/*element*/,
+                                        input1->exponent/*exponent*/,
+                                        input1->dtype/*dtype*/);
+
                         // output: NHWC
                         TensorBase output_tmp({1, 1, origin_output_shape[origin_output_shape.size() - 2], origin_output_shape.back()}/*shape*/, 
                                             static_cast<char *>(output_element) + output_dtype_bytes * output->get_element_index({i, j, 0, 0})/*element*/, 
@@ -426,7 +466,7 @@ public:
                                                             1 /*dilation_x*/,
                                                             1 /*group*/,
                                                             nullptr /*bias*/,
-                                                            this->activation,
+                                                            m_activation,
                                                             nullptr,
                                                             mode); // do not support PReLU and Leaky RelU
                         int task_size = m_args.size();
@@ -477,7 +517,8 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            matmul_op = new MatMul(activation_type, node_name.c_str(), quant_type);
+            TensorBase *filter = fbs_model->get_operation_parameter(node_name, 1);
+            matmul_op = new MatMul(filter, activation_type, node_name.c_str(), quant_type);
         }
 
         return matmul_op;
@@ -486,10 +527,12 @@ public:
     void print()
     {
         ESP_LOGI("MatMul",
-                 "activation: %s, "
-                 "quant_type: %s.",
-                 activation_type_to_string(activation),
-                 quant_type_to_string(quant_type));
+                "filter: %p, "
+                "activation: %s, "
+                "quant_type: %s.",
+                m_filter,
+                activation_type_to_string(m_activation),
+                quant_type_to_string(quant_type));
     }
 };
 } // namespace module
