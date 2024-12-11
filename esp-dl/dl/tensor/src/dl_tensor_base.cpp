@@ -282,6 +282,13 @@ bool TensorBase::assign(std::vector<int> shape, const void *element, int exponen
     return this->assign(&tensor);
 }
 
+TensorBase &TensorBase::set_element(void *data)
+{
+    this->data = data;
+
+    return *this;
+}
+
 std::vector<int> TensorBase::get_axis_index(int element_index)
 {
     std::vector<int> axis_index(this->shape.size(), 0);

@@ -221,43 +221,49 @@ public:
 
         } else {
             // batched matrix multiply
+            size_t input0_dtype_bytes = input0->get_dtype_bytes();
+            void *input0_element = input0->get_element_ptr();
+            size_t input1_dtype_bytes = input1->get_dtype_bytes();
+            void *input1_element = input1->get_element_ptr();
+            size_t output_dtype_bytes = output->get_dtype_bytes();
+            void *output_element = output->get_element_ptr();
+
             if (origin_input0_shape.size() == 1 && origin_input1_shape.size() > 2) {
                 int input1_batch_size = 1;
                 for (int i = 0; i < origin_input1_shape.size() - 2; i++) {
                     input1_batch_size *= origin_input1_shape[i];
                 }
-                input1->set_shape({input1_batch_size,
-                                   origin_input1_shape[origin_input1_shape.size() - 2],
-                                   origin_input1_shape.back()});
+
+                int c = origin_input1_shape[origin_input1_shape.size() - 2];
+                int n = origin_input1_shape.back();
+                int align = input1->get_dtype() == DATA_TYPE_INT8 ? 16 : 8;
+                bool is_align = (c * n % align) == 0;
+                input1->set_shape({input1_batch_size, c, n});
 
                 // input: NHWC
                 input0->set_shape({1, 1, 1, origin_input0_shape.back()});
                 // output: NHWC
                 output->set_shape({input1_batch_size, origin_output_shape.back()});
 
-                size_t input1_dtype_bytes = input1->get_dtype_bytes();
-                void *input1_element = input1->get_element_ptr();
-                size_t output_dtype_bytes = output->get_dtype_bytes();
-                void *output_element = output->get_element_ptr();
-
-                TensorBase input1_tmp(
-                    {1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()} /*shape*/,
-                    nullptr /*element*/,
-                    input1->exponent /*exponent*/,
-                    input1->dtype /*dtype*/,
-                    false /*deep*/,
-                    input1->caps /*caps*/);
+                TensorBase input1_tmp({1, 1, c, n} /*shape*/,
+                                      input1_element /*element*/,
+                                      input1->exponent /*exponent*/,
+                                      input1->dtype /*dtype*/,
+                                      is_align ? false : true /*deep*/,
+                                      input1->caps /*caps*/);
 
                 for (int i = 0; i < input1_batch_size; i++) {
                     // filter: HWIO
-                    input1_tmp.assign({1,
-                                       1,
-                                       origin_input1_shape[origin_input1_shape.size() - 2],
-                                       origin_input1_shape.back()} /*shape*/,
-                                      static_cast<char *>(input1_element) +
-                                          input1_dtype_bytes * input1->get_element_index({i, 0, 0}) /*element*/,
-                                      input1->exponent /*exponent*/,
-                                      input1->dtype /*dtype*/);
+                    if (!is_align) {
+                        input1_tmp.assign({1, 1, c, n} /*shape*/,
+                                          static_cast<char *>(input1_element) +
+                                              input1_dtype_bytes * input1->get_element_index({i, 0, 0}) /*element*/,
+                                          input1->exponent /*exponent*/,
+                                          input1->dtype /*dtype*/);
+                    } else {
+                        input1_tmp.set_element(static_cast<char *>(input1_element) +
+                                               input1_dtype_bytes * input1->get_element_index({i, 0, 0}));
+                    }
 
                     // output: NHWC
                     TensorBase output_tmp({1, 1, 1, origin_output_shape.back()} /*shape*/,
@@ -305,11 +311,6 @@ public:
                 input1->set_shape({1, 1, origin_input1_shape.back(), 1});
                 // output: NHWC
                 output->set_shape({input0_batch_size, origin_output_shape.back()});
-
-                size_t input0_dtype_bytes = input0->get_dtype_bytes();
-                void *input0_element = input0->get_element_ptr();
-                size_t output_dtype_bytes = output->get_dtype_bytes();
-                void *output_element = output->get_element_ptr();
 
                 for (int i = 0; i < input0_batch_size; i++) {
                     // input: NHWC
@@ -360,26 +361,22 @@ public:
             } else if (std::max(origin_input0_shape.size(), origin_input1_shape.size()) == 3) {
                 int input0_batch = origin_input0_shape.size() == 2 ? 1 : origin_input0_shape[0];
                 int input1_batch = origin_input1_shape.size() == 2 ? 1 : origin_input1_shape[0];
+
+                int c = origin_input1_shape[origin_input1_shape.size() - 2];
+                int n = origin_input1_shape.back();
+                int align = input1->get_dtype() == DATA_TYPE_INT8 ? 16 : 8;
+                bool is_align = (c * n % align) == 0;
                 input0->set_shape(
                     {input0_batch, origin_input0_shape[origin_input0_shape.size() - 2], origin_input0_shape.back()});
-                input1->set_shape(
-                    {input1_batch, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()});
+                input1->set_shape({input1_batch, c, n});
                 int max_batch = std::max(input0_batch, input1_batch);
 
-                size_t input0_dtype_bytes = input0->get_dtype_bytes();
-                void *input0_element = input0->get_element_ptr();
-                size_t input1_dtype_bytes = input1->get_dtype_bytes();
-                void *input1_element = input1->get_element_ptr();
-                size_t output_dtype_bytes = output->get_dtype_bytes();
-                void *output_element = output->get_element_ptr();
-
-                TensorBase input1_tmp(
-                    {1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()} /*shape*/,
-                    nullptr /*element*/,
-                    input1->exponent /*exponent*/,
-                    input1->dtype /*dtype*/,
-                    false /*deep*/,
-                    input1->caps /*caps*/);
+                TensorBase input1_tmp({1, 1, c, n} /*shape*/,
+                                      input1_element /*element*/,
+                                      input1->exponent /*exponent*/,
+                                      input1->dtype /*dtype*/,
+                                      is_align ? false : true /*deep*/,
+                                      input1->caps /*caps*/);
 
                 for (int i = 0; i < max_batch; i++) {
                     // input: NHWC
@@ -398,14 +395,17 @@ public:
 
                     // filter: HWIO
                     int input1_i = input1_batch == 1 ? 0 : i;
-                    input1_tmp.assign({1,
-                                       1,
-                                       origin_input1_shape[origin_input1_shape.size() - 2],
-                                       origin_input1_shape.back()} /*shape*/,
-                                      static_cast<char *>(input1_element) +
-                                          input1_dtype_bytes * input1->get_element_index({input1_i, 0, 0}) /*element*/,
-                                      input1->exponent /*exponent*/,
-                                      input1->dtype /*dtype*/);
+                    if (!is_align) {
+                        input1_tmp.assign({1, 1, c, n} /*shape*/,
+                                          static_cast<char *>(input1_element) +
+                                              input1_dtype_bytes *
+                                                  input1->get_element_index({input1_i, 0, 0}) /*element*/,
+                                          input1->exponent /*exponent*/,
+                                          input1->dtype /*dtype*/);
+                    } else {
+                        input1_tmp.set_element(static_cast<char *>(input1_element) +
+                                               input1_dtype_bytes * input1->get_element_index({input1_i, 0, 0}));
+                    }
 
                     // output: NHWC
                     TensorBase output_tmp({1,
@@ -458,31 +458,24 @@ public:
                     : origin_input1_shape.size() == 3               ? origin_input1_shape[0]
                                                                     : origin_input1_shape[1];
 
+                int c = origin_input1_shape[origin_input1_shape.size() - 2];
+                int n = origin_input1_shape.back();
+                int align = input1->get_dtype() == DATA_TYPE_INT8 ? 16 : 8;
+                bool is_align = (c * n % align) == 0;
                 input0->set_shape({input0_batch0,
                                    input0_batch1,
                                    origin_input0_shape[origin_input0_shape.size() - 2],
                                    origin_input0_shape.back()});
-                input1->set_shape({input1_batch0,
-                                   input1_batch1,
-                                   origin_input1_shape[origin_input1_shape.size() - 2],
-                                   origin_input1_shape.back()});
+                input1->set_shape({input1_batch0, input1_batch1, c, n});
                 int max_batch0 = std::max(input0_batch0, input1_batch0);
                 int max_batch1 = std::max(input0_batch1, input1_batch1);
 
-                size_t input0_dtype_bytes = input0->get_dtype_bytes();
-                void *input0_element = input0->get_element_ptr();
-                size_t input1_dtype_bytes = input1->get_dtype_bytes();
-                void *input1_element = input1->get_element_ptr();
-                size_t output_dtype_bytes = output->get_dtype_bytes();
-                void *output_element = output->get_element_ptr();
-
-                TensorBase input1_tmp(
-                    {1, 1, origin_input1_shape[origin_input1_shape.size() - 2], origin_input1_shape.back()} /*shape*/,
-                    nullptr /*element*/,
-                    input1->exponent /*exponent*/,
-                    input1->dtype /*dtype*/,
-                    false /*deep*/,
-                    input1->caps /*caps*/);
+                TensorBase input1_tmp({1, 1, c, n} /*shape*/,
+                                      input1_element /*element*/,
+                                      input1->exponent /*exponent*/,
+                                      input1->dtype /*dtype*/,
+                                      is_align ? false : true /*deep*/,
+                                      input1->caps /*caps*/);
 
                 for (int i = 0; i < max_batch0; i++) {
                     int input0_i = input0_batch0 == 1 ? 0 : i;
@@ -506,15 +499,18 @@ public:
                                               input0->caps /*caps*/);
 
                         // filter: HWIO
-                        input1_tmp.assign({1,
-                                           1,
-                                           origin_input1_shape[origin_input1_shape.size() - 2],
-                                           origin_input1_shape.back()} /*shape*/,
-                                          static_cast<char *>(input1_element) +
-                                              input1_dtype_bytes *
-                                                  input1->get_element_index({input1_i, input1_j, 0, 0}) /*element*/,
-                                          input1->exponent /*exponent*/,
-                                          input1->dtype /*dtype*/);
+                        if (!is_align) {
+                            input1_tmp.assign({1, 1, c, n} /*shape*/,
+                                              static_cast<char *>(input1_element) +
+                                                  input1_dtype_bytes *
+                                                      input1->get_element_index({input1_i, input1_j, 0, 0}) /*element*/,
+                                              input1->exponent /*exponent*/,
+                                              input1->dtype /*dtype*/);
+                        } else {
+                            input1_tmp.set_element(static_cast<char *>(input1_element) +
+                                                   input1_dtype_bytes *
+                                                       input1->get_element_index({input1_i, input1_j, 0, 0}));
+                        }
 
                         // output: NHWC
                         TensorBase output_tmp({1,

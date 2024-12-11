@@ -1381,15 +1381,29 @@
         input1_is_weight = false
 
         [[ops_test.matmul.cfg]]
+        input_shape = [1, 10]
+        export_name_prefix = "matmul_ishape0_10_ishape1_weight_5_10_35"
+        activation_func = ""    # "", "ReLU"
+        input1_is_weight = true
+        input_weight_shape = [1, 5, 10, 35]
+
+        [[ops_test.matmul.cfg]]
+        input_shape = [1, 32, 10]
+        export_name_prefix = "matmul_ishape0_32_10_ishape1_weight_5_10_35"
+        activation_func = ""    # "", "ReLU"
+        input1_is_weight = true
+        input_weight_shape = [1, 5, 10, 35]
+
+        [[ops_test.matmul.cfg]]
         input_shape = [1, 5, 32, 10]
-        export_name_prefix = "matmul_ishape0_5_32_10_ishape1_7_1_10_32"
+        export_name_prefix = "matmul_ishape0_5_32_10_ishape1_weight_7_1_10_32"
         activation_func = ""    # "", "ReLU"
         input1_is_weight = true
         input_weight_shape = [7, 1, 10, 32]
 
         [[ops_test.matmul.cfg]]
         input_shape = [1, 7, 32, 10]
-        export_name_prefix = "matmul_ishape0_7_32_10_ishape1_7_1_10_35"
+        export_name_prefix = "matmul_ishape0_7_32_10_ishape1_weight_7_1_10_35"
         activation_func = ""    # "", "ReLU"
         input1_is_weight = true
         input_weight_shape = [7, 1, 10, 35]

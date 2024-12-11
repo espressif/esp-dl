@@ -191,10 +191,10 @@ public:
     int get_bytes() { return this->size * this->get_dtype_bytes(); }
 
     /**
-     * @brief Get element pointer. If cache(preload data pointer) is not null, return cache pointer, otherwise return
+     * @brief Get data pointer. If cache(preload data pointer) is not null, return cache pointer, otherwise return
      * data pointer.
      *
-     * @return  the pointer of Tensor's element
+     * @return  the pointer of Tensor's data
      */
     virtual void *get_element_ptr()
     {
@@ -206,10 +206,10 @@ public:
     }
 
     /**
-     * @brief Get element pointer by the specified template.
+     * @brief Get data pointer by the specified template.
      * If cache(preload data pointer) is not null, return cache pointer, otherwise return data pointer.
      *
-     * @return  the pointer of Tensor's element
+     * @return  the pointer of Tensor's data
      */
     template <typename T>
     T *get_element_ptr()
@@ -220,6 +220,14 @@ public:
 
         return (T *)this->data;
     }
+
+    /**
+     * @brief Set the data.
+     *
+     * @param data point to data memory
+     * @return TensorBase&  self
+     */
+    TensorBase &set_element(void *data);
 
     /**
      * @brief Get the index of each dims
