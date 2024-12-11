@@ -398,14 +398,6 @@ public:
     int get_element_index(const std::vector<int> &axis_index);
 
     /**
-     * @brief Get the index of element
-     *
-     * @param axis_index the index of each dims
-     * @return int the index of element
-     */
-    // int64_t get_element_index(const std::vector<int64_t> &axis_index);
-
-    /**
      * @brief Get a element of Tensor by index
      *
      * @param index  The index of element

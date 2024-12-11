@@ -13,6 +13,7 @@
 #include "dl_module_leakyrelu.hpp"
 #include "dl_module_log.hpp"
 #include "dl_module_lut.hpp"
+#include "dl_module_matmul.hpp"
 #include "dl_module_max_pool2d.hpp"
 #include "dl_module_mul.hpp"
 #include "dl_module_pad.hpp"
@@ -30,7 +31,6 @@
 #include "dl_module_tanh.hpp"
 #include "dl_module_transpose.hpp"
 #include "dl_module_unsqueeze.hpp"
-#include "dl_module_matmul.hpp"
 #include "fbs_loader.hpp"
 #include <functional>
 #include <iostream>

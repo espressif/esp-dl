@@ -421,7 +421,9 @@ class MATMUL_TEST(nn.Module):
         if config["activation_func"] == "ReLU":
             self.act = nn.ReLU()
         if config["input1_is_weight"] and config["input_weight_shape"]:
-            self.static_weight = nn.Parameter(torch.randn(size=config["input_weight_shape"]))
+            self.static_weight = nn.Parameter(
+                torch.randn(size=config["input_weight_shape"])
+            )
 
     def forward(self, input1, *args):
         # By applying squeeze, the input is transformed to adapt the dimensions of matmul.
