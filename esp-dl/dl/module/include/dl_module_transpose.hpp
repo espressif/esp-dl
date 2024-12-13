@@ -42,9 +42,6 @@ public:
         std::vector<int> output_shape;
 
         for (int i = 0; i < input_shapes[0].size(); i++) {
-            if (m_perm[i] < 0) {
-                m_perm[i] = m_perm.size() + m_perm[i];
-            }
             output_shape.push_back(input_shapes[0][m_perm[i]]);
         }
 

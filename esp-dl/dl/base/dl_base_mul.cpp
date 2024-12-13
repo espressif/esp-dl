@@ -15,11 +15,10 @@ void c_impl_mul_n_1(feature_t *output_ptr,
                     elemwiseArgsType<feature_t> *args)
 {
     int32_t length = args->output_d0;
-    int32_t temp = input1_ptr[0];
+    float scale = input1_ptr[0] * args->output_rescale;
     for (int i = 0; i < length; i++) {
-        int32_t buffer = input0_ptr[i] * temp;
-        buffer = DL_RIGHT_SHIFT(buffer, args->mul_shift);
-        tool::truncate<int32_t>(output_ptr[i], buffer);
+        float out = input0_ptr[i] * scale;
+        tool::truncate<int32_t>(output_ptr[i], tool::round(out));
     }
 }
 
@@ -31,11 +30,10 @@ void c_impl_mul_1_n(feature_t *output_ptr,
                     elemwiseArgsType<feature_t> *args)
 {
     int32_t length = args->output_d0;
-    int32_t temp = input0_ptr[0];
+    float scale = input0_ptr[0] * args->output_rescale;
     for (int i = 0; i < length; i++) {
-        int32_t buffer = input1_ptr[i] * temp;
-        buffer = DL_RIGHT_SHIFT(buffer, args->mul_shift);
-        tool::truncate<int32_t>(output_ptr[i], buffer);
+        float out = input1_ptr[i] * scale;
+        tool::truncate<int32_t>(output_ptr[i], tool::round(out));
     }
 }
 
@@ -47,11 +45,11 @@ void c_impl_mul_n_n(feature_t *output_ptr,
                     elemwiseArgsType<feature_t> *args)
 {
     int32_t length = args->output_d0;
-    // int32_t temp = 0;
+    float scale = args->output_rescale;
     for (int i = 0; i < length; i++) {
-        int32_t buffer = input0_ptr[i] * input1_ptr[i];
-        buffer = DL_RIGHT_SHIFT(buffer, args->mul_shift);
-        tool::truncate<int32_t>(output_ptr[i], buffer);
+        int temp = input0_ptr[i] * input1_ptr[i];
+        float out = temp * scale;
+        tool::truncate<int32_t>(output_ptr[i], tool::round(out));
     }
 }
 
@@ -63,6 +61,8 @@ void elemwise_mul(elemwiseArgsType<int8_t> *args)
 
     if (args->output_d0 >= ilen) {
 #if CONFIG_IDF_TARGET_ESP32P4
+        dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
+
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
             elemwise_func = dl_esp32p4_s8_mul4d_bchw_w1_16_w2_16_simdmul;
         } else if (args->input1_d0 == 1) {
@@ -99,6 +99,7 @@ void elemwise_mul(elemwiseArgsType<int8_t> *args)
 //             elemwise_func = dl_esp32s3_s8_mul4d_bchw_w1_16_w2_16_simdmul_unaligned;
 //         }
 #else
+        args->output_rescale = args->input0_scale * args->input1_scale * args->output_rescale;
         if (args->input1_d0 == 1) {
             elemwise_func = c_impl_mul_n_1<int8_t>;
         } else if (args->input0_d0 == 1) {
@@ -106,6 +107,7 @@ void elemwise_mul(elemwiseArgsType<int8_t> *args)
         }
 #endif
     } else {
+        args->output_rescale = args->input0_scale * args->input1_scale * args->output_rescale;
         if (args->input1_d0 == 1) {
             elemwise_func = c_impl_mul_n_1<int8_t>;
         } else if (args->input0_d0 == 1) {
@@ -176,6 +178,7 @@ void elemwise_mul(elemwiseArgsType<int16_t> *args)
 //             elemwise_func = dl_esp32s3_s16_mul4d_bchw_w1_8_w2_8_simdmul_unaligned;
 //         }
 #else
+        args->output_rescale = args->input0_scale * args->input1_scale * args->output_rescale;
         if (args->input1_d0 == 1) {
             elemwise_func = c_impl_mul_n_1<int16_t>;
         } else if (args->input0_d0 == 1) {
@@ -183,6 +186,7 @@ void elemwise_mul(elemwiseArgsType<int16_t> *args)
         }
 #endif
     } else {
+        args->output_rescale = args->input0_scale * args->input1_scale * args->output_rescale;
         if (args->input1_d0 == 1) {
             elemwise_func = c_impl_mul_n_1<int16_t>;
         } else if (args->input0_d0 == 1) {

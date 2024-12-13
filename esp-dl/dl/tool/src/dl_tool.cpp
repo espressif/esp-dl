@@ -64,6 +64,52 @@ int round(float value)
 #endif
 }
 
+int shift_and_round_half_even(int value, int shift)
+{
+    int shifted = 0;
+
+    if (shift <= 0) {
+        shifted = value << -shift;
+    } else {
+        shifted = value >> shift;
+        int remainder = value & ((1 << shift) - 1);
+        int half = 1 << (shift - 1);
+
+        if (remainder > half) {
+            shifted += 1;
+        } else if (remainder == half) {
+            if (shifted % 2 != 0) {
+                shifted += 1;
+            }
+        }
+    }
+
+    return shifted;
+}
+
+int shift_and_round_half_up(int value, int shift)
+{
+    int shifted = 0;
+
+    if (shift <= 0) {
+        shifted = value << -shift;
+    } else {
+        int half = 1 << (shift - 1);
+        shifted = (value + half) >> shift;
+    }
+
+    return shifted;
+}
+
+int shift_and_round(int value, int shift)
+{
+#if CONFIG_IDF_TARGET_ESP32P4
+    return shift_and_round_half_even(value, shift);
+#else
+    return shift_and_round_half_up(value, shift);
+#endif
+}
+
 void set_zero(void *ptr, const int n)
 {
 #if CONFIG_TIE728_BOOST

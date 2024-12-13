@@ -1,27 +1,27 @@
 #pragma once
 #include "dl_module_add.hpp"
-#include "dl_module_avg_pool2d.hpp"
+#include "dl_module_average_pool.hpp"
 #include "dl_module_clip.hpp"
 #include "dl_module_concat.hpp"
-#include "dl_module_conv2d.hpp"
+#include "dl_module_conv.hpp"
+#include "dl_module_div.hpp"
 #include "dl_module_exp.hpp"
 #include "dl_module_flatten.hpp"
 #include "dl_module_gemm.hpp"
-#include "dl_module_global_avg_pool2d.hpp"
-#include "dl_module_hardsigmoid.hpp"
-#include "dl_module_hardswish.hpp"
-#include "dl_module_leakyrelu.hpp"
+#include "dl_module_global_average_pool.hpp"
+#include "dl_module_hard_sigmoid.hpp"
+#include "dl_module_hard_swish.hpp"
+#include "dl_module_leaky_relu.hpp"
 #include "dl_module_log.hpp"
 #include "dl_module_lut.hpp"
-#include "dl_module_matmul.hpp"
-#include "dl_module_max_pool2d.hpp"
+#include "dl_module_max_pool.hpp"
 #include "dl_module_mul.hpp"
 #include "dl_module_pad.hpp"
 #include "dl_module_prelu.hpp"
 #include "dl_module_relu.hpp"
 #include "dl_module_requantize_linear.hpp"
 #include "dl_module_reshape.hpp"
-#include "dl_module_resize2d.hpp"
+#include "dl_module_resize.hpp"
 #include "dl_module_sigmoid.hpp"
 #include "dl_module_slice.hpp"
 #include "dl_module_softmax.hpp"
@@ -92,9 +92,10 @@ public:
     {
         if (creators.empty()) {
             this->register_module("Conv", Conv2D::deserialize);
-            this->register_module("Mul", Mul::deserialize);
             this->register_module("Add", Add::deserialize);
             this->register_module("Sub", Sub::deserialize);
+            this->register_module("Mul", Mul::deserialize);
+            this->register_module("Div", Div::deserialize);
             this->register_module("Resize", Resize2D::deserialize);
             this->register_module("GlobalAveragePool", GlobalAveragePool2D::deserialize);
             this->register_module("AveragePool", AveragePool2D::deserialize);
@@ -126,7 +127,6 @@ public:
             this->register_module("MaxPool", MaxPool2D::deserialize);
             this->register_module("Slice", Slice::deserialize);
             this->register_module("Pad", Pad::deserialize);
-            this->register_module("MatMul", MatMul::deserialize);
         }
     }
 
