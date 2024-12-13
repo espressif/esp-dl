@@ -134,6 +134,8 @@ TensorInfo::TensorInfo(std::string &name,
         this->size = this->size * 1;
     } else if (dtype == DATA_TYPE_UINT16 || dtype == DATA_TYPE_INT16) {
         this->size = this->size * 2;
+    } else if (dtype == DATA_TYPE_DOUBLE || dtype == DATA_TYPE_INT64 || dtype == DATA_TYPE_UINT64) {
+        this->size = this->size * 8;
     }
 
     this->call_times = 0;
