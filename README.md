@@ -7,20 +7,12 @@ ESP-DL is a lightweight and efficient neural network inference framework designe
 ESP-DL offers APIs to load, debug, and run AI models. The framework is easy to use and can be seamlessly integrated with other Espressif SDKs. ESP-PPQ serves as the quantization tool for ESP-DL, capable of quantizing models from ONNX, Pytorch, and TensorFlow, and exporting them into the ESP-DL standard model format.
 
 - **ESP-DL Standard Model Format**: This format is similar to ONNX but uses FlatBuffers instead of Protobuf, making it more lightweight and supporting zero-copy deserialization, with a file extension of `.espdl`.
-- **Efficient Operator Implementation**: ESP-DL efficiently implements common AI operators such as Conv2d, Pool2D, Gemm, Add, and Mul.
+- **Efficient Operator Implementation**: ESP-DL efficiently implements common AI operators such as Conv, Gemm, Add, and Mul. [**The list of supported operators**](./operator_support_state.md).
 - **Static Memory Planner**: The memory planner automatically allocates different layers to the optimal memory location based on the user-specified internal RAM size, ensuring efficient overall running speed while minimizing memory usage.
 - **Dual Core Scheduling**: Automatic dual-core scheduling allows computationally intensive operators to fully utilize the dual-core computing power. Currently, Conv2D and DepthwiseConv2D support dual-core scheduling.
+- **8bit LUT Activation**: All activation functions except for ReLU and PReLU are implemented using an 8-bit LUT (Look Up Table) method in ESP-DL to accelerate inference. You can use any activation function, and their computational complexity remains the same.
 
-In general, the ESP-DL features will be supported, as shown below:
-<p align="center">
-    <img width="%" src="./docs/_static/architecture_en.drawio.svg">
-</p>
-
-## Support models
-
-[Pedestrian Detection](./models/pedestrian_detect/)   
-[Human Face Detection](./models/human_face_detect/)  
-[Human Face Recognition](./models/human_face_recognition/)
+     
 
 ## Getting Started
 
@@ -42,6 +34,8 @@ pip install git+https://github.com/espressif/esp-ppq.git
 ```
 
 ### Model Quantization
+
+First, please refer to the [ESP-DL Operator Support State](./operator_support_state.md) to ensure that the operators in your model are already supported.  
 
 ESP-PPQ can directly read ONNX models for quantization. Pytorch and TensorFlow need to be converted to ONNX models first, so make sure your model can be converted to ONNX models.  
 We provide the following python script templates. Please select the appropriate template to quantize your models. For more details about quantization, please refer to [tutorial/how_to_quantize_model](./tutorial/how_to_quantize_model_en.md).  
@@ -66,3 +60,18 @@ model->run(inputs); // inputs is a tensor or a map of tensors
 ```
 
 For more details, please refer to [tutorial/how_to_load_model](./tutorial/how_to_load_model_en.md) and [mobilenet_v2 examples](./examples/mobilenet_v2/)
+
+
+## Support Models
+
+[Pedestrian Detection](./models/pedestrian_detect/)     
+[Human Face Detection](./models/human_face_detect/)     
+[Human Face Recognition](./models/human_face_recognition/)     
+[Imagenet classification](./models/imagenet_cls/)    
+
+
+## Suport Operators
+
+If you encounter unsupported operators, please point them out in the [issues](https://github.com/espressif/esp-dl/issues), and we will support them as soon as possible. Contributions to this ESPDL are also welcomed.
+
+[ESP-DL Operator Support State](./operator_support_state.md)

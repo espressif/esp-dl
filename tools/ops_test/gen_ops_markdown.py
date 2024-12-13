@@ -21,7 +21,6 @@ def create_md(config_file, output_path):
     op_test_config = toml.load(config_file)["ops_test"]
 
     data = []
-    data.append(["Operator", "int8", "int16", "Description"])
     yes_icon = "&#10004;"
     no_icon = "&#10006;"
     onnx_link = "[(ONNX)](https://onnx.ai/onnx/operators/onnx__##.html)"
@@ -51,7 +50,9 @@ def create_md(config_file, output_path):
         item.append(description)
         data.append(item)
 
-    markdown_table = tabulate(data, headers="firstrow", tablefmt="github")
+    sorted_op_list = sorted(data, key=lambda x: x[0].lower())
+    sorted_op_list = [["Operator", "int8", "int16", "Description"]] + sorted_op_list
+    markdown_table = tabulate(sorted_op_list, headers="firstrow", tablefmt="github")
 
     content = """# Operator Support State
 
@@ -67,7 +68,7 @@ The rounding for ESP32-P4 is [rounding half to even](https://simple.wikipedia.or
 ## Support Operators
 
 The ESP-DL operator interface is aligned with ONNX. The opset 13 is recommended to export ONNX.
-Currently, The following {op_num} operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the description of each operator or [test cases]({config_file}) for details.
+Currently, the following {op_num} operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the description of each operator or [test cases]({config_file}) for details.
 """
 
     current_time = datetime.now()

@@ -164,7 +164,6 @@ void c_impl_div_n_n(feature_t *output_ptr,
 
 void elemwise_div(elemwiseArgsType<int8_t> *args)
 {
-    int ilen = 16 / sizeof(int8_t);
     std::function<void(int8_t *, int8_t *, int8_t *, elemwiseArgsType<int8_t> *)> elemwise_func =
         c_impl_div_n_n<int8_t>;
 
@@ -202,7 +201,6 @@ void elemwise_div(elemwiseArgsType<int8_t> *args)
 
 void elemwise_div(elemwiseArgsType<int16_t> *args)
 {
-    int ilen = 16 / sizeof(int16_t);
     std::function<void(int16_t *, int16_t *, int16_t *, elemwiseArgsType<int16_t> *)> elemwise_func =
         c_impl_div_n_n<int16_t>;
 
