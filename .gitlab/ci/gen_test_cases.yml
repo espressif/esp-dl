@@ -1,0 +1,29 @@
+.gen_test_cases_template:
+  stage: gen_test_cases
+  image: ${IMAGE}
+  tags: ["build", "amd64"]
+  dependencies: []
+  artifacts:
+    when: always
+    paths:
+      - "**/models/**/*.espdl"
+    expire_in: 1 week
+  script:
+    - pip install toml
+    - pip install torch==2.2.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+    - pip install git+https://github.com/espressif/esp-ppq
+    - python tools/ops_test/gen_test_cases.py -t ${TARGET} -b ${BITS} -o ${MODEL_PATH}/${TARGET} -c ${CONFIG_FILE}
+
+
+gen_espdl_ops_cases:
+  extends:
+    - .gen_test_cases_template
+    - .rules:gen:ops_test
+  parallel:
+    matrix:
+      - IMAGE: [python:3.8, python:3.9, python:3.10]
+        TARGET: [esp32p4, esp32s3]
+        BITS: [8]
+  variables:
+    MODEL_PATH: test_apps/esp-dl/models
+    CONFIG_FILE: tools/ops_test/config/op_cfg.toml

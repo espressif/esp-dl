@@ -59,6 +59,12 @@
 .patterns-example_pedestrian_detect: &patterns-example_pedestrian_detect
 - "examples/pedestrian_detect/**/*"
 
+# tool forder
+.patterns-tool_ops_test: &patterns-tool_ops_test
+  - "tools/ops_test/config/op_cfg.toml"
+  - "tools/ops_test/gen_test_cases.py"
+  - "tools/ops_test/ops_cases.py"
+
 ##############
 # if anchors #
 ##############
@@ -197,3 +203,15 @@
 .rules:deploy:docs_production:
   rules:
     - <<: *if-protected
+
+# relus for tools
+.rules:gen:ops_test:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-tool_ops_test
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl_dl
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
