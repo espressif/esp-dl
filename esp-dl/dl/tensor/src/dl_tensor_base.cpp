@@ -282,6 +282,13 @@ bool TensorBase::assign(std::vector<int> shape, const void *element, int exponen
     return this->assign(&tensor);
 }
 
+TensorBase &TensorBase::set_element(void *data)
+{
+    this->data = data;
+
+    return *this;
+}
+
 std::vector<int> TensorBase::get_axis_index(int element_index)
 {
     std::vector<int> axis_index(this->shape.size(), 0);
@@ -584,16 +591,6 @@ TensorBase *TensorBase::transpose(TensorBase *input, std::vector<int> perm)
 
 int TensorBase::get_element_index(const std::vector<int> &axis_index)
 {
-    int element_index = 0;
-    for (int i = 0; i < axis_index.size(); i++) {
-        element_index += axis_index[i] * this->axis_offset[i];
-    }
-    return element_index;
-}
-
-int64_t TensorBase::get_element_index(const std::vector<int64_t> &axis_index)
-{
-    assert(axis_index.size() == this->shape.size());
     int element_index = 0;
     for (int i = 0; i < axis_index.size(); i++) {
         element_index += axis_index[i] * this->axis_offset[i];

@@ -14,6 +14,7 @@
 #include "dl_module_leaky_relu.hpp"
 #include "dl_module_log.hpp"
 #include "dl_module_lut.hpp"
+#include "dl_module_matmul.hpp"
 #include "dl_module_max_pool.hpp"
 #include "dl_module_mul.hpp"
 #include "dl_module_pad.hpp"
@@ -127,6 +128,7 @@ public:
             this->register_module("MaxPool", MaxPool2D::deserialize);
             this->register_module("Slice", Slice::deserialize);
             this->register_module("Pad", Pad::deserialize);
+            this->register_module("MatMul", MatMul::deserialize);
         }
     }
 
