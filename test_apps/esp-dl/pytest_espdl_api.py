@@ -9,7 +9,7 @@ from pytest_embedded import Dut
 @pytest.mark.parametrize(
     "config",
     [
-        "sigmoid",
+        "Conv",
     ],
 )
 def test_model_common(dut: Dut) -> None:

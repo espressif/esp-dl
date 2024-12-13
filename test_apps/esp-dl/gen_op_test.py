@@ -1,6 +1,8 @@
 import argparse
 import os
 
+import toml
+
 PYTEST_TEMPLATE = """
 import pytest
 from pytest_embedded import Dut
@@ -47,12 +49,41 @@ def gen_pytest_script(model_path, pytest_file, target="esp32p4", env="esp32p4"):
         print(f"No model found in {model_path}")
 
 
+def gen_pytest_script_by_config(
+    config_file, pytest_file, target="esp32p4", env="esp32p4"
+):
+    # models = get_model_names(model_path)
+    op_test_config = toml.load(config_file)["ops_test"]
+
+    models = []
+    for op_type in op_test_config:
+        if op_type == "class_package":
+            continue
+        models.append(op_type)
+
+    if len(models) > 0:
+        print(models)
+        pytest_content = PYTEST_TEMPLATE.format(
+            target=target, env=env, models=str(models)
+        )
+        print(pytest_content)
+        with open(pytest_file, "w") as f:
+            f.write(pytest_content)
+    else:
+        print(f"No model found in {config_file}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate script for operator test",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("model_path", help="Paths of models to test.")
+    parser.add_argument(
+        "-m", "--model_path", default=None, help="Paths of models to test."
+    )
+    parser.add_argument(
+        "-c", "--config", default=None, help="Test case config file path."
+    )
     parser.add_argument(
         "--pytest_file",
         default="pytest_op_test.py",
@@ -72,4 +103,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    gen_pytest_script(args.model_path, args.pytest_file, args.target, args.env)
+    if args.model_path:
+        gen_pytest_script(args.model_path, args.pytest_file, args.target, args.env)
+    elif args.config:
+        gen_pytest_script_by_config(
+            args.config, args.pytest_file, args.target, args.env
+        )
+    else:
+        print("Please specify either model_path or config")

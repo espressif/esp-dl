@@ -10,7 +10,7 @@
     expire_in: 1 week
   script:
     - pip install toml
-    - pip install torch==2.2.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+    - pip install ${TORCH} -f https://download.pytorch.org/whl/torch_stable.html
     - pip install git+https://github.com/espressif/esp-ppq
     - python tools/ops_test/gen_test_cases.py -t ${TARGET} -b ${BITS} -o ${MODEL_PATH}/${TARGET} -c ${CONFIG_FILE}
 
@@ -22,7 +22,16 @@ gen_espdl_ops_cases:
   parallel:
     matrix:
       - IMAGE: [python:3.8, python:3.9, python:3.10]
-        TARGET: [esp32p4, esp32s3]
+        TORCH: ["torch==1.12.0+cpu", "torch==2.2.0+cpu"]
+        TARGET: [esp32p4]
+        BITS: [8]
+      - IMAGE: [python:3.11]
+        TORCH: ["torch==2.5.0"]
+        TARGET: [esp32p4]
+        BITS: [8]
+      - IMAGE: [python:3.10]
+        TORCH: [torch]
+        TARGET: [esp32s3]
         BITS: [8]
   variables:
     MODEL_PATH: test_apps/esp-dl/models
