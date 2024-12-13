@@ -41,9 +41,14 @@ struct elemwiseArgsType {
     int c_left_x_1;       /*<! 18 */
     int c_remainder;      /*<! 19 */
 
-    int mul_shift; /*<! 20 */
+    int mul_shift;        /*<! 20 */
+    float input0_scale;   /*<! 21 */
+    float input1_scale;   /*<! 22 */
+    float output_rescale; /*<! 23 */
+    feature_t *table;     /*<! 24 */
 };
 
+// Get element-wise operation args
 template <typename feature_t>
 std::vector<elemwiseArgsType<feature_t>> get_elemwise_operation_args(
     TensorBase *output, TensorBase *input0, TensorBase *input1, const runtime_mode_t runtime_mode = RUNTIME_MODE_AUTO);

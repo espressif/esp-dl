@@ -167,6 +167,10 @@ std::vector<elemwiseArgsType<feature_t>> get_elemwise_operation_args(TensorBase 
     args.c_left_x_1 = c_div_x - 2 * args.c_div_2x_1 - 1;
 
     args.mul_shift = output->exponent - input0->exponent - input1->exponent;
+
+    args.input0_scale = DL_SCALE(input0->exponent);
+    args.input1_scale = DL_SCALE(input1->exponent);
+    args.output_rescale = DL_RESCALE(output->exponent);
     // args.mul_shift = DL_MAX(args.mul_shift, 0); //
 
     // todo:: support two core

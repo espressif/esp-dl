@@ -1,5 +1,3 @@
-#pragma once
-
 #include "dl_base.hpp"
 #include "dl_base_elemwise.hpp"
 #include "dl_base_isa.hpp"
@@ -202,8 +200,6 @@ void elemwise_add(elemwiseArgsType<int16_t> *args)
         break;
     }
 }
-// template void elemwise_add(elemwiseArgsType<int8_t> *args);
-// template void elemwise_add(elemwiseArgsType<int16_t> *args);
 
 } // namespace base
 } // namespace dl

@@ -8,23 +8,13 @@ ESP-DL 提供了加载、调试和运行 AI 模型的 API。该框架易于使�
 
 - **ESP-DL 标准模型格式：** 该格式类似于 ONNX，但使用 FlatBuffers 而不是 Protobuf，使其更轻量级并支持零拷贝反序列化，文件后缀为`.espdl`。
 
-- **高效算子实现：** ESP-DL 高效地实现了常见的 AI 算子，如 Conv2d、Pool2D、Gemm、Add 和 Mul。
+- **高效算子实现：** ESP-DL 高效地实现了常见的 AI 算子，如 Conv、Pool、Gemm、Add 和 Mul等。目前[算子支持状态](./operator_support_state.md)
 
 - **静态内存规划器：** 内存规划器根据用户指定的内部 RAM 大小，自动将不同层分配到最佳内存位置，确保高效的整体运行速度同时最小化内存使用。
 
 - **双核调度：** 自动双核调度允许计算密集型算子充分利用双核计算能力。目前，Conv2D 和 DepthwiseConv2D 支持双核调度。
 
-ESP-DL 的以下功能将得到支持，如下所示：
-
-<p align="center">
-    <img width="%" src="./docs/_static/architecture_cn.drawio.svg">
-</p>
-
-## Support models
-
-[行人检测](./models/pedestrian_detect/)  
-[人脸检测](./models/human_face_detect/)  
-[人脸识别](./models/human_face_recognition/)
+- **8bit LUT Activation：** 除了Relu, PRelu(n>1)之外的所有激活函数，ESP-DL 默认使用 8bit LUT(Look Up Table)方式实现,以加速推理。
 
 ## Getting Started
 
@@ -69,3 +59,18 @@ model->run(inputs); // inputs 是一个张量或张量映射
 ```
 
 更多详细信息，请参阅 [tutorial/how_to_load_model](./tutorial/how_to_load_model_cn.md) 和 [mobilenet_v2 示例](./examples/mobilenet_v2/)。
+
+
+## Support models
+
+[行人检测](./models/pedestrian_detect/)     
+[人脸检测](./models/human_face_detect/)     
+[人脸识别](./models/human_face_recognition/)     
+[Imagenet 分类](./models/imagenet_cls/)    
+
+## Suport Operators
+
+如果你有遇到不支持的算子，请将问题在[issues](https://github.com/espressif/esp-dl/issues)中反馈给我们，我们会尽快支持。  
+也欢迎大家贡献新的算子。
+
+[算子支持状态](./operator_support_state.md)
