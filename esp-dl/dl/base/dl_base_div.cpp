@@ -16,24 +16,28 @@ feature_t *create_div_lut(elemwiseArgsType<feature_t> *args)
     if (sizeof(feature_t) == 1) {
         if (args->input0_d0 == 1) {
             table = (feature_t *)tool::malloc_aligned(256, 1, 16, MALLOC_CAP_8BIT);
-            float input0_float = input0[0] * args->input0_scale;
+            float input0_float = input0[0] * rescale;
             for (int32_t i = -128; i <= 127; i++) {
                 if (i == 0) {
-                    table[i + 128] = 127; // inf
+                    if (input0_float > 0) {
+                        table[i + 128] = 127; // inf
+                    } else {
+                        table[i + 128] = -128; // -inf
+                    }
                 } else {
-                    float temp = input0_float / (i * args->input1_scale);
-                    tool::truncate<int32_t>(table[i + 128], tool::round(temp * rescale));
+                    float temp = input0_float / i;
+                    tool::truncate<int32_t>(table[i + 128], tool::round(temp));
                 }
             }
         } else if (args->input1_d0 == 1) {
             table = (feature_t *)tool::malloc_aligned(256, 1, 16, MALLOC_CAP_8BIT);
-            float input1_float = input1[0] * args->input1_scale;
+            float scale = rescale / input1[0];
             for (int32_t i = -128; i <= 127; i++) {
                 if (i == 0) {
                     table[i + 128] = 0;
                 } else {
-                    float temp = (i * args->input0_scale) / input1_float;
-                    tool::truncate<int32_t>(table[i + 128], tool::round(temp * rescale));
+                    float temp = i * scale;
+                    tool::truncate<int32_t>(table[i + 128], tool::round(temp));
                 }
             }
         }
@@ -56,6 +60,7 @@ elemwiseArgsType<feature_t> *get_elemwise_div_args(TensorBase *output,
         1, sizeof(elemwiseArgsType<feature_t>), 16, MALLOC_CAP_8BIT);
     memcpy(args, m_args.data(), sizeof(elemwiseArgsType<feature_t>));
 
+    args->output_rescale = args->output_rescale * args->input0_scale / args->input1_scale;
     if ((input1->get_size() == 1 || input0->get_size() == 1) && sizeof(feature_t) == 1) {
         args->table = create_div_lut(args);
     } else {
@@ -81,17 +86,19 @@ void c_impl_div_n_1(feature_t *output_ptr,
                     elemwiseArgsType<feature_t> *args)
 {
     int32_t length = args->output_d0;
-    float input1_elem = input1_ptr[0] * args->input1_scale;
-    float input0_scale = args->input0_scale;
-    float rescale = args->output_rescale;
+    float rescale = args->output_rescale / input1_ptr[0];
     for (int32_t i = 0; i < length; i++) {
         if (input0_ptr[i] == 0) {
             output_ptr[i] = 0;
-        } else if (input1_elem == 0) {
-            output_ptr[i] = 127;
+        } else if (input1_ptr[0] == 0) {
+            if (input0_ptr[i] > 0) {
+                output_ptr[i] = 127;
+            } else {
+                output_ptr[i] = -128;
+            }
         } else {
-            float out_elem = input0_ptr[i] * input0_scale / input1_elem;
-            tool::truncate<int32_t>(output_ptr[i], tool::round(out_elem * rescale));
+            float out_elem = input0_ptr[i] * rescale;
+            tool::truncate<int32_t>(output_ptr[i], tool::round(out_elem));
         }
     }
 }
@@ -113,17 +120,20 @@ void c_impl_div_1_n(feature_t *output_ptr,
                     elemwiseArgsType<feature_t> *args)
 {
     int32_t length = args->output_d0;
-    float input0_elem = input0_ptr[0] * args->input0_scale;
-    float input1_scale = args->input1_scale;
-    float rescale = args->output_rescale;
+
+    float rescale = input0_ptr[0] * args->output_rescale;
     for (int32_t i = 0; i < length; i++) {
-        if (input0_elem == 0) {
+        if (input0_ptr[0] == 0) {
             output_ptr[i] = 0;
         } else if (input1_ptr[i] == 0) {
-            output_ptr[i] = 127;
+            if (input0_ptr[0] > 0) {
+                output_ptr[i] = 127;
+            } else {
+                output_ptr[i] = -128;
+            }
         } else {
-            float out_elem = input0_elem / (input1_ptr[i] * input1_scale);
-            tool::truncate<int32_t>(output_ptr[i], tool::round(out_elem * rescale));
+            float out_elem = rescale / input1_ptr[i];
+            tool::truncate<int32_t>(output_ptr[i], tool::round(out_elem));
         }
     }
 }
@@ -145,17 +155,19 @@ void c_impl_div_n_n(feature_t *output_ptr,
                     elemwiseArgsType<feature_t> *args)
 {
     int32_t length = args->output_d0;
-    float input0_scale = args->input0_scale;
-    float input1_scale = args->input1_scale;
     float rescale = args->output_rescale;
     for (int i = 0; i < length; i++) {
         if (input0_ptr[i] == 0) {
             output_ptr[i] = 0;
         } else if (input1_ptr[i] == 0) {
-            output_ptr[i] = 127;
+            if (input0_ptr[i] > 0) {
+                output_ptr[i] = 127;
+            } else {
+                output_ptr[i] = -128;
+            }
         } else {
-            float out_elem = (input0_ptr[i] * input0_scale) / (input1_ptr[i] * input1_scale);
-            tool::truncate<int>(output_ptr[i], tool::round(out_elem * rescale));
+            float out_elem = input0_ptr[i] * rescale / input1_ptr[i];
+            tool::truncate<int>(output_ptr[i], tool::round(out_elem));
         }
     }
 }
@@ -165,17 +177,17 @@ void elemwise_div(elemwiseArgsType<int8_t> *args)
     std::function<void(int8_t *, int8_t *, int8_t *, elemwiseArgsType<int8_t> *)> elemwise_func =
         c_impl_div_n_n<int8_t>;
 
-    if (args->input1_d0 == 1) {
-        if (args->table) {
-            elemwise_func = c_impl_div_lut_n_1;
-        } else {
-            elemwise_func = c_impl_div_n_1<int8_t>;
-        }
-    } else if (args->input0_d0 == 1) {
+    if (args->input0_d0 == 1) {
         if (args->table) {
             elemwise_func = c_impl_div_lut_1_n;
         } else {
             elemwise_func = c_impl_div_1_n<int8_t>;
+        }
+    } else if (args->input1_d0 == 1) {
+        if (args->table) {
+            elemwise_func = c_impl_div_lut_n_1;
+        } else {
+            elemwise_func = c_impl_div_n_1<int8_t>;
         }
     }
 

@@ -16,6 +16,7 @@ from ppq.quantization.optim import *
 from torch.utils.data import DataLoader
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+torch.manual_seed(42)
 
 
 class BaseInferencer:
