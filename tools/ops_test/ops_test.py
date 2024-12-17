@@ -127,6 +127,20 @@ class MUL4D_TEST(nn.Module):
         return output
 
 
+class DIV_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+
+    def forward(self, input1, input2):
+        output = input1 / input2
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
 class EQUAL4D_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -435,7 +449,7 @@ class MATMUL_TEST(nn.Module):
         elif hasattr(self, "static_weight"):
             input2 = self.static_weight
         else:
-            raise ValueError(f"Config of MatMul is error.")
+            raise ValueError("Config of MatMul is error.")
 
         output = torch.matmul(input1, input2)
         if hasattr(self, "act"):

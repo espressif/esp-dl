@@ -68,6 +68,10 @@ build_espdl_ops:
   extends:
     - .build_ops_template
     - .rules:build:espdl_ops
+  needs:
+    - job: "gen_espdl_ops_cases"
+      artifacts: true
+      optional: true
   parallel:
     matrix:
       - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]

@@ -16,6 +16,7 @@ from ppq.quantization.optim import *
 from torch.utils.data import DataLoader
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+torch.manual_seed(42)
 
 
 class BaseInferencer:
@@ -149,30 +150,39 @@ if __name__ == "__main__":
 
     # load config
     config = toml.load(args.config)
+    op_test_config = config["ops_test"]
 
     # generate test cases
-    pkg = importlib.import_module(config["ops_test"]["class_package"])
+    pkg = importlib.import_module(op_test_config["class_package"])
     if args.ops:
         op_set = args.ops
     else:
         op_set = []
-        for op_type in config["ops_test"]:
+        for op_type in op_test_config:
             if op_type == "class_package":
                 continue
             op_set.append(op_type)
 
     for op_type in op_set:
-        op_configs = config["ops_test"][op_type]["cfg"]
-        op_class_name = config["ops_test"][op_type]["class_name"]
-        export_path = os.path.join(args.output_path, op_type)
-        for cfg in op_configs:
-            print("Op Class Name: ", op_class_name, "Configs: ", cfg)
-            op = getattr(pkg, op_class_name)(cfg)
-            BaseInferencer(
-                op,
-                export_path=export_path,
-                target=args.target,
-                num_of_bits=args.bits,
-                model_version=args.version,
-                meta_cfg=config["meta"],
-            )()
+        op_configs = op_test_config[op_type]["cfg"]
+        op_class_name = op_test_config[op_type]["class_name"]
+        quant_bits = op_test_config[op_type].get("quant_bits", [])
+        if (args.bits == 8 and "int8" in quant_bits) or (
+            args.bits == 16 and "int16" in quant_bits
+        ):
+            export_path = os.path.join(args.output_path, op_type)
+            for cfg in op_configs:
+                print("Op Class Name: ", op_class_name, "Configs: ", cfg)
+                op = getattr(pkg, op_class_name)(cfg)
+                BaseInferencer(
+                    op,
+                    export_path=export_path,
+                    target=args.target,
+                    num_of_bits=args.bits,
+                    model_version=args.version,
+                    meta_cfg=config["meta"],
+                )()
+        else:
+            print(
+                f"Skip op: {op_type}, do not support quantization with {args.bits} bits."
+            )

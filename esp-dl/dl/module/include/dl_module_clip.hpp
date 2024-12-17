@@ -1,10 +1,15 @@
-#pragma once
-
 #include "dl_module_base.hpp"
-
+#include "dl_module_lut.hpp"
 namespace dl {
 namespace module {
 
+/**
+ * @brief: Please refer to https://onnx.ai/onnx/operators/onnx__Clip.html for more details
+ *
+ * @tparam feature_t supports float, int16_t and int8_t,
+ *         - int16_t: stands for operation in int16_t quantize
+ *         - int8_t: stands for operation in int8_t quantize
+ */
 class Clip : public Module {
 private:
     TensorBase *m_min; /*<! Minimum value of Clip >*/
@@ -50,33 +55,45 @@ public:
     {
         DL_LOG_LAYER_LATENCY_INIT();
         DL_LOG_LAYER_LATENCY_START();
+        TensorBase *input = tensors[m_inputs_index[0]];
+        TensorBase *output = tensors[m_outputs_index[0]];
+
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            forward_template<int8_t>(tensors, mode);
+            int8_t *input_ptr = (int8_t *)input->get_element_ptr();
+            int8_t *output_ptr = (int8_t *)output->get_element_ptr();
+            int8_t min_value = m_min->get_element<int8_t>(0);
+            int8_t max_value = m_max->get_element<int8_t>(0);
+
+            float rescale = DL_SCALE(input->exponent) * DL_RESCALE(output->exponent);
+            for (size_t i = 0; i < input->size; i++) {
+                int8_t temp = DL_CLIP(input_ptr[i], min_value, max_value);
+                tool::truncate(output_ptr[i], tool::round(temp * rescale));
+            }
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            forward_template<int16_t>(tensors, mode);
+            int16_t *input_ptr = input->get_element_ptr<int16_t>();
+            int16_t *output_ptr = output->get_element_ptr<int16_t>();
+            int16_t min_value = m_min->get_element<int16_t>(0);
+            int16_t max_value = m_max->get_element<int16_t>(0);
+
+            float rescale = DL_SCALE(input->exponent) * DL_RESCALE(output->exponent);
+            for (size_t i = 0; i < input->size; i++) {
+                int16_t temp = DL_CLIP(input_ptr[i], min_value, max_value);
+                tool::truncate(output_ptr[i], tool::round(temp * rescale));
+            }
         } else if (quant_type == QUANT_TYPE_FLOAT32) {
-            forward_template<float>(tensors, mode);
+            float *input_ptr = input->get_element_ptr<float>();
+            float *output_ptr = output->get_element_ptr<float>();
+            float min_value = m_min->get_element<float>(0);
+            float max_value = m_max->get_element<float>(0);
+
+            for (size_t i = 0; i < input->size; i++) {
+                output_ptr[i] = DL_CLIP(input_ptr[i], min_value, max_value);
+            }
         }
         DL_LOG_LAYER_LATENCY_END(this->name, "Clip");
     }
 
     void forward_args(void *args) {}
-
-    template <typename T>
-    void forward_template(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
-    {
-        TensorBase *input = tensors[m_inputs_index[0]];
-        TensorBase *output = tensors[m_outputs_index[0]];
-        assert(input->get_size() == output->get_size());
-        T min_value = *static_cast<T *>(m_min->get_element_ptr());
-        T max_value = *static_cast<T *>(m_max->get_element_ptr());
-
-        T *src_data = static_cast<T *>(input->get_element_ptr());
-        T *data = static_cast<T *>(output->get_element_ptr());
-        for (int i = 0; i < input->get_size(); i++) {
-            data[i] = DL_CLIP(src_data[i], min_value, max_value);
-        }
-    }
 
     /**
      * @brief deserialize Clip module instance by node serialization information
@@ -86,11 +103,18 @@ public:
         Module *op = nullptr;
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
-        TensorBase *min = fbs_model->get_operation_parameter(node_name, 1);
-        TensorBase *max = fbs_model->get_operation_parameter(node_name, 2);
+        TensorBase *table = fbs_model->get_operation_lut(node_name);
 
         // Create module
-        op = new Clip(min, max, node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+        if (table != NULL) {
+            op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+        } else {
+            TensorBase *min = fbs_model->get_operation_parameter(node_name, 1);
+            TensorBase *max = fbs_model->get_operation_parameter(node_name, 2);
+            assert(min->exponent == max->exponent);
+            op = new Clip(min, max, node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+        }
+
         return op;
     }
 
