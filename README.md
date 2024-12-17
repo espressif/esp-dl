@@ -1,5 +1,7 @@
 # ESP-DL [[中文]](./README_cn.md)
 
+[![Documentation Status](./docs/_static/doc_latest.svg)](https://docs.espressif.com/projects/esp-dl/en/latest/index.html)
+
 ESP-DL is a lightweight and efficient neural network inference framework designed specifically for ESP series chips. With ESP-DL, you can easily and quickly develop AI applications using Espressif's System on Chips (SoCs).
 
 ## Overview

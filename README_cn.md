@@ -1,5 +1,7 @@
 # ESP-DL [[English]](./README.md)
 
+[![Documentation Status](./docs/_static/doc_latest.svg)](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/index.html)
+
 ESP-DL 是一个专为 ESP 系列芯片设计的轻量级且高效的神经网络推理框架。通过 ESP-DL，您可以轻松快速地使用乐鑫的系统级芯片 (SoC) 开发 AI 应用。
 
 ## Overview
