@@ -87,7 +87,7 @@ public:
         TensorBase *table = fbs_model->get_operation_lut(node_name);
 
         // Create module
-        if (table != NULL) {
+        if (table != NULL && quant_type == QUANT_TYPE_SYMM_8BIT) {
             op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         } else {
             op = new Sqrt(node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
