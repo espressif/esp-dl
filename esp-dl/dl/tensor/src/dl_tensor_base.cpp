@@ -2,31 +2,32 @@
 #include "dl_base_pad.hpp"
 #include <iostream>
 namespace dl {
-template <>
-int8_t quantize<int8_t>(float input, float inv_scale)
+
+template <typename RT, typename T>
+RT quantize(T input, float inv_scale)
 {
     int output = tool::round(input * inv_scale);
-    output = DL_CLIP(output, DL_QUANT8_MIN, DL_QUANT8_MAX);
-    return output;
+    output = DL_CLIP(
+        output, sizeof(RT) == 1 ? DL_QUANT8_MIN : DL_QUANT16_MIN, sizeof(RT) == 1 ? DL_QUANT8_MAX : DL_QUANT16_MAX);
+    return static_cast<RT>(output);
 }
 
-template <>
-int16_t quantize<int16_t>(float input, float inv_scale)
+template int8_t quantize<int8_t, float>(float input, float scale);
+template int16_t quantize<int16_t, float>(float input, float scale);
+template int8_t quantize<int8_t, double>(double input, float scale);
+template int16_t quantize<int16_t, double>(double input, float scale);
+
+template <typename T, typename RT>
+RT dequantize(T input, float scale)
 {
-    int output = tool::round(input * inv_scale);
-    output = DL_CLIP(output, DL_QUANT16_MIN, DL_QUANT16_MAX);
+    RT output = static_cast<RT>(input) * scale;
     return output;
 }
 
-template <typename T>
-float dequantize(T input, float scale)
-{
-    float output = input * scale;
-    return output;
-}
-
-template float dequantize(int8_t input, float scale);
-template float dequantize(int16_t input, float scale);
+template float dequantize<int8_t, float>(int8_t input, float scale);
+template float dequantize<int16_t, float>(int16_t input, float scale);
+template double dequantize<int8_t, double>(int8_t input, float scale);
+template double dequantize<int16_t, double>(int16_t input, float scale);
 
 size_t dtype_sizeof(dtype_t dtype)
 {
@@ -184,7 +185,7 @@ bool TensorBase::assign(TensorBase *tensor)
         tool::copy_memory(this->data, tensor->data, this->get_bytes());
     } else if (tensor->dtype == DATA_TYPE_FLOAT) {
         float *src_data = (float *)tensor->data;
-        float inv_scale = 1.0 / (DL_SCALE(this->exponent));
+        float inv_scale = DL_RESCALE(this->exponent);
 
         if (this->dtype == DATA_TYPE_INT8) {
             int8_t *data = (int8_t *)this->data;
@@ -195,6 +196,23 @@ bool TensorBase::assign(TensorBase *tensor)
             int16_t *data = (int16_t *)this->data;
             for (int i = 0; i < this->get_size(); i++) {
                 data[i] = quantize<int16_t>(src_data[i], inv_scale);
+            }
+        } else {
+            return false;
+        }
+    } else if (tensor->dtype == DATA_TYPE_DOUBLE) {
+        double *src_data = (double *)tensor->data;
+        float inv_scale = DL_RESCALE(this->exponent);
+
+        if (this->dtype == DATA_TYPE_INT8) {
+            int8_t *data = (int8_t *)this->data;
+            for (int i = 0; i < this->get_size(); i++) {
+                data[i] = quantize<int8_t, double>(src_data[i], inv_scale);
+            }
+        } else if (this->dtype == DATA_TYPE_INT16) {
+            int16_t *data = (int16_t *)this->data;
+            for (int i = 0; i < this->get_size(); i++) {
+                data[i] = quantize<int16_t, double>(src_data[i], inv_scale);
             }
         } else {
             return false;
@@ -212,6 +230,23 @@ bool TensorBase::assign(TensorBase *tensor)
             int16_t *src_data = (int16_t *)tensor->data;
             for (int i = 0; i < this->get_size(); i++) {
                 data[i] = dequantize(src_data[i], scale);
+            }
+        } else {
+            return false;
+        }
+    } else if (this->dtype == DATA_TYPE_DOUBLE) {
+        double *data = (double *)this->data;
+        float scale = DL_SCALE(tensor->exponent);
+
+        if (tensor->dtype == DATA_TYPE_INT8 || tensor->dtype == DATA_TYPE_UINT8) {
+            int8_t *src_data = (int8_t *)tensor->data;
+            for (int i = 0; i < this->get_size(); i++) {
+                data[i] = dequantize<int8_t, double>(src_data[i], scale);
+            }
+        } else if (tensor->dtype == DATA_TYPE_INT16 || tensor->dtype == DATA_TYPE_UINT16) {
+            int16_t *src_data = (int16_t *)tensor->data;
+            for (int i = 0; i < this->get_size(); i++) {
+                data[i] = dequantize<int16_t, double>(src_data[i], scale);
             }
         } else {
             return false;
@@ -443,6 +478,52 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         this->data = dst_ptr;
     }
 #endif
+}
+
+void TensorBase::print(bool print_data)
+{
+    ESP_LOGI(__FUNCTION__,
+             "shape: %s, dtype: %s, exponent: %d, auto_free: %d",
+             shape_to_string(get_shape()).c_str(),
+             dtype_to_string(get_dtype()),
+             this->exponent,
+             this->auto_free);
+
+    if (this->data && print_data) {
+        ESP_LOGI(__FUNCTION__, "The data of TensorBase is:");
+        if (get_dtype() == DATA_TYPE_FLOAT) {
+            for (int i = 0; i < get_size(); i++) {
+                printf("%f, ", get_element<float>(i));
+                if ((i + 1) % 16 == 0) {
+                    printf("\n");
+                }
+            }
+        } else if (get_dtype() == DATA_TYPE_DOUBLE) {
+            for (int i = 0; i < get_size(); i++) {
+                printf("%f, ", get_element<double>(i));
+                if ((i + 1) % 16 == 0) {
+                    printf("\n");
+                }
+            }
+        } else if (get_dtype() == DATA_TYPE_INT8) {
+            for (int i = 0; i < get_size(); i++) {
+                printf("%d, ", get_element<int8_t>(i));
+                if ((i + 1) % 16 == 0) {
+                    printf("\n");
+                }
+            }
+        } else if (get_dtype() == DATA_TYPE_INT16) {
+            for (int i = 0; i < get_size(); i++) {
+                printf("%d, ", get_element<int16_t>(i));
+                if ((i + 1) % 16 == 0) {
+                    printf("\n");
+                }
+            }
+        } else {
+            ESP_LOGE(__FUNCTION__, "The dtype don't support now!");
+        }
+        printf("\n");
+    }
 }
 
 TensorBase &TensorBase::reshape(std::vector<int> shape)

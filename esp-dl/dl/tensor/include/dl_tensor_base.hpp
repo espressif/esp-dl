@@ -36,14 +36,14 @@ typedef enum {
 /**
  * quantize float data into integer data
  */
-template <typename T>
-T quantize(float input, float inv_scale);
+template <typename RT, typename T = float>
+RT quantize(T input, float inv_scale);
 
 /**
  * @brief dequantize integer data into float data
  */
-template <typename T>
-float dequantize(T input, float scale);
+template <typename T, typename RT = float>
+RT dequantize(T input, float scale);
 
 /**
  * @brief Return the bytes of data type
@@ -454,5 +454,12 @@ public:
      *
      */
     void reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise);
+
+    /**
+     * @brief print the information of TensorBase
+     *
+     * @param print_data Whether print the data
+     */
+    virtual void print(bool print_data = false);
 };
 } // namespace dl
