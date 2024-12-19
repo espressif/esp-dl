@@ -1406,6 +1406,22 @@
         input_weight_shape = [7, 1, 10, 35]
 
 
+    [ops_test.Split]
+    class_name = "SPLIT_TEST"
+    quant_bits = ["int8", "int16"]
+        [[ops_test.Split.cfg]]
+        input_shape = [1, 10, 2, 5]
+        export_name_prefix = "Split_ishape_1_10_2_5_split_size_3_dim_1"
+        split_size_or_sections = 3
+        dim = 1
+
+        [[ops_test.Split.cfg]]
+        input_shape = [1, 4, 20, 5, 10]
+        export_name_prefix = "Split_ishape_1_4_20_5_10_split_size_5_4_5_3_3_dim_2"
+        split_size_or_sections = [5, 4, 5, 3, 3]
+        dim = 2
+
+
 [models_test]
     [models_test.picodet]
         input_shape = [1, 3, 224, 224]

@@ -96,6 +96,7 @@ class BaseInferencer:
             export_test_values=True,
             export_config=True,
             verbose=1,
+            int16_lut_step=1,
         )
 
     def load_calibration_dataset(self) -> Iterable:
