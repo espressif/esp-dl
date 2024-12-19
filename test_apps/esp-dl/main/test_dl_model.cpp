@@ -19,7 +19,9 @@ void compare_test_outputs(Model *model, std::map<std::string, TensorBase *> infe
 
     fbs::FbsModel *fbs_model_instance = model->get_fbs_model();
     fbs_model_instance->load_map();
+    int i = 0;
     for (auto iter = infer_outputs.begin(); iter != infer_outputs.end(); iter++) {
+        ESP_LOGI(TAG, "output index: %d", i++);
         std::string infer_output_name = iter->first;
         TensorBase *infer_output = iter->second;
         if (infer_output) {

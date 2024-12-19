@@ -26,6 +26,7 @@
 #include "dl_module_sigmoid.hpp"
 #include "dl_module_slice.hpp"
 #include "dl_module_softmax.hpp"
+#include "dl_module_split.hpp"
 #include "dl_module_sqrt.hpp"
 #include "dl_module_squeeze.hpp"
 #include "dl_module_sub.hpp"
@@ -129,6 +130,7 @@ public:
             this->register_module("Slice", Slice::deserialize);
             this->register_module("Pad", Pad::deserialize);
             this->register_module("MatMul", MatMul::deserialize);
+            this->register_module("Split", Split::deserialize);
         }
     }
 

@@ -457,6 +457,19 @@ class MATMUL_TEST(nn.Module):
         return output
 
 
+class SPLIT_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        input = nn.ReLU()(input)
+        output = torch.split(
+            input, self.config["split_size_or_sections"], self.config["dim"]
+        )
+        return output
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 
