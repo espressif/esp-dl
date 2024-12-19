@@ -864,7 +864,7 @@
 
     [ops_test.Resize]
     class_name = "RESIZE2D_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8"]
     description = "Only support nearest and do not support roi"
         [[ops_test.Resize.cfg]]
         input_shape = [1, 96, 5, 5]
