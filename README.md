@@ -1,6 +1,6 @@
 # ESP-DL [[中文]](./README_cn.md)
 
-[![Documentation Status](./docs/_static/doc_latest.svg)](https://docs.espressif.com/projects/esp-dl/en/latest/index.html)
+[![Documentation Status](./docs/_static/doc_latest.svg)](https://docs.espressif.com/projects/esp-dl/en/latest/index.html)  [![Component Registry](https://components.espressif.com/components/espressif/esp-dl/badge.svg)](https://components.espressif.com/components/espressif/esp-dl)
 
 ESP-DL is a lightweight and efficient neural network inference framework designed specifically for ESP series chips. With ESP-DL, you can easily and quickly develop AI applications using Espressif's System on Chips (SoCs).
 
@@ -40,7 +40,7 @@ pip install git+https://github.com/espressif/esp-ppq.git
 First, please refer to the [ESP-DL Operator Support State](./operator_support_state.md) to ensure that the operators in your model are already supported.  
 
 ESP-PPQ can directly read ONNX models for quantization. Pytorch and TensorFlow need to be converted to ONNX models first, so make sure your model can be converted to ONNX models.  
-We provide the following python script templates. Please select the appropriate template to quantize your models. For more details about quantization, please refer to [tutorial/how_to_quantize_model](./tutorial/how_to_quantize_model_en.md).  
+We provide the following python script templates. Please select the appropriate template to quantize your models. For more details about quantization, please refer to [Using ESP-PPQ for Model Quantization](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_quantize_model.html).  
 
 [quantize_onnx_model.py](./tools/quantization/quantize_onnx_model.py): Quantize ONNX models
 
@@ -61,7 +61,7 @@ Model *model = new Model((const char *)espdl_model, fbs::MODEL_LOCATION_IN_FLASH
 model->run(inputs); // inputs is a tensor or a map of tensors
 ```
 
-For more details, please refer to [tutorial/how_to_load_model](./tutorial/how_to_load_model_en.md) and [mobilenet_v2 examples](./examples/mobilenet_v2/)
+For more details, please refer to [Loading Models with ESP-DL](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_load_model.html) and [mobilenet_v2 examples](./examples/mobilenet_v2/)
 
 
 ## Support Models
@@ -74,6 +74,6 @@ For more details, please refer to [tutorial/how_to_load_model](./tutorial/how_to
 
 ## Suport Operators
 
-If you encounter unsupported operators, please point them out in the [issues](https://github.com/espressif/esp-dl/issues), and we will support them as soon as possible. Contributions to this ESPDL are also welcomed.
+If you encounter unsupported operators, please point them out in the [issues](https://github.com/espressif/esp-dl/issues), and we will support them as soon as possible. Contributions to this ESP-DL are also welcomed, please refer to [Creating a New Module (Operator)](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_add_a_new_module%28operator%29.html) for more details.
 
 [ESP-DL Operator Support State](./operator_support_state.md)

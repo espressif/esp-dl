@@ -1,6 +1,6 @@
 # ESP-DL [[English]](./README.md)
 
-[![Documentation Status](./docs/_static/doc_latest.svg)](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/index.html)
+[![Documentation Status](./docs/_static/doc_latest.svg)](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/index.html)    [![Component Registry](https://components.espressif.com/components/espressif/esp-dl/badge.svg)](https://components.espressif.com/components/espressif/esp-dl)
 
 ESP-DL 是一个专为 ESP 系列芯片设计的轻量级且高效的神经网络推理框架。通过 ESP-DL，您可以轻松快速地使用乐鑫的系统级芯片 (SoC) 开发 AI 应用。
 
@@ -40,7 +40,7 @@ pip install git+https://github.com/espressif/esp-ppq.git
 
 ESP-PPQ 可以直接读取 ONNX 模型进行量化。Pytorch 和 TensorFlow 需要先转换为 ONNX 模型，因此请确保你的模型可以转换为 ONNX 模型。
 
-我们提供了以下 Python 脚本模板。你可以根据你自己的模型选择合适的模板进行修改。更多详细信息请参阅 [tutorial/how_to_quantize_model](./tutorial/how_to_quantize_model_cn.md)。  
+我们提供了以下 Python 脚本模板。你可以根据你自己的模型选择合适的模板进行修改。更多详细信息请参阅 [使用 ESP-PPQ 量化模型](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_quantize_model.html)。  
 
 [quantize_onnx_model.py](./tools/quantization/quantize_onnx_model.py): 量化 ONNX 模型
 
@@ -60,7 +60,7 @@ Model *model = new Model((const char *)espdl_model, fbs::MODEL_LOCATION_IN_FLASH
 model->run(inputs); // inputs 是一个张量或张量映射
 ```
 
-更多详细信息，请参阅 [tutorial/how_to_load_model](./tutorial/how_to_load_model_cn.md) 和 [mobilenet_v2 示例](./examples/mobilenet_v2/)。
+更多详细信息，请参阅 [使用 ESP-DL 加载模型](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_load_model.html) 和 [mobilenet_v2 示例](./examples/mobilenet_v2/)。
 
 
 ## Support models
@@ -73,6 +73,6 @@ model->run(inputs); // inputs 是一个张量或张量映射
 ## Suport Operators
 
 如果你有遇到不支持的算子，请将问题在[issues](https://github.com/espressif/esp-dl/issues)中反馈给我们，我们会尽快支持。  
-也欢迎大家贡献新的算子。
+也欢迎大家贡献新的算子, 具体方法请参考[创建新模块（算子）](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_add_a_new_module%28operator%29.html)。
 
 [算子支持状态](./operator_support_state.md)

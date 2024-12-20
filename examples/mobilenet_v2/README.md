@@ -6,7 +6,7 @@
 
 Deploy [MobileNet_v2](https://arxiv.org/abs/1801.04381) model from [torchvision](https://pytorch.org/vision/0.18/models/generated/torchvision.models.mobilenet_v2.html).
 
-See [tutotial/how_to_deploy_mobilenet_v2](../../tutorial/how_to_deploy_mobilenet_v2_en.md) for more information.
+See [Deploying MobileNet_v2 Using ESP-DL](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_mobilenet.html) for more information.
 
 # Example Output
 After the flashing you should see the output at idf monitor:
