@@ -56,8 +56,8 @@ public:
      *                                     The address of model data while location is MODEL_LOCATION_IN_FLASH_RODATA.
      *                                     The label of partition while location is MODEL_LOCATION_IN_FLASH_PARTITION.
      *                                     The path of model while location is MODEL_LOCATION_IN_SDCARD.
-     * @param location      The model location.
      * @param model_index   The model index of packed models.
+     * @param location      The model location.
      * @param internal_size  Internal ram size, in bytes
      * @param mm_type        Type of memory manager
      * @param key           The key of encrypted model.
@@ -76,8 +76,8 @@ public:
      *                                     The address of model data while location is MODEL_LOCATION_IN_FLASH_RODATA.
      *                                     The label of partition while location is MODEL_LOCATION_IN_FLASH_PARTITION.
      *                                     The path of model while location is MODEL_LOCATION_IN_SDCARD.
-     * @param location      The model location.
      * @param model_name   The model name of packed models.
+     * @param location      The model location.
      * @param internal_size  Internal ram size, in bytes
      * @param mm_type        Type of memory manager
      * @param key           The key of encrypted model.

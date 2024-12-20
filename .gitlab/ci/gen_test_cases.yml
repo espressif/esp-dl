@@ -28,11 +28,11 @@ gen_espdl_ops_cases:
       - IMAGE: [python:3.11]
         TORCH: ["torch==2.5.0"]
         TARGET: [esp32p4]
-        BITS: [8]
+        BITS: [8, 16]
       - IMAGE: [python:3.10]
         TORCH: [torch]
         TARGET: [esp32s3]
-        BITS: [8]
+        BITS: [8, 16]
   variables:
     MODEL_PATH: test_apps/esp-dl/models
     CONFIG_FILE: tools/ops_test/config/op_cfg.toml

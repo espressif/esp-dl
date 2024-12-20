@@ -90,11 +90,15 @@ public:
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
         fbs_model->get_operation_attribute(node_name, "alpha", alpha);
         fbs_model->get_operation_attribute(node_name, "beta", beta);
-        TensorBase *table = fbs_model->get_operation_lut(node_name);
 
         // Create module
-        if (table != NULL) {
-            op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+        if (quant_type == QUANT_TYPE_SYMM_8BIT) {
+            TensorBase *table = fbs_model->get_operation_lut(node_name);
+            if (table) {
+                op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            } else {
+                op = new HardSigmoid(node_name.c_str(), alpha, beta, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            }
         } else {
             op = new HardSigmoid(node_name.c_str(), alpha, beta, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }

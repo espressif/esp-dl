@@ -27,9 +27,18 @@ void compare_test_outputs(Model *model, std::map<std::string, TensorBase *> infe
         if (infer_output) {
             TensorBase *ground_truth_tensor = fbs_model_instance->get_test_output_tensor(infer_output_name, true);
             TEST_ASSERT_EQUAL_MESSAGE(true, ground_truth_tensor != nullptr, "The test output tensor is not found");
-            TEST_ASSERT_EQUAL_MESSAGE(true,
-                                      infer_output->equal(ground_truth_tensor, 1e-5, true),
-                                      "The output tensor is not equal to the ground truth");
+            if (ground_truth_tensor->get_dtype() == DATA_TYPE_INT16 ||
+                ground_truth_tensor->get_dtype() == DATA_TYPE_UINT16) {
+                // The int16 quantization cannot be fully aligned, and there may be rounding errors of +-1.
+                TEST_ASSERT_EQUAL_MESSAGE(true,
+                                          infer_output->equal(ground_truth_tensor, 1 + 1e-5, true),
+                                          "The output tensor is not equal to the ground truth");
+            } else {
+                TEST_ASSERT_EQUAL_MESSAGE(true,
+                                          infer_output->equal(ground_truth_tensor, 1e-5, true),
+                                          "The output tensor is not equal to the ground truth");
+            }
+
             delete ground_truth_tensor;
         }
     }

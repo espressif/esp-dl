@@ -459,6 +459,7 @@ public:
      * @brief print the information of TensorBase
      *
      * @param print_data Whether print the data
+     * @return This function does not return any value.
      */
     virtual void print(bool print_data = false);
 };
