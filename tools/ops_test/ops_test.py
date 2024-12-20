@@ -71,6 +71,34 @@ class ADD2D_TEST(nn.Module):
         return output
 
 
+class ADD4D_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+
+    def forward(self, input1, input2):
+        output = input1 + input2
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
+class SUB4D_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+
+    def forward(self, input1, input2):
+        output = input1 - input2
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
 class MUL2D_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -80,6 +108,48 @@ class MUL2D_TEST(nn.Module):
 
     def forward(self, input1, input2):
         output = input1 * input2
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
+class MUL4D_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+
+    def forward(self, input1, input2):
+        output = input1 * input2
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
+class DIV_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+
+    def forward(self, input1, input2):
+        output = input1 / input2
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
+class EQUAL4D_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+
+    def forward(self, input1, input2):
+        output = torch.eq(input1, input2)
         if hasattr(self, "act"):
             output = self.act(output)
         return output
@@ -356,6 +426,48 @@ class PAD_TEST(nn.Module):
     def forward(self, input):
         input = nn.ReLU()(input)
         return F.pad(input, self.pads, self.config["mode"], self.config["const_value"])
+
+
+class MATMUL_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["activation_func"] == "ReLU":
+            self.act = nn.ReLU()
+        if config["input1_is_weight"] and config["input_weight_shape"]:
+            self.static_weight = nn.Parameter(
+                torch.randn(size=config["input_weight_shape"])
+            )
+
+    def forward(self, input1, *args):
+        # By applying squeeze, the input is transformed to adapt the dimensions of matmul.
+        input1 = torch.squeeze(input1, 0)
+        input2 = None
+        if len(args) > 0:
+            input2 = args[0]
+            input2 = torch.squeeze(input2, 0)
+        elif hasattr(self, "static_weight"):
+            input2 = self.static_weight
+        else:
+            raise ValueError("Config of MatMul is error.")
+
+        output = torch.matmul(input1, input2)
+        if hasattr(self, "act"):
+            output = self.act(output)
+        return output
+
+
+class SPLIT_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        input = nn.ReLU()(input)
+        output = torch.split(
+            input, self.config["split_size_or_sections"], self.config["dim"]
+        )
+        return output
 
 
 if __name__ == "__main__":

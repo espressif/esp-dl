@@ -1,87 +1,4 @@
-# TODO: put "result process" to "dl_tie728_s16.S" like "dl_tie728_s8.S" do
-############################################################################################################################################################
-# result process
-############################################################################################################################################################
-.macro tie728_s16_depthwise_conv2d_shift_bias_relu_store output_v output_ptr mac_shift bias_v bias_ptr activation_alpha activation_shift
-    EE.VLD.128.IP \bias_v, \bias_ptr, 16 # load bias
-    EE.SRCMB.S16.QACC \output_v, \mac_shift, 0        # QACC -> QR without round, roud operation is wrong in this instruction
-
-    # bias
-    EE.VADDS.S16 \output_v, \output_v, \bias_v
-
-    # LeakyReLU
-    EE.VRELU.S16 \output_v, \activation_alpha, \activation_shift
-
-    # store
-    EE.VST.128.IP \output_v, \output_ptr, 16
-.endm
-
-
-
-.macro tie728_s16_depthwise_conv2d_shift_bias_prelu_store output_v output_ptr mac_shift bias_v bias_ptr activation_v activation_alpha_ptr activation_shift
-    EE.VLD.128.IP   \bias_v,     \bias_ptr,    16 # load bias
-    EE.VLD.128.IP   \activation_v,    \activation_alpha_ptr,   16 # load PReLU alph
-    EE.SRCMB.S16.QACC \output_v, \mac_shift, 0        # QACC -> QR without round, roud operation is wrong in this instruction
-
-    # bias
-    EE.VADDS.S16 \output_v, \output_v, \bias_v
-
-    # PReLU
-    EE.VPRELU.S16 \output_v, \output_v, \activation_v, \activation_shift
-
-    # store
-    EE.VST.128.IP \output_v, \output_ptr, 16
-.endm
-
-
-
-.macro tie728_s16_depthwise_conv2d_shift_bias_store output_v output_ptr mac_shift bias_v bias_ptr
-    EE.VLD.128.IP   \bias_v,     \bias_ptr,    16 # load bias
-    EE.SRCMB.S16.QACC \output_v, \mac_shift, 0        # QACC -> QR without round, roud operation is wrong in this instruction
-
-    # bias
-    EE.VADDS.S16 \output_v, \output_v, \bias_v
-
-    # store
-    EE.VST.128.IP \output_v, \output_ptr, 16
-.endm
-
-
-
-.macro tie728_s16_depthwise_conv2d_shift_relu_store output_v output_ptr mac_shift activation_alpha activation_shift
-    EE.SRCMB.S16.QACC \output_v, \mac_shift, 0        # QACC -> QR without round, roud operation is wrong in this instruction
-
-    # LeakyReLU
-    EE.VRELU.S16 \output_v, \activation_alpha, \activation_shift
-
-    # store
-    EE.VST.128.IP \output_v, \output_ptr, 16
-.endm
-
-
-
-.macro tie728_s16_depthwise_conv2d_shift_prelu_store output_v output_ptr mac_shift activation_v activation_alpha_ptr activation_shift
-    EE.VLD.128.IP   \activation_v,    \activation_alpha_ptr,   16 # load PReLU alph
-    EE.SRCMB.S16.QACC \output_v, \mac_shift, 0        # QACC -> QR without round, roud operation is wrong in this instruction
-
-    # PReLU
-    EE.VPRELU.S16 \output_v, \output_v, \activation_v, \activation_shift
-
-    # store
-    EE.VST.128.IP \output_v, \output_ptr, 16
-.endm
-
-
-
-.macro tie728_s16_depthwise_conv2d_shift_store output_v output_ptr mac_shift
-    EE.SRCMB.S16.QACC \output_v, \mac_shift, 0        # QACC -> QR without round, roud operation is wrong in this instruction
-
-    # store
-    EE.VST.128.IP \output_v, \output_ptr, 16
-.endm
-
-
-
+#include "dl_tie728_s16.S"
 
 
 ############################################################################################################################################################
@@ -94,7 +11,7 @@
     # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T)
     # next_hw81 = (-(filter_width - 1) * dilation_x * input_channel_with_padding - (filter_height - 1) * dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T) + 16
 
-    EE.ZERO.QACC
+    # EE.ZERO.QACC
 
     EE.VMULAS.S16.QACC.LD.IP \filter_v1, \filter_ptr, 16, \input_v0, \filter_v0
     EE.VLD.128.XP            \input_v2,  \input_ptr,  \dilation_y_offset
@@ -130,7 +47,7 @@
     # dilation_x_offset = input_channel_with_padding * dilation_x * sizeof(T)
     # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T)
 
-    EE.ZERO.QACC
+    # EE.ZERO.QACC
 
     EE.VMULAS.S16.QACC.LD.IP    \filter_v1, \filter_ptr, 16, \input_v0, \filter_v0
     EE.VLD.128.XP               \input_v0,  \input_ptr,  \dilation_y_offset
@@ -210,11 +127,17 @@ dl_tie728_s16_depthwise_conv2d_33c1_bias:
     EE.VLD.128.XP q2, a3, a6
 
     loopgtz a9, 1f
+    EE.ZERO.QACC
+    tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-    tie728_s16_depthwise_conv2d_shift_bias_store q3, a2, a10, q4, a11
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    EE.VST.128.IP  q3, a2, 16
 1:
+    EE.ZERO.QACC
+    tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_depthwise_conv2d_3381_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s16_depthwise_conv2d_shift_bias_store q3, a2, a10, q4, a11
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    EE.VST.128.IP  q3, a2, 16
 
     retw
 
@@ -255,11 +178,19 @@ dl_tie728_s16_depthwise_conv2d_33c1_bias_relu:
     EE.VLD.128.XP q2, a3, a6
 
     loopgtz a9, 1f
+    EE.ZERO.QACC
+    tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-    tie728_s16_depthwise_conv2d_shift_bias_relu_store q3, a2, a10, q4, a11, a12, a13
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    tie728_s16_conv2d_relu  q3, a12, a13
+    EE.VST.128.IP  q3, a2, 16
 1:
+    EE.ZERO.QACC
+    tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_depthwise_conv2d_3381_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s16_depthwise_conv2d_shift_bias_relu_store q3, a2, a10, q4, a11, a12, a13
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    tie728_s16_conv2d_relu  q3, a12, a13
+    EE.VST.128.IP  q3, a2, 16
 
     retw
 
@@ -300,11 +231,19 @@ dl_tie728_s16_depthwise_conv2d_33c1_bias_prelu:
     EE.VLD.128.XP q2, a3, a6
 
     loopgtz a9, 1f
+    EE.ZERO.QACC
+    tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-    tie728_s16_depthwise_conv2d_shift_bias_prelu_store q3, a2, a10, q4, a11, q5, a12, a13
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    tie728_s16_conv2d_prelu  q3, q5, a12, a13
+    EE.VST.128.IP  q3, a2, 16
 1:
+    EE.ZERO.QACC
+    tie728_s16_conv2d_128b_vector_bias  a11
     tie728_s16_depthwise_conv2d_3381_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s16_depthwise_conv2d_shift_bias_prelu_store q3, a2, a10, q4, a11, q5, a12, a13
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    tie728_s16_conv2d_prelu  q3, q5, a12, a13
+    EE.VST.128.IP  q3, a2, 16
 
     retw
 
@@ -344,11 +283,15 @@ dl_tie728_s16_depthwise_conv2d_33c1:
     EE.VLD.128.XP q2, a3, a6
 
     loopgtz a9, 1f
+    EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-    tie728_s16_depthwise_conv2d_shift_store q3, a2, a10
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    EE.VST.128.IP  q3, a2, 16
 1:
+    EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_3381_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s16_depthwise_conv2d_shift_store q3, a2, a10
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    EE.VST.128.IP  q3, a2, 16
 
     retw
 
@@ -389,11 +332,17 @@ dl_tie728_s16_depthwise_conv2d_33c1_relu:
     EE.VLD.128.XP q2, a3, a6
 
     loopgtz a9, 1f
+    EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-    tie728_s16_depthwise_conv2d_shift_relu_store q3, a2, a10, a12, a13
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    tie728_s16_conv2d_relu  q3, a12, a13
+    EE.VST.128.IP  q3, a2, 16
 1:
+    EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_3381_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s16_depthwise_conv2d_shift_relu_store q3, a2, a10, a12, a13
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    tie728_s16_conv2d_relu  q3, a12, a13
+    EE.VST.128.IP  q3, a2, 16
 
     retw
 
@@ -434,11 +383,17 @@ dl_tie728_s16_depthwise_conv2d_33c1_prelu:
     EE.VLD.128.XP q2, a3, a6
 
     loopgtz a9, 1f
+    EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_3381 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8
-    tie728_s16_depthwise_conv2d_shift_prelu_store q3, a2, a10, q4, a12, a13
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    tie728_s16_conv2d_prelu  q3, q4, a12, a13
+    EE.VST.128.IP  q3, a2, 16
 1:
+    EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_3381_last q0, q1, q2, q3, a3, a5, a6, a7
-    tie728_s16_depthwise_conv2d_shift_prelu_store q3, a2, a10, q4, a12, a13
+    tie728_s16_vector_round_result  q3, a10, a15, q6
+    tie728_s16_conv2d_prelu  q3, q4, a12, a13
+    EE.VST.128.IP  q3, a2, 16
 
     retw
 
@@ -517,7 +472,7 @@ dl_tie728_s16_depthwise_conv2d_33c1_prelu:
     # filter_w_rs1_1
 
 
-    EE.ZERO.QACC
+    # EE.ZERO.QACC
 
     l32i \filter_h, \args, 52  # filter_height
 
@@ -602,8 +557,11 @@ dl_tie728_s16_depthwise_conv2d_hwc1_bias:
     # l32i a15, a4,  84  // activation_shift
 
 tie728_s16_depthwise_conv2d_hwc1_bias_loop:
+    EE.ZERO.QACC
+    tie728_s16_conv2d_128b_vector_bias  a14
     tie728_s16_depthwise_conv2d_hw81 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
-    tie728_s16_depthwise_conv2d_shift_bias_store q0, a2, a10, q1, a14
+    tie728_s16_vector_round_result  q0, a10, a11, q6
+    EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
     bgez a9, tie728_s16_depthwise_conv2d_hwc1_bias_loop
@@ -651,10 +609,14 @@ dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu:
 
 tie728_s16_depthwise_conv2d_hwc1_bias_relu_loop:
     EE.MOVI.32.A q7, a10, 1
+    EE.ZERO.QACC
+    tie728_s16_conv2d_128b_vector_bias  a14
     tie728_s16_depthwise_conv2d_hw81 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a10
-    l32i a11, a4,  84  // activation_shift
     EE.MOVI.32.A q7, a10, 3
-    tie728_s16_depthwise_conv2d_shift_bias_relu_store q0, a2, a10, q1, a14, a15, a11
+    tie728_s16_vector_round_result  q0, a10, a11, q6
+    l32i a11, a4,  84  // activation_shift
+    tie728_s16_conv2d_relu  q0, a15, a11
+    EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
     bgez a9, tie728_s16_depthwise_conv2d_hwc1_bias_relu_loop
@@ -701,10 +663,14 @@ dl_tie728_s16_depthwise_conv2d_hwc1_bias_prelu:
 
 tie728_s16_depthwise_conv2d_hwc1_bias_prelu_loop:
     EE.MOVI.32.A q7, a10, 1
+    EE.ZERO.QACC
+    tie728_s16_conv2d_128b_vector_bias  a14
     tie728_s16_depthwise_conv2d_hw81 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a10
-    l32i a11, a4,  84  // activation_shift
     EE.MOVI.32.A q7, a10, 3
-    tie728_s16_depthwise_conv2d_shift_bias_prelu_store q0, a2, a10, q1, a14, q2, a15, a11
+    tie728_s16_vector_round_result  q0, a10, a11, q6
+    l32i a11, a4,  84  // activation_shift
+    tie728_s16_conv2d_prelu  q0, q2, a15, a11
+    EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
     bgez a9, tie728_s16_depthwise_conv2d_hwc1_bias_prelu_loop
@@ -732,7 +698,7 @@ dl_tie728_s16_depthwise_conv2d_hwc1:
     # a8: next_hw81
     # a9: c_div_x_1
     # a10: mac_shift
-    # a11: filter_h, bias_ptr
+    # a11: filter_h
     # a12: filter_w
     # a13: filter_w_rs1_1
     # a14:
@@ -748,9 +714,10 @@ dl_tie728_s16_depthwise_conv2d_hwc1:
     # l32i a15, a4,  84  // activation_shift
 
 tie728_s16_depthwise_conv2d_hwc1_loop:
+    EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_hw81 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
-    # l32i a11, a4, 68  // bias_ptr
-    tie728_s16_depthwise_conv2d_shift_store q0, a2, a10
+    tie728_s16_vector_round_result  q0, a10, a11, q6
+    EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
     bgez a9, tie728_s16_depthwise_conv2d_hwc1_loop
@@ -778,7 +745,7 @@ dl_tie728_s16_depthwise_conv2d_hwc1_relu:
     # a8: next_hw81
     # a9: c_div_x_1
     # a10: mac_shift
-    # a11: filter_h, bias_ptr
+    # a11: filter_h
     # a12: filter_w
     # a13: filter_w_rs1_1
     # a14: activation_alpha
@@ -798,10 +765,12 @@ dl_tie728_s16_depthwise_conv2d_hwc1_relu:
 
 tie728_s16_depthwise_conv2d_hwc1_relu_loop:
     EE.MOVI.32.A q7, a10, 1
+    EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_hw81 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a10
-    # l32i a11, a4, 68  // bias_ptr
     EE.MOVI.32.A q7, a10, 3
-    tie728_s16_depthwise_conv2d_shift_relu_store q0, a2, a10, a14, a15
+    tie728_s16_vector_round_result  q0, a10, a11, q6
+    tie728_s16_conv2d_relu  q0, a14, a15
+    EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
     bgez a9, tie728_s16_depthwise_conv2d_hwc1_relu_loop
@@ -849,10 +818,12 @@ dl_tie728_s16_depthwise_conv2d_hwc1_prelu:
 
 tie728_s16_depthwise_conv2d_hwc1_prelu_loop:
     EE.MOVI.32.A q7, a10, 1
+    EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_hw81 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a10
-    # l32i a11, a4, 68  // bias_ptr
     EE.MOVI.32.A q7, a10, 3
-    tie728_s16_depthwise_conv2d_shift_prelu_store q0, a2, a10, q1, a14, a15
+    tie728_s16_vector_round_result  q0, a10, a11, q6
+    tie728_s16_conv2d_prelu  q0, q1, a14, a15
+    EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
     bgez a9, tie728_s16_depthwise_conv2d_hwc1_prelu_loop

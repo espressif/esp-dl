@@ -1,5 +1,6 @@
 variables:
   DOCKER_TARGET_TEST_v5_3_ENV_IMAGE: "$CI_DOCKER_REGISTRY/target-test-env-v5.4:1"
+  TEST_CASE_CONFIG: "tools/ops_test/config/op_cfg.toml"
 
 .test_template: &test_template
   image: DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
@@ -50,7 +51,7 @@ variables:
     TEST_FOLDER: test_apps/esp-dl/pytest_espdl_ops.py
   script:
     - pip install -r test_apps/requirements.txt
-    - python test_apps/esp-dl/gen_op_test.py test_apps/esp-dl/models --pytest_file ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} 
+    - python test_apps/esp-dl/gen_op_test.py -c ${TEST_CASE_CONFIG} --pytest_file ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} 
     - pytest ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} --model ${TEST_MODEL} --junitxml=XUNIT_RESULT.xml
 
 .pytest_api_template:

@@ -99,16 +99,7 @@ public:
         }
 
         // Create module
-        op = new Pad(pads_index,
-                     padding_mode,
-                     constant_value,
-#if CONFIG_DL_DEBUG
-                     node_name.c_str(),
-#else
-                     nullptr,
-#endif
-                     MODULE_NON_INPLACE,
-                     quant_type);
+        op = new Pad(pads_index, padding_mode, constant_value, node_name.c_str(), MODULE_NON_INPLACE, quant_type);
 
         delete pads;
         return op;

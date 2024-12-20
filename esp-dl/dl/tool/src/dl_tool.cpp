@@ -33,8 +33,8 @@ int round_half_even(float value)
     }
 
     int int_part = (int)rounded;
-    if (rounded == (float)int_part) {
-        if (int_part % 2 != 0) {
+    if (fabsf(rounded - int_part) < 1e-6) {
+        if ((int_part & 1) != 0) {
             if (value < 0)
                 int_part++;
             else
@@ -45,22 +45,93 @@ int round_half_even(float value)
 #endif
 }
 
+int round_half_even(double value)
+{
+    double rounded;
+    if (value < 0) {
+        rounded = value - 0.5;
+    } else {
+        rounded = value + 0.5;
+    }
+
+    int int_part = (int)rounded;
+    if (fabs(rounded - int_part) < 1e-6) {
+        if ((int_part & 1) != 0) {
+            if (value < 0)
+                int_part++;
+            else
+                int_part--;
+        }
+    }
+    return int_part;
+}
+
 int round_half_up(float value)
 {
     return (int)floorf(value + 0.5);
 }
 
-int round_down(float value)
+int round_half_up(double value)
 {
-    return (int)floorf(value);
+    return (int)floor(value + 0.5);
 }
 
-int round(float value)
+template <typename T>
+int round(T value)
 {
 #if CONFIG_IDF_TARGET_ESP32P4
     return round_half_even(value);
 #else
     return round_half_up(value);
+#endif
+}
+
+template int round(float value);
+template int round(double value);
+
+int shift_and_round_half_even(int value, int shift)
+{
+    int shifted = 0;
+
+    if (shift <= 0) {
+        shifted = value << -shift;
+    } else {
+        shifted = value >> shift;
+        int remainder = value & ((1 << shift) - 1);
+        int half = 1 << (shift - 1);
+
+        if (remainder > half) {
+            shifted += 1;
+        } else if (remainder == half) {
+            if ((shifted & 1) != 0) {
+                shifted += 1;
+            }
+        }
+    }
+
+    return shifted;
+}
+
+int shift_and_round_half_up(int value, int shift)
+{
+    int shifted = 0;
+
+    if (shift <= 0) {
+        shifted = value << -shift;
+    } else {
+        int half = 1 << (shift - 1);
+        shifted = (value + half) >> shift;
+    }
+
+    return shifted;
+}
+
+int shift_and_round(int value, int shift)
+{
+#if CONFIG_IDF_TARGET_ESP32P4
+    return shift_and_round_half_even(value, shift);
+#else
+    return shift_and_round_half_up(value, shift);
 #endif
 }
 

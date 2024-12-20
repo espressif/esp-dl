@@ -42,6 +42,9 @@ public:
         std::vector<int> output_shape;
 
         for (int i = 0; i < input_shapes[0].size(); i++) {
+            if (m_perm[i] < 0) {
+                m_perm[i] = m_perm.size() + m_perm[i];
+            }
             output_shape.push_back(input_shapes[0][m_perm[i]]);
         }
 
@@ -73,15 +76,7 @@ public:
         fbs_model->get_operation_attribute(node_name, "perm", perm);
 
         // Create module
-        op = new Transpose(
-#if CONFIG_DL_DEBUG
-            node_name.c_str(),
-#else
-            nullptr,
-#endif
-            MODULE_NON_INPLACE,
-            quant_type,
-            perm);
+        op = new Transpose(node_name.c_str(), MODULE_NON_INPLACE, quant_type, perm);
         return op;
     }
 

@@ -104,28 +104,17 @@ public:
         Module *op = nullptr;
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
-        TensorBase *table = fbs_model->get_operation_lut(node_name, fbs_model->m_param_copy);
 
         // Create module
-        if (table != NULL) {
-            op = new LUT(
-#if CONFIG_DL_DEBUG
-                node_name.c_str(),
-#else
-                nullptr,
-#endif
-                table,
-                MODULE_INPLACE_CHANGED_BUFFER,
-                quant_type);
+        if (quant_type == QUANT_TYPE_SYMM_8BIT) {
+            TensorBase *table = fbs_model->get_operation_lut(node_name, fbs_model->m_param_copy);
+            if (table) {
+                op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            } else {
+                op = new Relu(node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            }
         } else {
-            op = new Relu(
-#if CONFIG_DL_DEBUG
-                node_name.c_str(),
-#else
-                nullptr,
-#endif
-                MODULE_INPLACE_CHANGED_BUFFER,
-                quant_type);
+            op = new Relu(node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }
 
         return op;

@@ -140,43 +140,51 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
         std::vector<std::vector<int>> output_shapes = module->get_output_shape(input_shapes);
         if ((module->inplace == MODULE_INPLACE_UNCHANGED_BUFFER || module->inplace == MODULE_INPLACE_CHANGED_BUFFER) &&
             op_outputs.size() == 1) {
-            // inplace, assign first input tensor as output tensor
-            // TODO:: more accuracy inplace position
-            auto iter = name2index.find(op_inputs[0]);
-            if (iter != name2index.end()) {
-                std::string name = op_outputs[0];
-                TensorInfo *inplace_tensor = tensor_info[iter->second];
-                TensorInfo *info = new TensorInfo(name,
-                                                  i,
-                                                  -1,
-                                                  output_shapes[0],
-                                                  fbs_model->get_value_info_dtype(name),
-                                                  fbs_model->get_value_info_exponent(name));
+            std::string name = op_outputs[0];
+            TensorInfo *inplace_tensor = nullptr;
+            TensorInfo *info = new TensorInfo(name,
+                                              i,
+                                              -1,
+                                              output_shapes[0],
+                                              fbs_model->get_value_info_dtype(name),
+                                              fbs_model->get_value_info_exponent(name));
 
-                // If op_inputs[0] is graph output. It can't be set inplace.
-                auto out_iter = std::find(graph_outputs.begin(), graph_outputs.end(), iter->first);
-                if (out_iter == graph_outputs.end() && info->get_size() <= inplace_tensor->get_size()) {
-                    TensorInfo *pre_follower_tensor = inplace_tensor->get_inplace_follower_tensor();
-                    // The previously existing tensor will dirty the input. Must disconnect the inplace link.
-                    if (pre_follower_tensor) {
-                        inplace_tensor->set_inplace_follower_tensor(nullptr);
-                        pre_follower_tensor->set_inplace_leader_tensor(nullptr);
-                    }
-
-                    // Relink the inplace.
-                    info->set_inplace_leader_tensor(inplace_tensor);
-                    if (module->inplace == MODULE_INPLACE_CHANGED_BUFFER) {
-                        inplace_tensor->set_inplace_follower_tensor(info);
+            // inplace, loop all inputs and find a suitable inplace tensor
+            for (int index = 0; index < op_inputs.size(); index++) {
+                auto iter = name2index.find(op_inputs[index]);
+                if (iter != name2index.end()) {
+                    inplace_tensor = tensor_info[iter->second];
+                    if (inplace_tensor->get_size() >= info->get_size()) {
+                        auto out_iter = std::find(graph_outputs.begin(), graph_outputs.end(), iter->first);
+                        if (out_iter == graph_outputs.end()) {
+                            break;
+                        } else {
+                            // If op_input is graph output. It can't be set inplace.
+                            inplace_tensor = nullptr;
+                        }
+                    } else {
+                        // If op_input size is less than output. It can't be set inplace.
+                        inplace_tensor = nullptr;
                     }
                 }
-
-                tensor_info.push_back(info);
-                this->name2index.emplace(name, tensor_info.size() - 1);
-                module->m_outputs_index.push_back(tensor_info.size() - 1); // assign output index of module
-            } else {
-                ESP_LOGE(TAG, "input tensor %s not found, skip %s\n", op_inputs[0].c_str(), op_outputs[0].c_str());
-                continue;
             }
+            if (inplace_tensor) {
+                TensorInfo *pre_follower_tensor = inplace_tensor->get_inplace_follower_tensor();
+                // The previously existing tensor will dirty the input. Must disconnect the inplace link.
+                if (pre_follower_tensor) {
+                    inplace_tensor->set_inplace_follower_tensor(nullptr);
+                    pre_follower_tensor->set_inplace_leader_tensor(nullptr);
+                }
+
+                // Relink the inplace.
+                info->set_inplace_leader_tensor(inplace_tensor);
+                if (module->inplace == MODULE_INPLACE_CHANGED_BUFFER) {
+                    inplace_tensor->set_inplace_follower_tensor(info);
+                }
+            }
+            tensor_info.push_back(info);
+            this->name2index.emplace(name, tensor_info.size() - 1);
+            module->m_outputs_index.push_back(tensor_info.size() - 1); // assign output index of module
         } else {
             for (int j = 0; j < op_outputs.size(); j++) {
                 std::string name = op_outputs[j];

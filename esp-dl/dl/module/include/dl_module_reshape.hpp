@@ -105,14 +105,7 @@ public:
         TensorBase *shape = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
 
         // Create module
-        op = new Reshape(shape,
-#if CONFIG_DL_DEBUG
-                         node_name.c_str(),
-#else
-                         nullptr,
-#endif
-                         MODULE_INPLACE_UNCHANGED_BUFFER,
-                         quant_type);
+        op = new Reshape(shape, node_name.c_str(), MODULE_INPLACE_UNCHANGED_BUFFER, quant_type);
         return op;
     }
 

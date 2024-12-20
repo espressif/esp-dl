@@ -41,6 +41,9 @@ inline void load_avg_pool2d_hwc1_s16(i_impl_func_s16_t &i_impl_func,
                                      avg_pool_c_impl_func_s16_t &c_impl_func,
                                      PoolArgsType<int16_t> &args)
 {
+#if CONFIG_ACCURATE_INFER
+    c_impl_func = avgpool2d_hwc1<int16_t, float>;
+#else
 #if CONFIG_TIE728_BOOST
     if (args.input_x_offset % 8 == 0 && args.output_x_offset % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
@@ -54,6 +57,7 @@ inline void load_avg_pool2d_hwc1_s16(i_impl_func_s16_t &i_impl_func,
     }
 #else
     c_impl_func = avgpool2d_hwc1<int16_t, float>;
+#endif
 #endif
 }
 

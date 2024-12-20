@@ -15,7 +15,7 @@ namespace module {
  */
 class PRelu : public Module {
 private:
-    TensorBase *alpha;
+    TensorBase *m_alpha;
 
 public:
     /**
@@ -29,7 +29,7 @@ public:
           TensorBase *alpha = NULL,
           module_inplace_t inplace = MODULE_NON_INPLACE,
           quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, inplace, quant_type), alpha(alpha)
+        Module(name, inplace, quant_type), m_alpha(alpha)
     {
     }
 
@@ -38,16 +38,28 @@ public:
      */
     ~PRelu()
     {
-        if (this->alpha) {
-            delete this->alpha;
-            this->alpha = nullptr;
+        if (m_alpha) {
+            delete m_alpha;
+            m_alpha = nullptr;
         }
     }
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
         assert(input_shapes.size() == 1);
-        assert(input_shapes[0][3] == this->alpha->shape[0]);
+        if (m_alpha->shape[0] != input_shapes[0][3]) {
+            TensorBase *new_alpha = new TensorBase(
+                {input_shapes[0][3], 1, 1}, nullptr, m_alpha->exponent, m_alpha->dtype, true, m_alpha->caps);
+            if (m_alpha->get_dtype() == DATA_TYPE_INT16) {
+                int16_t alpha_value = m_alpha->get_element<int16_t>(0);
+                int16_t *alpha_ptr = new_alpha->get_element_ptr<int16_t>();
+                for (int i = 0; i < input_shapes[0][3]; i++) {
+                    alpha_ptr[i] = alpha_value;
+                }
+                delete m_alpha;
+                m_alpha = new_alpha;
+            }
+        }
         std::vector<std::vector<int>> output_shapes(1, input_shapes[0]);
         return output_shapes;
     }
@@ -79,7 +91,7 @@ public:
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
-        std::vector<base::ArgsType<T>> m_args = base::get_activation_args<T>(output, input, PReLU, alpha, mode);
+        std::vector<base::ArgsType<T>> m_args = base::get_activation_args<T>(output, input, PReLU, m_alpha, mode);
         int task_size = m_args.size();
         if (task_size == 1) { // single task
             forward_args((void *)&m_args[0]);
@@ -98,33 +110,25 @@ public:
         Module *op = nullptr;
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
-        TensorBase *table = fbs_model->get_operation_lut(node_name, fbs_model->m_param_copy);
 
         // Create module
-        if (table != NULL) {
-            op = new LUT(
-#if CONFIG_DL_DEBUG
-                node_name.c_str(),
-#else
-                nullptr,
-#endif
-                table,
-                MODULE_INPLACE_CHANGED_BUFFER,
-                quant_type);
-        } else if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
+        if (quant_type == QUANT_TYPE_SYMM_8BIT) {
+            TensorBase *table = fbs_model->get_operation_lut(node_name, fbs_model->m_param_copy);
+            if (table) {
+                op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            } else {
+                TensorBase *alpha = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
+                // [c, 1, 1]
+                assert(alpha->shape.size() == 3);
+                op = new PRelu(node_name.c_str(), alpha, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            }
+        } else {
             TensorBase *alpha = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
             // [c, 1, 1]
             assert(alpha->shape.size() == 3);
-            op = new PRelu(
-#if CONFIG_DL_DEBUG
-                node_name.c_str(),
-#else
-                nullptr,
-#endif
-                alpha,
-                MODULE_INPLACE_CHANGED_BUFFER,
-                quant_type);
+            op = new PRelu(node_name.c_str(), alpha, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }
+
         return op;
     }
 

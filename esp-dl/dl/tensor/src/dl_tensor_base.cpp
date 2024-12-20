@@ -2,31 +2,32 @@
 #include "dl_base_pad.hpp"
 #include <iostream>
 namespace dl {
-template <>
-int8_t quantize<int8_t>(float input, float inv_scale)
+
+template <typename RT, typename T>
+RT quantize(T input, float inv_scale)
 {
     int output = tool::round(input * inv_scale);
-    output = DL_CLIP(output, DL_QUANT8_MIN, DL_QUANT8_MAX);
-    return output;
+    output = DL_CLIP(
+        output, sizeof(RT) == 1 ? DL_QUANT8_MIN : DL_QUANT16_MIN, sizeof(RT) == 1 ? DL_QUANT8_MAX : DL_QUANT16_MAX);
+    return static_cast<RT>(output);
 }
 
-template <>
-int16_t quantize<int16_t>(float input, float inv_scale)
+template int8_t quantize<int8_t, float>(float input, float scale);
+template int16_t quantize<int16_t, float>(float input, float scale);
+template int8_t quantize<int8_t, double>(double input, float scale);
+template int16_t quantize<int16_t, double>(double input, float scale);
+
+template <typename T, typename RT>
+RT dequantize(T input, float scale)
 {
-    int output = tool::round(input * inv_scale);
-    output = DL_CLIP(output, DL_QUANT16_MIN, DL_QUANT16_MAX);
+    RT output = static_cast<RT>(input) * scale;
     return output;
 }
 
-template <typename T>
-float dequantize(T input, float scale)
-{
-    float output = input * scale;
-    return output;
-}
-
-template float dequantize(int8_t input, float scale);
-template float dequantize(int16_t input, float scale);
+template float dequantize<int8_t, float>(int8_t input, float scale);
+template float dequantize<int16_t, float>(int16_t input, float scale);
+template double dequantize<int8_t, double>(int8_t input, float scale);
+template double dequantize<int16_t, double>(int16_t input, float scale);
 
 size_t dtype_sizeof(dtype_t dtype)
 {
@@ -184,7 +185,7 @@ bool TensorBase::assign(TensorBase *tensor)
         tool::copy_memory(this->data, tensor->data, this->get_bytes());
     } else if (tensor->dtype == DATA_TYPE_FLOAT) {
         float *src_data = (float *)tensor->data;
-        float inv_scale = 1.0 / (DL_SCALE(this->exponent));
+        float inv_scale = DL_RESCALE(this->exponent);
 
         if (this->dtype == DATA_TYPE_INT8) {
             int8_t *data = (int8_t *)this->data;
@@ -195,6 +196,23 @@ bool TensorBase::assign(TensorBase *tensor)
             int16_t *data = (int16_t *)this->data;
             for (int i = 0; i < this->get_size(); i++) {
                 data[i] = quantize<int16_t>(src_data[i], inv_scale);
+            }
+        } else {
+            return false;
+        }
+    } else if (tensor->dtype == DATA_TYPE_DOUBLE) {
+        double *src_data = (double *)tensor->data;
+        float inv_scale = DL_RESCALE(this->exponent);
+
+        if (this->dtype == DATA_TYPE_INT8) {
+            int8_t *data = (int8_t *)this->data;
+            for (int i = 0; i < this->get_size(); i++) {
+                data[i] = quantize<int8_t, double>(src_data[i], inv_scale);
+            }
+        } else if (this->dtype == DATA_TYPE_INT16) {
+            int16_t *data = (int16_t *)this->data;
+            for (int i = 0; i < this->get_size(); i++) {
+                data[i] = quantize<int16_t, double>(src_data[i], inv_scale);
             }
         } else {
             return false;
@@ -212,6 +230,23 @@ bool TensorBase::assign(TensorBase *tensor)
             int16_t *src_data = (int16_t *)tensor->data;
             for (int i = 0; i < this->get_size(); i++) {
                 data[i] = dequantize(src_data[i], scale);
+            }
+        } else {
+            return false;
+        }
+    } else if (this->dtype == DATA_TYPE_DOUBLE) {
+        double *data = (double *)this->data;
+        float scale = DL_SCALE(tensor->exponent);
+
+        if (tensor->dtype == DATA_TYPE_INT8 || tensor->dtype == DATA_TYPE_UINT8) {
+            int8_t *src_data = (int8_t *)tensor->data;
+            for (int i = 0; i < this->get_size(); i++) {
+                data[i] = dequantize<int8_t, double>(src_data[i], scale);
+            }
+        } else if (tensor->dtype == DATA_TYPE_INT16 || tensor->dtype == DATA_TYPE_UINT16) {
+            int16_t *src_data = (int16_t *)tensor->data;
+            for (int i = 0; i < this->get_size(); i++) {
+                data[i] = dequantize<int16_t, double>(src_data[i], scale);
             }
         } else {
             return false;
@@ -282,6 +317,13 @@ bool TensorBase::assign(std::vector<int> shape, const void *element, int exponen
     return this->assign(&tensor);
 }
 
+TensorBase &TensorBase::set_element(void *data)
+{
+    this->data = data;
+
+    return *this;
+}
+
 std::vector<int> TensorBase::get_axis_index(int element_index)
 {
     std::vector<int> axis_index(this->shape.size(), 0);
@@ -346,8 +388,8 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
     }
 #elif CONFIG_IDF_TARGET_ESP32S3
     // Reset bias layout for esp32s3
-    // 0x000AAAAA000BBBBB ==> 0xAAAAABBBBB
     if (op_quant_type == QUANT_TYPE_SYMM_8BIT) {
+        // 0x000AAAAA000BBBBB ==> 0xAAAAABBBBB
         size_t dtype_bytes = 1;
         size_t align = 16 / dtype_bytes;
         size_t data_num = this->get_size();
@@ -402,9 +444,92 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         this->data = dst_ptr;
         this->auto_free = true;
     } else if (op_quant_type == QUANT_TYPE_SYMM_16BIT) {
-        // TODO: reset bias layout for esp32s3 s16
+        // 0xAAAAAAAABBBBBBBB ==> 0xSSAAAAAAAASSBBBBBBBB
+        size_t dtype_bytes = 2;
+        size_t align = 16 / dtype_bytes;
+        size_t data_num = this->get_size();
+        size_t align_num = ((size_t)(data_num / align)) * align;
+        size_t remain_num = data_num - align_num;
+        if (is_depthwise) {
+            align_num = data_num;
+            remain_num = 0;
+        }
+        int32_t *src_ptr = static_cast<int32_t *>(this->data);
+        // Each element is allocated 8 bytes, which can meet the alignment requirements of the instructions.
+        int8_t *dst_ptr = static_cast<int8_t *>(tool::calloc_aligned(data_num, 8, 16, this->caps));
+        int8_t *dst_ptr_head = dst_ptr;
+
+        // 0xAAAAAAAABBBBBBBB ==> 0xSSAAAAAAAASSBBBBBBBB
+        int i = 0;
+        for (; i < align_num; i++) {
+            *(reinterpret_cast<int32_t *>(dst_ptr_head)) = src_ptr[i];
+            dst_ptr_head += sizeof(int32_t);
+            // Fill the symbol bit.
+            if (src_ptr[i] < 0) {
+                *dst_ptr_head = 0xff;
+            }
+            dst_ptr_head++;
+
+            // Move to the 16-byte memory address alignment.
+            if (((i + 1) % (align >> 1) == 0) && (reinterpret_cast<uintptr_t>(dst_ptr_head) & 0xf)) {
+                dst_ptr_head = dst_ptr_head + 16 - (reinterpret_cast<uintptr_t>(dst_ptr_head) & 0xf);
+            }
+        }
+
+        for (int j = 0; j < remain_num; j++, i++) {
+            (reinterpret_cast<int64_t *>(dst_ptr_head))[j] = src_ptr[i];
+        }
+
+        heap_caps_free(this->data);
+        this->data = dst_ptr;
     }
 #endif
+}
+
+void TensorBase::print(bool print_data)
+{
+    ESP_LOGI(__FUNCTION__,
+             "shape: %s, dtype: %s, exponent: %d, auto_free: %d",
+             shape_to_string(get_shape()).c_str(),
+             dtype_to_string(get_dtype()),
+             this->exponent,
+             this->auto_free);
+
+    if (this->data && print_data) {
+        ESP_LOGI(__FUNCTION__, "The data of TensorBase is:");
+        if (get_dtype() == DATA_TYPE_FLOAT) {
+            for (int i = 0; i < get_size(); i++) {
+                printf("%f, ", get_element<float>(i));
+                if ((i + 1) % 16 == 0) {
+                    printf("\n");
+                }
+            }
+        } else if (get_dtype() == DATA_TYPE_DOUBLE) {
+            for (int i = 0; i < get_size(); i++) {
+                printf("%f, ", get_element<double>(i));
+                if ((i + 1) % 16 == 0) {
+                    printf("\n");
+                }
+            }
+        } else if (get_dtype() == DATA_TYPE_INT8) {
+            for (int i = 0; i < get_size(); i++) {
+                printf("%d, ", get_element<int8_t>(i));
+                if ((i + 1) % 16 == 0) {
+                    printf("\n");
+                }
+            }
+        } else if (get_dtype() == DATA_TYPE_INT16) {
+            for (int i = 0; i < get_size(); i++) {
+                printf("%d, ", get_element<int16_t>(i));
+                if ((i + 1) % 16 == 0) {
+                    printf("\n");
+                }
+            }
+        } else {
+            ESP_LOGE(__FUNCTION__, "The dtype don't support now!");
+        }
+        printf("\n");
+    }
 }
 
 TensorBase &TensorBase::reshape(std::vector<int> shape)
@@ -560,16 +685,6 @@ int TensorBase::get_element_index(const std::vector<int> &axis_index)
     return element_index;
 }
 
-int64_t TensorBase::get_element_index(const std::vector<int64_t> &axis_index)
-{
-    assert(axis_index.size() == this->shape.size());
-    int element_index = 0;
-    for (int i = 0; i < axis_index.size(); i++) {
-        element_index += axis_index[i] * this->axis_offset[i];
-    }
-    return element_index;
-}
-
 template <typename T>
 T TensorBase::get_element(int index)
 {
@@ -634,6 +749,7 @@ template bool TensorBase::compare_elements<uint16_t>(const uint16_t *gt_elements
 template bool TensorBase::compare_elements<int32_t>(const int32_t *gt_elements, float epsilon, bool verbose);
 template bool TensorBase::compare_elements<uint32_t>(const uint32_t *gt_elements, float epsilon, bool verbose);
 template bool TensorBase::compare_elements<float>(const float *gt_elements, float epsilon, bool verbose);
+template bool TensorBase::compare_elements<double>(const double *gt_elements, float epsilon, bool verbose);
 
 bool TensorBase::is_same_shape(TensorBase *tensor)
 {
@@ -656,7 +772,7 @@ bool TensorBase::equal(TensorBase *tensor, float epsilon, bool verbose)
 
     // compare data type
     dtype_t type1 = this->get_dtype();
-    dtype_t type2 = this->get_dtype();
+    dtype_t type2 = tensor->get_dtype();
     if (type1 != type2) {
         if (verbose) {
             ESP_LOGE(__FUNCTION__, "data type not equal: %s != %s", dtype_to_string(type1), dtype_to_string(type2));
@@ -698,6 +814,8 @@ bool TensorBase::equal(TensorBase *tensor, float epsilon, bool verbose)
             return this->compare_elements<int32_t>((int32_t *)tensor->get_element_ptr(), epsilon, verbose);
         } else if (type1 == DATA_TYPE_UINT32) {
             return this->compare_elements<uint32_t>((uint32_t *)tensor->get_element_ptr(), epsilon, verbose);
+        } else if (type1 == DATA_TYPE_DOUBLE) {
+            return this->compare_elements<double>((double *)tensor->get_element_ptr(), epsilon, verbose);
         }
     } else {
         return (memcmp(this->get_element_ptr(), tensor->get_element_ptr(), this->get_bytes()) == 0);

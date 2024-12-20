@@ -161,15 +161,7 @@ public:
                 bias->reset_bias_layout(quant_type, false);
             }
 
-            gemm_op = new Gemm(filter,
-                               bias,
-                               activation_type,
-#if CONFIG_DL_DEBUG
-                               node_name.c_str(),
-#else
-                               nullptr,
-#endif
-                               quant_type);
+            gemm_op = new Gemm(filter, bias, activation_type, node_name.c_str(), quant_type);
         }
 
         return gemm_op;

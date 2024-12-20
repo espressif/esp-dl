@@ -36,14 +36,14 @@ typedef enum {
 /**
  * quantize float data into integer data
  */
-template <typename T>
-T quantize(float input, float inv_scale);
+template <typename RT, typename T = float>
+RT quantize(T input, float inv_scale);
 
 /**
  * @brief dequantize integer data into float data
  */
-template <typename T>
-float dequantize(T input, float scale);
+template <typename T, typename RT = float>
+RT dequantize(T input, float scale);
 
 /**
  * @brief Return the bytes of data type
@@ -192,10 +192,10 @@ public:
     int get_bytes() { return this->size * this->get_dtype_bytes(); }
 
     /**
-     * @brief Get element pointer. If cache(preload data pointer) is not null, return cache pointer, otherwise return
+     * @brief Get data pointer. If cache(preload data pointer) is not null, return cache pointer, otherwise return
      * data pointer.
      *
-     * @return  the pointer of Tensor's element
+     * @return  the pointer of Tensor's data
      */
     virtual void *get_element_ptr()
     {
@@ -207,10 +207,10 @@ public:
     }
 
     /**
-     * @brief Get element pointer by the specified template.
+     * @brief Get data pointer by the specified template.
      * If cache(preload data pointer) is not null, return cache pointer, otherwise return data pointer.
      *
-     * @return  the pointer of Tensor's element
+     * @return  the pointer of Tensor's data
      */
     template <typename T>
     T *get_element_ptr()
@@ -221,6 +221,14 @@ public:
 
         return (T *)this->data;
     }
+
+    /**
+     * @brief Set the data.
+     *
+     * @param data point to data memory
+     * @return TensorBase&  self
+     */
+    TensorBase &set_element(void *data);
 
     /**
      * @brief Get the index of each dims
@@ -399,14 +407,6 @@ public:
     int get_element_index(const std::vector<int> &axis_index);
 
     /**
-     * @brief Get the index of element
-     *
-     * @param axis_index the index of each dims
-     * @return int the index of element
-     */
-    int64_t get_element_index(const std::vector<int64_t> &axis_index);
-
-    /**
      * @brief Get a element of Tensor by index
      *
      * @param index  The index of element
@@ -455,5 +455,13 @@ public:
      *
      */
     void reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise);
+
+    /**
+     * @brief print the information of TensorBase
+     *
+     * @param print_data Whether print the data
+     * @return This function does not return any value.
+     */
+    virtual void print(bool print_data = false);
 };
 } // namespace dl

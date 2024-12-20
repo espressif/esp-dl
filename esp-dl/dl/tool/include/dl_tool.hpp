@@ -49,11 +49,22 @@ namespace tool {
 
 /**
  * @brief Encapsulate the round strategies for different platforms.
+ * esp32p4:rounding half to even
+ * esp32s3:rounding half up
  *
- * @param value The float value.
+ * @param value The float or double value.
  * @return int
  */
-int round(float value);
+template <typename T>
+int round(T value);
+
+/**
+ * @brief round(shift(x)). Round strategies is same as round().
+ *
+ * @param value The Integer value.
+ * @return int
+ */
+int shift_and_round(int value, int shift);
 
 /**
  * @brief Set memory zero.

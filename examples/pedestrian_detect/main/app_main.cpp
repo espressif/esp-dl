@@ -8,7 +8,6 @@ const char *TAG = "pedestrian_detect";
 
 extern "C" void app_main(void)
 {
-    esp_log_level_set("latency", ESP_LOG_DEBUG);
 #if CONFIG_PEDESTRIAN_DETECT_MODEL_IN_SDCARD
     ESP_ERROR_CHECK(bsp_sdcard_mount());
 #endif

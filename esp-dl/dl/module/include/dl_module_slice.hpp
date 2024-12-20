@@ -112,17 +112,8 @@ public:
         }
 
         // Create module
-        op = new Slice(start_index,
-                       end_index,
-                       axes_index,
-                       step_index,
-#if CONFIG_DL_DEBUG
-                       node_name.c_str(),
-#else
-                       nullptr,
-#endif
-                       MODULE_NON_INPLACE,
-                       quant_type);
+        op = new Slice(
+            start_index, end_index, axes_index, step_index, node_name.c_str(), MODULE_NON_INPLACE, quant_type);
 
         delete start;
         delete end;

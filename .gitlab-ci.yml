@@ -1,5 +1,6 @@
 stages:
   - pre_check
+  - gen_test_cases
   - build
   - target_test
   - deploy
@@ -28,6 +29,7 @@ variables:
 include:
   - '.gitlab/ci/rules.yml'
   - '.gitlab/ci/pre_check.yml'
+  - '.gitlab/ci/gen_test_cases.yml'
   - '.gitlab/ci/build.yml'
   - '.gitlab/ci/target_test.yml'
   - '.gitlab/ci/deploy.yml'

@@ -19,7 +19,7 @@ push_to_github:
   script:
     - git remote remove github &>/dev/null || true
     - git remote add github https://${GITHUB_PUSH_TOKEN}@github.com/espressif/esp-dl.git
-    - ${CI_PROJECT_DIR}/.gitlab/tool/push_to_github.sh
+    - source ${CI_PROJECT_DIR}/.gitlab/tool/push_to_github.sh
 
 .deploy_docs_template:
   stage: deploy
@@ -39,6 +39,7 @@ push_to_github:
 deploy_docs_preview:
   extends:
     - .deploy_docs_template
+    - .rules:deploy:docs_preview
   variables:
     TYPE: "preview"
     DOCS_BUILD_DIR: "${CI_PROJECT_DIR}/docs/_build/"
@@ -47,3 +48,17 @@ deploy_docs_preview:
     DOCS_DEPLOY_SERVER_USER: "$DOCS_PREVIEW_SERVER_USER"
     DOCS_DEPLOY_PATH: "$DOCS_PREVIEW_PATH"
     DOCS_DEPLOY_URL_BASE: "$DOCS_PREVIEW_URL_BASE"
+
+
+deploy_docs_production:
+  extends:
+    - .deploy_docs_template
+    - .rules:deploy:docs_production
+  variables:
+    TYPE: "production"
+    DOCS_BUILD_DIR: "${CI_PROJECT_DIR}/docs/_build/"
+    DOCS_DEPLOY_PRIVATEKEY: "$DOCS_PROD_DEPLOY_KEY"
+    DOCS_DEPLOY_SERVER: "$DOCS_PROD_SERVER"
+    DOCS_DEPLOY_SERVER_USER: "$DOCS_PROD_SERVER_USER"
+    DOCS_DEPLOY_PATH: "$DOCS_PROD_PATH"
+    DOCS_DEPLOY_URL_BASE: "$DOCS_PROD_URL_BASE"

@@ -31,14 +31,26 @@ def struct_pack_string(string, max_len=None):
     return out_bytes
 
 
-def read_data(filename):
+def get_model_format(filename):
+    """
+    Get model format, EDL1 or EDL2
+    """
+    with open(filename, "rb") as f:
+        data = f.read(4)
+        format = data.decode("utf-8")
+        if format != "EDL1" and format != "EDL2":
+            raise RuntimeError("Wrong model format.")
+        return format
+
+
+def read_data(filename, format):
     """
     Read binary data, like index and mndata
     """
     data = None
     with open(filename, "rb") as f:
         data = f.read()
-    if len(data) % 16 != 0:
+    if format == "EDL2" and len(data) % 16 != 0:
         padding = 16 - len(data) % 16
         data += struct.pack("x") * padding
     return data
@@ -65,6 +77,27 @@ def pack_models(model_path_or_dir, out_file="models.espdl"):
         ...
     }model_pack_t
 
+    or
+
+    {
+        "PDL2": char[4]
+        model_num: uint32
+        model1_data_offset: uint32
+        model1_name_offset: uint32
+        model1_name_length: uint32
+        model2_data_offset: uint32
+        model2_name_offset: uint32
+        model2_name_length: uint32
+        ...
+        model1_name,
+        model2_name,
+        ...
+        zero padding
+        model1_data
+        zero padding
+        model2_data
+        zero padding
+    }
 
     model_path: the path of models
     out_file: the ouput binary filename
@@ -84,21 +117,34 @@ def pack_models(model_path_or_dir, out_file="models.espdl"):
             assert model_path.is_file(), "invalid model_path."
             model_files.append(model_path)
 
+    model_formats = [get_model_format(file) for file in model_files]
+    format = model_formats[0]
+    for i in range(1, len(model_formats)):
+        if format != model_formats[i]:
+            raise RuntimeError("All packed model format should be same.")
+
     model_names = []
     model_bins = []
     name_length = 0
     for model_file in model_files:
         model_names.append(model_file.name)
-        model_bins.append(read_data(model_file))
+        model_bins.append(read_data(model_file, format))
         name_length += len(model_file.name)
         print(model_file.name)
 
     model_num = len(model_names)
-    header_bin = struct_pack_string("PDL1", 4)
+    if format == "EDL1":
+        header_bin = struct_pack_string("PDL1", 4)
+    else:
+        header_bin = struct_pack_string("PDL2", 4)
     header_bin += struct.pack("I", model_num)
     name_offset = 4 + 4 + model_num * 12
-    data_offset = (name_offset + name_length + 15) & ~15
-    padding_bin = struct.pack("x") * (data_offset - name_offset - name_length)
+    if format == "EDL1":
+        data_offset = name_offset + name_length
+        padding_bin = b""
+    else:
+        data_offset = (name_offset + name_length + 15) & ~15
+        padding_bin = struct.pack("x") * (data_offset - name_offset - name_length)
     name_bin = None
     data_bin = None
     for idx, name in enumerate(model_names):
