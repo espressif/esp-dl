@@ -1,6 +1,6 @@
 # ESP-DL [[English]](./README.md)
 
-[![Documentation Status](./docs/_static/doc_latest.svg)](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/index.html)
+[![Documentation Status](./docs/_static/doc_latest.svg)](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/index.html)    [![Component Registry](https://components.espressif.com/components/espressif/esp-dl/badge.svg)](https://components.espressif.com/components/espressif/esp-dl)
 
 ESP-DL 是一个专为 ESP 系列芯片设计的轻量级且高效的神经网络推理框架。通过 ESP-DL，您可以轻松快速地使用乐鑫的系统级芯片 (SoC) 开发 AI 应用。
 
@@ -73,6 +73,6 @@ model->run(inputs); // inputs 是一个张量或张量映射
 ## Suport Operators
 
 如果你有遇到不支持的算子，请将问题在[issues](https://github.com/espressif/esp-dl/issues)中反馈给我们，我们会尽快支持。  
-也欢迎大家贡献新的算子, 具体方法请参考[创建新模块（算子）](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_add_a_new_module(operator).html)。
+也欢迎大家贡献新的算子, 具体方法请参考[创建新模块（算子）](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_add_a_new_module%28operator%29.html)。
 
 [算子支持状态](./operator_support_state.md)
