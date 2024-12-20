@@ -152,7 +152,14 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new Concat(node_name.c_str(), axis, quant_type);
+            op = new Concat(
+#if CONFIG_DL_DEBUG
+                node_name.c_str(),
+#else
+                nullptr,
+#endif
+                axis,
+                quant_type);
         }
         return op;
     }

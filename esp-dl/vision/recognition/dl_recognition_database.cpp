@@ -1,25 +1,30 @@
-#include "dl_recognition_database_base.hpp"
+#include "dl_recognition_database.hpp"
+#include <unistd.h>
 
 static const char *TAG = "dl::recognition::DataBase";
 
 namespace dl {
 namespace recognition {
-void DataBase::init(int feat_len)
+DataBase::DataBase(const char *db_path, db_type_t db_type, int feat_len) : m_db_type(db_type)
 {
-    ESP_ERROR_CHECK(mount());
-    FILE *f = fopen(m_db_path, "rb");
-    if (f == NULL) {
-        create_empty_database_in_storage(feat_len);
-    } else {
-        fclose(f);
+    assert(db_path);
+    int length = strlen(db_path) + 1;
+    m_db_path = (char *)malloc(sizeof(char) * length);
+    memcpy(m_db_path, db_path, length);
+    if (access(db_path, F_OK) == 0) {
         load_database_from_storage(feat_len);
+    } else {
+        create_empty_database_in_storage(feat_len);
     }
 }
 
-void DataBase::deinit()
+DataBase::~DataBase()
 {
     clear_all_feats_in_memory();
-    ESP_ERROR_CHECK(unmount());
+    if (m_db_path) {
+        free(m_db_path);
+        m_db_path = nullptr;
+    }
 }
 
 esp_err_t DataBase::create_empty_database_in_storage(int feat_len)
@@ -122,7 +127,6 @@ esp_err_t DataBase::load_database_from_storage(int feat_len)
 
 esp_err_t DataBase::enroll_feat(TensorBase *feat)
 {
-    ESP_RETURN_ON_ERROR(check_enough_free_space(), TAG, "No more space in storage.");
     if (feat->dtype != DATA_TYPE_FLOAT) {
         ESP_LOGE(TAG, "Only support float feature.");
         return ESP_FAIL;

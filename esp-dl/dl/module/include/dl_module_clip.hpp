@@ -33,10 +33,12 @@ public:
     {
         if (m_min) {
             delete m_min;
+            m_min = nullptr;
         }
 
         if (m_max) {
             delete m_max;
+            m_max = nullptr;
         }
     }
 
@@ -86,11 +88,19 @@ public:
         Module *op = nullptr;
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
-        TensorBase *min = fbs_model->get_operation_parameter(node_name, 1);
-        TensorBase *max = fbs_model->get_operation_parameter(node_name, 2);
+        TensorBase *min = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
+        TensorBase *max = fbs_model->get_operation_parameter(node_name, 2, fbs_model->m_param_copy);
 
         // Create module
-        op = new Clip(min, max, node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+        op = new Clip(min,
+                      max,
+#if CONFIG_DL_DEBUG
+                      node_name.c_str(),
+#else
+                      nullptr,
+#endif
+                      MODULE_INPLACE_CHANGED_BUFFER,
+                      quant_type);
         return op;
     }
 

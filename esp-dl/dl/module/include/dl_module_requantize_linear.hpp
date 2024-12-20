@@ -54,7 +54,14 @@ public:
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
 
         // Create module
-        op = new RequantizeLinear(node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+        op = new RequantizeLinear(
+#if CONFIG_DL_DEBUG
+            node_name.c_str(),
+#else
+            nullptr,
+#endif
+            MODULE_INPLACE_CHANGED_BUFFER,
+            quant_type);
         return op;
     }
 

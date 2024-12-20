@@ -83,8 +83,6 @@ template void ImagePreprocessor::create_norm_lut<int16_t>();
 
 void ImagePreprocessor::preprocess(const img_t &img, const std::vector<int> &crop_area)
 {
-    dl::tool::Latency latency;
-    latency.start();
     assert(get_img_channel(img) == m_mean.size());
     m_crop_area = crop_area;
 #if CONFIG_IDF_TARGET_ESP32P4
@@ -117,18 +115,12 @@ void ImagePreprocessor::preprocess(const img_t &img, const std::vector<int> &cro
            &m_resize_scale_x,
            &m_resize_scale_y);
 #endif
-    latency.end();
-    latency.print("image_preprocess", "preprocess");
 }
 
 void ImagePreprocessor::preprocess(const img_t &img, dl::math::Matrix<float> *M_inv)
 {
-    dl::tool::Latency latency;
-    latency.start();
     assert(get_img_channel(img) == m_mean.size());
     warp_affine(img, m_output, DL_IMAGE_INTERPOLATE_NEAREST, M_inv, m_caps, m_norm_lut);
-    latency.end();
-    latency.print("image_preprocess", "preprocess");
 }
 } // namespace image
 } // namespace dl

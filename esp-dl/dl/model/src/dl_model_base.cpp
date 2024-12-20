@@ -9,10 +9,14 @@ static const char *TAG = "dl::Model";
 
 namespace dl {
 
-Model::Model(
-    const char *name, fbs::model_location_type_t location, int internal_size, memory_manager_t mm_type, uint8_t *key)
+Model::Model(const char *name,
+             fbs::model_location_type_t location,
+             int internal_size,
+             memory_manager_t mm_type,
+             uint8_t *key,
+             bool param_copy)
 {
-    if (this->load(name, location, key) == ESP_OK) {
+    if (this->load(name, location, key, param_copy) == ESP_OK) {
         this->build(internal_size, mm_type);
     }
 }
@@ -22,9 +26,10 @@ Model::Model(const char *name,
              fbs::model_location_type_t location,
              int internal_size,
              memory_manager_t mm_type,
-             uint8_t *key)
+             uint8_t *key,
+             bool param_copy)
 {
-    if (this->load(name, location, model_index, key) == ESP_OK) {
+    if (this->load(name, location, model_index, key, param_copy) == ESP_OK) {
         this->build(internal_size, mm_type);
     }
 }
@@ -34,9 +39,10 @@ Model::Model(const char *name,
              fbs::model_location_type_t location,
              int internal_size,
              memory_manager_t mm_type,
-             uint8_t *key)
+             uint8_t *key,
+             bool param_copy)
 {
-    if (this->load(name, location, model_name, key) == ESP_OK) {
+    if (this->load(name, location, model_name, key, param_copy) == ESP_OK) {
         this->build(internal_size, mm_type);
     }
 }
@@ -69,22 +75,24 @@ Model::~Model()
     }
 }
 
-esp_err_t Model::load(const char *name, fbs::model_location_type_t location, uint8_t *key)
+esp_err_t Model::load(const char *name, fbs::model_location_type_t location, uint8_t *key, bool param_copy)
 {
     fbs_loader = new fbs::FbsLoader(name, location);
-    return this->load(fbs_loader->load(key));
+    return this->load(fbs_loader->load(key, param_copy));
 }
 
-esp_err_t Model::load(const char *name, fbs::model_location_type_t location, int model_index, uint8_t *key)
+esp_err_t Model::load(
+    const char *name, fbs::model_location_type_t location, int model_index, uint8_t *key, bool param_copy)
 {
     fbs_loader = new fbs::FbsLoader(name, location);
-    return this->load(fbs_loader->load(model_index, key));
+    return this->load(fbs_loader->load(model_index, key, param_copy));
 }
 
-esp_err_t Model::load(const char *name, fbs::model_location_type_t location, const char *model_name, uint8_t *key)
+esp_err_t Model::load(
+    const char *name, fbs::model_location_type_t location, const char *model_name, uint8_t *key, bool param_copy)
 {
     fbs_loader = new fbs::FbsLoader(name, location);
-    return this->load(fbs_loader->load(model_name, key));
+    return this->load(fbs_loader->load(model_name, key, param_copy));
 }
 
 esp_err_t Model::load(fbs::FbsModel *fbs_model)

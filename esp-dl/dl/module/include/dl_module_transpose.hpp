@@ -73,7 +73,15 @@ public:
         fbs_model->get_operation_attribute(node_name, "perm", perm);
 
         // Create module
-        op = new Transpose(node_name.c_str(), MODULE_NON_INPLACE, quant_type, perm);
+        op = new Transpose(
+#if CONFIG_DL_DEBUG
+            node_name.c_str(),
+#else
+            nullptr,
+#endif
+            MODULE_NON_INPLACE,
+            quant_type,
+            perm);
         return op;
     }
 

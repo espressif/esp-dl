@@ -88,13 +88,29 @@ public:
         float alpha = 0.01;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
         fbs_model->get_operation_attribute(node_name, "alpha", alpha);
-        TensorBase *table = fbs_model->get_operation_lut(node_name);
+        TensorBase *table = fbs_model->get_operation_lut(node_name, fbs_model->m_param_copy);
 
         // Create module
         if (table != NULL) {
-            op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            op = new LUT(
+#if CONFIG_DL_DEBUG
+                node_name.c_str(),
+#else
+                nullptr,
+#endif
+                table,
+                MODULE_INPLACE_CHANGED_BUFFER,
+                quant_type);
         } else {
-            op = new LeakyRelu(node_name.c_str(), alpha, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            op = new LeakyRelu(
+#if CONFIG_DL_DEBUG
+                node_name.c_str(),
+#else
+                nullptr,
+#endif
+                alpha,
+                MODULE_INPLACE_CHANGED_BUFFER,
+                quant_type);
         }
 
         return op;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dl_tensor_base.hpp"
+#include "dl_tool.hpp"
 #include "esp_log.h"
 #include <limits>
 #include <map>
@@ -18,11 +19,16 @@ public:
     /**
      * @brief Construct a new FbsModel object.
      *
-     * @param name      The label of partition while location is MODEL_LOCATION_IN_FLASH.
-     *                  The path of model while location is MODEL_LOCATION_IN_SDCARD.
-     * @param location  The model location.
+     * @param name          The label of partition while location is MODEL_LOCATION_IN_FLASH.
+     *                      The path of model while location is MODEL_LOCATION_IN_SDCARD.
+     * @param location      The model location.
+     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
+     *                      Only set this param to false when your psram resource is very tight. This saves psram and
+     *                      sacrifices the performance of model inference because the frequency of psram is higher than
+     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * MODEL_LOCATION_IN_FLASH_PARTITION.
      */
-    FbsModel(const void *data, bool auto_free = false);
+    FbsModel(const void *data, bool auto_free = false, bool param_copy = true);
 
     /**
      * @brief Destroy the FbsModel object.
@@ -275,6 +281,8 @@ public:
      * @brief Get model doc string
      */
     std::string get_model_doc_string();
+
+    bool m_param_copy;
 
 private:
     bool m_auto_free;

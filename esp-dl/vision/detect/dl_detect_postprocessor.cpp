@@ -4,8 +4,6 @@ namespace dl {
 namespace detect {
 void DetectPostprocessor::nms()
 {
-    dl::tool::Latency latency;
-    latency.start();
     int kept_number = 0;
     for (std::list<result_t>::iterator kept = m_box_list.begin(); kept != m_box_list.end(); kept++) {
         kept_number++;
@@ -40,8 +38,6 @@ void DetectPostprocessor::nms()
             other++;
         }
     }
-    latency.end();
-    latency.print("detect", "postprocess::nms");
 }
 
 std::list<result_t> &DetectPostprocessor::get_result(int width, int height)

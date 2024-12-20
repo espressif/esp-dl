@@ -46,10 +46,12 @@ public:
     {
         if (filter) {
             delete filter;
+            filter = nullptr;
         }
 
         if (bias) {
             delete bias;
+            bias = nullptr;
         }
     }
 
@@ -153,13 +155,21 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            TensorBase *filter = fbs_model->get_operation_parameter(node_name, 1);
-            TensorBase *bias = fbs_model->get_operation_parameter(node_name, 2);
+            TensorBase *filter = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
+            TensorBase *bias = fbs_model->get_operation_parameter(node_name, 2, fbs_model->m_param_copy);
             if (bias) {
                 bias->reset_bias_layout(quant_type, false);
             }
 
-            gemm_op = new Gemm(filter, bias, activation_type, node_name.c_str(), quant_type);
+            gemm_op = new Gemm(filter,
+                               bias,
+                               activation_type,
+#if CONFIG_DL_DEBUG
+                               node_name.c_str(),
+#else
+                               nullptr,
+#endif
+                               quant_type);
         }
 
         return gemm_op;

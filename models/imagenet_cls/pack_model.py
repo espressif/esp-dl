@@ -38,6 +38,9 @@ def read_data(filename):
     data = None
     with open(filename, "rb") as f:
         data = f.read()
+    if len(data) % 16 != 0:
+        padding = 16 - len(data) % 16
+        data += struct.pack("x") * padding
     return data
 
 
@@ -94,7 +97,8 @@ def pack_models(model_path_or_dir, out_file="models.espdl"):
     header_bin = struct_pack_string("PDL1", 4)
     header_bin += struct.pack("I", model_num)
     name_offset = 4 + 4 + model_num * 12
-    data_offset = name_offset + name_length
+    data_offset = (name_offset + name_length + 15) & ~15
+    padding_bin = struct.pack("x") * (data_offset - name_offset - name_length)
     name_bin = None
     data_bin = None
     for idx, name in enumerate(model_names):
@@ -113,7 +117,7 @@ def pack_models(model_path_or_dir, out_file="models.espdl"):
         header_bin += struct.pack("I", data_offset)
         header_bin += struct.pack("I", name_offset)
         header_bin += struct.pack("I", len(name))
-    out_bin = header_bin + name_bin + data_bin
+    out_bin = header_bin + name_bin + padding_bin + data_bin
     with open(out_file, "wb") as f:
         f.write(out_bin)
 

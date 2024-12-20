@@ -36,7 +36,13 @@ public:
     /**
      * @brief Destroy the PRelu object.
      */
-    ~PRelu() { delete this->alpha; }
+    ~PRelu()
+    {
+        if (this->alpha) {
+            delete this->alpha;
+            this->alpha = nullptr;
+        }
+    }
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
@@ -92,19 +98,32 @@ public:
         Module *op = nullptr;
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
-        TensorBase *alpha = fbs_model->get_operation_parameter(node_name, 1);
-        TensorBase *table = fbs_model->get_operation_lut(node_name);
-        // [c, 1, 1]
-        assert(alpha->shape.size() == 3);
+        TensorBase *table = fbs_model->get_operation_lut(node_name, fbs_model->m_param_copy);
 
         // Create module
         if (table != NULL) {
-            op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
-            if (alpha != nullptr) {
-                delete alpha;
-            }
+            op = new LUT(
+#if CONFIG_DL_DEBUG
+                node_name.c_str(),
+#else
+                nullptr,
+#endif
+                table,
+                MODULE_INPLACE_CHANGED_BUFFER,
+                quant_type);
         } else if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new PRelu(node_name.c_str(), alpha, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            TensorBase *alpha = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
+            // [c, 1, 1]
+            assert(alpha->shape.size() == 3);
+            op = new PRelu(
+#if CONFIG_DL_DEBUG
+                node_name.c_str(),
+#else
+                nullptr,
+#endif
+                alpha,
+                MODULE_INPLACE_CHANGED_BUFFER,
+                quant_type);
         }
         return op;
     }

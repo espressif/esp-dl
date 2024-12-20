@@ -68,10 +68,10 @@ elseif(CONFIG_IDF_TARGET_ESP32S3)
     add_prebuilt_library(fbs_model "fbs_loader/lib/esp32s3/libfbs_model.a")
     target_link_libraries(${COMPONENT_LIB} PRIVATE fbs_model)
 else()
-    component_compile_options(-ffast-math -O2 -Wno-error=format=-Wno-format)
+    component_compile_options(-ffast-math -O3 -Wno-error=format=-Wno-format)
 endif()
 
-# component_compile_options(-ffast-math -frtti -O2 -Wno-error=format=-Wno-format)
+# component_compile_options(-ffast-math -frtti -O3 -Wno-error=format=-Wno-format)
 target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-array-bounds
                                                 -Wno-deprecated-copy
                                                 -Wno-strict-aliasing

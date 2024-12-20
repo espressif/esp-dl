@@ -36,6 +36,7 @@ public:
     {
         if (m_constant_value) {
             delete m_constant_value;
+            m_constant_value = nullptr;
         }
     }
 
@@ -86,7 +87,7 @@ public:
         }
 
         TensorBase *pads = fbs_model->get_operation_parameter(node_name, 1);
-        TensorBase *constant_value = fbs_model->get_operation_parameter(node_name, 2);
+        TensorBase *constant_value = fbs_model->get_operation_parameter(node_name, 2, fbs_model->m_param_copy);
         std::vector<int> pads_index(pads->get_size(), 0);
 
         if (pads->get_dtype() == DATA_TYPE_INT64) {
@@ -98,7 +99,16 @@ public:
         }
 
         // Create module
-        op = new Pad(pads_index, padding_mode, constant_value, node_name.c_str(), MODULE_NON_INPLACE, quant_type);
+        op = new Pad(pads_index,
+                     padding_mode,
+                     constant_value,
+#if CONFIG_DL_DEBUG
+                     node_name.c_str(),
+#else
+                     nullptr,
+#endif
+                     MODULE_NON_INPLACE,
+                     quant_type);
 
         delete pads;
         return op;

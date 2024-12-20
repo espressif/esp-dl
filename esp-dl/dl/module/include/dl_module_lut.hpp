@@ -42,6 +42,7 @@ public:
     {
         if (this->table) {
             delete this->table;
+            this->table = nullptr;
         }
     }
 
@@ -101,7 +102,7 @@ public:
         Module *op = nullptr;
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
-        TensorBase *table = fbs_model->get_operation_lut(node_name);
+        TensorBase *table = fbs_model->get_operation_lut(node_name, fbs_model->m_param_copy);
 
         if (table == NULL) {
             ESP_LOGE("LUT", "Table is null!");
@@ -109,7 +110,15 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            op = new LUT(
+#if CONFIG_DL_DEBUG
+                node_name.c_str(),
+#else
+                nullptr,
+#endif
+                table,
+                MODULE_INPLACE_CHANGED_BUFFER,
+                quant_type);
         } else {
             ESP_LOGE("LUT", "Only support QUANT_TYPE_SYMM_8BIT or QUANT_TYPE_SYMM_16BIT!");
         }

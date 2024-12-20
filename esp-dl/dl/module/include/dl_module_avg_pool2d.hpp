@@ -119,12 +119,17 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new AveragePool2D(node_name.c_str(),
-                                   kernel_shape,
-                                   {pads[0], pads[2], pads[1], pads[3]},
-                                   strides[0],
-                                   strides[1],
-                                   quant_type);
+            op = new AveragePool2D(
+#if CONFIG_DL_DEBUG
+                node_name.c_str(),
+#else
+                nullptr,
+#endif
+                kernel_shape,
+                {pads[0], pads[2], pads[1], pads[3]},
+                strides[0],
+                strides[1],
+                quant_type);
         }
         return op;
     }

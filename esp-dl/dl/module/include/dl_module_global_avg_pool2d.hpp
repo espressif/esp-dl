@@ -92,7 +92,13 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new GlobalAveragePool2D(node_name.c_str(), quant_type);
+            op = new GlobalAveragePool2D(
+#if CONFIG_DL_DEBUG
+                node_name.c_str(),
+#else
+                nullptr,
+#endif
+                quant_type);
         }
         return op;
     }

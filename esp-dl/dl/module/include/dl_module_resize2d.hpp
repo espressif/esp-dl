@@ -111,7 +111,16 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new Resize2D(node_name.c_str(), resize_mode, resize_scales[2], resize_scales[3], quant_type);
+            op = new Resize2D(
+#if CONFIG_DL_DEBUG
+                node_name.c_str(),
+#else
+                nullptr,
+#endif
+                resize_mode,
+                resize_scales[2],
+                resize_scales[3],
+                quant_type);
         }
         delete resize_scales_tensor;
         return op;

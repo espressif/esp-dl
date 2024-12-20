@@ -45,10 +45,15 @@ public:
      *
      * @param key   NULL or a 128-bit AES key, like {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a,
      * 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
+     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
+     *                      Only set this param to false when your psram resource is very tight. This saves psram and
+     *                      sacrifices the performance of model inference because the frequency of psram is higher than
+     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * MODEL_LOCATION_IN_FLASH_PARTITION.
      *
      * @return  Return nullptr if loading fails. Otherwise return the pointer of FbsModel.
      */
-    FbsModel *load(const uint8_t *key = nullptr);
+    FbsModel *load(const uint8_t *key = nullptr, bool param_copy = true);
 
     /**
      * @brief Load the model by model index.
@@ -56,10 +61,15 @@ public:
      * @param model_index  The index of model.
      * @param key   NULL or a 128-bit AES key, like {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a,
      * 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}.
+     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
+     *                      Only set this param to false when your psram resource is very tight. This saves psram and
+     *                      sacrifices the performance of model inference because the frequency of psram is higher than
+     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * MODEL_LOCATION_IN_FLASH_PARTITION.
      *
      * @return  Return nullptr if loading fails. Otherwise return the pointer of FbsModel.
      */
-    FbsModel *load(const int model_index, const uint8_t *key = nullptr);
+    FbsModel *load(const int model_index, const uint8_t *key = nullptr, bool param_copy = true);
 
     /**
      * @brief Load the model by model name.
@@ -67,10 +77,15 @@ public:
      * @param model_name  The name of model.
      * @param key   NULL or a 128-bit AES key, like {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a,
      * 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
+     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
+     *                      Only set this param to false when your psram resource is very tight. This saves psram and
+     *                      sacrifices the performance of model inference because the frequency of psram is higher than
+     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * MODEL_LOCATION_IN_FLASH_PARTITION.
      *
      * @return  Return nullptr if loading fails. Otherwise return the pointer of FbsModel.
      */
-    FbsModel *load(const char *model_name, const uint8_t *key = nullptr);
+    FbsModel *load(const char *model_name, const uint8_t *key = nullptr, bool param_copy = true);
 
     /**
      * @brief Get the number of models.

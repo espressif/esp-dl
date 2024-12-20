@@ -84,7 +84,14 @@ public:
         fbs_model->get_operation_attribute(node_name, "axis", axis);
 
         // Create module
-        op = new Flatten(axis, node_name.c_str(), MODULE_INPLACE_UNCHANGED_BUFFER, quant_type);
+        op = new Flatten(axis,
+#if CONFIG_DL_DEBUG
+                         node_name.c_str(),
+#else
+                         nullptr,
+#endif
+                         MODULE_INPLACE_UNCHANGED_BUFFER,
+                         quant_type);
         return op;
     }
 

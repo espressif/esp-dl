@@ -75,10 +75,12 @@ public:
     {
         if (filter) {
             delete filter;
+            filter = nullptr;
         }
 
         if (bias) {
             delete bias;
+            bias = nullptr;
         }
     }
 
@@ -190,8 +192,8 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            TensorBase *filter = fbs_model->get_operation_parameter(node_name, 1);
-            TensorBase *bias = fbs_model->get_operation_parameter(node_name, 2);
+            TensorBase *filter = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
+            TensorBase *bias = fbs_model->get_operation_parameter(node_name, 2, fbs_model->m_param_copy);
             if (bias) {
                 bias->reset_bias_layout(quant_type, group != 1);
             }
@@ -204,7 +206,11 @@ public:
                                    strides[1],
                                    dilations[0],
                                    dilations[1],
+#if CONFIG_DL_DEBUG
                                    node_name.c_str(),
+#else
+                                   nullptr,
+#endif
                                    group,
                                    quant_type);
         }

@@ -127,6 +127,7 @@ public:
     {
         if (this->auto_free) {
             heap_caps_free(this->data);
+            this->data = nullptr;
         }
     }
 

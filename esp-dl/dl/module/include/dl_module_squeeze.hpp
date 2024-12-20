@@ -32,6 +32,7 @@ public:
     {
         if (m_axes) {
             delete m_axes;
+            m_axes = nullptr;
         }
     }
 
@@ -99,10 +100,17 @@ public:
         Module *op = nullptr;
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
-        TensorBase *axes = fbs_model->get_operation_parameter(node_name, 1);
+        TensorBase *axes = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
 
         // Create module
-        op = new Squeeze(axes, node_name.c_str(), MODULE_INPLACE_UNCHANGED_BUFFER, quant_type);
+        op = new Squeeze(axes,
+#if CONFIG_DL_DEBUG
+                         node_name.c_str(),
+#else
+                         nullptr,
+#endif
+                         MODULE_INPLACE_UNCHANGED_BUFFER,
+                         quant_type);
         return op;
     }
 

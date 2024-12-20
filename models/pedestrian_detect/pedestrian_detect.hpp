@@ -13,5 +13,6 @@ public:
 class PedestrianDetect : public dl::detect::DetectWrapper {
 public:
     typedef enum { PICO_S8_V1 } model_type_t;
-    PedestrianDetect(model_type_t model_type = static_cast<model_type_t>(CONFIG_PEDESTRIAN_DETECT_MODEL_TYPE));
+    PedestrianDetect(const char *sdcard_model_dir = nullptr,
+                     model_type_t model_type = static_cast<model_type_t>(CONFIG_PEDESTRIAN_DETECT_MODEL_TYPE));
 };

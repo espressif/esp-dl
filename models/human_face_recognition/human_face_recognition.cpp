@@ -10,8 +10,12 @@ namespace human_face_recognition {
 
 MFN::MFN(const char *model_name)
 {
+#if !CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
     m_model =
         new dl::Model(path, model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_FEAT_MODEL_LOCATION));
+#else
+    m_model = new dl::Model(model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_FEAT_MODEL_LOCATION));
+#endif
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor = new dl::image::FeatImagePreprocessor(
         m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
@@ -23,31 +27,43 @@ MFN::MFN(const char *model_name)
 
 } // namespace human_face_recognition
 
-HumanFaceFeat::HumanFaceFeat(model_type_t model_type)
+HumanFaceFeat::HumanFaceFeat(const char *sdcard_model_dir, model_type_t model_type)
 {
     switch (model_type) {
     case model_type_t::MFN_S8_V1:
 #if CONFIG_HUMAN_FACE_FEAT_MFN_S8_V1
+#if !CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
         m_model = new human_face_recognition::MFN("human_face_feat_mfn_s8_v1.espdl");
+#else
+        if (sdcard_model_dir) {
+            char mfn_dir[128];
+            snprintf(mfn_dir, sizeof(mfn_dir), "%s/human_face_feat_mfn_s8_v1.espdl", sdcard_model_dir);
+            m_model = new human_face_recognition::MFN(mfn_dir);
+        } else {
+            ESP_LOGE("human_face_recognition", "please pass sdcard mount point as parameter.");
+        }
+#endif
 #else
         ESP_LOGE("human_face_feat", "human_face_feat_mfn_s8_v1 is not selected in menuconfig.");
 #endif
         break;
     case model_type_t::MBF_S8_V1:
 #if CONFIG_HUMAN_FACE_FEAT_MBF_S8_V1
+#if !CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
         m_model = new human_face_recognition::MBF("human_face_feat_mbf_s8_v1.espdl");
+#else
+        if (sdcard_model_dir) {
+            char mbf_dir[128];
+            snprintf(mbf_dir, sizeof(mbf_dir), "%s/human_face_feat_mbf_s8_v1.espdl", sdcard_model_dir);
+            m_model = new human_face_recognition::MBF(mbf_dir);
+        } else {
+            ESP_LOGE("human_face_recognition", "please pass sdcard mount point as parameter.");
+        }
+#endif
 #else
         ESP_LOGE("human_face_feat", "human_face_feat_mbf_s8_v1 is not selected in menuconfig.");
 #endif
         break;
-    }
-}
-
-HumanFaceRecognizer::~HumanFaceRecognizer()
-{
-    if (m_feat_extract) {
-        delete m_feat_extract;
-        m_feat_extract = nullptr;
     }
 }
 

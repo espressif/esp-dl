@@ -1,5 +1,6 @@
 #include "esp_log.h"
 #include "human_face_detect.hpp"
+#include "bsp/esp-bsp.h"
 
 extern const uint8_t human_face_jpg_start[] asm("_binary_human_face_jpg_start");
 extern const uint8_t human_face_jpg_end[] asm("_binary_human_face_jpg_end");
@@ -7,6 +8,10 @@ const char *TAG = "human_face_detect";
 
 extern "C" void app_main(void)
 {
+#if CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
+    ESP_ERROR_CHECK(bsp_sdcard_mount());
+#endif
+
     dl::image::jpeg_img_t jpeg_img = {.data = (uint8_t *)human_face_jpg_start,
                                       .width = 320,
                                       .height = 240,
@@ -14,7 +19,19 @@ extern "C" void app_main(void)
     dl::image::img_t img;
     img.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
     sw_decode_jpeg(jpeg_img, img);
+
+#if !CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
     HumanFaceDetect *detect = new HumanFaceDetect();
+#else
+    char dir[64];
+#if CONFIG_IDF_TARGET_ESP32P4
+    snprintf(dir, sizeof(dir), "%s/espdl_models/p4", CONFIG_BSP_SD_MOUNT_POINT);
+#elif CONFIG_IDF_TARGET_ESP32S3
+    snprintf(dir, sizeof(dir), "%s/espdl_models/s3", CONFIG_BSP_SD_MOUNT_POINT);
+#endif
+    HumanFaceDetect *detect = new HumanFaceDetect(dir);
+#endif
+
     auto &detect_results = detect->run(img);
     for (const auto &res : detect_results) {
         ESP_LOGI(TAG,
@@ -40,4 +57,8 @@ extern "C" void app_main(void)
     }
     delete detect;
     heap_caps_free(img.data);
+
+#if CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
+    ESP_ERROR_CHECK(bsp_sdcard_unmount());
+#endif
 }

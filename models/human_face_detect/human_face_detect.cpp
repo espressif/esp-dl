@@ -10,8 +10,13 @@ namespace human_face_detect {
 
 MSR::MSR(const char *model_name)
 {
+#if !CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
     m_model = new dl::Model(
         path, model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
+#else
+    m_model =
+        new dl::Model(model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
+#endif
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor =
         new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
@@ -24,8 +29,13 @@ MSR::MSR(const char *model_name)
 
 MNP::MNP(const char *model_name)
 {
+#if !CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
     m_model = new dl::Model(
         path, model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
+#else
+    m_model =
+        new dl::Model(model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
+#endif
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor =
         new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
@@ -111,16 +121,29 @@ std::list<dl::detect::result_t> &MSRMNP::run(const dl::image::img_t &img)
 
 } // namespace human_face_detect
 
-HumanFaceDetect::HumanFaceDetect(model_type_t model_type)
+HumanFaceDetect::HumanFaceDetect(const char *sdcard_model_dir, model_type_t model_type)
 {
     switch (model_type) {
-    case model_type_t::MSRMNP_S8_V1:
+    case model_type_t::MSRMNP_S8_V1: {
 #if CONFIG_HUMAN_FACE_DETECT_MSRMNP_S8_V1
+#if !CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
         m_model =
             new human_face_detect::MSRMNP("human_face_detect_msr_s8_v1.espdl", "human_face_detect_mnp_s8_v1.espdl");
+#else
+        if (sdcard_model_dir) {
+            char msr_dir[128];
+            snprintf(msr_dir, sizeof(msr_dir), "%s/human_face_detect_msr_s8_v1.espdl", sdcard_model_dir);
+            char mnp_dir[128];
+            snprintf(mnp_dir, sizeof(mnp_dir), "%s/human_face_detect_mnp_s8_v1.espdl", sdcard_model_dir);
+            m_model = new human_face_detect::MSRMNP(msr_dir, mnp_dir);
+        } else {
+            ESP_LOGE("human_face_detect", "please pass sdcard mount point as parameter.");
+        }
+#endif
 #else
         ESP_LOGE("human_face_detect", "human_face_detect_msrmnp_s8_v1 is not selected in menuconfig.");
 #endif
         break;
+    }
     }
 }
