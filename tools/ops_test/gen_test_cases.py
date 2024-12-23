@@ -60,7 +60,8 @@ class BaseInferencer:
         self.num_of_bits = num_of_bits
         self.model_version = model_version
         self.target = target
-        self.input_dtype = torch.float if self.num_of_bits == 8 else torch.float64
+        # self.input_dtype = torch.float if self.num_of_bits == 8 else torch.float64
+        self.input_dtype = torch.float
         print(self.target)
 
     def __call__(self):

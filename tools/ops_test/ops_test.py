@@ -120,8 +120,31 @@ class MUL4D_TEST(nn.Module):
         if config["activation_func"] == "ReLU":
             self.act = nn.ReLU()
 
-    def forward(self, input1, input2):
-        output = input1 * input2
+        if config["input0_is_weight"] and config["input_weight_shape"]:
+            self.input0_weight = nn.Parameter(
+                torch.randn(size=config["input_weight_shape"])
+            )
+        elif config["input1_is_weight"] and config["input_weight_shape"]:
+            self.input1_weight = nn.Parameter(
+                torch.randn(size=config["input_weight_shape"])
+            )
+
+    def forward(self, *args):
+        input0 = None
+        input1 = None
+        if len(args) == 2:
+            input0 = args[0]
+            input1 = args[1]
+        elif len(args) == 1 and hasattr(self, "input0_weight"):
+            input0 = self.input0_weight
+            input1 = args[0]
+        elif len(args) == 1 and hasattr(self, "input1_weight"):
+            input0 = args[0]
+            input1 = self.input1_weight
+        else:
+            raise ValueError("Config of MatMul is error.")
+
+        output = input0 * input1
         if hasattr(self, "act"):
             output = self.act(output)
         return output

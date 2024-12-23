@@ -15,6 +15,12 @@ namespace module {
  */
 
 class Mul : public Module {
+private:
+    TensorBase *m_input0_constant; /*<! input0 of MatMul. If matmul has a constant input0, the value is not NULL;
+                                      otherwise, it is NULL >*/
+    TensorBase *m_input1_constant; /*<! input1 of MatMul. If matmul has a constant input1, the value is not NULL;
+                                      otherwise, it is NULL >*/
+
 public:
     /**
      * @brief Construct a new Mul object.
@@ -22,23 +28,50 @@ public:
      * @param name            name of module
      * @param inplace         inplace type.
      */
-    Mul(const char *name = NULL,
+    Mul(TensorBase *input0_constant,
+        TensorBase *input1_constant,
+        const char *name = NULL,
         module_inplace_t inplace = MODULE_NON_INPLACE,
         quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, inplace, quant_type)
+        Module(name, inplace, quant_type), m_input0_constant(input0_constant), m_input1_constant(input1_constant)
     {
     }
 
     /**
      * @brief Destroy the Mul object.
      */
-    ~Mul() {}
+    ~Mul()
+    {
+        if (m_input0_constant) {
+            delete m_input0_constant;
+            m_input0_constant = nullptr;
+        }
+
+        if (m_input1_constant) {
+            delete m_input1_constant;
+            m_input1_constant = nullptr;
+        }
+    }
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 2);
+        std::vector<int> input0_shape;
+        std::vector<int> input1_shape;
+        if (input_shapes.size() == 2) {
+            input0_shape = input_shapes[0];
+            input1_shape = input_shapes[1];
+        } else if (input_shapes.size() == 1 && m_input0_constant) {
+            input0_shape = m_input0_constant->get_shape();
+            input1_shape = input_shapes[0];
+        } else if (input_shapes.size() == 1 && m_input1_constant) {
+            input0_shape = input_shapes[0];
+            input1_shape = m_input1_constant->get_shape();
+        } else {
+            ESP_LOGE("Mul", "%s, input is error.", __FUNCTION__);
+            assert(false);
+        }
 
-        std::vector<int> output_shape = base::get_multidirectional_broadcasting_shape(input_shapes[0], input_shapes[1]);
+        std::vector<int> output_shape = base::get_multidirectional_broadcasting_shape(input0_shape, input1_shape);
 
         return std::vector<std::vector<int>>(1, output_shape);
     }
@@ -64,8 +97,22 @@ public:
     template <typename T>
     void forward_template(std::vector<TensorBase *> &tensors, runtime_mode_t mode)
     {
-        TensorBase *input0 = tensors[m_inputs_index[0]];
-        TensorBase *input1 = tensors[m_inputs_index[1]];
+        TensorBase *input0 = nullptr;
+        TensorBase *input1 = nullptr;
+
+        if (m_inputs_index.size() == 2) {
+            input0 = tensors[m_inputs_index[0]];
+            input1 = tensors[m_inputs_index[1]];
+        } else if (m_inputs_index.size() == 1 && m_input0_constant) {
+            input0 = m_input0_constant;
+            input1 = tensors[m_inputs_index[0]];
+        } else if (m_inputs_index.size() == 1 && m_input1_constant) {
+            input0 = tensors[m_inputs_index[0]];
+            input1 = m_input1_constant;
+        } else {
+            ESP_LOGE("Mul", "%s, input is error.", __FUNCTION__);
+        }
+
         TensorBase *output = tensors[m_outputs_index[0]];
 
         std::vector<base::elemwiseArgsType<T>> m_args =
@@ -89,14 +136,22 @@ public:
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
 
-        //
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new Mul(NULL, MODULE_NON_INPLACE, quant_type);
+            TensorBase *input0_constant = fbs_model->get_operation_parameter(node_name, 0);
+            TensorBase *input1_constant = fbs_model->get_operation_parameter(node_name, 1);
+            op = new Mul(input0_constant, input1_constant, NULL, MODULE_NON_INPLACE, quant_type);
         }
         return op;
     }
 
-    void print() { ESP_LOGI("Mul", "quant_type: %s.", quant_type_to_string(quant_type)); }
+    void print()
+    {
+        ESP_LOGI("Mul",
+                 "quant_type: %s, m_input0_constant: %p, m_input1_constant: %p.",
+                 quant_type_to_string(quant_type),
+                 m_input0_constant,
+                 m_input1_constant);
+    }
 };
 
 } // namespace module
