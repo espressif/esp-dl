@@ -46,6 +46,33 @@ public:
     virtual ~Module();
 
     /**
+     * @brief Retrieve the shape of this module's inputs
+     *
+     * @param input_shapes The feature_map shape of this module's inputs.
+     * @param inputs If the module has constant inputs, the order and quantity
+     *              of the parameters passed must be consistent with those defined
+     *              in ONNX. If it is a constant input, pass in its TensorBase pointer;
+     *              if not, pass in nullptr.
+     *
+     * @return std::vector<std::vector<int>> Input shapes
+     */
+    virtual std::vector<std::vector<int>> retrieve_inputs_shape(std::vector<std::vector<int>> &input_shapes,
+                                                                std::vector<dl::TensorBase *> inputs = {});
+
+    /**
+     * @brief Retrieve the module's inputs
+     *
+     * @param tensors All inputs and outputs from MemoryManager
+     * @param inputs If the module has constant inputs, the order and quantity
+     *              of the parameters passed must be consistent with those defined
+     *              in ONNX. If it is a constant input, pass in its TensorBase pointer;
+     *              if not, pass in nullptr.
+     * @return std::vector<TensorBase *> The final inputs.
+     */
+    virtual std::vector<TensorBase *> retrieve_inputs(std::vector<TensorBase *> &tensors,
+                                                      std::vector<dl::TensorBase *> inputs = {});
+
+    /**
      * @brief Get the tensor index of this module's outputs
      *
      * @return Tensor index of model's tensors
