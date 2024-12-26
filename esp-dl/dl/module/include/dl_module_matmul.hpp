@@ -97,7 +97,7 @@ public:
             assert(input_shapes[0].back() == input1_shape[input1_shape.size() - 2]);
             int input0_batch = input_shapes[0].size() == 2 ? 1 : input_shapes[0][0];
             int input1_batch = input1_shape.size() == 2 ? 1 : input1_shape[0];
-            assert(input0_batch == 1 || input1_batch == 1);
+            assert(input0_batch == 1 || input1_batch == 1 || input0_batch == input1_batch);
             output_shape = {
                 std::max(input0_batch, input1_batch), input_shapes[0][input_shapes[0].size() - 2], input1_shape.back()};
 
@@ -105,7 +105,7 @@ public:
             assert(input_shapes[0].back() == input1_shape[input1_shape.size() - 2]);
             int input0_batch0 = input_shapes[0].size() == 2 ? 1 : input_shapes[0].size() == 3 ? 1 : input_shapes[0][0];
             int input1_batch0 = input1_shape.size() == 2 ? 1 : input1_shape.size() == 3 ? 1 : input1_shape[0];
-            assert(input0_batch0 == 1 || input1_batch0 == 1);
+            assert(input0_batch0 == 1 || input1_batch0 == 1 || input0_batch0 == input1_batch0);
 
             int input0_batch1 = input_shapes[0].size() == 2 ? 1
                 : input_shapes[0].size() == 3               ? input_shapes[0][0]
@@ -113,7 +113,7 @@ public:
             int input1_batch1 = input1_shape.size() == 2 ? 1
                 : input1_shape.size() == 3               ? input1_shape[0]
                                                          : input1_shape[1];
-            assert(input0_batch1 == 1 || input1_batch1 == 1);
+            assert(input0_batch1 == 1 || input1_batch1 == 1 || input0_batch1 == input1_batch1);
 
             output_shape = {std::max(input0_batch0, input1_batch0),
                             std::max(input0_batch1, input1_batch1),
