@@ -562,6 +562,22 @@ class SPLIT_TEST(nn.Module):
         return output
 
 
+class GATHER_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.indices = torch.LongTensor(self.config["indices"])
+
+    def forward(self, input):
+        input = torch.squeeze(input, 0)
+        array_idx = [
+            self.indices if self.config["axis"] == i else slice(dim)
+            for i, dim in enumerate(input.shape)
+        ]
+        output = input[array_idx]
+        return output
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 
