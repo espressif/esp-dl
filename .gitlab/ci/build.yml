@@ -17,13 +17,13 @@
     paths:
       - "**/build*/*.bin"
       # upload to s3 server to save the artifacts size
-      - "**/build*/*.map"
-      - "**/build*/*.elf"
+      #- "**/build*/*.map"
+      #- "**/build*/*.elf"
       - "**/build*/flasher_args.json"
       - "**/build*/flash_project_args"
       - "**/build*/config/sdkconfig.json"
       - "**/build*/bootloader/*.bin"
-      - "**/build*/bootloader/*.elf"
+      #- "**/build*/bootloader/*.elf"
       - "**/build*/partition_table/*.bin"
       - "**/build*/espdl_models/*.espdl"
     expire_in: 1 week
