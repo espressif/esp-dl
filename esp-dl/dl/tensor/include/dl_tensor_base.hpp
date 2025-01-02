@@ -252,11 +252,25 @@ public:
     TensorBase &set_shape(const std::vector<int> shape);
 
     /**
+     * @brief Get the exponent of Tensor
+     *
+     * @return int the exponent of Tensor
+     */
+    int get_exponent() { return this->exponent; }
+
+    /**
      * @brief Get the data type of Tensor
      *
      * @return dtype_t the data type of Tensor
      */
     dtype_t get_dtype() { return this->dtype; }
+
+    /**
+     * @brief Get the memory flags of Tensor
+     *
+     * @return uint32_t the memory flags of Tensor
+     */
+    uint32_t get_caps() { return this->caps; }
 
     /**
      * @brief Change a new shape to the Tensor without changing its data.

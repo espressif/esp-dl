@@ -495,17 +495,24 @@ class SLICE_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
+        self.starts = self.config["starts"]
+        self.ends = self.config["ends"]
+        self.axes = self.config["axes"]
+        self.steps = self.config["steps"]
 
     def forward(self, input):
         input = nn.ReLU()(input)
-        if self.config["dim"] == 4:
-            return input[0:1, 1:20:2, 1:-1, :]
-        elif self.config["dim"] == 3:
-            return input[0:1, 1:9:3, 1:-1:2]
-        elif self.config["dim"] == 2:
-            return input[:, 10:-10]
-        elif self.config["dim"] == 1:
-            return input[0:2]
+        array_idx = []
+        for i, dim in enumerate(input.shape):
+            if i in self.axes:
+                index = self.axes.index(i)
+                array_idx.append(
+                    slice(self.starts[index], self.ends[index], self.steps[index])
+                )
+            else:
+                array_idx.append(slice(dim))
+        output = input[array_idx]
+        return output
 
 
 class PAD_TEST(nn.Module):

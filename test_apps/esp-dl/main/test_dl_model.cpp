@@ -21,7 +21,7 @@ void compare_test_outputs(Model *model, std::map<std::string, TensorBase *> infe
     fbs_model_instance->load_map();
     int i = 0;
     for (auto iter = infer_outputs.begin(); iter != infer_outputs.end(); iter++) {
-        ESP_LOGI(TAG, "output index: %d", i++);
+        ESP_LOGI(TAG, "output index: %d, name: %s", i++, iter->first.c_str());
         std::string infer_output_name = iter->first;
         TensorBase *infer_output = iter->second;
         if (infer_output) {
@@ -66,6 +66,25 @@ std::map<std::string, TensorBase *> get_graph_test_inputs(Model *model)
     return test_inputs;
 }
 
+std::map<std::string, TensorBase *> get_graph_user_outputs(Model *model, std::vector<std::string> user_outputs_name)
+{
+    std::map<std::string, TensorBase *> user_outputs;
+
+    if (!model || user_outputs_name.empty()) {
+        return user_outputs;
+    }
+
+    for (int i = 0; i < user_outputs_name.size(); i++) {
+        TensorBase *output = model->get_intermediate(user_outputs_name[i]);
+        if (output) {
+            TensorBase *user_output = new TensorBase(
+                output->get_shape(), nullptr, output->get_exponent(), output->get_dtype(), true, output->get_caps());
+            user_outputs.emplace(user_outputs_name[i], user_output);
+        }
+    }
+    return user_outputs;
+}
+
 TEST_CASE("Test espdl model", "[dl_model]")
 {
     ESP_LOGI(TAG, "get into app_main");
@@ -86,14 +105,15 @@ TEST_CASE("Test espdl model", "[dl_model]")
         fbs::FbsModel *fbs_model = fbs_loader->load(i);
         Model *model = new Model(fbs_model);
         std::map<std::string, TensorBase *> graph_test_inputs = get_graph_test_inputs(model);
+        std::map<std::string, TensorBase *> graph_user_outputs = get_graph_user_outputs(model, {});
         model->print();
         latency.start();
-        model->run(graph_test_inputs);
+        model->run(graph_test_inputs, RUNTIME_MODE_SINGLE_CORE, graph_user_outputs);
         latency.end();
         model_run_time += latency.get_period();
         ESP_LOGI(TAG, "model index:%d  run time:%d us\n", i, latency.get_period());
 
-        compare_test_outputs(model, model->get_outputs());
+        ::compare_test_outputs(model, graph_user_outputs.empty() ? model->get_outputs() : graph_user_outputs);
         for (auto graph_test_inputs_iter = graph_test_inputs.begin(); graph_test_inputs_iter != graph_test_inputs.end();
              graph_test_inputs_iter++) {
             if (graph_test_inputs_iter->second) {
@@ -101,6 +121,16 @@ TEST_CASE("Test espdl model", "[dl_model]")
             }
         }
         graph_test_inputs.clear();
+
+        for (auto graph_user_outputs_iter = graph_user_outputs.begin();
+             graph_user_outputs_iter != graph_user_outputs.end();
+             graph_user_outputs_iter++) {
+            if (graph_user_outputs_iter->second) {
+                delete graph_user_outputs_iter->second;
+            }
+        }
+        graph_user_outputs.clear();
+
         delete model;
         delete fbs_model;
     }
