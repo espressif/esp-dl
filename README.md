@@ -72,7 +72,7 @@ For more details, please refer to [Loading Models with ESP-DL](https://docs.espr
 [Imagenet classification](./models/imagenet_cls/)    
 
 
-## Suport Operators
+## Support Operators
 
 If you encounter unsupported operators, please point them out in the [issues](https://github.com/espressif/esp-dl/issues), and we will support them as soon as possible. Contributions to this ESP-DL are also welcomed, please refer to [Creating a New Module (Operator)](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_add_a_new_module%28operator%29.html) for more details.
 

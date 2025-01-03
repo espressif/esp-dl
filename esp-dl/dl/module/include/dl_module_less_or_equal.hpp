@@ -89,7 +89,7 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new LessOrEqual(NULL, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+            op = new LessOrEqual(node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }
         return op;
     }

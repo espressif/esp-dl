@@ -231,150 +231,223 @@
         input_shape = [[1, 96, 5, 5], [1, 96, 5, 5]]
         export_name_prefix = "add4d_ishap_1_96_5_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[1, 96, 5, 16], [1, 96, 5, 16]]
         export_name_prefix = "add4d_ishap_1_96_5_16"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[1, 96, 5, 16], [1, 96, 5, 1]]
         export_name_prefix = "add4d_ishap_1_96_5_16_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 16]]
         export_name_prefix = "add4d_ishap_1_96_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[1, 96, 5, 48], [1, 96, 5, 48]]
         export_name_prefix = "add4d_ishap_1_96_5_16"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[1, 96, 5, 48], [1, 96, 5, 1]]
         export_name_prefix = "add4d_ishap_1_96_5_16_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 48]]
         export_name_prefix = "add4d_ishap_1_96_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[1, 5, 5, 31], [1, 1, 1, 31]]
         export_name_prefix = "add4d_ishap_1_96_1_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 3: Scalar broadcasting
         [[ops_test.Add.cfg]]
         input_shape = [[2, 3, 4, 5], [1, 1, 1, 1]]
         export_name_prefix = "add4d_ishap_2_3_4_5_scalar"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 4: Broadcasting a lower dimension tensor across a higher one
         [[ops_test.Add.cfg]]
         input_shape = [[2, 3, 4, 5], [1, 1, 1, 5]]
         export_name_prefix = "add4d_ishap_2_3_4_5_vec"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 5: Fully broadcasting a smaller shape to a larger one
         [[ops_test.Add.cfg]]
         input_shape = [[1, 1, 4, 5], [2, 3, 4, 5]]
         export_name_prefix = "add4d_ishap_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 6: Using dimensions of size 1 for broadcasting
         [[ops_test.Add.cfg]]
         input_shape = [[1, 1, 4, 5], [2, 3, 1, 1]]
         export_name_prefix = "add4d_ishap_1_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 7: Additional edge case with more complex broadcasting
         [[ops_test.Add.cfg]]
         input_shape = [[1, 3, 4, 5], [2, 1, 1, 1]]
         export_name_prefix = "add4d_ishap_3_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 8: Large batch dimension, checking efficient handling
         [[ops_test.Add.cfg]]
         input_shape = [[10, 1, 5, 5], [1, 1, 5, 5]]
         export_name_prefix = "add4d_large_batch"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 9: High number of channels, testing computational efficiency
         [[ops_test.Add.cfg]]
         input_shape = [[1, 512, 7, 7], [1, 512, 7, 7]]
         export_name_prefix = "add4d_high_channels"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 10: Minimal shape, edge case testing
         [[ops_test.Add.cfg]]
         input_shape = [[1, 1, 1, 1], [1, 1, 1, 1]]
         export_name_prefix = "add4d_minimal_shape"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 11: Broadcasting a (1, 1, 1, 5) tensor to (2, 3, 4, 5)
         [[ops_test.Add.cfg]]
         input_shape = [[1, 1, 1, 5], [2, 3, 4, 5]]
         export_name_prefix = "add4d_broadcast_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[5], [1]]
         export_name_prefix = "add4d_broadcast_to_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[48], [1]]
         export_name_prefix = "add4d_broadcast_to_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[2, 48], [1]]
         export_name_prefix = "add4d_broadcast_to_2_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[2, 5], [1]]
         export_name_prefix = "add4d_broadcast_to_2_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[2, 5], [2, 1]]
         export_name_prefix = "add4d_broadcast_to_2_5_2_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[5, 2, 48], [1]]
         export_name_prefix = "add4d_broadcast_to_5_2_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[8, 2, 5], [1]]
         export_name_prefix = "add4d_broadcast_to_8_2_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[8, 2, 5], [2, 1]]
         export_name_prefix = "add4d_broadcast_to_8_2_5_2_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[1, 96, 5, 49], [1, 96, 5, 49]]
         export_name_prefix = "add4d_ishap_1_96_5_49_un"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[1, 96, 5, 49], [1, 96, 5, 1]]
         export_name_prefix = "add4d_ishap_1_96_5_49_un2"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Add.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 49]]
         export_name_prefix = "add4d_ishap_1_96_5_49_un3"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Add.cfg]]
+        input_shape = [1, 96, 5, 49]
+        export_name_prefix = "add4d_ishape_1_96_5_49_ishape0_weight_un3"
+        activation_func = ""
+        input0_is_weight = true
+        input1_is_weight = false
+        input_weight_shape = [1, 96, 5, 1]
+
+        [[ops_test.Add.cfg]]
+        input_shape = [1, 96, 5, 49]
+        export_name_prefix = "add4d_ishape_1_96_5_49_ishape1_weight_un3"
+        activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = true
+        input_weight_shape = [1, 96, 5, 49]
+
 
     [ops_test.Sub]
     class_name = "SUB4D_TEST"
@@ -384,150 +457,223 @@
         input_shape = [[1, 96, 5, 5], [1, 96, 5, 5]]
         export_name_prefix = "sub4d_ishap_1_96_5_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 96, 5, 16], [1, 96, 5, 16]]
         export_name_prefix = "sub4d_ishap_1_96_5_16"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 96, 5, 16], [1, 96, 5, 1]]
         export_name_prefix = "sub4d_ishap_1_96_5_16_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 16]]
         export_name_prefix = "sub4d_ishap_1_96_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 96, 5, 48], [1, 96, 5, 48]]
         export_name_prefix = "sub4d_ishap_1_96_5_16"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 96, 5, 48], [1, 96, 5, 1]]
         export_name_prefix = "sub4d_ishap_1_96_5_16_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 48]]
         export_name_prefix = "sub4d_ishap_1_96_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 5, 5, 31], [1, 1, 1, 31]]
         export_name_prefix = "sub4d_ishap_1_96_1_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 3: Scalar broadcasting
         [[ops_test.Sub.cfg]]
         input_shape = [[2, 3, 4, 5], [1, 1, 1, 1]]
         export_name_prefix = "sub4d_ishap_2_3_4_5_scalar"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 4: Broadcasting a lower dimension tensor across a higher one
         [[ops_test.Sub.cfg]]
         input_shape = [[2, 3, 4, 5], [1, 1, 1, 5]]
         export_name_prefix = "sub4d_ishap_2_3_4_5_vec"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 5: Fully broadcasting a smaller shape to a larger one
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 1, 4, 5], [2, 3, 4, 5]]
         export_name_prefix = "sub4d_ishap_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 6: Using dimensions of size 1 for broadcasting
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 1, 4, 5], [2, 3, 1, 1]]
         export_name_prefix = "sub4d_ishap_1_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 7: Additional edge case with more complex broadcasting
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 3, 4, 5], [2, 1, 1, 1]]
         export_name_prefix = "sub4d_ishap_3_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 8: Large batch dimension, checking efficient handling
         [[ops_test.Sub.cfg]]
         input_shape = [[10, 1, 5, 5], [1, 1, 5, 5]]
         export_name_prefix = "sub4d_large_batch"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 9: High number of channels, testing computational efficiency
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 512, 7, 7], [1, 512, 7, 7]]
         export_name_prefix = "sub4d_high_channels"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 10: Minimal shape, edge case testing
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 1, 1, 1], [1, 1, 1, 1]]
         export_name_prefix = "sub4d_minimal_shape"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 11: Broadcasting a (1, 1, 1, 5) tensor to (2, 3, 4, 5)
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 1, 1, 5], [2, 3, 4, 5]]
         export_name_prefix = "sub4d_broadcast_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[5], [1]]
         export_name_prefix = "sub4d_broadcast_to_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[48], [1]]
         export_name_prefix = "sub4d_broadcast_to_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[2, 48], [1]]
         export_name_prefix = "sub4d_broadcast_to_2_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[2, 5], [1]]
         export_name_prefix = "sub4d_broadcast_to_2_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[2, 5], [2, 1]]
         export_name_prefix = "sub4d_broadcast_to_2_5_2_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[5, 2, 48], [1]]
         export_name_prefix = "sub4d_broadcast_to_5_2_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[8, 2, 5], [1]]
         export_name_prefix = "sub4d_broadcast_to_8_2_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[8, 2, 5], [2, 1]]
         export_name_prefix = "sub4d_broadcast_to_8_2_5_2_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 96, 5, 49], [1, 96, 5, 49]]
         export_name_prefix = "sub4d_ishap_1_96_5_49_un"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 96, 5, 49], [1, 96, 5, 1]]
         export_name_prefix = "sub4d_ishap_1_96_5_49_un2"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 49]]
         export_name_prefix = "sub4d_ishap_1_96_5_49_un3"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Sub.cfg]]
+        input_shape = [1, 96, 5, 49]
+        export_name_prefix = "sub4d_ishap_1_96_5_49_ishape0_weight_un3"
+        activation_func = ""
+        input0_is_weight = true
+        input1_is_weight = false
+        input_weight_shape = [1, 96, 5, 1]
+
+        [[ops_test.Sub.cfg]]
+        input_shape = [1, 96, 5, 1]
+        export_name_prefix = "sub4d_ishap_1_96_5_49_ishape1_weight_un3"
+        activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = true
+        input_weight_shape = [1, 96, 5, 49]
+
 
     [ops_test.Mul]
     class_name = "MUL4D_TEST"
@@ -537,150 +683,223 @@
         input_shape = [[1, 96, 5, 5], [1, 96, 5, 5]]
         export_name_prefix = "mul4d_ishap_1_96_5_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 96, 5, 16], [1, 96, 5, 16]]
         export_name_prefix = "mul4d_ishap_1_96_5_16"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 96, 5, 16], [1, 96, 5, 1]]
         export_name_prefix = "mul4d_ishap_1_96_5_16_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 16]]
         export_name_prefix = "mul4d_ishap_1_96_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 96, 5, 48], [1, 96, 5, 48]]
         export_name_prefix = "mul4d_ishap_1_96_5_16"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 96, 5, 48], [1, 96, 5, 1]]
         export_name_prefix = "mul4d_ishap_1_96_5_16_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 48]]
         export_name_prefix = "mul4d_ishap_1_96_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 5, 5, 31], [1, 1, 1, 31]]
         export_name_prefix = "mul4d_ishap_1_96_1_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 3: Scalar broadcasting
         [[ops_test.Mul.cfg]]
         input_shape = [[2, 3, 4, 5], [1, 1, 1, 1]]
         export_name_prefix = "mul4d_ishap_2_3_4_5_scalar"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 4: Broadcasting a lower dimension tensor across a higher one
         [[ops_test.Mul.cfg]]
         input_shape = [[2, 3, 4, 5], [1, 1, 1, 5]]
         export_name_prefix = "mul4d_ishap_2_3_4_5_vec"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 5: Fully broadcasting a smaller shape to a larger one
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 1, 4, 5], [2, 3, 4, 5]]
         export_name_prefix = "mul4d_ishap_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 6: Using dimensions of size 1 for broadcasting
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 1, 4, 5], [2, 3, 1, 1]]
         export_name_prefix = "mul4d_ishap_1_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 7: Additional edge case with more complex broadcasting
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 3, 4, 5], [2, 1, 1, 1]]
         export_name_prefix = "mul4d_ishap_3_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 8: Large batch dimension, checking efficient handling
         [[ops_test.Mul.cfg]]
         input_shape = [[10, 1, 5, 5], [1, 1, 5, 5]]
         export_name_prefix = "mul4d_large_batch"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 9: High number of channels, testing computational efficiency
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 512, 7, 7], [1, 512, 7, 7]]
         export_name_prefix = "mul4d_high_channels"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 10: Minimal shape, edge case testing
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 1, 1, 1], [1, 1, 1, 1]]
         export_name_prefix = "mul4d_minimal_shape"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 11: Broadcasting a (1, 1, 1, 5) tensor to (2, 3, 4, 5)
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 1, 1, 5], [2, 3, 4, 5]]
         export_name_prefix = "mul4d_broadcast_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[5], [1]]
         export_name_prefix = "mul4d_broadcast_to_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[48], [1]]
         export_name_prefix = "mul4d_broadcast_to_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[2, 48], [1]]
         export_name_prefix = "mul4d_broadcast_to_2_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[2, 5], [1]]
         export_name_prefix = "mul4d_broadcast_to_2_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[2, 5], [2, 1]]
         export_name_prefix = "mul4d_broadcast_to_2_5_2_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[5, 2, 48], [1]]
         export_name_prefix = "mul4d_broadcast_to_5_2_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[8, 2, 5], [1]]
         export_name_prefix = "mul4d_broadcast_to_8_2_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[8, 2, 5], [2, 1]]
         export_name_prefix = "mul4d_broadcast_to_8_2_5_2_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 96, 5, 49], [1, 96, 5, 49]]
         export_name_prefix = "mul4d_ishap_1_96_5_49_un"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 96, 5, 49], [1, 96, 5, 1]]
         export_name_prefix = "mul4d_ishap_1_96_5_49_un2"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 49]]
         export_name_prefix = "mul4d_ishap_1_96_5_49_un3"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Mul.cfg]]
+        input_shape = [1, 96, 5, 1]
+        export_name_prefix = "mul4d_ishape_1_96_5_49_ishape1_weight_un3"
+        activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = true
+        input_weight_shape = [1, 96, 5, 49]
+
+        [[ops_test.Mul.cfg]]
+        input_shape = [1, 96, 5, 49]
+        export_name_prefix = "mul4d_ishape_1_96_5_49_ishape0_weight_un3"
+        activation_func = ""
+        input0_is_weight = true
+        input1_is_weight = false
+        input_weight_shape = [1, 96, 5, 1]
+
 
     [ops_test.Div]
     class_name = "DIV_TEST"
@@ -690,104 +909,159 @@
         input_shape = [[1, 96, 5, 5], [1, 96, 5, 5]]
         export_name_prefix = "div_ishap_1_96_5_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Div.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 16]]
         export_name_prefix = "div_ishap_1_96_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Div.cfg]]
         input_shape = [[1, 96, 10], [1]]
         export_name_prefix = "div_ishap_1_96_10"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 3: Scalar broadcasting
         [[ops_test.Div.cfg]]
         input_shape = [[2, 3, 4, 5], [1, 1, 1, 1]]
         export_name_prefix = "div_ishap_2_3_4_5_scalar"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 4: Broadcasting a lower dimension tensor across a higher one
         [[ops_test.Div.cfg]]
         input_shape = [[2, 3, 4, 5], [1, 1, 1, 5]]
         export_name_prefix = "div_ishap_2_3_4_5_vec"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 5: Fully broadcasting a smaller shape to a larger one
         [[ops_test.Div.cfg]]
         input_shape = [[1, 1], [2, 3, 4, 5]]
         export_name_prefix = "div_ishap_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 6: Using dimensions of size 1 for broadcasting
         [[ops_test.Div.cfg]]
         input_shape = [[1], [2, 3]]
         export_name_prefix = "div_ishap_1_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 7: Additional edge case with more complex broadcasting
         [[ops_test.Div.cfg]]
         input_shape = [[1, 3, 4, 5], [2, 1, 1, 1]]
         export_name_prefix = "div_ishap_3_4_5_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 8: Large batch dimension, checking efficient handling
         [[ops_test.Div.cfg]]
         input_shape = [[10, 1, 5, 5], [1, 1, 5, 5]]
         export_name_prefix = "div_large_batch"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 10: Minimal shape, edge case testing
         [[ops_test.Div.cfg]]
         input_shape = [[1, 1, 1, 1], [1, 1, 1, 1]]
         export_name_prefix = "div_minimal_shape"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         # Case 11: Broadcasting a (1, 1, 1, 5) tensor to (2, 3, 4, 5)
         [[ops_test.Div.cfg]]
         input_shape = [[5], [2, 3, 4, 5]]
         export_name_prefix = "div_broadcast_to_2_3_4_5"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Div.cfg]]
         input_shape = [[5], [1]]
         export_name_prefix = "div_broadcast_to_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Div.cfg]]
         input_shape = [[48], [1]]
         export_name_prefix = "div_broadcast_to_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Div.cfg]]
         input_shape = [[2, 48], [1]]
         export_name_prefix = "div_broadcast_to_2_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Div.cfg]]
         input_shape = [[2, 5], [1]]
         export_name_prefix = "div_broadcast_to_2_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Div.cfg]]
         input_shape = [[2, 5], [2, 1]]
         export_name_prefix = "div_broadcast_to_2_5_2_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Div.cfg]]
         input_shape = [[1], [5, 2, 48]]
         export_name_prefix = "div_broadcast_to_5_2_48_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Div.cfg]]
         input_shape = [[8, 2, 5], [1]]
         export_name_prefix = "div_broadcast_to_8_2_5_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
 
         [[ops_test.Div.cfg]]
         input_shape = [[8, 2, 5], [2, 1]]
         export_name_prefix = "div_broadcast_to_8_2_5_2_1"
         activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Div.cfg]]
+        input_shape = [2, 1]
+        export_name_prefix = "div_broadcast_to_8_2_5_2_1_ishape0_weight"
+        activation_func = ""
+        input0_is_weight = true
+        input1_is_weight = false
+        input_weight_shape = [8, 2, 5]
+
+        [[ops_test.Div.cfg]]
+        input_shape = [8, 2, 5]
+        export_name_prefix = "div_broadcast_to_8_2_5_2_1_ishape1_weight"
+        activation_func = ""
+        input0_is_weight = false
+        input1_is_weight = true
+        input_weight_shape = [2, 1]
+
 
     [ops_test.GlobalAveragePool]
     class_name = "GLOBAL_AVERAGE_POOLING_TEST"
@@ -1420,6 +1694,28 @@
         export_name_prefix = "Split_ishape_1_4_20_5_10_split_size_5_4_5_3_3_dim_2"
         split_size_or_sections = [5, 4, 5, 3, 3]
         dim = 2
+
+
+    [ops_test.Gather]
+    class_name = "GATHER_TEST"
+    quant_bits = ["int8", "int16"]
+        [[ops_test.Gather.cfg]]
+        input_shape = [1, 3, 2]
+        export_name_prefix = "Gather_ishape_3_2_indices_0_1_1_2_dim_0"
+        indices = [[0, 1], [1, 2],]
+        axis = 0
+
+        [[ops_test.Gather.cfg]]
+        input_shape = [1, 3, 2]
+        export_name_prefix = "Gather_ishape_3_2_indices_0_1_1_1_2_2_dim_0"
+        indices = [[0, 1, 1], [1, 2, 2],]
+        axis = 0
+
+        [[ops_test.Gather.cfg]]
+        input_shape = [1, 2, 3, 2]
+        export_name_prefix = "Gather_ishape_2_3_2_indices_0_1_1_1_2_2_dim_1"
+        indices = [[0, 1, 1], [1, 2, 2],]
+        axis = 1
 
 
 [models_test]

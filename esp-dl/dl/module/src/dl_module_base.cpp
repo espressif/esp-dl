@@ -1,6 +1,8 @@
 #include "dl_module_base.hpp"
 #include <string.h>
 
+static const char *TAG = "dl::module::Module";
+
 using namespace dl;
 
 namespace dl {
@@ -25,6 +27,58 @@ Module::~Module()
 {
     if (this->name) {
         free((void *)this->name);
+    }
+}
+
+std::vector<std::vector<int>> Module::retrieve_inputs_shape(std::vector<std::vector<int>> &input_shapes,
+                                                            std::vector<dl::TensorBase *> inputs)
+{
+    if (inputs.size() > 0 && inputs.size() < m_inputs_index.size()) {
+        ESP_LOGE(TAG, "The order and quantity of the parameters passed must be consistent with those defined in ONNX.");
+        assert(inputs.size() >= m_inputs_index.size());
+    }
+
+    if (inputs.size() == 0) {
+        return input_shapes;
+    } else {
+        std::vector<std::vector<int>> output_shapes(inputs.size());
+        for (int i = 0, j = 0; i < inputs.size(); i++) {
+            if (inputs[i]) {
+                output_shapes[i] = inputs[i]->get_shape();
+            } else {
+                output_shapes[i] = input_shapes[j];
+                j++;
+            }
+        }
+        return output_shapes;
+    }
+}
+
+std::vector<TensorBase *> Module::retrieve_inputs(std::vector<TensorBase *> &tensors,
+                                                  std::vector<dl::TensorBase *> inputs)
+{
+    if (inputs.size() > 0 && inputs.size() < m_inputs_index.size()) {
+        ESP_LOGE(TAG, "The order and quantity of the parameters passed must be consistent with those defined in ONNX.");
+        assert(inputs.size() >= m_inputs_index.size());
+    }
+
+    if (inputs.size() == 0) {
+        std::vector<TensorBase *> ret_inputs(m_inputs_index.size());
+        for (int i = 0; i < m_inputs_index.size(); i++) {
+            ret_inputs[i] = tensors[m_inputs_index[i]];
+        }
+        return ret_inputs;
+    } else {
+        std::vector<TensorBase *> ret_inputs(inputs.size());
+        for (int i = 0, j = 0; i < inputs.size(); i++) {
+            if (inputs[i]) {
+                ret_inputs[i] = inputs[i];
+            } else {
+                ret_inputs[i] = tensors[m_inputs_index[j]];
+                j++;
+            }
+        }
+        return ret_inputs;
     }
 }
 

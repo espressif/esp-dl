@@ -7,6 +7,7 @@
 #include "dl_module_div.hpp"
 #include "dl_module_exp.hpp"
 #include "dl_module_flatten.hpp"
+#include "dl_module_gather.hpp"
 #include "dl_module_gemm.hpp"
 #include "dl_module_global_average_pool.hpp"
 #include "dl_module_hard_sigmoid.hpp"
@@ -131,6 +132,7 @@ public:
             this->register_module("Pad", Pad::deserialize);
             this->register_module("MatMul", MatMul::deserialize);
             this->register_module("Split", Split::deserialize);
+            this->register_module("Gather", Gather::deserialize);
         }
     }
 
