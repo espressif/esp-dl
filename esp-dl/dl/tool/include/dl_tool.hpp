@@ -614,7 +614,7 @@ public:
 #endif
 #else
         if (debug)
-            ESP_LOGD("latency", "%s::%s: %lu us\n", prefix, key, this->get_average_period());
+            ESP_LOGI("latency", "%s::%s: %lu us\n", prefix, key, this->get_average_period());
         else
             printf("%s::%s: %lu us\n", prefix, key, this->get_average_period());
 #endif
