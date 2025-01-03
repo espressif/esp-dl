@@ -108,14 +108,14 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            TensorBase *table = fbs_model->get_operation_lut(node_name, fbs_model->m_param_copy);
+            TensorBase *table = fbs_model->get_operation_lut(node_name);
             if (table) {
                 op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
             }
         }
         if (op == nullptr) {
-            TensorBase *min = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
-            TensorBase *max = fbs_model->get_operation_parameter(node_name, 2, fbs_model->m_param_copy);
+            TensorBase *min = fbs_model->get_operation_parameter(node_name, 1);
+            TensorBase *max = fbs_model->get_operation_parameter(node_name, 2);
             assert(min->exponent == max->exponent);
             op = new Clip(min, max, node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }

@@ -31,7 +31,7 @@ extern "C" void app_main(void)
                                         .data_size = (uint32_t)(bill1_jpg_end - bill1_jpg_start)};
     dl::image::img_t bill1;
     bill1.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
-    sw_decode_jpeg(bill1_jpeg, bill1);
+    sw_decode_jpeg(bill1_jpeg, bill1, true);
 
     dl::image::jpeg_img_t bill2_jpeg = {.data = (uint8_t *)bill2_jpg_start,
                                         .width = 300,
@@ -39,7 +39,7 @@ extern "C" void app_main(void)
                                         .data_size = (uint32_t)(bill2_jpg_end - bill2_jpg_start)};
     dl::image::img_t bill2;
     bill2.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
-    sw_decode_jpeg(bill2_jpeg, bill2);
+    sw_decode_jpeg(bill2_jpeg, bill2, true);
 
     dl::image::jpeg_img_t musk1_jpeg = {.data = (uint8_t *)musk1_jpg_start,
                                         .width = 300,
@@ -47,7 +47,7 @@ extern "C" void app_main(void)
                                         .data_size = (uint32_t)(musk1_jpg_end - musk1_jpg_start)};
     dl::image::img_t musk1;
     musk1.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
-    sw_decode_jpeg(musk1_jpeg, musk1);
+    sw_decode_jpeg(musk1_jpeg, musk1, true);
 
     dl::image::jpeg_img_t musk2_jpeg = {.data = (uint8_t *)musk2_jpg_start,
                                         .width = 300,
@@ -55,7 +55,7 @@ extern "C" void app_main(void)
                                         .data_size = (uint32_t)(musk2_jpg_end - musk2_jpg_start)};
     dl::image::img_t musk2;
     musk2.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
-    sw_decode_jpeg(musk2_jpeg, musk2);
+    sw_decode_jpeg(musk2_jpeg, musk2, true);
 
 #if CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD || CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
     char dir[64];

@@ -102,7 +102,7 @@ public:
         Module *op = nullptr;
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
-        TensorBase *table = fbs_model->get_operation_lut(node_name, fbs_model->m_param_copy);
+        TensorBase *table = fbs_model->get_operation_lut(node_name);
 
         if (table == NULL) {
             ESP_LOGE("LUT", "Table is null!");

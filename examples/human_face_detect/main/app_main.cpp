@@ -18,7 +18,7 @@ extern "C" void app_main(void)
                                       .data_size = (uint32_t)(human_face_jpg_end - human_face_jpg_start)};
     dl::image::img_t img;
     img.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
-    sw_decode_jpeg(jpeg_img, img);
+    sw_decode_jpeg(jpeg_img, img, true);
 
 #if !CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
     HumanFaceDetect *detect = new HumanFaceDetect();

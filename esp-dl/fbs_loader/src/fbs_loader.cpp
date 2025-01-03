@@ -112,8 +112,6 @@ fbs_file_format_t get_model_format(const char *fbs_buf, model_location_type_t mo
         fclose(f);
     }
 
-    printf("%s\n", str);
-
     if (strcmp(str, "EDL1") == 0) {
         return FBS_FILE_FORMAT_EDL1;
     } else if (strcmp(str, "PDL1") == 0) {

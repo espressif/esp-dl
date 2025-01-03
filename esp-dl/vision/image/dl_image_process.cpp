@@ -386,6 +386,8 @@ esp_err_t resize_ppa(const img_t &src_img,
                      ppa_client_handle_t ppa_handle,
                      void *ppa_buffer,
                      size_t ppa_buffer_size,
+                     ppa_trans_mode_t ppa_mode,
+                     void *ppa_user_data,
                      uint32_t caps,
                      void *norm_lut,
                      const std::vector<int> &crop_area,
@@ -504,7 +506,7 @@ esp_err_t resize_ppa(const img_t &src_img,
     srm_oper_config.out.block_offset_y = 0;
     bool need_convert = false;
     ppa_srm_color_mode_t output_srm_color_mode;
-    if (norm_lut || convert_pix_type_to_ppa_srm_fmt(src_img.pix_type, &output_srm_color_mode) == ESP_FAIL) {
+    if (norm_lut || convert_pix_type_to_ppa_srm_fmt(dst_img.pix_type, &output_srm_color_mode) == ESP_FAIL) {
         output_srm_color_mode = PPA_SRM_COLOR_MODE_RGB888;
         need_convert = true;
     }
@@ -515,7 +517,8 @@ esp_err_t resize_ppa(const img_t &src_img,
     srm_oper_config.scale_y = ppa_scale_y;
     srm_oper_config.mirror_x = false;
     srm_oper_config.mirror_y = false;
-    srm_oper_config.mode = PPA_TRANS_MODE_BLOCKING;
+    srm_oper_config.mode = ppa_mode;
+    srm_oper_config.user_data = ppa_user_data;
     memset(ppa_buffer, 0, ppa_buffer_size);
     ESP_ERROR_CHECK(ppa_do_scale_rotate_mirror(ppa_handle, &srm_oper_config));
     if (need_convert) {
@@ -523,7 +526,9 @@ esp_err_t resize_ppa(const img_t &src_img,
             .data = ppa_buffer, .width = dst_img.width, .height = dst_img.height, .pix_type = DL_IMAGE_PIX_TYPE_RGB888};
         convert_img(ppa_output_img, dst_img, 0, norm_lut);
     } else {
-        tool::copy_memory(dst_img.data, ppa_buffer, get_img_byte_size(dst_img));
+        if (dst_img.data != ppa_buffer) {
+            tool::copy_memory(dst_img.data, ppa_buffer, get_img_byte_size(dst_img));
+        }
     }
     return ESP_OK;
 }

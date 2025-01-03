@@ -13,14 +13,14 @@
 #define DL_IMAGE_CAP_PPA (1 << 3)
 
 // gggbbbbb rrrrrggg
-#define DL_IMAGE_LITTLE_ENDIAN_RGB565_BIT1(x) ((uint8_t)(((x) & 0x1F00) >> 5))
+#define DL_IMAGE_LITTLE_ENDIAN_RGB565_BIT1(x) ((uint8_t)((x) & 0xF8))
 #define DL_IMAGE_LITTLE_ENDIAN_RGB565_BIT2(x) ((uint8_t)((((x) & 0x7) << 5) | (((x) & 0xE000) >> 11)))
-#define DL_IMAGE_LITTLE_ENDIAN_RGB565_BIT3(x) ((uint8_t)((x) & 0xF8))
+#define DL_IMAGE_LITTLE_ENDIAN_RGB565_BIT3(x) ((uint8_t)(((x) & 0x1F00) >> 5))
 
 // rrrrrggg gggbbbbb
-#define DL_IMAGE_BIG_ENDIAN_RGB565_BIT1(x) ((uint8_t)(((x) & 0x1F) << 3))
+#define DL_IMAGE_BIG_ENDIAN_RGB565_BIT1(x) ((uint8_t)(((x) & 0xF800) >> 8))
 #define DL_IMAGE_BIG_ENDIAN_RGB565_BIT2(x) ((uint8_t)(((x) & 0x7E0) >> 3))
-#define DL_IMAGE_BIG_ENDIAN_RGB565_BIT3(x) ((uint8_t)(((x) & 0xF800) >> 8))
+#define DL_IMAGE_BIG_ENDIAN_RGB565_BIT3(x) ((uint8_t)(((x) & 0x1F) << 3))
 
 #define DL_IMAGE_IS_PIX_TYPE_QUANT(x) \
     ((x) != DL_IMAGE_PIX_TYPE_RGB888 && (x) != DL_IMAGE_PIX_TYPE_RGB565 && (x) != DL_IMAGE_PIX_TYPE_GRAY)

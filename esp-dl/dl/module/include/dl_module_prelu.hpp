@@ -113,17 +113,17 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            TensorBase *table = fbs_model->get_operation_lut(node_name, fbs_model->m_param_copy);
+            TensorBase *table = fbs_model->get_operation_lut(node_name);
             if (table) {
                 op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
             } else {
-                TensorBase *alpha = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
+                TensorBase *alpha = fbs_model->get_operation_parameter(node_name, 1);
                 // [c, 1, 1]
                 assert(alpha->shape.size() == 3);
                 op = new PRelu(node_name.c_str(), alpha, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
             }
         } else {
-            TensorBase *alpha = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
+            TensorBase *alpha = fbs_model->get_operation_parameter(node_name, 1);
             // [c, 1, 1]
             assert(alpha->shape.size() == 3);
             op = new PRelu(node_name.c_str(), alpha, MODULE_INPLACE_CHANGED_BUFFER, quant_type);

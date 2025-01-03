@@ -13,11 +13,6 @@ namespace dl {
 namespace image {
 /**
  * @brief rgb565->rgb888, crop, resize, normalize, quantize
- * NOTE: input should be (h, w, 3) or (h, w, 1) with value range in [0, 255].
- *
- * @tparam feature_t supports int16_t and int8_t,
- *         - int16_t: stands for operation in int16_t quantize
- *         - int8_t: stands for operation in int8_t quantize
  */
 class ImagePreprocessor {
 public:
@@ -55,6 +50,7 @@ public:
     float get_top_left_y() { return m_crop_area[1]; };
 
     void preprocess(const img_t &img, const std::vector<int> &crop_area = {});
+    void preprocess(const img_t &img, uint16_t rescaled_w, uint16_t rescaled_h, const std::vector<int> &crop_area = {});
     void preprocess(const img_t &img, dl::math::Matrix<float> *M_inv);
 };
 

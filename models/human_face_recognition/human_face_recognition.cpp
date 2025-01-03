@@ -18,7 +18,7 @@ MFN::MFN(const char *model_name)
 #endif
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor = new dl::image::FeatImagePreprocessor(
-        m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
+        m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5}, DL_IMAGE_CAP_RGB_SWAP | DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
 #elif CONFIG_IDF_TARGET_ESP32S3
     m_image_preprocessor = new dl::image::FeatImagePreprocessor(m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5});
 #endif

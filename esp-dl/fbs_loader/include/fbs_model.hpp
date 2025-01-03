@@ -105,26 +105,20 @@ public:
      *
      * @param node_name  The name of operation
      * @param index      The index of the variable
-     * @param copy       If true, return a copy of the variable
      * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      *
      * @return TensorBase
      */
-    dl::TensorBase *get_operation_parameter(std::string node_name,
-                                            int index = 1,
-                                            bool copy = true,
-                                            uint32_t caps = MALLOC_CAP_SPIRAM);
+    dl::TensorBase *get_operation_parameter(std::string node_name, int index = 1, uint32_t caps = MALLOC_CAP_SPIRAM);
 
     /**
      * @brief Get LUT(Look Up Table) if the operation has LUT
      *
      * @param node_name   The name of operation
-     * @param copy       If true, return a copy of the variable
      * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      * @param attribute_name The name of LUT attribute
      */
     dl::TensorBase *get_operation_lut(std::string node_name,
-                                      bool copy = true,
                                       uint32_t caps = MALLOC_CAP_SPIRAM,
                                       std::string attribute_name = "lut");
 
@@ -225,23 +219,19 @@ public:
      * @brief Get the test input tensor.
      *
      * @param tensor_name   The name of test input tensor.
-     * @param copy       If true, return a copy of the variable
      * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      * @return  The pointer of tensor.
      */
-    dl::TensorBase *get_test_input_tensor(std::string tensor_name, bool copy = true, uint32_t caps = MALLOC_CAP_SPIRAM);
+    dl::TensorBase *get_test_input_tensor(std::string tensor_name, uint32_t caps = MALLOC_CAP_SPIRAM);
 
     /**
      * @brief Get the test output tensor.
      *
      * @param tensor_name   The name of test output tensor.
-     * @param copy       If true, return a copy of the variable
      * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      * @return The pointer of tensor.
      */
-    dl::TensorBase *get_test_output_tensor(std::string tensor_name,
-                                           bool copy = true,
-                                           uint32_t caps = MALLOC_CAP_SPIRAM);
+    dl::TensorBase *get_test_output_tensor(std::string tensor_name, uint32_t caps = MALLOC_CAP_SPIRAM);
 
     /**
      * @brief Get the graph inputs.

@@ -100,7 +100,7 @@ public:
         Module *op = nullptr;
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
-        TensorBase *axes = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
+        TensorBase *axes = fbs_model->get_operation_parameter(node_name, 1);
 
         // Create module
         op = new Squeeze(axes, node_name.c_str(), MODULE_INPLACE_UNCHANGED_BUFFER, quant_type);

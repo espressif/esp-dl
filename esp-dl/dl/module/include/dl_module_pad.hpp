@@ -87,7 +87,7 @@ public:
         }
 
         TensorBase *pads = fbs_model->get_operation_parameter(node_name, 1);
-        TensorBase *constant_value = fbs_model->get_operation_parameter(node_name, 2, fbs_model->m_param_copy);
+        TensorBase *constant_value = fbs_model->get_operation_parameter(node_name, 2);
         std::vector<int> pads_index(pads->get_size(), 0);
 
         if (pads->get_dtype() == DATA_TYPE_INT64) {

@@ -155,8 +155,8 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            TensorBase *filter = fbs_model->get_operation_parameter(node_name, 1, fbs_model->m_param_copy);
-            TensorBase *bias = fbs_model->get_operation_parameter(node_name, 2, fbs_model->m_param_copy);
+            TensorBase *filter = fbs_model->get_operation_parameter(node_name, 1);
+            TensorBase *bias = fbs_model->get_operation_parameter(node_name, 2);
             if (bias) {
                 bias->reset_bias_layout(quant_type, false);
             }

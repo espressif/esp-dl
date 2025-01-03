@@ -20,7 +20,7 @@ extern "C" void app_main(void)
     };
     dl::image::img_t img;
     img.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
-    sw_decode_jpeg(jpeg_img, img);
+    sw_decode_jpeg(jpeg_img, img, true);
 
 #if !CONFIG_PEDESTRIAN_DETECT_MODEL_IN_SDCARD
     PedestrianDetect *detect = new PedestrianDetect();

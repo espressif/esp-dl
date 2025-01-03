@@ -70,10 +70,12 @@ void ImagePreprocessor::create_norm_lut()
 {
     m_norm_lut = tool::malloc_aligned(m_mean.size() * 256, sizeof(T), 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
     float inv_scale = 1.f / DL_SCALE(m_model_input->exponent);
+    std::vector<float> inv_std(m_std.size());
     T *norm_lut_ptr = (T *)m_norm_lut;
     for (int i = 0; i < m_mean.size(); i++) {
+        inv_std[i] = 1.f / m_std[i];
         for (int j = 0; j < 256; j++) {
-            norm_lut_ptr[i * 256 + j] = quantize<T>(((float)j - m_mean[i]) / m_std[i], inv_scale);
+            norm_lut_ptr[i * 256 + j] = quantize<T>(((float)j - m_mean[i]) * inv_std[i], inv_scale);
         }
     }
 }
@@ -91,6 +93,8 @@ void ImagePreprocessor::preprocess(const img_t &img, const std::vector<int> &cro
                    m_ppa_srm_handle,
                    m_ppa_buffer,
                    m_ppa_buffer_size,
+                   PPA_TRANS_MODE_BLOCKING,
+                   nullptr,
                    m_caps,
                    m_norm_lut,
                    crop_area,
