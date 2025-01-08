@@ -19,14 +19,9 @@ public:
     /**
      * @brief Construct a new FbsModel object.
      *
-     * @param name          The label of partition while location is MODEL_LOCATION_IN_FLASH.
-     *                      The path of model while location is MODEL_LOCATION_IN_SDCARD.
-     * @param location      The model location.
-     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
-     *                      Only set this param to false when your psram resource is very tight. This saves psram and
-     *                      sacrifices the performance of model inference because the frequency of psram is higher than
-     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
-     * MODEL_LOCATION_IN_FLASH_PARTITION.
+     * @param data          The data of model flatbuffers.
+     * @param auto_free     Wheather to free the model flatbuffers data when destroy this class instance.
+     * @param param_copy    Wheather to copy the parameter in flatbuffers.
      */
     FbsModel(const void *data, bool auto_free = false, bool param_copy = true);
 
@@ -272,7 +267,7 @@ public:
      */
     std::string get_model_doc_string();
 
-    bool m_param_copy;
+    bool m_param_copy; ///< copy flatbuffers param or not.
 
 private:
     bool m_auto_free;
