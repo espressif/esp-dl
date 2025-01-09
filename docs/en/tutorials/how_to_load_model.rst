@@ -15,13 +15,16 @@ Method 1: Load Model from ``rodata``
 
 1. **Add Model File in** ``CMakeLists.txt``
 
-   Refer to the documentation `ESP-IDF Build System <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/build-system.html#cmake-embed-data>`__ to add the ``.espdl`` model file to the ``.rodata`` section of the chip flash.
+   To add the ``.espdl`` model file to the ``.rodata`` section of the chip flash, copy the `cmake folder <https://github.com/espressif/esp-dl/tree/master/models/human_face_detect/cmake>`__ to the component dir or main folder under your project, add the following code in your CMakeLists.txt, the first two lines should be placed before idf_component_register(), the last line should be placed after idf_component_register()
 
    .. code:: cmake
 
+      include(${COMPONENT_DIR}/cmake/utilities.cmake)
       set(embed_files your_model_path/model_name.espdl)
-      idf_component_register(...
-                              EMBED_FILES ${embed_files})
+
+      idf_component_register(...)
+
+      target_add_aligned_binary_data(${COMPONENT_LIB} ${embed_files} BINARY)
 
 2. **Load Model in Your Program**
 
@@ -79,5 +82,86 @@ Method 2: Load Model from ``partition``
          fbs::FbsLoader *fbs_loader = new fbs::FbsLoader("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
          fbs::FbsModel *fbs_model = fbs_loader->load();
          Model *model2 = new Model(fbs_model);
+
+Method 3: Load Model from ``sdcard``
+-------------------------------------------
+
+1. **Check if your sdcard is in the proper format**
+
+   First backup your data in your sdcard.   
+
+   - Work with `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__  
+
+      Trun on ``CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL`` in menuconfig, the following code will try to mount sdcard, if it is not in the proper format, it will be automatically formatted.
+
+      .. code:: cpp
+      
+         ESP_ERROR_CHECK(bsp_sdcard_mount());
+   
+   - Work without `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__  
+
+      Set format_if_mount_failed to true in esp_vfs_fat_sdmmc_mount_config_t, Then try to mount the sdcard.
+
+      .. code:: cpp
+         
+         esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+               .format_if_mount_failed = true,
+               .max_files = 5,
+               .allocation_unit_size = 16 * 1024
+         };
+         // your codes to mount sdcard.
+
+2. **Copy model to your sdcard**
+   
+   Copy the .espdl model to your sdcard.
+
+3. **Load Model in Your Program**
+
+   Use the following method to load the model:  
+
+   - Work with `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__  
+
+      .. code:: cpp
+
+         ESP_ERROR_CHECK(bsp_sdcard_mount());
+         const char *model_path = "/your_sdcard_mount_point/your_model_path/model_name.espdl";
+         Model *model = new Model(model_path, fbs::MODEL_LOCATION_IN_SDCARD);
+   
+   - Work without `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__  
+
+      .. code:: cpp
+
+         // your code to mount sdcard.
+         const char *model_path = "/your_sdcard_mount_point/your_model_path/model_name.espdl";
+         Model *model = new Model(model_path, fbs::MODEL_LOCATION_IN_SDCARD);
+
+More Information
+-----------------
+
+1. When using Method1 and Method2, if your psram size is tight, you can turn off the param_copy option in Model constructor. This option can avoid copy model parameters from flash to psram. It saves psram, but the model inference performance will drop because the frequency of psram is higher than flash.
+
+- Method 1
+
+   .. code:: cpp
+
+      Model *model = new Model((const char *)espdl_model, fbs::MODEL_LOCATION_IN_FLASH_RODATA, 0, MEMORY_MANAGER_GREEDY, nullptr, false);
+
+- Method 2
+
+   .. code:: cpp
+
+      Model *model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION, 0, MEMORY_MANAGER_GREEDY, nullptr, false);
+
+2. When using Method3, the model loading process will take longer time. We need to copy the model data from sdcard to psram. It is useful if your flash size is tight.
+
+3. When using Method1, every time you modified your code, the model data is flashed. It is helpful to reduce the flash time by using Method2 and Method3.
+
+- Method 2
+
+   Use idf.py app-flash instead of idf.py flash to only flash the app partition without re-flash the model partition.
+
+   .. code:: bash
+
+      idf.py app-flash
 
 By following the steps above, you can successfully load a pre-trained model using the ESP-DL library. We hope this tutorial is helpful to you! For more information, please refer to the code in :project_file:`fbs_loader.cpp <esp-dl/fbs_loader/src/fbs_loader.cpp>` and :project_file:`fbs_loader.hpp<esp-dl/fbs_loader/include/fbs_loader.hpp>`.
