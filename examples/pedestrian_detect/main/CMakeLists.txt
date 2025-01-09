@@ -2,8 +2,15 @@ set(src_dirs        ./)
 
 set(include_dirs    ./)
 
-set(requires        pedestrian_detect
-                    esp_jpeg)
+set(requires        pedestrian_detect)
+
+if (IDF_TARGET STREQUAL "esp32s3")
+    list(APPEND requires esp32_s3_eye_noglib
+                         esp_lcd)
+elseif (IDF_TARGET STREQUAL "esp32p4")
+    list(APPEND requires esp32_p4_function_ev_board_noglib
+                         esp_lcd)
+endif()
 
 set(embed_files     "pedestrian.jpg")
 

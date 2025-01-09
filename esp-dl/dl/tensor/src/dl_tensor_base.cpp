@@ -380,8 +380,11 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         for (int i = 0; i < this->get_size(); i++) {
             cur_data[i] = pre_data[i];
         }
-        heap_caps_free(this->data);
+        if (this->auto_free) {
+            heap_caps_free(this->data);
+        }
         this->data = cur_data;
+        this->auto_free = true;
     }
 #elif CONFIG_IDF_TARGET_ESP32S3
     // Reset bias layout for esp32s3
@@ -435,8 +438,11 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
             (reinterpret_cast<int64_t *>(dst_ptr_head))[j] = src_ptr[i];
         }
 
-        heap_caps_free(this->data);
+        if (this->auto_free) {
+            heap_caps_free(this->data);
+        }
         this->data = dst_ptr;
+        this->auto_free = true;
     } else if (op_quant_type == QUANT_TYPE_SYMM_16BIT) {
         // 0xAAAAAAAABBBBBBBB ==> 0xSSAAAAAAAASSBBBBBBBB
         size_t dtype_bytes = 2;

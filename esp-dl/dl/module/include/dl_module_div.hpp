@@ -122,7 +122,7 @@ public:
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
             TensorBase *input0_constant = fbs_model->get_operation_parameter(node_name, 0);
             TensorBase *input1_constant = fbs_model->get_operation_parameter(node_name, 1);
-            op = new Div(NULL, MODULE_NON_INPLACE, quant_type, {input0_constant, input1_constant});
+            op = new Div(node_name.c_str(), MODULE_NON_INPLACE, quant_type, {input0_constant, input1_constant});
         }
         return op;
     }

@@ -32,6 +32,7 @@ public:
     {
         if (m_shape) {
             delete m_shape;
+            m_shape = nullptr;
         }
     }
 

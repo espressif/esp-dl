@@ -42,6 +42,7 @@ public:
     {
         if (this->table) {
             delete this->table;
+            this->table = nullptr;
         }
     }
 

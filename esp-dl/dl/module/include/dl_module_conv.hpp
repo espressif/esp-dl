@@ -75,10 +75,12 @@ public:
     {
         if (filter) {
             delete filter;
+            filter = nullptr;
         }
 
         if (bias) {
             delete bias;
+            bias = nullptr;
         }
     }
 

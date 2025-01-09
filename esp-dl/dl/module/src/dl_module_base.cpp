@@ -10,6 +10,7 @@ namespace module {
 Module::Module(const char *name, module_inplace_t inplace, quant_type_t quant_type) :
     inplace(inplace), quant_type(quant_type)
 {
+#if CONFIG_DL_DEBUG
     if (name) {
         int length = strlen(name) + 1;
         this->name = (char *)malloc(sizeof(char) * length);
@@ -17,6 +18,9 @@ Module::Module(const char *name, module_inplace_t inplace, quant_type_t quant_ty
     } else {
         this->name = NULL;
     }
+#else
+    this->name = NULL;
+#endif
 }
 
 Module::~Module()

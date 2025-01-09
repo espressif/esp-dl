@@ -42,12 +42,18 @@ public:
      * @param internal_size  Internal ram size, in bytes
      * @param mm_type        Type of memory manager
      * @param key           The key of encrypted model.
+     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
+     *                      Only set this param to false when your psram resource is very tight. This saves psram and
+     *                      sacrifices the performance of model inference because the frequency of psram is higher than
+     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * MODEL_LOCATION_IN_FLASH_PARTITION.
      */
     Model(const char *rodata_address_or_partition_label_or_path,
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
           int internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
-          uint8_t *key = nullptr);
+          uint8_t *key = nullptr,
+          bool param_copy = true);
 
     /**
      * @brief Create the Model object by rodata address or partition label.
@@ -61,13 +67,19 @@ public:
      * @param internal_size  Internal ram size, in bytes
      * @param mm_type        Type of memory manager
      * @param key           The key of encrypted model.
+     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
+     *                      Only set this param to false when your psram resource is very tight. This saves psram and
+     *                      sacrifices the performance of model inference because the frequency of psram is higher than
+     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * MODEL_LOCATION_IN_FLASH_PARTITION.
      */
     Model(const char *rodata_address_or_partition_label_or_path,
           int model_index,
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
           int internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
-          uint8_t *key = nullptr);
+          uint8_t *key = nullptr,
+          bool param_copy = true);
 
     /**
      * @brief Create the Model object by rodata address or partition label.
@@ -81,13 +93,19 @@ public:
      * @param internal_size  Internal ram size, in bytes
      * @param mm_type        Type of memory manager
      * @param key           The key of encrypted model.
+     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
+     *                      Only set this param to false when your psram resource is very tight. This saves psram and
+     *                      sacrifices the performance of model inference because the frequency of psram is higher than
+     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * MODEL_LOCATION_IN_FLASH_PARTITION.
      */
     Model(const char *rodata_address_or_partition_label_or_path,
           const char *model_name,
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
           int internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
-          uint8_t *key = nullptr);
+          uint8_t *key = nullptr,
+          bool param_copy = true);
 
     /**
      * @brief Create the Model object by fbs_model.
@@ -112,10 +130,16 @@ public:
      *                                     The path of model while location is MODEL_LOCATION_IN_SDCARD.
      * @param location      The model location.
      * @param key           The key of encrypted model.
+     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
+     *                      Only set this param to false when your psram resource is very tight. This saves psram and
+     *                      sacrifices the performance of model inference because the frequency of psram is higher than
+     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * MODEL_LOCATION_IN_FLASH_PARTITION.
      */
     virtual esp_err_t load(const char *rodata_address_or_partition_label_or_path,
                            fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
-                           uint8_t *key = nullptr);
+                           uint8_t *key = nullptr,
+                           bool param_copy = true);
 
     /**
      * @brief Load model graph and parameters from flash or sdcard.
@@ -127,11 +151,17 @@ public:
      * @param location      The model location.
      * @param model_index   The model index of packed models.
      * @param key           The key of encrypted model.
+     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
+     *                      Only set this param to false when your psram resource is very tight. This saves psram and
+     *                      sacrifices the performance of model inference because the frequency of psram is higher than
+     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * MODEL_LOCATION_IN_FLASH_PARTITION.
      */
     virtual esp_err_t load(const char *rodata_address_or_partition_label_or_path,
                            fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
                            int model_index = 0,
-                           uint8_t *key = nullptr);
+                           uint8_t *key = nullptr,
+                           bool param_copy = true);
 
     /**
      * @brief Load model graph and parameters from flash or sdcard.
@@ -143,11 +173,17 @@ public:
      * @param location      The model location.
      * @param model_name    The model name of packed models.
      * @param key           The key of encrypted model.
+     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
+     *                      Only set this param to false when your psram resource is very tight. This saves psram and
+     *                      sacrifices the performance of model inference because the frequency of psram is higher than
+     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * MODEL_LOCATION_IN_FLASH_PARTITION.
      */
     virtual esp_err_t load(const char *rodata_address_or_partition_label_or_path,
                            fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
                            const char *model_name = nullptr,
-                           uint8_t *key = nullptr);
+                           uint8_t *key = nullptr,
+                           bool param_copy = true);
 
     /**
      * @brief Load model graph and parameters from Flatbuffers model

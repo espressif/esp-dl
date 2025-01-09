@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dl_tensor_base.hpp"
+#include "dl_tool.hpp"
 #include "esp_log.h"
 #include <limits>
 #include <map>
@@ -18,11 +19,11 @@ public:
     /**
      * @brief Construct a new FbsModel object.
      *
-     * @param name      The label of partition while location is MODEL_LOCATION_IN_FLASH.
-     *                  The path of model while location is MODEL_LOCATION_IN_SDCARD.
-     * @param location  The model location.
+     * @param data          The data of model flatbuffers.
+     * @param auto_free     Wheather to free the model flatbuffers data when destroy this class instance.
+     * @param param_copy    Wheather to copy the parameter in flatbuffers.
      */
-    FbsModel(const void *data, bool auto_free = false);
+    FbsModel(const void *data, bool auto_free = false, bool param_copy = true);
 
     /**
      * @brief Destroy the FbsModel object.
@@ -99,26 +100,20 @@ public:
      *
      * @param node_name  The name of operation
      * @param index      The index of the variable
-     * @param copy       If true, return a copy of the variable
      * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      *
      * @return TensorBase
      */
-    dl::TensorBase *get_operation_parameter(std::string node_name,
-                                            int index = 1,
-                                            bool copy = true,
-                                            uint32_t caps = MALLOC_CAP_SPIRAM);
+    dl::TensorBase *get_operation_parameter(std::string node_name, int index = 1, uint32_t caps = MALLOC_CAP_SPIRAM);
 
     /**
      * @brief Get LUT(Look Up Table) if the operation has LUT
      *
      * @param node_name   The name of operation
-     * @param copy       If true, return a copy of the variable
      * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      * @param attribute_name The name of LUT attribute
      */
     dl::TensorBase *get_operation_lut(std::string node_name,
-                                      bool copy = true,
                                       uint32_t caps = MALLOC_CAP_SPIRAM,
                                       std::string attribute_name = "lut");
 
@@ -219,23 +214,19 @@ public:
      * @brief Get the test input tensor.
      *
      * @param tensor_name   The name of test input tensor.
-     * @param copy       If true, return a copy of the variable
      * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      * @return  The pointer of tensor.
      */
-    dl::TensorBase *get_test_input_tensor(std::string tensor_name, bool copy = true, uint32_t caps = MALLOC_CAP_SPIRAM);
+    dl::TensorBase *get_test_input_tensor(std::string tensor_name, uint32_t caps = MALLOC_CAP_SPIRAM);
 
     /**
      * @brief Get the test output tensor.
      *
      * @param tensor_name   The name of test output tensor.
-     * @param copy       If true, return a copy of the variable
      * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      * @return The pointer of tensor.
      */
-    dl::TensorBase *get_test_output_tensor(std::string tensor_name,
-                                           bool copy = true,
-                                           uint32_t caps = MALLOC_CAP_SPIRAM);
+    dl::TensorBase *get_test_output_tensor(std::string tensor_name, uint32_t caps = MALLOC_CAP_SPIRAM);
 
     /**
      * @brief Get the graph inputs.
@@ -275,6 +266,8 @@ public:
      * @brief Get model doc string
      */
     std::string get_model_doc_string();
+
+    bool m_param_copy; ///< copy flatbuffers param or not.
 
 private:
     bool m_auto_free;

@@ -32,6 +32,7 @@ public:
     {
         if (m_axes) {
             delete m_axes;
+            m_axes = nullptr;
         }
     }
 

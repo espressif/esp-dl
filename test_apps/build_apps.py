@@ -165,7 +165,7 @@ def build_and_copy(apps_to_build, model_path):
                 shutil.copytree(build_path, op_build_path)
             print(build_path, op_build_path, op_path)
             bin_path = op_build_path / "espdl_models" / "models.espdl"
-            pack_models(op_path, bin_path)
+            pack_models([str(op_path)], bin_path)
 
 
 def main(args):  # type: (argparse.Namespace) -> None

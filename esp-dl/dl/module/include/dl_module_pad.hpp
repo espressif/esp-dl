@@ -36,6 +36,7 @@ public:
     {
         if (m_constant_value) {
             delete m_constant_value;
+            m_constant_value = nullptr;
         }
     }
 

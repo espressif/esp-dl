@@ -1,5 +1,3 @@
-#pragma once
-
 #include "dl_base.hpp"
 #include "dl_base_elemwise.hpp"
 #include "dl_base_isa.hpp"

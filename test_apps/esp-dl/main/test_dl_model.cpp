@@ -25,7 +25,7 @@ void compare_test_outputs(Model *model, std::map<std::string, TensorBase *> infe
         std::string infer_output_name = iter->first;
         TensorBase *infer_output = iter->second;
         if (infer_output) {
-            TensorBase *ground_truth_tensor = fbs_model_instance->get_test_output_tensor(infer_output_name, true);
+            TensorBase *ground_truth_tensor = fbs_model_instance->get_test_output_tensor(infer_output_name);
             TEST_ASSERT_EQUAL_MESSAGE(true, ground_truth_tensor != nullptr, "The test output tensor is not found");
             if (ground_truth_tensor->get_dtype() == DATA_TYPE_INT16 ||
                 ground_truth_tensor->get_dtype() == DATA_TYPE_UINT16) {
@@ -57,7 +57,7 @@ std::map<std::string, TensorBase *> get_graph_test_inputs(Model *model)
     std::map<std::string, TensorBase *> graph_inputs = model->get_inputs();
     for (auto graph_inputs_iter = graph_inputs.begin(); graph_inputs_iter != graph_inputs.end(); graph_inputs_iter++) {
         std::string input_name = graph_inputs_iter->first;
-        TensorBase *test_input = parser_instance->get_test_input_tensor(input_name, true);
+        TensorBase *test_input = parser_instance->get_test_input_tensor(input_name);
         if (test_input) {
             test_inputs.emplace(input_name, test_input);
         }

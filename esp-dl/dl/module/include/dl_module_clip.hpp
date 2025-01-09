@@ -38,10 +38,12 @@ public:
     {
         if (m_min) {
             delete m_min;
+            m_min = nullptr;
         }
 
         if (m_max) {
             delete m_max;
+            m_max = nullptr;
         }
     }
 
@@ -117,7 +119,6 @@ public:
             assert(min->exponent == max->exponent);
             op = new Clip(min, max, node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
         }
-
         return op;
     }
 
