@@ -11,7 +11,7 @@
   script:
     - pip install toml
     - pip install ${TORCH} -f https://download.pytorch.org/whl/torch_stable.html
-    - pip install git+https://github.com/espressif/esp-ppq.git@feat/align_model_weights
+    - pip install git+https://github.com/espressif/esp-ppq
     - python tools/ops_test/gen_test_cases.py -t ${TARGET} -b ${BITS} -o ${MODEL_PATH}/${TARGET} -c ${CONFIG_FILE}
 
 
