@@ -584,6 +584,9 @@ public:
      */
     void print(const char *prefix, const char *key, bool debug = true)
     {
+        if (!prefix)
+            prefix = "";
+
 #if DL_LOG_LATENCY_UNIT
         printf("%s::%s: %lu cycle\n", prefix, key, this->get_average_period());
 #if CONFIG_ESP32P4_BOOST && DL_LOG_CACHE_COUNT

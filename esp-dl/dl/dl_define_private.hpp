@@ -37,5 +37,3 @@
 #endif
 
 #define CONFIG_ACCURATE_INFER 1
-
-#define CONFIG_DL_DEBUG 0
