@@ -5,6 +5,8 @@
 #include <climits>
 #include <string>
 
+#define CONFIG_DL_DEBUG 0
+
 #define DL_LOG_LATENCY_UNIT 0  /*<! - 1: cycle */
                                /*<! - 0: us */
 #define DL_LOG_NN_LATENCY 0    /*<! - 1: print the latency of each parts of nn */
