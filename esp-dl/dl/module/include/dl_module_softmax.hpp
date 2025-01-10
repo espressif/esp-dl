@@ -53,8 +53,8 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_LAYER_LATENCY_INIT();
-        DL_LOG_LAYER_LATENCY_START();
+        DL_LOG_MODULE_LATENCY_INIT();
+        DL_LOG_MODULE_LATENCY_START();
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
@@ -78,7 +78,7 @@ public:
             }
             forward_float(output_element, output->get_size(), output->get_shape(), this->axis);
         }
-        DL_LOG_LAYER_LATENCY_END(this->name, "Softmax");
+        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Softmax");
     }
 
     void forward_float(float *output_element, int size, std::vector<int> shape, int axis)

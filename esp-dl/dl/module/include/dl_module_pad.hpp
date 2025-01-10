@@ -50,15 +50,15 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_LAYER_LATENCY_INIT();
-        DL_LOG_LAYER_LATENCY_START();
+        DL_LOG_MODULE_LATENCY_INIT();
+        DL_LOG_MODULE_LATENCY_START();
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
         output->pad(input, m_pads, m_mode, m_constant_value);
 
         // output->Pad(input, m_start, m_end, m_axes, m_step);
-        DL_LOG_LAYER_LATENCY_END(this->name, "Pad");
+        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Pad");
     }
 
     void forward_args(void *args) {}

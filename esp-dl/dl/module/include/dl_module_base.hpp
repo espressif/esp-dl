@@ -8,6 +8,16 @@
 #include <functional>
 #include <iostream>
 
+#if DL_LOG_MODULE_LATENCY
+#define DL_LOG_MODULE_LATENCY_INIT() DL_LOG_LATENCY_INIT()
+#define DL_LOG_MODULE_LATENCY_START() DL_LOG_LATENCY_START()
+#define DL_LOG_MODULE_LATENCY_END_PRINT(prefix, key) DL_LOG_LATENCY_END_PRINT(prefix, key)
+#else
+#define DL_LOG_MODULE_LATENCY_INIT()
+#define DL_LOG_MODULE_LATENCY_START()
+#define DL_LOG_MODULE_LATENCY_END_PRINT(prefix, key)
+#endif
+
 namespace dl {
 // Define the enum type for module in-place operation mode
 typedef enum {
@@ -229,29 +239,6 @@ static void module_forward_dual_core(Module *op, void *args1, void *args2)
     vTaskDelete(xHandleTask2);
 }
 #pragma GCC diagnostic pop
-
-#if DL_LOG_LAYER_LATENCY
-/**
- * @brief Initialize.
- */
-#define DL_LOG_LAYER_LATENCY_INIT() dl::tool::Latency latency
-
-/**
- * @brief Time starts.
- */
-#define DL_LOG_LAYER_LATENCY_START() latency.start()
-
-/**
- * @brief Time ends and printed.
- */
-#define DL_LOG_LAYER_LATENCY_END(prefix, key) \
-    latency.end();                            \
-    latency.print(prefix, key)
-#else
-#define DL_LOG_LAYER_LATENCY_INIT()
-#define DL_LOG_LAYER_LATENCY_START()
-#define DL_LOG_LAYER_LATENCY_END(prefix, key)
-#endif
 
 } // namespace module
 } // namespace dl

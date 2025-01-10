@@ -44,6 +44,29 @@ int dl_esp32p4_round_half_even(float value);
 #endif
 }
 
+#define DL_LOG_LATENCY_INIT_WITH_SIZE(size) dl::tool::Latency latency(size)
+#define DL_LOG_LATENCY_INIT() DL_LOG_LATENCY_INIT_WITH_SIZE(1)
+#define DL_LOG_LATENCY_START() latency.start()
+#define DL_LOG_LATENCY_END() latency.end()
+#define DL_LOG_LATENCY_PRINT(prefix, key) latency.print(prefix, key)
+#define DL_LOG_LATENCY_END_PRINT(prefix, key) \
+    DL_LOG_LATENCY_END();                     \
+    DL_LOG_LATENCY_PRINT(prefix, key);
+
+#define DL_LOG_LATENCY_ARRAY_INIT_WITH_SIZE(n, size) \
+    std::vector<dl::tool::Latency> latencies;        \
+    latencies.reserve(n);                            \
+    for (int i = 0; i < n; i++) {                    \
+        latencies.emplace_back(size);                \
+    }
+#define DL_LOG_LATENCY_ARRAY_INIT(n) DL_LOG_LATENCY_ARRAY_INIT_WITH_SIZE(n, 1)
+#define DL_LOG_LATENCY_ARRAY_START(i) latencies[i].start()
+#define DL_LOG_LATENCY_ARRAY_END(i) latencies[i].end()
+#define DL_LOG_LATENCY_ARRAY_PRINT(i, prefix, key) latencies[i].print(prefix, key)
+#define DL_LOG_LATENCY_ARRAY_END_PRINT(i, prefix, key) \
+    DL_LOG_LATENCY_ARRAY_END(i);                       \
+    DL_LOG_LATENCY_ARRAY_PRINT(i, prefix, key);
+
 namespace dl {
 namespace tool {
 
@@ -577,49 +600,46 @@ public:
     }
 
     /**
-     * @brief Print in format "{prefix}::{key}: {this->period} {unit}\n".
+     * @brief Log latency info.
      *
-     * @param prefix prefix of print
-     * @param key    key of print
+     * @param prefix TAG of ESP_LOGI
+     * @param key    fomat str of ESP_LOGI
      */
-    void print(const char *prefix, const char *key, bool debug = true)
+    void print(const char *prefix, const char *key)
     {
         if (!prefix)
             prefix = "";
 
 #if DL_LOG_LATENCY_UNIT
-        printf("%s::%s: %lu cycle\n", prefix, key, this->get_average_period());
+        ESP_LOGI(prefix, "%s: %lu cycle\n", key, this->get_average_period());
 #if CONFIG_ESP32P4_BOOST && DL_LOG_CACHE_COUNT
-        printf("%s::%s: l2 dcache, hit cnt: %lu\n", prefix, key, this->l2dbus_hit_cnt_e - this->l2dbus_hit_cnt_s);
-        printf("%s::%s: l2 dcache, miss cnt: %lu\n", prefix, key, this->l2dbus_miss_cnt_e - this->l2dbus_miss_cnt_s);
-        printf("%s::%s: l2 dcache, conflict cnt: %lu\n",
-               prefix,
-               key,
-               this->l2dbus_conflict_cnt_e - this->l2dbus_conflict_cnt_s);
-        printf(
-            "%s::%s: l2 dcache, nxtlvl cnt: %lu\n", prefix, key, this->l2dbus_nxtlvl_cnt_e - this->l2dbus_nxtlvl_cnt_s);
-        printf("%s::%s: l1 dcache, hit cnt: %lu\n", prefix, key, this->l1dbus_hit_cnt_e - this->l1dbus_hit_cnt_s);
-        printf("%s::%s: l1 dcache, miss cnt: %lu\n", prefix, key, this->l1dbus_miss_cnt_e - this->l1dbus_miss_cnt_s);
-        printf("%s::%s: l1 dcache, conflict cnt: %lu\n",
-               prefix,
-               key,
-               this->l1dbus_conflict_cnt_e - this->l1dbus_conflict_cnt_s);
-        printf(
-            "%s::%s: l1 dcache, nxtlvl cnt: %lu\n", prefix, key, this->l1dbus_nxtlvl_cnt_e - this->l1dbus_nxtlvl_cnt_s);
-        printf("%s::%s: l2 icache, hit cnt: %lu\n", prefix, key, this->l2ibus_hit_cnt_e - this->l2ibus_hit_cnt_s);
-        printf("%s::%s: l2 icache, miss cnt: %lu\n", prefix, key, this->l2ibus_miss_cnt_e - this->l2ibus_miss_cnt_s);
-        printf(
-            "%s::%s: l2 icache, nxtlvl cnt: %lu\n", prefix, key, this->l2ibus_nxtlvl_cnt_e - this->l2ibus_nxtlvl_cnt_s);
-        printf("%s::%s: l1 icache, hit cnt: %lu\n", prefix, key, this->l1ibus_hit_cnt_e - this->l1ibus_hit_cnt_s);
-        printf("%s::%s: l1 icache, miss cnt: %lu\n", prefix, key, this->l1ibus_miss_cnt_e - this->l1ibus_miss_cnt_s);
-        printf(
-            "%s::%s: l1 icache, nxtlvl cnt: %lu\n", prefix, key, this->l1ibus_nxtlvl_cnt_e - this->l1ibus_nxtlvl_cnt_s);
+        ESP_LOGI(prefix, "%s: l2 dcache, hit cnt: %lu\n", key, this->l2dbus_hit_cnt_e - this->l2dbus_hit_cnt_s);
+        ESP_LOGI(prefix, "%s: l2 dcache, miss cnt: %lu\n", key, this->l2dbus_miss_cnt_e - this->l2dbus_miss_cnt_s);
+        ESP_LOGI(prefix,
+                 "%s: l2 dcache, conflict cnt: %lu\n",
+                 key,
+                 this->l2dbus_conflict_cnt_e - this->l2dbus_conflict_cnt_s);
+        ESP_LOGI(
+            prefix, "%s: l2 dcache, nxtlvl cnt: %lu\n", key, this->l2dbus_nxtlvl_cnt_e - this->l2dbus_nxtlvl_cnt_s);
+        ESP_LOGI(prefix, "%s: l1 dcache, hit cnt: %lu\n", key, this->l1dbus_hit_cnt_e - this->l1dbus_hit_cnt_s);
+        ESP_LOGI(prefix, "%s: l1 dcache, miss cnt: %lu\n", key, this->l1dbus_miss_cnt_e - this->l1dbus_miss_cnt_s);
+        ESP_LOGI(prefix,
+                 "%s: l1 dcache, conflict cnt: %lu\n",
+                 key,
+                 this->l1dbus_conflict_cnt_e - this->l1dbus_conflict_cnt_s);
+        ESP_LOGI(
+            prefix, "%s: l1 dcache, nxtlvl cnt: %lu\n", key, this->l1dbus_nxtlvl_cnt_e - this->l1dbus_nxtlvl_cnt_s);
+        ESP_LOGI(prefix, "%s: l2 icache, hit cnt: %lu\n", key, this->l2ibus_hit_cnt_e - this->l2ibus_hit_cnt_s);
+        ESP_LOGI(prefix, "%s: l2 icache, miss cnt: %lu\n", key, this->l2ibus_miss_cnt_e - this->l2ibus_miss_cnt_s);
+        ESP_LOGI(
+            prefix, "%s: l2 icache, nxtlvl cnt: %lu\n", key, this->l2ibus_nxtlvl_cnt_e - this->l2ibus_nxtlvl_cnt_s);
+        ESP_LOGI(prefix, "%s: l1 icache, hit cnt: %lu\n", key, this->l1ibus_hit_cnt_e - this->l1ibus_hit_cnt_s);
+        ESP_LOGI(prefix, "%s: l1 icache, miss cnt: %lu\n", key, this->l1ibus_miss_cnt_e - this->l1ibus_miss_cnt_s);
+        ESP_LOGI(
+            prefix, "%s: l1 icache, nxtlvl cnt: %lu\n", key, this->l1ibus_nxtlvl_cnt_e - this->l1ibus_nxtlvl_cnt_s);
 #endif
 #else
-        if (debug)
-            ESP_LOGI("latency", "%s::%s: %lu us\n", prefix, key, this->get_average_period());
-        else
-            printf("%s::%s: %lu us\n", prefix, key, this->get_average_period());
+        ESP_LOGI(prefix, "%s: %lu us\n", key, this->get_average_period());
 #endif
     }
 };

@@ -39,8 +39,8 @@ public:
 
     void forward(std::vector<TensorBase *> &tensors, runtime_mode_t mode = RUNTIME_MODE_AUTO)
     {
-        DL_LOG_LAYER_LATENCY_INIT();
-        DL_LOG_LAYER_LATENCY_START();
+        DL_LOG_MODULE_LATENCY_INIT();
+        DL_LOG_MODULE_LATENCY_START();
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             forward_template<int8_t>(tensors, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
@@ -55,7 +55,7 @@ public:
                 output_ptr[i] = expf(input_ptr[i]);
             }
         }
-        DL_LOG_LAYER_LATENCY_END(this->name, "Exp");
+        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Exp");
     }
 
     template <typename T>

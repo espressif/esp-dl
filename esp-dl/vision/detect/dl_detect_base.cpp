@@ -21,26 +21,22 @@ DetectImpl::~DetectImpl()
 
 std::list<dl::detect::result_t> &DetectImpl::run(const dl::image::img_t &img)
 {
-    dl::tool::Latency latency[3] = {dl::tool::Latency(), dl::tool::Latency(), dl::tool::Latency()};
-    latency[0].start();
+    DL_LOG_INFER_LATENCY_INIT();
+    DL_LOG_INFER_LATENCY_START();
     m_image_preprocessor->preprocess(img);
-    latency[0].end();
+    DL_LOG_INFER_LATENCY_END_PRINT("detect", "pre");
 
-    latency[1].start();
+    DL_LOG_INFER_LATENCY_START();
     m_model->run();
-    latency[1].end();
+    DL_LOG_INFER_LATENCY_END_PRINT("detect", "model");
 
-    latency[2].start();
+    DL_LOG_INFER_LATENCY_START();
     m_postprocessor->clear_result();
     m_postprocessor->set_resize_scale_x(m_image_preprocessor->get_resize_scale_x());
     m_postprocessor->set_resize_scale_y(m_image_preprocessor->get_resize_scale_y());
     m_postprocessor->postprocess();
     std::list<dl::detect::result_t> &result = m_postprocessor->get_result(img.width, img.height);
-    latency[2].end();
-
-    latency[0].print("detect", "preprocess");
-    latency[1].print("detect", "forward");
-    latency[2].print("detect", "postprocess");
+    DL_LOG_INFER_LATENCY_END_PRINT("detect", "post");
 
     return result;
 }
