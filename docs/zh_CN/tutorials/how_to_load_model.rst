@@ -15,7 +15,7 @@
 
 1. **在** ``CMakeLists.txt`` **中添加模型文件**
 
-   参考文档 `ESP-IDF 构建系统 <https://docs.espressif.com/projects/esp-idf/zh_CN/stable/esp32/api-guides/build-system.html#cmake-embed-data>`__，将 ``.espdl`` 模型文件添加到芯片 flash 的 ``.rodata`` 段。
+   如果要将 ``.espdl`` 模型文件放到 flash 芯片的 ``.rodata`` 段，请将 `cmake folder <https://github.com/espressif/esp-dl/tree/master/models/human_face_detect/cmake>`__ 复制到项目下的组件目录或者main文件夹中在 CMakeLists.txt 中添加以下代码。前两行应放在 idf_component_register() 之前，最后一行应放在 idf_component_register() 之后。
 
    .. code:: cmake
 
@@ -79,5 +79,86 @@
          fbs::FbsLoader *fbs_loader = new fbs::FbsLoader("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
          fbs::FbsModel *fbs_model = fbs_loader->load();
          Model *model2 = new Model(fbs_model);
+
+方法 3: 从 ``sdcard`` 中加载模型
+-------------------------------------------
+
+1. **检查 sdcard 是否是正确格式**
+
+   首先备份 sdcard 中的数据.   
+
+   - 如果使用 `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__  
+
+      在 menuconfig 中打开 ``CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL`` 选项，以下代码将尝试挂载 sdcard，如果格式不正确，将自动格式化。
+
+      .. code:: cpp
+      
+         ESP_ERROR_CHECK(bsp_sdcard_mount());
+   
+   - 如果不使用 `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__  
+
+      将 esp_vfs_fat_sdmmc_mount_config_t 结构体中的 format_if_mount_failed 设置为 true，然后尝试挂载 sdcard。
+
+      .. code:: cpp
+         
+         esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+               .format_if_mount_failed = true,
+               .max_files = 5,
+               .allocation_unit_size = 16 * 1024
+         };
+         // 挂载sdcard.
+
+2. **将模型复制到 sdcard**
+   
+   将 .espdl 模型复制到 sdcard。
+
+3. **在程序中加载模型**
+
+   使用以下方法加载模型:  
+
+   - 如果使用 `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__  
+
+      .. code:: cpp
+
+         ESP_ERROR_CHECK(bsp_sdcard_mount());
+         const char *model_path = "/your_sdcard_mount_point/your_model_path/model_name.espdl";
+         Model *model = new Model(model_path, fbs::MODEL_LOCATION_IN_SDCARD);
+   
+   - 如果不使用 `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__  
+
+      .. code:: cpp
+
+         // 挂载sdcard.
+         const char *model_path = "/your_sdcard_mount_point/your_model_path/model_name.espdl";
+         Model *model = new Model(model_path, fbs::MODEL_LOCATION_IN_SDCARD);
+
+更多信息
+-----------------
+
+1. 使用方法1和方法2时，如果您的 PSRAM 空间紧张，可以关闭 Model 构造函数中的 param_copy 选项，该选项可以避免将模型参数从 flash 复制到 PSRAM，这会节省 PSRAM，但由于 PSRAM 的频率高于 flash，模型推理性能会下降。
+
+- 方法1
+
+   .. code:: cpp
+
+      Model *model = new Model((const char *)espdl_model, fbs::MODEL_LOCATION_IN_FLASH_RODATA, 0, MEMORY_MANAGER_GREEDY, nullptr, false);
+
+- 方法2
+
+   .. code:: cpp
+
+      Model *model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION, 0, MEMORY_MANAGER_GREEDY, nullptr, false);
+
+2. 使用方法3时，模型加载过程将花费更长的时间。我们需要将模型数据从 sdcard 复制到 PSRAM。如果你的 flash 空间紧张，这种方法很有用。
+
+3. 使用方法1时，每次修改代码，模型数据都会被刷入。使用方法 2 和方法 3 可以不重复刷入模型，有助于减少刷入的时间。
+
+- 方法 2
+
+   使用 idf.py app-flash 代替 idf.py flash，只刷入 app 分区，而无需重新刷入模型分区。
+
+   .. code:: bash
+
+      idf.py app-flash
 
 通过以上步骤，可以使用 ESP-DL 库成功加载一个预训练的模型。希望本教程对您有所帮助。更多信息请参考 :project_file:`fbs_loader.cpp <esp-dl/fbs_loader/src/fbs_loader.cpp>` 和 :project_file:`fbs_loader.hpp<esp-dl/fbs_loader/include/fbs_loader.hpp>`。

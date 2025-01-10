@@ -138,7 +138,7 @@ Method 3: Load Model from ``sdcard``
 More Information
 -----------------
 
-1. When using Method1 and Method2, if your psram size is tight, you can turn off the param_copy option in Model constructor. This option can avoid copy model parameters from flash to psram. It saves psram, but the model inference performance will drop because the frequency of psram is higher than flash.
+1. When using Method1 and Method2, if your PSRAM size is tight, you can turn off the param_copy option in Model constructor. This option can avoid copy model parameters from flash to PSRAM. It saves PSRAM, but the model inference performance will drop because the frequency of PSRAM is higher than flash.
 
 - Method 1
 
@@ -152,9 +152,9 @@ More Information
 
       Model *model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION, 0, MEMORY_MANAGER_GREEDY, nullptr, false);
 
-2. When using Method3, the model loading process will take longer time. We need to copy the model data from sdcard to psram. It is useful if your flash size is tight.
+2. When using Method3, the model loading process will take longer time. We need to copy the model data from sdcard to PSRAM. It is useful if your flash size is tight.
 
-3. When using Method1, every time you modified your code, the model data is flashed. It is helpful to reduce the flash time by using Method2 and Method3.
+3. When using Method1, every time you modified your code, the model data is flashed. It is helpful to reduce the flash time by using Method2 and Method3 to avoid flashing the model data multiple times.
 
 - Method 2
 
