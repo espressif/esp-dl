@@ -21,22 +21,19 @@ FeatImpl::~FeatImpl()
 
 TensorBase *FeatImpl::run(const dl::image::img_t &img, const std::vector<int> &landmarks)
 {
-    dl::tool::Latency latency[3] = {dl::tool::Latency(), dl::tool::Latency(), dl::tool::Latency()};
-    latency[0].start();
+    DL_LOG_INFER_LATENCY_INIT();
+    DL_LOG_INFER_LATENCY_START();
     m_image_preprocessor->preprocess(img, landmarks);
-    latency[0].end();
+    DL_LOG_INFER_LATENCY_END_PRINT("feat", "pre");
 
-    latency[1].start();
+    DL_LOG_INFER_LATENCY_START();
     m_model->run();
-    latency[1].end();
+    DL_LOG_INFER_LATENCY_END_PRINT("feat", "model");
 
-    latency[2].start();
+    DL_LOG_INFER_LATENCY_START();
     dl::TensorBase *feat = m_postprocessor->postprocess();
-    latency[2].end();
+    DL_LOG_INFER_LATENCY_END_PRINT("feat", "post");
 
-    latency[0].print("feat", "preprocess");
-    latency[1].print("feat", "forward");
-    latency[2].print("feat", "postprocess");
     return feat;
 }
 

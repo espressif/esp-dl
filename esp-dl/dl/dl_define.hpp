@@ -7,14 +7,14 @@
 
 #define CONFIG_DL_DEBUG 0
 
-#define DL_LOG_LATENCY_UNIT 0  /*<! - 1: cycle */
-                               /*<! - 0: us */
-#define DL_LOG_NN_LATENCY 0    /*<! - 1: print the latency of each parts of nn */
-                               /*<! - 0: mute */
-#define DL_LOG_LAYER_LATENCY 0 /*<! - 1: print the latency of each parts of layer */
-                               /*<! - 0: mute */
-#define DL_LOG_CACHE_COUNT 0   /*<! - 1: print the cache hit/miss count only for esp32p4 */
-                               /*<! - 0: mute */
+#define DL_LOG_LATENCY_UNIT 0   /*<! - 1: cycle */
+                                /*<! - 0: us */
+#define DL_LOG_MODULE_LATENCY 0 /*<! - 1: print the latency of each module of model */
+                                /*<! - 0: mute */
+#define DL_LOG_INFER_LATENCY 0  /*<! - 1: print the latency of model inference, including preprocess and postprocess */
+                                /*<! - 0: mute */
+#define DL_LOG_CACHE_COUNT 0    /*<! - 1: print the cache hit/miss count only for esp32p4 */
+                                /*<! - 0: mute */
 
 #if CONFIG_SPIRAM_SUPPORT || CONFIG_ESP32_SPIRAM_SUPPORT || CONFIG_ESP32S2_SPIRAM_SUPPORT || \
     CONFIG_ESP32S3_SPIRAM_SUPPORT || CONFIG_SPIRAM

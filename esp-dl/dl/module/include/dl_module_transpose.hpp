@@ -54,12 +54,12 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_LAYER_LATENCY_INIT();
-        DL_LOG_LAYER_LATENCY_START();
+        DL_LOG_MODULE_LATENCY_INIT();
+        DL_LOG_MODULE_LATENCY_START();
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
         output->transpose(input, m_perm);
-        DL_LOG_LAYER_LATENCY_END(this->name, "Transpose");
+        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Transpose");
     }
 
     void forward_args(void *args) {}

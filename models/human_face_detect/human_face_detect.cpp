@@ -63,7 +63,7 @@ MNP::~MNP()
 
 std::list<dl::detect::result_t> &MNP::run(const dl::image::img_t &img, std::list<dl::detect::result_t> &candidates)
 {
-    dl::tool::Latency latency[3] = {dl::tool::Latency(10), dl::tool::Latency(10), dl::tool::Latency(10)};
+    DL_LOG_INFER_LATENCY_ARRAY_INIT_WITH_SIZE(3, 10);
     m_postprocessor->clear_result();
     for (auto &candidate : candidates) {
         int center_x = (candidate.box[0] + candidate.box[2]) >> 1;
@@ -75,28 +75,28 @@ std::list<dl::detect::result_t> &MNP::run(const dl::image::img_t &img, std::list
         candidate.box[3] = candidate.box[1] + side;
         candidate.limit_box(img.width, img.height);
 
-        latency[0].start();
+        DL_LOG_INFER_LATENCY_ARRAY_START(0);
         m_image_preprocessor->preprocess(img, candidate.box);
-        latency[0].end();
+        DL_LOG_INFER_LATENCY_ARRAY_END(0);
 
-        latency[1].start();
+        DL_LOG_INFER_LATENCY_ARRAY_START(1);
         m_model->run();
-        latency[1].end();
+        DL_LOG_INFER_LATENCY_ARRAY_END(1);
 
-        latency[2].start();
+        DL_LOG_INFER_LATENCY_ARRAY_START(2);
         m_postprocessor->set_resize_scale_x(m_image_preprocessor->get_resize_scale_x());
         m_postprocessor->set_resize_scale_y(m_image_preprocessor->get_resize_scale_y());
         m_postprocessor->set_top_left_x(m_image_preprocessor->get_top_left_x());
         m_postprocessor->set_top_left_y(m_image_preprocessor->get_top_left_y());
         m_postprocessor->postprocess();
-        latency[2].end();
+        DL_LOG_INFER_LATENCY_ARRAY_END(2);
     }
     m_postprocessor->nms();
     std::list<dl::detect::result_t> &result = m_postprocessor->get_result(img.width, img.height);
     if (candidates.size() > 0) {
-        latency[0].print("detect", "preprocess");
-        latency[1].print("detect", "forward");
-        latency[2].print("detect", "postprocess");
+        DL_LOG_INFER_LATENCY_ARRAY_PRINT(0, "detect", "pre");
+        DL_LOG_INFER_LATENCY_ARRAY_PRINT(1, "detect", "model");
+        DL_LOG_INFER_LATENCY_ARRAY_PRINT(2, "detect", "post");
     }
     return result;
 }

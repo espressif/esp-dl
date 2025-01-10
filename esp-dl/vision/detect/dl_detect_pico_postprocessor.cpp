@@ -53,8 +53,8 @@ void PicoPostprocessor::parse_stage(TensorBase *score, TensorBase *box, const in
                     m_box_list.insert(std::upper_bound(m_box_list.begin(), m_box_list.end(), new_box, greater_box),
                                       new_box);
                 }
+                score_ptr++;
             }
-            score_ptr++;
             box_ptr += 32;
         }
     }

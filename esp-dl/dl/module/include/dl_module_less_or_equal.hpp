@@ -40,14 +40,14 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        // DL_LOG_LAYER_LATENCY_INIT();
-        // DL_LOG_LAYER_LATENCY_START();
+        DL_LOG_MODULE_LATENCY_INIT();
+        DL_LOG_MODULE_LATENCY_START();
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             forward_template<int8_t>(tensors, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(tensors, mode);
         }
-        // DL_LOG_LAYER_LATENCY_END(this->name, "LessOrEqual2D");
+        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "LessOrEqual2D");
     }
 
     void forward_args(void *args)

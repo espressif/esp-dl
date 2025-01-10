@@ -21,22 +21,19 @@ ClsImpl::~ClsImpl()
 
 std::vector<dl::cls::result_t> &ClsImpl::run(const dl::image::img_t &img)
 {
-    dl::tool::Latency latency[3] = {dl::tool::Latency(), dl::tool::Latency(), dl::tool::Latency()};
-    latency[0].start();
+    DL_LOG_INFER_LATENCY_INIT();
+    DL_LOG_INFER_LATENCY_START();
     m_image_preprocessor->preprocess(img);
-    latency[0].end();
+    DL_LOG_INFER_LATENCY_END_PRINT("cls", "pre");
 
-    latency[1].start();
+    DL_LOG_INFER_LATENCY_START();
     m_model->run();
-    latency[1].end();
+    DL_LOG_INFER_LATENCY_END_PRINT("cls", "model");
 
-    latency[2].start();
+    DL_LOG_INFER_LATENCY_START();
     std::vector<dl::cls::result_t> &result = m_postprocessor->postprocess();
-    latency[2].end();
+    DL_LOG_INFER_LATENCY_END_PRINT("cls", "post");
 
-    latency[0].print("cls", "preprocess");
-    latency[1].print("cls", "forward");
-    latency[2].print("cls", "postprocess");
     return result;
 }
 
