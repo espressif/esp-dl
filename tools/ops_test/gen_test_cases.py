@@ -11,7 +11,7 @@ from typing import (
 import toml
 import torch
 from ppq import QuantizationSettingFactory
-from ppq.api import espdl_quantize_torch
+from ppq.api import espdl_quantize_torch, get_target_platform
 from ppq.quantization.optim import *
 from torch.utils.data import DataLoader
 
@@ -81,6 +81,12 @@ class BaseInferencer:
         # create a setting for quantizing your network with ESPDL.
         quant_setting = QuantizationSettingFactory.espdl_setting()
         quant_setting.dispatcher = "allin"
+        if self.model_cfg.get("dispatch_table", {}):
+            for op_name, num_bit in self.model_cfg.get("dispatch_table", {}).items():
+                quant_setting.dispatching_table.append(
+                    op_name, get_target_platform(self.target, num_bit)
+                )
+
         quant_ppq_graph = espdl_quantize_torch(
             model=self.model,
             espdl_export_file=espdl_export_file,

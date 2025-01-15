@@ -27,7 +27,7 @@ def create_md(config_file, output_path):
     espdl_link = "[(ESP-DL)](esp-dl/dl/module/include/dl_module_##.hpp)"
 
     for op_type in op_test_config:
-        if op_type == "class_package":
+        if op_type == "class_package" or op_type == "Requantize":
             continue
         # print(op_type, op_test_config[op_type]["quant_bits"], op_test_config[op_type]["support_state"])
         quant_bits = op_test_config[op_type].get("quant_bits", [])

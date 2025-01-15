@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dl_module_base.hpp"
+#include <limits>
 
 namespace dl {
 namespace module {
@@ -94,8 +95,12 @@ public:
             }
         } else if (start->get_dtype() == DATA_TYPE_INT64) {
             for (int i = 0; i < dims; i++) {
-                start_index[i] = (int)start->get_element<int64_t>(i);
-                end_index[i] = (int)end->get_element<int64_t>(i);
+                start_index[i] = start->get_element<int64_t>(i) > std::numeric_limits<int>::max()
+                    ? std::numeric_limits<int>::max()
+                    : (int)start->get_element<int64_t>(i);
+                end_index[i] = end->get_element<int64_t>(i) > std::numeric_limits<int>::max()
+                    ? std::numeric_limits<int>::max()
+                    : (int)end->get_element<int64_t>(i);
                 if (axes != nullptr) {
                     axes_index[i] = (int)axes->get_element<int64_t>(i);
                 }

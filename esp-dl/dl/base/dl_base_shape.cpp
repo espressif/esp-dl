@@ -66,8 +66,8 @@ std::vector<int> get_unidirectional_broadcasting_shape(const std::vector<int> &s
 }
 
 std::vector<int> get_slice_shape(const std::vector<int> &shape,
-                                 std::vector<int> start,
-                                 std::vector<int> end,
+                                 std::vector<int> &start,
+                                 std::vector<int> &end,
                                  std::vector<int> axes,
                                  std::vector<int> step)
 {
@@ -79,16 +79,16 @@ std::vector<int> get_slice_shape(const std::vector<int> &shape,
         if (!axes.empty()) {
             axis = (axes[i] + dim) % dim;
         }
-        int start_i = start[i] < 0 ? start[i] + shape[axis] : start[i] % (shape[axis] + 1);
-        int end_i = end[i] < 0 ? end[i] + shape[axis] : end[i] % (shape[axis] + 1);
-        if (start_i >= end_i) {
+        start[i] = start[i] < 0 ? start[i] + shape[axis] : start[i] > shape[axis] ? shape[axis] : start[i];
+        end[i] = end[i] < 0 ? end[i] + shape[axis] : end[i] > shape[axis] ? shape[axis] : end[i];
+        if (start[i] >= end[i]) {
             assert(false);
             return {};
         } else {
             if (step.empty()) {
-                output_shape[axis] = end_i - start_i;
+                output_shape[axis] = end[i] - start[i];
             } else {
-                output_shape[axis] = 1 + (end_i - start_i - 1) / step[i];
+                output_shape[axis] = 1 + (end[i] - start[i] - 1) / step[i];
             }
         }
     }
