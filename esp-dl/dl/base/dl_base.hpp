@@ -3096,5 +3096,16 @@ void resize2d_operation_shell(const resizeArgsType<feature_t> &args,
     return;
 }
 
+struct requantizeArgsType {
+    void *input_element;  /*<! 0 */
+    void *output_element; /*<! 1 */
+
+    int size_div_x;         /*<! 2 */
+    int in_size_remainder;  /*<! 3 */
+    int out_size_remainder; /*<! 4 */
+    int output_shift;       /*<! 5 */
+    int output_scale;       /*<! 6 */
+};
+
 } // namespace base
 } // namespace dl

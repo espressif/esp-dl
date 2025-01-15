@@ -585,6 +585,32 @@ class GATHER_TEST(nn.Module):
         return output
 
 
+class REQUANTIZE_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        amp = 0
+        if self.config["shift_left"] == True:
+            amp = 20
+
+        input = nn.Sigmoid()(input) - 0.5
+        input = input + amp
+        output1 = (
+            input[:, :, 0 : input.shape[2] // 2, 0 : input.shape[3] // 2]
+            + input[:, :, input.shape[2] // 2 :, input.shape[3] // 2 :]
+        )
+        output2 = (
+            input[:, :, 0 : input.shape[2] // 2, 0 : input.shape[3] // 2]
+            - input[:, :, input.shape[2] // 2 :, input.shape[3] // 2 :]
+        )
+        output1 = output1 - 2 * amp
+        output = torch.cat([output1, output2], dim=1)
+
+        return output
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 

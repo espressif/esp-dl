@@ -1105,5 +1105,10 @@ void dl_esp32p4_s16_max4d_bchw_w1_1_w2_8_simdmax_unaligned(int16_t *output_ptr,
                                                            int16_t *input1_ptr,
                                                            void *args_ptr);
 
-#endif
+void dl_esp32p4_s8_s8_requantize_linear(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_s16_requantize_linear(int8_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_s16_requantize_linear(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_s8_requantize_linear(int16_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+#endif // CONFIG_IDF_TARGET_ESP32P4
 }

@@ -1,5 +1,6 @@
 #include "dl_tensor_base.hpp"
 #include "dl_base_pad.hpp"
+#include "dl_base_requantize_linear.hpp"
 #include <iostream>
 namespace dl {
 
@@ -270,6 +271,30 @@ bool TensorBase::assign(TensorBase *tensor)
                 return false;
             }
         } else {
+#if CONFIG_IDF_TARGET_ESP32P4
+            if (this->get_size() > 200) {
+                std::vector<base::requantizeArgsType> args =
+                    base::get_requantize_operation_args(this, tensor, RUNTIME_MODE_SINGLE_CORE);
+                if (!(reinterpret_cast<uintptr_t>(args[0].input_element) & 0xf) &&
+                    !(reinterpret_cast<uintptr_t>(args[0].output_element) & 0xf)) {
+                    if (this->dtype == DATA_TYPE_INT8 && tensor->dtype == DATA_TYPE_INT8) {
+                        base::requantize_linear<int8_t, int8_t>(&args[0]);
+                        return true;
+                    } else if (this->dtype == DATA_TYPE_INT8 && tensor->dtype == DATA_TYPE_INT16) {
+                        base::requantize_linear<int8_t, int16_t>(&args[0]);
+                        return true;
+                    } else if (this->dtype == DATA_TYPE_INT16 && tensor->dtype == DATA_TYPE_INT16 &&
+                               !(args[0].output_shift == 0 && args[0].output_scale > 0x4000)) {
+                        base::requantize_linear<int16_t, int16_t>(&args[0]);
+                        return true;
+                    } else if (this->dtype == DATA_TYPE_INT16 && tensor->dtype == DATA_TYPE_INT8) {
+                        base::requantize_linear<int16_t, int8_t>(&args[0]);
+                        return true;
+                    }
+                }
+            }
+#endif
+
             float src_scale = DL_SCALE(tensor->exponent);
             float inv_scale = 1.0 / (DL_SCALE(this->exponent));
 

@@ -2,7 +2,6 @@
 
 #include "dl_define_private.hpp"
 #include "sdkconfig.h"
-#include <climits>
 #include <string>
 
 #define CONFIG_DL_DEBUG 0
