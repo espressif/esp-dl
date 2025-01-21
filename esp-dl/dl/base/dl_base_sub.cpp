@@ -7,12 +7,10 @@ namespace base {
 
 // input0_ptr:vector, input1_ptr:scalar
 template <typename feature_t>
-void c_impl_sub_n_1(feature_t *output_ptr,
-                    feature_t *input0_ptr,
-                    feature_t *input1_ptr,
-                    elemwiseArgsType<feature_t> *args)
+void c_impl_sub_n_1(feature_t *output_ptr, feature_t *input0_ptr, feature_t *input1_ptr, void *args)
 {
-    int32_t length = args->output_d0;
+    elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
+    int32_t length = elem_args->output_d0;
     int32_t temp = input1_ptr[0];
     for (int i = 0; i < length; i++) {
         // printf("%d %d -> %d\n", input0_ptr[i], temp, temp + input0_ptr[i]);
@@ -22,12 +20,10 @@ void c_impl_sub_n_1(feature_t *output_ptr,
 
 // input0_ptr:scalar, input1_ptr:vector
 template <typename feature_t>
-void c_impl_sub_1_n(feature_t *output_ptr,
-                    feature_t *input0_ptr,
-                    feature_t *input1_ptr,
-                    elemwiseArgsType<feature_t> *args)
+void c_impl_sub_1_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *input1_ptr, void *args)
 {
-    int32_t length = args->output_d0;
+    elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
+    int32_t length = elem_args->output_d0;
     int32_t temp = input0_ptr[0];
     for (int i = 0; i < length; i++) {
         tool::truncate<int32_t>(output_ptr[i], temp - input1_ptr[i]);
@@ -36,12 +32,10 @@ void c_impl_sub_1_n(feature_t *output_ptr,
 
 // input0_ptr:vector, input1_ptr:vector
 template <typename feature_t>
-void c_impl_sub_n_n(feature_t *output_ptr,
-                    feature_t *input0_ptr,
-                    feature_t *input1_ptr,
-                    elemwiseArgsType<feature_t> *args)
+void c_impl_sub_n_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *input1_ptr, void *args)
 {
-    int32_t length = args->output_d0;
+    elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
+    int32_t length = elem_args->output_d0;
     int32_t temp = 0;
     for (int i = 0; i < length; i++) {
         temp = input1_ptr[i];
@@ -52,8 +46,7 @@ void c_impl_sub_n_n(feature_t *output_ptr,
 void elemwise_sub(elemwiseArgsType<int8_t> *args)
 {
     int ilen = 16 / sizeof(int8_t);
-    std::function<void(int8_t *, int8_t *, int8_t *, elemwiseArgsType<int8_t> *)> elemwise_func =
-        c_impl_sub_n_n<int8_t>; // default impl
+    ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func = c_impl_sub_n_n<int8_t>; // default impl
 
     if (args->output_d0 >= ilen) {
 #if CONFIG_IDF_TARGET_ESP32P4
@@ -128,8 +121,7 @@ void elemwise_sub(elemwiseArgsType<int8_t> *args)
 void elemwise_sub(elemwiseArgsType<int16_t> *args)
 {
     int ilen = 16 / sizeof(int16_t);
-    std::function<void(int16_t *, int16_t *, int16_t *, elemwiseArgsType<int16_t> *)> elemwise_func =
-        c_impl_sub_n_n<int16_t>;
+    ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func = c_impl_sub_n_n<int16_t>;
 
     if (args->output_d0 >= ilen) {
 #if CONFIG_IDF_TARGET_ESP32P4

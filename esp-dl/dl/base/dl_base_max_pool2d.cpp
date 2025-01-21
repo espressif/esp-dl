@@ -33,8 +33,8 @@ void max_pool2d<int16_t>(void *args_ptr)
 {
     PoolArgsType<int16_t> &args = *((PoolArgsType<int16_t> *)args_ptr);
 
-    i_impl_func_s16_t i_impl_func = NULL;
-    i_impl_func_s16_t i_impl_func_sp = NULL;
+    ImplFunc_t<int16_t, int16_t> i_impl_func;
+    ImplFunc_t<int16_t, int16_t> i_impl_func_sp;
     max_pool_c_impl_func_s16_t c_impl_func = NULL;
 
 #if CONFIG_TIE728_BOOST
@@ -60,8 +60,8 @@ void max_pool2d<int8_t>(void *args_ptr)
 {
     PoolArgsType<int8_t> &args = *((PoolArgsType<int8_t> *)args_ptr);
 
-    i_impl_func_s8_t i_impl_func = NULL;
-    i_impl_func_s8_t i_impl_func_sp = NULL;
+    ImplFunc_t<int8_t, int8_t> i_impl_func;
+    ImplFunc_t<int8_t, int8_t> i_impl_func_sp;
     max_pool_c_impl_func_s8_t c_impl_func = NULL;
 
 #if CONFIG_ESP32P4_BOOST

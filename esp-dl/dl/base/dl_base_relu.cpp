@@ -15,7 +15,7 @@ void relu_11c(feature_t *output_ptr, feature_t *input_ptr, const ArgsType<featur
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // specialize relu<int16_t>
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-inline void load_relu_11cn_s16(i_impl_acti_s16_t &i_impl_func,
+inline void load_relu_11cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
                                c_impl_acti_s16_t &c_impl_func,
                                const ArgsType<int16_t> &args)
 {
@@ -36,7 +36,7 @@ void relu<int16_t>(void *const args_ptr)
 {
     const ArgsType<int16_t> &args = *((ArgsType<int16_t> *)args_ptr);
 
-    i_impl_acti_s16_t i_impl_func = NULL;
+    ImplFunc_t<int16_t, int16_t> i_impl_func = NULL;
     c_impl_acti_s16_t c_impl_func = NULL;
 
     load_relu_11cn_s16(i_impl_func, c_impl_func, args);
@@ -48,7 +48,7 @@ void relu<int16_t>(void *const args_ptr)
 // specialize relu<int8_t>
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline void load_relu_11cn_s8(i_impl_acti_s8_t &i_impl_func,
+inline void load_relu_11cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
                               c_impl_acti_s8_t &c_impl_func,
                               const ArgsType<int8_t> &args)
 {
@@ -69,7 +69,7 @@ void relu<int8_t>(void *const args_ptr)
 {
     const ArgsType<int8_t> &args = *((ArgsType<int8_t> *)args_ptr);
 
-    i_impl_acti_s8_t i_impl_func = NULL;
+    ImplFunc_t<int8_t, int8_t> i_impl_func;
     c_impl_acti_s8_t c_impl_func = NULL;
 
     load_relu_11cn_s8(i_impl_func, c_impl_func, args);

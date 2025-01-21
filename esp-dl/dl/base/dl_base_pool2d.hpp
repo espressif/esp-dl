@@ -272,8 +272,8 @@ typedef void (*max_pool_c_impl_func_s8_t)(int8_t *, int8_t *, PoolArgsType<int8_
  */
 template <typename feature_t, typename buffer_t>
 void avg_pool_shell(PoolArgsType<feature_t> &args,
-                    void (*i_impl_func)(feature_t *, feature_t *, void *),
-                    void (*i_impl_func_sp)(feature_t *, feature_t *, void *),
+                    ImplFunc_t<feature_t, feature_t> i_impl_func,
+                    ImplFunc_t<feature_t, feature_t> i_impl_func_sp,
                     void (*c_impl_func)(buffer_t *, feature_t *, feature_t *, PoolArgsType<feature_t> &))
 {
     feature_t *input_ptr_real = (feature_t *)args.input_element;
@@ -592,8 +592,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
  */
 template <typename feature_t>
 void max_pool_shell(PoolArgsType<feature_t> &args,
-                    void (*i_impl_func)(feature_t *, feature_t *, void *),
-                    void (*i_impl_func_sp)(feature_t *, feature_t *, void *),
+                    ImplFunc_t<feature_t, feature_t> i_impl_func,
+                    ImplFunc_t<feature_t, feature_t> i_impl_func_sp,
                     void (*c_impl_func)(feature_t *, feature_t *, PoolArgsType<feature_t> &))
 {
     feature_t *input_ptr_real = (feature_t *)args.input_element;

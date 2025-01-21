@@ -93,13 +93,14 @@ struct ArgsType {
     bool auto_split;
 };
 
-typedef void (*i_impl_func_s16_t)(int16_t *, int16_t *, void *);
 typedef void (*c_impl_func_s16_t)(DL_S16_BUFFER_TYPE *, int16_t *, const ArgsType<int16_t> &);
 typedef void (*n_wise_func_s16_t)(int16_t *, DL_S16_BUFFER_TYPE *, const ArgsType<int16_t> &);
 
-typedef void (*i_impl_func_s8_t)(int8_t *, int8_t *, void *);
 typedef void (*c_impl_func_s8_t)(int32_t *, int8_t *, const ArgsType<int8_t> &);
 typedef void (*n_wise_func_s8_t)(int8_t *, int32_t *, const ArgsType<int8_t> &);
+
+template <typename out_feature_t, typename in_feature_t, typename... feature_t>
+using ImplFunc_t = std::function<void(out_feature_t *, in_feature_t *, feature_t *..., void *)>;
 
 // TODO:剥离出多核时 input output 的指针分配
 template <typename feature_t>
@@ -434,8 +435,8 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
 
 template <typename feature_t, typename buffer_t>
 void conv_operation_shell(ArgsType<feature_t> &args,
-                          void (*i_impl_func)(feature_t *, feature_t *, void *),
-                          void (*i_impl_func_sp)(feature_t *, feature_t *, void *),
+                          ImplFunc_t<feature_t, feature_t> i_impl_func,
+                          ImplFunc_t<feature_t, feature_t> i_impl_func_sp,
                           void (*c_impl_func)(buffer_t *, feature_t *, const ArgsType<feature_t> &),
                           void (*c_impl_func_sp)(buffer_t *, feature_t *, const ArgsType<feature_t> &),
                           void (*n_wise_tail)(feature_t *, buffer_t *, const ArgsType<feature_t> &))
@@ -1261,8 +1262,8 @@ std::vector<ArgsType<feature_t>> get_dwconv_operation_args(Tensor<feature_t> &ou
 
 template <typename feature_t, typename buffer_t>
 void dwconv_operation_shell(ArgsType<feature_t> &args,
-                            void (*i_impl_func)(feature_t *, feature_t *, void *),
-                            void (*i_impl_func_sp)(feature_t *, feature_t *, void *),
+                            ImplFunc_t<feature_t, feature_t> i_impl_func,
+                            ImplFunc_t<feature_t, feature_t> i_impl_func_sp,
                             void (*c_impl_func)(buffer_t *, feature_t *, const ArgsType<feature_t> &),
                             void (*c_impl_func_sp)(buffer_t *, feature_t *, const ArgsType<feature_t> &),
                             void (*n_wise_tail)(feature_t *, buffer_t *, const ArgsType<feature_t> &))
@@ -2002,10 +2003,7 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
     return;
 }
 
-typedef void (*i_impl_acti_s16_t)(int16_t *, int16_t *, void *);
 typedef void (*c_impl_acti_s16_t)(int16_t *, int16_t *, const ArgsType<int16_t> &);
-
-typedef void (*i_impl_acti_s8_t)(int8_t *, int8_t *, void *);
 typedef void (*c_impl_acti_s8_t)(int8_t *, int8_t *, const ArgsType<int8_t> &);
 
 template <typename feature_t>
@@ -2137,7 +2135,7 @@ std::vector<ArgsType<feature_t>> get_activation_args(TensorBase *output,
 
 template <typename feature_t>
 void activation_shell(const ArgsType<feature_t> &args,
-                      void (*i_impl_func)(feature_t *, feature_t *, void *),
+                      ImplFunc_t<feature_t, feature_t> i_impl_func,
                       void (*c_impl_func)(feature_t *, feature_t *, const ArgsType<feature_t> &))
 {
     feature_t *input_ptr = (feature_t *)args.input_element;
@@ -3050,15 +3048,12 @@ std::vector<resizeArgsType<feature_t>> get_resize_operation_args(TensorBase *out
     return m_args;
 }
 
-typedef void (*resize_i_impl_func_s16_t)(int16_t *, int16_t *, void *);
 typedef void (*resize_c_impl_func_s16_t)(int16_t *, int16_t *, const resizeArgsType<int16_t> &);
-
-typedef void (*resize_i_impl_func_s8_t)(int8_t *, int8_t *, void *);
 typedef void (*resize_c_impl_func_s8_t)(int8_t *, int8_t *, const resizeArgsType<int8_t> &);
 
 template <typename feature_t>
 void resize2d_operation_shell(const resizeArgsType<feature_t> &args,
-                              void (*resize_i_impl_func)(feature_t *, feature_t *, void *),
+                              ImplFunc_t<feature_t, feature_t> resize_i_impl_func,
                               void (*resize_c_impl_func)(feature_t *, feature_t *, const resizeArgsType<feature_t> &))
 {
     feature_t *input_ptr = args.input_element;

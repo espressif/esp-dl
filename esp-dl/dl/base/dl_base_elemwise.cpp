@@ -188,9 +188,7 @@ template std::vector<elemwiseArgsType<int16_t>> get_elemwise_operation_args(Tens
 
 // 4D loop for element-wise op
 template <typename feature_t>
-void elemwise_loop_4d(
-    elemwiseArgsType<feature_t> *args,
-    std::function<void(feature_t *, feature_t *, feature_t *, elemwiseArgsType<feature_t> *)> elemwise_func)
+void elemwise_loop_4d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func)
 {
     feature_t *output_element = args->output_element;
     feature_t *input0_element = args->input0_element;
@@ -221,18 +219,12 @@ void elemwise_loop_4d(
         input1_element += input1_d3_stride;
     }
 }
-template void elemwise_loop_4d(
-    elemwiseArgsType<int8_t> *args,
-    std::function<void(int8_t *, int8_t *, int8_t *, elemwiseArgsType<int8_t> *)> elemwise_func);
-template void elemwise_loop_4d(
-    elemwiseArgsType<int16_t> *args,
-    std::function<void(int16_t *, int16_t *, int16_t *, elemwiseArgsType<int16_t> *)> elemwise_func);
+template void elemwise_loop_4d(elemwiseArgsType<int8_t> *args, ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func);
+template void elemwise_loop_4d(elemwiseArgsType<int16_t> *args, ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func);
 
 // 3D loop for element-wise op
 template <typename feature_t>
-void elemwise_loop_3d(
-    elemwiseArgsType<feature_t> *args,
-    std::function<void(feature_t *, feature_t *, feature_t *, elemwiseArgsType<feature_t> *)> elemwise_func)
+void elemwise_loop_3d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func)
 {
     feature_t *output_element = args->output_element;
     feature_t *input0_element = args->input0_element;
@@ -257,18 +249,12 @@ void elemwise_loop_3d(
         input1_element += input1_d2_stride;
     }
 }
-template void elemwise_loop_3d(
-    elemwiseArgsType<int8_t> *args,
-    std::function<void(int8_t *, int8_t *, int8_t *, elemwiseArgsType<int8_t> *)> elemwise_func);
-template void elemwise_loop_3d(
-    elemwiseArgsType<int16_t> *args,
-    std::function<void(int16_t *, int16_t *, int16_t *, elemwiseArgsType<int16_t> *)> elemwise_func);
+template void elemwise_loop_3d(elemwiseArgsType<int8_t> *args, ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func);
+template void elemwise_loop_3d(elemwiseArgsType<int16_t> *args, ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func);
 
 // 2D loop for element-wise op
 template <typename feature_t>
-void elemwise_loop_2d(
-    elemwiseArgsType<feature_t> *args,
-    std::function<void(feature_t *, feature_t *, feature_t *, elemwiseArgsType<feature_t> *)> elemwise_func)
+void elemwise_loop_2d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func)
 {
     feature_t *output_element = args->output_element;
     feature_t *input0_element = args->input0_element;
@@ -287,30 +273,20 @@ void elemwise_loop_2d(
         input1_element += input1_d1_stride;
     }
 }
-template void elemwise_loop_2d(
-    elemwiseArgsType<int8_t> *args,
-    std::function<void(int8_t *, int8_t *, int8_t *, elemwiseArgsType<int8_t> *)> elemwise_func);
-template void elemwise_loop_2d(
-    elemwiseArgsType<int16_t> *args,
-    std::function<void(int16_t *, int16_t *, int16_t *, elemwiseArgsType<int16_t> *)> elemwise_func);
+template void elemwise_loop_2d(elemwiseArgsType<int8_t> *args, ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func);
+template void elemwise_loop_2d(elemwiseArgsType<int16_t> *args, ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func);
 
 // 1D loop for element-wise op
 template <typename feature_t>
-void elemwise_loop_1d(
-    elemwiseArgsType<feature_t> *args,
-    std::function<void(feature_t *, feature_t *, feature_t *, elemwiseArgsType<feature_t> *)> elemwise_func)
+void elemwise_loop_1d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func)
 {
     feature_t *output_element = args->output_element;
     feature_t *input0_element = args->input0_element;
     feature_t *input1_element = args->input1_element;
     elemwise_func(output_element, input0_element, input1_element, args);
 }
-template void elemwise_loop_1d(
-    elemwiseArgsType<int8_t> *args,
-    std::function<void(int8_t *, int8_t *, int8_t *, elemwiseArgsType<int8_t> *)> elemwise_func);
-template void elemwise_loop_1d(
-    elemwiseArgsType<int16_t> *args,
-    std::function<void(int16_t *, int16_t *, int16_t *, elemwiseArgsType<int16_t> *)> elemwise_func);
+template void elemwise_loop_1d(elemwiseArgsType<int8_t> *args, ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func);
+template void elemwise_loop_1d(elemwiseArgsType<int16_t> *args, ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func);
 
 } // namespace base
 } // namespace dl
