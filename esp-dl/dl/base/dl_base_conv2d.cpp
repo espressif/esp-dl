@@ -165,8 +165,8 @@ inline void conv2d_hwcn(buffer_t *buffer_ptr, feature_t *input_ptr, const ArgsTy
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // specialize conv2d<int16_t, int16_t, DL_S16_BUFFER_TYPE>
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-inline void load_conv2d_11cn_s16(i_impl_func_s16_t &i_impl_func,
-                                 i_impl_func_s16_t &i_impl_func_sp,
+inline void load_conv2d_11cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
+                                 ImplFunc_t<int16_t, int16_t> &i_impl_func_sp,
                                  c_impl_func_s16_t &c_impl_func,
                                  c_impl_func_s16_t &c_impl_func_sp,
                                  n_wise_func_s16_t &n_wise_func,
@@ -389,8 +389,8 @@ inline void load_conv2d_11cn_s16(i_impl_func_s16_t &i_impl_func,
 #endif
 }
 
-inline void load_conv2d_33cn_s16(i_impl_func_s16_t &i_impl_func,
-                                 i_impl_func_s16_t &i_impl_func_sp,
+inline void load_conv2d_33cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
+                                 ImplFunc_t<int16_t, int16_t> &i_impl_func_sp,
                                  c_impl_func_s16_t &c_impl_func,
                                  c_impl_func_s16_t &c_impl_func_sp,
                                  n_wise_func_s16_t &n_wise_func,
@@ -650,8 +650,8 @@ inline void load_conv2d_33cn_s16(i_impl_func_s16_t &i_impl_func,
 #endif
 }
 
-inline void load_conv2d_hwcn_s16(i_impl_func_s16_t &i_impl_func,
-                                 i_impl_func_s16_t &i_impl_func_sp,
+inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
+                                 ImplFunc_t<int16_t, int16_t> &i_impl_func_sp,
                                  c_impl_func_s16_t &c_impl_func,
                                  c_impl_func_s16_t &c_impl_func_sp,
                                  n_wise_func_s16_t &n_wise_func,
@@ -879,8 +879,8 @@ void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
 {
     ArgsType<int16_t> &args = *((ArgsType<int16_t> *)args_ptr);
 
-    i_impl_func_s16_t i_impl_func = NULL;
-    i_impl_func_s16_t i_impl_func_sp = NULL;
+    ImplFunc_t<int16_t, int16_t> i_impl_func;
+    ImplFunc_t<int16_t, int16_t> i_impl_func_sp;
     c_impl_func_s16_t c_impl_func = NULL;
     c_impl_func_s16_t c_impl_func_sp = NULL;
     n_wise_func_s16_t n_wise_func = NULL;
@@ -906,8 +906,8 @@ void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // specialize conv2d<int8_t, int8_t, int32_t>
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-inline void load_conv2d_11cn_s8(i_impl_func_s8_t &i_impl_func,
-                                i_impl_func_s8_t &i_impl_func_sp,
+inline void load_conv2d_11cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
+                                ImplFunc_t<int8_t, int8_t> &i_impl_func_sp,
                                 const ArgsType<int8_t> &args)
 {
 #if CONFIG_ESP32P4_BOOST
@@ -1002,8 +1002,8 @@ inline void load_conv2d_11cn_s8(i_impl_func_s8_t &i_impl_func,
 #endif
 }
 
-inline void load_conv2d_33cn_s8(i_impl_func_s8_t &i_impl_func,
-                                i_impl_func_s8_t &i_impl_func_sp,
+inline void load_conv2d_33cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
+                                ImplFunc_t<int8_t, int8_t> &i_impl_func_sp,
                                 const ArgsType<int8_t> &args)
 {
 #if CONFIG_ESP32P4_BOOST
@@ -1112,8 +1112,8 @@ inline void load_conv2d_33cn_s8(i_impl_func_s8_t &i_impl_func,
 #endif
 }
 
-inline void load_conv2d_hwcn_s8(i_impl_func_s8_t &i_impl_func,
-                                i_impl_func_s8_t &i_impl_func_sp,
+inline void load_conv2d_hwcn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
+                                ImplFunc_t<int8_t, int8_t> &i_impl_func_sp,
                                 const ArgsType<int8_t> &args)
 {
 #if CONFIG_ESP32P4_BOOST
@@ -1315,8 +1315,8 @@ void conv2d<int8_t, int32_t, int32_t>(void *args_ptr)
 {
     ArgsType<int8_t> &args = *((ArgsType<int8_t> *)args_ptr);
 
-    i_impl_func_s8_t i_impl_func = NULL;
-    i_impl_func_s8_t i_impl_func_sp = NULL;
+    ImplFunc_t<int8_t, int8_t> i_impl_func;
+    ImplFunc_t<int8_t, int8_t> i_impl_func_sp;
     c_impl_func_s8_t c_impl_func = NULL;
     c_impl_func_s8_t c_impl_func_sp = NULL;
     n_wise_func_s8_t n_wise_func = NULL;

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <vector>
 
+#include "dl_base.hpp"
 #include "dl_define.hpp"
 #include "dl_tensor_base.hpp"
 
@@ -55,27 +56,19 @@ std::vector<elemwiseArgsType<feature_t>> get_elemwise_operation_args(
 
 // 4D loop for element-wise op
 template <typename feature_t>
-void elemwise_loop_4d(
-    elemwiseArgsType<feature_t> *args,
-    std::function<void(feature_t *, feature_t *, feature_t *, elemwiseArgsType<feature_t> *)> elemwise_func);
+void elemwise_loop_4d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func);
 
 // 3D loop for element-wise op
 template <typename feature_t>
-void elemwise_loop_3d(
-    elemwiseArgsType<feature_t> *args,
-    std::function<void(feature_t *, feature_t *, feature_t *, elemwiseArgsType<feature_t> *)> elemwise_func);
+void elemwise_loop_3d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func);
 
 // 2D loop for element-wise op
 template <typename feature_t>
-void elemwise_loop_2d(
-    elemwiseArgsType<feature_t> *args,
-    std::function<void(feature_t *, feature_t *, feature_t *, elemwiseArgsType<feature_t> *)> elemwise_func);
+void elemwise_loop_2d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func);
 
 // 1D loop for element-wise op
 template <typename feature_t>
-void elemwise_loop_1d(
-    elemwiseArgsType<feature_t> *args,
-    std::function<void(feature_t *, feature_t *, feature_t *, elemwiseArgsType<feature_t> *)> elemwise_func);
+void elemwise_loop_1d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func);
 
 } // namespace base
 } // namespace dl

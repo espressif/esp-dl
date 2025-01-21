@@ -80,13 +80,11 @@ template elemwiseArgsType<int16_t> *get_elemwise_div_args(TensorBase *output,
 
 // input0_ptr:vector, input1_ptr:scalar
 template <typename feature_t>
-void c_impl_div_n_1(feature_t *output_ptr,
-                    feature_t *input0_ptr,
-                    feature_t *input1_ptr,
-                    elemwiseArgsType<feature_t> *args)
+void c_impl_div_n_1(feature_t *output_ptr, feature_t *input0_ptr, feature_t *input1_ptr, void *args)
 {
-    int32_t length = args->output_d0;
-    float rescale = args->output_rescale / input1_ptr[0];
+    elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
+    int32_t length = elem_args->output_d0;
+    float rescale = elem_args->output_rescale / input1_ptr[0];
     for (int32_t i = 0; i < length; i++) {
         if (input0_ptr[i] == 0) {
             output_ptr[i] = 0;
@@ -103,10 +101,11 @@ void c_impl_div_n_1(feature_t *output_ptr,
     }
 }
 
-void c_impl_div_lut_n_1(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, elemwiseArgsType<int8_t> *args)
+void c_impl_div_lut_n_1(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args)
 {
-    int32_t length = args->output_d0;
-    int8_t *table = args->table;
+    elemwiseArgsType<int8_t> *elem_args = static_cast<elemwiseArgsType<int8_t> *>(args);
+    int32_t length = elem_args->output_d0;
+    int8_t *table = elem_args->table;
     for (int32_t i = 0; i < length; i++) {
         output_ptr[i] = table[input0_ptr[i] + 128];
     }
@@ -114,14 +113,12 @@ void c_impl_div_lut_n_1(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_p
 
 // input0_ptr:scalar, input1_ptr:vector
 template <typename feature_t>
-void c_impl_div_1_n(feature_t *output_ptr,
-                    feature_t *input0_ptr,
-                    feature_t *input1_ptr,
-                    elemwiseArgsType<feature_t> *args)
+void c_impl_div_1_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *input1_ptr, void *args)
 {
-    int32_t length = args->output_d0;
+    elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
+    int32_t length = elem_args->output_d0;
 
-    float rescale = input0_ptr[0] * args->output_rescale;
+    float rescale = input0_ptr[0] * elem_args->output_rescale;
     for (int32_t i = 0; i < length; i++) {
         if (input0_ptr[0] == 0) {
             output_ptr[i] = 0;
@@ -138,10 +135,11 @@ void c_impl_div_1_n(feature_t *output_ptr,
     }
 }
 
-void c_impl_div_lut_1_n(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, elemwiseArgsType<int8_t> *args)
+void c_impl_div_lut_1_n(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args)
 {
-    int32_t length = args->output_d0;
-    int8_t *table = args->table;
+    elemwiseArgsType<int8_t> *elem_args = static_cast<elemwiseArgsType<int8_t> *>(args);
+    int32_t length = elem_args->output_d0;
+    int8_t *table = elem_args->table;
     for (int32_t i = 0; i < length; i++) {
         output_ptr[i] = table[input1_ptr[i] + 128];
     }
@@ -149,13 +147,11 @@ void c_impl_div_lut_1_n(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_p
 
 // input0_ptr:vector, input1_ptr:vector
 template <typename feature_t>
-void c_impl_div_n_n(feature_t *output_ptr,
-                    feature_t *input0_ptr,
-                    feature_t *input1_ptr,
-                    elemwiseArgsType<feature_t> *args)
+void c_impl_div_n_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *input1_ptr, void *args)
 {
-    int32_t length = args->output_d0;
-    float rescale = args->output_rescale;
+    elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
+    int32_t length = elem_args->output_d0;
+    float rescale = elem_args->output_rescale;
     for (int i = 0; i < length; i++) {
         if (input0_ptr[i] == 0) {
             output_ptr[i] = 0;
@@ -174,8 +170,7 @@ void c_impl_div_n_n(feature_t *output_ptr,
 
 void elemwise_div(elemwiseArgsType<int8_t> *args)
 {
-    std::function<void(int8_t *, int8_t *, int8_t *, elemwiseArgsType<int8_t> *)> elemwise_func =
-        c_impl_div_n_n<int8_t>;
+    ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func = c_impl_div_n_n<int8_t>;
 
     if (args->input0_d0 == 1) {
         if (args->table) {
@@ -211,8 +206,7 @@ void elemwise_div(elemwiseArgsType<int8_t> *args)
 
 void elemwise_div(elemwiseArgsType<int16_t> *args)
 {
-    std::function<void(int16_t *, int16_t *, int16_t *, elemwiseArgsType<int16_t> *)> elemwise_func =
-        c_impl_div_n_n<int16_t>;
+    ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func = c_impl_div_n_n<int16_t>;
 
     if (args->input1_d0 == 1) {
         elemwise_func = c_impl_div_n_1<int16_t>;

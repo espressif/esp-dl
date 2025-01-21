@@ -21,7 +21,7 @@ inline void resize2d_nearest_2x2_c1(feature_t *output_ptr, feature_t *input_ptr,
     }
 }
 
-inline void load_resized2d_nearest_2x2_c1_s8(resize_i_impl_func_s8_t &i_impl_func,
+inline void load_resized2d_nearest_2x2_c1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
                                              resize_c_impl_func_s8_t &c_impl_func,
                                              const resizeArgsType<int8_t> &args)
 {
@@ -50,7 +50,7 @@ void resize2d<int8_t>(void *args_ptr)
     const resizeArgsType<int8_t> &args = *((resizeArgsType<int8_t> *)args_ptr);
     if (args.resize_type == RESIZE_NEAREST) {
         if (args.scale_y == 2 && args.scale_x == 2) {
-            resize_i_impl_func_s8_t i_impl_func = NULL;
+            ImplFunc_t<int8_t, int8_t> i_impl_func;
             resize_c_impl_func_s8_t c_impl_func = NULL;
             load_resized2d_nearest_2x2_c1_s8(i_impl_func, c_impl_func, args);
             resize2d_operation_shell<int8_t>(args, i_impl_func, c_impl_func);
@@ -64,8 +64,8 @@ void resize2d<int16_t>(void *args_ptr)
     // const resizeArgsType<int16_t> &args = *((resizeArgsType<int16_t> *)args_ptr);
     // if (args.resize_type == RESIZE_NEAREST){
     //     if (args.scale_y == 2 && args.scale_x == 2){
-    //         resize_i_impl_func_s8_t i_impl_func = NULL;
-    //         resize_c_impl_func_s8_t c_impl_func = NULL;
+    //         ImplFunc_t<int16_t, int16_t> i_impl_func;
+    //         resize_c_impl_func_s16_t c_impl_func = NULL;
     //         load_resized2d_nearest_2x2_c1_s16(i_impl_func, c_impl_func, args);
     //         resize2d_operation_shell<int16_t>(args, i_impl_func, c_impl_func);
     //     }

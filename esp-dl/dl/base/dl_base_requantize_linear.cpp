@@ -5,9 +5,6 @@
 namespace dl {
 namespace base {
 
-template <typename out_feature_t, typename in_feature_t>
-using ImplFunc_t = std::function<void(out_feature_t *, in_feature_t *, void *const)>;
-
 std::vector<requantizeArgsType> get_requantize_operation_args(TensorBase *output,
                                                               TensorBase *input,
                                                               const runtime_mode_t runtime_mode)
