@@ -271,8 +271,8 @@ bool TensorBase::assign(TensorBase *tensor)
                 return false;
             }
         } else {
-#if CONFIG_IDF_TARGET_ESP32P4
-            if (this->get_size() > 200) {
+#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4
+            if (this->get_size() > 50) {
                 std::vector<base::requantizeArgsType> args =
                     base::get_requantize_operation_args(this, tensor, RUNTIME_MODE_SINGLE_CORE);
                 if (!(reinterpret_cast<uintptr_t>(args[0].input_element) & 0xf) &&
