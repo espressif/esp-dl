@@ -230,6 +230,13 @@ public:
     dl::TensorBase *get_test_output_tensor(std::string tensor_name, uint32_t caps = MALLOC_CAP_SPIRAM);
 
     /**
+     * @brief Get the name of test outputs.
+     *
+     * @return the name of test outputs
+     */
+    std::vector<std::string> get_test_outputs_name();
+
+    /**
      * @brief Get the graph inputs.
      *
      * @return the name of inputs
