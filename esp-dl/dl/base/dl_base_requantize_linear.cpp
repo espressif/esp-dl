@@ -40,50 +40,58 @@ std::vector<requantizeArgsType> get_requantize_operation_args(TensorBase *output
 
 void load_requantize_linear_func(ImplFunc_t<int8_t, int8_t> &impl_func, const requantizeArgsType &args)
 {
-#if CONFIG_ESP32P4_BOOST
     if (!(reinterpret_cast<uintptr_t>(args.input_element) & 0xf) &&
         !(reinterpret_cast<uintptr_t>(args.output_element) & 0xf)) {
+#if CONFIG_ESP32P4_BOOST
         impl_func = dl_esp32p4_s8_s8_requantize_linear;
+#elif CONFIG_TIE728_BOOST
+        impl_func = dl_tie728_s8_s8_requantize_linear;
+#endif
     } else {
         // TODO: unaligned
     }
-#endif
 }
 
 void load_requantize_linear_func(ImplFunc_t<int8_t, int16_t> &impl_func, const requantizeArgsType &args)
 {
-#if CONFIG_ESP32P4_BOOST
     if (!(reinterpret_cast<uintptr_t>(args.input_element) & 0xf) &&
         !(reinterpret_cast<uintptr_t>(args.output_element) & 0xf)) {
+#if CONFIG_ESP32P4_BOOST
         impl_func = dl_esp32p4_s8_s16_requantize_linear;
+#elif CONFIG_TIE728_BOOST
+        impl_func = dl_tie728_s8_s16_requantize_linear;
+#endif
     } else {
         // TODO: unaligned
     }
-#endif
 }
 
 void load_requantize_linear_func(ImplFunc_t<int16_t, int16_t> &impl_func, const requantizeArgsType &args)
 {
-#if CONFIG_ESP32P4_BOOST
     if (!(reinterpret_cast<uintptr_t>(args.input_element) & 0xf) &&
         !(reinterpret_cast<uintptr_t>(args.output_element) & 0xf)) {
+#if CONFIG_ESP32P4_BOOST
         impl_func = dl_esp32p4_s16_s16_requantize_linear;
+#elif CONFIG_TIE728_BOOST
+        impl_func = dl_tie728_s16_s16_requantize_linear;
+#endif
     } else {
         // TODO: unaligned
     }
-#endif
 }
 
 void load_requantize_linear_func(ImplFunc_t<int16_t, int8_t> &impl_func, const requantizeArgsType &args)
 {
-#if CONFIG_ESP32P4_BOOST
     if (!(reinterpret_cast<uintptr_t>(args.input_element) & 0xf) &&
         !(reinterpret_cast<uintptr_t>(args.output_element) & 0xf)) {
+#if CONFIG_ESP32P4_BOOST
         impl_func = dl_esp32p4_s16_s8_requantize_linear;
+#elif CONFIG_TIE728_BOOST
+        impl_func = dl_tie728_s16_s8_requantize_linear;
+#endif
     } else {
         // TODO: unaligned
     }
-#endif
 }
 
 template <typename out_feature_t, typename in_feature_t>

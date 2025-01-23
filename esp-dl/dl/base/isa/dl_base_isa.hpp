@@ -253,6 +253,11 @@ void dl_tie728_s8_unaligned_prelu_11c(int8_t *output_ptr, int8_t *input_ptr, voi
 
 void dl_tie728_s8_resize2d_nearest_2x2_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 void dl_tie728_s8_unaligned_resize2d_nearest_2x2_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_tie728_s8_s8_requantize_linear(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_tie728_s8_s16_requantize_linear(int8_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_s16_s16_requantize_linear(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_s16_s8_requantize_linear(int16_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 #endif
 
 #if CONFIG_IDF_TARGET_ESP32P4
