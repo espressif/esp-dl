@@ -61,6 +61,7 @@ public:
                                       std::string attribute_name,
                                       dl::activation_type_t &ret_value);
     esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, dl::resize_mode_t &ret_value);
+    esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, dl::TensorBase *&ret_value);
 
     /**
      * @brief Get operation output shape
