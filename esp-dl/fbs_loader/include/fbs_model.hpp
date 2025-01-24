@@ -52,15 +52,96 @@ public:
      * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
      */
     esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, int &ret_value);
+
+    /**
+     * @brief Get the attribute of node.
+     *
+     * @param node_name         The name of operation.
+     * @param attribute_name    The name of attribute.
+     * @param ret_value         The attribute value.
+     *
+     * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
+     */
     esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, float &ret_value);
+
+    /**
+     * @brief Get the attribute of node.
+     *
+     * @param node_name         The name of operation.
+     * @param attribute_name    The name of attribute.
+     * @param ret_value         The attribute value.
+     *
+     * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
+     */
     esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, std::string &ret_value);
+
+    /**
+     * @brief Get the attribute of node.
+     *
+     * @param node_name         The name of operation.
+     * @param attribute_name    The name of attribute.
+     * @param ret_value         The attribute value.
+     *
+     * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
+     */
     esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, std::vector<int> &ret_value);
+
+    /**
+     * @brief Get the attribute of node.
+     *
+     * @param node_name         The name of operation.
+     * @param attribute_name    The name of attribute.
+     * @param ret_value         The attribute value.
+     *
+     * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
+     */
     esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, std::vector<float> &ret_value);
+
+    /**
+     * @brief Get the attribute of node.
+     *
+     * @param node_name         The name of operation.
+     * @param attribute_name    The name of attribute.
+     * @param ret_value         The attribute value.
+     *
+     * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
+     */
     esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, dl::quant_type_t &ret_value);
+
+    /**
+     * @brief Get the attribute of node.
+     *
+     * @param node_name         The name of operation.
+     * @param attribute_name    The name of attribute.
+     * @param ret_value         The attribute value.
+     *
+     * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
+     */
     esp_err_t get_operation_attribute(std::string node_name,
                                       std::string attribute_name,
                                       dl::activation_type_t &ret_value);
+
+    /**
+     * @brief Get the attribute of node.
+     *
+     * @param node_name         The name of operation.
+     * @param attribute_name    The name of attribute.
+     * @param ret_value         The attribute value.
+     *
+     * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
+     */
     esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, dl::resize_mode_t &ret_value);
+
+    /**
+     * @brief Get the attribute of node.
+     *
+     * @param node_name         The name of operation.
+     * @param attribute_name    The name of attribute.
+     * @param ret_value         The attribute value.
+     *
+     * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
+     */
+    esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, dl::TensorBase *&ret_value);
 
     /**
      * @brief Get operation output shape
@@ -227,6 +308,13 @@ public:
      * @return The pointer of tensor.
      */
     dl::TensorBase *get_test_output_tensor(std::string tensor_name, uint32_t caps = MALLOC_CAP_SPIRAM);
+
+    /**
+     * @brief Get the name of test outputs.
+     *
+     * @return the name of test outputs
+     */
+    std::vector<std::string> get_test_outputs_name();
 
     /**
      * @brief Get the graph inputs.

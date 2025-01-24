@@ -66,20 +66,24 @@ std::map<std::string, TensorBase *> get_graph_test_inputs(Model *model)
     return test_inputs;
 }
 
-std::map<std::string, TensorBase *> get_graph_user_outputs(Model *model, std::vector<std::string> user_outputs_name)
+std::map<std::string, TensorBase *> get_graph_user_outputs(Model *model)
 {
     std::map<std::string, TensorBase *> user_outputs;
 
-    if (!model || user_outputs_name.empty()) {
+    if (!model) {
         return user_outputs;
     }
 
-    for (int i = 0; i < user_outputs_name.size(); i++) {
-        TensorBase *output = model->get_intermediate(user_outputs_name[i]);
+    fbs::FbsModel *parser_instance = model->get_fbs_model();
+    parser_instance->load_map();
+    std::vector<std::string> test_outputs_name = parser_instance->get_test_outputs_name();
+
+    for (int i = 0; i < test_outputs_name.size(); i++) {
+        TensorBase *output = model->get_intermediate(test_outputs_name[i]);
         if (output) {
             TensorBase *user_output = new TensorBase(
                 output->get_shape(), nullptr, output->get_exponent(), output->get_dtype(), true, output->get_caps());
-            user_outputs.emplace(user_outputs_name[i], user_output);
+            user_outputs.emplace(test_outputs_name[i], user_output);
         }
     }
     return user_outputs;
@@ -105,7 +109,7 @@ TEST_CASE("Test espdl model", "[dl_model]")
         fbs::FbsModel *fbs_model = fbs_loader->load(i);
         Model *model = new Model(fbs_model);
         std::map<std::string, TensorBase *> graph_test_inputs = get_graph_test_inputs(model);
-        std::map<std::string, TensorBase *> graph_user_outputs = get_graph_user_outputs(model, {});
+        std::map<std::string, TensorBase *> graph_user_outputs = get_graph_user_outputs(model);
         model->print();
         latency.start();
         model->run(graph_test_inputs, RUNTIME_MODE_SINGLE_CORE, graph_user_outputs);
