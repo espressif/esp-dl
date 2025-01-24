@@ -107,6 +107,8 @@
     - <<: *if-dev-push
       changes: *patterns-esp-dl_dl
     - <<: *if-dev-push
+      changes: *patterns-esp-dl_fbs_loader
+    - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 
 # rules for examples
@@ -213,5 +215,7 @@
       changes: *patterns-tool_ops_test
     - <<: *if-dev-push
       changes: *patterns-esp-dl_dl
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl_fbs_loader
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
