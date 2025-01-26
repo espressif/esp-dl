@@ -1774,6 +1774,15 @@
         dispatch_table = {"/Sigmoid" = 16, "/Sub" = 16}
 
 
+    [ops_test.Elu]
+    class_name = "ELU_TEST"
+    quant_bits = ["int8", "int16"]
+        [[ops_test.Elu.cfg]]
+        input_shape = [1, 10, 2, 5]
+        export_name_prefix = "Elu_ishape_1_10_2_5_alpha_0_3"
+        alpha = 0.3
+
+
 [models_test]
     [models_test.picodet]
         input_shape = [1, 3, 224, 224]

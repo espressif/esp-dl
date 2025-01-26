@@ -5,6 +5,7 @@
 #include "dl_module_concat.hpp"
 #include "dl_module_conv.hpp"
 #include "dl_module_div.hpp"
+#include "dl_module_elu.hpp"
 #include "dl_module_exp.hpp"
 #include "dl_module_flatten.hpp"
 #include "dl_module_gather.hpp"
@@ -110,7 +111,6 @@ public:
             this->register_module("HardSigmoid", HardSigmoid::deserialize);
             this->register_module("HardSwish", HardSwish::deserialize);
             this->register_module("Gelu", LUT::deserialize);
-            this->register_module("Elu", LUT::deserialize);
             this->register_module("LUT", LUT::deserialize);
             this->register_module("Gemm", Gemm::deserialize);
             this->register_module("QuantizeLinear", RequantizeLinear::deserialize);
@@ -133,6 +133,7 @@ public:
             this->register_module("MatMul", MatMul::deserialize);
             this->register_module("Split", Split::deserialize);
             this->register_module("Gather", Gather::deserialize);
+            this->register_module("Elu", Elu::deserialize);
         }
     }
 
