@@ -21,7 +21,7 @@ ESP-DL 用户手册
 .. toctree::
     :hidden:
 
-    ESP-DL 简介 <introduction/readme>
+    ESP-DL 简介 <introduction/index>
     入门指南 <getting_started/readme>
     使用教程 <tutorials/index>
     API Reference <api_reference/index>
