@@ -14,7 +14,7 @@ Core deep learning modules and tools, divided into submodules:
   Loads, manages, and allocates memory for deep learning models. Includes ``dl_model_base`` and ``dl_memory_manager``.
 
 * **module**  
-  Interfaces for operations (convolution, pooling, activation). Files: ``dl_module_conv``, ``dl_module_pool``, ``dl_module_relu``.
+  Interfaces for operations (convolution, pooling, activation, etc.). Files: ``dl_module_conv``, ``dl_module_pool``, ``dl_module_relu`` etc.
 
 * **base**  
   Implements operations for chips (esp32s3/esp32p4) with assembly support.
@@ -35,16 +35,16 @@ Core deep learning modules and tools, divided into submodules:
 Computer vision modules divided into submodules:
 
 * **classification**  
-  Image classification (preprocessing, inference, post-processing). Post-processors: ``imagenet_cls_postprocessor``, ``dl_cls_postprocessor``.
+  Image classification (model inference). Inference: ``dl_cls_base``. Post-processors: ``imagenet_cls_postprocessor``, ``dl_cls_postprocessor``.
 
 * **recognition**  
-  Face recognition (feature extraction/matching, database management). Implements ``dl_feat_postprocessor`` and ``dl_feat_image_preprocessor``.
+  feature extract (model inference). feature database management(Enroll, delete, query). Pre-processor: ``dl_feat_image_preprocessor``. Inference ``dl_feat_base``. ``dl_feat_image_preprocessor``. Post-processor: ``dl_feat_postprocessor``. Database: ``dl_recognition_database``
 
 * **image**  
-  Image processing (decoding, color conversion). Supports JPEG/BMP with decoding/encoding.
+  Image process(resize, crop, warp affine). Color conversion(pixel, img). Image preprocessor (pipeline of resize, crop, color conversion, normalization, quantization). Image decoding/encoding (JPEG/BMP). Draw Utility (point, hollow rectangle). Image process: ``dl_image_process``. Color conversion: ``dl_image_color``. Image preprocessor: ``dl_image_preprocessor``. Image decoding/encoding: ``dl_image_jpeg``, ``dl_image_bmp``. Utility: ``dl_image_draw``
 
 * **detect**  
-  Object detection post-processing. Post-processors: ``dl_detect_msr_postprocessor``, ``dl_detect_mnp_postprocessor``, ``dl_detect_pico_postprocessor``.
+  Object detection (model inference) Inference: ``dl_detect_base``. Post-processors: ``dl_detect_msr_postprocessor``, ``dl_detect_mnp_postprocessor``, ``dl_detect_pico_postprocessor``.
 
 
 **fbs_loader (FlatBuffers Loader)**
