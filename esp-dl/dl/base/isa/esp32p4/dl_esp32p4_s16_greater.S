@@ -2,14 +2,14 @@
 #include "dl_esp32p4_common.S"
 
 
-#void dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
+#void dl_esp32p4_s16_greater_w1_8_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater
-    .type   dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater, @function
+    .global dl_esp32p4_s16_greater_w1_8_w2_8
+    .type   dl_esp32p4_s16_greater_w1_8_w2_8, @function
     #.section .iram1
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater:
+dl_esp32p4_s16_greater_w1_8_w2_8:
     .align 2
 
     # a0: int16_t *output_ptr
@@ -33,14 +33,14 @@ end:
     ret
 
 
-#void dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
+#void dl_esp32p4_s16_greater_w1_8_w2_1(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater
-    .type   dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater, @function
+    .global dl_esp32p4_s16_greater_w1_8_w2_1
+    .type   dl_esp32p4_s16_greater_w1_8_w2_1, @function
     #.section .iram1
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater:
+dl_esp32p4_s16_greater_w1_8_w2_1:
     .align 2
 
     # a0: int16_t *output_ptr
@@ -63,14 +63,14 @@ loop_:
 end_:
     ret
 
-#void dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
+#void dl_esp32p4_s16_greater_w1_1_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater
-    .type   dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater, @function
+    .global dl_esp32p4_s16_greater_w1_1_w2_8
+    .type   dl_esp32p4_s16_greater_w1_1_w2_8, @function
     #.section .iram1
-dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater:
+dl_esp32p4_s16_greater_w1_1_w2_8:
     .align 2
 
     # a0: int16_t *output_ptr
@@ -96,10 +96,10 @@ end__:
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned
-    .type   dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned, @function
+    .global dl_esp32p4_s16_greater_w1_8_w2_8_unaligned
+    .type   dl_esp32p4_s16_greater_w1_8_w2_8_unaligned, @function
     #.section .iram1
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned:
+dl_esp32p4_s16_greater_w1_8_w2_8_unaligned:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
@@ -124,15 +124,15 @@ dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned:
     esp.ld.128.usar.ip q5, a0, 0 #get output_ptr sar_byte
     esp.movx.r.sar.bytes s1
 
-    bltz a4, dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_small_remainder # channel < 16
+    bltz a4, dl_esp32p4_s16_greater_w1_8_w2_8_unaligned_small_remainder # channel < 16
 
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
 
-    beqz s1, dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_0
+    beqz s1, dl_esp32p4_s16_greater_w1_8_w2_8_unaligned_0
     li t0, 8
-    beq s1, t0, dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_1
+    beq s1, t0, dl_esp32p4_s16_greater_w1_8_w2_8_unaligned_1
 
     add t0, a4, x0
     blez t0, 1f
@@ -157,10 +157,10 @@ dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned:
 
     esp.vcmp.gt.s16 q2, q2, q5
     dl_esp32p4_128b_unaligned_store0 q2, a0, s1
-    j dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_remainder
+    j dl_esp32p4_s16_greater_w1_8_w2_8_unaligned_remainder
 
     #output sar = 0
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_0:
+dl_esp32p4_s16_greater_w1_8_w2_8_unaligned_0:
     add t0, a4, x0
     blez t0, 3f
     2:
@@ -187,10 +187,10 @@ dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_0:
 
     esp.vcmp.gt.s16 q2, q2, q5
     esp.vst.128.ip q2, a0, 16
-    j dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_remainder
+    j dl_esp32p4_s16_greater_w1_8_w2_8_unaligned_remainder
 
     #output sar = 8
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_1:
+dl_esp32p4_s16_greater_w1_8_w2_8_unaligned_1:
     add t0, a4, x0
     blez t0, 5f
     4:
@@ -217,16 +217,16 @@ dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_1:
 
     esp.vcmp.gt.s16 q2, q2, q5
     dl_esp32p4_128b_unaligned_store1 q2, a0
-    j dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_remainder
+    j dl_esp32p4_s16_greater_w1_8_w2_8_unaligned_remainder
 
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_small_remainder:
+dl_esp32p4_s16_greater_w1_8_w2_8_unaligned_small_remainder:
     esp.ld.128.usar.xp q0, a1, t5
     esp.movx.r.sar.bytes t6
 
     esp.ld.128.usar.xp q3, a2, t5
     esp.movx.r.sar.bytes s0
 
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_8_simdgreater_unaligned_remainder:
+dl_esp32p4_s16_greater_w1_8_w2_8_unaligned_remainder:
 
     beqz t5, dl_esp32p4_s16_unaligned_add2d_end
 
@@ -252,10 +252,10 @@ dl_esp32p4_s16_unaligned_add2d_end:
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned
-    .type   dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned, @function
+    .global dl_esp32p4_s16_greater_w1_8_w2_1_unaligned
+    .type   dl_esp32p4_s16_greater_w1_8_w2_1_unaligned, @function
     #.section .iram1
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned:
+dl_esp32p4_s16_greater_w1_8_w2_1_unaligned:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
@@ -280,15 +280,15 @@ dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned:
     esp.ld.128.usar.ip q5, a0, 0 #get output_ptr sar_byte
     esp.movx.r.sar.bytes s1
 
-    bltz a4, dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_small_remainder # channel < 16
+    bltz a4, dl_esp32p4_s16_greater_w1_8_w2_1_unaligned_small_remainder # channel < 16
 
     esp.ld.128.usar.ip q0, a1, 16
     #esp.ld.128.usar.ip q3, a2, 16
     esp.ld.128.usar.ip q1, a1, 16
 
-    beqz s1, dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_0
+    beqz s1, dl_esp32p4_s16_greater_w1_8_w2_1_unaligned_0
     li t0, 8
-    beq s1, t0, dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_1
+    beq s1, t0, dl_esp32p4_s16_greater_w1_8_w2_1_unaligned_1
 
     add t0, a4, x0
     blez t0, 1f
@@ -316,10 +316,10 @@ dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned:
 
     esp.vcmp.gt.s16 q2, q2, q5
     dl_esp32p4_128b_unaligned_store0 q2, a0, s1
-    j dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_remainder
+    j dl_esp32p4_s16_greater_w1_8_w2_1_unaligned_remainder
 
     #output sar = 0
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_0:
+dl_esp32p4_s16_greater_w1_8_w2_1_unaligned_0:
     add t0, a4, x0
     blez t0, 3f
     2:
@@ -349,10 +349,10 @@ dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_0:
 
     esp.vcmp.gt.s16 q2, q2, q5
     esp.vst.128.ip q2, a0, 16
-    j dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_remainder
+    j dl_esp32p4_s16_greater_w1_8_w2_1_unaligned_remainder
 
     #output sar = 8
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_1:
+dl_esp32p4_s16_greater_w1_8_w2_1_unaligned_1:
     add t0, a4, x0
     blez t0, 5f
     4:
@@ -382,9 +382,9 @@ dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_1:
 
     esp.vcmp.gt.s16 q2, q2, q5
     dl_esp32p4_128b_unaligned_store1 q2, a0
-    j dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_remainder
+    j dl_esp32p4_s16_greater_w1_8_w2_1_unaligned_remainder
 
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_small_remainder:
+dl_esp32p4_s16_greater_w1_8_w2_1_unaligned_small_remainder:
     esp.ld.128.usar.xp q0, a1, t5
     esp.movx.r.sar.bytes t6
 
@@ -392,7 +392,7 @@ dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_small_remainder:
     #esp.movx.r.sar.bytes s0
     esp.vldbc.16.ip q5, a2, 0
 
-dl_esp32p4_s16_greater4d_bchw_w1_8_w2_1_simdgreater_unaligned_remainder:
+dl_esp32p4_s16_greater_w1_8_w2_1_unaligned_remainder:
 
     beqz t5, dl_esp32p4_s16_unaligned_add2d_end__
 
@@ -420,10 +420,10 @@ dl_esp32p4_s16_unaligned_add2d_end__:
 
     .align 2
     .text
-    .global dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned
-    .type   dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned, @function
+    .global dl_esp32p4_s16_greater_w1_1_w2_8_unaligned
+    .type   dl_esp32p4_s16_greater_w1_1_w2_8_unaligned, @function
     #.section .iram1
-dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned:
+dl_esp32p4_s16_greater_w1_1_w2_8_unaligned:
     .align 2
     esp32p4_push_128_stacks_4r  s0, s1, s8, s9
 
@@ -448,15 +448,15 @@ dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned:
     esp.ld.128.usar.ip q5, a0, 0 #get output_ptr sar_byte
     esp.movx.r.sar.bytes s1
 
-    bltz a4, dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_small_remainder # channel < 16
+    bltz a4, dl_esp32p4_s16_greater_w1_1_w2_8_unaligned_small_remainder # channel < 16
 
     esp.ld.128.usar.ip q0, a2, 16
     #esp.ld.128.usar.ip q3, a1, 16
     esp.ld.128.usar.ip q1, a2, 16
 
-    beqz s1, dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_0
+    beqz s1, dl_esp32p4_s16_greater_w1_1_w2_8_unaligned_0
     li t0, 8
-    beq s1, t0, dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_1
+    beq s1, t0, dl_esp32p4_s16_greater_w1_1_w2_8_unaligned_1
 
     add t0, a4, x0
     blez t0, 1f
@@ -484,10 +484,10 @@ dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned:
 
     esp.vcmp.gt.s16 q2, q5, q2  #esp.vcmp.gt.s16 q2, q2, q5
     dl_esp32p4_128b_unaligned_store0 q2, a0, s1
-    j dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_remainder
+    j dl_esp32p4_s16_greater_w1_1_w2_8_unaligned_remainder
 
     #output sar = 0
-dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_0:
+dl_esp32p4_s16_greater_w1_1_w2_8_unaligned_0:
     add t0, a4, x0
     blez t0, 3f
     2:
@@ -517,10 +517,10 @@ dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_0:
 
     esp.vcmp.gt.s16 q2, q5, q2  #esp.vcmp.gt.s16 q2, q2, q5
     esp.vst.128.ip q2, a0, 16
-    j dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_remainder
+    j dl_esp32p4_s16_greater_w1_1_w2_8_unaligned_remainder
 
     #output sar = 8
-dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_1:
+dl_esp32p4_s16_greater_w1_1_w2_8_unaligned_1:
     add t0, a4, x0
     blez t0, 5f
     4:
@@ -550,9 +550,9 @@ dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_1:
 
     esp.vcmp.gt.s16 q2, q5, q2  #esp.vcmp.gt.s16 q2, q2, q5
     dl_esp32p4_128b_unaligned_store1 q2, a0
-    j dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_remainder
+    j dl_esp32p4_s16_greater_w1_1_w2_8_unaligned_remainder
 
-dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_small_remainder:
+dl_esp32p4_s16_greater_w1_1_w2_8_unaligned_small_remainder:
     esp.ld.128.usar.xp q0, a2, t5
     esp.movx.r.sar.bytes t6
 
@@ -560,7 +560,7 @@ dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_small_remainder:
     #esp.movx.r.sar.bytes s0
     esp.vldbc.16.ip q5, a1, 0
 
-dl_esp32p4_s16_greater4d_bchw_w1_1_w2_8_simdgreater_unaligned_remainder:
+dl_esp32p4_s16_greater_w1_1_w2_8_unaligned_remainder:
 
     beqz t5, dl_esp32p4_s16_unaligned_add2d_endtest
 

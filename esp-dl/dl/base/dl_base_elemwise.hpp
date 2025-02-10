@@ -15,11 +15,11 @@ namespace base {
 // For element wise: Add, Sub, Mul etc, currently support from 1D to 4D
 // Note: d0 is the last dimension of the input/output tensor. This will facilitate support for higher dimensions in the
 // future.
-template <typename feature_t>
+template <typename in_feature_t, typename out_feature_t = in_feature_t>
 struct elemwiseArgsType {
-    feature_t *input0_element; /*<! 0 */
-    feature_t *input1_element; /*<! 1 */
-    feature_t *output_element; /*<! 2 */
+    in_feature_t *input0_element;  /*<! 0 */
+    in_feature_t *input1_element;  /*<! 1 */
+    out_feature_t *output_element; /*<! 2 */
 
     int input0_d0;        /*<! 3 */
     int input0_d1_stride; /*<! 4 */
@@ -46,29 +46,35 @@ struct elemwiseArgsType {
     float input0_scale;   /*<! 21 */
     float input1_scale;   /*<! 22 */
     float output_rescale; /*<! 23 */
-    feature_t *table;     /*<! 24 */
+    in_feature_t *table;  /*<! 24 */
+
+    int compare_mask; /*<! 25 */
 };
 
 // Get element-wise operation args
-template <typename feature_t>
-std::vector<elemwiseArgsType<feature_t>> get_elemwise_operation_args(
+template <typename in_feature_t, typename out_feature_t = in_feature_t>
+std::vector<elemwiseArgsType<in_feature_t, out_feature_t>> get_elemwise_operation_args(
     TensorBase *output, TensorBase *input0, TensorBase *input1, const runtime_mode_t runtime_mode = RUNTIME_MODE_AUTO);
 
 // 4D loop for element-wise op
-template <typename feature_t>
-void elemwise_loop_4d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func);
+template <typename in_feature_t, typename out_feature_t = in_feature_t>
+void elemwise_loop_4d(elemwiseArgsType<in_feature_t, out_feature_t> *args,
+                      ImplFunc_t<out_feature_t, in_feature_t, in_feature_t> elemwise_func);
 
 // 3D loop for element-wise op
-template <typename feature_t>
-void elemwise_loop_3d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func);
+template <typename in_feature_t, typename out_feature_t = in_feature_t>
+void elemwise_loop_3d(elemwiseArgsType<in_feature_t, out_feature_t> *args,
+                      ImplFunc_t<out_feature_t, in_feature_t, in_feature_t> elemwise_func);
 
 // 2D loop for element-wise op
-template <typename feature_t>
-void elemwise_loop_2d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func);
+template <typename in_feature_t, typename out_feature_t = in_feature_t>
+void elemwise_loop_2d(elemwiseArgsType<in_feature_t, out_feature_t> *args,
+                      ImplFunc_t<out_feature_t, in_feature_t, in_feature_t> elemwise_func);
 
 // 1D loop for element-wise op
-template <typename feature_t>
-void elemwise_loop_1d(elemwiseArgsType<feature_t> *args, ImplFunc_t<feature_t, feature_t, feature_t> elemwise_func);
+template <typename in_feature_t, typename out_feature_t = in_feature_t>
+void elemwise_loop_1d(elemwiseArgsType<in_feature_t, out_feature_t> *args,
+                      ImplFunc_t<out_feature_t, in_feature_t, in_feature_t> elemwise_func);
 
 } // namespace base
 } // namespace dl
