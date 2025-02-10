@@ -38,7 +38,7 @@ Computer vision modules divided into submodules:
   Image classification (model inference). Inference: ``dl_cls_base``. Post-processors: ``imagenet_cls_postprocessor``, ``dl_cls_postprocessor``.
 
 * **recognition**  
-  feature extract (model inference). feature database management(Enroll, delete, query). Pre-processor: ``dl_feat_image_preprocessor``. Inference ``dl_feat_base``. ``dl_feat_image_preprocessor``. Post-processor: ``dl_feat_postprocessor``. Database: ``dl_recognition_database``
+  feature extract (model inference). feature database management(Enroll, delete, query). Pre-processor: ``dl_feat_image_preprocessor``. Inference ``dl_feat_base``. Post-processor: ``dl_feat_postprocessor``. Database: ``dl_recognition_database``
 
 * **image**  
   Image process(resize, crop, warp affine). Color conversion(pixel, img). Image preprocessor (pipeline of resize, crop, color conversion, normalization, quantization). Image decoding/encoding (JPEG/BMP). Draw Utility (point, hollow rectangle). Image process: ``dl_image_process``. Color conversion: ``dl_image_color``. Image preprocessor: ``dl_image_preprocessor``. Image decoding/encoding: ``dl_image_jpeg``, ``dl_image_bmp``. Utility: ``dl_image_draw``

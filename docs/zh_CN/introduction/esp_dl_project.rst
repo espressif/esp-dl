@@ -14,10 +14,10 @@ ESP-DL 项目组织
   加载、管理和分配深度学习模型的内存。包含 ``dl_model_base`` 和 ``dl_memory_manager``。
 
 * **module**  
-  操作接口（卷积、池化、激活）。文件：``dl_module_conv``，``dl_module_pool``，``dl_module_relu``。
+  算子接口（卷积、池化、激活）。文件：``dl_module_conv``，``dl_module_pool``，``dl_module_relu``。
 
 * **base**  
-  实现对芯片（esp32s3/esp32p4）的操作支持，包括汇编支持。
+  具体的算子实现，包括对芯片（esp32s3/esp32p4）的汇编加速。
 
 * **math**  
   数学操作（矩阵函数）。文件：``dl_math.hpp`` 和 ``dl_math.cpp``。
