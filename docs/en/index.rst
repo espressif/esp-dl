@@ -21,7 +21,7 @@ ESP-DL User Guide
 .. toctree::
     :hidden:
 
-    Introduction <introduction/readme>
+    Introduction <introduction/index>
     Getting Started <getting_started/readme>
     Tutorials <tutorials/index>
     API Reference <api_reference/index>

@@ -21,7 +21,6 @@ set(include_dirs    ./dl
                     ./dl/math/include
                     ./dl/model/include
                     ./dl/module/include
-                    ./dl/lut/
                     ./fbs_loader/include
                     ./vision/detect
                     ./vision/image
