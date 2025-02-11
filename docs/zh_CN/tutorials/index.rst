@@ -11,3 +11,4 @@ Tutorials
    how_to_load_model
    how_to_deploy_mobilenet
    how_to_add_a_new_module(operator)
+   how_to_quantize_and_deploy_yolo11n.rst
