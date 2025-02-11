@@ -130,7 +130,6 @@ void elemwise_greater(elemwiseArgsType<int16_t, bool> *args)
     if (args->output_d0 >= ilen) {
 #if CONFIG_IDF_TARGET_ESP32P4
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-            // printf("use simd dl_esp32p4_s16_greater_w1_8_w2_8\n");
             elemwise_func = dl_esp32p4_s16_greater_w1_8_w2_8;
         } else if (args->input1_d0 == 1) {
             if (args->input0_d0 % ilen == 0) {

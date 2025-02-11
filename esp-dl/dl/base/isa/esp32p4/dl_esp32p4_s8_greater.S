@@ -228,9 +228,9 @@ dl_esp32p4_s8_greater_w1_16_w2_16_unaligned:
     bltz a4, dl_esp32p4_s8_greater_w1_16_w2_16_unaligned_remainder     // channel < 16
     esp.ld.128.usar.ip q1, a1, 16
 
-    beqz a5, dl_esp32p4_s8_greater_w1_16_w2_16_128b
+    beqz a5, dl_esp32p4_s8_greater_w1_16_w2_16_unaligned_128b
     li t0, 8
-    beq a5, t0, dl_esp32p4_s8_greater_w1_16_w2_16_64b
+    beq a5, t0, dl_esp32p4_s8_greater_w1_16_w2_16_unaligned_64b
 
         mv  t0, a4
         blez t0, 1f
@@ -258,7 +258,7 @@ dl_esp32p4_s8_greater_w1_16_w2_16_unaligned:
         j dl_esp32p4_s8_greater_w1_16_w2_16_unaligned_remainder
 
     // output sar = 0
-    dl_esp32p4_s8_greater_w1_16_w2_16_128b:
+    dl_esp32p4_s8_greater_w1_16_w2_16_unaligned_128b:
         mv  t0, a4
         blez t0, 3f
         2:
@@ -286,7 +286,7 @@ dl_esp32p4_s8_greater_w1_16_w2_16_unaligned:
         j dl_esp32p4_s8_greater_w1_16_w2_16_unaligned_remainder
 
     // output sar = 8
-    dl_esp32p4_s8_greater_w1_16_w2_16_64b:
+    dl_esp32p4_s8_greater_w1_16_w2_16_unaligned_64b:
         mv  t0, a4
         blez t0, 5f
         4:
@@ -381,9 +381,9 @@ dl_esp32p4_s8_greater_w1_16_w2_1_unaligned:
     bltz a4, dl_esp32p4_s8_greater_w1_16_w2_1_unaligned_remainder  // channel < 16
     esp.ld.128.usar.ip q1, a1, 16
 
-    beqz a5, dl_esp32p4_s8_greater_w1_16_w2_1_128b
+    beqz a5, dl_esp32p4_s8_greater_w1_16_w2_1_unaligned_128b
     li t0, 8
-    beq a5, t0, dl_esp32p4_s8_greater_w1_16_w2_1_64b
+    beq a5, t0, dl_esp32p4_s8_greater_w1_16_w2_1_unaligned_64b
 
         mv  t0, a4
         blez t0, 1f
@@ -405,7 +405,7 @@ dl_esp32p4_s8_greater_w1_16_w2_1_unaligned:
         j dl_esp32p4_s8_greater_w1_16_w2_1_unaligned_remainder
 
     // output sar = 0
-    dl_esp32p4_s8_greater_w1_16_w2_1_128b:
+    dl_esp32p4_s8_greater_w1_16_w2_1_unaligned_128b:
         mv  t0, a4
         blez t0, 3f
         2:
@@ -426,7 +426,7 @@ dl_esp32p4_s8_greater_w1_16_w2_1_unaligned:
         j dl_esp32p4_s8_greater_w1_16_w2_1_unaligned_remainder
 
     // output sar = 8
-    dl_esp32p4_s8_greater_w1_16_w2_1_64b:
+    dl_esp32p4_s8_greater_w1_16_w2_1_unaligned_64b:
         mv  t0, a4
         blez t0, 5f
         4:
@@ -511,9 +511,9 @@ dl_esp32p4_s8_greater_w1_1_w2_16_unaligned:
     bltz a4, dl_esp32p4_s8_greater_w1_1_w2_16_unaligned_remainder  // channel < 16
     esp.ld.128.usar.ip q1, a2, 16
 
-    beqz a5, dl_esp32p4_s8_greater_w1_1_w2_16_128b
+    beqz a5, dl_esp32p4_s8_greater_w1_1_w2_16_unaligned_128b
     li t0, 8
-    beq a5, t0, dl_esp32p4_s8_greater_w1_1_w2_16_64b
+    beq a5, t0, dl_esp32p4_s8_greater_w1_1_w2_16_unaligned_64b
 
         mv  t0, a4
         blez t0, 1f
@@ -535,7 +535,7 @@ dl_esp32p4_s8_greater_w1_1_w2_16_unaligned:
         j dl_esp32p4_s8_greater_w1_1_w2_16_unaligned_remainder
 
     // output sar = 0
-    dl_esp32p4_s8_greater_w1_1_w2_16_128b:
+    dl_esp32p4_s8_greater_w1_1_w2_16_unaligned_128b:
         mv  t0, a4
         blez t0, 3f
         2:
@@ -556,7 +556,7 @@ dl_esp32p4_s8_greater_w1_1_w2_16_unaligned:
         j dl_esp32p4_s8_greater_w1_1_w2_16_unaligned_remainder
 
     // output sar = 8
-    dl_esp32p4_s8_greater_w1_1_w2_16_64b:
+    dl_esp32p4_s8_greater_w1_1_w2_16_unaligned_64b:
         mv  t0, a4
         blez t0, 5f
         4:

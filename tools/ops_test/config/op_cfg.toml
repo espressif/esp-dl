@@ -1799,20 +1799,26 @@
         input1_is_weight = false
 
         [[ops_test.Greater.cfg]]
-        input_shape = [[1, 4, 5, 30], [1, 4, 5, 30]]
-        export_name_prefix = "Greater_ishap_1_4_5_30"
-        input0_is_weight = false
-        input1_is_weight = false
-
-        [[ops_test.Greater.cfg]]
-        input_shape = [[1, 4, 5, 30], [1, 4, 5, 1]]
-        export_name_prefix = "Greater_ishap_1_4_5_30_bc"
-        input0_is_weight = false
-        input1_is_weight = false
-
-        [[ops_test.Greater.cfg]]
-        input_shape = [[1, 4, 5, 1], [1, 4, 5, 30]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 16]]
         export_name_prefix = "Greater_ishap_1_4_5_1_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Greater.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 31]]
+        export_name_prefix = "Greater_ishap_1_4_5_31_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Greater.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 1]]
+        export_name_prefix = "Greater_ishap_1_4_5_31_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Greater.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 31]]
+        export_name_prefix = "Greater_ishap_1_4_5_1_bc_unalign"
         input0_is_weight = false
         input1_is_weight = false
 
