@@ -22,9 +22,9 @@ function(target_add_aligned_binary_data target embed_file embed_type)
         -D "SOURCE_FILE=${embed_srcfile}"
         ${rename_to_arg}
         -D "FILE_TYPE=${embed_type}"
-        -P "${COMPONENT_DIR}/cmake/data_file_embed_asm_aligned.cmake"
+        -P "${cmake_dir}/data_file_embed_asm_aligned.cmake"
         MAIN_DEPENDENCY "${embed_file}"
-        DEPENDS "${COMPONENT_DIR}/cmake/data_file_embed_asm_aligned.cmake" ${__DEPENDS}
+        DEPENDS "${cmake_dir}/data_file_embed_asm_aligned.cmake" ${__DEPENDS}
         WORKING_DIRECTORY "${build_dir}"
         VERBATIM)
 

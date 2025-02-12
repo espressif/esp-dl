@@ -15,11 +15,18 @@
 
 1. **在** ``CMakeLists.txt`` **中添加模型文件**
 
-   如果要将 ``.espdl`` 模型文件放到 flash 芯片的 ``.rodata`` 段，请将 `cmake folder <https://github.com/espressif/esp-dl/tree/master/models/human_face_detect/cmake>`__ 复制到项目下的组件目录或者main文件夹中。然后在 CMakeLists.txt 中添加以下代码。前两行应放在 idf_component_register() 之前，最后一行应放在 idf_component_register() 之后。
+   如果要将 ``.espdl`` 模型文件放到 flash 芯片的 ``.rodata`` 段，需要在 CMakeLists.txt 中添加以下代码。前几行应放在 idf_component_register() 之前，最后一行应放在 idf_component_register() 之后。
 
    .. code:: cmake
 
-      include(${COMPONENT_DIR}/cmake/utilities.cmake)
+      idf_build_get_property(component_targets __COMPONENT_TARGETS)
+      if ("___idf_espressif__esp-dl" IN_LIST component_targets)
+         idf_component_get_property(espdl_dir espressif__esp-dl COMPONENT_DIR)
+      elseif("___idf_esp-dl" IN_LIST component_targets)
+         idf_component_get_property(espdl_dir esp-dl COMPONENT_DIR)
+      endif()
+      set(cmake_dir ${espdl_dir}/fbs_loader/cmake)
+      include(${cmake_dir}/utilities.cmake)
       set(embed_files your_model_path/model_name.espdl)
 
       idf_component_register(...)
