@@ -611,6 +611,38 @@ class REQUANTIZE_TEST(nn.Module):
         return output
 
 
+class GREATER_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        if config["input0_is_weight"] and config["input_weight_shape"]:
+            self.input0_weight = nn.Parameter(
+                torch.randn(size=config["input_weight_shape"])
+            )
+        elif config["input1_is_weight"] and config["input_weight_shape"]:
+            self.input1_weight = nn.Parameter(
+                torch.randn(size=config["input_weight_shape"])
+            )
+
+    def forward(self, *args):
+        input0 = None
+        input1 = None
+        if len(args) == 2:
+            input0 = args[0]
+            input1 = args[1]
+        elif len(args) == 1 and hasattr(self, "input0_weight"):
+            input0 = self.input0_weight
+            input1 = args[0]
+        elif len(args) == 1 and hasattr(self, "input1_weight"):
+            input0 = args[0]
+            input1 = self.input1_weight
+        else:
+            raise ValueError("Config of MatMul is error.")
+
+        output = torch.gt(input0, input1)
+        return output
+
+
 class ELU_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()

@@ -1783,6 +1783,46 @@
         alpha = 0.3
 
 
+    [ops_test.Greater]
+    class_name = "GREATER_TEST"
+    quant_bits = ["int8", "int16"]
+        [[ops_test.Greater.cfg]]
+        input_shape = [[1, 4, 5, 16], [1, 4, 5, 16]]
+        export_name_prefix = "Greater_ishap_1_4_5_16"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Greater.cfg]]
+        input_shape = [[1, 4, 5, 16], [1, 4, 5, 1]]
+        export_name_prefix = "Greater_ishap_1_4_5_16_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Greater.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 16]]
+        export_name_prefix = "Greater_ishap_1_4_5_1_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Greater.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 31]]
+        export_name_prefix = "Greater_ishap_1_4_5_31_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Greater.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 1]]
+        export_name_prefix = "Greater_ishap_1_4_5_31_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Greater.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 31]]
+        export_name_prefix = "Greater_ishap_1_4_5_1_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+
 [models_test]
     [models_test.picodet]
         input_shape = [1, 3, 224, 224]

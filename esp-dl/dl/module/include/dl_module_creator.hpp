@@ -11,6 +11,7 @@
 #include "dl_module_gather.hpp"
 #include "dl_module_gemm.hpp"
 #include "dl_module_global_average_pool.hpp"
+#include "dl_module_greater.hpp"
 #include "dl_module_hard_sigmoid.hpp"
 #include "dl_module_hard_swish.hpp"
 #include "dl_module_leaky_relu.hpp"
@@ -134,6 +135,7 @@ public:
             this->register_module("Split", Split::deserialize);
             this->register_module("Gather", Gather::deserialize);
             this->register_module("Elu", Elu::deserialize);
+            this->register_module("Greater", Greater::deserialize);
         }
     }
 

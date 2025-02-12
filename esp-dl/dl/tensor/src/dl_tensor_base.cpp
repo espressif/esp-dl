@@ -775,6 +775,7 @@ template bool TensorBase::compare_elements<int32_t>(const int32_t *gt_elements, 
 template bool TensorBase::compare_elements<uint32_t>(const uint32_t *gt_elements, float epsilon, bool verbose);
 template bool TensorBase::compare_elements<float>(const float *gt_elements, float epsilon, bool verbose);
 template bool TensorBase::compare_elements<double>(const double *gt_elements, float epsilon, bool verbose);
+template bool TensorBase::compare_elements<bool>(const bool *gt_elements, float epsilon, bool verbose);
 
 bool TensorBase::is_same_shape(TensorBase *tensor)
 {
@@ -841,6 +842,8 @@ bool TensorBase::equal(TensorBase *tensor, float epsilon, bool verbose)
             return this->compare_elements<uint32_t>((uint32_t *)tensor->get_element_ptr(), epsilon, verbose);
         } else if (type1 == DATA_TYPE_DOUBLE) {
             return this->compare_elements<double>((double *)tensor->get_element_ptr(), epsilon, verbose);
+        } else if (type1 == DATA_TYPE_BOOL) {
+            return this->compare_elements<bool>((bool *)tensor->get_element_ptr(), epsilon, verbose);
         }
     } else {
         return (memcmp(this->get_element_ptr(), tensor->get_element_ptr(), this->get_bytes()) == 0);
