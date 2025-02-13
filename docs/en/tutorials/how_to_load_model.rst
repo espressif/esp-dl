@@ -15,11 +15,18 @@ Method 1: Load Model from ``rodata``
 
 1. **Add Model File in** ``CMakeLists.txt``
 
-   To add the ``.espdl`` model file to the ``.rodata`` section of the chip flash, copy the `cmake folder <https://github.com/espressif/esp-dl/tree/master/models/human_face_detect/cmake>`__ to the component dir or main folder under your project, add the following code in your CMakeLists.txt, the first two lines should be placed before idf_component_register(), the last line should be placed after idf_component_register()
+   To add the ``.espdl`` model file to the ``.rodata`` section of the flash, please add the following code in your CMakeLists.txt, the first several lines should be placed before idf_component_register(), the last line should be placed after idf_component_register()
 
    .. code:: cmake
 
-      include(${COMPONENT_DIR}/cmake/utilities.cmake)
+      idf_build_get_property(component_targets __COMPONENT_TARGETS)
+      if ("___idf_espressif__esp-dl" IN_LIST component_targets)
+         idf_component_get_property(espdl_dir espressif__esp-dl COMPONENT_DIR)
+      elseif("___idf_esp-dl" IN_LIST component_targets)
+         idf_component_get_property(espdl_dir esp-dl COMPONENT_DIR)
+      endif()
+      set(cmake_dir ${espdl_dir}/fbs_loader/cmake)
+      include(${cmake_dir}/utilities.cmake)
       set(embed_files your_model_path/model_name.espdl)
 
       idf_component_register(...)

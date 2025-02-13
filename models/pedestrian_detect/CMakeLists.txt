@@ -1,4 +1,12 @@
-include(${COMPONENT_DIR}/cmake/utilities.cmake)
+idf_build_get_property(component_targets __COMPONENT_TARGETS)
+if ("___idf_espressif__esp-dl" IN_LIST component_targets)
+    idf_component_get_property(espdl_dir espressif__esp-dl COMPONENT_DIR)
+elseif("___idf_esp-dl" IN_LIST component_targets)
+    idf_component_get_property(espdl_dir esp-dl COMPONENT_DIR)
+endif()
+set(cmake_dir ${espdl_dir}/fbs_loader/cmake)
+include(${cmake_dir}/utilities.cmake)
+
 set(src_dirs        .)
 
 set(include_dirs    .)
@@ -22,7 +30,7 @@ if (NOT CONFIG_PEDESTRIAN_DETECT_MODEL_IN_SDCARD)
         list(APPEND models ${models_dir}/pedestrian_detect_pico_s8_v1.espdl)
     endif()
 
-    set(pack_model_exe ${COMPONENT_DIR}/pack_model.py)
+    set(pack_model_exe ${espdl_dir}/fbs_loader/pack_espdl_models.py)
     add_custom_command(
         OUTPUT ${packed_model}
         COMMENT "Move and Pack models..."
