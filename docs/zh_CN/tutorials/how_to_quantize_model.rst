@@ -564,3 +564,10 @@
    注意到对8-bit量化应用层间均衡有助于降低量化损失。模型最后一层，/classifier/classifier.1/Gemm的累积误差为8.965%。量化后的top1准确率为69.800%，和float模型的准确率(71.878%)更加接近，比混合精度量化的量化精度更高。
 
    如果想进一步降低量化误差，可以尝试使用 QAT (Auantization Aware Training)。具体方法请参考 `PPQ QAT example <https://github.com/OpenPPL/ppq/blob/master/ppq/samples/TensorRT/Example_QAT.py>`__。
+
+注意事项
+--------
+
+MobileNet_v2模型对应的ONNX模型为 :project_file:`mobilenet_v2.onnx <tools/quantization/models/torch/mobilenet_v2.onnx>` 。而在层间均衡量化测试中，MobileNet_v2的ReLU6激活函数被替换为ReLU激活函数。替换激活函数后，MobileNet_v2模型对应的ONNX模型为 :project_file:`mobilenet_v2_relu.onnx <tools/quantization/models/torch/mobilenet_v2_relu.onnx>` 。
+
+此外，本示例中给出的量化后的模型, 包括ESP32-S3的模型二进制文件 :project_file:`mobilenet_v2.espdl <examples/mobilenet_v2/models/esp32s3/mobilenet_v2.espdl>` 和ESP32-P4的模型二进制文件 :project_file:`mobilenet_v2.espdl <examples/mobilenet_v2/models/esp32p4/mobilenet_v2.espdl>` 均通过层间均衡量化测试获得。
