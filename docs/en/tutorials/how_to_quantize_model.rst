@@ -563,3 +563,10 @@ The function parameters are described as follows:
    Note that applying layerwise equalization on 8-bit quantization is helpful to achieve smaller quantization error. The graphwise error of the model's last layer, /classifier/classifier.1/Gemm, is 8.965%. The top-1 accuracy after quantization is 69.800%, which is closer to the accuracy of the float model (71.878%), even compared to Mixed-Precision Test.
 
    If you wish to further reduce the quantization error, you can try using Quantization Aware Training (QAT). For specific methods, please refer to the `ppq QAT example <https://github.com/OpenPPL/ppq/blob/master/ppq/samples/TensorRT/Example_QAT.py>`__.
+
+Notes
+--------
+
+The ONNX model of MobileNet_v2 is :project_file:`mobilenet_v2.onnx <tools/quantization/models/torch/mobilenet_v2.onnx>` . In the layerwise equalization quantization test, the ReLU6 activation function in MobileNet_v2 is replaced with the ReLU activation function. After this modification, the ONNX model of MobileNet_v2 becomes :project_file:`mobilenet_v2_relu.onnx <tools/quantization/models/torch/mobilenet_v2_relu.onnx>` .
+
+Additionally, the quantized models offered in this example, including the ESPDL model binary file for ESP32-S3 :project_file:`mobilenet_v2.espdl <examples/mobilenet_v2/models/esp32s3/mobilenet_v2.espdl>` and ESP32-P4 :project_file:`mobilenet_v2.espdl <examples/mobilenet_v2/models/esp32p4/mobilenet_v2.espdl>` , are both obtained through the layerwise equalization quantization test.
