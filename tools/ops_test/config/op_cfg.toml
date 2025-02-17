@@ -1823,6 +1823,166 @@
         input1_is_weight = false
 
 
+    [ops_test.GreaterOrEqual]
+    class_name = "GREATEROREQUAL_TEST"
+    quant_bits = ["int8", "int16"]
+        [[ops_test.GreaterOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 16], [1, 4, 5, 16]]
+        export_name_prefix = "GreaterOrEqual_ishap_1_4_5_16"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.GreaterOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 16], [1, 4, 5, 1]]
+        export_name_prefix = "GreaterOrEqual_ishap_1_4_5_16_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.GreaterOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 16]]
+        export_name_prefix = "GreaterOrEqual_ishap_1_4_5_1_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.GreaterOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 31]]
+        export_name_prefix = "GreaterOrEqual_ishap_1_4_5_31_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.GreaterOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 1]]
+        export_name_prefix = "GreaterOrEqual_ishap_1_4_5_31_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.GreaterOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 31]]
+        export_name_prefix = "GreaterOrEqual_ishap_1_4_5_1_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+
+    [ops_test.Equal]
+    class_name = "EQUAL_TEST"
+    quant_bits = ["int8", "int16"]
+        [[ops_test.Equal.cfg]]
+        input_shape = [[1, 4, 5, 16], [1, 4, 5, 16]]
+        export_name_prefix = "Equal_ishap_1_4_5_16"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Equal.cfg]]
+        input_shape = [[1, 4, 5, 16], [1, 4, 5, 1]]
+        export_name_prefix = "Equal_ishap_1_4_5_16_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Equal.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 16]]
+        export_name_prefix = "Equal_ishap_1_4_5_1_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Equal.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 31]]
+        export_name_prefix = "Equal_ishap_1_4_5_31_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Equal.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 1]]
+        export_name_prefix = "Equal_ishap_1_4_5_31_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Equal.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 31]]
+        export_name_prefix = "Equal_ishap_1_4_5_1_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+
+    [ops_test.Less]
+    class_name = "LESS_TEST"
+    quant_bits = ["int8", "int16"]
+        [[ops_test.Less.cfg]]
+        input_shape = [[1, 4, 5, 16], [1, 4, 5, 16]]
+        export_name_prefix = "Less_ishap_1_4_5_16"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Less.cfg]]
+        input_shape = [[1, 4, 5, 16], [1, 4, 5, 1]]
+        export_name_prefix = "Less_ishap_1_4_5_16_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Less.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 16]]
+        export_name_prefix = "Less_ishap_1_4_5_1_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Less.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 31]]
+        export_name_prefix = "Less_ishap_1_4_5_31_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Less.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 1]]
+        export_name_prefix = "Less_ishap_1_4_5_31_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.Less.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 31]]
+        export_name_prefix = "Less_ishap_1_4_5_1_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+
+    [ops_test.LessOrEqual]
+    class_name = "LESSOREQUAL_TEST"
+    quant_bits = ["int8", "int16"]
+        [[ops_test.LessOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 16], [1, 4, 5, 16]]
+        export_name_prefix = "LessOrEqual_ishap_1_4_5_16"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.LessOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 16], [1, 4, 5, 1]]
+        export_name_prefix = "LessOrEqual_ishap_1_4_5_16_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.LessOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 16]]
+        export_name_prefix = "LessOrEqual_ishap_1_4_5_1_bc"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.LessOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 31]]
+        export_name_prefix = "LessOrEqual_ishap_1_4_5_31_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.LessOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 31], [1, 4, 5, 1]]
+        export_name_prefix = "LessOrEqual_ishap_1_4_5_31_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+        [[ops_test.LessOrEqual.cfg]]
+        input_shape = [[1, 4, 5, 1], [1, 4, 5, 31]]
+        export_name_prefix = "LessOrEqual_ishap_1_4_5_1_bc_unalign"
+        input0_is_weight = false
+        input1_is_weight = false
+
+
 [models_test]
     [models_test.picodet]
         input_shape = [1, 3, 224, 224]
