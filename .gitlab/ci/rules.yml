@@ -43,6 +43,9 @@
 .patterns-model_pedestrian_detect: &patterns-model_pedestrian_detect
   - "models/pedestrian_detect/**/*"
 
+.patterns-model_yolo11_detect: &patterns-model_yolo11_detect
+  - "models/yolo11_detect/**/*"
+
 # examples folder, in the alphabetic order
 .patterns-example_human_face_recognition: &patterns-example_human_face_recognition
   - "examples/human_face_recognition/**/*"
@@ -58,6 +61,9 @@
 
 .patterns-example_pedestrian_detect: &patterns-example_pedestrian_detect
 - "examples/pedestrian_detect/**/*"
+
+.patterns-example_yolo11_detect: &patterns-example_yolo11_detect
+- "examples/yolo11_detect/**/*"
 
 # tool forder
 .patterns-tool_ops_test: &patterns-tool_ops_test
@@ -170,6 +176,19 @@
       changes: *patterns-model_pedestrian_detect
     - <<: *if-dev-push
       changes: *patterns-example_pedestrian_detect
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_yolo11_detect:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_yolo11_detect
+    - <<: *if-dev-push
+      changes: *patterns-example_yolo11_detect
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 
