@@ -233,7 +233,7 @@ dl_esp32p4_s8_greater_w1_16_w2_16_unaligned:
     beq a5, t0, dl_esp32p4_s8_greater_w1_16_w2_16_unaligned_64b
 
         mv  t0, a4
-        blez t0, 1f
+        beqz t0, 1f
         0:
             esp.src.q.qup q2, q0, q1
 
@@ -260,7 +260,7 @@ dl_esp32p4_s8_greater_w1_16_w2_16_unaligned:
     // output sar = 0
     dl_esp32p4_s8_greater_w1_16_w2_16_unaligned_128b:
         mv  t0, a4
-        blez t0, 3f
+        beqz t0, 3f
         2:
             esp.src.q.qup q2, q0, q1
 
@@ -288,7 +288,7 @@ dl_esp32p4_s8_greater_w1_16_w2_16_unaligned:
     // output sar = 8
     dl_esp32p4_s8_greater_w1_16_w2_16_unaligned_64b:
         mv  t0, a4
-        blez t0, 5f
+        beqz t0, 5f
         4:
             esp.src.q.qup q2, q0, q1
 
@@ -386,7 +386,7 @@ dl_esp32p4_s8_greater_w1_16_w2_1_unaligned:
     beq a5, t0, dl_esp32p4_s8_greater_w1_16_w2_1_unaligned_64b
 
         mv  t0, a4
-        blez t0, 1f
+        beqz t0, 1f
         0:
             esp.src.q.qup q2, q0, q1
             esp.vldbc.8.ip q5, a2, 0
@@ -407,7 +407,7 @@ dl_esp32p4_s8_greater_w1_16_w2_1_unaligned:
     // output sar = 0
     dl_esp32p4_s8_greater_w1_16_w2_1_unaligned_128b:
         mv  t0, a4
-        blez t0, 3f
+        beqz t0, 3f
         2:
             esp.src.q.qup q2, q0, q1
             esp.vldbc.8.ip q5, a2, 0
@@ -428,7 +428,7 @@ dl_esp32p4_s8_greater_w1_16_w2_1_unaligned:
     // output sar = 8
     dl_esp32p4_s8_greater_w1_16_w2_1_unaligned_64b:
         mv  t0, a4
-        blez t0, 5f
+        beqz t0, 5f
         4:
             esp.src.q.qup q2, q0, q1
             esp.vldbc.8.ip q5, a2, 0
@@ -516,7 +516,7 @@ dl_esp32p4_s8_greater_w1_1_w2_16_unaligned:
     beq a5, t0, dl_esp32p4_s8_greater_w1_1_w2_16_unaligned_64b
 
         mv  t0, a4
-        blez t0, 1f
+        beqz t0, 1f
         0:
             esp.src.q.qup q2, q0, q1
             esp.vldbc.8.ip q5, a1, 0
@@ -537,7 +537,7 @@ dl_esp32p4_s8_greater_w1_1_w2_16_unaligned:
     // output sar = 0
     dl_esp32p4_s8_greater_w1_1_w2_16_unaligned_128b:
         mv  t0, a4
-        blez t0, 3f
+        beqz t0, 3f
         2:
             esp.src.q.qup q2, q0, q1
             esp.vldbc.8.ip q5, a1, 0
@@ -558,7 +558,7 @@ dl_esp32p4_s8_greater_w1_1_w2_16_unaligned:
     // output sar = 8
     dl_esp32p4_s8_greater_w1_1_w2_16_unaligned_64b:
         mv  t0, a4
-        blez t0, 5f
+        beqz t0, 5f
         4:
             esp.src.q.qup q2, q0, q1
             esp.vldbc.8.ip q5, a1, 0

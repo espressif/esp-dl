@@ -6,15 +6,19 @@
 #include "dl_module_conv.hpp"
 #include "dl_module_div.hpp"
 #include "dl_module_elu.hpp"
+#include "dl_module_equal.hpp"
 #include "dl_module_exp.hpp"
 #include "dl_module_flatten.hpp"
 #include "dl_module_gather.hpp"
 #include "dl_module_gemm.hpp"
 #include "dl_module_global_average_pool.hpp"
 #include "dl_module_greater.hpp"
+#include "dl_module_greater_or_equal.hpp"
 #include "dl_module_hard_sigmoid.hpp"
 #include "dl_module_hard_swish.hpp"
 #include "dl_module_leaky_relu.hpp"
+#include "dl_module_less.hpp"
+#include "dl_module_less_or_equal.hpp"
 #include "dl_module_log.hpp"
 #include "dl_module_lut.hpp"
 #include "dl_module_matmul.hpp"
@@ -136,6 +140,10 @@ public:
             this->register_module("Gather", Gather::deserialize);
             this->register_module("Elu", Elu::deserialize);
             this->register_module("Greater", Greater::deserialize);
+            this->register_module("GreaterOrEqual", GreaterOrEqual::deserialize);
+            this->register_module("Equal", Equal::deserialize);
+            this->register_module("Less", Less::deserialize);
+            this->register_module("LessOrEqual", LessOrEqual::deserialize);
         }
     }
 

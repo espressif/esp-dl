@@ -53,9 +53,9 @@ public:
     void forward_args(void *args)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            base::elemwise_lessorequal((base::elemwiseArgsType<int8_t> *)args);
+            base::elemwise_lessorequal((base::elemwiseArgsType<int8_t, bool> *)args);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            base::elemwise_lessorequal((base::elemwiseArgsType<int16_t> *)args);
+            base::elemwise_lessorequal((base::elemwiseArgsType<int16_t, bool> *)args);
         }
     }
 
@@ -66,8 +66,8 @@ public:
         TensorBase *input1 = tensors[m_inputs_index[1]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
-        std::vector<base::elemwiseArgsType<T>> m_args =
-            base::get_elemwise_operation_args<T>(output, input0, input1, mode);
+        std::vector<base::elemwiseArgsType<T, bool>> m_args =
+            base::get_elemwise_operation_args<T, bool>(output, input0, input1, mode);
         int task_size = m_args.size();
         if (task_size == 1) { // single task
             forward_args((void *)&m_args[0]);
