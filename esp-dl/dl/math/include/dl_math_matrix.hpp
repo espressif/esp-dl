@@ -2,7 +2,6 @@
 
 #include "dl_define.hpp"
 #include "dl_tool.hpp"
-#include "dl_variable.hpp"
 #include "esp_timer.h"
 #include <math.h>
 #include <stdint.h>
