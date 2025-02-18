@@ -38,13 +38,7 @@ public:
     /**
      * @brief Destroy the LUT object.
      */
-    ~LUT()
-    {
-        if (this->table) {
-            delete this->table;
-            this->table = nullptr;
-        }
-    }
+    ~LUT() { delete table; }
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {

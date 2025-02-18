@@ -4,7 +4,7 @@ namespace dl {
 namespace cls {
 ClsPostprocessor::ClsPostprocessor(
     Model *model, const int top_k, const float score_thr, bool need_softmax, const std::string &output_name) :
-    m_top_k(top_k), m_score_thr(score_thr), m_need_softmax(need_softmax)
+    m_top_k(top_k), m_score_thr(score_thr), m_need_softmax(need_softmax), m_softmax_module(nullptr)
 {
     if (output_name.empty()) {
         std::map<std::string, dl::TensorBase *> model_outputs_map = model->get_outputs();
@@ -21,14 +21,8 @@ ClsPostprocessor::ClsPostprocessor(
 
 ClsPostprocessor::~ClsPostprocessor()
 {
-    if (m_output) {
-        delete m_output;
-        m_output = nullptr;
-    }
-    if (m_need_softmax && m_softmax_module) {
-        delete m_softmax_module;
-        m_softmax_module = nullptr;
-    }
+    delete m_output;
+    delete m_softmax_module;
 }
 
 std::vector<dl::cls::result_t> &ClsPostprocessor::postprocess()

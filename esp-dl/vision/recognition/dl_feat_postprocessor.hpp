@@ -17,10 +17,7 @@ public:
     TensorBase *postprocess();
     ~FeatPostprocessor()
     {
-        if (m_feat) {
-            delete m_feat;
-            m_feat = nullptr;
-        }
+        delete m_feat;
     }
 };
 } // namespace feat

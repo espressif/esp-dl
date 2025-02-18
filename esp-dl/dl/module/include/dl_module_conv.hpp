@@ -73,15 +73,8 @@ public:
      */
     ~Conv2D()
     {
-        if (filter) {
-            delete filter;
-            filter = nullptr;
-        }
-
-        if (bias) {
-            delete bias;
-            bias = nullptr;
-        }
+        delete filter;
+        delete bias;
     }
 
     /**

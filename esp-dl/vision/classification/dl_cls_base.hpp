@@ -17,13 +17,7 @@ protected:
     Cls *m_model;
 
 public:
-    virtual ~ClsWrapper()
-    {
-        if (m_model) {
-            delete m_model;
-            m_model = nullptr;
-        }
-    }
+    ~ClsWrapper() { delete m_model; }
     std::vector<dl::cls::result_t> &run(const dl::image::img_t &img) { return m_model->run(img); }
 };
 

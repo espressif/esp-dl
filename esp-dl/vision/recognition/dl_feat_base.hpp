@@ -17,12 +17,9 @@ protected:
     Feat *m_model;
 
 public:
-    virtual ~FeatWrapper()
+    ~FeatWrapper()
     {
-        if (m_model) {
-            delete m_model;
-            m_model = nullptr;
-        }
+        delete m_model;
     }
     TensorBase *run(const dl::image::img_t &img, const std::vector<int> &landmarks)
     {
