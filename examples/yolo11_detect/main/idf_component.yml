@@ -1,0 +1,5 @@
+## IDF Component Manager Manifest File
+dependencies:
+  espressif/coco_detect:
+    version: "^0.1.1"
+    override_path: "../../../models/coco_detect"
