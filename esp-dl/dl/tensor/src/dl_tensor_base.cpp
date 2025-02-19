@@ -514,11 +514,12 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
 void TensorBase::print(bool print_data)
 {
     ESP_LOGI(__FUNCTION__,
-             "shape: %s, dtype: %s, exponent: %d, auto_free: %d",
+             "shape: %s, dtype: %s, exponent: %d, auto_free: %d, data: %p",
              shape_to_string(get_shape()).c_str(),
              dtype_to_string(get_dtype()),
              this->exponent,
-             this->auto_free);
+             this->auto_free,
+             this->data);
 
     if (this->data && print_data) {
         ESP_LOGI(__FUNCTION__, "The data of TensorBase is:");
@@ -546,6 +547,13 @@ void TensorBase::print(bool print_data)
         } else if (get_dtype() == DATA_TYPE_INT16) {
             for (int i = 0; i < get_size(); i++) {
                 printf("%d, ", get_element<int16_t>(i));
+                if ((i + 1) % 16 == 0) {
+                    printf("\n");
+                }
+            }
+        } else if (get_dtype() == DATA_TYPE_BOOL) {
+            for (int i = 0; i < get_size(); i++) {
+                printf("%d, ", get_element<bool>(i));
                 if ((i + 1) % 16 == 0) {
                     printf("\n");
                 }

@@ -11,7 +11,7 @@ namespace module {
 class Greater : public Module {
 public:
     /**
-     * @brief Construct a new Greater2D object.
+     * @brief Construct a new Greater object.
      *
      * @param name            name of module
      * @param inplace         inplace type.
@@ -24,7 +24,7 @@ public:
     }
 
     /**
-     * @brief Destroy the Greater2D object.
+     * @brief Destroy the Greater object.
      */
     ~Greater() {}
 
@@ -47,7 +47,7 @@ public:
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(tensors, mode);
         }
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Greater2D");
+        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Greater");
     }
 
     void forward_args(void *args)
@@ -74,7 +74,7 @@ public:
         } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
             module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]);
         } else {
-            ESP_LOGE("Greater2D", "Only support task size is 1 or 2, currently task size is %d", task_size);
+            ESP_LOGE("Greater", "Only support task size is 1 or 2, currently task size is %d", task_size);
         }
     }
 
