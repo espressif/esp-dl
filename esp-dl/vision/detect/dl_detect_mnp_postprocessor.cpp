@@ -51,7 +51,7 @@ void MNPPostprocessor::parse_stage(TensorBase *score, TensorBase *box, TensorBas
                     int anchor_h = anchor_shape[a][0];
                     int anchor_w = anchor_shape[a][1];
                     result_t new_box = {
-                        max_score_c,
+                        0,
                         max_score,
                         {(int)(anchor_w * dequantize(box_ptr[0], box_exp) * inv_resize_scale_x + m_top_left_x),
                          (int)(anchor_h * dequantize(box_ptr[1], box_exp) * inv_resize_scale_y + m_top_left_y),
