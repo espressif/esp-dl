@@ -20,17 +20,7 @@ extern "C" void app_main(void)
     img.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
     sw_decode_jpeg(jpeg_img, img, true);
 
-#if !CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
     HumanFaceDetect *detect = new HumanFaceDetect();
-#else
-    char dir[64];
-#if CONFIG_IDF_TARGET_ESP32P4
-    snprintf(dir, sizeof(dir), "%s/espdl_models/p4", CONFIG_BSP_SD_MOUNT_POINT);
-#elif CONFIG_IDF_TARGET_ESP32S3
-    snprintf(dir, sizeof(dir), "%s/espdl_models/s3", CONFIG_BSP_SD_MOUNT_POINT);
-#endif
-    HumanFaceDetect *detect = new HumanFaceDetect(dir);
-#endif
 
     auto &detect_results = detect->run(img);
     for (const auto &res : detect_results) {

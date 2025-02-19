@@ -5,7 +5,7 @@ static const char *TAG = "dl::recognition::DataBase";
 
 namespace dl {
 namespace recognition {
-DataBase::DataBase(const char *db_path, db_type_t db_type, int feat_len) : m_db_type(db_type)
+DataBase::DataBase(const char *db_path, int feat_len)
 {
     assert(db_path);
     int length = strlen(db_path) + 1;

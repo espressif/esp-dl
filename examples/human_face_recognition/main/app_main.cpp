@@ -57,26 +57,8 @@ extern "C" void app_main(void)
     musk2.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
     sw_decode_jpeg(musk2_jpeg, musk2, true);
 
-#if CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD || CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
-    char dir[64];
-#if CONFIG_IDF_TARGET_ESP32P4
-    snprintf(dir, sizeof(dir), "%s/espdl_models/p4", CONFIG_BSP_SD_MOUNT_POINT);
-#elif CONFIG_IDF_TARGET_ESP32S3
-    snprintf(dir, sizeof(dir), "%s/espdl_models/s3", CONFIG_BSP_SD_MOUNT_POINT);
-#endif
-#endif
-
-#if !CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
     HumanFaceDetect *human_face_detect = new HumanFaceDetect();
-#else
-    HumanFaceDetect *human_face_detect = new HumanFaceDetect(dir);
-#endif
-
-#if !CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
     HumanFaceFeat *human_face_feat = new HumanFaceFeat();
-#else
-    HumanFaceFeat *human_face_feat = new HumanFaceFeat(dir);
-#endif
 
     char db_path[64];
 #if CONFIG_DB_FATFS_FLASH
@@ -86,8 +68,7 @@ extern "C" void app_main(void)
 #else
     snprintf(db_path, sizeof(db_path), "%s/face.db", CONFIG_BSP_SD_MOUNT_POINT);
 #endif
-    auto human_face_recognizer = new HumanFaceRecognizer(
-        human_face_feat, db_path, static_cast<dl::recognition::db_type_t>(CONFIG_DB_FILE_SYSTEM));
+    auto human_face_recognizer = new HumanFaceRecognizer(human_face_feat, db_path);
 
     human_face_recognizer->enroll(bill1, human_face_detect->run(bill1));
     human_face_recognizer->enroll(bill2, human_face_detect->run(bill2));

@@ -10,7 +10,7 @@ namespace dl {
 namespace recognition {
 class DataBase {
 public:
-    DataBase(const char *db_path, db_type_t db_type, int feat_len);
+    DataBase(const char *db_path, int feat_len);
     virtual ~DataBase();
     esp_err_t clear_all_feats();
     esp_err_t enroll_feat(TensorBase *feat);
@@ -22,7 +22,6 @@ public:
 
 private:
     char *m_db_path;
-    db_type_t m_db_type;
     std::list<database_feat> m_feats;
     database_meta m_meta;
 
