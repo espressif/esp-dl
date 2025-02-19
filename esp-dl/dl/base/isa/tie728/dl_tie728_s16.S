@@ -12,6 +12,16 @@
 
 
 
+.macro dl_tie728_128b_unaligned_l_store0  output_v, output_ptr, tmp32
+    EE.MOVI.32.A  \output_v, \tmp32, 0
+    s32i  \tmp32, \output_ptr, 0
+    EE.MOVI.32.A  \output_v, \tmp32, 1
+    s32i  \tmp32, \output_ptr, 4
+    addi  \output_ptr, \output_ptr, 8
+.endm
+
+
+
 .macro dl_tie728_128b_unaligned_store1 output_v, output_ptr
     EE.VST.L.64.IP \output_v, \output_ptr, 8
     EE.VST.H.64.IP \output_v, \output_ptr, 8

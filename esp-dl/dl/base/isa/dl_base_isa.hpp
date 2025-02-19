@@ -258,6 +258,140 @@ void dl_tie728_s8_s8_requantize_linear(int8_t *output_ptr, int8_t *input_ptr, vo
 void dl_tie728_s8_s16_requantize_linear(int8_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_tie728_s16_s16_requantize_linear(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_tie728_s16_s8_requantize_linear(int16_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_tie728_s8_equal_w1_16_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_equal_w1_16_w2_1(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_equal_w1_1_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_equal_w1_16_w2_16_unaligned(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_equal_w1_16_w2_1_unaligned(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_equal_w1_1_w2_16_unaligned(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+
+void dl_tie728_s16_equal_w1_8_w2_8(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_equal_w1_8_w2_1(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_equal_w1_1_w2_8(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_equal_w1_8_w2_8_unaligned(bool *output_ptr,
+                                             int16_t *input0_ptr,
+                                             int16_t *input1_ptr,
+                                             void *args_ptr);
+void dl_tie728_s16_equal_w1_8_w2_1_unaligned(bool *output_ptr,
+                                             int16_t *input0_ptr,
+                                             int16_t *input1_ptr,
+                                             void *args_ptr);
+void dl_tie728_s16_equal_w1_1_w2_8_unaligned(bool *output_ptr,
+                                             int16_t *input0_ptr,
+                                             int16_t *input1_ptr,
+                                             void *args_ptr);
+
+void dl_tie728_s8_greater_w1_16_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_greater_w1_16_w2_1(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_greater_w1_1_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_greater_w1_16_w2_16_unaligned(bool *output_ptr,
+                                                int8_t *input0_ptr,
+                                                int8_t *input1_ptr,
+                                                void *args_ptr);
+void dl_tie728_s8_greater_w1_16_w2_1_unaligned(bool *output_ptr,
+                                               int8_t *input0_ptr,
+                                               int8_t *input1_ptr,
+                                               void *args_ptr);
+void dl_tie728_s8_greater_w1_1_w2_16_unaligned(bool *output_ptr,
+                                               int8_t *input0_ptr,
+                                               int8_t *input1_ptr,
+                                               void *args_ptr);
+
+void dl_tie728_s16_greater_w1_8_w2_8(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_greater_w1_8_w2_1(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_greater_w1_1_w2_8(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_greater_w1_8_w2_8_unaligned(bool *output_ptr,
+                                               int16_t *input0_ptr,
+                                               int16_t *input1_ptr,
+                                               void *args_ptr);
+void dl_tie728_s16_greater_w1_8_w2_1_unaligned(bool *output_ptr,
+                                               int16_t *input0_ptr,
+                                               int16_t *input1_ptr,
+                                               void *args_ptr);
+void dl_tie728_s16_greater_w1_1_w2_8_unaligned(bool *output_ptr,
+                                               int16_t *input0_ptr,
+                                               int16_t *input1_ptr,
+                                               void *args_ptr);
+
+void dl_tie728_s8_greaterorequal_w1_16_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_greaterorequal_w1_16_w2_1(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_greaterorequal_w1_1_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_greaterorequal_w1_16_w2_16_unaligned(bool *output_ptr,
+                                                       int8_t *input0_ptr,
+                                                       int8_t *input1_ptr,
+                                                       void *args_ptr);
+void dl_tie728_s8_greaterorequal_w1_16_w2_1_unaligned(bool *output_ptr,
+                                                      int8_t *input0_ptr,
+                                                      int8_t *input1_ptr,
+                                                      void *args_ptr);
+void dl_tie728_s8_greaterorequal_w1_1_w2_16_unaligned(bool *output_ptr,
+                                                      int8_t *input0_ptr,
+                                                      int8_t *input1_ptr,
+                                                      void *args_ptr);
+
+void dl_tie728_s16_greaterorequal_w1_8_w2_8(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_greaterorequal_w1_8_w2_1(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_greaterorequal_w1_1_w2_8(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_greaterorequal_w1_8_w2_8_unaligned(bool *output_ptr,
+                                                      int16_t *input0_ptr,
+                                                      int16_t *input1_ptr,
+                                                      void *args_ptr);
+void dl_tie728_s16_greaterorequal_w1_8_w2_1_unaligned(bool *output_ptr,
+                                                      int16_t *input0_ptr,
+                                                      int16_t *input1_ptr,
+                                                      void *args_ptr);
+void dl_tie728_s16_greaterorequal_w1_1_w2_8_unaligned(bool *output_ptr,
+                                                      int16_t *input0_ptr,
+                                                      int16_t *input1_ptr,
+                                                      void *args_ptr);
+
+void dl_tie728_s8_less_w1_16_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_less_w1_16_w2_1(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_less_w1_1_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_less_w1_16_w2_16_unaligned(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_less_w1_16_w2_1_unaligned(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_less_w1_1_w2_16_unaligned(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+
+void dl_tie728_s16_less_w1_8_w2_8(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_less_w1_8_w2_1(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_less_w1_1_w2_8(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_less_w1_8_w2_8_unaligned(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_less_w1_8_w2_1_unaligned(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_less_w1_1_w2_8_unaligned(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+
+void dl_tie728_s8_lessorequal_w1_16_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_lessorequal_w1_16_w2_1(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_lessorequal_w1_1_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_lessorequal_w1_16_w2_16_unaligned(bool *output_ptr,
+                                                    int8_t *input0_ptr,
+                                                    int8_t *input1_ptr,
+                                                    void *args_ptr);
+void dl_tie728_s8_lessorequal_w1_16_w2_1_unaligned(bool *output_ptr,
+                                                   int8_t *input0_ptr,
+                                                   int8_t *input1_ptr,
+                                                   void *args_ptr);
+void dl_tie728_s8_lessorequal_w1_1_w2_16_unaligned(bool *output_ptr,
+                                                   int8_t *input0_ptr,
+                                                   int8_t *input1_ptr,
+                                                   void *args_ptr);
+
+void dl_tie728_s16_lessorequal_w1_8_w2_8(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_lessorequal_w1_8_w2_1(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_lessorequal_w1_1_w2_8(bool *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_lessorequal_w1_8_w2_8_unaligned(bool *output_ptr,
+                                                   int16_t *input0_ptr,
+                                                   int16_t *input1_ptr,
+                                                   void *args_ptr);
+void dl_tie728_s16_lessorequal_w1_8_w2_1_unaligned(bool *output_ptr,
+                                                   int16_t *input0_ptr,
+                                                   int16_t *input1_ptr,
+                                                   void *args_ptr);
+void dl_tie728_s16_lessorequal_w1_1_w2_8_unaligned(bool *output_ptr,
+                                                   int16_t *input0_ptr,
+                                                   int16_t *input1_ptr,
+                                                   void *args_ptr);
+
 #endif
 
 #if CONFIG_IDF_TARGET_ESP32P4
