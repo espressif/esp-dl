@@ -1,5 +1,5 @@
-Using ESP-PPQ for Model Quantization (PTQ) and Deploying Models Using ESP-DL
-==============================================================================
+Quantizing and Deploying YOLO11n
+=================================
 
 :link_to_translation:`zh_CN:[中文]`
 
