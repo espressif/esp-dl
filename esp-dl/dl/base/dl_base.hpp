@@ -1,11 +1,11 @@
 #pragma once
 
+#include "dl_define.hpp"
+#include "dl_tensor_base.hpp"
 #include <assert.h>
+#include <functional>
 #include <stdint.h>
 #include <vector>
-
-#include "dl_constant.hpp"
-#include "dl_variable.hpp"
 
 namespace dl {
 namespace base {
@@ -108,173 +108,32 @@ void load_input_output_ptr()
 {
 }
 
-template <typename feature_t, typename bias_t>
-std::vector<ArgsType<feature_t>> get_conv_operation_args(Tensor<feature_t> &output,
-                                                         Tensor<feature_t> &input,
-                                                         std::vector<int> &padding,
-                                                         const Filter<feature_t> &filter,
-                                                         const int stride_y,
-                                                         const int stride_x,
-                                                         const Bias<bias_t> *bias = NULL,
-                                                         const Activation<feature_t> *activate = NULL,
-                                                         const bool auto_split = true,
-                                                         const int core_number = 1,
-                                                         bool malloc_debug_memory = false)
-{
-    ArgsType<feature_t> args;
-    args.input_element = input.get_element_ptr(); // TODO: auto_split
-    args.input_channel = input.shape[2];
-    args.input_stride_y_offset = input.shape[1] * input.shape[2] * stride_y;
-    args.input_stride_x_offset = input.shape[2] * stride_x;
-    args.input_dilation_y_offset = input.shape[1] * input.shape[2] * filter.dilation[0];
-    args.input_dilation_x_offset = input.shape[2] * filter.dilation[1];
-
-    args.output_element = output.get_element_ptr(); // TODO: auto_split
-    args.output_height = output.shape[0];
-    args.output_width = output.shape[1];
-    args.output_channel = output.shape[2];
-    args.output_y_offset = output.shape[1] * output.shape[2];
-    args.output_x_offset = output.shape[2];
-
-    args.filter_element = filter.element; // TODO: auto_split
-    args.filter_height = filter.shape[0];
-    args.filter_width = filter.shape[1];
-    args.filter_y_offset = 0;
-    args.filter_n_offset = 0;
-
-    args.filter_y_offset_c = filter.shape[1] * filter.shape[2];
-    args.filter_n_offset_c = args.filter_y_offset_c * filter.shape[0];
-
-    args.padding_h_head = padding[0];
-    args.padding_h_tail = padding[1];
-    args.padding_w_head = padding[2];
-    args.padding_w_tail = padding[3];
-    args.dilation_h = filter.dilation[0];
-    args.dilation_w = filter.dilation[1];
-    args.stride_x = stride_x;
-    args.stride_y = stride_y;
-    args.input_y_offset = input.shape[1] * input.shape[2];
-    args.filter_c = filter.shape[2]; // dw: filter.shape[3]. conv: filter.shape[2].
-    args.input_channel_with_padding = input.shape[2];
-    args.input_height = input.shape[0];
-    args.input_width = input.shape[1];
-    args.auto_split = auto_split;
-    // printf("input: %d, %d, %d, output: %d, %d, %d\n", input.shape[0], input.shape[1], input.shape[2],
-    // output.shape[0], output.shape[1], output.shape[2]);
-
-    if (filter.exponent == INT_MIN && sizeof(feature_t) == 1) { // S8 per-channel quantization
-        args.mac_shift = INT_MIN;
-
-        // calculate scale using filter.channel_exponent
-        args.tie_filter_channel_factor = (int16_t *)tool::malloc_aligned(
-            filter.channel_exponent_size, sizeof(int16_t), 16, MALLOC_CAP_8BIT); // TODO: auto_split
-        int u = 16 / sizeof(feature_t);
-        int len = filter.channel_exponent_size / u * u;
-
-        for (int i = 0; i < len; i++) { // special operation for qacc due to cannot shift different per-channel
-            int tmp = output.exponent - filter.channel_exponent[i] - input.exponent;
-            args.tie_filter_channel_factor[i] = (int16_t)1 << (15 - tmp);
-        }
-        for (int i = len; i < filter.channel_exponent_size; i++) { // for conv2d n remainder accx
-            args.tie_filter_channel_factor[i] = output.exponent - filter.channel_exponent[i] - input.exponent;
-        }
-
-        args.filter_channel_factor =
-            (int16_t *)tool::malloc_aligned(filter.channel_exponent_size, sizeof(int16_t), 16, MALLOC_CAP_8BIT);
-        for (int i = 0; i < filter.channel_exponent_size; i++) {
-            args.filter_channel_factor[i] = output.exponent - filter.channel_exponent[i] - input.exponent;
-        }
-    } else { // per-layer quantization
-        args.mac_shift = output.exponent - filter.exponent - input.exponent;
-    }
-
-    args.bias_element = bias ? bias->element : NULL; // TODO: auto_split
-    args.activation_type = activate ? activate->type : Linear;
-
-    switch (args.activation_type) {
-    case ReLU:
-        args.activation_alpha = 0;
-        args.activation_shift = 0;
-        args.activation_alpha_ptr = NULL;
-        break;
-    case LeakyReLU:
-        args.activation_alpha = activate->element[0];
-        args.activation_shift = -activate->exponent;
-        args.activation_alpha_ptr = NULL;
-        break;
-    case PReLU:
-        args.activation_alpha_ptr = activate->element; // TODO: auto_split
-        args.activation_shift = -activate->exponent;
-        break;
-    default:
-        args.activation_alpha_ptr = NULL;
-        args.activation_shift = -1;
-        break;
-    }
-
-    // for ISA
-    args.c_rs1_1 = (input.shape[2] >> 1) - 1;
-    args.c_rs2_1 = (input.shape[2] >> 2) - 1;
-    int u = 16 / sizeof(feature_t);
-    args.n_div_x = output.shape[2] / u; // TODO: auto_split
-    args.c_div_x_1 = input.shape[2] / u - 1;
-
-    args.c_remainder = args.input_channel % u * sizeof(feature_t);
-    args.n_remainder = args.output_channel % u;
-
-    args.xtensa_dilation_x_offset = (filter.dilation[1] * input.shape[2] - input.shape[2]) * sizeof(feature_t);
-    args.xtensa_dilation_y_offset_stable = filter.dilation[0] * input.shape[2] * input.shape[1];
-    args.xtensa_dilation_y_offset = (args.xtensa_dilation_y_offset_stable - input.shape[2] -
-                                     (filter.shape[1] - 1) * filter.dilation[1] * input.shape[2]) *
-        sizeof(feature_t);
-
-    args.filter_y_offset_unaligned = 0;
-    args.filter_n_offset_unaligned = 0;
-    args.filter_element_unaligned = args.n_remainder
-        ? (filter.element + args.n_div_x * args.filter_height * args.filter_width * args.filter_c * u)
-        : filter.element;
-
-    args.debug_value = nullptr;
-    if (malloc_debug_memory) {
-        args.debug_value = tool::calloc_aligned(16, sizeof(int8_t), 16, MALLOC_CAP_8BIT);
-    }
-
-    // slice
-    std::vector<ArgsType<feature_t>> m_args(core_number, args);
-    if (core_number > 1) {
-        int output_y_slice = output.shape[0] / core_number;
-        int output_y_remained = output.shape[0];
-
-        // first slice
-        m_args[0].output_height = output_y_slice;
-        output_y_remained -= output_y_slice;
-
-        // between slice
-        for (size_t i = 1; i < core_number - 1; i++) {
-            m_args[i].input_element =
-                m_args[i - 1].input_element + m_args[i - 1].output_height * args.input_stride_y_offset;
-            m_args[i].output_element =
-                m_args[i - 1].output_element + m_args[i - 1].output_height * args.output_y_offset;
-            m_args[i].output_height = output_y_slice;
-            output_y_remained -= output_y_slice;
-        }
-
-        // last slice
-        m_args.back().input_element =
-            m_args[core_number - 2].input_element + m_args[core_number - 2].output_height * args.input_stride_y_offset;
-        m_args.back().output_element =
-            m_args[core_number - 2].output_element + m_args[core_number - 2].output_height * args.output_y_offset;
-        m_args.back().output_height = output_y_remained;
-    }
-
-    return m_args;
-}
-
 // Modifications:
 // 1. Tensor, Filter, Bias, Activation -> TensorBase pointer
 // 2. move dilations from Filter into function's argument
 // 3. activation_alpha is used for PReLU and leaky ReLU
 // TODO:: It is possible to remove the template for ArgsType
+
+/**
+ * @brief Get the conv operation args object
+ *
+ * @tparam feature_t
+ * @param output
+ * @param input
+ * @param padding
+ * @param filter
+ * @param stride_y
+ * @param stride_x
+ * @param dilation_y
+ * @param dilation_x
+ * @param group
+ * @param bias
+ * @param activate
+ * @param activation_alpha
+ * @param runtime_mode
+ * @param malloc_debug_memory
+ * @return std::vector<ArgsType<feature_t>>
+ */
 template <typename feature_t>
 std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
                                                          TensorBase *input,
@@ -1092,174 +951,18 @@ void conv_operation_shell(ArgsType<feature_t> &args,
 
     return;
 }
-
-template <typename feature_t, typename bias_t>
-std::vector<ArgsType<feature_t>> get_dwconv_operation_args(Tensor<feature_t> &output,
-                                                           Tensor<feature_t> &input,
-                                                           std::vector<int> &padding,
-                                                           const Filter<feature_t> &filter,
-                                                           const int stride_y,
-                                                           const int stride_x,
-                                                           const Bias<bias_t> *bias = NULL,
-                                                           const Activation<feature_t> *activate = NULL,
-                                                           const int core_number = 1,
-                                                           bool malloc_debug_memory = false)
-{
-    ArgsType<feature_t> args;
-    args.input_element = input.get_element_ptr();
-    args.input_channel = input.shape[2];
-    args.input_stride_y_offset = input.shape[1] * input.shape[2] * stride_y;
-    args.input_stride_x_offset = input.shape[2] * stride_x;
-    args.input_dilation_y_offset = input.shape[1] * input.shape[2] * filter.dilation[0];
-    args.input_dilation_x_offset = input.shape[2] * filter.dilation[1];
-
-    args.output_element = output.get_element_ptr();
-    args.output_height = output.shape[0];
-    args.output_width = output.shape[1];
-    args.output_channel = output.shape[2];
-    args.output_y_offset = output.shape[1] * output.shape[2];
-    args.output_x_offset = output.shape[2];
-
-    args.filter_element = filter.element;
-    args.filter_height = filter.shape[0];
-    args.filter_width = filter.shape[1];
-    args.filter_y_offset = 16;
-    args.filter_n_offset = 0;
-
-    args.filter_y_offset_c = filter.shape[1] * filter.shape[2];
-    args.filter_n_offset_c = args.filter_y_offset_c * filter.shape[0];
-
-    args.padding_h_head = padding[0];
-    args.padding_h_tail = padding[1];
-    args.padding_w_head = padding[2];
-    args.padding_w_tail = padding[3];
-    args.dilation_h = filter.dilation[0];
-    args.dilation_w = filter.dilation[1];
-    args.stride_x = stride_x;
-    args.stride_y = stride_y;
-    args.input_y_offset = input.shape[1] * input.shape[2];
-    args.filter_c = filter.shape[3]; // dw: filter.shape[3]. conv: filter.shape[2].
-    // args.filter_n = filter.shape[3];
-    args.input_channel_with_padding = input.shape[2];
-
-    if (filter.exponent == INT_MIN && sizeof(feature_t) == 1) { // S8 per-channel quantization
-        args.mac_shift = INT_MIN;
-
-        // calculate scale using filter.channel_exponent
-        args.tie_filter_channel_factor =
-            (int16_t *)tool::malloc_aligned(filter.channel_exponent_size, sizeof(int16_t), 16, MALLOC_CAP_8BIT);
-        int u = 16 / sizeof(feature_t);
-        // int len = filter.channel_exponent_size / u * u;
-        // depthwise_conv2d
-        for (int i = 0; i < filter.channel_exponent_size; i++) {
-            int tmp = output.exponent - filter.channel_exponent[i] - input.exponent;
-            args.tie_filter_channel_factor[i] = (int16_t)1 << (15 - tmp);
-        }
-
-        args.filter_channel_factor =
-            (int16_t *)tool::malloc_aligned(filter.channel_exponent_size, sizeof(int16_t), 16, MALLOC_CAP_8BIT);
-        for (int i = 0; i < filter.channel_exponent_size; i++) {
-            args.filter_channel_factor[i] = output.exponent - filter.channel_exponent[i] - input.exponent;
-        }
-    } else { // per-layer quantization
-        args.mac_shift = output.exponent - filter.exponent - input.exponent;
-    }
-
-    args.bias_element = bias ? bias->element : NULL;
-    args.activation_type = activate ? activate->type : Linear;
-
-    switch (args.activation_type) {
-    case ReLU:
-        args.activation_alpha = 0;
-        args.activation_shift = 0;
-        args.activation_alpha_ptr = NULL;
-        break;
-    case LeakyReLU:
-        args.activation_alpha = activate->element[0];
-        args.activation_shift = -activate->exponent;
-        args.activation_alpha_ptr = NULL;
-        break;
-    case PReLU:
-        args.activation_alpha_ptr = activate->element;
-        args.activation_shift = -activate->exponent;
-        break;
-    default:
-        args.activation_alpha_ptr = NULL;
-        args.activation_shift = -1;
-        break;
-    }
-
-    // for ISA
-    args.c_rs1_1 = (input.shape[2] >> 1) - 1;
-    args.c_rs2_1 = (input.shape[2] >> 2) - 1;
-    int u = 16 / sizeof(feature_t);
-    args.n_div_x = output.shape[2] / u;
-    args.c_div_x_1 = input.shape[2] / u - 1;
-
-    args.c_remainder = (args.input_channel % u) * sizeof(feature_t);
-    args.n_remainder = args.output_channel % u;
-    args.filter_w_rs1_1 = (filter.shape[1] >> 1) - 1;
-
-    args.xtensa_dilation_x_offset = (filter.dilation[1] * input.shape[2] - input.shape[2]) * sizeof(feature_t);
-    args.xtensa_dilation_y_offset_stable = filter.dilation[0] * input.shape[2] * input.shape[1];
-    args.xtensa_dilation_y_offset = (args.xtensa_dilation_y_offset_stable - input.shape[2] -
-                                     (filter.shape[1] - 1) * filter.dilation[1] * input.shape[2]) *
-        sizeof(feature_t);
-
-    args.input_height = input.shape[0];
-    args.input_width = input.shape[1];
-    args.tie_depth2d_dilation_x_offset = filter.dilation[1] * input.shape[2] * sizeof(feature_t);
-    args.tie_depth2d_dilation_y_offset_stable = filter.dilation[0] * input.shape[2] * input.shape[1];
-    args.tie_depth2d_dilation_y_offset =
-        (args.tie_depth2d_dilation_y_offset_stable - (filter.shape[1] - 1) * filter.dilation[1] * input.shape[2]) *
-        sizeof(feature_t);
-
-    args.tie_depth2d_next_hwx1 =
-        (filter.shape[1] - 1) * filter.dilation[1] + (filter.shape[0] - 1) * filter.dilation[0] * input.shape[1];
-    args.tie_depth2d_next_hwx1 = 16 - args.tie_depth2d_next_hwx1 * input.shape[2] * sizeof(feature_t);
-
-    args.filter_y_offset_unaligned = 0;
-    args.filter_n_offset_unaligned = 0;
-    args.filter_element_unaligned = args.n_remainder
-        ? (filter.element + args.n_div_x * args.filter_height * args.filter_width * args.filter_c * u)
-        : filter.element;
-
-    args.debug_value = nullptr;
-    if (malloc_debug_memory) {
-        args.debug_value = tool::calloc_aligned(16, sizeof(int8_t), 16, MALLOC_CAP_8BIT);
-    }
-
-    // slice
-    std::vector<ArgsType<feature_t>> m_args(core_number, args);
-    if (core_number > 1) {
-        int output_y_slice = output.shape[0] / core_number;
-        int output_y_remained = output.shape[0];
-
-        // first slice
-        m_args[0].output_height = output_y_slice;
-        output_y_remained -= output_y_slice;
-
-        // between slice
-        for (size_t i = 1; i < core_number - 1; i++) {
-            m_args[i].input_element =
-                m_args[i - 1].input_element + m_args[i - 1].output_height * args.input_stride_y_offset;
-            m_args[i].output_element =
-                m_args[i - 1].output_element + m_args[i - 1].output_height * args.output_y_offset;
-            m_args[i].output_height = output_y_slice;
-            output_y_remained -= output_y_slice;
-        }
-
-        // last slice
-        m_args.back().input_element =
-            m_args[core_number - 2].input_element + m_args[core_number - 2].output_height * args.input_stride_y_offset;
-        m_args.back().output_element =
-            m_args[core_number - 2].output_element + m_args[core_number - 2].output_height * args.output_y_offset;
-        m_args.back().output_height = output_y_remained;
-    }
-
-    return m_args;
-}
-
+/**
+ * @brief
+ *
+ * @tparam feature_t
+ * @tparam buffer_t
+ * @param args
+ * @param i_impl_func
+ * @param i_impl_func_sp
+ * @param c_impl_func
+ * @param c_impl_func_sp
+ * @param n_wise_tail
+ */
 template <typename feature_t, typename buffer_t>
 void dwconv_operation_shell(ArgsType<feature_t> &args,
                             ImplFunc_t<feature_t, feature_t> i_impl_func,
@@ -2006,63 +1709,17 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
 typedef void (*c_impl_acti_s16_t)(int16_t *, int16_t *, const ArgsType<int16_t> &);
 typedef void (*c_impl_acti_s8_t)(int8_t *, int8_t *, const ArgsType<int8_t> &);
 
-template <typename feature_t>
-std::vector<ArgsType<feature_t>> get_activation_args(Tensor<feature_t> &output,
-                                                     Tensor<feature_t> &input,
-                                                     const Activation<feature_t> *activate = NULL,
-                                                     const int core_number = 1)
-{
-    ArgsType<feature_t> args;
-    args.input_element = input.get_element_ptr();
-    args.input_channel = input.shape[2];
-    // args.input_stride_y_offset = input.shape[1] * input.shape[2];
-    args.input_stride_x_offset = input.shape[2];
-
-    args.output_element = output.get_element_ptr();
-    args.output_height = output.shape[0];
-    args.output_width = output.shape[1];
-    args.output_channel = output.shape[2];
-    // args.output_y_offset = output.shape[1] * output.shape[2];
-    args.output_x_offset = output.shape[2];
-
-    args.activation_type = activate ? activate->type : Linear;
-    switch (args.activation_type) {
-    case ReLU:
-        args.activation_alpha = 0;
-        args.activation_shift = 0;
-        args.activation_alpha_ptr = NULL;
-        break;
-    case LeakyReLU:
-        args.activation_alpha = activate->element[0];
-        args.activation_shift = -activate->exponent;
-        args.activation_alpha_ptr = NULL;
-        break;
-    case PReLU:
-        args.activation_alpha_ptr = activate->element;
-        args.activation_shift = -activate->exponent;
-        break;
-    default:
-        args.activation_alpha_ptr = NULL;
-        args.activation_shift = -1;
-        break;
-    }
-    // for ISA
-    int u = 16 / sizeof(feature_t);
-    args.c_div_x_1 = input.shape[2] / u - 1;
-    args.c_remainder = (args.input_channel % u) * sizeof(feature_t);
-
-    int c_div_x = input.shape[2] / u;
-    args.c_rs1_1 = DL_MAX(c_div_x / 2 - 1, 0);     // actually c / 2u - 1
-    args.c_rs2_1 = c_div_x - 2 * args.c_rs1_1 - 1; // actually c left - 1
-
-    // TODO: slice
-    std::vector<ArgsType<feature_t>> m_args(core_number, args);
-    if (core_number > 1) {
-    }
-
-    return m_args;
-}
-
+/**
+ * @brief Get the activation args object
+ *
+ * @tparam feature_t
+ * @param output
+ * @param input
+ * @param activate
+ * @param activation_alpha
+ * @param runtime_mode
+ * @return std::vector<ArgsType<feature_t>>
+ */
 template <typename feature_t>
 std::vector<ArgsType<feature_t>> get_activation_args(TensorBase *output,
                                                      TensorBase *input,
@@ -2225,259 +1882,18 @@ struct arithArgsType {
     int input1_w_same; /*<! 47 */
 };
 
-template <typename feature_t>
-std::vector<arithArgsType<feature_t>> get_arith_operation_args(Tensor<feature_t> &output,
-                                                               Tensor<feature_t> &input0,
-                                                               Tensor<feature_t> &input1,
-                                                               const Activation<feature_t> *activate = NULL,
-                                                               const int core_number = 1,
-                                                               const int output_exponent = INT_MIN)
-{
-    arithArgsType<feature_t> args;
-    // op between (h w c) and (1 1 c) is allowed.
-    bool is_hw_input0_11 = (input0.shape[0] == 1) && (input0.shape[1] == 1);
-    bool is_hw_input1_11 = (input1.shape[0] == 1) && (input1.shape[1] == 1);
-    bool is_same_channel_num = input0.shape[2] == input1.shape[2];
-    bool is_11c_and_hwc = is_same_channel_num && (is_hw_input0_11 || is_hw_input1_11);
-    bool is_same_shape = input0.is_same_shape(input1);
-    assert(is_same_shape || is_11c_and_hwc);
-    if (is_same_shape) {
-        args.height = input0.shape[0]; // inputs and output are the same shape
-        args.width = input0.shape[1];
-        args.channel = input0.shape[2];
-        args.input0_x_offset = input0.shape[2];
-        args.input1_x_offset = input1.shape[2];
-    } else {
-        if (is_hw_input0_11) {
-            args.height = input1.shape[0];
-            args.width = input1.shape[1];
-            args.channel = input1.shape[2];
-            args.input0_x_offset = 0;
-            args.input1_x_offset = input1.shape[2];
-        } else {
-            args.height = input0.shape[0];
-            args.width = input0.shape[1];
-            args.channel = input0.shape[2];
-            args.input0_x_offset = input0.shape[2];
-            args.input1_x_offset = 0;
-        }
-    }
-
-    args.input0_element = input0.get_element_ptr();
-    // args.input0_y_offset = input0.shape[1] * input0.shape[2];
-
-    args.input1_element = input1.get_element_ptr();
-    // args.input1_y_offset = input1.shape[1] * input1.shape[2];
-
-    args.output_element = output.get_element_ptr(); // output
-    // args.output_y_offset = output.shape[1] * output.shape[2];
-    args.output_x_offset = output.shape[2];
-
-    args.rescale_input = 1;
-    args.rescale_output = 1;
-    args.output_scale = 1;
-    args.input_shift = 0;
-    args.output_shift = 0;
-
-    int real_output_exponent = (output_exponent != INT_MIN) ? output_exponent : output.exponent;
-    args.mul_shift = real_output_exponent - input0.exponent - input1.exponent;
-
-    if (input0.exponent == input1.exponent) {
-        args.rescale_input = 0;
-        if (input0.exponent == real_output_exponent) {
-            args.rescale_output = 0;
-            args.input_shift = -1; // do not need to rescale
-        } else {
-            args.output_shift = real_output_exponent - input0.exponent; // right shift
-        }
-    } else {
-        if (input0.exponent < input1.exponent) {
-            args.rescale_input = 2;
-            args.input_shift = input1.exponent - input0.exponent; // input0 * 2^(-input_shift)
-            args.output_shift = real_output_exponent - input1.exponent;
-        } else {
-            // default: args.rescale_input = 1;
-            args.input_shift = input0.exponent - input1.exponent; // input1 * 2^(-input_shift)
-            args.output_shift = real_output_exponent - input0.exponent;
-        }
-    }
-    if (args.output_shift < 0) { // ( * output_scale ) >> output_shift
-        args.output_scale = 1 << (-args.output_shift);
-        args.output_shift = 0;
-    }
-
-    args.neg_output_scale = -args.output_scale;
-    args.activation_type = activate ? activate->type : Linear;
-
-    switch (args.activation_type) {
-    case ReLU:
-        args.activation_alpha = 0;
-        args.activation_shift = 0;
-        args.activation_alpha_ptr = NULL;
-        break;
-    case LeakyReLU:
-        args.activation_alpha = activate->element[0];
-        args.activation_shift = -activate->exponent;
-        args.activation_alpha_ptr = NULL;
-        break;
-    case PReLU:
-        args.activation_alpha_ptr = activate->element;
-        args.activation_shift = -activate->exponent;
-        break;
-    default:
-        args.activation_alpha_ptr = NULL;
-        args.activation_shift = -1;
-        break;
-    }
-
-    // for multidirectional_broadcasting
-    int size = input0.shape.size();
-    if (size == 4) {
-        args.input0_b = input0.shape[0];
-        args.input0_c = input0.shape[1];
-        args.input0_h = input0.shape[2];
-        args.input0_w = input0.shape[3];
-    } else if (size == 3) {
-        args.input0_b = 1;
-        args.input0_c = input0.shape[0];
-        args.input0_h = input0.shape[1];
-        args.input0_w = input0.shape[2];
-    } else if (size == 2) {
-        args.input0_b = 1;
-        args.input0_c = 1;
-        args.input0_h = input0.shape[0];
-        args.input0_w = input0.shape[1];
-    } else {
-        args.input0_b = 1;
-        args.input0_c = 1;
-        args.input0_h = 1;
-        args.input0_w = input0.shape[0];
-    }
-
-    size = input1.shape.size();
-    if (size == 4) {
-        args.input1_b = input1.shape[0];
-        args.input1_c = input1.shape[1];
-        args.input1_h = input1.shape[2];
-        args.input1_w = input1.shape[3];
-    } else if (size == 3) {
-        args.input1_b = 1;
-        args.input1_c = input1.shape[0];
-        args.input1_h = input1.shape[1];
-        args.input1_w = input1.shape[2];
-    } else if (size == 2) {
-        args.input1_b = 1;
-        args.input1_c = 1;
-        args.input1_h = input1.shape[0];
-        args.input1_w = input1.shape[1];
-    } else {
-        args.input1_b = 1;
-        args.input1_c = 1;
-        args.input1_h = 1;
-        args.input1_w = input1.shape[0];
-    }
-
-    size = output.shape.size();
-    args.output_max_dims = size;
-    if (size == 4) {
-        args.output_b = output.shape[0];
-        args.output_c = output.shape[1];
-        args.output_h = output.shape[2];
-        args.output_w = output.shape[3];
-    } else if (size == 3) {
-        args.output_b = 1;
-        args.output_c = output.shape[0];
-        args.output_h = output.shape[1];
-        args.output_w = output.shape[2];
-    } else if (size == 2) {
-        args.output_b = 1;
-        args.output_c = 1;
-        args.output_h = output.shape[0];
-        args.output_w = output.shape[1];
-    } else {
-        args.output_b = 1;
-        args.output_c = 1;
-        args.output_h = 1;
-        args.output_w = output.shape[0];
-    }
-
-    if (args.input0_b == args.output_b) {
-        args.input0_b_same = 1;
-    } else {
-        args.input0_b_same = 0;
-    }
-
-    if (args.input0_c == args.output_c) {
-        args.input0_c_same = 1;
-    } else {
-        args.input0_c_same = 0;
-    }
-
-    if (args.input0_h == args.output_h) {
-        args.input0_h_same = 1;
-    } else {
-        args.input0_h_same = 0;
-    }
-
-    if (args.input0_w == args.output_w) {
-        args.input0_w_same = 1;
-    } else {
-        args.input0_w_same = 0;
-    }
-
-    if (args.input1_b == args.output_b) {
-        args.input1_b_same = 1;
-    } else {
-        args.input1_b_same = 0;
-    }
-
-    if (args.input1_c == args.output_c) {
-        args.input1_c_same = 1;
-    } else {
-        args.input1_c_same = 0;
-    }
-
-    if (args.input1_h == args.output_h) {
-        args.input1_h_same = 1;
-    } else {
-        args.input1_h_same = 0;
-    }
-
-    if (args.input1_w == args.output_w) {
-        args.input1_w_same = 1;
-    } else {
-        args.input1_w_same = 0;
-    }
-
-    // for ISA
-    int u = 16 / sizeof(feature_t);
-    int c_div_x = input0.shape[2] / u;
-    args.c_remainder = (args.channel % u) * sizeof(feature_t);
-    args.c_div_x_1 = c_div_x - 1;
-    args.c_div_2x_1 = DL_MAX(c_div_x / 2 - 1, 0);
-    args.c_left_x_1 = c_div_x - 2 * args.c_div_2x_1 - 1;
-    // args.c_div_x_1 = 2; // test
-
-    // for ISA 4d
-    // if (args.output_max_dims == 4 && args.input0_w_same == 1 && args.input1_w_same == 1)
-    if (args.output_max_dims == 4) {
-        int u = 16 / sizeof(feature_t);
-        int c_div_x = args.output_w / u;
-        args.c_remainder = (args.output_w % u) * sizeof(feature_t);
-        args.c_div_x_1 = c_div_x - 1;
-        args.c_div_2x_1 = DL_MAX(c_div_x / 2 - 1, 0);
-        args.c_left_x_1 = c_div_x - 2 * args.c_div_2x_1 - 1;
-    }
-
-    // slice
-    std::vector<arithArgsType<feature_t>> m_args(core_number, args);
-    if (core_number > 1) {
-        // TODO:
-    }
-
-    return m_args;
-}
-
+/**
+ * @brief Get the arith operation args object
+ *
+ * @tparam feature_t
+ * @param output
+ * @param input0
+ * @param input1
+ * @param activate
+ * @param activation_alpha
+ * @param runtime_mode
+ * @return std::vector<arithArgsType<feature_t>>
+ */
 template <typename feature_t>
 std::vector<arithArgsType<feature_t>> get_arith_operation_args(TensorBase *output,
                                                                TensorBase *input0,
@@ -2956,52 +2372,18 @@ struct resizeArgsType {
     int output_scale; /*<! 13 */
 };
 
-template <typename feature_t>
-std::vector<resizeArgsType<feature_t>> get_resize_operation_args(Tensor<feature_t> &output,
-                                                                 Tensor<feature_t> &input,
-                                                                 resize_mode_t resize_type,
-                                                                 float scale_y,
-                                                                 float scale_x,
-                                                                 const int core_number = 1)
-{
-    resizeArgsType<feature_t> args;
-    args.input_element = input.get_element_ptr();
-    args.input_height = input.shape[0]; // inputs and output are the same shape
-    args.input_width = input.shape[1];
-    args.input_channel = input.shape[2];
-    args.output_element = output.get_element_ptr(); // output
-
-    args.resize_type = resize_type;
-    args.scale_y = scale_y;
-    args.scale_x = scale_x;
-
-    args.output_shift = output.exponent - input.exponent;
-    args.output_scale = 1;
-    if (args.output_shift < 0) { // ( * output_scale ) >> output_shift
-        args.output_scale = 1 << (-args.output_shift);
-        args.output_shift = 0;
-    }
-
-    // for ISA
-    int u = 16 / sizeof(feature_t);
-    args.c_div_x = input.shape[2] / u;
-    args.c_remainder = (args.input_channel % u) * sizeof(feature_t);
-    if (args.resize_type == RESIZE_NEAREST) {
-        if (args.scale_y == 2 && args.scale_x == 2) {
-            args.output_x_offset = args.input_channel;
-            args.output_y_offset = args.input_channel * args.input_width * 2;
-        }
-    }
-
-    // slice
-    std::vector<resizeArgsType<feature_t>> m_args(core_number, args);
-    if (core_number > 1) {
-        // TODO:
-    }
-
-    return m_args;
-}
-
+/**
+ * @brief Get the resize operation args object
+ *
+ * @tparam feature_t
+ * @param output
+ * @param input
+ * @param resize_type
+ * @param scale_y
+ * @param scale_x
+ * @param runtime_mode
+ * @return std::vector<resizeArgsType<feature_t>>
+ */
 template <typename feature_t>
 std::vector<resizeArgsType<feature_t>> get_resize_operation_args(TensorBase *output,
                                                                  TensorBase *input,

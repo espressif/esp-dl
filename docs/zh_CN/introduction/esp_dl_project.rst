@@ -26,7 +26,7 @@ ESP-DL 项目组织
   辅助功能（实用工具）。文件：``dl_tool.hpp`` 和 ``dl_tool.cpp``。
 
 * **tensor**  
-  张量类（变量、常量）。文件：``dl_tensor_base.hpp``。
+  张量类。文件：``dl_tensor_base.hpp``。
 
 
 **vision（计算机视觉）**
@@ -35,16 +35,18 @@ ESP-DL 项目组织
 计算机视觉模块，分为子模块：
 
 * **classification**  
-  图像分类（预处理、推理、后处理）。后处理器：``imagenet_cls_postprocessor``，``dl_cls_postprocessor``。
+  图像分类（模型推理）。推理：``dl_cls_base``。后处理器：``imagenet_cls_postprocessor``，``dl_cls_postprocessor``。
 
 * **recognition**  
-  面部识别（特征提取/匹配，数据库管理）。实现 ``dl_feat_postprocessor`` 和 ``dl_feat_image_preprocessor``。
+  特征提取（模型推理）。特征数据库管理（注册、删除、查询）。预处理器：``dl_feat_image_preprocessor``。推理：``dl_feat_base``。后处理器：``dl_feat_postprocessor``。数据库：``dl_recognition_database``
 
 * **image**  
-  图像处理（解码、颜色转换）。支持 JPEG/BMP 格式的解码/编码。
+  图像处理（调整大小、裁剪、仿射变换）。颜色转换（像素、图像）。图像预处理器（调整大小、裁剪、颜色转换、规范化、量化的管道）。图像解码/编码（JPEG/BMP）。绘制工具（点、空心矩形）。
+
+  图像处理：``dl_image_process``。颜色转换：``dl_image_color``。图像预处理器：``dl_image_preprocessor``。图像解码/编码：``dl_image_jpeg``、``dl_image_bmp``。绘制工具：``dl_image_draw``。
 
 * **detect**  
-  目标检测后处理。后处理器：``dl_detect_msr_postprocessor``，``dl_detect_mnp_postprocessor``，``dl_detect_pico_postprocessor``。
+  目标检测（模型推理）。推理：``dl_detect_base``。后处理器：``dl_detect_msr_postprocessor``、``dl_detect_mnp_postprocessor``、``dl_detect_pico_postprocessor``。
 
 
 **fbs_loader（FlatBuffers 加载器）**

@@ -1,9 +1,7 @@
 #pragma once
 
-#include "dl_constant.hpp"
 #include "dl_memory_manager.hpp"
 #include "dl_module_base.hpp"
-#include "dl_variable.hpp"
 #include "esp_log.h"
 #include "fbs_loader.hpp"
 #include "fbs_model.hpp"
