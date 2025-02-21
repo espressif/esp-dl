@@ -25,7 +25,7 @@ TensorBase *MemoryManagerBase::get_tensor(int index)
     return this->tensors[index];
 }
 
-TensorBase *MemoryManagerBase::get_tensor(std::string &name)
+TensorBase *MemoryManagerBase::get_tensor(const std::string &name)
 {
     auto it = this->name2index.find(name);
     if (it != name2index.end()) {
@@ -37,7 +37,7 @@ TensorBase *MemoryManagerBase::get_tensor(std::string &name)
     return nullptr;
 }
 
-int MemoryManagerBase::get_tensor_index(std::string &name)
+int MemoryManagerBase::get_tensor_index(const std::string &name)
 {
     auto it = this->name2index.find(name);
     if (it != name2index.end()) {
@@ -47,45 +47,6 @@ int MemoryManagerBase::get_tensor_index(std::string &name)
     }
 
     return -1;
-}
-
-bool MemoryManagerBase::root_calloc(size_t internal_size, size_t psram_size)
-{
-    if (internal_size > 0) {
-        this->internal_root = tool::calloc_aligned(internal_size, 1, alignment, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
-        if (this->internal_root == nullptr) {
-            return false;
-        }
-    }
-
-    if (psram_size > 0) {
-        this->psram_root = tool::calloc_aligned(psram_size, 1, alignment, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
-        if (this->psram_root == nullptr) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void *MemoryManagerBase::psram_root_calloc(size_t psram_size)
-{
-    if (psram_size > 0) {
-        this->psram_root = tool::calloc_aligned(psram_size, 1, alignment, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
-        if (this->psram_root)
-            this->psram_size = psram_size;
-    }
-    return this->psram_root;
-}
-
-void *MemoryManagerBase::internal_root_calloc(size_t internal_size)
-{
-    if (internal_size > 0) {
-        this->internal_root = tool::calloc_aligned(internal_size, 1, alignment, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
-        if (this->internal_root)
-            this->internal_size = internal_size;
-    }
-    return this->internal_root;
 }
 
 void MemoryManagerBase::root_free()
@@ -176,11 +137,15 @@ TensorBase *TensorInfo::create_tensor(void *internal_root, void *psram_root)
     TensorBase *tensor = nullptr;
     uint8_t *element = nullptr;
 
+#if CONFIG_SPIRAM
     if (this->is_internal) {
         element = (uint8_t *)internal_root + this->get_internal_offset();
     } else {
         element = (uint8_t *)psram_root + this->get_offset();
     }
+#else
+    element = (uint8_t *)internal_root + this->get_offset();
+#endif
 
     tensor = new TensorBase(shape, element, exponent, dtype, false);
     return tensor;

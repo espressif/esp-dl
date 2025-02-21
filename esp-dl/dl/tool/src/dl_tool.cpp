@@ -155,6 +155,67 @@ void copy_memory(void *dst, void *src, const size_t n)
 #endif
 }
 
+memory_addr_type_t memory_addr_type(void *address)
+{
+#if CONFIG_IDF_TARGET_ESP32P4
+    if ((intptr_t)address >= 0x30100000 && (intptr_t)address <= 0x30101fff) {
+        return MEMORY_ADDR_TCM;
+    } else if ((intptr_t)address >= 0x40000000 && (intptr_t)address <= 0x43ffffff) {
+        return MEMORY_ADDR_FLASH;
+    } else if ((intptr_t)address >= 0x48000000 && (intptr_t)address <= 0x4bffffff) {
+        return MEMORY_ADDR_PSRAM;
+    } else if ((intptr_t)address >= 0x4ff00000 && (intptr_t)address <= 0x4ffbffff) {
+        return MEMORY_ADDR_INTERNAL;
+    } else {
+        return MEMORY_ADDR_UKN;
+    }
+#elif CONFIG_IDF_TARGET_ESP32S3
+    if ((intptr_t)address >= 0x3c000000 && (intptr_t)address <= 0x3dffffff) {
+        esp_paddr_t paddr;
+        mmu_target_t target;
+        ESP_ERROR_CHECK(esp_mmu_vaddr_to_paddr(address, &paddr, &target));
+        switch (target) {
+        case MMU_TARGET_FLASH0:
+            return MEMORY_ADDR_FLASH;
+        case MMU_TARGET_PSRAM0:
+            return MEMORY_ADDR_PSRAM;
+        default:
+            return MEMORY_ADDR_UKN;
+        }
+    } else if ((intptr_t)address >= 0x3fc88000 && (intptr_t)address <= 0x3fcfffff) {
+        return MEMORY_ADDR_INTERNAL;
+    } else {
+        return MEMORY_ADDR_UKN;
+    }
+#endif
+}
+
+HEAP_IRAM_ATTR void *malloc_aligned(size_t alignment, size_t size, uint32_t caps)
+{
+    void *ret = heap_caps_aligned_alloc(alignment, size, caps);
+#if CONFIG_IDF_TARGET_ESP32P4
+    if (ret && !(caps & MALLOC_CAP_TCM) && esp_ptr_in_tcm(ret)) {
+        // skip TCM
+        heap_caps_free(ret);
+        ret = heap_caps_aligned_alloc(alignment, size, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
+    }
+#endif
+    return ret;
+}
+
+HEAP_IRAM_ATTR void *calloc_aligned(size_t alignment, size_t n, size_t size, uint32_t caps)
+{
+    void *ret = heap_caps_aligned_calloc(alignment, n, size, caps);
+#if CONFIG_IDF_TARGET_ESP32P4
+    if (ret && !(caps & MALLOC_CAP_TCM) && esp_ptr_in_tcm(ret)) {
+        // skip TCM
+        heap_caps_free(ret);
+        ret = heap_caps_aligned_calloc(alignment, n, size, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA);
+    }
+#endif
+    return ret;
+}
+
 float *gen_lut_8bit(float *table, int exponent, std::function<float(float)> func)
 {
     if (table == nullptr) {

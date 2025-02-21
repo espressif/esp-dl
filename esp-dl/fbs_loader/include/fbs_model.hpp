@@ -10,6 +10,12 @@
 #include <vector>
 
 namespace fbs {
+typedef enum {
+    MODEL_LOCATION_IN_FLASH_RODATA = 0,    // The model in FLASH .rodata section
+    MODEL_LOCATION_IN_FLASH_PARTITION = 1, // The model in SPIFFS
+    MODEL_LOCATION_IN_SDCARD = 2,          // The model in SDCard
+    MODEL_LOCATION_MAX = MODEL_LOCATION_IN_SDCARD,
+} model_location_type_t;
 
 /**
  * @brief Flatbuffer model object.
@@ -20,10 +26,20 @@ public:
      * @brief Construct a new FbsModel object.
      *
      * @param data          The data of model flatbuffers.
-     * @param auto_free     Wheather to free the model flatbuffers data when destroy this class instance.
-     * @param param_copy    Wheather to copy the parameter in flatbuffers.
+     * @param size          The size of model flatbuffers in bytes.
+     * @param location      The location of model flatbuffers.
+     * @param encrypt       Whether the model flatbuffers is encrypted or not.
+     * @param rodata_move   Whether the model flatbuffers is moved from FLASH rodata to PSRAM.
+     * @param auto_free     Whether to free the model flatbuffers data when destroy this class instance.
+     * @param param_copy    Whether to copy the parameter in flatbuffers.
      */
-    FbsModel(const void *data, bool auto_free = false, bool param_copy = true);
+    FbsModel(const void *data,
+             size_t size,
+             model_location_type_t location,
+             bool encrypt,
+             bool rodata_move,
+             bool auto_free,
+             bool param_copy);
 
     /**
      * @brief Destroy the FbsModel object.
@@ -183,9 +199,9 @@ public:
      * @param index      The index of the variable
      * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      *
-     * @return TensorBase
+     * @return dl::TensorBase*
      */
-    dl::TensorBase *get_operation_parameter(std::string node_name, int index = 1, uint32_t caps = MALLOC_CAP_SPIRAM);
+    dl::TensorBase *get_operation_parameter(std::string node_name, int index = 1, uint32_t caps = MALLOC_CAP_DEFAULT);
 
     /**
      * @brief Get LUT(Look Up Table) if the operation has LUT
@@ -193,9 +209,10 @@ public:
      * @param node_name   The name of operation
      * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      * @param attribute_name The name of LUT attribute
+     * @return dl::TensorBase*
      */
     dl::TensorBase *get_operation_lut(std::string node_name,
-                                      uint32_t caps = MALLOC_CAP_SPIRAM,
+                                      uint32_t caps = MALLOC_CAP_DEFAULT,
                                       std::string attribute_name = "lut");
 
     /**
@@ -295,19 +312,17 @@ public:
      * @brief Get the test input tensor.
      *
      * @param tensor_name   The name of test input tensor.
-     * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      * @return  The pointer of tensor.
      */
-    dl::TensorBase *get_test_input_tensor(std::string tensor_name, uint32_t caps = MALLOC_CAP_SPIRAM);
+    dl::TensorBase *get_test_input_tensor(std::string tensor_name);
 
     /**
      * @brief Get the test output tensor.
      *
      * @param tensor_name   The name of test output tensor.
-     * @param caps       Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      * @return The pointer of tensor.
      */
-    dl::TensorBase *get_test_output_tensor(std::string tensor_name, uint32_t caps = MALLOC_CAP_SPIRAM);
+    dl::TensorBase *get_test_output_tensor(std::string tensor_name);
 
     /**
      * @brief Get the name of test outputs.
@@ -341,24 +356,53 @@ public:
     void load_map();
 
     /**
-     * @brief Get model name
+     * @brief Get the model name
+     *
+     * @return the name of model
      */
     std::string get_model_name();
 
     /**
-     * @brief Get model version
+     * @brief Get the model version
+     *
+     * @return The version of model
      */
     int64_t get_model_version();
 
     /**
-     * @brief Get model doc string
+     * @brief Get the model doc string
+     *
+     * @return The doc string of model
      */
     std::string get_model_doc_string();
+
+    /**
+     * @brief Get the model size
+     *
+     * @param internal_size        Flatbuffers model internal RAM usage
+     * @param psram_size           Flatbuffers model PSRAM usage
+     * @param psram_rodata_size    Flatbuffers model PSRAM rodate usage. If CONFIG_SPIRAM_RODATA option is on, \
+     *                             Flatbuffers model in FLASH rodata will be copied to PSRAM
+     * @param flash_size           Flatbuffers model FLASH usage
+     */
+    void get_model_size(size_t *internal_size, size_t *psram_size, size_t *psram_rodata_size, size_t *flash_size);
+
+    /**
+     * @brief Whether the memory address within the fbs model or not
+     *
+     * @param addr  memory address
+     * @return true if memory address within the fbs model else false
+     */
+    bool memory_addr_in_model(void *addr);
 
     bool m_param_copy; ///< copy flatbuffers param or not.
 
 private:
+    model_location_type_t m_location;
+    bool m_encrypt;
+    bool m_rodata_move;
     bool m_auto_free;
+    size_t m_size;
     const uint8_t *m_data;
     const void *m_model;
     std::map<std::string, const void *> m_name_to_node_map;

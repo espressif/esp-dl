@@ -44,16 +44,18 @@ typedef enum { MEMORY_MANAGER_GREEDY = 0, LINEAR_MEMORY_MANAGER = 1 } memory_man
  */
 class Model {
 private:
-    fbs::FbsLoader *fbs_loader = nullptr; /*<! The instance of flatbuffers Loader >*/
-    fbs::FbsModel *fbs_model = nullptr;   /*<! The instance of flatbuffers Model >*/
+    fbs::FbsLoader *fbs_loader = nullptr; /*!< The instance of flatbuffers Loader */
+    fbs::FbsModel *fbs_model = nullptr;   /*!< The instance of flatbuffers Model */
     std::vector<dl::module::Module *>
-        execution_plan; /*<! This represents a valid topological sort (dependency ordered) execution plan. >*/
-    dl::memory::MemoryManagerBase *memory_manager = nullptr; /*<! The pointer of memory manager >*/
-    std::map<std::string, TensorBase *> inputs;              /*  The map of model input's name and TensorBase* */
-    std::map<std::string, TensorBase *> outputs;             /*  The map of model output's name and TensorBase* */
-    std::string name;                                        /*  The name of model */
-    int64_t version;                                         /*  The version of model */
-    std::string doc_string;                                  /*  doc string of model*/
+        execution_plan; /*!< This represents a valid topological sort (dependency ordered) execution plan. */
+    dl::memory::MemoryManagerBase *memory_manager = nullptr; /*!< The pointer of memory manager */
+    std::map<std::string, TensorBase *> inputs;              /*!< The map of model input's name and TensorBase */
+    std::map<std::string, TensorBase *> outputs;             /*!< The map of model output's name and TensorBase */
+    std::string name;                                        /*!< The name of model */
+    int64_t version;                                         /*!< The version of model */
+    std::string doc_string;                                  /*!< doc string of model */
+    size_t internal_size;                                    /*!< Internal RAM usage */
+    size_t psram_size;                                       /*!< PSRAM usage */
 
 public:
     Model() {}
@@ -66,18 +68,19 @@ public:
      *                                     The label of partition while location is MODEL_LOCATION_IN_FLASH_PARTITION.
      *                                     The path of model while location is MODEL_LOCATION_IN_SDCARD.
      * @param location      The model location.
-     * @param internal_size  Internal ram size, in bytes
+     * @param max_internal_size  In bytes. Limit the max internal size usage. Only take effect when there's a PSRAM, and
+     you want to alloc memory on internal RAM first.
      * @param mm_type        Type of memory manager
      * @param key           The key of encrypted model.
-     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
-     *                      Only set this param to false when your psram resource is very tight. This saves psram and
-     *                      sacrifices the performance of model inference because the frequency of psram is higher than
-     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * @param param_copy    Set to false to avoid copy model parameters from FLASH to PSRAM.
+     *                      Only set this param to false when your PSRAM resource is very tight. This saves PSRAM and
+     *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
+     * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
      */
     Model(const char *rodata_address_or_partition_label_or_path,
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
-          int internal_size = 0,
+          int max_internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
           uint8_t *key = nullptr,
           bool param_copy = true);
@@ -91,19 +94,20 @@ public:
      *                                     The path of model while location is MODEL_LOCATION_IN_SDCARD.
      * @param model_index   The model index of packed models.
      * @param location      The model location.
-     * @param internal_size  Internal ram size, in bytes
+     * @param max_internal_size  In bytes. Limit the max internal size usage. Only take effect when there's a PSRAM, and
+     you want to alloc memory on internal RAM first.
      * @param mm_type        Type of memory manager
      * @param key           The key of encrypted model.
-     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
-     *                      Only set this param to false when your psram resource is very tight. This saves psram and
-     *                      sacrifices the performance of model inference because the frequency of psram is higher than
-     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * @param param_copy    Set to false to avoid copy model parameters from FLASH to PSRAM.
+     *                      Only set this param to false when your PSRAM resource is very tight. This saves PSRAM and
+     *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
+     * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
      */
     Model(const char *rodata_address_or_partition_label_or_path,
           int model_index,
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
-          int internal_size = 0,
+          int max_internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
           uint8_t *key = nullptr,
           bool param_copy = true);
@@ -117,19 +121,20 @@ public:
      *                                     The path of model while location is MODEL_LOCATION_IN_SDCARD.
      * @param model_name   The model name of packed models.
      * @param location      The model location.
-     * @param internal_size  Internal ram size, in bytes
+     * @param max_internal_size  In bytes. Limit the max internal size usage. Only take effect when there's a PSRAM, and
+     you want to alloc memory on internal RAM first.
      * @param mm_type        Type of memory manager
      * @param key           The key of encrypted model.
-     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
-     *                      Only set this param to false when your psram resource is very tight. This saves psram and
-     *                      sacrifices the performance of model inference because the frequency of psram is higher than
-     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * @param param_copy    Set to false to avoid copy model parameters from FLASH to PSRAM.
+     *                      Only set this param to false when your PSRAM resource is very tight. This saves PSRAM and
+     *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
+     * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
      */
     Model(const char *rodata_address_or_partition_label_or_path,
           const char *model_name,
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
-          int internal_size = 0,
+          int max_internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
           uint8_t *key = nullptr,
           bool param_copy = true);
@@ -149,7 +154,7 @@ public:
     virtual ~Model();
 
     /**
-     * @brief Load model graph and parameters from flash or sdcard.
+     * @brief Load model graph and parameters from FLASH or sdcard.
      *
      * @param rodata_address_or_partition_label_or_path
      *                                     The address of model data while location is MODEL_LOCATION_IN_FLASH_RODATA.
@@ -157,11 +162,14 @@ public:
      *                                     The path of model while location is MODEL_LOCATION_IN_SDCARD.
      * @param location      The model location.
      * @param key           The key of encrypted model.
-     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
-     *                      Only set this param to false when your psram resource is very tight. This saves psram and
-     *                      sacrifices the performance of model inference because the frequency of psram is higher than
-     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * @param param_copy    Set to false to avoid copy model parameters from FLASH to PSRAM.
+     *                      Only set this param to false when your PSRAM resource is very tight. This saves PSRAM and
+     *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
+     * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
+     * @return
+     *      - ESP_OK       Success
+     *      - ESP_FAIL     Failed
      */
     virtual esp_err_t load(const char *rodata_address_or_partition_label_or_path,
                            fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
@@ -169,7 +177,7 @@ public:
                            bool param_copy = true);
 
     /**
-     * @brief Load model graph and parameters from flash or sdcard.
+     * @brief Load model graph and parameters from FLASH or sdcard.
      *
      * @param rodata_address_or_partition_label_or_path
      *                                     The address of model data while location is MODEL_LOCATION_IN_FLASH_RODATA.
@@ -178,11 +186,14 @@ public:
      * @param location      The model location.
      * @param model_index   The model index of packed models.
      * @param key           The key of encrypted model.
-     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
-     *                      Only set this param to false when your psram resource is very tight. This saves psram and
-     *                      sacrifices the performance of model inference because the frequency of psram is higher than
-     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * @param param_copy    Set to false to avoid copy model parameters from FLASH to PSRAM.
+     *                      Only set this param to false when your PSRAM resource is very tight. This saves PSRAM and
+     *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
+     * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
+     * @return
+     *      - ESP_OK       Success
+     *      - ESP_FAIL     Failed
      */
     virtual esp_err_t load(const char *rodata_address_or_partition_label_or_path,
                            fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
@@ -191,7 +202,7 @@ public:
                            bool param_copy = true);
 
     /**
-     * @brief Load model graph and parameters from flash or sdcard.
+     * @brief Load model graph and parameters from FLASH or sdcard.
      *
      * @param rodata_address_or_partition_label_or_path
      *                                     The address of model data while location is MODEL_LOCATION_IN_FLASH_RODATA.
@@ -200,11 +211,14 @@ public:
      * @param location      The model location.
      * @param model_name    The model name of packed models.
      * @param key           The key of encrypted model.
-     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
-     *                      Only set this param to false when your psram resource is very tight. This saves psram and
-     *                      sacrifices the performance of model inference because the frequency of psram is higher than
-     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * @param param_copy    Set to false to avoid copy model parameters from FLASH to PSRAM.
+     *                      Only set this param to false when your PSRAM resource is very tight. This saves PSRAM and
+     *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
+     * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
+     * @return
+     *      - ESP_OK       Success
+     *      - ESP_FAIL     Failed
      */
     virtual esp_err_t load(const char *rodata_address_or_partition_label_or_path,
                            fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
@@ -216,17 +230,23 @@ public:
      * @brief Load model graph and parameters from Flatbuffers model
      *
      * @param fbs_model          The FlatBuffers model
+     * @return
+     *      - ESP_OK       Success
+     *      - ESP_FAIL     Failed
      */
     virtual esp_err_t load(fbs::FbsModel *fbs_model);
 
     /**
      * @brief Allocate memory for the model.
      *
-     * @param internal_size  Internal ram size, in bytes
+     * @param max_internal_size  In bytes. Limit the max internal size usage. Only take effect when there's a PSRAM, and
+     you want to alloc memory on internal RAM first.
      * @param mm_type        Type of memory manager
      * @param preload        Whether to preload the model's parameters to internal ram (not implemented yet)
      */
-    virtual void build(size_t internal_size, memory_manager_t mm_type = MEMORY_MANAGER_GREEDY, bool preload = false);
+    virtual void build(size_t max_internal_size,
+                       memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
+                       bool preload = false);
 
     /**
      * @brief Run the model module by module.
@@ -257,6 +277,59 @@ public:
                      std::map<std::string, TensorBase *> user_outputs = {});
 
     /**
+     * @brief Test whether the model inference result is correct.
+     * The model should contain test_inputs and test_outputs.
+     * Enable export_test_values option in esp-ppq to use this api.
+     *
+     * @return esp_err_t
+     */
+    esp_err_t test();
+
+    /**
+     * @brief Get memory info
+     *
+     * @return Memory usage statistics on internal and PSRAM.
+     */
+    std::map<std::string, mem_info> get_memory_info();
+
+    /**
+     * @brief Get module info
+     *
+     * @return return Type and latency of each module.
+     */
+    std::map<std::string, module_info> get_module_info();
+
+    /**
+     * @brief Print the module info obtained by get_module_info function.
+     *
+     * @param info
+     * @param sort_module_by_latency
+     */
+    void print_module_info(const std::map<std::string, module_info> &info, bool sort_module_by_latency = false);
+
+    /**
+     * @brief Print model memory summary.
+     *
+     */
+    void profile_memory();
+
+    /**
+     * @brief Print module info summary. (Name, Type, Latency)
+     *
+     * @param sort_module_by_latency True The module is printed in latency decreasing sort.
+     *                               False The module is printed in ONNX topological sort.
+     */
+    void profile_module(bool sort_module_by_latency = false);
+
+    /**
+     * @brief Combination of profile_memory & profile_module.
+     *
+     * @param sort_module_by_latency True The module is printed in latency decreasing sort.
+     *                               False The module is printed in ONNX topological sort.
+     */
+    void profile(bool sort_module_by_latency = false);
+
+    /**
      * @brief Get inputs of model
      *
      * @return The map of model input's name and TensorBase*
@@ -265,12 +338,12 @@ public:
 
     /**
      * @brief Get intermediate TensorBase of model
-     *
-     * @return The intermediate TensorBase*. Note: When using memory manager,
-     *         the content of TensorBase's data may be overwritten by the
-     *         outputs of other operators.
+     * @note   When using memory manager, the content of TensorBase's data may be overwritten by the outputs of other
+     * @param name The name of intermediate Tensor.
+     * operators.
+     * @return The intermediate TensorBase*.
      */
-    virtual TensorBase *get_intermediate(std::string name);
+    virtual TensorBase *get_intermediate(const std::string &name);
 
     /**
      * @brief Get outputs of model

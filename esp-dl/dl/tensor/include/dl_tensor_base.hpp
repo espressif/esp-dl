@@ -89,19 +89,6 @@ public:
     void *cache;                  ///<  cache pointer， used for preload and do not need to free
     uint32_t caps;                ///<  flags indicating the type of memory
 
-    TensorBase()
-    {
-        this->size = 0;
-        this->shape = {};
-        this->dtype = DATA_TYPE_FLOAT;
-        this->exponent = 0;
-        this->auto_free = true;
-        this->axis_offset = {};
-        this->data = nullptr;
-        this->cache = nullptr;
-        this->caps = MALLOC_CAP_8BIT;
-    }
-
     /**
      * @brief Construct a TensorBase object
      *
@@ -118,7 +105,7 @@ public:
                int exponent = 0,
                dtype_t dtype = DATA_TYPE_FLOAT,
                bool deep = true,
-               uint32_t caps = MALLOC_CAP_8BIT);
+               uint32_t caps = MALLOC_CAP_DEFAULT);
 
     /**
      * @brief Destroy the TensorBase object.
@@ -190,6 +177,13 @@ public:
      * @return  the bytes of Tensor.
      */
     int get_bytes() { return this->size * this->get_dtype_bytes(); }
+
+    /**
+     * @brief Get the bytes of Tensor.
+     *
+     * @return  the bytes of Tensor.
+     */
+    int get_aligned_bytes() { return this->get_aligned_size() * this->get_dtype_bytes(); }
 
     /**
      * @brief Get data pointer. If cache(preload data pointer) is not null, return cache pointer, otherwise return
@@ -474,7 +468,7 @@ public:
      * @brief print the information of TensorBase
      *
      * @param print_data Whether print the data
-     * @return This function does not return any value.
+     *
      */
     virtual void print(bool print_data = false);
 };

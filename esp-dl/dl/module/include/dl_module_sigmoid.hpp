@@ -42,8 +42,6 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
@@ -75,7 +73,6 @@ public:
                 output_ptr[i] = math::sigmoid(input_ptr[i]);
             }
         }
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Sigmoid");
     }
 
     void forward_args(void *args) {}

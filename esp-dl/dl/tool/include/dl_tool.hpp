@@ -11,12 +11,14 @@
 #include "dl_define.hpp"
 #include "esp_cpu.h"
 #include "esp_log.h"
+#include "esp_mmu_map.h"
 #include "esp_system.h"
 #include "esp_timer.h"
 #include <functional>
 #include "freertos/FreeRTOS.h"
 #if CONFIG_ESP32P4_BOOST
 #include "dl_esp32p4_cache_reg.hpp"
+#include "esp_memory_utils.h"
 #endif
 
 extern "C" {
@@ -48,6 +50,7 @@ int dl_esp32p4_round_half_even(float value);
 #define DL_LOG_LATENCY_INIT() DL_LOG_LATENCY_INIT_WITH_SIZE(1)
 #define DL_LOG_LATENCY_START() latency.start()
 #define DL_LOG_LATENCY_END() latency.end()
+#define DL_LOG_LATENCY_GET() latency.get_average_period()
 #define DL_LOG_LATENCY_PRINT(prefix, key) latency.print(prefix, key)
 #define DL_LOG_LATENCY_END_PRINT(prefix, key) \
     DL_LOG_LATENCY_END();                     \
@@ -131,123 +134,33 @@ void set_value(T *ptr, const T value, const int len)
 void copy_memory(void *dst, void *src, const size_t n);
 
 /**
- * @brief Apply memory without initialized. Can use free_aligned() to free the memory.
+ * @brief Get memory addr type.
  *
- * @param number number of elements
- * @param size   size of element
- * @param align  number of byte aligned, e.g., 16 means 16-byte aligned
- * @param caps   Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
- * @return pointer of allocated memory. NULL for failed
+ * @param address
+ * @return memory_addr_type_t
  */
-inline void *malloc_aligned(int number, int size, int align, uint32_t &caps)
-{
-    assert((align > 0) && (((align & (align - 1)) == 0)));
-    int total_size = number * size;
-
-    void *res = heap_caps_aligned_alloc(align, total_size, caps);
-    if (!res && caps != MALLOC_CAP_8BIT) {
-        ESP_LOGW(__FUNCTION__, "heap_caps_aligned_alloc failed, retry with MALLOC_CAP_8BIT");
-        res = heap_caps_aligned_alloc(align, total_size, MALLOC_CAP_8BIT);
-        caps = MALLOC_CAP_8BIT;
-    }
-
-#if CONFIG_ESP32P4_BOOST
-    // skip the TCM memory.
-    if (reinterpret_cast<uintptr_t>(res) >= 0x30100000 && reinterpret_cast<uintptr_t>(res) <= 0x30101fff) {
-        ESP_LOGW(__FUNCTION__, "Malloc skip the TCM memory");
-        heap_caps_free(res);
-        res = NULL;
-    }
-#if DL_SPIRAM_SUPPORT
-    if (NULL == res) {
-        res = heap_caps_aligned_alloc(align, total_size, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
-        caps = MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM;
-    }
-#endif
-#endif
-
-    if (NULL == res) {
-        caps = MALLOC_CAP_8BIT;
-        ESP_LOGE(__FUNCTION__,
-                 "Fail to malloc %d bytes from DRAM(%d bytyes) and PSRAM(%d bytes), PSRAM is %s.\n",
-                 total_size,
-                 heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
-                 heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
-                 DL_SPIRAM_SUPPORT ? "on" : "off");
-    }
-    return res;
-}
-
-inline void *malloc_aligned(int number, int size, int align, uint32_t &&caps)
-{
-    uint32_t caps_tmp = caps;
-    return malloc_aligned(number, size, align, caps_tmp);
-}
+memory_addr_type_t memory_addr_type(void *address);
 
 /**
- * @brief Apply memory with zero-initialized. Can use free_aligned() to free the memory.
+ * @brief Same as heap_caps_aligned_alloc, only skip TCM in esp32p4.
  *
- * @param number number of elements
- * @param size   size of element
- * @param align  number of byte aligned, e.g., 16 means 16-byte aligned
- * @param caps   Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
- * @return pointer of allocated memory. NULL for failed
+ * @param alignment
+ * @param size
+ * @param caps
+ * @return void*
  */
-inline void *calloc_aligned(int number, int size, int align, uint32_t &caps)
-{
-    assert((align > 0) && (((align & (align - 1)) == 0)));
-    void *res = heap_caps_aligned_calloc(align, number, size, caps);
-    if (!res && caps != MALLOC_CAP_8BIT) {
-        ESP_LOGW(__FUNCTION__, "heap_caps_aligned_calloc failed, retry with MALLOC_CAP_8BIT");
-        res = heap_caps_aligned_calloc(align, number, size, MALLOC_CAP_8BIT);
-        caps = MALLOC_CAP_8BIT;
-    }
-
-#if CONFIG_ESP32P4_BOOST
-    // skip the TCM memory.
-    if (reinterpret_cast<uintptr_t>(res) >= 0x30100000 && reinterpret_cast<uintptr_t>(res) <= 0x30101fff) {
-        ESP_LOGW(__FUNCTION__, "Calloc skip the TCM memory");
-        heap_caps_free(res);
-        res = NULL;
-    }
-#if DL_SPIRAM_SUPPORT
-    if (NULL == res) {
-        res = heap_caps_aligned_calloc(align, number, size, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
-        caps = MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM;
-    }
-#endif
-#endif
-
-    if (NULL == res) {
-        caps = MALLOC_CAP_8BIT;
-        ESP_LOGE(__FUNCTION__,
-                 "Fail to malloc %d bytes from DRAM(%d bytyes) and PSRAM(%d bytes), PSRAM is %s.\n",
-                 number * size,
-                 heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
-                 heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
-                 DL_SPIRAM_SUPPORT ? "on" : "off");
-    }
-    return res;
-}
-
-inline void *calloc_aligned(int number, int size, int align, uint32_t &&caps)
-{
-    uint32_t caps_tmp = caps;
-    return calloc_aligned(number, size, align, caps_tmp);
-}
+void *malloc_aligned(size_t alignment, size_t size, uint32_t caps);
 
 /**
- * @brief Free the calloc_aligned() and malloc_aligned() memory
+ * @brief Same as heap_caps_aligned_calloc, only skip TCM in esp32p4.
  *
- * @param address pointer of memory to free
+ * @param alignment
+ * @param n
+ * @param size
+ * @param caps
+ * @return void*
  */
-inline void free_aligned(void *address)
-{
-    if (NULL == address)
-        return;
-
-    heap_caps_free(address);
-}
+void *calloc_aligned(size_t alignment, size_t n, size_t size, uint32_t caps);
 
 template <typename T>
 struct PSRAMAllocator {
@@ -415,13 +328,13 @@ inline uint32_t get_cycle()
 
 class Latency {
 private:
-    const uint32_t size; /*<! size of queue */
-    uint32_t *queue;     /*<! queue for storing history period */
-    uint32_t period;     /*<! current period */
-    uint32_t sum;        /*<! sum of period */
-    uint32_t count;      /*<! the number of added period */
-    uint32_t next;       /*<! point to next element in queue */
-    uint32_t timestamp;  /*<! record the start >*/
+    const uint32_t size; /*!< size of queue */
+    uint32_t *queue;     /*!< queue for storing history period */
+    uint32_t period;     /*!< current period */
+    uint32_t sum;        /*!< sum of period */
+    uint32_t count;      /*!< the number of added period */
+    uint32_t next;       /*!< point to next element in queue */
+    uint32_t timestamp;  /*!< record the start */
 #if CONFIG_ESP32P4_BOOST && DL_LOG_CACHE_COUNT
     uint32_t l2dbus_hit_cnt_s;
     uint32_t l2dbus_hit_cnt_e;

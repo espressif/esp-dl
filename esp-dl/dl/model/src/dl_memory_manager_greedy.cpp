@@ -33,30 +33,49 @@ namespace memory {
 //     return this->tensors;
 // }
 
-std::vector<TensorBase *> MemoryManagerGreedy::alloc(fbs::FbsModel *fbs_model,
-                                                     std::vector<dl::module::Module *> &execution_plan)
+void MemoryManagerGreedy::alloc(fbs::FbsModel *fbs_model, std::vector<dl::module::Module *> &execution_plan)
 {
     std::vector<TensorInfo *> tensor_info;
     // get all tensor info from flatbuffers
     this->get_tensor_info_from_fbs(fbs_model, execution_plan, tensor_info);
 
     // simulate the memory allocation
-    this->simulate_with_internal_memory(tensor_info, execution_plan.size());
-    void *psram_root = nullptr;
-    if (!memory_list.empty()) {
-        int psram_size = memory_list.back()->offset + memory_list.back()->size;
-        psram_root = this->psram_root_calloc(psram_size);
+#if CONFIG_SPIRAM
+    if (this->max_internal_size > this->alignment) {
+        simulate_with_internal_memory(tensor_info, execution_plan.size());
+    } else {
+        simulate(tensor_info, execution_plan.size());
+    }
+#else
+    simulate(tensor_info, execution_plan.size());
+#endif
+
+    if (!this->psram_memory_list.empty() && this->psram_size > 0) {
+        this->psram_root = tool::malloc_aligned(this->alignment, this->psram_size, MALLOC_CAP_SPIRAM);
+        if (!this->psram_root) {
+            ESP_LOGE(TAG,
+                     "Failed to alloc %.2fKB PSRAM, largest available PSRAM block size %.2fKB",
+                     this->psram_size / 1024.f,
+                     heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.f);
+            return;
+        }
     }
 
-    void *internal_root = nullptr;
-    if (!internal_memory_list.empty()) {
-        internal_root = this->internal_root_calloc(this->internal_size);
+    if (!this->internal_memory_list.empty() && this->internal_size > 0) {
+        this->internal_root = tool::malloc_aligned(this->alignment, this->internal_size, MALLOC_CAP_INTERNAL);
+        if (!this->internal_root) {
+            ESP_LOGE(TAG,
+                     "Failed to alloc %.2fKB internal RAM, largest available internal RAM block size %.2fKB",
+                     this->internal_size / 1024.f,
+                     heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
+            return;
+        }
     }
 
     // start to allocate tensors
     this->tensors.reserve(tensor_info.size());
     for (int i = 0; i < tensor_info.size(); i++) {
-        this->tensors.push_back(tensor_info[i]->create_tensor(internal_root, psram_root));
+        this->tensors.push_back(tensor_info[i]->create_tensor(this->internal_root, this->psram_root));
     }
 
     // free TensorInfo vector
@@ -66,8 +85,6 @@ std::vector<TensorBase *> MemoryManagerGreedy::alloc(fbs::FbsModel *fbs_model,
 
     // free memory list
     this->free_memory_list();
-
-    return this->tensors;
 }
 
 void MemoryManagerGreedy::free()
@@ -220,7 +237,7 @@ void MemoryManagerGreedy::set_preload_addr(std::vector<dl::module::Module *> exe
     }
 }
 
-int MemoryManagerGreedy::simulate(std::vector<TensorInfo *> &tensor_info, int node_num)
+void MemoryManagerGreedy::simulate(std::vector<TensorInfo *> &tensor_info, int node_num)
 {
     std::vector<std::vector<TensorInfo *>> node_alloc_tensors(node_num);
     std::vector<std::vector<TensorInfo *>> node_free_tensors(node_num);
@@ -250,7 +267,11 @@ int MemoryManagerGreedy::simulate(std::vector<TensorInfo *> &tensor_info, int no
 
     for (int i = 0; i < node_num; i++) {
         for (auto it = node_free_tensors[i].begin(); it != node_free_tensors[i].end(); it++) {
-            free_tensor(*it, this->memory_list, this->free_list);
+#if CONFIG_SPIRAM
+            free_tensor(*it, this->psram_memory_list, this->psram_free_list);
+#else
+            free_tensor(*it, this->internal_memory_list, this->internal_free_list);
+#endif
         }
 
         for (auto it = node_alloc_tensors[i].begin(); it != node_alloc_tensors[i].end(); it++) {
@@ -261,21 +282,19 @@ int MemoryManagerGreedy::simulate(std::vector<TensorInfo *> &tensor_info, int no
         // print_memory_list("psram free list:", this->free_list);
     }
 
-    size_t max_ram_size = memory_list.back()->offset + memory_list.back()->size;
-    ESP_LOGI(TAG, "Maximum mermory size: %d\n", max_ram_size);
-
-    return max_ram_size;
+#if CONFIG_SPIRAM
+    this->psram_size = psram_memory_list.back()->offset + psram_memory_list.back()->size;
+#else
+    this->internal_size = internal_memory_list.back()->offset + internal_memory_list.back()->size;
+#endif
 }
 
-int MemoryManagerGreedy::simulate_with_internal_memory(std::vector<TensorInfo *> &tensor_info, int node_num)
+void MemoryManagerGreedy::simulate_with_internal_memory(std::vector<TensorInfo *> &tensor_info, int node_num)
 {
-    if (this->internal_size > this->alignment) {
-        MemoryChunk *internal_chunk = new MemoryChunk(this->internal_size, true, this->alignment);
-        this->internal_memory_list.push_back(internal_chunk);
-        this->internal_free_list.push_back(internal_chunk);
-    } else {
-        return simulate(tensor_info, node_num);
-    }
+    MemoryChunk *internal_chunk = new MemoryChunk(this->max_internal_size, true, this->alignment);
+    this->internal_memory_list.push_back(internal_chunk);
+    this->internal_free_list.push_back(internal_chunk);
+
     std::vector<std::vector<TensorInfo *>> node_alloc_tensors(node_num);
     std::vector<std::vector<TensorInfo *>> node_free_tensors(node_num);
 
@@ -307,7 +326,7 @@ int MemoryManagerGreedy::simulate_with_internal_memory(std::vector<TensorInfo *>
             if ((*it)->get_internal_state()) {
                 free_tensor(*it, this->internal_memory_list, this->internal_free_list);
             } else {
-                free_tensor(*it, this->memory_list, this->free_list);
+                free_tensor(*it, this->psram_memory_list, this->psram_free_list);
             }
         }
 
@@ -324,17 +343,12 @@ int MemoryManagerGreedy::simulate_with_internal_memory(std::vector<TensorInfo *>
         // print_memory_list("internal free list", this->internal_free_list);
     }
 
-    size_t psram_size = 0;
-    if (!memory_list.empty()) {
-        psram_size = memory_list.back()->offset + memory_list.back()->size;
+    if (!psram_memory_list.empty()) {
+        this->psram_size = psram_memory_list.back()->offset + psram_memory_list.back()->size;
     }
-    size_t internal_ram_size = 0;
     if (!internal_memory_list.empty()) {
-        internal_ram_size = internal_memory_list.back()->offset + internal_memory_list.back()->size;
+        this->internal_size = internal_memory_list.back()->offset + internal_memory_list.back()->size;
     }
-    ESP_LOGI(TAG, "Maximum psram size: %d, Maximum internal ram size: %d\n", psram_size, internal_ram_size);
-
-    return psram_size + internal_ram_size;
 }
 
 MemoryChunk *MemoryManagerGreedy::free_tensor(TensorInfo *tensor,
@@ -382,6 +396,13 @@ MemoryChunk *MemoryManagerGreedy::free_tensor(TensorInfo *tensor,
 
 MemoryChunk *MemoryManagerGreedy::alloc_tensor(TensorInfo *tensor, int mode)
 {
+#if CONFIG_SPIRAM
+    std::list<MemoryChunk *> &memory_list = this->psram_memory_list;
+    std::list<MemoryChunk *> &free_list = this->psram_free_list;
+#else
+    std::list<MemoryChunk *> &memory_list = this->internal_memory_list;
+    std::list<MemoryChunk *> &free_list = this->internal_free_list;
+#endif
     // printf("alloc tensor:%s\n", tensor->name.c_str());
     MemoryChunk *chunk = nullptr;
     for (auto it = free_list.begin(); it != free_list.end(); ++it) {
@@ -451,13 +472,13 @@ MemoryChunk *MemoryManagerGreedy::alloc_internal_tensor(TensorInfo *tensor, int 
 
 void MemoryManagerGreedy::free_memory_list()
 {
-    if (!memory_list.empty()) {
-        for (auto it = memory_list.begin(); it != memory_list.end(); ++it) {
+    if (!psram_memory_list.empty()) {
+        for (auto it = psram_memory_list.begin(); it != psram_memory_list.end(); ++it) {
             MemoryChunk *chunk = *it;
             delete chunk;
         }
-        memory_list.clear();
-        free_list.clear();
+        psram_memory_list.clear();
+        psram_free_list.clear();
     }
 
     if (!internal_memory_list.empty()) {

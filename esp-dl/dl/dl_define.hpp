@@ -4,16 +4,16 @@
 #include "sdkconfig.h"
 #include <string>
 
-#define CONFIG_DL_DEBUG 0
-
-#define DL_LOG_LATENCY_UNIT 0   /*<! - 1: cycle */
-                                /*<! - 0: us */
-#define DL_LOG_MODULE_LATENCY 0 /*<! - 1: print the latency of each module of model */
-                                /*<! - 0: mute */
-#define DL_LOG_INFER_LATENCY 0  /*<! - 1: print the latency of model inference, including preprocess and postprocess */
-                                /*<! - 0: mute */
-#define DL_LOG_CACHE_COUNT 0    /*<! - 1: print the cache hit/miss count only for esp32p4 */
-                                /*<! - 0: mute */
+#define DL_LOG_MODULE_NAME 0    /*!< - 1: save the module name */
+                                /*!< - 0: empty module name */
+#define DL_LOG_LATENCY_UNIT 0   /*!< - 1: cycle */
+                                /*!< - 0: us */
+#define DL_LOG_MODULE_LATENCY 0 /*!< - 1: print the latency of each module of model */
+                                /*!< - 0: mute */
+#define DL_LOG_INFER_LATENCY 0  /*!< - 1: print the latency of model inference, including preprocess and postprocess */
+                                /*!< - 0: mute */
+#define DL_LOG_CACHE_COUNT 0    /*!< - 1: print the cache hit/miss count only for esp32p4 */
+                                /*!< - 0: mute */
 
 #if CONFIG_SPIRAM_SUPPORT || CONFIG_ESP32_SPIRAM_SUPPORT || CONFIG_ESP32S2_SPIRAM_SUPPORT || \
     CONFIG_ESP32S3_SPIRAM_SUPPORT || CONFIG_SPIRAM
@@ -93,25 +93,25 @@
 namespace dl {
 typedef enum {
     QUANT_TYPE_NONE,       /*Unknown quantization type*/
-    QUANT_TYPE_FLOAT32,    /*<! Float>*/
-    QUANT_TYPE_SYMM_8BIT,  /*<! symmetry 8bit quantization (per tensor) >*/
-    QUANT_TYPE_SYMM_16BIT, /*<! symmetry 16bit quantization (per tensor) >*/
-    QUANT_TYPE_SYMM_32BIT, /*<! symmetry 32bit quantization (per tensor) >*/
+    QUANT_TYPE_FLOAT32,    /*!< Float*/
+    QUANT_TYPE_SYMM_8BIT,  /*!< symmetry 8bit quantization (per tensor) */
+    QUANT_TYPE_SYMM_16BIT, /*!< symmetry 16bit quantization (per tensor) */
+    QUANT_TYPE_SYMM_32BIT, /*!< symmetry 32bit quantization (per tensor) */
 } quant_type_t;
 
 typedef enum {
-    Linear,    /*<! Linear >*/
-    ReLU,      /*<! ReLU >*/
-    LeakyReLU, /*<! LeakyReLU >*/
-    PReLU,     /*<! PReLU >*/
+    Linear,    /*!< Linear */
+    ReLU,      /*!< ReLU */
+    LeakyReLU, /*!< LeakyReLU */
+    PReLU,     /*!< PReLU */
     // TODO: ReLU6
 } activation_type_t;
 
 typedef enum {
     PADDING_NOT_SET,
-    PADDING_VALID,      /*<! no padding >*/
-    PADDING_SAME_BEGIN, /*<! SAME in MXNET style >*/
-    PADDING_SAME_END,   /*<! SAME in TensorFlow style >*/
+    PADDING_VALID,      /*!< no padding */
+    PADDING_SAME_BEGIN, /*!< SAME in MXNET style */
+    PADDING_SAME_END,   /*!< SAME in TensorFlow style */
 } padding_type_t;
 
 typedef enum {
@@ -121,6 +121,14 @@ typedef enum {
     PADDING_REFLECT,
     PADDING_WRAP,
 } padding_mode_t;
+
+typedef enum {
+    MEMORY_ADDR_TCM,
+    MEMORY_ADDR_FLASH,
+    MEMORY_ADDR_PSRAM,
+    MEMORY_ADDR_INTERNAL,
+    MEMORY_ADDR_UKN
+} memory_addr_type_t;
 
 typedef enum { RESIZE_NEAREST, RESIZE_LINEAR, RESIZE_CUBIC } resize_mode_t;
 
@@ -132,4 +140,31 @@ typedef enum {
     RUNTIME_MODE_SINGLE_CORE = 1, // Always select single-core runtime
     RUNTIME_MODE_MULTI_CORE = 2,  // Always select multi-core runtime(dual core for ESP32-S3 and ESP32-P4)
 } runtime_mode_t;
+
+/**
+ * @brief memory info
+ *
+ */
+class mem_info {
+public:
+    size_t psram;    /*!< PSRAM usage */
+    size_t internal; /*!< internal RAM usage */
+    size_t flash;    /*!< FLASH usage */
+    mem_info &operator+=(const mem_info &other)
+    {
+        psram += other.psram;
+        internal += other.internal;
+        flash += other.flash;
+        return *this;
+    }
+};
+
+/**
+ * @brief module info
+ *
+ */
+typedef struct {
+    std::string type; /*!< module type */
+    uint32_t latency; /*!< module latency */
+} module_info;        /*!< module info */
 } // namespace dl

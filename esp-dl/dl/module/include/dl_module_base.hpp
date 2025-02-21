@@ -7,17 +7,6 @@
 #include "fbs_model.hpp"
 #include <functional>
 #include <iostream>
-
-#if DL_LOG_MODULE_LATENCY
-#define DL_LOG_MODULE_LATENCY_INIT() DL_LOG_LATENCY_INIT()
-#define DL_LOG_MODULE_LATENCY_START() DL_LOG_LATENCY_START()
-#define DL_LOG_MODULE_LATENCY_END_PRINT(prefix, key) DL_LOG_LATENCY_END_PRINT(prefix, key)
-#else
-#define DL_LOG_MODULE_LATENCY_INIT()
-#define DL_LOG_MODULE_LATENCY_START()
-#define DL_LOG_MODULE_LATENCY_END_PRINT(prefix, key)
-#endif
-
 namespace dl {
 // Define the enum type for module in-place operation mode
 typedef enum {
@@ -134,8 +123,6 @@ public:
      *
      * @param addr Internal RAM address, should be aligned to 16 bytes
      * @param size The size of RAM address
-     *
-     * @return
      */
     virtual void set_preload_addr(void *addr, size_t size) {}
 
@@ -161,8 +148,6 @@ public:
      * @param input   Input tensor
      * @param output  Output tensor
      * @param mode    Runtime mode
-     *
-     * @return
      */
     virtual void run(TensorBase *input, TensorBase *output, runtime_mode_t mode = RUNTIME_MODE_AUTO);
 
@@ -172,12 +157,115 @@ public:
      * @param inputs   Input tensors
      * @param outputs  Output tensors
      * @param mode    Runtime mode
-     *
-     * @return
      */
     virtual void run(std::vector<dl::TensorBase *> inputs,
                      std::vector<dl::TensorBase *> outputs,
                      runtime_mode_t mode = RUNTIME_MODE_AUTO);
+
+    /**
+     * @brief Get the memory size of module parameters
+     *
+     * @param param         Module parameter tensor
+     * @param in_fbs        Memory info of parameter inside Flatbuffers model
+     * @param out_fbs       Memory info of parameter outside Flatbuffers model
+     * @param fbs_model     Flatbuffers model
+     */
+    static void get_param_memory_size(dl::TensorBase *param,
+                                      mem_info *in_fbs,
+                                      mem_info *out_fbs,
+                                      fbs::FbsModel *fbs_model)
+    {
+        *in_fbs = {};
+        *out_fbs = {};
+        if (param) {
+            memory_addr_type_t mem_type = dl::tool::memory_addr_type(param->data);
+            switch (mem_type) {
+            case MEMORY_ADDR_INTERNAL:
+                if (fbs_model->memory_addr_in_model(param->data)) {
+                    in_fbs->internal = param->get_bytes();
+                } else {
+                    out_fbs->internal = param->get_bytes();
+                }
+                break;
+            case MEMORY_ADDR_PSRAM:
+                if (fbs_model->memory_addr_in_model(param->data)) {
+                    in_fbs->psram = param->get_bytes();
+                } else {
+                    out_fbs->psram = param->get_bytes();
+                }
+                break;
+            case MEMORY_ADDR_FLASH:
+                if (fbs_model->memory_addr_in_model(param->data)) {
+                    in_fbs->flash = param->get_bytes();
+                } else {
+                    out_fbs->flash = param->get_bytes();
+                }
+                break;
+            default:
+                ESP_LOGE("module", "Wrong memory addr type.");
+            }
+        }
+    }
+
+    /**
+     * @brief Get the memory size of module parameters
+     *
+     * @param params        Module parameter tensors
+     * @param in_fbs        Memory info of parameters inside Flatbuffers model
+     * @param out_fbs       Memory info of parameters outside Flatbuffers model
+     * @param fbs_model     Flatbuffers model
+     */
+    static void get_param_memory_size(const std::vector<dl::TensorBase *> &params,
+                                      mem_info *in_fbs,
+                                      mem_info *out_fbs,
+                                      fbs::FbsModel *fbs_model)
+    {
+        *in_fbs = {};
+        *out_fbs = {};
+        for (const auto &param : params) {
+            if (param) {
+                memory_addr_type_t mem_type = dl::tool::memory_addr_type(param->data);
+                switch (mem_type) {
+                case MEMORY_ADDR_INTERNAL:
+                    if (fbs_model->memory_addr_in_model(param->data)) {
+                        in_fbs->internal += param->get_bytes();
+                    } else {
+                        out_fbs->internal += param->get_bytes();
+                    }
+                    break;
+                case MEMORY_ADDR_PSRAM:
+                    if (fbs_model->memory_addr_in_model(param->data)) {
+                        in_fbs->psram += param->get_bytes();
+                    } else {
+                        out_fbs->psram += param->get_bytes();
+                    }
+                    break;
+                case MEMORY_ADDR_FLASH:
+                    if (fbs_model->memory_addr_in_model(param->data)) {
+                        in_fbs->flash += param->get_bytes();
+                    } else {
+                        out_fbs->flash += param->get_bytes();
+                    }
+                    break;
+                default:
+                    ESP_LOGE("module", "Wrong memory addr type.");
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Get the memory size of module parameters
+     *
+     * @param in_fbs        Memory info of module parameters inside Flatbuffers model
+     * @param out_fbs       Memory info of module parameters outside Flatbuffers model
+     * @param fbs_model     Flatbuffers model
+     */
+    virtual void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model)
+    {
+        *in_fbs = {};
+        *out_fbs = {};
+    };
 };
 
 /**

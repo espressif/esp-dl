@@ -11,27 +11,27 @@ namespace base {
  */
 template <typename feature_t>
 struct PoolArgsType {
-    feature_t *input_element;  /*<!  0 */
-    int input_channel;         /*<!  1 */
-    int input_stride_y_offset; /*<!  2 input_width_with_padding * input_channel_with_padding * stride_y */
-    int input_stride_x_offset; /*<!  3 input_channel_with_padding * stride_x */
-    int input_y_offset_bytes;  /*<!  4 input_width_with_padding * input_channel_with_padding * sizeof(feature_t) */
-    int input_x_offset_bytes;  /*<!  5 input_channel_with_padding * sizeof(feature_t) */
+    feature_t *input_element;  /*!<  0 */
+    int input_channel;         /*!<  1 */
+    int input_stride_y_offset; /*!<  2 input_width_with_padding * input_channel_with_padding * stride_y */
+    int input_stride_x_offset; /*!<  3 input_channel_with_padding * stride_x */
+    int input_y_offset_bytes;  /*!<  4 input_width_with_padding * input_channel_with_padding * sizeof(feature_t) */
+    int input_x_offset_bytes;  /*!<  5 input_channel_with_padding * sizeof(feature_t) */
                                //
-    feature_t *output_element; /*<!  6 */
-    int output_height;         /*<!  7 */
-    int output_width;          /*<!  8 */
-    int output_channel;        /*<!  9 */
-    int output_y_offset;       /*<! 10 output_width_with_padding * output_channel_with_padding */
-    int output_x_offset;       /*<! 11 output_channel_with_padding */
+    feature_t *output_element; /*!<  6 */
+    int output_height;         /*!<  7 */
+    int output_width;          /*!<  8 */
+    int output_channel;        /*!<  9 */
+    int output_y_offset;       /*!< 10 output_width_with_padding * output_channel_with_padding */
+    int output_x_offset;       /*!< 11 output_channel_with_padding */
                                //
-    int filter_height;         /*<! 12 */
-    int filter_width;          /*<! 13 */
-    int mac_shift;             /*<! 14 mac_shift = output.exponent - filter.exponent - input.exponent */
+    int filter_height;         /*!< 12 */
+    int filter_width;          /*!< 13 */
+    int mac_shift;             /*!< 14 mac_shift = output.exponent - filter.exponent - input.exponent */
                                //
-    int c_remainder;           /*<! 15 input_channel % (vector_width / element_width) */
+    int c_remainder;           /*!< 15 input_channel % (vector_width / element_width) */
 
-    int avg_pool_area_inv; /*<! 16 2^n/(filter_h * filter_w) */
+    int avg_pool_area_inv; /*!< 16 2^n/(filter_h * filter_w) */
 
     int input_height;
     int input_width;
@@ -42,10 +42,10 @@ struct PoolArgsType {
 
     int stride_x;
     int stride_y;
-    int pool_exponent;  /*<! 25 exponent of 1.0 / (filter_height * filter_width)*/
-    int c_div_x_1;      /*<! 26 */
-    int input_y_offset; /*<!  27 input_width_with_padding * input_channel_with_padding */
-    int input_x_offset; /*<!  28 input_channel_with_padding */
+    int pool_exponent;  /*!< 25 exponent of 1.0 / (filter_height * filter_width)*/
+    int c_div_x_1;      /*!< 26 */
+    int input_y_offset; /*!<  27 input_width_with_padding * input_channel_with_padding */
+    int input_x_offset; /*!<  28 input_channel_with_padding */
     int input_exponent;
     int output_exponent;
     int avg_pool_area;
@@ -371,7 +371,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
     } else // run c_impl_func
 #endif
     {
-        buffer_t *buffer = (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
+        buffer_t *buffer = (buffer_t *)heap_caps_calloc(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
         feature_t *input_syx_real = input_ptr_real;
         feature_t *output_yx = output_ptr;
         for (size_t output_y = 0; output_y < n_h_head; output_y++) {
@@ -466,7 +466,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
             input_ptr_real += args.input_stride_y_offset;
             output_ptr += args.output_y_offset;
         }
-        tool::free_aligned(buffer);
+        heap_caps_free(buffer);
     }
     return;
 }

@@ -8,8 +8,8 @@ namespace module {
 // https://onnx.ai/onnx/operators/onnx__Gather.html
 class Gather : public Module {
 private:
-    TensorBase *m_indices; /*<! Gather entries of the axis dimension of data indexed by indices >*/
-    int m_axis;            /*<! Which axis to gather on. >*/
+    TensorBase *m_indices; /*!< Gather entries of the axis dimension of data indexed by indices */
+    int m_axis;            /*!< Which axis to gather on. */
 
 public:
     /**
@@ -82,9 +82,6 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
-
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
         int outer_size = 1;
@@ -174,8 +171,6 @@ public:
                                  input->get_shape()[m_axis]);
             }
         }
-
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Gather");
     }
 
     /**
@@ -201,6 +196,11 @@ public:
                  "quant_type: %s, indices shape: %s.",
                  quant_type_to_string(quant_type),
                  shape_to_string(m_indices->get_shape()).c_str());
+    }
+
+    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
+    {
+        Module::get_param_memory_size(m_indices, in_fbs, out_fbs, fbs_model);
     }
 };
 } // namespace module

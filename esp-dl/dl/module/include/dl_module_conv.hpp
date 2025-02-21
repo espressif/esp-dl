@@ -19,15 +19,15 @@ namespace module {
  */
 class Conv2D : public Module {
 private:
-    TensorBase *filter;   /*<! filter of Conv2D >*/
-    TensorBase *bias;     /*<! bias of Conv2D, if you don't specify anything, no bias is added >*/
-    const int stride_y;   /*<! stride in height >*/
-    const int stride_x;   /*<! stride in width >*/
-    const int dilation_y; /*<! dilation in height >*/
-    const int dilation_x; /*<! dilation in width >*/
+    TensorBase *filter;   /*!< filter of Conv2D */
+    TensorBase *bias;     /*!< bias of Conv2D, if you don't specify anything, no bias is added */
+    const int stride_y;   /*!< stride in height */
+    const int stride_x;   /*!< stride in width */
+    const int dilation_y; /*!< dilation in height */
+    const int dilation_x; /*!< dilation in width */
     const int group;
-    activation_type_t activation; /*<! activation of Conv2D, if you don't specify anything, no activation is applied >*/
-    std::vector<int> padding;     /*<! padding size needed in [top, bottom, left, right] of this operation >*/
+    activation_type_t activation; /*!< activation of Conv2D, if you don't specify anything, no activation is applied */
+    std::vector<int> padding;     /*!< padding size needed in [top, bottom, left, right] of this operation */
 
 public:
     /**
@@ -130,14 +130,11 @@ public:
 
     void forward(std::vector<TensorBase *> &tensors, runtime_mode_t mode = RUNTIME_MODE_AUTO)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             forward_template<int8_t>(tensors, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(tensors, mode);
         }
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Conv2d");
     }
 
     template <typename T>
@@ -231,6 +228,10 @@ public:
                  quant_type_to_string(quant_type));
     }
 
+    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
+    {
+        Module::get_param_memory_size({filter, bias}, in_fbs, out_fbs, fbs_model);
+    }
     // void set_preload_addr(void *addr, size_t size)
     // {
     //     size_t offset = 0;

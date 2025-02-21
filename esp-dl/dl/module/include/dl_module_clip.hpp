@@ -12,8 +12,8 @@ namespace module {
  */
 class Clip : public Module {
 private:
-    TensorBase *m_min; /*<! Minimum value of Clip >*/
-    TensorBase *m_max; /*<! Maximum value of Clip >*/
+    TensorBase *m_min; /*!< Minimum value of Clip */
+    TensorBase *m_max; /*!< Maximum value of Clip */
 
 public:
     /**
@@ -55,8 +55,6 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
@@ -92,7 +90,6 @@ public:
                 output_ptr[i] = DL_CLIP(input_ptr[i], min_value, max_value);
             }
         }
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Clip");
     }
 
     void forward_args(void *args) {}
@@ -123,6 +120,11 @@ public:
     }
 
     void print() { ESP_LOGI("Clip", "quant_type: %s.", quant_type_to_string(quant_type)); }
+
+    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
+    {
+        Module::get_param_memory_size({m_min, m_max}, in_fbs, out_fbs, fbs_model);
+    }
 };
 } // namespace module
 } // namespace dl

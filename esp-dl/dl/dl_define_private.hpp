@@ -13,10 +13,10 @@
 #include "sdkconfig.h"
 
 #define DL_S16_BUFFER_TYPE                                                                                        \
-    int64_t /*<! int32_t or int64_t. int32_t is twice as fast as int64_t in C/C++ implement. But int32_t may have \
-               value overflow. >*/
-#define DL_LOG_DETECT_LATENCY 0 /*<! - 1: print the latency of each parts of detect */
-                                /*<! - 0: mute */
+    int64_t /*!< int32_t or int64_t. int32_t is twice as fast as int64_t in C/C++ implement. But int32_t may have \
+               value overflow. */
+#define DL_LOG_DETECT_LATENCY 0 /*!< - 1: print the latency of each parts of detect */
+                                /*!< - 0: mute */
 
 #if CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S3
 #define CONFIG_XTENSA_BOOST 1

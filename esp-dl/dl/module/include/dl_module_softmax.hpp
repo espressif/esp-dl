@@ -53,8 +53,6 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
@@ -78,7 +76,6 @@ public:
             }
             forward_float(output_element, output->get_size(), output->get_shape(), this->axis);
         }
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Softmax");
     }
 
     void forward_float(float *output_element, int size, std::vector<int> shape, int axis)
@@ -148,7 +145,7 @@ public:
     void forward_lut(TensorBase *input, TensorBase *output)
     {
         if (this->exp_table == nullptr) {
-            this->exp_table = (float *)tool::calloc_aligned(256, sizeof(float), 16, MALLOC_CAP_8BIT);
+            this->exp_table = (float *)heap_caps_malloc(256 * sizeof(float), MALLOC_CAP_DEFAULT);
             tool::gen_lut_8bit(this->exp_table, input->exponent, expf);
         }
 

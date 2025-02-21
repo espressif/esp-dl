@@ -65,6 +65,18 @@
 .patterns-example_yolo11_detect: &patterns-example_yolo11_detect
 - "examples/yolo11_detect/**/*"
 
+.patterns-example_how_to_run_model: &patterns-example_how_to_run_model
+- "examples/tutorial/how_to_run_model/**/*"
+
+.patterns-example_model_in_flash_partition: &patterns-example_model_in_flash_partition
+- "examples/tutorial/how_to_load_test_profile_model/model_in_flash_partition/**/*"
+
+.patterns-example_model_in_flash_rodata: &patterns-example_model_in_flash_rodata
+- "examples/tutorial/how_to_load_test_profile_model/model_in_flash_rodata/**/*"
+
+.patterns-example_model_in_sdcard: &patterns-example_model_in_sdcard
+- "examples/tutorial/how_to_load_test_profile_model/model_in_sdcard/**/*"
+
 # tool forder
 .patterns-tool_ops_test: &patterns-tool_ops_test
   - "tools/ops_test/config/op_cfg.toml"
@@ -192,6 +204,41 @@
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 
+.rules:build:example_how_to_run_model:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-example_how_to_run_model
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_model_in_flash_partition:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-example_model_in_flash_partition
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_model_in_flash_rodata:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-example_model_in_flash_rodata
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_model_in_sdcard:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-example_model_in_sdcard
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
 
 .rules:pre_check:readme:
   rules:

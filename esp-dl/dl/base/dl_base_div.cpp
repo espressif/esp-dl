@@ -15,7 +15,7 @@ feature_t *create_div_lut(elemwiseArgsType<feature_t> *args)
 
     if (sizeof(feature_t) == 1) {
         if (args->input0_d0 == 1) {
-            table = (feature_t *)tool::malloc_aligned(256, 1, 16, MALLOC_CAP_8BIT);
+            table = (feature_t *)heap_caps_malloc(256, MALLOC_CAP_DEFAULT);
             float input0_float = input0[0] * rescale;
             for (int32_t i = -128; i <= 127; i++) {
                 if (i == 0) {
@@ -30,7 +30,7 @@ feature_t *create_div_lut(elemwiseArgsType<feature_t> *args)
                 }
             }
         } else if (args->input1_d0 == 1) {
-            table = (feature_t *)tool::malloc_aligned(256, 1, 16, MALLOC_CAP_8BIT);
+            table = (feature_t *)heap_caps_malloc(256, MALLOC_CAP_DEFAULT);
             float scale = rescale / input1[0];
             for (int32_t i = -128; i <= 127; i++) {
                 if (i == 0) {
@@ -56,8 +56,8 @@ elemwiseArgsType<feature_t> *get_elemwise_div_args(TensorBase *output,
         get_elemwise_operation_args<feature_t>(output, input0, input1, runtime_mode);
 
     assert(m_args.size() == 1);
-    elemwiseArgsType<feature_t> *args = (elemwiseArgsType<feature_t> *)tool::malloc_aligned(
-        1, sizeof(elemwiseArgsType<feature_t>), 16, MALLOC_CAP_8BIT);
+    elemwiseArgsType<feature_t> *args =
+        (elemwiseArgsType<feature_t> *)heap_caps_malloc(sizeof(elemwiseArgsType<feature_t>), MALLOC_CAP_DEFAULT);
     memcpy(args, m_args.data(), sizeof(elemwiseArgsType<feature_t>));
 
     args->output_rescale = args->output_rescale * args->input0_scale / args->input1_scale;

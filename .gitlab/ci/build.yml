@@ -150,6 +150,50 @@ build_example_yolo11_detect:
   variables:
     EXAMPLE_DIR: examples/yolo11_detect
 
+build_example_how_to_run_model:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_how_to_run_model
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
+        TARGET: [esp32p4, esp32s3]
+  variables:
+    EXAMPLE_DIR: examples/tutorial/how_to_run_model
+
+build_example_model_in_flash_partition:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_model_in_flash_partition
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
+        TARGET: [esp32p4, esp32s3]
+  variables:
+    EXAMPLE_DIR: examples/tutorial/how_to_load_test_profile_model/model_in_flash_partition
+
+build_example_model_in_flash_rodata:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_model_in_flash_rodata
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
+        TARGET: [esp32p4, esp32s3]
+  variables:
+    EXAMPLE_DIR: examples/tutorial/how_to_load_test_profile_model/model_in_flash_rodata
+
+build_example_model_in_sdcard:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_model_in_sdcard
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
+        TARGET: [esp32p4, esp32s3]
+  variables:
+    EXAMPLE_DIR: examples/tutorial/how_to_load_test_profile_model/model_in_sdcard
+
 build_esp_dl_html:
   extends:
     - .build_docs_template

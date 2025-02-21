@@ -10,14 +10,14 @@ namespace detect {
 class DetectPostprocessor {
 protected:
     Model *m_model;
-    const float m_score_thr; /*<! Candidate box with lower score than score_thr will be filtered */
-    const float m_nms_thr;   /*<! Candidate box with higher IoU than nms_thr will be filtered */
-    const int m_top_k;       /*<! Keep top_k number of candidate boxes */
+    const float m_score_thr; /*!< Candidate box with lower score than score_thr will be filtered */
+    const float m_nms_thr;   /*!< Candidate box with higher IoU than nms_thr will be filtered */
+    const int m_top_k;       /*!< Keep top_k number of candidate boxes */
     float m_resize_scale_x;
     float m_resize_scale_y;
     float m_top_left_x;
     float m_top_left_y;
-    std::list<result_t> m_box_list; /*<! Detected box list */
+    std::list<result_t> m_box_list; /*!< Detected box list */
 
 public:
     DetectPostprocessor(Model *model, const float score_thr, const float nms_thr, const int top_k) :

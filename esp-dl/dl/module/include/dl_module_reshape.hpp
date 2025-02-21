@@ -8,7 +8,7 @@ namespace module {
 // https://onnx.ai/onnx/operators/onnx__Reshape.html
 class Reshape : public Module {
 private:
-    TensorBase *m_shape; /*<! Specified shape for output >*/
+    TensorBase *m_shape; /*!< Specified shape for output */
 
 public:
     /**
@@ -81,15 +81,12 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
         assert(input->get_size() == output->get_size());
         if (output->get_element_ptr() != input->get_element_ptr()) {
             output->assign(input);
         }
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Reshape");
     }
 
     void forward_args(void *args) {}
@@ -115,6 +112,11 @@ public:
                  "quant_type: %s, shape: %s.",
                  quant_type_to_string(quant_type),
                  shape_to_string(m_shape->get_shape()).c_str());
+    }
+
+    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
+    {
+        Module::get_param_memory_size(m_shape, in_fbs, out_fbs, fbs_model);
     }
 };
 } // namespace module

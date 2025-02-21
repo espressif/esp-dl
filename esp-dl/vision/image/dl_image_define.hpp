@@ -120,8 +120,8 @@ typedef struct {
 } jpeg_img_t;
 
 typedef enum {
-    DL_IMAGE_INTERPOLATE_BILINEAR, /*<! interpolate by taking bilinear of four pixels */
-    DL_IMAGE_INTERPOLATE_NEAREST,  /*<! interpolate by taking the nearest pixel */
+    DL_IMAGE_INTERPOLATE_BILINEAR, /*!< interpolate by taking bilinear of four pixels */
+    DL_IMAGE_INTERPOLATE_NEAREST,  /*!< interpolate by taking the nearest pixel */
 } interpolate_type_t;
 
 #if CONFIG_IDF_TARGET_ESP32P4
