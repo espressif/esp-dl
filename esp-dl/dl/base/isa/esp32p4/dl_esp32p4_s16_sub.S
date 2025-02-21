@@ -1,20 +1,20 @@
-#include "dl_esp32p4_s8.S"
+#include "dl_esp32p4_s16.S"
 #include "dl_esp32p4_common.S"
 
 
 
-#void dl_esp32p4_s8_equal_w1_16_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, int lenght);
+#void dl_esp32p4_s16_sub_w1_8_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 
     .align 2
     .text
-    .global dl_esp32p4_s8_equal_w1_16_w2_16
-    .type   dl_esp32p4_s8_equal_w1_16_w2_16, @function
+    .global dl_esp32p4_s16_sub_w1_8_w2_8
+    .type   dl_esp32p4_s16_sub_w1_8_w2_8, @function
     #.section .iram1
-dl_esp32p4_s8_equal_w1_16_w2_16:
+dl_esp32p4_s16_sub_w1_8_w2_8:
 
-    # a0: bool *output_ptr
-    # a1: int8_t *input0_ptr
-    # a2: int8_t *input1_ptr
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input0_ptr
+    # a2: int16_t *input1_ptr
 
     # a3: void *args / length
     # a4: tmp value
@@ -41,38 +41,35 @@ dl_esp32p4_s8_equal_w1_16_w2_16:
     # s10:
     # s11:
 
-    addi  a4, a3, 100
-    esp.vldbc.8.ip  q7, a4, 0
     lw a4, 44(a3)
-    srai a3, a4, 4
+    srai a3, a4, 3
 
     li t0, 0
-esp32p4_s8_equal_w1_16_w2_16_loop:
-    beq t0, a3, esp32p4_s8_equal_w1_16_w2_16_end
+esp32p4_s16_sub_w1_8_w2_8_loop:
+    beq t0, a3, esp32p4_s16_sub_w1_8_w2_8_end
     esp.vld.128.ip q0, a1, 16
     esp.vld.128.ip q1, a2, 16
-    esp.vcmp.eq.s8 q2, q0, q1
-    esp.andq  q2, q2, q7
-    esp.vst.128.ip q2, a0, 16
+    esp.vsub.s16 q2, q0, q1
+    esp.vst.128.ip  q2, a0, 16
     addi t0, t0, 1
-    j esp32p4_s8_equal_w1_16_w2_16_loop
-esp32p4_s8_equal_w1_16_w2_16_end:
+    j esp32p4_s16_sub_w1_8_w2_8_loop
+esp32p4_s16_sub_w1_8_w2_8_end:
     ret
 
 
 
-#void dl_esp32p4_s8_equal_w1_16_w2_1(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, int lenght);
+#void dl_esp32p4_s16_sub_w1_8_w2_1(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 
     .align 2
     .text
-    .global dl_esp32p4_s8_equal_w1_16_w2_1
-    .type   dl_esp32p4_s8_equal_w1_16_w2_1, @function
+    .global dl_esp32p4_s16_sub_w1_8_w2_1
+    .type   dl_esp32p4_s16_sub_w1_8_w2_1, @function
     #.section .iram1
-dl_esp32p4_s8_equal_w1_16_w2_1:
+dl_esp32p4_s16_sub_w1_8_w2_1:
 
-    # a0: bool *output_ptr
-    # a1: int8_t *input0_ptr
-    # a2: int8_t *input1_ptr
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input0_ptr
+    # a2: int16_t *input1_ptr
 
     # a3: void *args / length
     # a4: tmp value
@@ -99,38 +96,35 @@ dl_esp32p4_s8_equal_w1_16_w2_1:
     # s10:
     # s11:
 
-    addi  a4, a3, 100
-    esp.vldbc.8.ip  q7, a4, 0
     lw a4, 44(a3)
-    srai a3, a4, 4
-    esp.vldbc.8.ip q1, a2, 0    // input1 broadcast
+    srai a3, a4, 3
+    esp.vldbc.16.ip q1, a2, 0
 
     li t0, 0
-esp32p4_s8_equal_w1_16_w2_1_loop:
-    beq t0, a3, esp32p4_s8_equal_w1_16_w2_1_end
+esp32p4_s16_sub_w1_8_w2_1_loop:
+    beq t0, a3, esp32p4_s16_sub_w1_8_w2_1_end
     esp.vld.128.ip q0, a1, 16
-    esp.vcmp.eq.s8 q2, q0, q1
-    esp.andq  q2, q2, q7
-    esp.vst.128.ip q2, a0, 16
+    esp.vsub.s16 q2, q0, q1
+    esp.vst.128.ip  q2, a0, 16
     addi t0, t0, 1
-    j esp32p4_s8_equal_w1_16_w2_1_loop
-esp32p4_s8_equal_w1_16_w2_1_end:
+    j esp32p4_s16_sub_w1_8_w2_1_loop
+esp32p4_s16_sub_w1_8_w2_1_end:
     ret
 
 
 
-#void dl_esp32p4_s8_equal_w1_1_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, int lenght);
+#void dl_esp32p4_s16_sub_w1_1_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int lenght);
 
     .align 2
     .text
-    .global dl_esp32p4_s8_equal_w1_1_w2_16
-    .type   dl_esp32p4_s8_equal_w1_1_w2_16, @function
+    .global dl_esp32p4_s16_sub_w1_1_w2_8
+    .type   dl_esp32p4_s16_sub_w1_1_w2_8, @function
     #.section .iram1
-dl_esp32p4_s8_equal_w1_1_w2_16:
+dl_esp32p4_s16_sub_w1_1_w2_8:
 
-    # a0: bool *output_ptr
-    # a1: int8_t *input0_ptr
-    # a2: int8_t *input1_ptr
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input0_ptr
+    # a2: int16_t *input1_ptr
 
     # a3: void *args / length
     # a4: tmp value
@@ -157,36 +151,33 @@ dl_esp32p4_s8_equal_w1_1_w2_16:
     # s10:
     # s11:
 
-    addi  a4, a3, 100
-    esp.vldbc.8.ip  q7, a4, 0
     lw a4, 44(a3)
-    srai a3, a4, 4
-    esp.vldbc.8.ip q0, a1, 0    // input0 broadcast
+    srai a3, a4, 3
+    esp.vldbc.16.ip q0, a1, 0
 
     li t0, 0
-esp32p4_s8_equal_w1_1_w2_16_loop:
-    beq t0, a3, esp32p4_s8_equal_w1_1_w2_16_end
+esp32p4_s16_sub_w1_1_w2_8_loop:
+    beq t0, a3, esp32p4_s16_sub_w1_1_w2_8_end
     esp.vld.128.ip q1, a2, 16
-    esp.vcmp.eq.s8 q2, q0, q1
-    esp.andq  q2, q2, q7
-    esp.vst.128.ip q2, a0, 16
+    esp.vsub.s16 q2, q0, q1
+    esp.vst.128.ip  q2, a0, 16
     addi t0, t0, 1
-    j esp32p4_s8_equal_w1_1_w2_16_loop
-esp32p4_s8_equal_w1_1_w2_16_end:
+    j esp32p4_s16_sub_w1_1_w2_8_loop
+esp32p4_s16_sub_w1_1_w2_8_end:
     ret
 
 
 
     .align 2
     .text
-    .global dl_esp32p4_s8_equal_w1_16_w2_16_unaligned
-    .type   dl_esp32p4_s8_equal_w1_16_w2_16_unaligned, @function
+    .global dl_esp32p4_s16_sub_w1_8_w2_8_unaligned
+    .type   dl_esp32p4_s16_sub_w1_8_w2_8_unaligned, @function
     #.section .iram1
-dl_esp32p4_s8_equal_w1_16_w2_16_unaligned:
+dl_esp32p4_s16_sub_w1_8_w2_8_unaligned:
 
-    # a0: bool *output_ptr
-    # a1: int8_t *input0_ptr
-    # a2: int8_t *input1_ptr
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input0_ptr
+    # a2: int16_t *input1_ptr
 
     # a3: void *args
     # a4: c_div_x_1
@@ -198,7 +189,7 @@ dl_esp32p4_s8_equal_w1_16_w2_16_unaligned:
 
     # a6(not for extension instructions):
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp value
     # t1(not for extension instructions):
     # t2(not for extension instructions):
     # s2(not for extension instructions):
@@ -213,8 +204,6 @@ dl_esp32p4_s8_equal_w1_16_w2_16_unaligned:
     # s10:
     # s11:
 
-    addi  t3, a3, 100
-    esp.vldbc.8.ip  q7, t3, 0
     lw a4, 64(a3)
     lw t5, 76(a3)
 
@@ -225,106 +214,88 @@ dl_esp32p4_s8_equal_w1_16_w2_16_unaligned:
 
     esp.ld.128.usar.ip q0, a1, 16
     esp.ld.128.usar.ip q3, a2, 16
-    bltz a4, dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_remainder     // channel < 16
+    bltz a4, dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_remainder     // channel < 16
     esp.ld.128.usar.ip q1, a1, 16
 
-    beqz a5, dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_128b
+    beqz a5, dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_128b
     li t0, 8
-    beq a5, t0, dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_64b
+    beq a5, t0, dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_64b
 
         mv  t0, a4
         beqz t0, 1f
         0:
             esp.src.q.qup q2, q0, q1
-
             esp.ld.128.usar.ip q4, a2, 16
             esp.src.q.qup q5, q3, q4
-
-            esp.vcmp.eq.s8 q2, q2, q5
-            esp.andq  q2, q2, q7
+            esp.vsub.s16 q2, q2, q5
             esp.ld.128.usar.ip q1, a1, 16
-            esp32p4_s8_32b_unaligned_vector_store q2, a0, a5
+            esp32p4_s16_32b_unaligned_vector_store  q2, a0, a5
             addi t0, t0, -1
             bgtz t0, 0b
         1:
         esp.src.q.qup q2, q0, q1
-
         esp.ld.128.usar.ip q4, a2, 16
         esp.src.q.qup q5, q3, q4
-
-        esp.vcmp.eq.s8 q2, q2, q5
-        esp.andq  q2, q2, q7
-        esp32p4_s8_32b_unaligned_vector_store q2, a0, a5
-        j dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_remainder
+        esp.vsub.s16 q2, q2, q5
+        esp32p4_s16_32b_unaligned_vector_store  q2, a0, a5
+        j dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_remainder
 
     // output sar = 0
-    dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_128b:
+    dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_128b:
         mv  t0, a4
         beqz t0, 3f
         2:
             esp.src.q.qup q2, q0, q1
-
             esp.ld.128.usar.ip q4, a2, 16
             esp.src.q.qup q5, q3, q4
-
-            esp.vcmp.eq.s8 q2, q2, q5
-            esp.andq  q2, q2, q7
+            esp.vsub.s16 q2, q2, q5
             esp.ld.128.usar.ip q1, a1, 16
-            esp.vst.128.ip q2, a0, 16
+            esp.vst.128.ip  q2, a0, 16
             addi t0, t0, -1
             bgtz t0, 2b
         3:
         esp.src.q.qup q2, q0, q1
-
         esp.ld.128.usar.ip q4, a2, 16
         esp.src.q.qup q5, q3, q4
+        esp.vsub.s16 q2, q2, q5
+        esp.vst.128.ip  q2, a0, 16
 
-        esp.vcmp.eq.s8 q2, q2, q5
-        esp.andq  q2, q2, q7
-        esp.vst.128.ip q2, a0, 16
-
-        j dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_remainder
+        j dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_remainder
 
     // output sar = 8
-    dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_64b:
+    dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_64b:
         mv  t0, a4
         beqz t0, 5f
         4:
             esp.src.q.qup q2, q0, q1
-
             esp.ld.128.usar.ip q4, a2, 16
             esp.src.q.qup q5, q3, q4
-
-            esp.vcmp.eq.s8 q2, q2, q5
-            esp.andq  q2, q2, q7
+            esp.vsub.s16 q2, q2, q5
             esp.ld.128.usar.ip q1, a1, 16
-            esp32p4_s8_64b_unaligned_vector_store q2, a0
+            esp32p4_s16_64b_unaligned_vector_store  q2, a0
             addi t0, t0, -1
             bgtz t0, 4b
         5:
         esp.src.q.qup q2, q0, q1
-
         esp.ld.128.usar.ip q4, a2, 16
         esp.src.q.qup q5, q3, q4
+        esp.vsub.s16 q2, q2, q5
+        esp32p4_s16_64b_unaligned_vector_store  q2, a0
 
-        esp.vcmp.eq.s8 q2, q2, q5
-        esp.andq  q2, q2, q7
-        esp32p4_s8_64b_unaligned_vector_store q2, a0
-        j dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_remainder
+        j dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_remainder
 
-    dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_remainder:
-            beqz t5, dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_end
+    dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_remainder:
+            beqz t5, dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_end
 
             esp.ld.128.usar.xp q1, a1, t5
             esp.src.q q2, q0, q1
             esp.ld.128.usar.xp q4, a2, t5
             esp.src.q q5, q3, q4
+            esp.vsub.s16 q2, q2, q5
+            srli  t5, t5, 1
+            dl_esp32p4_s16_store_remainder  q2, t5, t3, a0
 
-            esp.vcmp.eq.s8 q2, q2, q5
-            esp.andq  q2, q2, q7
-            dl_esp32p4_s8_store_remainder q2, t4, t6, a5, t3, t0, a0, t5
-
-    dl_esp32p4_s8_equal_w1_16_w2_16_unaligned_end:
+    dl_esp32p4_s16_sub_w1_8_w2_8_unaligned_end:
         addi a1, a1, -16
         addi a2, a2, -16
     ret
@@ -333,14 +304,14 @@ dl_esp32p4_s8_equal_w1_16_w2_16_unaligned:
 
     .align 2
     .text
-    .global dl_esp32p4_s8_equal_w1_16_w2_1_unaligned
-    .type   dl_esp32p4_s8_equal_w1_16_w2_1_unaligned, @function
+    .global dl_esp32p4_s16_sub_w1_8_w2_1_unaligned
+    .type   dl_esp32p4_s16_sub_w1_8_w2_1_unaligned, @function
     #.section .iram1
-dl_esp32p4_s8_equal_w1_16_w2_1_unaligned:
+dl_esp32p4_s16_sub_w1_8_w2_1_unaligned:
 
-    # a0: bool *output_ptr
-    # a1: int8_t *input0_ptr
-    # a2: int8_t *input1_ptr broadcast
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input0_ptr
+    # a2: int16_t *input1_ptr broadcast
 
     # a3: void *args
     # a4: c_div_x_1
@@ -352,7 +323,7 @@ dl_esp32p4_s8_equal_w1_16_w2_1_unaligned:
 
     # a6(not for extension instructions):
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp value
     # t1(not for extension instructions):
     # t2(not for extension instructions):
     # s2(not for extension instructions):
@@ -367,8 +338,6 @@ dl_esp32p4_s8_equal_w1_16_w2_1_unaligned:
     # s10:
     # s11:
 
-    addi  t3, a3, 100
-    esp.vldbc.8.ip  q7, t3, 0
     lw a4, 64(a3)
     lw t5, 76(a3)
 
@@ -377,81 +346,75 @@ dl_esp32p4_s8_equal_w1_16_w2_1_unaligned:
     esp.ld.128.usar.ip q5, a0, 0    // get output_ptr sar_byte
     esp.movx.r.sar.bytes a5
 
-    esp.vldbc.8.ip q5, a2, 0        // input1 broadcast
+    esp.vldbc.16.ip q5, a2, 0       // input1 broadcast
 
     esp.ld.128.usar.ip q0, a1, 16
-    bltz a4, dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_remainder  // channel < 16
+    bltz a4, dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_remainder  // channel < 16
     esp.ld.128.usar.ip q1, a1, 16
 
-    beqz a5, dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_128b
+    beqz a5, dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_128b
     li t0, 8
-    beq a5, t0, dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_64b
+    beq a5, t0, dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_64b
 
         mv  t0, a4
         beqz t0, 1f
         0:
             esp.src.q.qup q2, q0, q1
-            esp.vcmp.eq.s8 q2, q2, q5
-            esp.andq  q2, q2, q7
+            esp.vsub.s16 q2, q2, q5
             esp.ld.128.usar.ip q1, a1, 16
-            esp32p4_s8_32b_unaligned_vector_store q2, a0, a5
+            esp32p4_s16_32b_unaligned_vector_store  q2, a0, a5
             addi t0, t0, -1
             bgtz t0, 0b
         1:
         esp.src.q.qup q2, q0, q1
-        esp.vcmp.eq.s8 q2, q2, q5
-        esp.andq  q2, q2, q7
-        esp32p4_s8_32b_unaligned_vector_store q2, a0, a5
-        j dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_remainder
+        esp.vsub.s16 q2, q2, q5
+        esp32p4_s16_32b_unaligned_vector_store  q2, a0, a5
+        j dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_remainder
 
     // output sar = 0
-    dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_128b:
+    dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_128b:
         mv  t0, a4
         beqz t0, 3f
         2:
             esp.src.q.qup q2, q0, q1
-            esp.vcmp.eq.s8 q2, q2, q5
-            esp.andq  q2, q2, q7
+            esp.vsub.s16 q2, q2, q5
             esp.ld.128.usar.ip q1, a1, 16
-            esp.vst.128.ip q2, a0, 16
+            esp.vst.128.ip  q2, a0, 16
             addi t0, t0, -1
             bgtz t0, 2b
         3:
         esp.src.q.qup q2, q0, q1
-        esp.vcmp.eq.s8 q2, q2, q5
-        esp.andq  q2, q2, q7
-        esp.vst.128.ip q2, a0, 16
-        j dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_remainder
+        esp.vsub.s16 q2, q2, q5
+        esp.vst.128.ip  q2, a0, 16
+        j dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_remainder
 
     // output sar = 8
-    dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_64b:
+    dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_64b:
         mv  t0, a4
         beqz t0, 5f
         4:
             esp.src.q.qup q2, q0, q1
-            esp.vcmp.eq.s8 q2, q2, q5
-            esp.andq  q2, q2, q7
+            esp.vsub.s16 q2, q2, q5
             esp.ld.128.usar.ip q1, a1, 16
-            esp32p4_s8_64b_unaligned_vector_store q2, a0
+            esp32p4_s16_64b_unaligned_vector_store  q2, a0
             addi t0, t0, -1
             bgtz t0, 4b
         5:
         esp.src.q.qup q2, q0, q1
-        esp.vcmp.eq.s8 q2, q2, q5
-        esp.andq  q2, q2, q7
-        esp32p4_s8_64b_unaligned_vector_store q2, a0
-        j dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_remainder
+        esp.vsub.s16 q2, q2, q5
+        esp32p4_s16_64b_unaligned_vector_store  q2, a0
+        j dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_remainder
 
-    dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_remainder:
-        beqz t5, dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_end
+    dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_remainder:
+        beqz t5, dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_end
 
         esp.ld.128.usar.xp q1, a1, t5
         esp.src.q q2, q0, q1
-        esp.vcmp.eq.s8 q2, q2, q5
-        esp.andq  q2, q2, q7
-        dl_esp32p4_s8_store_remainder q2, t4, t6, a5, t3, t0, a0, t5
+        esp.vsub.s16 q2, q2, q5
+        srli  t5, t5, 1
+        dl_esp32p4_s16_store_remainder  q2, t5, t3, a0
 
-    dl_esp32p4_s8_equal_w1_16_w2_1_unaligned_end:
+    dl_esp32p4_s16_sub_w1_8_w2_1_unaligned_end:
         addi a1, a1, -16
     ret
 
@@ -459,14 +422,14 @@ dl_esp32p4_s8_equal_w1_16_w2_1_unaligned:
 
     .align 2
     .text
-    .global dl_esp32p4_s8_equal_w1_1_w2_16_unaligned
-    .type   dl_esp32p4_s8_equal_w1_1_w2_16_unaligned, @function
+    .global dl_esp32p4_s16_sub_w1_1_w2_8_unaligned
+    .type   dl_esp32p4_s16_sub_w1_1_w2_8_unaligned, @function
     #.section .iram1
-dl_esp32p4_s8_equal_w1_1_w2_16_unaligned:
+dl_esp32p4_s16_sub_w1_1_w2_8_unaligned:
 
-    # a0: bool *output_ptr
-    # a1: int8_t *input0_ptr broadcast
-    # a2: int8_t *input1_ptr
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input0_ptr broadcast
+    # a2: int16_t *input1_ptr
 
     # a3: void *args
     # a4: c_div_x_1
@@ -478,7 +441,7 @@ dl_esp32p4_s8_equal_w1_1_w2_16_unaligned:
 
     # a6(not for extension instructions):
     # a7(not for extension instructions):
-    # t0(not for extension instructions):
+    # t0(not for extension instructions): tmp value
     # t1(not for extension instructions):
     # t2(not for extension instructions):
     # s2(not for extension instructions):
@@ -493,8 +456,6 @@ dl_esp32p4_s8_equal_w1_1_w2_16_unaligned:
     # s10:
     # s11:
 
-    addi  t3, a3, 100
-    esp.vldbc.8.ip  q7, t3, 0
     lw a4, 64(a3)
     lw t5, 76(a3)
 
@@ -502,80 +463,74 @@ dl_esp32p4_s8_equal_w1_1_w2_16_unaligned:
     esp.ld.128.usar.ip q5, a0, 0    // output sar_byte
     esp.movx.r.sar.bytes a5
 
-    esp.vldbc.8.ip q5, a1, 0        // input0 broadcast
+    esp.vldbc.16.ip q5, a1, 0       // input0 broadcast
 
     esp.ld.128.usar.ip q0, a2, 16
-    bltz a4, dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_remainder  // channel < 16
+    bltz a4, dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_remainder  // channel < 16
     esp.ld.128.usar.ip q1, a2, 16
 
-    beqz a5, dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_128b
+    beqz a5, dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_128b
     li t0, 8
-    beq a5, t0, dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_64b
+    beq a5, t0, dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_64b
 
         mv  t0, a4
         beqz t0, 1f
         0:
             esp.src.q.qup q2, q0, q1
-            esp.vcmp.eq.s8 q2, q5, q2
-            esp.andq  q2, q2, q7
+            esp.vsub.s16 q2, q5, q2
             esp.ld.128.usar.ip q1, a2, 16
-            esp32p4_s8_32b_unaligned_vector_store q2, a0, a5
+            esp32p4_s16_32b_unaligned_vector_store  q2, a0, a5
             addi t0, t0, -1
             bgtz t0, 0b
         1:
         esp.src.q.qup q2, q0, q1
-        esp.vcmp.eq.s8 q2, q5, q2
-        esp.andq  q2, q2, q7
-        esp32p4_s8_32b_unaligned_vector_store q2, a0, a5
-        j dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_remainder
+        esp.vsub.s16 q2, q5, q2
+        esp32p4_s16_32b_unaligned_vector_store  q2, a0, a5
+        j dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_remainder
 
     // output sar = 0
-    dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_128b:
+    dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_128b:
         mv  t0, a4
         beqz t0, 3f
         2:
             esp.src.q.qup q2, q0, q1
-            esp.vcmp.eq.s8 q2, q5, q2
-            esp.andq  q2, q2, q7
+            esp.vsub.s16 q2, q5, q2
             esp.ld.128.usar.ip q1, a2, 16
-            esp.vst.128.ip q2, a0, 16
+            esp.vst.128.ip  q2, a0, 16
             addi t0, t0, -1
             bgtz t0, 2b
         3:
         esp.src.q.qup q2, q0, q1
-        esp.vcmp.eq.s8 q2, q5, q2
-        esp.andq  q2, q2, q7
-        esp.vst.128.ip q2, a0, 16
-        j dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_remainder
+        esp.vsub.s16 q2, q5, q2
+        esp.vst.128.ip  q2, a0, 16
+        j dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_remainder
 
     // output sar = 8
-    dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_64b:
+    dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_64b:
         mv  t0, a4
         beqz t0, 5f
         4:
             esp.src.q.qup q2, q0, q1
-            esp.vcmp.eq.s8 q2, q5, q2
-            esp.andq  q2, q2, q7
+            esp.vsub.s16 q2, q5, q2
             esp.ld.128.usar.ip q1, a2, 16
-            esp32p4_s8_64b_unaligned_vector_store q2, a0
+            esp32p4_s16_64b_unaligned_vector_store  q2, a0
             addi t0, t0, -1
             bgtz t0, 4b
         5:
         esp.src.q.qup q2, q0, q1
-        esp.vcmp.eq.s8 q2, q5, q2
-        esp.andq  q2, q2, q7
-        esp32p4_s8_64b_unaligned_vector_store q2, a0
-        j dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_remainder
+        esp.vsub.s16 q2, q5, q2
+        esp32p4_s16_64b_unaligned_vector_store  q2, a0
+        j dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_remainder
 
-    dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_remainder:
-        beqz t5, dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_end
+    dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_remainder:
+        beqz t5, dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_end
 
         esp.ld.128.usar.xp q1, a2, t5
         esp.src.q q2, q0, q1
-        esp.vcmp.eq.s8 q2, q5, q2
-        esp.andq  q2, q2, q7
-        dl_esp32p4_s8_store_remainder q2, t4, t6, a5, t3, t0, a0, t5
+        esp.vsub.s16 q2, q5, q2
+        srli  t5, t5, 1
+        dl_esp32p4_s16_store_remainder  q2, t5, t3, a0
 
-    dl_esp32p4_s8_equal_w1_1_w2_16_unaligned_end:
+    dl_esp32p4_s16_sub_w1_1_w2_8_unaligned_end:
         addi a2, a2, -16
     ret

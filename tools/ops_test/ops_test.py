@@ -71,7 +71,7 @@ class ADD2D_TEST(nn.Module):
         return output
 
 
-class ADD4D_TEST(nn.Module):
+class ADD_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
@@ -108,7 +108,7 @@ class ADD4D_TEST(nn.Module):
         return output
 
 
-class SUB4D_TEST(nn.Module):
+class SUB_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
