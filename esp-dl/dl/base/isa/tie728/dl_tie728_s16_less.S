@@ -84,12 +84,12 @@ dl_tie728_s16_less_w1_8_w2_1:
     ee.vldbc.16.ip  q7, a6, 0
     l32i  a6, a5, 44
     srai a5, a6, 3
+    ee.vldbc.16.ip q1, a4, 0        // input1 broadcast
 
     movi a14, 0
 tie728_s16_less_w1_8_w2_1_loop:
     beq a14, a5, tie728_s16_less_w1_8_w2_1_end
     ee.vld.128.ip q0, a3, 16
-    ee.vldbc.16.ip q1, a4, 0
     ee.vcmp.lt.s16 q2, q0, q1
     ee.andq  q2, q2, q7
     ee.vunzip.8  q2, q6
@@ -133,11 +133,11 @@ dl_tie728_s16_less_w1_1_w2_8:
     ee.vldbc.16.ip  q7, a6, 0
     l32i  a6, a5, 44
     srai a5, a6, 3
+    ee.vldbc.16.ip q0, a3, 0        // input0 broadcast
 
     movi a14, 0
 tie728_s16_less_w1_1_w2_8_loop:
     beq a14, a5, tie728_s16_less_w1_1_w2_8_end
-    ee.vldbc.16.ip q0, a3, 0
     ee.vld.128.ip q1, a4, 16
     ee.vcmp.lt.s16 q2, q0, q1
     ee.andq  q2, q2, q7
@@ -299,8 +299,9 @@ dl_tie728_s16_less_w1_8_w2_1_unaligned:
 
     // input0 exp = input1 exp = output exp
 
-    ee.ld.128.usar.ip q5, a2, 0    // get output_ptr sar_byte
+    ee.ld.128.usar.ip q5, a2, 0     // get output_ptr sar_byte
     rur.sar_byte  a7
+    ee.vldbc.16.ip q5, a4, 0        // input1 broadcast
 
     ee.ld.128.usar.ip q0, a3, 16
     bltz a6, dl_tie728_s16_less_w1_8_w2_1_unaligned_remainder  // channel < 16
@@ -314,7 +315,6 @@ dl_tie728_s16_less_w1_8_w2_1_unaligned:
         beqz a14, 1f
         0:
             ee.src.q.qup q2, q0, q1
-            ee.vldbc.16.ip q5, a4, 0
             ee.vcmp.lt.s16 q2, q2, q5
             ee.andq  q2, q2, q7
             ee.vunzip.8  q2, q6
@@ -324,7 +324,6 @@ dl_tie728_s16_less_w1_8_w2_1_unaligned:
             bgei  a14, 1, 0b
         1:
         ee.src.q.qup q2, q0, q1
-        ee.vldbc.16.ip q5, a4, 0
         ee.vcmp.lt.s16 q2, q2, q5
         ee.andq  q2, q2, q7
         ee.vunzip.8  q2, q6
@@ -337,7 +336,6 @@ dl_tie728_s16_less_w1_8_w2_1_unaligned:
         beqz a14, 3f
         2:
             ee.src.q.qup q2, q0, q1
-            ee.vldbc.16.ip q5, a4, 0
             ee.vcmp.lt.s16 q2, q2, q5
             ee.andq  q2, q2, q7
             ee.vunzip.8  q2, q6
@@ -347,7 +345,6 @@ dl_tie728_s16_less_w1_8_w2_1_unaligned:
             bgei  a14, 1, 2b
         3:
         ee.src.q.qup q2, q0, q1
-        ee.vldbc.16.ip q5, a4, 0
         ee.vcmp.lt.s16 q2, q2, q5
         ee.andq  q2, q2, q7
         ee.vunzip.8  q2, q6
@@ -359,7 +356,6 @@ dl_tie728_s16_less_w1_8_w2_1_unaligned:
 
         ee.ld.128.usar.xp q1, a3, a10
         ee.src.q q2, q0, q1
-        ee.vldbc.16.ip q5, a4, 0
         ee.vcmp.lt.s16 q2, q2, q5
         ee.andq  q2, q2, q7
         ee.vunzip.8  q2, q6
@@ -404,8 +400,9 @@ dl_tie728_s16_less_w1_1_w2_8_unaligned:
     l32i  a10, a5, 76
 
     // input0 exp = input1 exp = output exp
-    ee.ld.128.usar.ip q5, a2, 0    // output sar_byte
+    ee.ld.128.usar.ip q5, a2, 0     // output sar_byte
     rur.sar_byte  a7
+    ee.vldbc.16.ip q5, a3, 0        // input0 broadcast
 
     ee.ld.128.usar.ip q0, a4, 16
     bltz a6, dl_tie728_s16_less_w1_1_w2_8_unaligned_remainder  // channel < 16
@@ -419,7 +416,6 @@ dl_tie728_s16_less_w1_1_w2_8_unaligned:
         beqz a14, 1f
         0:
             ee.src.q.qup q2, q0, q1
-            ee.vldbc.16.ip q5, a3, 0
             ee.vcmp.lt.s16 q2, q5, q2
             ee.andq  q2, q2, q7
             ee.vunzip.8  q2, q6
@@ -429,7 +425,6 @@ dl_tie728_s16_less_w1_1_w2_8_unaligned:
             bgei  a14, 1, 0b
         1:
         ee.src.q.qup q2, q0, q1
-        ee.vldbc.16.ip q5, a3, 0
         ee.vcmp.lt.s16 q2, q5, q2
         ee.andq  q2, q2, q7
         ee.vunzip.8  q2, q6
@@ -442,7 +437,6 @@ dl_tie728_s16_less_w1_1_w2_8_unaligned:
         beqz a14, 3f
         2:
             ee.src.q.qup q2, q0, q1
-            ee.vldbc.16.ip q5, a3, 0
             ee.vcmp.lt.s16 q2, q5, q2
             ee.andq  q2, q2, q7
             ee.vunzip.8  q2, q6
@@ -452,7 +446,6 @@ dl_tie728_s16_less_w1_1_w2_8_unaligned:
             bgei  a14, 1, 2b
         3:
         ee.src.q.qup q2, q0, q1
-        ee.vldbc.16.ip q5, a3, 0
         ee.vcmp.lt.s16 q2, q5, q2
         ee.andq  q2, q2, q7
         ee.vunzip.8  q2, q6
@@ -464,7 +457,6 @@ dl_tie728_s16_less_w1_1_w2_8_unaligned:
 
         ee.ld.128.usar.xp q1, a4, a10
         ee.src.q q2, q0, q1
-        ee.vldbc.16.ip q5, a3, 0
         ee.vcmp.lt.s16 q2, q5, q2
         ee.andq  q2, q2, q7
         ee.vunzip.8  q2, q6

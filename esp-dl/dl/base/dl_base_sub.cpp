@@ -13,7 +13,6 @@ void c_impl_sub_n_1(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
     int32_t length = elem_args->output_d0;
     int32_t temp = input1_ptr[0];
     for (int i = 0; i < length; i++) {
-        // printf("%d %d -> %d\n", input0_ptr[i], temp, temp + input0_ptr[i]);
         tool::truncate<int32_t>(output_ptr[i], input0_ptr[i] - temp);
     }
 }
@@ -51,40 +50,40 @@ void elemwise_sub(elemwiseArgsType<int8_t> *args)
     if (args->output_d0 >= ilen) {
 #if CONFIG_IDF_TARGET_ESP32P4
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-            elemwise_func = dl_esp32p4_s8_sub4d_bchw_w1_16_w2_16_simdsub;
+            elemwise_func = dl_esp32p4_s8_sub_w1_16_w2_16;
         } else if (args->input1_d0 == 1) {
             if (args->input0_d0 % ilen == 0) {
-                elemwise_func = dl_esp32p4_s8_sub4d_bchw_w1_16_w2_1_simdsub;
+                elemwise_func = dl_esp32p4_s8_sub_w1_16_w2_1;
             } else {
-                elemwise_func = dl_esp32p4_s8_sub4d_bchw_w1_16_w2_1_simdsub_unaligned;
+                elemwise_func = dl_esp32p4_s8_sub_w1_16_w2_1_unaligned;
             }
         } else if (args->input0_d0 == 1) {
             if (args->input1_d0 % ilen == 0) {
-                elemwise_func = dl_esp32p4_s8_sub4d_bchw_w1_1_w2_16_simdsub;
+                elemwise_func = dl_esp32p4_s8_sub_w1_1_w2_16;
             } else {
-                elemwise_func = dl_esp32p4_s8_sub4d_bchw_w1_1_w2_16_simdsub_unaligned;
+                elemwise_func = dl_esp32p4_s8_sub_w1_1_w2_16_unaligned;
             }
         } else {
-            elemwise_func = dl_esp32p4_s8_sub4d_bchw_w1_16_w2_16_simdsub_unaligned;
+            elemwise_func = dl_esp32p4_s8_sub_w1_16_w2_16_unaligned;
         }
-// #elif CONFIG_IDF_TARGET_ESP32S3
-//         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-//             elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_16_simdsub;
-//         } else if (args->input1_d0 == 1) {
-//             if (args->input0_d0 % ilen == 0) {
-//                 elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_1_simdsub;
-//             } else {
-//                 elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_1_simdsub_unaligned;
-//             }
-//         } else if (args->input0_d0 == 1) {
-//             if (args->input1_d0 % ilen == 0) {
-//                 elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_1_w2_16_simdsub;
-//             } else {
-//                 elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_1_w2_16_simdsub_unaligned;
-//             }
-//         } else {
-//             elemwise_func = dl_esp32s3_s8_sub4d_bchw_w1_16_w2_16_simdsub_unaligned;
-//         }
+#elif CONFIG_IDF_TARGET_ESP32S3
+        if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
+            elemwise_func = dl_tie728_s8_sub_w1_16_w2_16;
+        } else if (args->input1_d0 == 1) {
+            if (args->input0_d0 % ilen == 0) {
+                elemwise_func = dl_tie728_s8_sub_w1_16_w2_1;
+            } else {
+                elemwise_func = dl_tie728_s8_sub_w1_16_w2_1_unaligned;
+            }
+        } else if (args->input0_d0 == 1) {
+            if (args->input1_d0 % ilen == 0) {
+                elemwise_func = dl_tie728_s8_sub_w1_1_w2_16;
+            } else {
+                elemwise_func = dl_tie728_s8_sub_w1_1_w2_16_unaligned;
+            }
+        } else {
+            elemwise_func = dl_tie728_s8_sub_w1_16_w2_16_unaligned;
+        }
 #else
         if (args->input1_d0 == 1) {
             elemwise_func = c_impl_sub_n_1<int8_t>;
@@ -126,40 +125,40 @@ void elemwise_sub(elemwiseArgsType<int16_t> *args)
     if (args->output_d0 >= ilen) {
 #if CONFIG_IDF_TARGET_ESP32P4
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-            elemwise_func = dl_esp32p4_s16_sub4d_bchw_w1_8_w2_8_simdsub;
+            elemwise_func = dl_esp32p4_s16_sub_w1_8_w2_8;
         } else if (args->input1_d0 == 1) {
             if (args->input0_d0 % ilen == 0) {
-                elemwise_func = dl_esp32p4_s16_sub4d_bchw_w1_8_w2_1_simdsub;
+                elemwise_func = dl_esp32p4_s16_sub_w1_8_w2_1;
             } else {
-                elemwise_func = dl_esp32p4_s16_sub4d_bchw_w1_8_w2_1_simdsub_unaligned;
+                elemwise_func = dl_esp32p4_s16_sub_w1_8_w2_1_unaligned;
             }
         } else if (args->input0_d0 == 1) {
             if (args->input1_d0 % ilen == 0) {
-                elemwise_func = dl_esp32p4_s16_sub4d_bchw_w1_1_w2_8_simdsub;
+                elemwise_func = dl_esp32p4_s16_sub_w1_1_w2_8;
             } else {
-                elemwise_func = dl_esp32p4_s16_sub4d_bchw_w1_1_w2_8_simdsub_unaligned;
+                elemwise_func = dl_esp32p4_s16_sub_w1_1_w2_8_unaligned;
             }
         } else {
-            elemwise_func = dl_esp32p4_s16_sub4d_bchw_w1_8_w2_8_simdsub_unaligned;
+            elemwise_func = dl_esp32p4_s16_sub_w1_8_w2_8_unaligned;
         }
-// #elif CONFIG_IDF_TARGET_ESP32S3
-//         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-//             elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_8_simdsub;
-//         } else if (args->input1_d0 == 1) {
-//             if (args->input0_d0 % ilen == 0) {
-//                 elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_1_simdsub;
-//             } else {
-//                 elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_1_simdsub_unaligned;
-//             }
-//         } else if (args->input0_d0 == 1) {
-//             if (args->input1_d0 % ilen == 0) {
-//                 elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_1_w2_8_simdsub;
-//             } else {
-//                 elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_1_w2_8_simdsub_unaligned;
-//             }
-//         } else {
-//             elemwise_func = dl_esp32s3_s16_sub4d_bchw_w1_8_w2_8_simdsub_unaligned;
-//         }
+#elif CONFIG_IDF_TARGET_ESP32S3
+        if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
+            elemwise_func = dl_tie728_s16_sub_w1_8_w2_8;
+        } else if (args->input1_d0 == 1) {
+            if (args->input0_d0 % ilen == 0) {
+                elemwise_func = dl_tie728_s16_sub_w1_8_w2_1;
+            } else {
+                elemwise_func = dl_tie728_s16_sub_w1_8_w2_1_unaligned;
+            }
+        } else if (args->input0_d0 == 1) {
+            if (args->input1_d0 % ilen == 0) {
+                elemwise_func = dl_tie728_s16_sub_w1_1_w2_8;
+            } else {
+                elemwise_func = dl_tie728_s16_sub_w1_1_w2_8_unaligned;
+            }
+        } else {
+            elemwise_func = dl_tie728_s16_sub_w1_8_w2_8_unaligned;
+        }
 #else
         if (args->input1_d0 == 1) {
             elemwise_func = c_impl_sub_n_1<int16_t>;

@@ -149,6 +149,38 @@ void dl_tie728_s16_unaligned_sub2d_11c_prelu(int16_t *output_ptr,
                                              int16_t *input1_ptr,
                                              void *args_ptr);
 
+void dl_tie728_s16_add_w1_8_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_add_w1_8_w2_1(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_add_w1_1_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_add_w1_8_w2_8_unaligned(int16_t *output_ptr,
+                                           int16_t *input0_ptr,
+                                           int16_t *input1_ptr,
+                                           void *args_ptr);
+void dl_tie728_s16_add_w1_8_w2_1_unaligned(int16_t *output_ptr,
+                                           int16_t *input0_ptr,
+                                           int16_t *input1_ptr,
+                                           void *args_ptr);
+void dl_tie728_s16_add_w1_1_w2_8_unaligned(int16_t *output_ptr,
+                                           int16_t *input0_ptr,
+                                           int16_t *input1_ptr,
+                                           void *args_ptr);
+
+void dl_tie728_s16_sub_w1_8_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_sub_w1_8_w2_1(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_sub_w1_1_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_tie728_s16_sub_w1_8_w2_8_unaligned(int16_t *output_ptr,
+                                           int16_t *input0_ptr,
+                                           int16_t *input1_ptr,
+                                           void *args_ptr);
+void dl_tie728_s16_sub_w1_8_w2_1_unaligned(int16_t *output_ptr,
+                                           int16_t *input0_ptr,
+                                           int16_t *input1_ptr,
+                                           void *args_ptr);
+void dl_tie728_s16_sub_w1_1_w2_8_unaligned(int16_t *output_ptr,
+                                           int16_t *input0_ptr,
+                                           int16_t *input1_ptr,
+                                           void *args_ptr);
+
 void dl_tie728_s16_mul2d_11c(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
 void dl_tie728_s16_mul2d_11c_relu(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
 void dl_tie728_s16_mul2d_11c_prelu(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
@@ -231,6 +263,20 @@ void dl_tie728_s8_rescale_sub2d_11c_prelu(int8_t *output_ptr, int8_t *input0_ptr
 void dl_tie728_s8_unaligned_sub2d_11c(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
 void dl_tie728_s8_unaligned_sub2d_11c_relu(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
 void dl_tie728_s8_unaligned_sub2d_11c_prelu(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+
+void dl_tie728_s8_add_w1_16_w2_16(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_add_w1_16_w2_1(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_add_w1_1_w2_16(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_add_w1_16_w2_16_unaligned(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_add_w1_16_w2_1_unaligned(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_add_w1_1_w2_16_unaligned(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+
+void dl_tie728_s8_sub_w1_16_w2_16(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_sub_w1_16_w2_1(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_sub_w1_1_w2_16(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_sub_w1_16_w2_16_unaligned(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_sub_w1_16_w2_1_unaligned(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_tie728_s8_sub_w1_1_w2_16_unaligned(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
 
 void dl_tie728_s8_mul2d_11c(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
 void dl_tie728_s8_mul2d_11c_relu(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
@@ -587,55 +633,57 @@ void dl_esp32p4_s8_unaligned_resize2d_nearest_2x2_c1(int8_t *output_ptr, int8_t 
 void dl_esp32p4_s8_prelu_11c(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 void dl_esp32p4_s8_unaligned_prelu_11c(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 
-void dl_esp32p4_s8_add4d_bchw_w1_16_w2_16_simdadd(int8_t *output_ptr,
-                                                  int8_t *input0_ptr,
-                                                  int8_t *input1_ptr,
-                                                  void *args_ptr);
-void dl_esp32p4_s8_add4d_bchw_w1_16_w2_1_simdadd(int8_t *output_ptr,
-                                                 int8_t *input0_ptr,
-                                                 int8_t *input1_ptr,
-                                                 void *args_ptr);
-void dl_esp32p4_s8_add4d_bchw_w1_1_w2_16_simdadd(int8_t *output_ptr,
-                                                 int8_t *input0_ptr,
-                                                 int8_t *input1_ptr,
-                                                 void *args_ptr);
-void dl_esp32p4_s16_add4d_bchw_w1_8_w2_8_simdadd(int16_t *output_ptr,
-                                                 int16_t *input0_ptr,
-                                                 int16_t *input1_ptr,
-                                                 void *args_ptr);
-void dl_esp32p4_s16_add4d_bchw_w1_8_w2_1_simdadd(int16_t *output_ptr,
-                                                 int16_t *input0_ptr,
-                                                 int16_t *input1_ptr,
-                                                 void *args_ptr);
-void dl_esp32p4_s16_add4d_bchw_w1_1_w2_8_simdadd(int16_t *output_ptr,
-                                                 int16_t *input0_ptr,
-                                                 int16_t *input1_ptr,
-                                                 void *args_ptr);
+void dl_esp32p4_s8_add_w1_16_w2_16(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s8_add_w1_16_w2_1(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s8_add_w1_1_w2_16(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s8_add_w1_16_w2_16_unaligned(int8_t *output_ptr,
+                                             int8_t *input0_ptr,
+                                             int8_t *input1_ptr,
+                                             void *args_ptr);
+void dl_esp32p4_s8_add_w1_16_w2_1_unaligned(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s8_add_w1_1_w2_16_unaligned(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
 
-void dl_esp32p4_s8_sub4d_bchw_w1_16_w2_16_simdsub(int8_t *output_ptr,
-                                                  int8_t *input0_ptr,
-                                                  int8_t *input1_ptr,
-                                                  void *args_ptr);
-void dl_esp32p4_s8_sub4d_bchw_w1_16_w2_1_simdsub(int8_t *output_ptr,
-                                                 int8_t *input0_ptr,
-                                                 int8_t *input1_ptr,
-                                                 void *args_ptr);
-void dl_esp32p4_s8_sub4d_bchw_w1_1_w2_16_simdsub(int8_t *output_ptr,
-                                                 int8_t *input0_ptr,
-                                                 int8_t *input1_ptr,
-                                                 void *args_ptr);
-void dl_esp32p4_s16_sub4d_bchw_w1_8_w2_8_simdsub(int16_t *output_ptr,
-                                                 int16_t *input0_ptr,
-                                                 int16_t *input1_ptr,
-                                                 void *args_ptr);
-void dl_esp32p4_s16_sub4d_bchw_w1_8_w2_1_simdsub(int16_t *output_ptr,
-                                                 int16_t *input0_ptr,
-                                                 int16_t *input1_ptr,
-                                                 void *args_ptr);
-void dl_esp32p4_s16_sub4d_bchw_w1_1_w2_8_simdsub(int16_t *output_ptr,
-                                                 int16_t *input0_ptr,
-                                                 int16_t *input1_ptr,
-                                                 void *args_ptr);
+void dl_esp32p4_s16_add_w1_8_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s16_add_w1_8_w2_1(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s16_add_w1_1_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s16_add_w1_8_w2_8_unaligned(int16_t *output_ptr,
+                                            int16_t *input0_ptr,
+                                            int16_t *input1_ptr,
+                                            void *args_ptr);
+void dl_esp32p4_s16_add_w1_8_w2_1_unaligned(int16_t *output_ptr,
+                                            int16_t *input0_ptr,
+                                            int16_t *input1_ptr,
+                                            void *args_ptr);
+void dl_esp32p4_s16_add_w1_1_w2_8_unaligned(int16_t *output_ptr,
+                                            int16_t *input0_ptr,
+                                            int16_t *input1_ptr,
+                                            void *args_ptr);
+
+void dl_esp32p4_s8_sub_w1_16_w2_16(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s8_sub_w1_16_w2_1(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s8_sub_w1_1_w2_16(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s8_sub_w1_16_w2_16_unaligned(int8_t *output_ptr,
+                                             int8_t *input0_ptr,
+                                             int8_t *input1_ptr,
+                                             void *args_ptr);
+void dl_esp32p4_s8_sub_w1_16_w2_1_unaligned(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s8_sub_w1_1_w2_16_unaligned(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+
+void dl_esp32p4_s16_sub_w1_8_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s16_sub_w1_8_w2_1(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s16_sub_w1_1_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s16_sub_w1_8_w2_8_unaligned(int16_t *output_ptr,
+                                            int16_t *input0_ptr,
+                                            int16_t *input1_ptr,
+                                            void *args_ptr);
+void dl_esp32p4_s16_sub_w1_8_w2_1_unaligned(int16_t *output_ptr,
+                                            int16_t *input0_ptr,
+                                            int16_t *input1_ptr,
+                                            void *args_ptr);
+void dl_esp32p4_s16_sub_w1_1_w2_8_unaligned(int16_t *output_ptr,
+                                            int16_t *input0_ptr,
+                                            int16_t *input1_ptr,
+                                            void *args_ptr);
 
 void dl_esp32p4_s8_mul4d_bchw_w1_16_w2_16_simdmul(int8_t *output_ptr,
                                                   int8_t *input0_ptr,
@@ -673,26 +721,7 @@ void dl_esp32p4_s8_mul4d_bchw_w1_1_w2_16_simdmul_unaligned(int8_t *output_ptr,
                                                            int8_t *input0_ptr,
                                                            int8_t *input1_ptr,
                                                            void *args_ptr);
-void dl_esp32p4_s8_add4d_bchw_w1_16_w2_16_simdadd_unaligned(int8_t *output_ptr,
-                                                            int8_t *input0_ptr,
-                                                            int8_t *input1_ptr,
-                                                            void *args_ptr);
-void dl_esp32p4_s8_add4d_bchw_w1_16_w2_1_simdadd_unaligned(int8_t *output_ptr,
-                                                           int8_t *input0_ptr,
-                                                           int8_t *input1_ptr,
-                                                           void *args_ptr);
-void dl_esp32p4_s8_add4d_bchw_w1_1_w2_16_simdadd_unaligned(int8_t *output_ptr,
-                                                           int8_t *input0_ptr,
-                                                           int8_t *input1_ptr,
-                                                           void *args_ptr);
-void dl_esp32p4_s16_add4d_bchw_w1_8_w2_8_simdadd_unaligned(int16_t *output_ptr,
-                                                           int16_t *input0_ptr,
-                                                           int16_t *input1_ptr,
-                                                           void *args_ptr);
-void dl_esp32p4_s16_add4d_bchw_w1_8_w2_1_simdadd_unaligned(int16_t *output_ptr,
-                                                           int16_t *input0_ptr,
-                                                           int16_t *input1_ptr,
-                                                           void *args_ptr);
+
 void dl_esp32p4_s16_mul4d_bchw_w1_8_w2_8_simdmul_unaligned(int16_t *output_ptr,
                                                            int16_t *input0_ptr,
                                                            int16_t *input1_ptr,
@@ -702,54 +731,6 @@ void dl_esp32p4_s16_mul4d_bchw_w1_8_w2_1_simdmul_unaligned(int16_t *output_ptr,
                                                            int16_t *input1_ptr,
                                                            void *args_ptr);
 void dl_esp32p4_s16_mul4d_bchw_w1_1_w2_8_simdmul_unaligned(int16_t *output_ptr,
-                                                           int16_t *input0_ptr,
-                                                           int16_t *input1_ptr,
-                                                           void *args_ptr);
-// void dl_esp32p4_s8_sub4d_bchw_w1_16_w2_16_simdsub(int8_t *output_ptr,
-//                                                   int8_t *input0_ptr,
-//                                                   int8_t *input1_ptr,
-//                                                   void *args_ptr);
-// void dl_esp32p4_s8_sub4d_bchw_w1_16_w2_1_simdsub(int8_t *output_ptr,
-//                                                  int8_t *input0_ptr,
-//                                                  int8_t *input1_ptr,
-//                                                  void *args_ptr);
-// void dl_esp32p4_s8_sub4d_bchw_w1_1_w2_16_simdsub(int8_t *output_ptr,
-//                                                  int8_t *input0_ptr,
-//                                                  int8_t *input1_ptr,
-//                                                  void *args_ptr);
-// void dl_esp32p4_s16_sub4d_bchw_w1_8_w2_8_simdsub(int16_t *output_ptr,
-//                                                  int16_t *input0_ptr,
-//                                                  int16_t *input1_ptr,
-//                                                  void *args_ptr);
-// void dl_esp32p4_s16_sub4d_bchw_w1_8_w2_1_simdsub(int16_t *output_ptr,
-//                                                  int16_t *input0_ptr,
-//                                                  int16_t *input1_ptr,
-//                                                  void *args_ptr);
-// void dl_esp32p4_s16_sub4d_bchw_w1_1_w2_8_simdsub(int16_t *output_ptr,
-//                                                  int16_t *input0_ptr,
-//                                                  int16_t *input1_ptr,
-//                                                  void *args_ptr);
-void dl_esp32p4_s8_sub4d_bchw_w1_16_w2_16_simdsub_unaligned(int8_t *output_ptr,
-                                                            int8_t *input0_ptr,
-                                                            int8_t *input1_ptr,
-                                                            void *args_ptr);
-void dl_esp32p4_s8_sub4d_bchw_w1_16_w2_1_simdsub_unaligned(int8_t *output_ptr,
-                                                           int8_t *input0_ptr,
-                                                           int8_t *input1_ptr,
-                                                           void *args_ptr);
-void dl_esp32p4_s8_sub4d_bchw_w1_1_w2_16_simdsub_unaligned(int8_t *output_ptr,
-                                                           int8_t *input0_ptr,
-                                                           int8_t *input1_ptr,
-                                                           void *args_ptr);
-void dl_esp32p4_s16_sub4d_bchw_w1_8_w2_8_simdsub_unaligned(int16_t *output_ptr,
-                                                           int16_t *input0_ptr,
-                                                           int16_t *input1_ptr,
-                                                           void *args_ptr);
-void dl_esp32p4_s16_sub4d_bchw_w1_8_w2_1_simdsub_unaligned(int16_t *output_ptr,
-                                                           int16_t *input0_ptr,
-                                                           int16_t *input1_ptr,
-                                                           void *args_ptr);
-void dl_esp32p4_s16_sub4d_bchw_w1_1_w2_8_simdsub_unaligned(int16_t *output_ptr,
                                                            int16_t *input0_ptr,
                                                            int16_t *input1_ptr,
                                                            void *args_ptr);

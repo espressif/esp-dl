@@ -105,12 +105,12 @@ dl_esp32p4_s8_greaterorequal_w1_16_w2_1:
     esp.vldbc.8.ip  q7, a4, 0
     lw a4, 44(a3)
     srai a3, a4, 4
+    esp.vldbc.8.ip q1, a2, 0    // input1 broadcast
 
     li t0, 0
 esp32p4_s8_greaterorequal_w1_16_w2_1_loop:
     beq t0, a3, esp32p4_s8_greaterorequal_w1_16_w2_1_end
     esp.vld.128.ip q0, a1, 16
-    esp.vldbc.8.ip q1, a2, 0
     esp.vcmp.gt.s8 q2, q0, q1
     esp.vcmp.eq.s8 q6, q0, q1
     esp.vmax.u8  q2, q2, q6
@@ -165,11 +165,12 @@ dl_esp32p4_s8_greaterorequal_w1_1_w2_16:
     esp.vldbc.8.ip  q7, a4, 0
     lw a4, 44(a3)
     srai a3, a4, 4
+    esp.vldbc.8.ip q0, a1, 0    // input0 broadcast
 
     li t0, 0
 esp32p4_s8_greaterorequal_w1_1_w2_16_loop:
     beq t0, a3, esp32p4_s8_greaterorequal_w1_1_w2_16_end
-    esp.vldbc.8.ip q0, a1, 0
+
     esp.vld.128.ip q1, a2, 16
     esp.vcmp.gt.s8 q2, q0, q1
     esp.vcmp.eq.s8 q6, q0, q1
@@ -397,6 +398,8 @@ dl_esp32p4_s8_greaterorequal_w1_16_w2_1_unaligned:
     esp.ld.128.usar.ip q5, a0, 0    // get output_ptr sar_byte
     esp.movx.r.sar.bytes a5
 
+    esp.vldbc.8.ip q5, a2, 0        // input1 broadcast
+
     esp.ld.128.usar.ip q0, a1, 16
     bltz a4, dl_esp32p4_s8_greaterorequal_w1_16_w2_1_unaligned_remainder  // channel < 16
     esp.ld.128.usar.ip q1, a1, 16
@@ -409,7 +412,6 @@ dl_esp32p4_s8_greaterorequal_w1_16_w2_1_unaligned:
         beqz t0, 1f
         0:
             esp.src.q.qup q2, q0, q1
-            esp.vldbc.8.ip q5, a2, 0
             esp.vcmp.gt.s8 q1, q2, q5
             esp.vcmp.eq.s8 q6, q2, q5
             esp.vmax.u8  q2, q1, q6
@@ -420,7 +422,6 @@ dl_esp32p4_s8_greaterorequal_w1_16_w2_1_unaligned:
             bgtz t0, 0b
         1:
         esp.src.q.qup q2, q0, q1
-        esp.vldbc.8.ip q5, a2, 0
         esp.vcmp.gt.s8 q1, q2, q5
         esp.vcmp.eq.s8 q6, q2, q5
         esp.vmax.u8  q2, q1, q6
@@ -434,7 +435,6 @@ dl_esp32p4_s8_greaterorequal_w1_16_w2_1_unaligned:
         beqz t0, 3f
         2:
             esp.src.q.qup q2, q0, q1
-            esp.vldbc.8.ip q5, a2, 0
             esp.vcmp.gt.s8 q1, q2, q5
             esp.vcmp.eq.s8 q6, q2, q5
             esp.vmax.u8  q2, q1, q6
@@ -445,7 +445,6 @@ dl_esp32p4_s8_greaterorequal_w1_16_w2_1_unaligned:
             bgtz t0, 2b
         3:
         esp.src.q.qup q2, q0, q1
-        esp.vldbc.8.ip q5, a2, 0
         esp.vcmp.gt.s8 q1, q2, q5
         esp.vcmp.eq.s8 q6, q2, q5
         esp.vmax.u8  q2, q1, q6
@@ -459,7 +458,6 @@ dl_esp32p4_s8_greaterorequal_w1_16_w2_1_unaligned:
         beqz t0, 5f
         4:
             esp.src.q.qup q2, q0, q1
-            esp.vldbc.8.ip q5, a2, 0
             esp.vcmp.gt.s8 q1, q2, q5
             esp.vcmp.eq.s8 q6, q2, q5
             esp.vmax.u8  q2, q1, q6
@@ -470,7 +468,6 @@ dl_esp32p4_s8_greaterorequal_w1_16_w2_1_unaligned:
             bgtz t0, 4b
         5:
         esp.src.q.qup q2, q0, q1
-        esp.vldbc.8.ip q5, a2, 0
         esp.vcmp.gt.s8 q1, q2, q5
         esp.vcmp.eq.s8 q6, q2, q5
         esp.vmax.u8  q2, q1, q6
@@ -483,7 +480,6 @@ dl_esp32p4_s8_greaterorequal_w1_16_w2_1_unaligned:
 
         esp.ld.128.usar.xp q1, a1, t5
         esp.src.q q2, q0, q1
-        esp.vldbc.8.ip q5, a2, 0
         esp.vcmp.gt.s8 q1, q2, q5
         esp.vcmp.eq.s8 q6, q2, q5
         esp.vmax.u8  q2, q1, q6
@@ -541,6 +537,8 @@ dl_esp32p4_s8_greaterorequal_w1_1_w2_16_unaligned:
     esp.ld.128.usar.ip q5, a0, 0    // output sar_byte
     esp.movx.r.sar.bytes a5
 
+    esp.vldbc.8.ip q5, a1, 0        // input0 broadcast
+
     esp.ld.128.usar.ip q0, a2, 16
     bltz a4, dl_esp32p4_s8_greaterorequal_w1_1_w2_16_unaligned_remainder  // channel < 16
     esp.ld.128.usar.ip q1, a2, 16
@@ -553,7 +551,6 @@ dl_esp32p4_s8_greaterorequal_w1_1_w2_16_unaligned:
         beqz t0, 1f
         0:
             esp.src.q.qup q2, q0, q1
-            esp.vldbc.8.ip q5, a1, 0
             esp.vcmp.gt.s8 q1, q5, q2
             esp.vcmp.eq.s8 q6, q5, q2
             esp.vmax.u8  q2, q1, q6
@@ -564,7 +561,6 @@ dl_esp32p4_s8_greaterorequal_w1_1_w2_16_unaligned:
             bgtz t0, 0b
         1:
         esp.src.q.qup q2, q0, q1
-        esp.vldbc.8.ip q5, a1, 0
         esp.vcmp.gt.s8 q1, q5, q2
         esp.vcmp.eq.s8 q6, q5, q2
         esp.vmax.u8  q2, q1, q6
@@ -578,7 +574,6 @@ dl_esp32p4_s8_greaterorequal_w1_1_w2_16_unaligned:
         beqz t0, 3f
         2:
             esp.src.q.qup q2, q0, q1
-            esp.vldbc.8.ip q5, a1, 0
             esp.vcmp.gt.s8 q1, q5, q2
             esp.vcmp.eq.s8 q6, q5, q2
             esp.vmax.u8  q2, q1, q6
@@ -589,7 +584,6 @@ dl_esp32p4_s8_greaterorequal_w1_1_w2_16_unaligned:
             bgtz t0, 2b
         3:
         esp.src.q.qup q2, q0, q1
-        esp.vldbc.8.ip q5, a1, 0
         esp.vcmp.gt.s8 q1, q5, q2
         esp.vcmp.eq.s8 q6, q5, q2
         esp.vmax.u8  q2, q1, q6
@@ -603,7 +597,6 @@ dl_esp32p4_s8_greaterorequal_w1_1_w2_16_unaligned:
         beqz t0, 5f
         4:
             esp.src.q.qup q2, q0, q1
-            esp.vldbc.8.ip q5, a1, 0
             esp.vcmp.gt.s8 q1, q5, q2
             esp.vcmp.eq.s8 q6, q5, q2
             esp.vmax.u8  q2, q1, q6
@@ -614,7 +607,6 @@ dl_esp32p4_s8_greaterorequal_w1_1_w2_16_unaligned:
             bgtz t0, 4b
         5:
         esp.src.q.qup q2, q0, q1
-        esp.vldbc.8.ip q5, a1, 0
         esp.vcmp.gt.s8 q1, q5, q2
         esp.vcmp.eq.s8 q6, q5, q2
         esp.vmax.u8  q2, q1, q6
@@ -627,7 +619,6 @@ dl_esp32p4_s8_greaterorequal_w1_1_w2_16_unaligned:
 
         esp.ld.128.usar.xp q1, a2, t5
         esp.src.q q2, q0, q1
-        esp.vldbc.8.ip q5, a1, 0
         esp.vcmp.gt.s8 q1, q5, q2
         esp.vcmp.eq.s8 q6, q5, q2
         esp.vmax.u8  q2, q1, q6
