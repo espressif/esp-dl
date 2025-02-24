@@ -14,7 +14,11 @@ ESP-DL offers APIs to load, debug, and run AI models. The framework is easy to u
 - **Dual Core Scheduling**: Automatic dual-core scheduling allows computationally intensive operators to fully utilize the dual-core computing power. Currently, Conv2D and DepthwiseConv2D support dual-core scheduling.
 - **8bit LUT Activation**: All activation functions except for ReLU and PReLU are implemented using an 8-bit LUT (Look Up Table) method in ESP-DL to accelerate inference. You can use any activation function, and their computational complexity remains the same.
 
-     
+## News
+
+- [2025/02/18] We supported yolo11n [espdl model](https://github.com/espressif/esp-dl/tree/master/models/coco_detect) and [example](https://github.com/espressif/esp-dl/tree/master/models/coco_detect).
+- [2025/01/09] We updated the schema of espdl model and released ESP-DL v3.1.0. Note: previous models can be load by new schema, but new model is not compatible with previous version. 
+- [2024/12/20] We released ESP-DL v3.0.0.
 
 ## Getting Started
 
@@ -69,7 +73,8 @@ For more details, please refer to [Loading Models with ESP-DL](https://docs.espr
 [Pedestrian Detection](./models/pedestrian_detect/)     
 [Human Face Detection](./models/human_face_detect/)     
 [Human Face Recognition](./models/human_face_recognition/)     
-[Imagenet classification](./models/imagenet_cls/)    
+[Imagenet Classification](./models/imagenet_cls/)    
+[COCO Detection](./models/coco_detect/)    
 
 
 ## Support Operators
