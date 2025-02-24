@@ -1,6 +1,7 @@
 #include "dl_tie728_s8.S"
 
 
+
     .text
     .align 4
     .global dl_tie728_s8_s8_requantize_linear
@@ -51,20 +52,14 @@ dl_tie728_s8_s8_requantize_linear:
     tie728_s8_s8_requantize_linear_left_shift:
 
         addi  a9, a4, 24
-        ee.vldbc.16.ip  q2, a9, 0      // load output_scale
+        ee.vldbc.8.ip  q1, a9, 0      // load output_scale
         beqz  a5, tie728_s8_s8_requantize_linear_left_shift_remainder
 
         tie728_s8_s8_requantize_linear_left_shift_loop:
             ee.vld.128.ip  q0, a3, 16
-            ee.zero.q  q1
-            ee.vzip.8  q0, q1
             ee.zero.qacc
-            ee.vmulas.s16.qacc  q0, q2
+            ee.vmulas.s8.qacc  q0, q1
             tie728_s8_vector_round_result  q0, a8, a14, q3
-            ee.zero.qacc
-            ee.vmulas.s16.qacc  q1, q2
-            tie728_s8_vector_round_result  q1, a8, a14, q3
-            ee.vunzip.8  q0, q1
             ee.vst.128.ip  q0, a2, 16
             addi  a5, a5, -1
             bnez  a5, tie728_s8_s8_requantize_linear_left_shift_loop
@@ -72,15 +67,9 @@ dl_tie728_s8_s8_requantize_linear:
         tie728_s8_s8_requantize_linear_left_shift_remainder:
             beqz  a6, tie728_s8_s8_requantize_linear_end
             ee.vld.128.xp  q0, a3, a6
-            ee.zero.q  q1
-            ee.vzip.8  q0, q1
             ee.zero.qacc
-            ee.vmulas.s16.qacc  q0, q2
+            ee.vmulas.s8.qacc  q0, q1
             tie728_s8_vector_round_result  q0, a8, a14, q3
-            ee.zero.qacc
-            ee.vmulas.s16.qacc  q1, q2
-            tie728_s8_vector_round_result  q1, a8, a14, q3
-            ee.vunzip.8  q0, q1
             dl_tie728_s8_store_remainder  q0, a5, a7, a8, a9, a2, a6
 
     tie728_s8_s8_requantize_linear_end:
