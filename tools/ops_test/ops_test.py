@@ -159,7 +159,7 @@ class MUL2D_TEST(nn.Module):
         return output
 
 
-class MUL4D_TEST(nn.Module):
+class MUL_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config

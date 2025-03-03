@@ -1,6 +1,7 @@
 #include "dl_base.hpp"
 #include "dl_base_elemwise.hpp"
 #include "dl_base_isa.hpp"
+#include <limits>
 
 namespace dl {
 namespace base {
@@ -90,9 +91,9 @@ void c_impl_div_n_1(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
             output_ptr[i] = 0;
         } else if (input1_ptr[0] == 0) {
             if (input0_ptr[i] > 0) {
-                output_ptr[i] = 127;
+                output_ptr[i] = std::numeric_limits<feature_t>::max();
             } else {
-                output_ptr[i] = -128;
+                output_ptr[i] = std::numeric_limits<feature_t>::min();
             }
         } else {
             float out_elem = input0_ptr[i] * rescale;
@@ -124,9 +125,9 @@ void c_impl_div_1_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
             output_ptr[i] = 0;
         } else if (input1_ptr[i] == 0) {
             if (input0_ptr[0] > 0) {
-                output_ptr[i] = 127;
+                output_ptr[i] = std::numeric_limits<feature_t>::max();
             } else {
-                output_ptr[i] = -128;
+                output_ptr[i] = std::numeric_limits<feature_t>::min();
             }
         } else {
             float out_elem = rescale / input1_ptr[i];
@@ -157,9 +158,9 @@ void c_impl_div_n_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
             output_ptr[i] = 0;
         } else if (input1_ptr[i] == 0) {
             if (input0_ptr[i] > 0) {
-                output_ptr[i] = 127;
+                output_ptr[i] = std::numeric_limits<feature_t>::max();
             } else {
-                output_ptr[i] = -128;
+                output_ptr[i] = std::numeric_limits<feature_t>::min();
             }
         } else {
             float out_elem = input0_ptr[i] * rescale / input1_ptr[i];
