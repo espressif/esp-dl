@@ -4,6 +4,14 @@
 #include <iostream>
 namespace dl {
 
+// template <typename T>
+// static void _slice(TensorBase *input,
+//                     TensorBase *output,
+//                     const std::vector<int> &start,
+//                     const std::vector<int> &end,
+//                     const std::vector<int> &axes = {},
+//                     const std::vector<int> &step = {});
+
 template <typename RT, typename T>
 RT quantize(T input, float inv_scale)
 {
@@ -350,7 +358,7 @@ bool TensorBase::assign(std::vector<int> shape, const void *element, int exponen
     return this->assign(&tensor);
 }
 
-TensorBase &TensorBase::set_element(void *data)
+TensorBase &TensorBase::set_element_ptr(void *data)
 {
     this->data = data;
 
@@ -729,6 +737,17 @@ int TensorBase::get_element_index(const std::vector<int> &axis_index)
     return element_index;
 }
 
+std::vector<int> TensorBase::get_element_coordinates(int index)
+{
+    int ndim = this->shape.size();
+    std::vector<int> coords(ndim);
+    for (int k = 0; k < ndim; ++k) {
+        coords[k] = index / this->axis_offset[k];
+        index %= this->axis_offset[k];
+    }
+    return coords;
+}
+
 template <typename T>
 T TensorBase::get_element(int index)
 {
@@ -872,24 +891,58 @@ bool TensorBase::equal(TensorBase *tensor, float epsilon, bool verbose)
 }
 
 template <typename T>
-TensorBase *TensorBase::slice(T *output_element,
-                              const std::vector<int> &start,
-                              const std::vector<int> &end,
-                              const std::vector<int> &axes,
-                              const std::vector<int> &step)
+void _flip(TensorBase *input, const std::vector<int> &axes)
 {
-    assert(output_element != nullptr);
+    if (axes.empty()) {
+        return;
+    }
+    T *input_element = (T *)input->get_element_ptr();
+    int ndim = input->shape.size();
 
-    T *input_element = this->get_element_ptr<T>();
-    std::vector<int> input_shape = this->get_shape();
+    for (int i = 0; i < input->get_size(); ++i) {
+        // Compute original coordinates
+        std::vector<int> coords = input->get_element_coordinates(i);
+
+        // Flip coordinates
+        for (int axis : axes) {
+            coords[axis] = input->shape[axis] - 1 - coords[axis];
+        }
+
+        // Compute flipped index
+        int j = input->get_element_index(coords);
+
+        // Swap elements if needed
+        if (i < j) {
+            T temp = input_element[i];
+            input_element[i] = input_element[j];
+            input_element[j] = temp;
+        }
+    }
+}
+
+template <typename T>
+void _slice(TensorBase *input,
+            TensorBase *output,
+            const std::vector<int> &start,
+            const std::vector<int> &end,
+            const std::vector<int> &axes,
+            const std::vector<int> &step)
+{
+    T *input_element = input->get_element_ptr<T>();
+    T *output_element = output->get_element_ptr<T>();
+    std::vector<int> input_shape = input->get_shape();
     int dims = input_shape.size();
     std::vector<int> loop_start(dims, 0);
     std::vector<int> loop_end = input_shape;
     std::vector<int> loop_step(dims, 1);
+    std::vector<int> fliped;
+
     int last_axis = start.size() - 1;
     for (int i = 0; i < start.size(); i++) {
         int axis = i;
         int step_i = 1;
+        int start_i = start[i];
+        int end_i = end[i];
         if (!axes.empty()) {
             axis = (axes[i] < 0) ? (axes[i] + dims) : axes[i];
             if (axis > last_axis) {
@@ -899,8 +952,19 @@ TensorBase *TensorBase::slice(T *output_element,
         if (!step.empty()) {
             step_i = step[i];
         }
-        loop_start[axis] = start[i] < 0 ? (start[i] + input_shape[axis]) : (start[i] % (input_shape[axis] + 1));
-        loop_end[axis] = end[i] < 0 ? (end[i] + input_shape[axis]) : (end[i] % (input_shape[axis] + 1));
+        if (step_i < 0) {
+            fliped.push_back(axis);
+            start_i = -start_i - 1;
+            end_i = -end_i - 1;
+            step_i = -step_i;
+        }
+
+        if (end_i > input_shape[axis]) {
+            end_i = input_shape[axis];
+        }
+
+        loop_start[axis] = start_i < 0 ? (start_i + input_shape[axis]) : (start_i % (input_shape[axis] + 1));
+        loop_end[axis] = end_i < 0 ? (end_i + input_shape[axis]) : (end_i % (input_shape[axis] + 1));
         loop_step[axis] = step_i;
         assert(loop_start[axis] < loop_end[axis]);
     }
@@ -913,29 +977,28 @@ TensorBase *TensorBase::slice(T *output_element,
 
     if (step.empty()) {
         if (dims == 1 || last_axis == 0) {
-            slice_ptr = input_element + this->get_element_index(loop_start);
+            slice_ptr = input_element + input->get_element_index(loop_start);
             tool::copy_memory(output_element, slice_ptr, min_offset_bytes);
-            return this;
-        }
+        } else {
+            std::vector<int> loop_index = loop_start;
+            while (loop_index[0] < loop_end[0]) {
+                slice_ptr = input_element + input->get_element_index(loop_index);
+                tool::copy_memory(output_element, slice_ptr, min_offset_bytes);
+                output_element += min_offset;
 
-        std::vector<int> loop_index = loop_start;
-        while (loop_index[0] < loop_end[0]) {
-            slice_ptr = input_element + this->get_element_index(loop_index);
-            tool::copy_memory(output_element, slice_ptr, min_offset_bytes);
-            output_element += min_offset;
-
-            loop_index[last_axis - 1] += 1;
-            for (int i = last_axis - 1; i > 0; --i) {
-                if (loop_index[i] == loop_end[i]) {
-                    loop_index[i] = loop_start[i];
-                    loop_index[i - 1] += 1;
-                } else
-                    break;
+                loop_index[last_axis - 1] += 1;
+                for (int i = last_axis - 1; i > 0; --i) {
+                    if (loop_index[i] == loop_end[i]) {
+                        loop_index[i] = loop_start[i];
+                        loop_index[i - 1] += 1;
+                    } else
+                        break;
+                }
             }
         }
     } else {
         if (dims == 1 || last_axis == 0) {
-            slice_ptr = input_element + this->get_element_index(loop_start);
+            slice_ptr = input_element + input->get_element_index(loop_start);
             if (loop_step[0] == 1) {
                 tool::copy_memory(output_element, slice_ptr, min_offset_bytes);
             } else {
@@ -945,100 +1008,65 @@ TensorBase *TensorBase::slice(T *output_element,
                     output_element += 1;
                 }
             }
-
-            return this;
-        }
-
-        std::vector<int> loop_index = loop_start;
-        while (loop_index[0] < loop_end[0]) {
-            slice_ptr = input_element + this->get_element_index(loop_index);
-            if (loop_step[last_axis] == 1) {
-                tool::copy_memory(output_element, slice_ptr, min_offset_bytes);
-                output_element += min_offset;
-            } else {
-                for (int i = 0; i < min_offset; i += loop_step[last_axis]) {
-                    *output_element = *slice_ptr;
-                    slice_ptr += loop_step[last_axis];
-                    output_element += 1;
+        } else {
+            std::vector<int> loop_index = loop_start;
+            while (loop_index[0] < loop_end[0]) {
+                slice_ptr = input_element + input->get_element_index(loop_index);
+                if (loop_step[last_axis] == 1) {
+                    tool::copy_memory(output_element, slice_ptr, min_offset_bytes);
+                    output_element += min_offset;
+                } else {
+                    for (int i = 0; i < min_offset; i += loop_step[last_axis]) {
+                        *output_element = *slice_ptr;
+                        slice_ptr += loop_step[last_axis];
+                        output_element += 1;
+                    }
                 }
-            }
 
-            loop_index[last_axis - 1] += loop_step[last_axis - 1];
-            for (int i = last_axis - 1; i > 0; --i) {
-                if (loop_index[i] >= loop_end[i]) {
-                    loop_index[i] = loop_start[i];
-                    loop_index[i - 1] += loop_step[i - 1];
-                } else
-                    break;
+                loop_index[last_axis - 1] += loop_step[last_axis - 1];
+                for (int i = last_axis - 1; i > 0; --i) {
+                    if (loop_index[i] >= loop_end[i]) {
+                        loop_index[i] = loop_start[i];
+                        loop_index[i - 1] += loop_step[i - 1];
+                    } else
+                        break;
+                }
             }
         }
     }
-    return this;
-}
-template TensorBase *TensorBase::slice(int8_t *output_element,
-                                       const std::vector<int> &start,
-                                       const std::vector<int> &end,
-                                       const std::vector<int> &axes,
-                                       const std::vector<int> &step);
-template TensorBase *TensorBase::slice(int16_t *output_element,
-                                       const std::vector<int> &start,
-                                       const std::vector<int> &end,
-                                       const std::vector<int> &axes,
-                                       const std::vector<int> &step);
-template TensorBase *TensorBase::slice(uint8_t *output_element,
-                                       const std::vector<int> &start,
-                                       const std::vector<int> &end,
-                                       const std::vector<int> &axes,
-                                       const std::vector<int> &step);
-template TensorBase *TensorBase::slice(uint16_t *output_element,
-                                       const std::vector<int> &start,
-                                       const std::vector<int> &end,
-                                       const std::vector<int> &axes,
-                                       const std::vector<int> &step);
-template TensorBase *TensorBase::slice(int32_t *output_element,
-                                       const std::vector<int> &start,
-                                       const std::vector<int> &end,
-                                       const std::vector<int> &axes,
-                                       const std::vector<int> &step);
-template TensorBase *TensorBase::slice(uint32_t *output_element,
-                                       const std::vector<int> &start,
-                                       const std::vector<int> &end,
-                                       const std::vector<int> &axes,
-                                       const std::vector<int> &step);
-template TensorBase *TensorBase::slice(float *output_element,
-                                       const std::vector<int> &start,
-                                       const std::vector<int> &end,
-                                       const std::vector<int> &axes,
-                                       const std::vector<int> &step);
 
-TensorBase *TensorBase::slice(TensorBase *input,
-                              const std::vector<int> &start,
-                              const std::vector<int> &end,
-                              const std::vector<int> &axes,
-                              const std::vector<int> &step)
+    if (!fliped.empty()) {
+        _flip<T>(output, fliped);
+    }
+}
+
+void TensorBase::slice(TensorBase *input,
+                       TensorBase *output,
+                       const std::vector<int> &start,
+                       const std::vector<int> &end,
+                       const std::vector<int> &axes,
+                       const std::vector<int> &step)
 {
-    dtype_t dtype = this->get_dtype();
-    assert(dtype == input->get_dtype());
+    dtype_t dtype = input->get_dtype();
+    assert(dtype == output->get_dtype());
 
     if (dtype == DATA_TYPE_INT8) {
-        return input->slice<int8_t>(this->get_element_ptr<int8_t>(), start, end, axes, step);
+        _slice<int8_t>(input, output, start, end, axes, step);
     } else if (dtype == DATA_TYPE_INT16) {
-        return input->slice<int16_t>(this->get_element_ptr<int16_t>(), start, end, axes, step);
+        _slice<int16_t>(input, output, start, end, axes, step);
     } else if (dtype == DATA_TYPE_FLOAT) {
-        return input->slice<float>(this->get_element_ptr<float>(), start, end, axes, step);
+        _slice<float>(input, output, start, end, axes, step);
     } else if (dtype == DATA_TYPE_UINT8) {
-        return input->slice<uint8_t>(this->get_element_ptr<uint8_t>(), start, end, axes, step);
+        _slice<uint8_t>(input, output, start, end, axes, step);
     } else if (dtype == DATA_TYPE_UINT16) {
-        return input->slice<uint16_t>(this->get_element_ptr<uint16_t>(), start, end, axes, step);
+        _slice<uint16_t>(input, output, start, end, axes, step);
     } else if (dtype == DATA_TYPE_INT32) {
-        return input->slice<int32_t>(this->get_element_ptr<int32_t>(), start, end, axes, step);
+        _slice<int32_t>(input, output, start, end, axes, step);
     } else if (dtype == DATA_TYPE_UINT32) {
-        return input->slice<uint32_t>(this->get_element_ptr<uint32_t>(), start, end, axes, step);
+        _slice<uint32_t>(input, output, start, end, axes, step);
     } else {
         ESP_LOGE(__FUNCTION__, "Unsupported data type");
     }
-
-    return this;
 }
 
 template <typename T>

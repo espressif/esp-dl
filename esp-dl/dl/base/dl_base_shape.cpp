@@ -79,16 +79,36 @@ std::vector<int> get_slice_shape(const std::vector<int> &shape,
         if (!axes.empty()) {
             axis = (axes[i] + dim) % dim;
         }
-        start[i] = start[i] < 0 ? start[i] + shape[axis] : start[i] > shape[axis] ? shape[axis] : start[i];
-        end[i] = end[i] < 0 ? end[i] + shape[axis] : end[i] > shape[axis] ? shape[axis] : end[i];
-        if (start[i] >= end[i]) {
+        int start_i = start[i];
+        int end_i = end[i];
+        int step_i = step[i];
+
+        if (step_i < 0) {
+            start_i = -start_i - 1;
+            end_i = -end_i - 1;
+            step_i = -step_i;
+        }
+
+        if (end_i > shape[axis]) {
+            end_i = shape[axis];
+        } else if (end_i < 0) {
+            end_i = shape[axis] + end_i;
+        }
+
+        if (start_i > shape[axis]) {
+            start_i = shape[axis];
+        } else if (start_i < 0) {
+            start_i = shape[axis] + start_i;
+        }
+
+        if (start_i >= end_i) {
             assert(false);
             return {};
         } else {
             if (step.empty()) {
-                output_shape[axis] = end[i] - start[i];
+                output_shape[axis] = end_i - start_i;
             } else {
-                output_shape[axis] = 1 + (end[i] - start[i] - 1) / step[i];
+                output_shape[axis] = 1 + (end_i - start_i - 1) / step_i;
             }
         }
     }

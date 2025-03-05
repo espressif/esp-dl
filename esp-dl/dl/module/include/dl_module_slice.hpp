@@ -46,7 +46,7 @@ public:
             ESP_LOGE("Slice", "output shape is empty!");
             assert(false);
         }
-        return std::vector<std::vector<int>>(1, output_shape);
+        return {output_shape};
     }
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
@@ -54,7 +54,7 @@ public:
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
-        output->slice(input, m_start, m_end, m_axes, m_step);
+        TensorBase::slice(input, output, m_start, m_end, m_axes, m_step);
     }
 
     void forward_args(void *args) {}
@@ -92,12 +92,11 @@ public:
             }
         } else if (start->get_dtype() == DATA_TYPE_INT64) {
             for (int i = 0; i < dims; i++) {
-                start_index[i] = start->get_element<int64_t>(i) > std::numeric_limits<int>::max()
-                    ? std::numeric_limits<int>::max()
-                    : (int)start->get_element<int64_t>(i);
-                end_index[i] = end->get_element<int64_t>(i) > std::numeric_limits<int>::max()
-                    ? std::numeric_limits<int>::max()
-                    : (int)end->get_element<int64_t>(i);
+                int32_t index = 0;
+                tool::truncate<int64_t>(index, start->get_element<int64_t>(i));
+                start_index[i] = index;
+                tool::truncate<int64_t>(index, end->get_element<int64_t>(i));
+                end_index[i] = index;
                 if (axes != nullptr) {
                     axes_index[i] = (int)axes->get_element<int64_t>(i);
                 }
