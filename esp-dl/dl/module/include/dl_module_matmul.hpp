@@ -16,10 +16,10 @@ namespace module {
  */
 class MatMul : public Module {
 private:
-    TensorBase *m_filter; /*<! filter of MatMul. If matmul has a constant input, the value is not NULL; otherwise, it is
-                             NULL >*/
+    TensorBase *m_filter; /*!< filter of MatMul. If matmul has a constant input, the value is not NULL; otherwise, it is
+                             NULL */
     activation_type_t
-        m_activation; /*<! activation of MatMul, if you don't specify anything, no activation is applied >*/
+        m_activation; /*!< activation of MatMul, if you don't specify anything, no activation is applied */
 
 public:
     /**
@@ -567,14 +567,11 @@ public:
 
     void forward(std::vector<TensorBase *> &tensors, runtime_mode_t mode = RUNTIME_MODE_AUTO)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             forward_template<int8_t>(tensors, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(tensors, mode);
         }
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "MatMul");
     }
 
     /**
@@ -607,6 +604,11 @@ public:
                  m_filter,
                  activation_type_to_string(m_activation),
                  quant_type_to_string(quant_type));
+    }
+
+    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
+    {
+        Module::get_param_memory_size(m_filter, in_fbs, out_fbs, fbs_model);
     }
 };
 } // namespace module

@@ -38,29 +38,20 @@ pip install git+https://github.com/espressif/esp-ppq.git
 
 ### Model Quantization
 
-ESP-PPQ 可以直接读取 ONNX 模型进行量化。Pytorch 和 TensorFlow 需要先转换为 ONNX 模型，因此请确保你的模型可以转换为 ONNX 模型。
+首先，请参考 [ESP-DL 算子支持状态](./operator_support_state.md)，确保您的模型中的算子已经得到支持。
 
-我们提供了以下 Python 脚本模板。你可以根据你自己的模型选择合适的模板进行修改。更多详细信息请参阅 [使用 ESP-PPQ 量化模型](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_quantize_model.html)。  
+ESP-PPQ 可以直接读取 ONNX 模型进行量化。Pytorch 和 TensorFlow 需要先转换为 ONNX 模型，因此请确保你的模型可以转换为 ONNX 模型。更多详细信息请参阅:  
 
-[quantize_onnx_model.py](./tools/quantization/quantize_onnx_model.py): 量化 ONNX 模型
-
-[quantize_torch_model.py](./tools/quantization/quantize_torch_model.py): 量化 Pytorch 模型
-
-[quantize_tf_model.py](./tools/quantization/quantize_tf_model.py): 量化 TensorFlow 模型
+[如何量化模型](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_quantize_model.html)  
+[如何量化 MobileNetV2](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_deploy_mobilenetv2.html)   
+[如何量化 YOLO11n](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_deploy_yolo11n.html)  
 
 
 ### Model Deployment
-ESP-DL 提供了一系列 API 来快速加载和运行模型。一个典型的示例如下：
+ESP-DL 提供了一系列 API 来快速加载和运行模型。更多详细信息，请参阅：
 
-```cpp
-#include "dl_model_base.hpp"
-
-extern const uint8_t espdl_model[] asm("_binary_model_name_espdl_start");
-Model *model = new Model((const char *)espdl_model, fbs::MODEL_LOCATION_IN_FLASH_RODATA);
-model->run(inputs); // inputs 是一个张量或张量映射
-```
-
-更多详细信息，请参阅 [使用 ESP-DL 加载模型](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_load_model.html) 和 [mobilenet_v2 示例](./examples/mobilenet_v2/)。
+[如何加载和测试模型](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_load_test_profile_model.html)  
+[如何进行模型推理](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_run_model.html)  
 
 
 ## Support models
@@ -69,6 +60,7 @@ model->run(inputs); // inputs 是一个张量或张量映射
 [人脸检测](./models/human_face_detect/)     
 [人脸识别](./models/human_face_recognition/)     
 [Imagenet 分类](./models/imagenet_cls/)    
+[COCO 检测](./models/coco_detect/)    
 
 ## Suport Operators
 

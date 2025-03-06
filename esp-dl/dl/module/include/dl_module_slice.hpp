@@ -9,10 +9,10 @@ namespace module {
 // https://onnx.ai/onnx/operators/onnx__Slice.html
 class Slice : public Module {
 private:
-    std::vector<int> m_start; /*<! starting indices >*/
-    std::vector<int> m_end;   /*<! ending indices >*/
-    std::vector<int> m_axes;  /*<! axes that starts and ends apply to >*/
-    std::vector<int> m_step;  /*<! slice step >*/
+    std::vector<int> m_start; /*!< starting indices */
+    std::vector<int> m_end;   /*!< ending indices */
+    std::vector<int> m_axes;  /*!< axes that starts and ends apply to */
+    std::vector<int> m_step;  /*!< slice step */
 
 public:
     /**
@@ -51,13 +51,10 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
 
         output->slice(input, m_start, m_end, m_axes, m_step);
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Slice");
     }
 
     void forward_args(void *args) {}

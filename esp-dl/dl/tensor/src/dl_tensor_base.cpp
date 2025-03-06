@@ -163,7 +163,7 @@ TensorBase::TensorBase(
     if (element) {
         if (deep) {
             this->auto_free = true;
-            this->data = tool::calloc_aligned(aligned_size, dtype_bytes, 16, caps);
+            this->data = tool::calloc_aligned(16, aligned_size, dtype_bytes, caps);
             tool::copy_memory(this->data, const_cast<void *>(element), this->get_size() * dtype_bytes);
         } else {
             this->auto_free = false;
@@ -171,7 +171,15 @@ TensorBase::TensorBase(
         }
     } else {
         this->auto_free = true;
-        this->data = tool::calloc_aligned(aligned_size, dtype_bytes, 16, caps);
+        this->data = tool::calloc_aligned(16, aligned_size, dtype_bytes, caps);
+    }
+    if ((!element || deep) && !this->data) {
+        ESP_LOGE(
+            "TensorBase",
+            "Failed to alloc %.2fKB RAM, largest available PSRAM block size %.2fKB, internal RAM block size %.2fKB",
+            size / 1024.f,
+            heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.f,
+            heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
     }
     this->caps = caps;
 }
@@ -401,7 +409,8 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         size_t aligned_size = this->get_aligned_size();
 
         int32_t *pre_data = static_cast<int32_t *>(this->data);
-        int64_t *cur_data = static_cast<int64_t *>(tool::calloc_aligned(aligned_size, dtype_bytes, 16, this->caps));
+        int64_t *cur_data = static_cast<int64_t *>(tool::calloc_aligned(16, aligned_size, dtype_bytes, this->caps));
+        assert(cur_data);
         for (int i = 0; i < this->get_size(); i++) {
             cur_data[i] = pre_data[i];
         }
@@ -434,7 +443,8 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         memory_size_needed = memory_size_needed % align == 0 ? memory_size_needed
                                                              : memory_size_needed + align - memory_size_needed % align;
         int32_t *src_ptr = static_cast<int32_t *>(this->data);
-        int8_t *dst_ptr = static_cast<int8_t *>(tool::calloc_aligned(memory_size_needed, dtype_bytes, 16, this->caps));
+        int8_t *dst_ptr = static_cast<int8_t *>(tool::calloc_aligned(16, memory_size_needed, dtype_bytes, this->caps));
+        assert(dst_ptr);
         int8_t *dst_ptr_head = dst_ptr;
 
         // 0x000AAAAA000BBBBB ==> 0xAAAAABBBBB
@@ -481,7 +491,8 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         }
         int32_t *src_ptr = static_cast<int32_t *>(this->data);
         // Each element is allocated 8 bytes, which can meet the alignment requirements of the instructions.
-        int8_t *dst_ptr = static_cast<int8_t *>(tool::calloc_aligned(data_num, 8, 16, this->caps));
+        int8_t *dst_ptr = static_cast<int8_t *>(tool::calloc_aligned(16, data_num, 8, this->caps));
+        assert(dst_ptr);
         int8_t *dst_ptr_head = dst_ptr;
 
         // 0xAAAAAAAABBBBBBBB ==> 0xSSAAAAAAAASSBBBBBBBB
@@ -762,7 +773,7 @@ bool TensorBase::compare_elements(const T *gt_elements, float epsilon, bool verb
         if (elements[i] - gt_elements[i] > epsilon || elements[i] - gt_elements[i] < -epsilon) {
             if (verbose) {
                 ESP_LOGE(__FUNCTION__,
-                         "Inconsistent values, ground true: %.10f, infer: %.10f, epsilon:%.10f",
+                         "Inconsistent values, ground truth: %.10f, infer: %.10f, epsilon:%.10f",
                          gt_elements[i] * 1.0,
                          elements[i] * 1.0,
                          epsilon);

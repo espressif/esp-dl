@@ -11,64 +11,64 @@ namespace dl {
 namespace base {
 template <typename feature_t>
 struct ArgsType {
-    feature_t *input_element;           /*<!  0 */
-    int input_channel;                  /*<!  1 */
-    int input_stride_y_offset;          /*<!  2 input_width_with_padding * input_channel_with_padding * stride_y */
-    int input_stride_x_offset;          /*<!  3 input_channel_with_padding * stride_x */
-    int input_dilation_y_offset;        /*<!  4 input_width_with_padding * input_channel_with_padding * dilation_y */
-    int input_dilation_x_offset;        /*<!  5 input_channel_with_padding * dilation_x */
+    feature_t *input_element;           /*!<  0 */
+    int input_channel;                  /*!<  1 */
+    int input_stride_y_offset;          /*!<  2 input_width_with_padding * input_channel_with_padding * stride_y */
+    int input_stride_x_offset;          /*!<  3 input_channel_with_padding * stride_x */
+    int input_dilation_y_offset;        /*!<  4 input_width_with_padding * input_channel_with_padding * dilation_y */
+    int input_dilation_x_offset;        /*!<  5 input_channel_with_padding * dilation_x */
                                         //
-    feature_t *output_element;          /*<!  6 */
-    int output_height;                  /*<!  7 */
-    int output_width;                   /*<!  8 */
-    int output_channel;                 /*<!  9 */
-    int output_y_offset;                /*<! 10 output_width_with_padding * output_channel_with_padding */
-    int output_x_offset;                /*<! 11 output_channel_with_padding */
+    feature_t *output_element;          /*!<  6 */
+    int output_height;                  /*!<  7 */
+    int output_width;                   /*!<  8 */
+    int output_channel;                 /*!<  9 */
+    int output_y_offset;                /*!< 10 output_width_with_padding * output_channel_with_padding */
+    int output_x_offset;                /*!< 11 output_channel_with_padding */
                                         //
-    const void *filter_element;         /*<! 12 */
-    int filter_height;                  /*<! 13 */
-    int filter_width;                   /*<! 14 */
-    int filter_y_offset;                /*<! 15 filter_width * input_channel */
-    int mac_shift;                      /*<! 16 mac_shift = output.exponent - filter.exponent - input.exponent */
+    const void *filter_element;         /*!< 12 */
+    int filter_height;                  /*!< 13 */
+    int filter_width;                   /*!< 14 */
+    int filter_y_offset;                /*!< 15 filter_width * input_channel */
+    int mac_shift;                      /*!< 16 mac_shift = output.exponent - filter.exponent - input.exponent */
                                         //
-    const void *bias_element;           /*<! 17 */
+    const void *bias_element;           /*!< 17 */
                                         //
-    activation_type_t activation_type;  /*<! 18 */
-    int activation_alpha;               /*<! 19 */
-    const void *activation_alpha_ptr;   /*<! 20 */
-    int activation_shift;               /*<! 21 */
+    activation_type_t activation_type;  /*!< 18 */
+    int activation_alpha;               /*!< 19 */
+    const void *activation_alpha_ptr;   /*!< 20 */
+    int activation_shift;               /*!< 21 */
                                         //
-    int c_rs1_1;                        /*<! 22 (input_channel >> 1) - 1 */
-    int c_rs2_1;                        /*<! 23 (input_channel >> 2) - 1 */
-    int n_div_x;                        /*<! 24 output_channel / (vector_width / element_width) */
-    int c_div_x_1;                      /*<! 25 input_channel / (vector_width / element_width) - 1 */
-    int16_t *tie_filter_channel_factor; /*<! 26 */
+    int c_rs1_1;                        /*!< 22 (input_channel >> 1) - 1 */
+    int c_rs2_1;                        /*!< 23 (input_channel >> 2) - 1 */
+    int n_div_x;                        /*!< 24 output_channel / (vector_width / element_width) */
+    int c_div_x_1;                      /*!< 25 input_channel / (vector_width / element_width) - 1 */
+    int16_t *tie_filter_channel_factor; /*!< 26 */
                                         //
-    int xtensa_dilation_x_offset;       /*<! 27 (dilation_x * input_channel_with_padding - input_channel) *
+    int xtensa_dilation_x_offset;       /*!< 27 (dilation_x * input_channel_with_padding - input_channel) *
                                            sizeof(feature_t)*/
-    int xtensa_dilation_y_offset;       /*<! 28 */
+    int xtensa_dilation_y_offset;       /*!< 28 */
                                         //
-    int tie_conv2d_dilation_x_offset; /*<! 29 TODO: not used, to be deleted. | dilation_x * input_channel_with_padding *
+    int tie_conv2d_dilation_x_offset; /*!< 29 TODO: not used, to be deleted. | dilation_x * input_channel_with_padding *
                                          sizeof(feature_t) - (c_div_x_1 + 1) * 16 */
-    int tie_conv2d_dilation_y_offset; /*<! 30 TODO: not used, to be deleted. | */
+    int tie_conv2d_dilation_y_offset; /*!< 30 TODO: not used, to be deleted. | */
                                       //
-    int tie_depth2d_dilation_x_offset; /*<! 31 */
-    int tie_depth2d_dilation_y_offset; /*<! 32 */
-    int tie_depth2d_next_hwx1;         /*<! 33 */
+    int tie_depth2d_dilation_x_offset; /*!< 31 */
+    int tie_depth2d_dilation_y_offset; /*!< 32 */
+    int tie_depth2d_next_hwx1;         /*!< 33 */
                                        //
-    int c_remainder;                   /*<! 34 input_channel % (vector_width / element_width) * sizeof(feature_t) */
-    int n_remainder;                   /*<! 35 */
-    int filter_n_offset;               /*<! 36 filter_height * filter_width * input_channel */
-    int filter_w_rs1_1;                /*<! 37 (filter_width >> 1) - 1 */
-    int16_t *filter_channel_factor;    /*<! 38 */
-    int input_channel_with_padding;    /*<! 39 */
+    int c_remainder;                   /*!< 34 input_channel % (vector_width / element_width) * sizeof(feature_t) */
+    int n_remainder;                   /*!< 35 */
+    int filter_n_offset;               /*!< 36 filter_height * filter_width * input_channel */
+    int filter_w_rs1_1;                /*!< 37 (filter_width >> 1) - 1 */
+    int16_t *filter_channel_factor;    /*!< 38 */
+    int input_channel_with_padding;    /*!< 39 */
 
-    int filter_y_offset_unaligned;        /*<! 40 */
-    int filter_n_offset_unaligned;        /*<! 41 */
-    const void *filter_element_unaligned; /*<! 42 */
+    int filter_y_offset_unaligned;        /*!< 40 */
+    int filter_n_offset_unaligned;        /*!< 41 */
+    const void *filter_element_unaligned; /*!< 42 */
 
-    int output_shift; /*<! 43 */
-    int output_scale; /*<! 44 */
+    int output_shift; /*!< 43 */
+    int output_scale; /*!< 44 */
 
     int padding_h_head;
     int padding_h_tail;
@@ -89,7 +89,7 @@ struct ArgsType {
 
     int element_num;
     int input_height;
-    void *debug_value; /*<! 60 It will malloc 16 bytes memory if malloc_debug_memory = true */
+    void *debug_value; /*!< 60 It will malloc 16 bytes memory if malloc_debug_memory = true */
     bool auto_split;
 };
 
@@ -261,7 +261,7 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
     }
     args.debug_value = nullptr;
     if (malloc_debug_memory) {
-        args.debug_value = tool::calloc_aligned(16, sizeof(int8_t), 16, MALLOC_CAP_8BIT);
+        args.debug_value = tool::calloc_aligned(16, 16, 1, MALLOC_CAP_DEFAULT);
     }
     std::vector<ArgsType<feature_t>> m_args(1, args);
     if (args.input_height > 4 * args.dilation_h * args.filter_height) {
@@ -735,8 +735,7 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             }
         } else // run c_impl_func
         {
-            buffer_t *buffer =
-                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
+            buffer_t *buffer = (buffer_t *)heap_caps_calloc(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
             feature_t *input_y_real;
             feature_t *input_x_real;
             feature_t *filter_ptr_y;
@@ -884,7 +883,7 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                 }
                 input_y_real += args.input_stride_y_offset;
             }
-            tool::free_aligned(buffer);
+            heap_caps_free(buffer);
         }
     } else { // padding valid
         if (i_impl_func_sp) {
@@ -919,8 +918,7 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             }
         } else // run c_impl_func
         {
-            buffer_t *buffer =
-                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
+            buffer_t *buffer = (buffer_t *)heap_caps_calloc(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
             for (size_t output_y = 0; output_y < args.output_height; output_y++) {
                 feature_t *input_syx = input_ptr;
                 feature_t *output_yx = output_ptr;
@@ -935,17 +933,17 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                 input_ptr += args.input_stride_y_offset;
                 output_ptr += args.output_y_offset;
             }
-            tool::free_aligned(buffer);
+            heap_caps_free(buffer);
         }
     }
 
     if (args.mac_shift == INT_MIN) {
-        tool::free_aligned(args.tie_filter_channel_factor);
-        tool::free_aligned(args.filter_channel_factor);
+        heap_caps_free(args.tie_filter_channel_factor);
+        heap_caps_free(args.filter_channel_factor);
     }
 
     if (args.debug_value) {
-        tool::free_aligned(args.debug_value);
+        heap_caps_free(args.debug_value);
         args.debug_value = nullptr;
     }
 
@@ -1490,8 +1488,7 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
             }
         } else // run c_impl_func
         {
-            buffer_t *buffer =
-                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
+            buffer_t *buffer = (buffer_t *)heap_caps_calloc(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
             feature_t *input_y_real;
             feature_t *input_x_real;
             feature_t *filter_ptr_y;
@@ -1636,7 +1633,7 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                 }
                 input_y_real += args.input_stride_y_offset;
             }
-            tool::free_aligned(buffer);
+            heap_caps_free(buffer);
         }
     } else { // padding valid
         if (i_impl_func_sp) {
@@ -1673,8 +1670,7 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
         } else // run c_impl_func
         {
             args.filter_y_offset = 0;
-            buffer_t *buffer =
-                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), 16, MALLOC_CAP_8BIT);
+            buffer_t *buffer = (buffer_t *)heap_caps_calloc(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
             for (size_t output_y = 0; output_y < args.output_height; output_y++) {
                 feature_t *input_syx = input_ptr;
                 feature_t *output_yx = output_ptr;
@@ -1689,17 +1685,17 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                 input_ptr += args.input_stride_y_offset;
                 output_ptr += args.output_y_offset;
             }
-            tool::free_aligned(buffer);
+            heap_caps_free(buffer);
         }
     }
 
     if (args.mac_shift == INT_MIN) {
-        tool::free_aligned(args.tie_filter_channel_factor);
-        tool::free_aligned(args.filter_channel_factor);
+        heap_caps_free(args.tie_filter_channel_factor);
+        heap_caps_free(args.filter_channel_factor);
     }
 
     if (args.debug_value) {
-        tool::free_aligned(args.debug_value);
+        heap_caps_free(args.debug_value);
         args.debug_value = nullptr;
     }
 
@@ -1819,67 +1815,67 @@ void activation_shell(const ArgsType<feature_t> &args,
 // For Arithmetic: Add, Sub, Mul etc
 template <typename feature_t>
 struct arithArgsType {
-    feature_t *input0_element;         /*<! 0 */
-    int input0_y_offset;               /*<! 1 */
-    int input0_x_offset;               /*<! 2 */
+    feature_t *input0_element;         /*!< 0 */
+    int input0_y_offset;               /*!< 1 */
+    int input0_x_offset;               /*!< 2 */
                                        //
-    feature_t *input1_element;         /*<! 3 */
-    int input1_y_offset;               /*<! 4 */
-    int input1_x_offset;               /*<! 5 */
+    feature_t *input1_element;         /*!< 3 */
+    int input1_y_offset;               /*!< 4 */
+    int input1_x_offset;               /*!< 5 */
                                        //
-    feature_t *output_element;         /*<! 6 */
-    int output_y_offset;               /*<! 7 */
-    int output_x_offset;               /*<! 8 */
+    feature_t *output_element;         /*!< 6 */
+    int output_y_offset;               /*!< 7 */
+    int output_x_offset;               /*!< 8 */
                                        //
-    int width;                         /*<! 9 */
-    int height;                        /*<! 10 */
-    int channel;                       /*<! 11 */
+    int width;                         /*!< 9 */
+    int height;                        /*!< 10 */
+    int channel;                       /*!< 11 */
                                        //
-    activation_type_t activation_type; /*<! 12 */
-    int activation_alpha;              /*<! 13 */
-    const void *activation_alpha_ptr;  /*<! 14 */
-    int activation_shift;              /*<! 15 */
+    activation_type_t activation_type; /*!< 12 */
+    int activation_alpha;              /*!< 13 */
+    const void *activation_alpha_ptr;  /*!< 14 */
+    int activation_shift;              /*!< 15 */
                                        //
-    int c_div_x_1;                     /*<! 16 */
-    int c_div_2x_1;                    /*<! 17 */
-    int c_left_x_1;                    /*<! 18 */
-    int c_remainder;                   /*<! 19 */
+    int c_div_x_1;                     /*!< 16 */
+    int c_div_2x_1;                    /*!< 17 */
+    int c_left_x_1;                    /*!< 18 */
+    int c_remainder;                   /*!< 19 */
                                        //
-    int rescale_input;                 /*<! 20 */
-    int rescale_output;                /*<! 21 */
+    int rescale_input;                 /*!< 20 */
+    int rescale_output;                /*!< 21 */
                                        //
-    int input_shift;                   /*<! 22 */
-    int output_shift;                  /*<! 23 */
-    int output_scale;                  /*<! 24 */
-    int mul_shift;                     /*<! 25 */
-    int neg_output_scale;              /*<! 26 */
+    int input_shift;                   /*!< 22 */
+    int output_shift;                  /*!< 23 */
+    int output_scale;                  /*!< 24 */
+    int mul_shift;                     /*!< 25 */
+    int neg_output_scale;              /*!< 26 */
 
-    int input0_b; /*<! 27 */
-    int input0_c; /*<! 28 */
-    int input0_h; /*<! 29 */
-    int input0_w; /*<! 30 */
+    int input0_b; /*!< 27 */
+    int input0_c; /*!< 28 */
+    int input0_h; /*!< 29 */
+    int input0_w; /*!< 30 */
 
-    int input1_b; /*<! 31 */
-    int input1_c; /*<! 32 */
-    int input1_h; /*<! 33 */
-    int input1_w; /*<! 34 */
+    int input1_b; /*!< 31 */
+    int input1_c; /*!< 32 */
+    int input1_h; /*!< 33 */
+    int input1_w; /*!< 34 */
 
-    int output_b; /*<! 35 */
-    int output_c; /*<! 36 */
-    int output_h; /*<! 37 */
-    int output_w; /*<! 38 */
+    int output_b; /*!< 35 */
+    int output_c; /*!< 36 */
+    int output_h; /*!< 37 */
+    int output_w; /*!< 38 */
 
-    int output_max_dims; /*<! 39 */
+    int output_max_dims; /*!< 39 */
 
-    int input0_b_same; /*<! 40 */
-    int input0_c_same; /*<! 41 */
-    int input0_h_same; /*<! 42 */
-    int input0_w_same; /*<! 43 */
+    int input0_b_same; /*!< 40 */
+    int input0_c_same; /*!< 41 */
+    int input0_h_same; /*!< 42 */
+    int input0_w_same; /*!< 43 */
 
-    int input1_b_same; /*<! 44 */
-    int input1_c_same; /*<! 45 */
-    int input1_h_same; /*<! 46 */
-    int input1_w_same; /*<! 47 */
+    int input1_b_same; /*!< 44 */
+    int input1_c_same; /*!< 45 */
+    int input1_h_same; /*!< 46 */
+    int input1_w_same; /*!< 47 */
 };
 
 /**
@@ -2351,25 +2347,25 @@ void arith_operation_shell_(
 
 template <typename feature_t>
 struct resizeArgsType {
-    feature_t *input_element; /*<!  0 */
-    int input_height;         /*<!  1 */
-    int input_width;          /*<!  2 */
-    int input_channel;        /*<!  3 */
+    feature_t *input_element; /*!<  0 */
+    int input_height;         /*!<  1 */
+    int input_width;          /*!<  2 */
+    int input_channel;        /*!<  3 */
 
-    feature_t *output_element; /*<!  4 */
-    int output_x_offset;       /*<!  5 */
-    int output_y_offset;       /*<!  6 */
+    feature_t *output_element; /*!<  4 */
+    int output_x_offset;       /*!<  5 */
+    int output_y_offset;       /*!<  6 */
 
-    resize_mode_t resize_type; /*<!  7 */
+    resize_mode_t resize_type; /*!<  7 */
 
-    float scale_y; /*<!  8 */
-    float scale_x; /*<!  9 */
+    float scale_y; /*!<  8 */
+    float scale_x; /*!<  9 */
 
-    int c_div_x;     /*<! 10 */
-    int c_remainder; /*<! 11 */
+    int c_div_x;     /*!< 10 */
+    int c_remainder; /*!< 11 */
 
-    int output_shift; /*<! 12 */
-    int output_scale; /*<! 13 */
+    int output_shift; /*!< 12 */
+    int output_scale; /*!< 13 */
 };
 
 /**
@@ -2474,14 +2470,14 @@ void resize2d_operation_shell(const resizeArgsType<feature_t> &args,
 }
 
 struct requantizeArgsType {
-    void *input_element;  /*<! 0 */
-    void *output_element; /*<! 1 */
+    void *input_element;  /*!< 0 */
+    void *output_element; /*!< 1 */
 
-    int size_div_x;         /*<! 2 */
-    int in_size_remainder;  /*<! 3 */
-    int out_size_remainder; /*<! 4 */
-    int output_shift;       /*<! 5 */
-    int output_scale;       /*<! 6 */
+    int size_div_x;         /*!< 2 */
+    int in_size_remainder;  /*!< 3 */
+    int out_size_remainder; /*!< 4 */
+    int output_shift;       /*!< 5 */
+    int output_scale;       /*!< 6 */
 };
 
 } // namespace base

@@ -48,6 +48,10 @@
 namespace dl {
 namespace module {
 
+/**
+ * @brief Singleton class for registering modules.
+ *
+ */
 class ModuleCreator {
 public:
     using Creator = std::function<Module *(fbs::FbsModel *, std::string)>; ///< Module creator function type

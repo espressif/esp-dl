@@ -243,64 +243,75 @@ FbsModel *create_fbs_model(const char *fbs_buf,
         fseek(f, offset + 4, SEEK_SET);
         fread(&mode, 4, 1, f);
         fread(&size, 4, 1, f);
-        model_buf = (char *)dl::tool::malloc_aligned(size, 1, 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
+        model_buf = (char *)dl::tool::malloc_aligned(16, size, MALLOC_CAP_DEFAULT);
+        if (!model_buf) {
+            ESP_LOGE(
+                TAG,
+                "Failed to alloc %.2fKB RAM, largest available PSRAM block size %.2fKB, internal RAM block size %.2fKB",
+                size / 1024.f,
+                heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.f,
+                heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
+            return nullptr;
+        }
         if (format == FBS_FILE_FORMAT_EDL2 || format == FBS_FILE_FORMAT_PDL2) {
             fseek(f, 4, SEEK_CUR);
         }
         fread(model_buf, size, 1, f);
     }
 
+    assert(mode == 0 || mode == 1);
     if (mode != 0 && key == NULL) {
         ESP_LOGE(TAG, "This is a cryptographic model, please enter the secret key!");
         return nullptr;
     }
 
-    if (mode == 0) { // without encryption
-        bool auto_free, real_param_copy;
-        if (format == FBS_FILE_FORMAT_EDL1 || format == FBS_FILE_FORMAT_PDL1) {
-            if (model_location == MODEL_LOCATION_IN_SDCARD) {
-                auto_free = true;
-                real_param_copy = true;
-            } else {
-                auto_free = false;
-                real_param_copy = true;
-            }
-        } else {
-            if (model_location == MODEL_LOCATION_IN_SDCARD) {
-                auto_free = true;
-                real_param_copy = false;
-            } else {
-                auto_free = false;
-                bool address_align = !(reinterpret_cast<uintptr_t>(model_buf) & 0xf);
-                real_param_copy = param_copy;
-                if (!param_copy && !address_align) {
-                    ESP_LOGW(
-                        TAG,
-                        "Failed to set param_copy to false, The address of fbs model is not aligned with 16 bytes.");
-                    real_param_copy = true;
-                }
-#if CONFIG_SPIRAM_RODATA
-                if ((model_location == MODEL_LOCATION_IN_FLASH_RODATA) && param_copy && address_align) {
-                    real_param_copy = false;
-                }
-#endif
-            }
-        }
-        return new FbsModel(model_buf, auto_free, real_param_copy);
-    } else if (mode == 1) { // 128-bit AES encryption
-        uint8_t *m_data = (uint8_t *)dl::tool::malloc_aligned(size, 1, 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
-        fbs_aes_crypt_ctr((const uint8_t *)model_buf, m_data, size, key);
-        if (model_location == MODEL_LOCATION_IN_SDCARD) {
-            heap_caps_free(model_buf);
-        }
-        if (format == FBS_FILE_FORMAT_EDL1 || format == FBS_FILE_FORMAT_PDL1) {
-            return new FbsModel(m_data, true, true);
-        } else {
-            return new FbsModel(m_data, true, false);
-        }
+    bool rodata_move = false;
+    if (model_location == MODEL_LOCATION_IN_FLASH_RODATA &&
+        dl::tool::memory_addr_type(model_buf) == dl::MEMORY_ADDR_PSRAM) {
+        ESP_LOGW(TAG,
+                 "CONFIG_SPIRAM_RODATA or CONFIG_SPIRAM_XIP_FROM_PSRAM option is on, fbs model is copyed to PSRAM.");
+        rodata_move = true;
     }
 
-    return nullptr;
+    bool auto_free;
+    if (mode == 0) { // without encryption
+        auto_free = (model_location == MODEL_LOCATION_IN_SDCARD) ? true : false;
+        bool address_align = !(reinterpret_cast<uintptr_t>(model_buf) & 0xf);
+        if (format == FBS_FILE_FORMAT_EDL1 || format == FBS_FILE_FORMAT_PDL1) {
+            param_copy = true;
+        } else if (!address_align) {
+            ESP_LOGW(TAG, "The address of fbs model in flash is not aligned with 16 bytes.");
+            param_copy = true;
+        } else {
+            if (model_location == MODEL_LOCATION_IN_SDCARD) {
+                param_copy = false;
+            } else if (dl::tool::memory_addr_type(model_buf) == dl::MEMORY_ADDR_PSRAM) {
+                param_copy = false;
+            }
+        }
+    } else { // 128-bit AES encryption
+        auto_free = true;
+        param_copy = (format == FBS_FILE_FORMAT_EDL1 || format == FBS_FILE_FORMAT_PDL1) ? true : false;
+        uint8_t *model_buf_decrypt;
+        if (model_location == MODEL_LOCATION_IN_SDCARD) {
+            model_buf_decrypt = (uint8_t *)model_buf;
+        } else {
+            model_buf_decrypt = (uint8_t *)dl::tool::malloc_aligned(16, size, MALLOC_CAP_DEFAULT);
+            if (!model_buf_decrypt) {
+                ESP_LOGE(TAG,
+                         "Failed to alloc %.2fKB RAM, largest available PSRAM block size %.2fKB, internal RAM block "
+                         "size %.2fKB",
+                         size / 1024.f,
+                         heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.f,
+                         heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
+                return nullptr;
+            }
+        }
+        fbs_aes_crypt_ctr((const uint8_t *)model_buf, model_buf_decrypt, size, key);
+        model_buf = (char *)model_buf_decrypt;
+    }
+
+    return new FbsModel(model_buf, size, model_location, mode, rodata_move, auto_free, param_copy);
 }
 
 FbsLoader::FbsLoader(const char *name, model_location_type_t location) :

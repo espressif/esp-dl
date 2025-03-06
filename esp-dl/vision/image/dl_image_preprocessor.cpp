@@ -39,8 +39,8 @@ ImagePreprocessor::ImagePreprocessor(Model *model,
         ESP_ERROR_CHECK(esp_cache_get_alignment(MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA, &cache_line_size));
         m_ppa_buffer_size = DL_IMAGE_ALIGN_UP(
             m_model_input->shape[1] * m_model_input->shape[2] * m_model_input->shape[3], cache_line_size);
-        m_ppa_buffer = tool::calloc_aligned(
-            m_ppa_buffer_size, sizeof(uint8_t), cache_line_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
+        m_ppa_buffer =
+            heap_caps_aligned_calloc(cache_line_size, m_ppa_buffer_size, 1, MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
     }
 #endif
 }
@@ -68,7 +68,7 @@ ImagePreprocessor::~ImagePreprocessor()
 template <typename T>
 void ImagePreprocessor::create_norm_lut()
 {
-    m_norm_lut = tool::malloc_aligned(m_mean.size() * 256, sizeof(T), 16, MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);
+    m_norm_lut = heap_caps_malloc(m_mean.size() * 256 * sizeof(T), MALLOC_CAP_DEFAULT);
     float inv_scale = 1.f / DL_SCALE(m_model_input->exponent);
     std::vector<float> inv_std(m_std.size());
     T *norm_lut_ptr = (T *)m_norm_lut;

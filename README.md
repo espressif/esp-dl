@@ -43,29 +43,18 @@ pip install git+https://github.com/espressif/esp-ppq.git
 
 First, please refer to the [ESP-DL Operator Support State](./operator_support_state.md) to ensure that the operators in your model are already supported.  
 
-ESP-PPQ can directly read ONNX models for quantization. Pytorch and TensorFlow need to be converted to ONNX models first, so make sure your model can be converted to ONNX models.  
-We provide the following python script templates. Please select the appropriate template to quantize your models. For more details about quantization, please refer to [Using ESP-PPQ for Model Quantization](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_quantize_model.html).  
+ESP-PPQ can directly read ONNX models for quantization. Pytorch and TensorFlow need to be converted to ONNX models first, so make sure your model can be converted to ONNX models. For more details about quantization, please refer to
 
-[quantize_onnx_model.py](./tools/quantization/quantize_onnx_model.py): Quantize ONNX models
-
-[quantize_torch_model.py](./tools/quantization/quantize_torch_model.py): Quantize Pytorch models
-
-[quantize_tf_model.py](./tools/quantization/quantize_tf_model.py): Quantize TensorFlow models
+[how to quantize model](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_quantize_model.html)  
+[how to quantize MobileNetV2](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_mobilenetv2.html)  
+[how to quantize YOLO11n](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html)  
 
 
 ### Model Deployment
 ESP-DL provides a series of API to quickly load and run models.  A typical example is as follows:
 
-
-```cpp
-#include "dl_model_base.hpp"
-
-extern const uint8_t espdl_model[] asm("_binary_model_name_espdl_start");
-Model *model = new Model((const char *)espdl_model, fbs::MODEL_LOCATION_IN_FLASH_RODATA);
-model->run(inputs); // inputs is a tensor or a map of tensors
-```
-
-For more details, please refer to [Loading Models with ESP-DL](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_load_model.html) and [mobilenet_v2 examples](./examples/mobilenet_v2/)
+[how to load test profile model](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_load_test_profile_model.html)  
+[how to run model](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_run_model.html)  
 
 
 ## Support Models

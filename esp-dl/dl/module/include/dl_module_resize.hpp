@@ -14,9 +14,9 @@ namespace module {
  */
 class Resize2D : public Module {
 private:
-    const resize_mode_t resize_type; /*<! one of RESIZE_NEAREST or RESIZE_LINEAR or RESIZE_CUBIC >*/
-    const float scale_y;             /*<! scale in height >*/
-    const float scale_x;             /*<! scale in width >*/
+    const resize_mode_t resize_type; /*!< one of RESIZE_NEAREST or RESIZE_LINEAR or RESIZE_CUBIC */
+    const float scale_y;             /*!< scale in height */
+    const float scale_x;             /*!< scale in width */
 public:
     /**
      * @brief Construct a new Resize2D object.
@@ -58,14 +58,11 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             forward_template<int8_t>(tensors, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(tensors, mode);
         }
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Resize2D");
     }
 
     void forward_args(void *args)

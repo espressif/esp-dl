@@ -12,7 +12,7 @@ namespace module {
  */
 class Transpose : public Module {
 private:
-    std::vector<int> m_perm; /*<! A list of integers. Its length must be equal to the rank of the input. >*/
+    std::vector<int> m_perm; /*!< A list of integers. Its length must be equal to the rank of the input. */
 
 public:
     /**
@@ -54,12 +54,9 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
         TensorBase *input = tensors[m_inputs_index[0]];
         TensorBase *output = tensors[m_outputs_index[0]];
         output->transpose(input, m_perm);
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Transpose");
     }
 
     void forward_args(void *args) {}

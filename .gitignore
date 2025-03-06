@@ -11,7 +11,7 @@ test_apps/*/*/build_*
 test_apps/*/override-result.sdkconfig
 pytest_log
 
-dependencies.lock
+dependencies.lock*
 managed_components/
 **/*/sdkconfig.model.*
 

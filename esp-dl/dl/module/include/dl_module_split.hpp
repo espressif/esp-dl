@@ -8,9 +8,9 @@ namespace module {
 // https://onnx.ai/onnx/operators/onnx__Split.html
 class Split : public Module {
 private:
-    TensorBase *m_split; /*<! Optional length of each output >*/
-    int m_axis;          /*<! Which axis to split on. >*/
-    int m_num_outputs;   /*<! Number of outputs to split parts of the tensor into. >*/
+    TensorBase *m_split; /*!< Optional length of each output */
+    int m_axis;          /*!< Which axis to split on. */
+    int m_num_outputs;   /*!< Number of outputs to split parts of the tensor into. */
 
 public:
     /**
@@ -83,9 +83,6 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
-
         TensorBase *input = tensors[m_inputs_index[0]];
         int num_slices = 1;
         int slice_size = 1;
@@ -138,8 +135,6 @@ public:
 
             slice_index += output->get_shape()[m_axis];
         }
-
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Split");
     }
 
     /**
@@ -167,6 +162,11 @@ public:
                  "quant_type: %s, split shape: %s.",
                  quant_type_to_string(quant_type),
                  shape_to_string(m_split->get_shape()).c_str());
+    }
+
+    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
+    {
+        Module::get_param_memory_size(m_split, in_fbs, out_fbs, fbs_model);
     }
 };
 } // namespace module

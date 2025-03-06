@@ -61,14 +61,11 @@ public:
 
     void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
     {
-        DL_LOG_MODULE_LATENCY_INIT();
-        DL_LOG_MODULE_LATENCY_START();
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             forward_template<int8_t>(tensors, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(tensors, mode);
         }
-        DL_LOG_MODULE_LATENCY_END_PRINT(this->name, "Add2D");
     }
 
     void forward_args(void *args)
@@ -111,7 +108,8 @@ public:
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
             TensorBase *input0_constant = fbs_model->get_operation_parameter(node_name, 0);
             TensorBase *input1_constant = fbs_model->get_operation_parameter(node_name, 1);
-            op = new Add(NULL, MODULE_INPLACE_CHANGED_BUFFER, quant_type, {input0_constant, input1_constant});
+            op = new Add(
+                node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type, {input0_constant, input1_constant});
         }
         return op;
     }
@@ -122,6 +120,11 @@ public:
                  "quant_type: %s, input feature map size: %d.",
                  quant_type_to_string(quant_type),
                  m_inputs_index.size());
+    }
+
+    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
+    {
+        Module::get_param_memory_size(m_inputs_constant, in_fbs, out_fbs, fbs_model);
     }
 };
 

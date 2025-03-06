@@ -54,7 +54,7 @@ TEST_CASE("Test dl model API: run()", "[api]")
 
     dl::tool::Latency latency;
     for (int i = 0; i < 15; i++) {
-        model = new Model("model", 0, fbs::MODEL_LOCATION_IN_FLASH_PARTITION, i * 20000);
+        model = new Model("model", 0, fbs::MODEL_LOCATION_IN_FLASH_PARTITION, (i % 2) * 100000);
 
         latency.start();
         model->run();

@@ -10,13 +10,6 @@
 
 namespace fbs {
 
-typedef enum {
-    MODEL_LOCATION_IN_FLASH_RODATA = 0,    // The model in FLASH .rodata section
-    MODEL_LOCATION_IN_FLASH_PARTITION = 1, // The model in SPIFFS
-    MODEL_LOCATION_IN_SDCARD = 2,          // The model in SDCard
-    MODEL_LOCATION_MAX = MODEL_LOCATION_IN_SDCARD,
-} model_location_type_t;
-
 /**
  * @brief Class for parser the flatbuffers.
  *
@@ -45,10 +38,10 @@ public:
      *
      * @param key   NULL or a 128-bit AES key, like {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a,
      * 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
-     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
-     *                      Only set this param to false when your psram resource is very tight. This saves psram and
-     *                      sacrifices the performance of model inference because the frequency of psram is higher than
-     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * @param param_copy    Set to false to avoid copy model parameters from FLASH to PSRAM.
+     *                      Only set this param to false when your PSRAM resource is very tight. This saves PSRAM and
+     *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
+     * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
      *
      * @return  Return nullptr if loading fails. Otherwise return the pointer of FbsModel.
@@ -61,10 +54,10 @@ public:
      * @param model_index  The index of model.
      * @param key   NULL or a 128-bit AES key, like {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a,
      * 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}.
-     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
-     *                      Only set this param to false when your psram resource is very tight. This saves psram and
-     *                      sacrifices the performance of model inference because the frequency of psram is higher than
-     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * @param param_copy    Set to false to avoid copy model parameters from FLASH to PSRAM.
+     *                      Only set this param to false when your PSRAM resource is very tight. This saves PSRAM and
+     *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
+     * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
      *
      * @return  Return nullptr if loading fails. Otherwise return the pointer of FbsModel.
@@ -77,10 +70,10 @@ public:
      * @param model_name  The name of model.
      * @param key   NULL or a 128-bit AES key, like {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a,
      * 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
-     * @param param_copy    Set to false to avoid copy model parameters from flash to psram.
-     *                      Only set this param to false when your psram resource is very tight. This saves psram and
-     *                      sacrifices the performance of model inference because the frequency of psram is higher than
-     * flash. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
+     * @param param_copy    Set to false to avoid copy model parameters from FLASH to PSRAM.
+     *                      Only set this param to false when your PSRAM resource is very tight. This saves PSRAM and
+     *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
+     * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
      *
      * @return  Return nullptr if loading fails. Otherwise return the pointer of FbsModel.
