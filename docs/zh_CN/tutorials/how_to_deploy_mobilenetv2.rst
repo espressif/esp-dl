@@ -504,7 +504,7 @@
 模型部署
 ------------
 
-:project:`参考示例 <examples/imagenet_cls>`
+:project:`参考示例 <examples/mobilenetv2_cls>`
 
 图像分类基类
 ^^^^^^^^^^^^^^^^^

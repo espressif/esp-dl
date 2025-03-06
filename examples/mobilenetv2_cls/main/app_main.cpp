@@ -4,7 +4,7 @@
 
 extern const uint8_t cat_jpg_start[] asm("_binary_cat_jpg_start");
 extern const uint8_t cat_jpg_end[] asm("_binary_cat_jpg_end");
-const char *TAG = "imagenet_cls";
+const char *TAG = "mobilenetv2_cls";
 
 extern "C" void app_main(void)
 {
