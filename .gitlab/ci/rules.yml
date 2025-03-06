@@ -56,9 +56,6 @@
 .patterns-example_human_face_detect: &patterns-example_human_face_detect
   - "examples/human_face_detect/**/*"
 
-.patterns-example_mobilenet_v2: &patterns-example_mobilenet_v2
-  - "examples/mobilenet_v2/**/*"
-
 .patterns-example_pedestrian_detect: &patterns-example_pedestrian_detect
 - "examples/pedestrian_detect/**/*"
 
@@ -164,17 +161,6 @@
       changes: *patterns-esp-dl
     - <<: *if-dev-push
       changes: *patterns-example_imagenet_cls
-    - <<: *if-dev-push
-      changes: *patterns-gitlab-ci
-
-.rules:build:example_mobilenet_v2:
-  rules:
-    - <<: *if-protected
-    - <<: *if-label-build
-    - <<: *if-dev-push
-      changes: *patterns-esp-dl
-    - <<: *if-dev-push
-      changes: *patterns-example_mobilenet_v2
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 

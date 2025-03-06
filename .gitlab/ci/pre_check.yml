@@ -10,7 +10,7 @@ check_readme_links:
     - .rules:pre_check:readme
   allow_failure: false
   script:
-    - python ${CI_PROJECT_DIR}/.gitlab/tool/check_readme_links.py -w
+    - python ${CI_PROJECT_DIR}/.gitlab/tool/check_readme_links.py
 
 check_pre_commit:
   extends:
