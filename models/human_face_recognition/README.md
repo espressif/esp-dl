@@ -1,22 +1,129 @@
-| Supported Targets | ESP32-S3 | ESP32-P4 |
-| ----------------- | -------- | -------- |
+# Human Face Recognition Models
 
-# List of Human Face Recognition Models
+## Model list
+[supported]: https://img.shields.io/badge/-supported-green "supported"
 
-Up to now, we support two different versions of human face recognition models. The performance of human face recognition models is as follows:
+| Chip     | MFN_S8_V1              | MBF_S8_V1              |
+|----------|------------------------|------------------------|
+| ESP32-S3 | ![alt text][supported] | ![alt text][supported] |
+| ESP32-P4 | ![alt text][supported] | ![alt text][supported] |
 
-input_shape : h * w * c  
-mfn : 112 * 112 * 3  
-mbf : 112 * 112 * 3  
+## Model Latency
 
-| Model                    | Params(M) | GFLOPs | TAR@FAR=1E-4 on IJB-C(%) |
-| ---------------------------- | --------- | ------ | ------------------------ |
-| mfn_s8_v1 | 1.2       | 0.46   | 90.03                  |
+| name         | input(h*w*c)  | preprocess(us) | model(us) | postprocess(us) |
+|--------------|---------------|----------------|-----------|-----------------|
+| mfn_s8_v1_s3 | 112 * 112 * 3 | 8380           | 248803    | 80              |
+| mfn_s8_v1_p4 | 112 * 112 * 3 | 5198           | 93003     | 51              |
+| mbf_s8_v1_s3 | 112 * 112 * 3 | 8386           | 1072427   | 81              |
+| mbf_s8_v1_p4 | 112 * 112 * 3 | 5197           | 188221    | 52              |
+
+## Model Metrics
+
+| Model     | Params(M) | GFLOPs | TAR@FAR=1E-4 on IJB-C(%) |
+|-----------|-----------|--------|--------------------------|
+| mfn_s8_v1 | 1.2       | 0.46   | 90.03                    |
 | mbf_s8_v1 | 3.4       | 0.90   | 93.94                    |
 
-|              | preprocess(us) | model(us) | postprocess(us) |
-| ------------ | -------------- | --------- | --------------- |
-| mfn_s8_v1_s3 | 8586           | 245617    | 68              |
-| mfn_s8_v1_p4 | 5128           | 90578     | 42              |
-| mbf_s8_v1_s3 | 8570           | 1117230   | 75              |
-| mbf_s8_v1_p4 | 5255           | 193842    | 43              |
+## Model Usage
+
+``HumanFaceFeat`` accepts a ``HumanFaceFeat::model_type_t`` parameter. It has a default value determined by [model type](#model-type) option in menuconfig.
+
+### How to New `HumanFaceFeat`
+
+#### Only One Model
+
+```cpp
+HumanFaceFeat *feat = new HumanFaceFeat();
+```
+
+#### Mutiple Models
+
+```cpp
+// use MFN_S8_V1
+HumanFaceFeat *feat = new HumanFaceFeat(HumanFaceFeat::MFN_S8_V1);
+// use MBF_S8_V1
+// HumanFaceFeat *feat = new HumanFaceFeat(HumanFaceFeat::MBF_S8_V1);
+```
+> **note:** If mutiple models is enabled in menuconfig, the default value is the first one. Pass in an explicit parameter to ``HumanFaceFeat`` to use one of them.
+
+# Configurable Options in Menuconfig
+
+See [Kconfig](Kconfig).
+
+## Model Type
+
+- CONFIG_HUMAN_FACE_FEAT_MFN_S8_V1
+- CONFIG_HUMAN_FACE_FEAT_MBF_S8_V1
+
+These options determines which models will be enabled. 
+
+> **note:** 
+> - If model location is set to FLASH partition or FLASH rodata, only the selected model type will be flashed.
+> - If model location is set to be in sdcard, all models will be selected automatically.
+
+## Model Location
+
+- CONFIG_HUMAN_FACE_FEAT_MODEL_IN_FLASH_RODATA
+- CONFIG_HUMAN_FACE_FEAT_MODEL_IN_FLASH_PARTITION
+- CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
+
+This component supports to [load model](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_load_test_profile_model.html) from three different locations.
+
+> **note:** If model location is set to FLASH partition, `partition.csv` must contain a partition named `human_face_feat`, and the partition should be big enough to hold the model file.
+
+## SDCard Directory
+
+- CONFIG_HUMAN_FACE_FEAT_MODEL_SDCARD_DIR
+
+When model locates in sdcard, you can change the model directory relative to the sdcard mount point.   
+
+The default value of this option is `models/s3` for ESP32S3 and `models/p4` for ESP32P4. 
+When using default value, just copy [models](models) folder to sdcard root directory.
+
+> **note:** Do not change the model name when copy the models to sdcard.
+
+# Human Face Recognizer
+
+This component also contains `HumanFaceRecognizer`. It's a integration of `HumanFaceFeat` and `dl::recognition::DataBase`. If you want to enroll/recognize a human face, in addition to `HumanFaceRecognizer`, you also need `HumanFaceDetect`. See [How to New HumanFaceDetect](https://github.com/espressif/esp-dl/blob/master/models/human_face_detect/README.md#how-to-new-humanfacedetect).
+
+## How to New Human Face Recognizer
+
+See [How to New HumanFaceFeat](#how-to-new-humanfacefeat), create a feature extractor first. Then pass it into `HumanFaceRecognizer`.
+
+```cpp
+HumanFaceRecognizer *human_face_recognizer = new HumanFaceRecognizer(feat, "path/to/database");
+```
+
+## How to Enroll a Human Face
+
+```cpp
+dl::image::img_t img = {.data=DATA, .width=WIDTH, .height=HEIGHT, .pix_type=PIX_TYPE};
+human_face_recognizer->enroll(img, human_face_detect->run(img));
+```
+
+More detail about `dl::image::img_t`, see [dl_image_define.hpp](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/image/dl_image_define.hpp).
+
+## How to Recognize a Human Face
+
+```cpp
+dl::image::img_t img = {.data=DATA, .width=WIDTH, .height=HEIGHT, .pix_type=PIX_TYPE};
+human_face_recognizer->recognize(img, human_face_detect->run(img));
+```
+
+## How to Delete Featrue in Database
+### Delete all Features
+
+```cpp
+human_face_recognizer->clear_all_feats();
+```
+### Delete Last Feature
+
+```cpp
+human_face_recognizer->delete_last_feat();
+```
+
+### Delete Feature by Index
+
+```cpp
+human_face_recognizer->delete_feat(index);
+```

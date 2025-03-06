@@ -23,6 +23,8 @@ menu "models: coco_detect"
             bool "flash_partition"
         config COCO_DETECT_MODEL_IN_SDCARD
             bool "sdcard"
+            select COCO_DETECT_YOLO11N_S8_V1
+            select COCO_DETECT_YOLO11N_S8_V2
     endchoice
 
     config COCO_DETECT_MODEL_LOCATION
@@ -33,8 +35,8 @@ menu "models: coco_detect"
 
     config COCO_DETECT_MODEL_SDCARD_DIR
         string "coco_detect model sdcard dir"
-        default "espdl_models/s3" if IDF_TARGET_ESP32S3
-        default "espdl_models/p4" if IDF_TARGET_ESP32P4
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
         depends on COCO_DETECT_MODEL_IN_SDCARD
         help
             Directory of models relative to sdcard mount point.

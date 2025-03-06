@@ -28,8 +28,8 @@ menu "models: human_face_detect"
 
     config HUMAN_FACE_DETECT_MODEL_SDCARD_DIR
         string "human_face_detect model sdcard dir"
-        default "espdl_models/s3" if IDF_TARGET_ESP32S3
-        default "espdl_models/p4" if IDF_TARGET_ESP32P4
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
         depends on HUMAN_FACE_DETECT_MODEL_IN_SDCARD
         help
             Directory of models relative to sdcard mount point.

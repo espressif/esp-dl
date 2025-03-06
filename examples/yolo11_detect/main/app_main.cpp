@@ -23,11 +23,10 @@ extern "C" void app_main(void)
     sw_decode_jpeg(jpeg_img, img, true);
 
     COCODetect *detect = new COCODetect();
-    vTaskDelay(pdMS_TO_TICKS(10)); // delay 10ms
     auto &detect_results = detect->run(img);
     for (const auto &res : detect_results) {
         ESP_LOGI(TAG,
-                 "[category: %d, score: %f, x1: %d, y1: %d, x2: %d, y2: %d]\n",
+                 "[category: %d, score: %f, x1: %d, y1: %d, x2: %d, y2: %d]",
                  res.category,
                  res.score,
                  res.box[0],

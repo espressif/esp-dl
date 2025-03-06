@@ -26,7 +26,7 @@ extern "C" void app_main(void)
 
     auto &results = cls->run(img);
     for (const auto &res : results) {
-        ESP_LOGI(TAG, "category: %s, score: %f\n", res.cat_name, res.score);
+        ESP_LOGI(TAG, "category: %s, score: %f", res.cat_name, res.score);
     }
     delete cls;
     heap_caps_free(img.data);

@@ -23,6 +23,8 @@ menu "models: human_face_feat"
             bool "flash_partition"
         config HUMAN_FACE_FEAT_MODEL_IN_SDCARD
             bool "sdcard"
+            select HUMAN_FACE_FEAT_MFN_S8_V1
+            select HUMAN_FACE_FEAT_MBF_S8_V1
     endchoice
 
     config HUMAN_FACE_FEAT_MODEL_LOCATION
@@ -33,8 +35,8 @@ menu "models: human_face_feat"
 
     config HUMAN_FACE_FEAT_MODEL_SDCARD_DIR
         string "human_face_feat model sdcard dir"
-        default "espdl_models/s3" if IDF_TARGET_ESP32S3
-        default "espdl_models/p4" if IDF_TARGET_ESP32P4
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
         depends on HUMAN_FACE_FEAT_MODEL_IN_SDCARD
         help
             Directory of models relative to sdcard mount point.

@@ -28,8 +28,8 @@ menu "models: pedestrian_detect"
 
     config PEDESTRIAN_DETECT_MODEL_SDCARD_DIR
         string "pedestrian_detect model sdcard dir"
-        default "espdl_models/s3" if IDF_TARGET_ESP32S3
-        default "espdl_models/p4" if IDF_TARGET_ESP32P4
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
         depends on PEDESTRIAN_DETECT_MODEL_IN_SDCARD
         help
             Directory of models relative to sdcard mount point.
