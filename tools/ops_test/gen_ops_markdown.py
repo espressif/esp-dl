@@ -31,7 +31,7 @@ def create_md(config_file, output_path):
             continue
         # print(op_type, op_test_config[op_type]["quant_bits"], op_test_config[op_type]["support_state"])
         quant_bits = op_test_config[op_type].get("quant_bits", [])
-        description = op_test_config[op_type].get("description", "")
+        restrictions = op_test_config[op_type].get("restrictions", "")
 
         onnx_op_link = onnx_link.replace("##", op_type)
         espdl_op_link = espdl_link.replace("##", camel_to_snake(op_type))
@@ -47,11 +47,11 @@ def create_md(config_file, output_path):
         else:
             item.append(no_icon)
 
-        item.append(description)
+        item.append(restrictions)
         data.append(item)
 
     sorted_op_list = sorted(data, key=lambda x: x[0].lower())
-    sorted_op_list = [["Operator", "int8", "int16", "Description"]] + sorted_op_list
+    sorted_op_list = [["Operator", "int8", "int16", "Restrictions"]] + sorted_op_list
     markdown_table = tabulate(sorted_op_list, headers="firstrow", tablefmt="github")
 
     content = """# Operator Support State
@@ -68,7 +68,7 @@ The rounding for ESP32-P4 is [rounding half to even](https://simple.wikipedia.or
 ## Support Operators
 
 The ESP-DL operator interface is aligned with ONNX. The opset 13 is recommended to export ONNX.
-Currently, the following {op_num} operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the description of each operator or [test cases]({config_file}) for details.
+Currently, the following {op_num} operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases]({config_file}) for details.
 """
 
     current_time = datetime.now()
@@ -85,6 +85,7 @@ Currently, the following {op_num} operators have been implemented and tested. So
 
     with open(Path(output_path) / filename, "w") as f:
         f.write(content)
+    print("Generate file:", str(Path(output_path) / filename))
 
 
 if __name__ == "__main__":

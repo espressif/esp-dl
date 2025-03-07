@@ -499,19 +499,23 @@ class SLICE_TEST(nn.Module):
         self.ends = self.config["ends"]
         self.axes = self.config["axes"]
         self.steps = self.config["steps"]
+        self.flip = self.config.get("flip", 0)
 
     def forward(self, input):
         input = nn.ReLU()(input)
-        array_idx = []
-        for i, dim in enumerate(input.shape):
-            if i in self.axes:
-                index = self.axes.index(i)
-                array_idx.append(
-                    slice(self.starts[index], self.ends[index], self.steps[index])
-                )
-            else:
-                array_idx.append(slice(dim))
-        output = input[array_idx]
+        if self.flip:
+            output = torch.flip(input, self.axes)
+        else:
+            array_idx = []
+            for i, dim in enumerate(input.shape):
+                if i in self.axes:
+                    index = self.axes.index(i)
+                    array_idx.append(
+                        slice(self.starts[index], self.ends[index], self.steps[index])
+                    )
+                else:
+                    array_idx.append(slice(dim))
+            output = input[array_idx]
         return output
 
 
@@ -778,6 +782,16 @@ class ELU_TEST(nn.Module):
 
     def forward(self, input):
         output = nn.ELU(alpha=self.config["alpha"])(input)
+        return output
+
+
+class IDENTITY_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        output = input
         return output
 
 

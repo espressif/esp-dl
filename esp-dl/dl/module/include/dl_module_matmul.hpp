@@ -261,8 +261,8 @@ public:
                                           input1->exponent /*exponent*/,
                                           input1->dtype /*dtype*/);
                     } else {
-                        input1_tmp.set_element(static_cast<char *>(input1_element) +
-                                               input1_dtype_bytes * input1->get_element_index({i, 0, 0}));
+                        input1_tmp.set_element_ptr(static_cast<char *>(input1_element) +
+                                                   input1_dtype_bytes * input1->get_element_index({i, 0, 0}));
                     }
 
                     // output: NHWC
@@ -403,8 +403,8 @@ public:
                                           input1->exponent /*exponent*/,
                                           input1->dtype /*dtype*/);
                     } else {
-                        input1_tmp.set_element(static_cast<char *>(input1_element) +
-                                               input1_dtype_bytes * input1->get_element_index({input1_i, 0, 0}));
+                        input1_tmp.set_element_ptr(static_cast<char *>(input1_element) +
+                                                   input1_dtype_bytes * input1->get_element_index({input1_i, 0, 0}));
                     }
 
                     // output: NHWC
@@ -507,9 +507,9 @@ public:
                                               input1->exponent /*exponent*/,
                                               input1->dtype /*dtype*/);
                         } else {
-                            input1_tmp.set_element(static_cast<char *>(input1_element) +
-                                                   input1_dtype_bytes *
-                                                       input1->get_element_index({input1_i, input1_j, 0, 0}));
+                            input1_tmp.set_element_ptr(static_cast<char *>(input1_element) +
+                                                       input1_dtype_bytes *
+                                                           input1->get_element_index({input1_i, input1_j, 0, 0}));
                         }
 
                         // output: NHWC

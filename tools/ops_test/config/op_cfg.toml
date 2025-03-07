@@ -6,13 +6,12 @@
     opset = 13
 
 [ops_test]
-    class_package = "ops_test"
-
     [ops_test.Conv]
-    class_name = "CONV2D_TEST"
+    test_func = "CONV2D_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
     targets = ["esp32s3", "esp32p4"]
-    description = "Groups only support 1 or input_channels"
+    restrictions = "Groups only support 1 or input_channels"
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned
         input_shape = [1, 3, 224, 224]
@@ -194,8 +193,9 @@
         activation_func = "ReLU"    # "", "ReLU"
 
     [ops_test.Gemm]
-    class_name = "LINEAR_TEST"
+    test_func = "LINEAR_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Gemm.cfg]]
         input_shape = [1, 16]
         export_name_prefix = "linear_ishap_1_16_kshap_16_16_relu"
@@ -224,9 +224,10 @@
         activation_func = ""    # "", "ReLU"
 
     [ops_test.Add]
-    class_name = "ADD_TEST"
+    test_func = "ADD_TEST"
     quant_bits = ["int8", "int16"]
-    description = "Support up to 4D"
+    package = "torch_ops_test"
+    restrictions = "Support up to 4D"
         [[ops_test.Add.cfg]]
         input_shape = [[1, 96, 5, 1], [1, 96, 5, 16]]
         export_name_prefix = "add_ishap_1_96_5_1_16"
@@ -429,9 +430,10 @@
 
 
     [ops_test.Sub]
-    class_name = "SUB_TEST"
+    test_func = "SUB_TEST"
     quant_bits = ["int8", "int16"]
-    description = "Support up to 4D"
+    package = "torch_ops_test"
+    restrictions = "Support up to 4D"
         [[ops_test.Sub.cfg]]
         input_shape = [[1, 96, 5, 16], [1, 96, 5, 1]]
         export_name_prefix = "sub_ishap_1_96_5_16_1"
@@ -641,9 +643,10 @@
 
 
     [ops_test.Mul]
-    class_name = "MUL_TEST"
+    test_func = "MUL_TEST"
     quant_bits = ["int8", "int16"]
-    description = "Support up to 4D"
+    package = "torch_ops_test"
+    restrictions = "Support up to 4D"
         [[ops_test.Mul.cfg]]
         input_shape = [[1, 96, 5, 16], [1, 96, 5, 1]]
         export_name_prefix = "mul_ishap_1_96_5_16_1"
@@ -853,9 +856,10 @@
 
 
     [ops_test.Div]
-    class_name = "DIV_TEST"
+    test_func = "DIV_TEST"
     quant_bits = ["int8", "int16"]
-    description = "Support up to 4D"
+    package = "torch_ops_test"
+    restrictions = "Support up to 4D"
         [[ops_test.Div.cfg]]
         input_shape = [[1, 96, 5, 5], [1, 96, 5, 5]]
         export_name_prefix = "div_ishap_1_96_5_5"
@@ -1015,8 +1019,9 @@
 
 
     [ops_test.GlobalAveragePool]
-    class_name = "GLOBAL_AVERAGE_POOLING_TEST"
+    test_func = "GLOBAL_AVERAGE_POOLING_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.GlobalAveragePool.cfg]]
         input_shape = [1, 96, 5, 5]
         export_name_prefix = "global_average_pooling_ishap_1_96_5_5"
@@ -1026,8 +1031,9 @@
         export_name_prefix = "global_average_pooling_ishap_1_51_3_3"
 
     [ops_test.AveragePool]
-    class_name = "AVERAGE_POOLING_TEST"
+    test_func = "AVERAGE_POOLING_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.AveragePool.cfg]]
         input_shape = [1, 96, 7, 7]
         export_name_prefix = "average_pooling_ishap_1_96_7_7_kshape_2_3"
@@ -1057,8 +1063,9 @@
         padding = [1, 1]
 
     [ops_test.MaxPool]
-    class_name = "MAX_POOLING_TEST"
+    test_func = "MAX_POOLING_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.MaxPool.cfg]]
         input_shape = [1, 96, 7, 7]
         export_name_prefix = "max_pooling_ishap_1_96_7_7_kshape_2_3"
@@ -1088,9 +1095,10 @@
         padding = [1, 1]
 
     [ops_test.Resize]
-    class_name = "RESIZE2D_TEST"
+    test_func = "RESIZE2D_TEST"
     quant_bits = ["int8"]
-    description = "Only support nearest and do not support roi"
+    package = "torch_ops_test"
+    restrictions = "Only support nearest and do not support roi"
         [[ops_test.Resize.cfg]]
         input_shape = [1, 96, 5, 5]
         export_name_prefix = "resize2d_ishap_1_96_5_5"
@@ -1104,8 +1112,9 @@
         out_features = 16
 
     [ops_test.Sigmoid]
-    class_name = "SIGMOID_TEST"
+    test_func = "SIGMOID_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Sigmoid.cfg]]
         input_shape = [1, 96, 20, 20]
         export_name_prefix = "sigmoid_ishap_1_96_20_20"
@@ -1119,8 +1128,9 @@
         export_name_prefix = "sigmoid_ishap_1_355"
 
     [ops_test.Tanh]
-    class_name = "TANH_TEST"
+    test_func = "TANH_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Tanh.cfg]]
         input_shape = [1, 96, 20, 20]
         export_name_prefix = "tanh_ishap_1_96_20_20"
@@ -1134,8 +1144,9 @@
         export_name_prefix = "tanh_ishap_1_355"
 
     [ops_test.LeakyRelu]
-    class_name = "LEAKYRELU_TEST"
+    test_func = "LEAKYRELU_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.LeakyRelu.cfg]]
         input_shape = [1, 96, 20, 20]
         slope = 0.02
@@ -1152,8 +1163,9 @@
         export_name_prefix = "leakyrelu_ishap_1_355"
 
     [ops_test.HardSigmoid]
-    class_name = "HARDSIGMOID_TEST"
+    test_func = "HARDSIGMOID_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.HardSigmoid.cfg]]
         input_shape = [1, 96, 20, 20]
         export_name_prefix = "hardsigmoid_ishap_1_96_20_20"
@@ -1167,15 +1179,17 @@
         export_name_prefix = "hardsigmoid_ishap_1_355"
 
     [ops_test.HardSwish]
-    class_name = "HARDSWISH_TEST"
+    test_func = "HARDSWISH_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.HardSwish.cfg]]
         input_shape = [1, 96, 20, 20]
         export_name_prefix = "hardswish_ishap_1_96_20_20"
 
     [ops_test.PRelu]
-    class_name = "PRELU_TEST"
+    test_func = "PRELU_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.PRelu.cfg]]
         input_shape = [1, 20, 20, 20]
         num_parameters = 1
@@ -1187,9 +1201,10 @@
         export_name_prefix = "prelu_ishap_1_96_20_20_1"
 
     [ops_test.Softmax]
-    class_name = "SOFTMAX_TEST"
+    test_func = "SOFTMAX_TEST"
     quant_bits = ["int8", "int16"]
-    description = "Dtype of output is float32"
+    package = "torch_ops_test"
+    restrictions = "Dtype of output is float32"
         [[ops_test.Softmax.cfg]]
         input_shape = [1, 10, 20, 40]
         export_name_prefix = "softmax_ishape_1_10_20_40_dim_-1"
@@ -1209,8 +1224,9 @@
         relu = false
 
     [ops_test.Exp]
-    class_name = "EXP_TEST"
+    test_func = "EXP_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Exp.cfg]]
         input_shape = [1, 96, 20, 20]
         export_name_prefix = "exp_ishap_1_96_20_20"
@@ -1224,8 +1240,9 @@
         export_name_prefix = "exp_ishap_1_355"
 
     [ops_test.Log]
-    class_name = "LOG_TEST"
+    test_func = "LOG_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Log.cfg]]
         input_shape = [1, 96, 20, 20]
         export_name_prefix = "log_ishap_1_96_20_20"
@@ -1239,8 +1256,9 @@
         export_name_prefix = "log_ishap_1_355"
 
     [ops_test.Sqrt]
-    class_name = "SQRT_TEST"
+    test_func = "SQRT_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Sqrt.cfg]]
         input_shape = [1, 96, 20, 20]
         export_name_prefix = "sqrt_ishap_1_96_20_20"
@@ -1254,8 +1272,9 @@
         export_name_prefix = "sqrt_ishap_1_355"
 
     [ops_test.Concat]
-    class_name = "CONCAT_TEST"
+    test_func = "CONCAT_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Concat.cfg]]
         input_shape = [[1, 80, 20, 20], [1, 48, 20, 20]]
         export_name_prefix = "concat_ishape_1_80_20_20_1_48_20_20"
@@ -1272,8 +1291,9 @@
         axis = 3
 
     [ops_test.Clip]
-    class_name = "CLIP_TEST"
+    test_func = "CLIP_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Clip.cfg]]
         input_shape = [1, 10, 5, 5]
         export_name_prefix = "clip_ishape_1_10_5_5_min_0_max_6"
@@ -1288,8 +1308,9 @@
         export_path = ""
 
     [ops_test.Flatten]
-    class_name = "FLATTEN_TEST"
+    test_func = "FLATTEN_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Flatten.cfg]]
         input_shape = [1, 10, 32, 5, 5]
         export_name_prefix = "flatten_ishape_1_10_32_5_5_start_0_end__2"
@@ -1312,8 +1333,9 @@
         export_path = ""
 
     [ops_test.Reshape]
-    class_name = "RESHAPE_TEST"
+    test_func = "RESHAPE_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Reshape.cfg]]
         input_shape = [1, 10, 32, 5, 5]
         export_name_prefix = "reshape_ishape_1_10_32_5_5_shape_320_5_5"
@@ -1333,8 +1355,9 @@
         export_path = ""
 
     [ops_test.Transpose]
-    class_name = "TRANSPOSE_TEST"
+    test_func = "TRANSPOSE_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Transpose.cfg]]
         input_shape = [1, 10, 20, 40]
         export_name_prefix = "transpose_ishape_1_10_20_40_perm_0_2_1_3"
@@ -1355,8 +1378,9 @@
 
 
     [ops_test.Squeeze]
-    class_name = "SQUEEZE_TEST"
+    test_func = "SQUEEZE_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Squeeze.cfg]]
         input_shape = [1, 10, 1, 2, 5]
         export_name_prefix = "squeeze_ishape_1_10_1_2_5_dim_2"
@@ -1373,8 +1397,9 @@
         dim = false
 
     [ops_test.Unsqueeze]
-    class_name = "UNSQUEEZE_TEST"
+    test_func = "UNSQUEEZE_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Unsqueeze.cfg]]
         input_shape = [1, 10, 2, 5]
         export_name_prefix = "Unsqueeze_ishape_1_10_2_5_dim_0"
@@ -1397,8 +1422,9 @@
 
 
     [ops_test.Slice]
-    class_name = "SLICE_TEST"
+    test_func = "SLICE_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Slice.cfg]]
         input_shape = [1, 96, 20, 20]
         starts = [0, 1, 1]
@@ -1431,11 +1457,39 @@
         steps = [1]
         export_name_prefix = "slice_ishap_38_2_2"
 
+        [[ops_test.Slice.cfg]]
+        input_shape = [1, 32]
+        starts = []
+        ends = []
+        axes = [1]
+        steps = []
+        flip = -1
+        export_name_prefix = "slice_ishap_1_32_flip"
+
+        [[ops_test.Slice.cfg]]
+        input_shape = [1, 5, 10]
+        starts = []
+        ends = []
+        axes = [1,2]
+        steps = []
+        flip = -1
+        export_name_prefix = "slice_ishap_1_5_10_flip"
+
+        [[ops_test.Slice.cfg]]
+        input_shape = [1, 8, 20, 31]
+        starts = []
+        ends = []
+        axes = [1, 3]
+        steps = []
+        flip = -1
+        export_name_prefix = "slice_ishap_1_8_20_20_flip"
+
 
     [ops_test.Pad]
-    class_name = "PAD_TEST"
+    test_func = "PAD_TEST"
     quant_bits = ["int8", "int16"]
-    description = "Do not support wrap mode"
+    package = "torch_ops_test"
+    restrictions = "Do not support wrap mode"
         [[ops_test.Pad.cfg]]
         input_shape = [64]
         pads = [3,3]
@@ -1529,9 +1583,10 @@
 
 
     [ops_test.MatMul]
-    class_name = "MATMUL_TEST"
+    test_func = "MATMUL_TEST"
     quant_bits = ["int8", "int16"]
-    description = "Support up to 4D"
+    package = "torch_ops_test"
+    restrictions = "Support up to 4D"
         [[ops_test.MatMul.cfg]]
         input_shape = [[1, 10], [1, 10]]
         export_name_prefix = "MatMul_ishape0_10_ishape1_10"
@@ -1646,8 +1701,9 @@
 
 
     [ops_test.Split]
-    class_name = "SPLIT_TEST"
+    test_func = "SPLIT_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Split.cfg]]
         input_shape = [1, 10, 2, 5]
         export_name_prefix = "Split_ishape_1_10_2_5_split_size_3_dim_1"
@@ -1662,8 +1718,9 @@
 
 
     [ops_test.Gather]
-    class_name = "GATHER_TEST"
+    test_func = "GATHER_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Gather.cfg]]
         input_shape = [1, 3, 2]
         export_name_prefix = "Gather_ishape_3_2_indices_0_1_1_2_dim_0"
@@ -1684,8 +1741,9 @@
 
 
     [ops_test.Requantize]
-    class_name = "REQUANTIZE_TEST"
+    test_func = "REQUANTIZE_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Requantize.cfg]]
         input_shape = [1, 16, 100, 100]
         export_name_prefix = "Requantize_ishape_1_16_100_100_shift_right"
@@ -1726,8 +1784,9 @@
 
 
     [ops_test.Elu]
-    class_name = "ELU_TEST"
+    test_func = "ELU_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Elu.cfg]]
         input_shape = [1, 10, 2, 5]
         export_name_prefix = "Elu_ishape_1_10_2_5_alpha_0_3"
@@ -1735,8 +1794,9 @@
 
 
     [ops_test.Greater]
-    class_name = "GREATER_TEST"
+    test_func = "GREATER_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Greater.cfg]]
         input_shape = [[1, 4, 5, 16], [1, 4, 5, 16]]
         export_name_prefix = "Greater_ishap_1_4_5_16"
@@ -1775,8 +1835,9 @@
 
 
     [ops_test.GreaterOrEqual]
-    class_name = "GREATEROREQUAL_TEST"
+    test_func = "GREATEROREQUAL_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.GreaterOrEqual.cfg]]
         input_shape = [[1, 4, 5, 16], [1, 4, 5, 16]]
         export_name_prefix = "GreaterOrEqual_ishap_1_4_5_16"
@@ -1815,8 +1876,9 @@
 
 
     [ops_test.Equal]
-    class_name = "EQUAL_TEST"
+    test_func = "EQUAL_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Equal.cfg]]
         input_shape = [[1, 4, 5, 16], [1, 4, 5, 16]]
         export_name_prefix = "Equal_ishap_1_4_5_16"
@@ -1855,8 +1917,9 @@
 
 
     [ops_test.Less]
-    class_name = "LESS_TEST"
+    test_func = "LESS_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.Less.cfg]]
         input_shape = [[1, 4, 5, 16], [1, 4, 5, 16]]
         export_name_prefix = "Less_ishap_1_4_5_16"
@@ -1895,8 +1958,9 @@
 
 
     [ops_test.LessOrEqual]
-    class_name = "LESSOREQUAL_TEST"
+    test_func = "LESSOREQUAL_TEST"
     quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
         [[ops_test.LessOrEqual.cfg]]
         input_shape = [[1, 4, 5, 16], [1, 4, 5, 16]]
         export_name_prefix = "LessOrEqual_ishap_1_4_5_16"
@@ -1932,6 +1996,26 @@
         export_name_prefix = "LessOrEqual_ishap_1_4_5_1_bc_unalign"
         input0_is_weight = false
         input1_is_weight = false
+
+    [ops_test.ReverseSequence]
+    test_func = "REVERSESEQUENCE_TEST"
+    quant_bits = ["int8", "int16"]
+    package = "onnx_ops_test"
+        [[ops_test.ReverseSequence.cfg]]
+        input_shape = [1, 100]
+        sequence_lens = [50]
+        batch_axis = 0
+        time_axis = 1
+        export_name_prefix = "ReverseSequence_ishape_1_100"
+
+        [[ops_test.ReverseSequence.cfg]]
+        input_shape = [1, 5, 20]
+        sequence_lens = [3]
+        batch_axis = 0
+        time_axis = 1
+        export_name_prefix = "ReverseSequence_ishape_1_5_20"
+
+
 
 
 [models_test]

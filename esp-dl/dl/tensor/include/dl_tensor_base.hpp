@@ -225,14 +225,6 @@ public:
     TensorBase &set_element_ptr(void *data);
 
     /**
-     * @brief Get the index of each dims
-     *
-     * @param element_index the index of the element
-     * @return std::vector<int> the index of each dims
-     */
-    virtual std::vector<int> get_axis_index(int element_index);
-
-    /**
      * @brief Get the shape of Tensor.
      *
      * @return std::vector<int> the shape of Tensor
@@ -341,14 +333,6 @@ public:
                       const std::vector<int> &end,
                       const std::vector<int> &axes = {},
                       const std::vector<int> &step = {});
-
-    // template <typename T>
-    // static void _slice(TensorBase *input,
-    //                    TensorBase *output,
-    //                    const std::vector<int> &start,
-    //                    const std::vector<int> &end,
-    //                    const std::vector<int> &axes = {},
-    //                    const std::vector<int> &step = {});
 
     /**
      * @brief Produces a slice along multiple axes

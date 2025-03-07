@@ -16,6 +16,7 @@
 #include "dl_module_greater_or_equal.hpp"
 #include "dl_module_hard_sigmoid.hpp"
 #include "dl_module_hard_swish.hpp"
+#include "dl_module_identity.hpp"
 #include "dl_module_leaky_relu.hpp"
 #include "dl_module_less.hpp"
 #include "dl_module_less_or_equal.hpp"
@@ -30,6 +31,7 @@
 #include "dl_module_requantize_linear.hpp"
 #include "dl_module_reshape.hpp"
 #include "dl_module_resize.hpp"
+#include "dl_module_reverse_sequence.hpp"
 #include "dl_module_sigmoid.hpp"
 #include "dl_module_slice.hpp"
 #include "dl_module_softmax.hpp"
@@ -148,6 +150,8 @@ public:
             this->register_module("Equal", Equal::deserialize);
             this->register_module("Less", Less::deserialize);
             this->register_module("LessOrEqual", LessOrEqual::deserialize);
+            this->register_module("ReverseSequence", ReverseSequence::deserialize);
+            this->register_module("Identity", Identity::deserialize);
         }
     }
 

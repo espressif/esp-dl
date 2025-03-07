@@ -4,14 +4,6 @@
 #include <iostream>
 namespace dl {
 
-// template <typename T>
-// static void _slice(TensorBase *input,
-//                     TensorBase *output,
-//                     const std::vector<int> &start,
-//                     const std::vector<int> &end,
-//                     const std::vector<int> &axes = {},
-//                     const std::vector<int> &step = {});
-
 template <typename RT, typename T>
 RT quantize(T input, float inv_scale)
 {
@@ -363,16 +355,6 @@ TensorBase &TensorBase::set_element_ptr(void *data)
     this->data = data;
 
     return *this;
-}
-
-std::vector<int> TensorBase::get_axis_index(int element_index)
-{
-    std::vector<int> axis_index(this->shape.size(), 0);
-    for (int j = this->shape.size() - 1; j > -1; --j) {
-        axis_index[j] = element_index % this->shape[j];
-        element_index /= this->shape[j];
-    }
-    return axis_index;
 }
 
 TensorBase &TensorBase::set_shape(const std::vector<int> shape)
@@ -796,7 +778,7 @@ bool TensorBase::compare_elements(const T *gt_elements, float epsilon, bool verb
                          gt_elements[i] * 1.0,
                          elements[i] * 1.0,
                          epsilon);
-                std::vector<int> position = this->get_axis_index(i);
+                std::vector<int> position = this->get_element_coordinates(i);
                 ESP_LOGE(__FUNCTION__, "The position is: %s", shape_to_string(position).c_str());
             }
             return false;
@@ -897,7 +879,6 @@ void _flip(TensorBase *input, const std::vector<int> &axes)
         return;
     }
     T *input_element = (T *)input->get_element_ptr();
-    int ndim = input->shape.size();
 
     for (int i = 0; i < input->get_size(); ++i) {
         // Compute original coordinates
