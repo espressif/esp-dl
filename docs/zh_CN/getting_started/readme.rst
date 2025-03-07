@@ -62,10 +62,20 @@ ESP-DL 提供了一些开箱即用的 :project:`示例 <examples>`
 
 一些示例包含可配置的选项，可以在使用 ``idf.py set-target`` 指定芯片之后使用 ``idf.py menuconfig`` 进行配置。
 
-清空示例
-^^^^^^^^^^^^
+故障排除
+^^^^^^^^^^^^^^^^^^^^^^
 
-如果遇到了一些问题，可以尝试删除 ``build/``, ``sdkconfig``, ``dependencies.lock``, ``managed_components/`` 之后重试。
+查看 ESP-IDF 文档
+""""""""""""""""""""""""""
+请参阅 `ESP-IDF DOC <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/get-started/index.html>`_
+
+擦除 FLASH 和清除示例
+"""""""""""""""""""""""""""""""""""""""""
+::
+
+   idf.py eras-flash -p [PORT]
+
+删除 ``build/``、``sdkconfig``、``dependencies.lock``、``managed_components/`` 并重试。
 
 模型量化
 ------------------

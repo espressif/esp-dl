@@ -47,20 +47,11 @@ ImagePreprocessor::ImagePreprocessor(Model *model,
 
 ImagePreprocessor::~ImagePreprocessor()
 {
-    if (m_norm_lut) {
-        heap_caps_free(m_norm_lut);
-        m_norm_lut = nullptr;
-    }
+    heap_caps_free(m_norm_lut);
 #if CONFIG_IDF_TARGET_ESP32P4
     if (m_caps & DL_IMAGE_CAP_PPA) {
-        if (m_ppa_buffer) {
-            heap_caps_free(m_ppa_buffer);
-            m_ppa_buffer = nullptr;
-        }
-        if (m_ppa_srm_handle) {
-            ESP_ERROR_CHECK(ppa_unregister_client(m_ppa_srm_handle));
-            m_ppa_srm_handle = nullptr;
-        }
+        heap_caps_free(m_ppa_buffer);
+        ESP_ERROR_CHECK(ppa_unregister_client(m_ppa_srm_handle));
     }
 #endif
 }

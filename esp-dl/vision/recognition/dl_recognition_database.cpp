@@ -5,7 +5,7 @@ static const char *TAG = "dl::recognition::DataBase";
 
 namespace dl {
 namespace recognition {
-DataBase::DataBase(const char *db_path, db_type_t db_type, int feat_len) : m_db_type(db_type)
+DataBase::DataBase(const char *db_path, int feat_len)
 {
     assert(db_path);
     int length = strlen(db_path) + 1;
@@ -21,10 +21,7 @@ DataBase::DataBase(const char *db_path, db_type_t db_type, int feat_len) : m_db_
 DataBase::~DataBase()
 {
     clear_all_feats_in_memory();
-    if (m_db_path) {
-        free(m_db_path);
-        m_db_path = nullptr;
-    }
+    free(m_db_path);
 }
 
 esp_err_t DataBase::create_empty_database_in_storage(int feat_len)

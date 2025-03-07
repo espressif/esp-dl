@@ -51,7 +51,7 @@ Example Compile & Flash
 ::
 
    idf.py set-target [Soc]
-   idf.py flash monitor
+   idf.py flash monitor -p [PORT]
 
 Replace ``[Soc]`` with the specific chip, currently supports ``esp32s3`` and ``esp32p4``.
 
@@ -63,10 +63,20 @@ Example Configuration
 
 Some examples contain configurable options that can be configured using ``idf.py menuconfig`` after specifying the chip using ``idf.py set-target``.
 
-Clear Examples
+Trouble shooting
 ^^^^^^^^^^^^^^^^^^^^^
 
-If you encounter some problems, try to delete ``build/``, ``sdkconfig``, ``dependencies.lock``, ``managed_components/`` and try again.
+Check ESP-IDF doc
+""""""""""""""""""""""""
+See `ESP-IDF DOC <https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#>`_
+
+Erase FLASH & Clear Example
+""""""""""""""""""""""""""""""""""""""
+::
+  
+   idf.py erase-flash -p [PORT]
+
+Delete ``build/``, ``sdkconfig``, ``dependencies.lock``, ``managed_components/`` and try again.
 
 Model Quantization
 ------------------------

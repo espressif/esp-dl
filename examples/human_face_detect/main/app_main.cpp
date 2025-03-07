@@ -20,22 +20,12 @@ extern "C" void app_main(void)
     img.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
     sw_decode_jpeg(jpeg_img, img, true);
 
-#if !CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
     HumanFaceDetect *detect = new HumanFaceDetect();
-#else
-    char dir[64];
-#if CONFIG_IDF_TARGET_ESP32P4
-    snprintf(dir, sizeof(dir), "%s/espdl_models/p4", CONFIG_BSP_SD_MOUNT_POINT);
-#elif CONFIG_IDF_TARGET_ESP32S3
-    snprintf(dir, sizeof(dir), "%s/espdl_models/s3", CONFIG_BSP_SD_MOUNT_POINT);
-#endif
-    HumanFaceDetect *detect = new HumanFaceDetect(dir);
-#endif
 
     auto &detect_results = detect->run(img);
     for (const auto &res : detect_results) {
         ESP_LOGI(TAG,
-                 "[score: %f, x1: %d, y1: %d, x2: %d, y2: %d]\n",
+                 "[score: %f, x1: %d, y1: %d, x2: %d, y2: %d]",
                  res.score,
                  res.box[0],
                  res.box[1],
@@ -43,7 +33,7 @@ extern "C" void app_main(void)
                  res.box[3]);
         ESP_LOGI(
             TAG,
-            "left_eye: [%d, %d], left_mouth: [%d, %d], nose: [%d, %d], right_eye: [%d, %d], right_mouth: [%d, %d]]\n",
+            "left_eye: [%d, %d], left_mouth: [%d, %d], nose: [%d, %d], right_eye: [%d, %d], right_mouth: [%d, %d]]",
             res.keypoint[0],
             res.keypoint[1],
             res.keypoint[2],

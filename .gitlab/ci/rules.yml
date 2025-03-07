@@ -50,14 +50,11 @@
 .patterns-example_human_face_recognition: &patterns-example_human_face_recognition
   - "examples/human_face_recognition/**/*"
 
-.patterns-example_imagenet_cls: &patterns-example_imagenet_cls
-  - "examples/imagenet_cls/**/*"
+.patterns-example_mobilenetv2_cls: &patterns-example_mobilenetv2_cls
+  - "examples/mobilenetv2_cls/**/*"
 
 .patterns-example_human_face_detect: &patterns-example_human_face_detect
   - "examples/human_face_detect/**/*"
-
-.patterns-example_mobilenet_v2: &patterns-example_mobilenet_v2
-  - "examples/mobilenet_v2/**/*"
 
 .patterns-example_pedestrian_detect: &patterns-example_pedestrian_detect
 - "examples/pedestrian_detect/**/*"
@@ -156,25 +153,14 @@
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 
-.rules:build:example_imagenet_cls:
+.rules:build:example_mobilenetv2_cls:
   rules:
     - <<: *if-protected
     - <<: *if-label-build
     - <<: *if-dev-push
       changes: *patterns-esp-dl
     - <<: *if-dev-push
-      changes: *patterns-example_imagenet_cls
-    - <<: *if-dev-push
-      changes: *patterns-gitlab-ci
-
-.rules:build:example_mobilenet_v2:
-  rules:
-    - <<: *if-protected
-    - <<: *if-label-build
-    - <<: *if-dev-push
-      changes: *patterns-esp-dl
-    - <<: *if-dev-push
-      changes: *patterns-example_mobilenet_v2
+      changes: *patterns-example_mobilenetv2_cls
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 

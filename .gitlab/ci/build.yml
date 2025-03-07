@@ -102,27 +102,16 @@ build_example_human_face_detect:
   variables:
     EXAMPLE_DIR: examples/human_face_detect
 
-build_example_imagenet_cls:
+build_example_mobilenetv2_cls:
   extends:
     - .build_examples_template
-    - .rules:build:example_imagenet_cls
+    - .rules:build:example_mobilenetv2_cls
   parallel:
     matrix:
       - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
         TARGET: [esp32p4, esp32s3]
   variables:
-    EXAMPLE_DIR: examples/imagenet_cls
-
-build_example_mobilenet_v2:
-  extends:
-    - .build_examples_template
-    - .rules:build:example_mobilenet_v2
-  parallel:
-    matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
-        TARGET: [esp32p4, esp32s3]
-  variables:
-    EXAMPLE_DIR: examples/mobilenet_v2
+    EXAMPLE_DIR: examples/mobilenetv2_cls
 
 .build_docs_template:
   stage: build

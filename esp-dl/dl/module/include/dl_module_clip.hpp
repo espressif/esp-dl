@@ -36,15 +36,8 @@ public:
      */
     ~Clip()
     {
-        if (m_min) {
-            delete m_min;
-            m_min = nullptr;
-        }
-
-        if (m_max) {
-            delete m_max;
-            m_max = nullptr;
-        }
+        delete m_min;
+        delete m_max;
     }
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)

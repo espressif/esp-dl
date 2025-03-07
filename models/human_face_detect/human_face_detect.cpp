@@ -5,6 +5,10 @@ extern const uint8_t human_face_detect_espdl[] asm("_binary_human_face_detect_es
 static const char *path = (const char *)human_face_detect_espdl;
 #elif CONFIG_HUMAN_FACE_DETECT_MODEL_IN_FLASH_PARTITION
 static const char *path = "human_face_det";
+#else
+#if !defined(CONFIG_BSP_SD_MOUNT_POINT)
+#define CONFIG_BSP_SD_MOUNT_POINT "/sdcard"
+#endif
 #endif
 namespace human_face_detect {
 
@@ -14,8 +18,14 @@ MSR::MSR(const char *model_name)
     m_model = new dl::Model(
         path, model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
 #else
-    m_model =
-        new dl::Model(model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
+    char path[256];
+    snprintf(path,
+             sizeof(path),
+             "%s/%s/%s",
+             CONFIG_BSP_SD_MOUNT_POINT,
+             CONFIG_HUMAN_FACE_DETECT_MODEL_SDCARD_DIR,
+             model_name);
+    m_model = new dl::Model(path, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
 #endif
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor = new dl::image::ImagePreprocessor(
@@ -33,8 +43,14 @@ MNP::MNP(const char *model_name)
     m_model = new dl::Model(
         path, model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
 #else
-    m_model =
-        new dl::Model(model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
+    char sd_path[256];
+    snprintf(sd_path,
+             sizeof(sd_path),
+             "%s/%s/%s",
+             CONFIG_BSP_SD_MOUNT_POINT,
+             CONFIG_HUMAN_FACE_DETECT_MODEL_SDCARD_DIR,
+             model_name);
+    m_model = new dl::Model(sd_path, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
 #endif
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor = new dl::image::ImagePreprocessor(
@@ -47,18 +63,9 @@ MNP::MNP(const char *model_name)
 
 MNP::~MNP()
 {
-    if (m_model) {
-        delete m_model;
-        m_model = nullptr;
-    }
-    if (m_image_preprocessor) {
-        delete m_image_preprocessor;
-        m_image_preprocessor = nullptr;
-    }
-    if (m_postprocessor) {
-        delete m_postprocessor;
-        m_postprocessor = nullptr;
-    }
+    delete m_model;
+    delete m_image_preprocessor;
+    delete m_postprocessor;
 };
 
 std::list<dl::detect::result_t> &MNP::run(const dl::image::img_t &img, std::list<dl::detect::result_t> &candidates)
@@ -103,14 +110,8 @@ std::list<dl::detect::result_t> &MNP::run(const dl::image::img_t &img, std::list
 
 MSRMNP::~MSRMNP()
 {
-    if (m_msr) {
-        delete m_msr;
-        m_msr = nullptr;
-    }
-    if (m_mnp) {
-        delete m_mnp;
-        m_mnp = nullptr;
-    }
+    delete m_msr;
+    delete m_mnp;
 }
 
 std::list<dl::detect::result_t> &MSRMNP::run(const dl::image::img_t &img)
@@ -121,25 +122,13 @@ std::list<dl::detect::result_t> &MSRMNP::run(const dl::image::img_t &img)
 
 } // namespace human_face_detect
 
-HumanFaceDetect::HumanFaceDetect(const char *sdcard_model_dir, model_type_t model_type)
+HumanFaceDetect::HumanFaceDetect(model_type_t model_type)
 {
     switch (model_type) {
     case model_type_t::MSRMNP_S8_V1: {
 #if CONFIG_HUMAN_FACE_DETECT_MSRMNP_S8_V1
-#if !CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
         m_model =
             new human_face_detect::MSRMNP("human_face_detect_msr_s8_v1.espdl", "human_face_detect_mnp_s8_v1.espdl");
-#else
-        if (sdcard_model_dir) {
-            char msr_dir[128];
-            snprintf(msr_dir, sizeof(msr_dir), "%s/human_face_detect_msr_s8_v1.espdl", sdcard_model_dir);
-            char mnp_dir[128];
-            snprintf(mnp_dir, sizeof(mnp_dir), "%s/human_face_detect_mnp_s8_v1.espdl", sdcard_model_dir);
-            m_model = new human_face_detect::MSRMNP(msr_dir, mnp_dir);
-        } else {
-            ESP_LOGE("human_face_detect", "please pass sdcard mount point as parameter.");
-        }
-#endif
 #else
         ESP_LOGE("human_face_detect", "human_face_detect_msrmnp_s8_v1 is not selected in menuconfig.");
 #endif

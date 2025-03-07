@@ -11,6 +11,10 @@ dependencies:
 examples:
   - path: ../examples/human_face_detect
   - path: ../examples/human_face_recognition
-  - path: ../examples/mobilenet_v2
   - path: ../examples/pedestrian_detect
-  - path: ../examples/imagenet_cls
+  - path: ../examples/mobilenetv2_cls
+  - path: ../examples/yolo11_detect
+  - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_flash_partition
+  - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_flash_rodata
+  - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_sdcard
+  - path: ../examples/tutorial/how_to_run_model

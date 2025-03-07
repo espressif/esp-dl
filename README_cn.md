@@ -43,8 +43,8 @@ pip install git+https://github.com/espressif/esp-ppq.git
 ESP-PPQ 可以直接读取 ONNX 模型进行量化。Pytorch 和 TensorFlow 需要先转换为 ONNX 模型，因此请确保你的模型可以转换为 ONNX 模型。更多详细信息请参阅:  
 
 [如何量化模型](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_quantize_model.html)  
-[如何量化 MobileNetV2](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_deploy_mobilenetv2.html)   
-[如何量化 YOLO11n](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_deploy_yolo11n.html)  
+[如何量化 MobileNetV2](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_deploy_mobilenetv2.html#how-to-quantize-mobilenetv2)   
+[如何量化 YOLO11n](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_deploy_yolo11n.html#how-to-quantize-yolo11n)  
 
 
 ### Model Deployment

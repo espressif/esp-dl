@@ -15,13 +15,7 @@ private:
 public:
     FeatPostprocessor(Model *model, const std::string &output_name = "");
     TensorBase *postprocess();
-    ~FeatPostprocessor()
-    {
-        if (m_feat) {
-            delete m_feat;
-            m_feat = nullptr;
-        }
-    }
+    ~FeatPostprocessor() { delete m_feat; }
 };
 } // namespace feat
 } // namespace dl

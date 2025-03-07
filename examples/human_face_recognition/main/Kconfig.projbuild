@@ -11,10 +11,4 @@ menu "example: human_face_recognition"
         config DB_SPIFFS
             bool "spiffs"
     endchoice
-
-    config DB_FILE_SYSTEM
-        int
-        default 0 if DB_FATFS_FLASH
-        default 1 if DB_FATFS_SDCARD
-        default 2 if DB_SPIFFS
 endmenu
