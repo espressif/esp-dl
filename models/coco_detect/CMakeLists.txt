@@ -32,6 +32,9 @@ if (NOT CONFIG_COCO_DETECT_MODEL_IN_SDCARD)
     if(CONFIG_COCO_DETECT_YOLO11N_S8_V2)
         list(APPEND models ${models_dir}/coco_detect_yolo11n_s8_v2.espdl)
     endif()
+    if(CONFIG_COCO_DETECT_YOLO11N_S8_V3)
+        list(APPEND models ${models_dir}/coco_detect_yolo11n_s8_v3.espdl)
+    endif()
 
     set(pack_model_exe ${espdl_dir}/fbs_loader/pack_espdl_models.py)
     add_custom_command(

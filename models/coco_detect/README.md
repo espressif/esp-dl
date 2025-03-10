@@ -4,21 +4,25 @@
 [supported]: https://img.shields.io/badge/-supported-green "supported"
 [no support]: https://img.shields.io/badge/-no_support-red "no support"
 
-| Chip     | YOLO11N_S8_V1          | YOLO11N_S8_V2           |
-|----------|------------------------|-------------------------|
-| ESP32-S3 | ![alt text][supported] | ![alt text][no support] |
-| ESP32-P4 | ![alt text][supported] | ![alt text][supported]  |
+| Chip     | YOLO11N_S8_V1          | YOLO11N_S8_V2           | YOLO11N_S8_V3           |
+|----------|------------------------|-------------------------|-------------------------|
+| ESP32-S3 | ![alt text][supported] | ![alt text][no support] | ![alt text][supported]  |
+| ESP32-P4 | ![alt text][supported] | ![alt text][supported]  | ![alt text][supported]  |
 
-- `yolo11n_s8_v1_s3` and `yolo11n_s8_v1_p4` uses [8bit default configuration quantization](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#bit-default-configuration-quantization).
+- `yolo11n_s8_v1_s3` and `yolo11n_s8_v1_p4` use [8bit default configuration quantization](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#bit-default-configuration-quantization).
 - `yolo11n_s8_v2_p4` uses [Mixed-Precision + Horizontal Layer Split Pass Quantization](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#mixed-precision-horizontal-layer-split-pass-quantization).
+- `yolo11n_s8_v3_s3` and `yolo11n_s8_v3_p4` use [Quantization-Aware Training](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#quantization-aware-training).
 
 ## Model Latency
 
 | name             | input(h*w*c)  | preprocess(us) | model(us) | postprocess(us) |
 |------------------|---------------|----------------|-----------|-----------------|
 | yolo11n_s8_v1_s3 | 640 * 640 * 3 | 207893         | 26919376  | 58994           |
+| yolo11n_s8_v3_s3 | 640 * 640 * 3 | 207892         | 26950089  | 58400           |
 | yolo11n_s8_v1_p4 | 640 * 640 * 3 | 105753         | 3109475   | 16610           |
 | yolo11n_s8_v2_p4 | 640 * 640 * 3 | 105758         | 3627073   | 16644           |
+| yolo11n_s8_v3_p4 | 640 * 640 * 3 | 105756         | 3104007   | 16178           |
+
 ## Model Usage
 
 ``COCODetect`` accepts a ``COCODetect::model_type_t`` parameter. It has a default value determined by [model type](#modeltype) option in menuconfig.
@@ -38,6 +42,8 @@ COCODetect *detect = new COCODetect();
 COCODetect *detect = new COCODetect(COCODetect::YOLO11N_S8_V1);
 // use YOLO11N_S8_V2
 // COCODetect *detect = new COCODetect(COCODetect::YOLO11N_S8_V2);
+// use YOLO11N_S8_V3
+// COCODetect *detect = new COCODetect(COCODetect::YOLO11N_S8_V3);
 ```
 > **note:** If mutiple models is enabled in menuconfig, the default value is the first one. Pass in an explicit parameter to ``COCODetect`` to use one of them.
 
@@ -49,6 +55,7 @@ See [Kconfig](Kconfig).
 
 - CONFIG_COCO_DETECT_YOLO11N_S8_V1
 - CONFIG_COCO_DETECT_YOLO11N_S8_V2
+- CONFIG_COCO_DETECT_YOLO11N_S8_V3
 
 These options determines which models will be enabled. 
 
