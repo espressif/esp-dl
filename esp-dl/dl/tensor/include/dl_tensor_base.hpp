@@ -217,20 +217,12 @@ public:
     }
 
     /**
-     * @brief Set the data.
+     * @brief Set the data pointer of Tensor.
      *
      * @param data point to data memory
      * @return TensorBase&  self
      */
-    TensorBase &set_element(void *data);
-
-    /**
-     * @brief Get the index of each dims
-     *
-     * @param element_index the index of the element
-     * @return std::vector<int> the index of each dims
-     */
-    virtual std::vector<int> get_axis_index(int element_index);
+    TensorBase &set_element_ptr(void *data);
 
     /**
      * @brief Get the shape of Tensor.
@@ -274,6 +266,10 @@ public:
      * @return TensorBase&  self
      */
     TensorBase &reshape(std::vector<int> shape);
+
+    TensorBase *expand_dims(int max_dims = 4);
+    template <typename T>
+    TensorBase *flip(const std::vector<int> &axes);
 
     /**
      * @brief Reverse or permute the axes of the input Tensor
@@ -326,35 +322,34 @@ public:
      *
      * @warning The length of start, end and step must be same as the shape of input tensor
      *
-     * @param output_element Data pointer of output tensor
-     * @param start Starting indicesd
-     * @param end Ending indices
-     * @param axes Axes that starts and ends apply to. axes = 0:len(start) if axes is not specified
-     * @param step Slice step, step = 1 if step is not specified
-     *
-     * @return Output tensor pointer
-     */
-    template <typename T>
-    TensorBase *slice(T *output_element,
-                      const std::vector<int> &start,
-                      const std::vector<int> &end,
-                      const std::vector<int> &axes = {},
-                      const std::vector<int> &step = {});
-
-    /**
-     * @brief Produces a slice of the this tensor along multiple axes
-     *
-     * @warning The length of start, end and step must be same as the shape of input tensor
-     *
-     * @param input  Input
      * @param start Starting indicesd
      * @param end Ending indices
      * @param axes Axes that starts and ends apply to.
      * @param step Slice step, step = 1 if step is not specified
      *
-     * @return Output tensor pointer
+     * @return Output tensor pointer, created by this slice function
      */
-    TensorBase *slice(TensorBase *input,
+    TensorBase *slice(const std::vector<int> &start,
+                      const std::vector<int> &end,
+                      const std::vector<int> &axes = {},
+                      const std::vector<int> &step = {});
+
+    /**
+     * @brief Produces a slice along multiple axes
+     *
+     * @warning The length of start, end and step must be same as the shape of input tensor
+     *
+     * @param input   Input Tensor
+     * @param output  Output Tensor
+     * @param start   Starting indicesd
+     * @param end     Ending indices
+     * @param axes    Axes that starts and ends apply to.
+     * @param step    Slice step, step = 1 if step is not specified
+     *
+     * @return Void
+     */
+    static void slice(TensorBase *input,
+                      TensorBase *output,
                       const std::vector<int> &start,
                       const std::vector<int> &end,
                       const std::vector<int> &axes = {},
@@ -409,10 +404,18 @@ public:
     /**
      * @brief Get the index of element
      *
-     * @param axis_index the index of each dims
+     * @param axis_index The coordinates of element
      * @return int the index of element
      */
     int get_element_index(const std::vector<int> &axis_index);
+
+    /**
+     * @brief Get the coordinates of element
+     *
+     * @param index  The index of element
+     * @return   The coordinates of element
+     */
+    std::vector<int> get_element_coordinates(int index);
 
     /**
      * @brief Get a element of Tensor by index
@@ -468,7 +471,6 @@ public:
      * @brief print the information of TensorBase
      *
      * @param print_data Whether print the data
-     *
      */
     virtual void print(bool print_data = false);
 };

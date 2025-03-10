@@ -8,10 +8,11 @@ from typing import (
     Iterable,
 )
 
+import onnx
 import toml
 import torch
 from ppq import QuantizationSettingFactory
-from ppq.api import espdl_quantize_torch, get_target_platform
+from ppq.api import espdl_quantize_onnx, espdl_quantize_torch, get_target_platform
 from ppq.quantization.optim import *
 from torch.utils.data import DataLoader
 
@@ -24,17 +25,26 @@ class BaseInferencer:
         self,
         model,
         export_path,
+        model_cfg,
         target="esp32p4",
         num_of_bits=8,
         model_version="1.0",
-        model_cfg=None,
         meta_cfg=None,
     ):
-        self.model_cfg = model_cfg if model_cfg is not None else model.config
-        self.model = model
         if not os.path.exists(export_path):
             os.makedirs(export_path)
         self.export_path = export_path
+
+        self.model = model
+        self.model_cfg = model_cfg
+        self.onnx_file = None
+
+        if isinstance(model, onnx.ModelProto):
+            self.model_cfg = model_cfg
+            self.onnx_file = os.path.join(
+                export_path, self.model_cfg["export_name_prefix"] + ".onnx"
+            )
+            onnx.save(self.model, self.onnx_file)
 
         # config device
         self.device_str = "cpu"
@@ -60,9 +70,7 @@ class BaseInferencer:
         self.num_of_bits = num_of_bits
         self.model_version = model_version
         self.target = target
-        # self.input_dtype = torch.float if self.num_of_bits == 8 else torch.float64
         self.input_dtype = torch.float
-        print(self.target)
 
     def __call__(self):
         # get the export files path
@@ -87,24 +95,45 @@ class BaseInferencer:
                     op_name, get_target_platform(self.target, num_bit)
                 )
 
-        quant_ppq_graph = espdl_quantize_torch(
-            model=self.model,
-            espdl_export_file=espdl_export_file,
-            calib_dataloader=self.calib_dataloader,
-            calib_steps=self.calib_steps,
-            input_shape=self.input_shape,
-            target=self.target,
-            num_of_bits=self.num_of_bits,
-            collate_fn=collate_fn,
-            setting=quant_setting,
-            device=self.device_str,
-            error_report=False,
-            skip_export=False,
-            export_test_values=True,
-            export_config=True,
-            verbose=1,
-            int16_lut_step=1,
-        )
+        if self.onnx_file is None:
+            espdl_quantize_torch(
+                model=self.model,
+                espdl_export_file=espdl_export_file,
+                calib_dataloader=self.calib_dataloader,
+                calib_steps=self.calib_steps,
+                input_shape=self.input_shape,
+                target=self.target,
+                num_of_bits=self.num_of_bits,
+                collate_fn=collate_fn,
+                setting=quant_setting,
+                device=self.device_str,
+                error_report=False,
+                skip_export=False,
+                export_test_values=True,
+                export_config=True,
+                verbose=1,
+                int16_lut_step=1,
+            )
+
+        else:
+            espdl_quantize_onnx(
+                onnx_import_file=self.onnx_file,
+                espdl_export_file=espdl_export_file,
+                calib_dataloader=self.calib_dataloader,
+                calib_steps=self.calib_steps,
+                input_shape=self.input_shape,
+                target=self.target,
+                num_of_bits=self.num_of_bits,
+                collate_fn=collate_fn,
+                setting=quant_setting,
+                device=self.device_str,
+                error_report=False,
+                skip_export=False,
+                export_test_values=True,
+                export_config=True,
+                verbose=1,
+                int16_lut_step=1,
+            )
 
     def load_calibration_dataset(self) -> Iterable:
         if not self.multi_input:
@@ -161,30 +190,39 @@ if __name__ == "__main__":
     op_test_config = config["ops_test"]
 
     # generate test cases
-    pkg = importlib.import_module(op_test_config["class_package"])
     if args.ops:
         op_set = args.ops
     else:
         op_set = []
         for op_type in op_test_config:
-            if op_type == "class_package":
-                continue
             op_set.append(op_type)
 
     for op_type in op_set:
+        pkg = importlib.import_module(op_test_config[op_type]["package"])
         op_configs = op_test_config[op_type]["cfg"]
-        op_class_name = op_test_config[op_type]["class_name"]
+        op_test_func = op_test_config[op_type]["test_func"]
         quant_bits = op_test_config[op_type].get("quant_bits", [])
+
         if (args.bits == 8 and "int8" in quant_bits) or (
             args.bits == 16 and "int16" in quant_bits
         ):
             export_path = os.path.join(args.output_path, op_type)
             for cfg in op_configs:
-                print("Op Class Name: ", op_class_name, "Configs: ", cfg)
-                op = getattr(pkg, op_class_name)(cfg)
+                print(
+                    "Op Test Function: ",
+                    op_test_func,
+                    "Configs: ",
+                    cfg,
+                    "Package: ",
+                    pkg.__name__,
+                    "Output Path: ",
+                    export_path,
+                )
+                op = getattr(pkg, op_test_func)(cfg)
                 BaseInferencer(
                     op,
                     export_path=export_path,
+                    model_cfg=cfg,
                     target=args.target,
                     num_of_bits=args.bits,
                     model_version=args.version,

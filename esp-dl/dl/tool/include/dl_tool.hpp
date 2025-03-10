@@ -242,6 +242,11 @@ void truncate(int64_t &output, T input)
     output = DL_CLIP(input, INT64_MIN, INT64_MAX);
 }
 
+// void truncate(int32_t &output, int64_t input)
+// {
+//     output = DL_CLIP(input, INT32_MIN, INT32_MAX);
+// }
+
 /**
  * @brief Generate 8bit lut table
  *

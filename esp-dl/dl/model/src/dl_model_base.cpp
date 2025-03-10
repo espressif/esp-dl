@@ -207,7 +207,7 @@ void Model::run(runtime_mode_t mode)
 void Model::run(TensorBase *input, runtime_mode_t mode)
 {
     if (this->inputs.size() != 1) {
-        ESP_LOGW(TAG, "The inputs of model is not jsut one! This API will assign data to first input");
+        ESP_LOGW(TAG, "The inputs of model is not just one! This API will assign data to first input");
     }
 
     TensorBase *model_input = this->inputs.begin()->second;
