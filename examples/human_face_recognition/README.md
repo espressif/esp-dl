@@ -36,7 +36,7 @@ If model location is set to FLASH partition, please set this option to `partitio
 
 We extracts human face feature and saves them to a database. Three diffrent types of file system for database is supported. 
 
-> **note:**  
+> [!NOTE]  
 > - fatfs_flash and spiffs save features to a 1MB flash partition named `storage`. It's defined in `partitions.csv` and `partitions2.csv`.
 > - fatfs_sdcard save features to sdcard. 
 > - Each feature cosumes 2050 bytes, including 2 bytes for id and 2048 bytes for feature data. 
