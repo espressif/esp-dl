@@ -267,7 +267,12 @@ public:
      */
     TensorBase &reshape(std::vector<int> shape);
 
-    TensorBase *expand_dims(int max_dims = 4);
+    /**
+     * @brief Flip the input Tensor along the specified axes.
+     *
+     * @param axes  the specified axes
+     * @return TensorBase&  self
+     */
     template <typename T>
     TensorBase *flip(const std::vector<int> &axes);
 
