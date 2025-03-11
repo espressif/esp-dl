@@ -22,14 +22,14 @@
 ```cpp
 PedestrianDetect *detect = new PedestrianDetect();
 ```
-### How to Detect Pedestrians
+### How to Detect
 
 ```cpp
 dl::image::img_t img = {.data=DATA, .width=WIDTH, .height=HEIGHT, .pix_type=PIX_TYPE};
-detect->run(img);
+std::list<dl::detect::result_t> &res = dl::detect->run(img);
 ```
 
-More detail about `dl::image::img_t`, see [dl_image_define.hpp](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/image/dl_image_define.hpp).
+More details, see [`dl::image::img_t`](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/image/dl_image_define.hpp) and [`dl::detect::result_t`](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/detect/dl_detect_define.hpp).
 
 # Configurable Options in Menuconfig
 
@@ -43,7 +43,8 @@ See [Kconfig](Kconfig).
 
 This component supports to [load model](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_load_test_profile_model.html) from three different locations.
 
-> **note:** If model location is set to FLASH partition, `partition.csv` must contain a partition named `pedestrian_det`, and the partition should be big enough to hold the model file.
+> [!NOTE] 
+> If model location is set to FLASH partition, `partition.csv` must contain a partition named `pedestrian_det`, and the partition should be big enough to hold the model file.
 
 ## SDCard Directory
 
@@ -54,4 +55,5 @@ When model locates in sdcard, you can change the model directory relative to the
 The default value of this option is `models/s3` for ESP32S3 and `models/p4` for ESP32P4. 
 When using default value, just copy [models](models) folder to sdcard root directory.
 
-> **note:** Do not change the model name when copy the models to sdcard.
+> [!NOTE] 
+> Do not change the model name when copy the models to sdcard.

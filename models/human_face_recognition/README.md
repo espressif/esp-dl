@@ -44,7 +44,8 @@ HumanFaceFeat *feat = new HumanFaceFeat(HumanFaceFeat::MFN_S8_V1);
 // use MBF_S8_V1
 // HumanFaceFeat *feat = new HumanFaceFeat(HumanFaceFeat::MBF_S8_V1);
 ```
-> **note:** If mutiple models is enabled in menuconfig, the default value is the first one. Pass in an explicit parameter to ``HumanFaceFeat`` to use one of them.
+> [!NOTE] 
+> If mutiple models is enabled in menuconfig, the default value is the first one. Pass in an explicit parameter to ``HumanFaceFeat`` to use one of them.
 
 # Configurable Options in Menuconfig
 
@@ -57,7 +58,7 @@ See [Kconfig](Kconfig).
 
 These options determines which models will be enabled. 
 
-> **note:** 
+> [!NOTE] 
 > - If model location is set to FLASH partition or FLASH rodata, only the selected model type will be flashed.
 > - If model location is set to be in sdcard, all models will be selected automatically.
 
@@ -69,7 +70,8 @@ These options determines which models will be enabled.
 
 This component supports to [load model](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_load_test_profile_model.html) from three different locations.
 
-> **note:** If model location is set to FLASH partition, `partition.csv` must contain a partition named `human_face_feat`, and the partition should be big enough to hold the model file.
+> [!NOTE] 
+> If model location is set to FLASH partition, `partition.csv` must contain a partition named `human_face_feat`, and the partition should be big enough to hold the model file.
 
 ## SDCard Directory
 
@@ -80,7 +82,8 @@ When model locates in sdcard, you can change the model directory relative to the
 The default value of this option is `models/s3` for ESP32S3 and `models/p4` for ESP32P4. 
 When using default value, just copy [models](models) folder to sdcard root directory.
 
-> **note:** Do not change the model name when copy the models to sdcard.
+> [!NOTE] 
+> Do not change the model name when copy the models to sdcard.
 
 # Human Face Recognizer
 
@@ -101,14 +104,16 @@ dl::image::img_t img = {.data=DATA, .width=WIDTH, .height=HEIGHT, .pix_type=PIX_
 human_face_recognizer->enroll(img, human_face_detect->run(img));
 ```
 
-More detail about `dl::image::img_t`, see [dl_image_define.hpp](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/image/dl_image_define.hpp).
+More details, see [`dl::image::img_t`](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/image/dl_image_define.hpp).
 
 ## How to Recognize a Human Face
 
 ```cpp
 dl::image::img_t img = {.data=DATA, .width=WIDTH, .height=HEIGHT, .pix_type=PIX_TYPE};
-human_face_recognizer->recognize(img, human_face_detect->run(img));
+std::vector<dl::recognition::result_t> res = human_face_recognizer->recognize(img, human_face_detect->run(img));
 ```
+
+More details, see [`dl::image::img_t`](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/image/dl_image_define.hpp) and [`dl::recognition::result_t`](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/recognition/dl_recognition_define.hpp).
 
 ## How to Delete Featrue in Database
 ### Delete all Features
