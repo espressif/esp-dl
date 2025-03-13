@@ -337,6 +337,16 @@ class TANH_TEST(nn.Module):
         return self.op(input)
 
 
+class RELU_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.op = nn.ReLU()
+
+    def forward(self, input):
+        return self.op(input)
+
+
 class LEAKYRELU_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()

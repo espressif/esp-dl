@@ -6,7 +6,7 @@
   artifacts:
     when: always
     paths:
-      - "**/models/**/*.espdl"
+      - "**/esp-dl/models/**/*.espdl"
     expire_in: 1 week
   script:
     - pip install toml
