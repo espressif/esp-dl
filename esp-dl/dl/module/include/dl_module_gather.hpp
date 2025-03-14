@@ -42,7 +42,6 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1);
         assert(m_indices);
 
         if (m_axis < 0) {

@@ -45,7 +45,6 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1);
         // The output values with the same shape as the input tensor.
         std::vector<std::vector<int>> output_shapes(1, input_shapes[0]);
         return output_shapes;

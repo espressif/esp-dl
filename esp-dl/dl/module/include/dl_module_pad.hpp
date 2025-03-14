@@ -42,7 +42,6 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1);
         std::vector<int> output_shape = base::get_pad_shape(input_shapes[0], m_pads);
 
         return std::vector<std::vector<int>>(1, output_shape);

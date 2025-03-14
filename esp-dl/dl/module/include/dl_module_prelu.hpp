@@ -46,7 +46,6 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1);
         if (m_alpha->shape[0] != input_shapes[0][3]) {
             TensorBase *new_alpha = new TensorBase(
                 {input_shapes[0][3], 1, 1}, nullptr, m_alpha->exponent, m_alpha->dtype, true, m_alpha->caps);

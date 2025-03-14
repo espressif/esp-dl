@@ -56,8 +56,6 @@ public:
      */
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1 || input_shapes.size() == 2);
-
         std::vector<int> input1_shape;
         if (input_shapes.size() == 1) {
             assert(m_filter);

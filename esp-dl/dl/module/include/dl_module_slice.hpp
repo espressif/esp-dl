@@ -39,7 +39,6 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1);
         std::vector<int> output_shape = base::get_slice_shape(input_shapes[0], m_start, m_end, m_axes, m_step);
 
         if (output_shape.empty()) {

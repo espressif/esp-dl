@@ -38,7 +38,6 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1);
         std::vector<int> input_shape = input_shapes[0];
         std::vector<int> output_shape;
         if (m_axes == nullptr) {

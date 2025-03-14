@@ -83,7 +83,6 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() >= 1);
         return {input_shapes[0]}; // Output shape same as input
     }
 

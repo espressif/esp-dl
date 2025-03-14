@@ -38,8 +38,6 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1);
-
         int input_size = 1;
         for (int i = 0; i < input_shapes[0].size(); i++) {
             assert(input_shapes[0][i] > 0);
