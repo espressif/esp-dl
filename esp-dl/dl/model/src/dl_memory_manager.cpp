@@ -1,67 +1,6 @@
 #include "dl_memory_manager.hpp"
 
 namespace dl {
-namespace memory {
-
-/*oooooooooooooooooo00000000000000000000 MemoryManagerBase 00000000000000000000ooooooooooooooooo*/
-
-void MemoryManagerBase::reset()
-{
-    if (!this->tensors.empty()) {
-        for (int i = 0; i < this->tensors.size(); ++i) {
-            delete tensors[i];
-        }
-        this->tensors.clear();
-    }
-    this->root_free();
-    this->name2index.clear();
-}
-
-TensorBase *MemoryManagerBase::get_tensor(int index)
-{
-    if (index < 0 || index >= this->tensors.size()) {
-        return nullptr;
-    }
-    return this->tensors[index];
-}
-
-TensorBase *MemoryManagerBase::get_tensor(const std::string &name)
-{
-    auto it = this->name2index.find(name);
-    if (it != name2index.end()) {
-        return tensors[it->second];
-    } else {
-        return nullptr;
-    }
-
-    return nullptr;
-}
-
-int MemoryManagerBase::get_tensor_index(const std::string &name)
-{
-    auto it = this->name2index.find(name);
-    if (it != name2index.end()) {
-        return it->second;
-    } else {
-        return -1;
-    }
-
-    return -1;
-}
-
-void MemoryManagerBase::root_free()
-{
-    // In IDF, free(p) is equivalent to heap_caps_free(p).
-    if (this->internal_root) {
-        ::free(this->internal_root);
-        this->internal_root = nullptr;
-    }
-    if (this->psram_root) {
-        ::free(this->psram_root);
-        this->psram_root = nullptr;
-    }
-}
-
 /*oooooooooooooooooo00000000000000000000 TensorInfo 00000000000000000000ooooooooooooooooo*/
 
 TensorInfo::TensorInfo(std::string &name,
@@ -253,5 +192,4 @@ void sort_memory_list(std::list<MemoryChunk *> &memory_list)
     });
 }
 
-} // namespace memory
 } // namespace dl

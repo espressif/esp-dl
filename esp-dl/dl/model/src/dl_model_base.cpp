@@ -19,6 +19,7 @@ Model::Model(const char *name,
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
     internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    model_context = new ModelContext();
     if (this->load(name, location, key, param_copy) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
@@ -37,6 +38,7 @@ Model::Model(const char *name,
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
     internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    model_context = new ModelContext();
     if (this->load(name, location, model_index, key, param_copy) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
@@ -55,6 +57,7 @@ Model::Model(const char *name,
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
     internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    model_context = new ModelContext();
     if (this->load(name, location, model_name, key, param_copy) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
@@ -67,6 +70,7 @@ Model::Model(fbs::FbsModel *fbs_model, int max_internal_size, memory_manager_t m
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
     internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    model_context = new ModelContext();
     if (this->load(fbs_model) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
@@ -85,8 +89,8 @@ Model::~Model()
         }
     }
 
-    if (memory_manager) {
-        delete memory_manager;
+    if (model_context) {
+        delete model_context;
     }
     if (!execution_plan.empty()) {
         for (int i = 0; i < execution_plan.size(); i++) {
@@ -132,10 +136,15 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
     // Construct the execution plan.
     execution_plan.clear();
     dl::module::ModuleCreator *module_creator = dl::module::ModuleCreator::get_instance();
+    model_context->clear();
+    std::vector<std::string> op_inputs;
+    std::vector<std::string> op_outputs;
 
     std::vector<std::string> sorted_nodes = fbs_model->topological_sort();
     for (int i = 0; i < sorted_nodes.size(); i++) {
         std::string node_name = sorted_nodes[i];
+
+        // Create and add module
         std::string op_type = fbs_model->get_operation_type(node_name);
         if (op_type.empty()) {
             ESP_LOGE(TAG, "Can not find the operation %s", node_name.c_str());
@@ -149,9 +158,26 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
             break;
         }
         execution_plan.push_back(module);
+
+        // Add inputs and outputs
+        fbs_model->get_operation_inputs_and_outputs(node_name, op_inputs, op_outputs);
+        int index = 0;
+        for (int j = 0; j < op_inputs.size(); j++) {
+            bool is_parameter = fbs_model->is_parameter(op_inputs[j]);
+            if (is_parameter) {
+                index = model_context->add_tensor(op_inputs[j], true, fbs_model->get_operation_parameter(node_name, j));
+            } else {
+                index = model_context->add_tensor(op_inputs[j], false, nullptr);
+            }
+            module->m_inputs_index.push_back(index); // assign input index of module
+        }
+
+        for (int j = 0; j < op_outputs.size(); j++) {
+            index = model_context->add_tensor(op_outputs[j], false, nullptr);
+            module->m_outputs_index.push_back(index); // assign output index of
+        }
     }
 
-    this->memory_manager = nullptr;
     return ret;
 }
 
@@ -159,20 +185,15 @@ void Model::build(size_t max_internal_size, memory_manager_t mm_type, bool prelo
 {
     // If memory manager has been created, delete it and reset all modules
     this->fbs_model->load_map();
-    if (this->memory_manager) {
-        delete this->memory_manager;
-        for (int i = 0; i < execution_plan.size(); i++) {
-            dl::module::Module *module = execution_plan[i];
-            if (module) {
-                module->reset();
-            }
-        }
-    }
+    MemoryManagerBase *memory_manager = nullptr;
 
     if (mm_type == MEMORY_MANAGER_GREEDY) {
-        this->memory_manager = new dl::memory::MemoryManagerGreedy(max_internal_size);
+        memory_manager = new MemoryManagerGreedy(max_internal_size);
+    } else {
+        ESP_LOGW(TAG, "Memory manager(%d) is not supported yet. Use MemoryManagerGreedy instead.", mm_type);
+        memory_manager = new MemoryManagerGreedy(max_internal_size);
     }
-    this->memory_manager->alloc(this->fbs_model, this->execution_plan);
+    memory_manager->alloc(this->fbs_model, this->execution_plan, this->model_context);
 
     // get the TensorBase* of inputs and outputs
     std::vector<std::string> inputs_tmp = fbs_model->get_graph_inputs();
@@ -189,6 +210,7 @@ void Model::build(size_t max_internal_size, memory_manager_t mm_type, bool prelo
     }
 
     this->fbs_model->clear_map();
+    delete memory_manager;
 }
 
 void Model::run(runtime_mode_t mode)
@@ -197,7 +219,7 @@ void Model::run(runtime_mode_t mode)
     for (int i = 0; i < execution_plan.size(); i++) {
         dl::module::Module *module = execution_plan[i];
         if (module) {
-            module->forward(this->memory_manager->tensors, mode);
+            module->forward(this->model_context->m_variables, mode);
         } else {
             break;
         }
@@ -220,7 +242,7 @@ void Model::run(TensorBase *input, runtime_mode_t mode)
     for (int i = 0; i < execution_plan.size(); i++) {
         dl::module::Module *module = execution_plan[i];
         if (module) {
-            module->forward(this->memory_manager->tensors, mode);
+            module->forward(this->model_context->m_variables, mode);
         } else {
             break;
         }
@@ -258,18 +280,18 @@ void Model::run(std::map<std::string, TensorBase *> &user_inputs,
     for (int i = 0; i < execution_plan.size(); i++) {
         dl::module::Module *module = execution_plan[i];
         if (module) {
-            module->forward(this->memory_manager->tensors, mode);
+            module->forward(this->model_context->m_variables, mode);
             // get the intermediate tensor for debug.
             if (!user_outputs.empty()) {
                 for (auto user_outputs_iter = user_outputs.begin(); user_outputs_iter != user_outputs.end();
                      user_outputs_iter++) {
                     int user_tensor_index =
-                        this->memory_manager->get_tensor_index(const_cast<std::string &>(user_outputs_iter->first));
+                        this->model_context->get_tensor_index(const_cast<std::string &>(user_outputs_iter->first));
                     if (user_tensor_index >= 0) {
                         std::vector<int> outputs_index = module->get_outputs_index();
                         for (int i = 0; i < outputs_index.size(); i++) {
                             if (user_tensor_index == outputs_index[i]) {
-                                user_outputs_iter->second->assign(this->memory_manager->tensors[user_tensor_index]);
+                                user_outputs_iter->second->assign(this->model_context->m_variables[user_tensor_index]);
                                 break;
                             }
                         }
@@ -294,7 +316,7 @@ TensorBase *Model::get_intermediate(const std::string &name)
         ESP_LOGE(TAG, "Invalid name.");
         return nullptr;
     }
-    return this->memory_manager->get_tensor(name);
+    return model_context->get_tensor(name);
 }
 
 std::map<std::string, TensorBase *> &Model::get_outputs()
@@ -345,7 +367,7 @@ esp_err_t Model::test()
     std::vector<int> test_outputs_index;
     assert(test_outputs_name.size() > 0);
     for (const auto &name : test_outputs_name) {
-        int index = memory_manager->get_tensor_index(name);
+        int index = model_context->get_tensor_index(name);
         if (index == -1) {
             ESP_LOGE(TAG, "There's no intermediate result or output named %s in model.", name.c_str());
             return ESP_FAIL;
@@ -354,7 +376,7 @@ esp_err_t Model::test()
     }
     for (int i = 0; i < execution_plan.size(); i++) {
         dl::module::Module *module = execution_plan[i];
-        module->forward(memory_manager->tensors);
+        module->forward(model_context->m_variables);
         std::vector<int> module_outputs_index = module->get_outputs_index();
         for (int index : module_outputs_index) {
             auto iter = std::find(test_outputs_index.begin(), test_outputs_index.end(), index);
@@ -362,7 +384,7 @@ esp_err_t Model::test()
                 size_t iter_index = std::distance(test_outputs_index.begin(), iter);
                 std::string output_name = test_outputs_name[iter_index];
                 ESP_LOGI(TAG, "Testing output %s.", output_name.c_str());
-                dl::TensorBase *output = memory_manager->tensors[index];
+                dl::TensorBase *output = model_context->m_variables[index];
                 dl::TensorBase *output_gt = fbs_model->get_test_output_tensor(output_name);
                 assert(output);
                 assert(output_gt);
@@ -412,8 +434,8 @@ std::map<std::string, mem_info> Model::get_memory_info()
             std::max(info["param_out_fbs"].internal, info["param_out_fbs"].psram);
     }
 
-    info["mem_manager"].internal = memory_manager->get_internal_size();
-    info["mem_manager"].psram = memory_manager->get_psram_size();
+    info["mem_manager"].internal = model_context->get_internal_size();
+    info["mem_manager"].psram = model_context->get_psram_size();
     info["mem_manager"].flash = 0;
 
     info["total"].internal = internal_size;
@@ -441,7 +463,7 @@ std::map<std::string, module_info> Model::get_module_info()
         std::string module_name = sorted_nodes[i];
         std::string module_type = fbs_model->get_operation_type(module_name);
         DL_LOG_LATENCY_START();
-        execution_plan[i]->forward(memory_manager->tensors, RUNTIME_MODE_SINGLE_CORE);
+        execution_plan[i]->forward(model_context->m_variables, RUNTIME_MODE_SINGLE_CORE);
         DL_LOG_LATENCY_END();
         uint32_t module_latency = DL_LOG_LATENCY_GET();
         total_latency += module_latency;

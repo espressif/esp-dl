@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dl_memory_manager.hpp"
+#include "dl_model_context.hpp"
 #include "dl_module_base.hpp"
 #include "esp_log.h"
 #include "fbs_loader.hpp"
@@ -48,14 +49,14 @@ private:
     fbs::FbsModel *fbs_model = nullptr;   /*!< The instance of flatbuffers Model */
     std::vector<dl::module::Module *>
         execution_plan; /*!< This represents a valid topological sort (dependency ordered) execution plan. */
-    dl::memory::MemoryManagerBase *memory_manager = nullptr; /*!< The pointer of memory manager */
-    std::map<std::string, TensorBase *> inputs;              /*!< The map of model input's name and TensorBase */
-    std::map<std::string, TensorBase *> outputs;             /*!< The map of model output's name and TensorBase */
-    std::string name;                                        /*!< The name of model */
-    int64_t version;                                         /*!< The version of model */
-    std::string doc_string;                                  /*!< doc string of model */
-    size_t internal_size;                                    /*!< Internal RAM usage */
-    size_t psram_size;                                       /*!< PSRAM usage */
+    ModelContext *model_context = nullptr;       /*!< The pointer of model context */
+    std::map<std::string, TensorBase *> inputs;  /*!< The map of model input's name and TensorBase */
+    std::map<std::string, TensorBase *> outputs; /*!< The map of model output's name and TensorBase */
+    std::string name;                            /*!< The name of model */
+    int64_t version;                             /*!< The version of model */
+    std::string doc_string;                      /*!< doc string of model */
+    size_t internal_size;                        /*!< Internal RAM usage */
+    size_t psram_size;                           /*!< PSRAM usage */
 
 public:
     Model() {}
