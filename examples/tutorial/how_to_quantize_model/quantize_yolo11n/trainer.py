@@ -17,6 +17,7 @@ import onnxruntime as ort
 from ppq.core import TargetPlatform
 import ppq.lib as PFL
 from ppq.parser import NativeExporter
+from yolo11n_eval import QuantDetectionValidator, YOLO11n
 
 
 class CaliDataset(Dataset):
@@ -162,41 +163,23 @@ class Trainer:
             self._step += 1
             return pred, loss.item()
 
-    def eval(self, dataloader: Iterable) -> float:
+    def eval(self) -> float:
         """Do Evaluation process on given dataloader.
 
         Split your dataset into training and evaluation dataset at first, then
             use eval function to monitor model performance on evaluation dataset.
-
-        Here are some options to prevent overfitting, which helps improve the model performance.
-        1. Train with more data.
-        2. Data augmentation.
-        3. Addition of noise to the input data.
         """
-        total_pred, total_correct = 0, 0
-        with torch.no_grad():
-            for bidx, batch in enumerate(tqdm(dataloader, desc="Eval: ")):
-                if type(batch) not in {tuple, list}:
-                    raise TypeError(
-                        "Feeding Data is invalid, expect a Tuple or List like [data, label], "
-                        f"however {type(batch)} was given. To feed customized data, you have to rewrite "
-                        '"eval" function of PPQ Trainer.'
-                    )
-                if len(batch) != 2:
-                    raise ValueError(
-                        "Unrecognized data format, "
-                        "your dataloader should contains batched data like [data, label]"
-                    )
-                data, label = batch
-                data, label = data.to(self._device), label.to(self._device)
 
-                pred, _ = self.step(data, label, False)
-                pred_label = torch.argmax(pred, dim=-1)
-                total_correct += torch.sum(pred_label == label).item()
-                total_pred += pred_label.numel()
-
-        print(f"Classification Accuracy: {total_correct / total_pred * 100:.3f}%\n")
-        return total_correct / total_pred
+        # load yolo11n.pt to enter val method and run BaseGraph inference
+        model = YOLO11n("yolo11n.pt")
+        model.to(self._device)
+        results = model.val(
+            data="coco.yaml",
+            imgsz=640,
+            device=self._device,
+            validator=QuantDetectionValidator,
+        )
+        return results.box.map
 
     def save(self, file_path: str, file_path2: str):
         """Save model to given path.

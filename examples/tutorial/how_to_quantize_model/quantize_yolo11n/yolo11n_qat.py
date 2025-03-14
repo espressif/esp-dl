@@ -8,7 +8,6 @@ from ppq.api import get_target_platform
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
 from ppq.api.interface import load_onnx_graph
-from ultralytics import YOLO
 import os
 import onnxruntime as ort
 import zipfile
@@ -22,7 +21,7 @@ def report_hook(blocknum, blocksize, total):
 
 
 def qat():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     CFG_BATCHSIZE = 128
     CFG_TRAIN_DIR = "COCO2017/images/train2017"  # change to your own path
     CFG_PLATFORM = get_target_platform("esp32p4", 8)
@@ -82,8 +81,6 @@ def qat():
         dataset=calibration_dataset, batch_size=CFG_BATCHSIZE, shuffle=False
     )
 
-    eval_dataloader = None
-
     pipeline = PFL.Pipeline(
         [
             QuantizeSimplifyPass(),
@@ -105,7 +102,7 @@ def qat():
         executor=executor,
     )
     print(
-        f"Calibrate audio number: {len(cali_iter.dataset)}, len(Calibrate iter): {len(cali_iter)}"
+        f"Calibrate images number: {len(cali_iter.dataset)}, len(Calibrate iter): {len(cali_iter)}"
     )
 
     # Start QAT train, only support single GPU when using cuda
@@ -114,12 +111,13 @@ def qat():
 
     for epoch in range(EPOCH):
         trainer.epoch(training_dataloader)
-        if not os.path.exists(str(epoch)):
-            os.mkdir(str(epoch))
         qat_graph = trainer.save(
-            os.path.join(str(epoch), "coco_detect_yolo11n_s8_v3.espdl"),
-            os.path.join(str(epoch), "coco_detect_yolo11n_s8_v3.native"),
+            os.path.join("coco_detect_yolo11n_s8_v3.espdl"),
+            os.path.join("coco_detect_yolo11n_s8_v3.native"),
         )
+        # evaluate trained quantized model per epoch
+        mAP50_95 = trainer.eval()
+        print(f"Epoch, {epoch} mAP: {mAP50_95}")
     return qat_graph
 
 
