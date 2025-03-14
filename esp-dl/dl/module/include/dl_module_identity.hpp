@@ -34,10 +34,10 @@ public:
         return {input_shapes[0]};
     }
 
-    void forward(std::vector<TensorBase *> &tensors, runtime_mode_t mode = RUNTIME_MODE_AUTO)
+    void forward(ModelContext *context, runtime_mode_t mode = RUNTIME_MODE_AUTO)
     {
-        TensorBase *input = tensors[m_inputs_index[0]];
-        TensorBase *output = tensors[m_outputs_index[0]];
+        TensorBase *input = context->get_tensor(m_inputs_index[0]);
+        TensorBase *output = context->get_tensor(m_outputs_index[0]);
         assert(input->get_size() == output->get_size());
         if (output->get_element_ptr() != input->get_element_ptr()) {
             output->assign(input);

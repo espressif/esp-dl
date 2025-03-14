@@ -219,7 +219,7 @@ void Model::run(runtime_mode_t mode)
     for (int i = 0; i < execution_plan.size(); i++) {
         dl::module::Module *module = execution_plan[i];
         if (module) {
-            module->forward(this->model_context->m_variables, mode);
+            module->forward(this->model_context, mode);
         } else {
             break;
         }
@@ -239,14 +239,7 @@ void Model::run(TensorBase *input, runtime_mode_t mode)
     }
 
     // execute each module.
-    for (int i = 0; i < execution_plan.size(); i++) {
-        dl::module::Module *module = execution_plan[i];
-        if (module) {
-            module->forward(this->model_context->m_variables, mode);
-        } else {
-            break;
-        }
-    }
+    this->run(mode);
 }
 
 void Model::run(std::map<std::string, TensorBase *> &user_inputs,
@@ -280,7 +273,7 @@ void Model::run(std::map<std::string, TensorBase *> &user_inputs,
     for (int i = 0; i < execution_plan.size(); i++) {
         dl::module::Module *module = execution_plan[i];
         if (module) {
-            module->forward(this->model_context->m_variables, mode);
+            module->forward(this->model_context, mode);
             // get the intermediate tensor for debug.
             if (!user_outputs.empty()) {
                 for (auto user_outputs_iter = user_outputs.begin(); user_outputs_iter != user_outputs.end();
@@ -376,7 +369,7 @@ esp_err_t Model::test()
     }
     for (int i = 0; i < execution_plan.size(); i++) {
         dl::module::Module *module = execution_plan[i];
-        module->forward(model_context->m_variables);
+        module->forward(model_context);
         std::vector<int> module_outputs_index = module->get_outputs_index();
         for (int index : module_outputs_index) {
             auto iter = std::find(test_outputs_index.begin(), test_outputs_index.end(), index);
@@ -463,7 +456,7 @@ std::map<std::string, module_info> Model::get_module_info()
         std::string module_name = sorted_nodes[i];
         std::string module_type = fbs_model->get_operation_type(module_name);
         DL_LOG_LATENCY_START();
-        execution_plan[i]->forward(model_context->m_variables, RUNTIME_MODE_SINGLE_CORE);
+        execution_plan[i]->forward(model_context, RUNTIME_MODE_SINGLE_CORE);
         DL_LOG_LATENCY_END();
         uint32_t module_latency = DL_LOG_LATENCY_GET();
         total_latency += module_latency;

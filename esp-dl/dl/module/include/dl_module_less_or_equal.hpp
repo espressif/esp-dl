@@ -38,12 +38,12 @@ public:
         return std::vector<std::vector<int>>(1, output_shape);
     }
 
-    void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
+    void forward(ModelContext *context, runtime_mode_t mode)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            forward_template<int8_t>(tensors, mode);
+            forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            forward_template<int16_t>(tensors, mode);
+            forward_template<int16_t>(context, mode);
         }
     }
 
@@ -57,11 +57,11 @@ public:
     }
 
     template <typename T>
-    void forward_template(std::vector<TensorBase *> &tensors, runtime_mode_t mode)
+    void forward_template(ModelContext *context, runtime_mode_t mode)
     {
-        TensorBase *input0 = tensors[m_inputs_index[0]];
-        TensorBase *input1 = tensors[m_inputs_index[1]];
-        TensorBase *output = tensors[m_outputs_index[0]];
+        TensorBase *input0 = context->get_tensor(m_inputs_index[0]);
+        TensorBase *input1 = context->get_tensor(m_inputs_index[1]);
+        TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
         std::vector<base::elemwiseArgsType<T, bool>> m_args =
             base::get_elemwise_operation_args<T, bool>(output, input0, input1, mode);

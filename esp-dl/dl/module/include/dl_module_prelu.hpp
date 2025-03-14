@@ -63,12 +63,12 @@ public:
         return output_shapes;
     }
 
-    void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
+    void forward(ModelContext *context, runtime_mode_t mode)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            forward_template<int8_t>(tensors, mode);
+            forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            forward_template<int16_t>(tensors, mode);
+            forward_template<int16_t>(context, mode);
         }
     }
 
@@ -82,10 +82,10 @@ public:
     }
 
     template <typename T>
-    void forward_template(std::vector<TensorBase *> &tensors, runtime_mode_t mode)
+    void forward_template(ModelContext *context, runtime_mode_t mode)
     {
-        TensorBase *input = tensors[m_inputs_index[0]];
-        TensorBase *output = tensors[m_outputs_index[0]];
+        TensorBase *input = context->get_tensor(m_inputs_index[0]);
+        TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
         std::vector<base::ArgsType<T>> m_args = base::get_activation_args<T>(output, input, PReLU, m_alpha, mode);
         int task_size = m_args.size();

@@ -1,12 +1,14 @@
 #pragma once
 #include "dl_base.hpp"
 #include "dl_define.hpp"
+#include "dl_model_context.hpp"
 #include "dl_tensor_base.hpp"
 #include "dl_tool.hpp"
 #include "dl_tool_cache.hpp"
 #include "fbs_model.hpp"
 #include <functional>
 #include <iostream>
+
 namespace dl {
 // Define the enum type for module in-place operation mode
 typedef enum {
@@ -88,13 +90,12 @@ public:
     virtual std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes) = 0;
 
     /**
-     * @brief Run the module, high-level inferface for model layer
+     * @brief Build the module, high-level inferface for Module layer
      *
-     * @param tensors       All inputs and outputs from MemoryManager
+     * @param context   Model context including  all inputs and outputs and other runtime information
      * @param mode    Runtime mode, default is RUNTIME_MODE_AUTO
-     *
      */
-    virtual void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode = RUNTIME_MODE_AUTO) = 0;
+    virtual void forward(ModelContext *context, runtime_mode_t mode = RUNTIME_MODE_AUTO) = 0;
 
     /**
      * @brief Run the module, Low-level interface for base layer and multi-core processing

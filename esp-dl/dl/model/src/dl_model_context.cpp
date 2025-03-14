@@ -31,6 +31,18 @@ int ModelContext::add_tensor(const std::string name, bool is_paramter, TensorBas
     return index;
 }
 
+int ModelContext::push_back_tensor(TensorBase *tensor, bool is_paramter)
+{
+    if (is_paramter) {
+        m_paramters.push_back(tensor);
+        return m_paramters.size() - 1;
+    } else {
+        m_variables.push_back(tensor);
+        return m_variables.size() - 1;
+    }
+    return -1;
+}
+
 void ModelContext::update_tensor(int index, TensorBase *tensor)
 {
     if (index < m_variables.size() && index >= 0)

@@ -39,10 +39,10 @@ public:
         return output_shapes;
     }
 
-    void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
+    void forward(ModelContext *context, runtime_mode_t mode)
     {
-        TensorBase *input = tensors[m_inputs_index[0]];
-        TensorBase *output = tensors[m_outputs_index[0]];
+        TensorBase *input = context->get_tensor(m_inputs_index[0]);
+        TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             int8_t *input_ptr = (int8_t *)input->get_element_ptr();

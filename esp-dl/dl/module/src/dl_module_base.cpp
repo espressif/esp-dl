@@ -84,26 +84,24 @@ std::vector<TensorBase *> Module::retrieve_inputs(std::vector<TensorBase *> &ten
 
 void Module::run(TensorBase *input, TensorBase *output, runtime_mode_t mode)
 {
-    std::vector<dl::TensorBase *> tensors = {input, output};
-    m_inputs_index.push_back(0);
-    m_outputs_index.push_back(1);
-    forward(tensors, mode);
+    ModelContext context;
+    m_inputs_index.push_back(context.push_back_tensor(input));
+    m_outputs_index.push_back(context.push_back_tensor(output));
+    forward(&context, mode);
 }
 
 void Module::run(std::vector<dl::TensorBase *> inputs, std::vector<dl::TensorBase *> outputs, runtime_mode_t mode)
 {
-    std::vector<dl::TensorBase *> tensors;
+    ModelContext context;
     for (int i = 0; i < inputs.size(); i++) {
-        tensors.push_back(inputs[i]);
-        m_inputs_index.push_back(tensors.size() - 1);
+        m_inputs_index.push_back(context.push_back_tensor(inputs[i]));
     }
 
     for (int i = 0; i < outputs.size(); i++) {
-        tensors.push_back(outputs[i]);
-        m_outputs_index.push_back(tensors.size() - 1);
+        m_outputs_index.push_back(context.push_back_tensor(outputs[i]));
     }
 
-    forward(tensors, mode);
+    forward(&context, mode);
 }
 
 } // namespace module

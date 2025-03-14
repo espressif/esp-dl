@@ -6,6 +6,7 @@
 namespace dl {
 
 #define CONTEXT_PARAMETER_OFFSET 10000000 /*!< Offset for parameter tensors */
+
 class ModelContext {
 public:
     std::vector<TensorBase *> m_variables; /*!< Variable tensors of model, the first one is nullptr */
@@ -64,6 +65,16 @@ public:
      * @return int Returns the index of the added tensor.
      */
     int add_tensor(const std::string name, bool is_paramter = false, TensorBase *tensor = nullptr);
+
+    /**
+     * @brief Push back a tensor to variable list.
+     *
+     * @param tensor Pointer to the TensorBase object.
+     * @param is_paramter Whether the tensor is a parameter (default: false).
+     *
+     * @return int Returns the index of the added tensor.
+     */
+    int push_back_tensor(TensorBase *tensor, bool is_paramter = false);
 
     /**
      * @brief Updates the tensor at the specified index.
@@ -187,13 +198,20 @@ public:
      */
     void clear()
     {
-        m_variables.clear();
-        for (int i = 0; i < m_paramters.size(); i++) {
-            delete m_paramters[i];
+        if (m_internal_root || m_psram_root) {
+            for (int i = 0; i < m_variables.size(); i++) {
+                delete m_variables[i];
+            }
+
+            for (int i = 0; i < m_paramters.size(); i++) {
+                delete m_paramters[i];
+            }
+            root_free();
         }
+
+        m_variables.clear();
         m_paramters.clear();
         m_name2index.clear();
-        root_free();
     }
 };
 

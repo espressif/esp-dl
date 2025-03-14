@@ -19,8 +19,6 @@ namespace module {
  */
 class Conv2D : public Module {
 private:
-    TensorBase *filter;   /*!< filter of Conv2D */
-    TensorBase *bias;     /*!< bias of Conv2D, if you don't specify anything, no bias is added */
     const int stride_y;   /*!< stride in height */
     const int stride_x;   /*!< stride in width */
     const int dilation_y; /*!< dilation in height */
@@ -28,13 +26,25 @@ private:
     const int group;
     activation_type_t activation; /*!< activation of Conv2D, if you don't specify anything, no activation is applied */
     std::vector<int> padding;     /*!< padding size needed in [top, bottom, left, right] of this operation */
+    bool is_bias_reseted;
+
+    void reset_bias(ModelContext *context)
+    {
+        if (is_bias_reseted == false) {
+            if (m_inputs_index.size() == 3) {
+                TensorBase *bias = context->get_tensor(m_inputs_index[2]);
+                if (bias) {
+                    bias->reset_bias_layout(quant_type, group != 1);
+                }
+            }
+            is_bias_reseted = true;
+        }
+    }
 
 public:
     /**
      * @brief Construct a new Conv2D object.
      *
-     * @param filter          filter of Conv2D
-     * @param bias            bias of Conv2D, if you don't specify anything, no bias is added
      * @param activation      activation of Conv2D, if you don't specify anything, no activation is applied
      * @param padding         the shape must be 4, the value of each position is: [padding top, padding bottom, padding
      * left, padding right]
@@ -43,9 +53,7 @@ public:
      * @param group           group of Conv
      * @param name            name of module
      */
-    Conv2D(TensorBase *filter,
-           TensorBase *bias = NULL,
-           activation_type_t activation = Linear,
+    Conv2D(activation_type_t activation = Linear,
            std::vector<int> padding = {},
            const int stride_y = 1,
            const int stride_x = 1,
@@ -55,8 +63,6 @@ public:
            const int group = 1,
            quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, MODULE_NON_INPLACE, quant_type),
-        filter(filter),
-        bias(bias),
         stride_y(stride_y),
         stride_x(stride_x),
         dilation_y(dilation_y),
@@ -65,24 +71,14 @@ public:
         activation(activation),
         padding(padding)
     {
+        is_bias_reseted = false;
     }
 
     /**
      * @brief Destroy the Conv2D object.
      *
      */
-    ~Conv2D()
-    {
-        if (filter) {
-            delete filter;
-            filter = nullptr;
-        }
-
-        if (bias) {
-            delete bias;
-            bias = nullptr;
-        }
-    }
+    ~Conv2D() {}
 
     /**
      * @brief Calculate the output shape
@@ -93,9 +89,10 @@ public:
      */
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
+        assert(input_shapes.size() >= 2);
         assert(input_shapes[0].size() == 4);
         int *input_shape = input_shapes[0].data();
-        int *filter_shape = filter->shape.data();
+        int *filter_shape = input_shapes[1].data();
         std::vector<int> output_shape(4);
 
         // refer to https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html
@@ -127,32 +124,39 @@ public:
         }
     }
 
-    void forward(std::vector<TensorBase *> &tensors, runtime_mode_t mode = RUNTIME_MODE_AUTO)
+    void forward(ModelContext *context, runtime_mode_t mode = RUNTIME_MODE_AUTO)
     {
+        reset_bias(context);
+
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            forward_template<int8_t>(tensors, mode);
+            forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            forward_template<int16_t>(tensors, mode);
+            forward_template<int16_t>(context, mode);
         }
     }
 
     template <typename T>
-    void forward_template(std::vector<TensorBase *> &tensors, runtime_mode_t mode)
+    void forward_template(ModelContext *context, runtime_mode_t mode)
     {
-        TensorBase *input = tensors[m_inputs_index[0]];
-        TensorBase *output = tensors[m_outputs_index[0]];
+        TensorBase *input = context->get_tensor(m_inputs_index[0]);
+        TensorBase *filter = context->get_tensor(m_inputs_index[1]);
+        TensorBase *bias = nullptr;
+        if (m_inputs_index.size() == 3) {
+            bias = context->get_tensor(m_inputs_index[2]);
+        }
+        TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
         std::vector<base::ArgsType<T>> m_args =
             base::get_conv_operation_args<T>(output,
                                              input,
                                              this->padding,
-                                             this->filter,
+                                             filter,
                                              this->stride_y,
                                              this->stride_x,
                                              this->dilation_y,
                                              this->dilation_x,
                                              this->group,
-                                             this->bias,
+                                             bias,
                                              this->activation,
                                              nullptr,
                                              mode); // do not support RReLU and Leaky RelU
@@ -188,15 +192,7 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            TensorBase *filter = fbs_model->get_operation_parameter(node_name, 1);
-            TensorBase *bias = fbs_model->get_operation_parameter(node_name, 2);
-            if (bias) {
-                bias->reset_bias_layout(quant_type, group != 1);
-            }
-
-            conv2d_op = new Conv2D(filter,
-                                   bias,
-                                   activation_type,
+            conv2d_op = new Conv2D(activation_type,
                                    {pads[0], pads[2], pads[1], pads[3]},
                                    strides[0],
                                    strides[1],
@@ -210,27 +206,45 @@ public:
         return conv2d_op;
     }
 
-    void print()
+    void print(ModelContext *context = nullptr)
     {
-        ESP_LOGI("Conv2d",
-                 "filter:%s, bias:%s, pads: %s, strides: [%d,%d], dilations: [%d,%d], group: %d, activation: %s, "
-                 "quant_type: %s.",
-                 shape_to_string(filter->shape).c_str(),
-                 bias == nullptr ? "false" : "true",
-                 shape_to_string(padding).c_str(),
-                 stride_y,
-                 stride_x,
-                 dilation_y,
-                 dilation_x,
-                 group,
-                 activation_type_to_string(activation),
-                 quant_type_to_string(quant_type));
+        if (context == nullptr) {
+            ESP_LOGI("Conv2d",
+                     "pads: %s, strides: [%d,%d], dilations: [%d,%d], group: %d, activation: %s, "
+                     "quant_type: %s.",
+                     shape_to_string(padding).c_str(),
+                     stride_y,
+                     stride_x,
+                     dilation_y,
+                     dilation_x,
+                     group,
+                     activation_type_to_string(activation),
+                     quant_type_to_string(quant_type));
+        } else {
+            TensorBase *input = context->get_tensor(m_inputs_index[0]);
+            TensorBase *filter = context->get_tensor(m_inputs_index[1]);
+            TensorBase *bias = nullptr;
+            if (m_inputs_index.size() == 3) {
+                bias = context->get_tensor(m_inputs_index[2]);
+            }
+            ESP_LOGI("Conv2d",
+                     "input:%s, filter:%s, bias:%s, pads: %s, strides: [%d,%d], dilations: [%d,%d], group: %d, "
+                     "activation: %s, "
+                     "quant_type: %s.",
+                     shape_to_string(input->shape).c_str(),
+                     shape_to_string(filter->shape).c_str(),
+                     bias == nullptr ? "false" : "true",
+                     shape_to_string(padding).c_str(),
+                     stride_y,
+                     stride_x,
+                     dilation_y,
+                     dilation_x,
+                     group,
+                     activation_type_to_string(activation),
+                     quant_type_to_string(quant_type));
+        }
     }
 
-    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
-    {
-        Module::get_param_memory_size({filter, bias}, in_fbs, out_fbs, fbs_model);
-    }
     // void set_preload_addr(void *addr, size_t size)
     // {
     //     size_t offset = 0;

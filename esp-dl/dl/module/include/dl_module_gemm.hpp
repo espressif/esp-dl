@@ -16,25 +16,31 @@ namespace module {
  */
 class Gemm : public Module {
 private:
-    TensorBase *filter;           /*!< filter of Gemm. It's shape is [1, 1, in_features, out_features] */
-    TensorBase *bias;             /*!< bias of Gemm, if you don't specify anything, no bias is added */
     activation_type_t activation; /*!< activation of Gemm, if you don't specify anything, no activation is applied */
+    bool is_bias_reseted;
+
+    void reset_bias(ModelContext *context)
+    {
+        if (is_bias_reseted == false) {
+            if (m_inputs_index.size() == 3) {
+                TensorBase *bias = context->get_tensor(m_inputs_index[2]);
+                if (bias) {
+                    bias->reset_bias_layout(quant_type, false);
+                }
+            }
+            is_bias_reseted = true;
+        }
+    }
 
 public:
     /**
      * @brief Construct a new Gemm object.
      *
-     * @param filter          filter of Gemm. It's shape is [1, 1, in_features, out_features]
-     * @param bias            bias of Gemm, if you don't specify anything, no bias is added
      * @param activation      activation of Gemm, if you don't specify anything, no activation is applied
      * @param name            name of module
      */
-    Gemm(TensorBase *filter,
-         TensorBase *bias = nullptr,
-         activation_type_t activation = Linear,
-         const char *name = nullptr,
-         quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, MODULE_NON_INPLACE, quant_type), filter(filter), bias(bias), activation(activation)
+    Gemm(activation_type_t activation = Linear, const char *name = nullptr, quant_type_t quant_type = QUANT_TYPE_NONE) :
+        Module(name, MODULE_NON_INPLACE, quant_type), activation(activation)
     {
     }
 
@@ -42,18 +48,7 @@ public:
      * @brief Destroy the Gemm object.
      *
      */
-    ~Gemm()
-    {
-        if (filter) {
-            delete filter;
-            filter = nullptr;
-        }
-
-        if (bias) {
-            delete bias;
-            bias = nullptr;
-        }
-    }
+    ~Gemm() {}
 
     /**
      * @brief Calculate the output shape
@@ -64,16 +59,17 @@ public:
      */
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(filter->shape.size() == 4);
-        assert(filter->shape[0] == 1);
-        assert(filter->shape[1] == 1);
-        assert(input_shapes[0][input_shapes[0].size() - 1] == filter->shape[2]);
+        std::vector<int> input0_shape = input_shapes[0];
+        std::vector<int> filter_shape = input_shapes[1];
+        assert(filter_shape.size() == 4);
+        assert(filter_shape[0] == 1);
+        assert(filter_shape[1] == 1);
+        assert(input0_shape[input0_shape.size() - 1] == filter_shape[2]);
 
         // refer to https://pytorch.org/docs/stable/generated/torch.nn.Linear.html
         std::vector<int> output_shape = input_shapes[0];
-        output_shape[output_shape.size() - 1] = filter->shape[3];
-        std::vector<std::vector<int>> output_shapes(1, output_shape);
-        return output_shapes;
+        output_shape[output_shape.size() - 1] = filter_shape[3];
+        return {output_shape};
     }
 
     void forward_args(void *args)
@@ -86,27 +82,32 @@ public:
     }
 
     template <typename T>
-    void forward_template(std::vector<TensorBase *> &tensors, runtime_mode_t mode)
+    void forward_template(ModelContext *context, runtime_mode_t mode)
     {
         std::vector<int> padding(4, 0);
-        TensorBase *input = tensors[m_inputs_index[0]];
-        TensorBase *output = tensors[m_outputs_index[0]];
-        std::vector<int> origin_input_shape = input->get_shape();
+        TensorBase *input0 = context->get_tensor(m_inputs_index[0]);
+        TensorBase *filter = context->get_tensor(m_inputs_index[1]);
+        TensorBase *bias = nullptr;
+        if (m_inputs_index.size() == 3) {
+            bias = context->get_tensor(m_inputs_index[2]);
+        }
+        TensorBase *output = context->get_tensor(m_outputs_index[1]);
+        std::vector<int> origin_input_shape = input0->get_shape();
         std::vector<int> origin_output_shape = output->get_shape();
-        input->set_shape({1, 1, input->get_size() / origin_input_shape.back(), origin_input_shape.back()});
+        input0->set_shape({1, 1, input0->get_size() / origin_input_shape.back(), origin_input_shape.back()});
         output->set_shape({1, 1, output->get_size() / origin_output_shape.back(), origin_output_shape.back()});
 
         std::vector<base::ArgsType<T>> m_args =
             base::get_conv_operation_args<T>(output,
-                                             input,
+                                             input0,
                                              padding,
-                                             this->filter,
+                                             filter,
                                              1 /*stride_y*/,
                                              1 /*stride_x*/,
                                              1 /*dilation_y*/,
                                              1 /*dilation_x*/,
                                              1 /*group*/,
-                                             this->bias,
+                                             bias,
                                              this->activation,
                                              nullptr,
                                              mode); // do not support PReLU and Leaky RelU
@@ -119,16 +120,18 @@ public:
         } else {
             ESP_LOGE("Gemm", "Only support task size is 1 or 2, currently task size is %d", task_size);
         }
-        input->set_shape(origin_input_shape);
+        input0->set_shape(origin_input_shape);
         output->set_shape(origin_output_shape);
     }
 
-    void forward(std::vector<TensorBase *> &tensors, runtime_mode_t mode = RUNTIME_MODE_AUTO)
+    void forward(ModelContext *context, runtime_mode_t mode = RUNTIME_MODE_AUTO)
     {
+        reset_bias(context);
+
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            forward_template<int8_t>(tensors, mode);
+            forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            forward_template<int16_t>(tensors, mode);
+            forward_template<int16_t>(context, mode);
         }
     }
 
@@ -151,13 +154,7 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            TensorBase *filter = fbs_model->get_operation_parameter(node_name, 1);
-            TensorBase *bias = fbs_model->get_operation_parameter(node_name, 2);
-            if (bias) {
-                bias->reset_bias_layout(quant_type, false);
-            }
-
-            gemm_op = new Gemm(filter, bias, activation_type, node_name.c_str(), quant_type);
+            gemm_op = new Gemm(activation_type, node_name.c_str(), quant_type);
         }
 
         return gemm_op;
@@ -166,17 +163,9 @@ public:
     void print()
     {
         ESP_LOGI("Gemm",
-                 "filter:%s, bias:%s, activation: %s, "
-                 "quant_type: %s.",
-                 shape_to_string(filter->shape).c_str(),
-                 bias == nullptr ? "false" : "true",
+                 "activation: %s, quant_type: %s.",
                  activation_type_to_string(activation),
                  quant_type_to_string(quant_type));
-    }
-
-    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
-    {
-        Module::get_param_memory_size({filter, bias}, in_fbs, out_fbs, fbs_model);
     }
 };
 } // namespace module
