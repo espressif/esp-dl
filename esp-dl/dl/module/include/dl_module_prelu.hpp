@@ -36,13 +36,7 @@ public:
     /**
      * @brief Destroy the PRelu object.
      */
-    ~PRelu()
-    {
-        if (m_alpha) {
-            delete m_alpha;
-            m_alpha = nullptr;
-        }
-    }
+    ~PRelu() { delete m_alpha; }
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {

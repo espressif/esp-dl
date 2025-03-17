@@ -17,13 +17,7 @@ protected:
     Detect *m_model;
 
 public:
-    virtual ~DetectWrapper()
-    {
-        if (m_model) {
-            delete m_model;
-            m_model = nullptr;
-        }
-    }
+    ~DetectWrapper() { delete m_model; }
     std::list<dl::detect::result_t> &run(const dl::image::img_t &img) { return m_model->run(img); }
 };
 

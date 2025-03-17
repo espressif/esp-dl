@@ -28,13 +28,7 @@ public:
     /**
      * @brief Destroy the Reshape object.
      */
-    ~Reshape()
-    {
-        if (m_shape) {
-            delete m_shape;
-            m_shape = nullptr;
-        }
-    }
+    ~Reshape() { delete m_shape; }
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {

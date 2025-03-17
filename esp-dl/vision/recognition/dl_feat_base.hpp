@@ -10,6 +10,7 @@ class Feat {
 public:
     virtual ~Feat() {};
     virtual TensorBase *run(const dl::image::img_t &img, const std::vector<int> &landmarks) = 0;
+    int m_feat_len;
 };
 
 class FeatWrapper : public Feat {
@@ -17,13 +18,7 @@ protected:
     Feat *m_model;
 
 public:
-    virtual ~FeatWrapper()
-    {
-        if (m_model) {
-            delete m_model;
-            m_model = nullptr;
-        }
-    }
+    ~FeatWrapper() { delete m_model; }
     TensorBase *run(const dl::image::img_t &img, const std::vector<int> &landmarks)
     {
         return m_model->run(img, landmarks);

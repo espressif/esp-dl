@@ -28,13 +28,7 @@ public:
     /**
      * @brief Destroy the Squeeze object.
      */
-    ~Squeeze()
-    {
-        if (m_axes) {
-            delete m_axes;
-            m_axes = nullptr;
-        }
-    }
+    ~Squeeze() { delete m_axes; }
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {

@@ -32,13 +32,7 @@ public:
     /**
      * @brief Destroy the Pad object.
      */
-    ~Pad()
-    {
-        if (m_constant_value) {
-            delete m_constant_value;
-            m_constant_value = nullptr;
-        }
-    }
+    ~Pad() { delete m_constant_value; }
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {

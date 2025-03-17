@@ -5,18 +5,9 @@ namespace feat {
 
 FeatImpl::~FeatImpl()
 {
-    if (m_model) {
-        delete m_model;
-        m_model = nullptr;
-    }
-    if (m_image_preprocessor) {
-        delete m_image_preprocessor;
-        m_image_preprocessor = nullptr;
-    }
-    if (m_postprocessor) {
-        delete m_postprocessor;
-        m_postprocessor = nullptr;
-    }
+    delete m_model;
+    delete m_image_preprocessor;
+    delete m_postprocessor;
 }
 
 TensorBase *FeatImpl::run(const dl::image::img_t &img, const std::vector<int> &landmarks)

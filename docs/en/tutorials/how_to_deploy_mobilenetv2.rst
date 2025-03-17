@@ -501,7 +501,7 @@ Note that applying layerwise equalization to 8-bit quantization helps reduce qua
 Model deployment
 -----------------------
 
-:project:`examples <examples/imagenet_cls>`
+:project:`examples <examples/mobilenetv2_cls>`
 
 Image classification base class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

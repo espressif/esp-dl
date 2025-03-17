@@ -1,13 +1,17 @@
 #include "coco_detect.hpp"
 #include "esp_log.h"
-#include "esp_timer.h"
+#include "bsp/esp-bsp.h"
 
 extern const uint8_t bus_jpg_start[] asm("_binary_bus_jpg_start");
 extern const uint8_t bus_jpg_end[] asm("_binary_bus_jpg_end");
-const char *TAG = "YOLO11_n_EXAMPLE";
+const char *TAG = "yolo11n";
 
 extern "C" void app_main(void)
 {
+#if CONFIG_COCO_DETECT_MODEL_IN_SDCARD
+    ESP_ERROR_CHECK(bsp_sdcard_mount());
+#endif
+
     dl::image::jpeg_img_t jpeg_img = {
         .data = (uint8_t *)bus_jpg_start,
         .width = 405,
@@ -19,11 +23,10 @@ extern "C" void app_main(void)
     sw_decode_jpeg(jpeg_img, img, true);
 
     COCODetect *detect = new COCODetect();
-    vTaskDelay(pdMS_TO_TICKS(10)); // delay 10ms
     auto &detect_results = detect->run(img);
     for (const auto &res : detect_results) {
         ESP_LOGI(TAG,
-                 "[category: %d, score: %f, x1: %d, y1: %d, x2: %d, y2: %d]\n",
+                 "[category: %d, score: %f, x1: %d, y1: %d, x2: %d, y2: %d]",
                  res.category,
                  res.score,
                  res.box[0],
@@ -33,4 +36,8 @@ extern "C" void app_main(void)
     }
     delete detect;
     heap_caps_free(img.data);
+
+#if CONFIG_COCO_DETECT_MODEL_IN_SDCARD
+    ESP_ERROR_CHECK(bsp_sdcard_unmount());
+#endif
 }

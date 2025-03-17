@@ -7,10 +7,7 @@ std::vector<float> FeatImagePreprocessor::s_std_ldks_112 = {
 
 FeatImagePreprocessor::~FeatImagePreprocessor()
 {
-    if (m_image_preprocessor) {
-        delete m_image_preprocessor;
-        m_image_preprocessor = nullptr;
-    }
+    delete m_image_preprocessor;
 }
 
 void FeatImagePreprocessor::preprocess(const dl::image::img_t &img, const std::vector<int> &landmarks)

@@ -5,18 +5,9 @@ namespace detect {
 
 DetectImpl::~DetectImpl()
 {
-    if (m_model) {
-        delete m_model;
-        m_model = nullptr;
-    }
-    if (m_image_preprocessor) {
-        delete m_image_preprocessor;
-        m_image_preprocessor = nullptr;
-    }
-    if (m_postprocessor) {
-        delete m_postprocessor;
-        m_postprocessor = nullptr;
-    }
+    delete m_model;
+    delete m_image_preprocessor;
+    delete m_postprocessor;
 }
 
 std::list<dl::detect::result_t> &DetectImpl::run(const dl::image::img_t &img)
