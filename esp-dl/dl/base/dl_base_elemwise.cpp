@@ -213,15 +213,12 @@ void elemwise_loop_4d(elemwiseArgsType<in_feature_t, out_feature_t> *args,
         for (int d2 = 0; d2 < args->output_d2; d2++) {
             for (int d1 = 0; d1 < args->output_d1; d1++) {
                 elemwise_func(output_element, input0_element, input1_element, args);
-                // for (int d0 = 1; d0 < output_d0; d0++) {
-                //     printf("output_element[%d] = %d\n", d0, output_element[d0]);
-                // }
-                output_element += args->output_d0;
-                input0_element += args->input0_d1_stride;
-                input1_element += args->input1_d1_stride;
+                output_element += output_d0;
+                input0_element += input0_d1_stride;
+                input1_element += input1_d1_stride;
             }
-            input0_element += args->input0_d2_stride;
-            input1_element += args->input1_d2_stride;
+            input0_element += input0_d2_stride;
+            input1_element += input1_d2_stride;
         }
         input0_element += input0_d3_stride;
         input1_element += input1_d3_stride;

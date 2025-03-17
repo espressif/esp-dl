@@ -91,7 +91,7 @@ public:
         if (m_inputs_index.size() == 3) {
             bias = context->get_tensor(m_inputs_index[2]);
         }
-        TensorBase *output = context->get_tensor(m_outputs_index[1]);
+        TensorBase *output = context->get_tensor(m_outputs_index[0]);
         std::vector<int> origin_input_shape = input0->get_shape();
         std::vector<int> origin_output_shape = output->get_shape();
         input0->set_shape({1, 1, input0->get_size() / origin_input_shape.back(), origin_input_shape.back()});

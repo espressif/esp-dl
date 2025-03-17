@@ -92,6 +92,13 @@ public:
      */
     void list_models();
 
+    /**
+     * @brief Get the model location string.
+     *
+     * @return The model location string.
+     */
+    const char *get_model_location_string();
+
 private:
     void *m_mmap_handle;
     model_location_type_t m_location;

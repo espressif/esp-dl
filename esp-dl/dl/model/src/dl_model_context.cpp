@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "dl_model_context.hpp"
+#include "dl_tool.hpp"
 static const char *TAG = "dl::ModelContext";
 
 namespace dl {
@@ -11,8 +12,8 @@ int ModelContext::add_tensor(const std::string name, bool is_paramter, TensorBas
     int index = 0;
     if (iter == m_name2index.end()) {
         if (is_paramter) {
-            m_paramters.push_back(tensor);
-            index = pi2ti(m_paramters.size() - 1);
+            m_parameters.push_back(tensor);
+            index = pi2ti(m_parameters.size() - 1);
             m_name2index.emplace(name, index);
         } else {
             m_variables.push_back(tensor);
@@ -22,7 +23,7 @@ int ModelContext::add_tensor(const std::string name, bool is_paramter, TensorBas
     } else {
         index = iter->second;
         if (is_paramter) {
-            m_paramters[ti2pi(index)] = tensor;
+            m_parameters[ti2pi(index)] = tensor;
         } else {
             m_variables[index] = tensor;
         }
@@ -34,8 +35,8 @@ int ModelContext::add_tensor(const std::string name, bool is_paramter, TensorBas
 int ModelContext::push_back_tensor(TensorBase *tensor, bool is_paramter)
 {
     if (is_paramter) {
-        m_paramters.push_back(tensor);
-        return m_paramters.size() - 1;
+        m_parameters.push_back(tensor);
+        return m_parameters.size() - 1;
     } else {
         m_variables.push_back(tensor);
         return m_variables.size() - 1;
@@ -49,8 +50,8 @@ void ModelContext::update_tensor(int index, TensorBase *tensor)
         m_variables[index] = tensor;
     else {
         index = ti2pi(index);
-        if (index < m_paramters.size() && index >= 0) {
-            m_paramters[ti2pi(index)] = tensor;
+        if (index < m_parameters.size() && index >= 0) {
+            m_parameters[ti2pi(index)] = tensor;
         } else {
             ESP_LOGE(TAG, "Tensor index %d not found", index);
         }
@@ -63,8 +64,8 @@ TensorBase *ModelContext::get_tensor(int index)
         return m_variables[index];
     else {
         index = ti2pi(index);
-        if (index < m_paramters.size() && index >= 0) {
-            return m_paramters[index];
+        if (index < m_parameters.size() && index >= 0) {
+            return m_parameters[index];
         } else {
             ESP_LOGE(TAG, "Tensor index %d not found", index);
         }
@@ -111,6 +112,53 @@ int ModelContext::get_variable_index(const std::string &name)
     return -1;
 }
 
+size_t ModelContext::get_parameter_memory_size(size_t &internal_size, size_t &psram_size, size_t &flash_size)
+{
+    size_t total_size = 0;
+    internal_size = 0;
+    psram_size = 0;
+    flash_size = 0;
+    for (int i = 0; i < m_parameters.size(); i++) {
+        if (m_parameters[i]) {
+            memory_addr_type_t mem_type = dl::tool::memory_addr_type(m_parameters[i]->data);
+            switch (mem_type) {
+            case MEMORY_ADDR_INTERNAL:
+                internal_size += m_parameters[i]->get_aligned_bytes();
+                break;
+            case MEMORY_ADDR_PSRAM:
+                psram_size += m_parameters[i]->get_aligned_bytes();
+                break;
+            case MEMORY_ADDR_FLASH:
+                flash_size += m_parameters[i]->get_aligned_bytes();
+                break;
+            default:
+                ESP_LOGE("module", "Wrong memory addr type.");
+            }
+        }
+    }
+    total_size = internal_size + psram_size + flash_size;
+    return total_size;
+}
+
+size_t ModelContext::get_variable_memory_size(size_t &internal_size, size_t &psram_size, size_t &flash_size)
+{
+    flash_size = 0;
+    internal_size += m_internal_size;
+    psram_size = m_psram_size;
+    size_t total_size = internal_size + psram_size;
+    return total_size;
+}
+
+size_t ModelContext::get_tensor_memory_size(size_t &internal_size, size_t &psram_size, size_t &flash_size)
+{
+    size_t total_size = 0;
+    get_parameter_memory_size(internal_size, psram_size, flash_size);
+    internal_size += m_internal_size;
+    psram_size += m_psram_size;
+    total_size += internal_size + psram_size + flash_size;
+    return total_size;
+}
+
 bool ModelContext::root_alloc(size_t internal_size, size_t psram_size, int alignment)
 {
     m_internal_size = internal_size;
@@ -134,7 +182,7 @@ bool ModelContext::root_alloc(size_t internal_size, size_t psram_size, int align
                      "Failed to alloc %.2fKB internal RAM, largest available internal RAM block size %.2fKB",
                      m_internal_size / 1024.f,
                      heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
-            return true;
+            return false;
         }
     }
     return true;

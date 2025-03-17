@@ -407,39 +407,23 @@ esp_err_t Model::test()
 std::map<std::string, mem_info> Model::get_memory_info()
 {
     std::map<std::string, mem_info> info;
-    std::vector<std::string> sorted_nodes = fbs_model->topological_sort();
-    assert(sorted_nodes.size() == execution_plan.size());
 
     size_t psram_rodata_size;
     fbs_model->get_model_size(
         &info["fbs_model"].internal, &info["fbs_model"].psram, &psram_rodata_size, &info["fbs_model"].flash);
     info["fbs_model"].psram += psram_rodata_size;
 
-    mem_info param_in_fbs, param_out_fbs;
-    for (int i = 0; i < sorted_nodes.size(); i++) {
-        execution_plan[i]->get_param_memory_size(&param_in_fbs, &param_out_fbs, fbs_model);
-        info["param_in_fbs"] += param_in_fbs;
-        info["param_out_fbs"] += param_out_fbs;
-    }
-    if (info["fbs_model"].flash > 0) {
-        info["param_in_fbs"].flash =
-            std::max(std::max(info["param_in_fbs"].internal, info["param_in_fbs"].psram), info["param_in_fbs"].flash) +
-            std::max(info["param_out_fbs"].internal, info["param_out_fbs"].psram);
-    }
+    model_context->get_parameter_memory_size(
+        info["parameters"].internal, info["parameters"].psram, info["parameters"].flash);
+    model_context->get_variable_memory_size(
+        info["variables"].internal, info["variables"].psram, info["variables"].flash);
 
-    info["mem_manager"].internal = model_context->get_internal_size();
-    info["mem_manager"].psram = model_context->get_psram_size();
-    info["mem_manager"].flash = 0;
-
+    info["total"].psram = psram_size + psram_rodata_size;
     info["total"].internal = internal_size;
-    info["total"].psram = psram_size;
-    info["total"].psram += psram_rodata_size;
-    info["total"].flash = info["fbs_model"].flash;
+    info["total"].flash = 0;
 
-    info["others"].internal = info["total"].internal - info["mem_manager"].internal - info["fbs_model"].internal -
-        info["param_out_fbs"].internal;
-    info["others"].psram =
-        info["total"].psram - info["mem_manager"].psram - info["fbs_model"].psram - info["param_out_fbs"].psram;
+    info["others"].internal = info["total"].internal - info["parameters"].internal - info["variables"].internal;
+    info["others"].psram = info["total"].psram - info["parameters"].psram - info["variables"].psram;
     info["others"].flash = 0;
     return info;
 }
@@ -497,7 +481,7 @@ static void print_table_name(const std::string &table_name, const std::string &s
     ESP_LOGI(TAG, "%s", sep.c_str());
 }
 
-static void print_memory_info(const std::map<std::string, mem_info> &info)
+static void print_memory_info(const std::map<std::string, mem_info> &info, const char *model_location_string)
 {
     std::string table_name = "memory summary";
     std::vector<std::string> header = {"", "internal RAM", "PSRAM", "FLASH"};
@@ -516,6 +500,7 @@ static void print_memory_info(const std::map<std::string, mem_info> &info)
     std::string sep = gen_sep_str({col0_width, col1_width, col2_width, col3_width});
 
     // table name
+    ESP_LOGI(TAG, "%s", model_location_string);
     print_table_name(table_name, sep);
     // header
     ESP_LOGI(TAG,
@@ -530,7 +515,7 @@ static void print_memory_info(const std::map<std::string, mem_info> &info)
              header[3].c_str());
     ESP_LOGI(TAG, "%s", sep.c_str());
     // body
-    std::vector<std::string> keys = {"fbs_model", "param_in_fbs", "param_out_fbs", "mem_manager", "others", "total"};
+    std::vector<std::string> keys = {"fbs_model", "variables", "parameters", "others", "total"};
     for (const auto &key : keys) {
         snprintf(internal_str, sizeof(internal_str), "%.2fKB", info.at(key).internal / 1024.f);
         snprintf(psram_str, sizeof(psram_str), "%.2fKB", info.at(key).psram / 1024.f);
@@ -639,7 +624,7 @@ void Model::profile_memory()
             TAG, "model:%s, version:%lld, description:%s", this->name.c_str(), this->version, this->doc_string.c_str());
     }
     auto info = get_memory_info();
-    print_memory_info(info);
+    print_memory_info(info, fbs_loader->get_model_location_string());
     printf("\n");
 }
 
@@ -667,7 +652,7 @@ void Model::profile(bool sort_module_by_latency)
             TAG, "model:%s, version:%lld, description:%s", this->name.c_str(), this->version, this->doc_string.c_str());
     }
     auto mem_info = get_memory_info();
-    print_memory_info(mem_info);
+    print_memory_info(mem_info, fbs_loader->get_model_location_string());
     printf("\n");
     auto module_info = get_module_info();
     print_module_info(module_info, sort_module_by_latency);

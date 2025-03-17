@@ -109,11 +109,6 @@ public:
     }
 
     void print() { ESP_LOGI("LUT", "quant_type: %s.", quant_type_to_string(quant_type)); }
-
-    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
-    {
-        Module::get_param_memory_size(table, in_fbs, out_fbs, fbs_model);
-    }
 };
 } // namespace module
 } // namespace dl

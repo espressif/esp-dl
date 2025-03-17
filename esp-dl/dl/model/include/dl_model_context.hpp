@@ -9,8 +9,8 @@ namespace dl {
 
 class ModelContext {
 public:
-    std::vector<TensorBase *> m_variables; /*!< Variable tensors of model, the first one is nullptr */
-    std::vector<TensorBase *> m_paramters; /*!< Parameters of model, the first one is nullptr */
+    std::vector<TensorBase *> m_variables;  /*!< Variable tensors of model, the first one is nullptr */
+    std::vector<TensorBase *> m_parameters; /*!< Parameters of model, the first one is nullptr */
 
 private:
     void *m_psram_root;                      /*!< PSRAM root pointer */
@@ -24,7 +24,7 @@ private:
      * @brief Gets the parameter tensor index by global tensor index.
      *
      * @param index The index of the tensor.
-     * @return int Returns parameter index for m_paramters.
+     * @return int Returns parameter index for m_parameters.
      */
     inline int ti2pi(int index) { return index - CONTEXT_PARAMETER_OFFSET; }
 
@@ -129,7 +129,7 @@ public:
      *
      * @return int Returns the number of parameter tensors.
      */
-    int get_parameter_count() { return m_paramters.size(); }
+    int get_parameter_count() { return m_parameters.size(); }
 
     /**
      * @brief Minimizes the context by clearing the name-to-index map.
@@ -162,18 +162,37 @@ public:
     void *get_internal_root() { return m_internal_root; }
 
     /**
-     * @brief Gets the size of the PSRAM memory in bytes.
+     * @brief Gets the size of the tensor memory in bytes.
      *
-     * @return int Returns the size of the PSRAM memory in bytes.
+     * @param internal_size The size of the internal memory used by the tensors in bytes.
+     * @param param_size The size of the parameter memory used by the tensors in bytes.
+     * @param flash_size The size of the flash used by the tensors in bytes.
+     *
+     * @return size_t Returns the size of the tensor memory in bytes.
      */
-    int get_psram_size() { return m_psram_size; }
+    size_t get_tensor_memory_size(size_t &internal_size, size_t &param_size, size_t &flash_size);
 
     /**
-     * @brief Gets the size of the internal memory in bytes.
+     * @brief Gets the size of the parameters in bytes.
      *
-     * @return int Returns the size of the internal memory in bytes.
+     * @param internal_size The size of the internal memory used by the parameters in bytes.
+     * @param param_size The size of the parameter memory used by the parameters in bytes.
+     * @param flash_size The size of the flash used by the parameters in bytes.
+     *
+     * @return size_t Returns the size of the parameters memory in bytes.
      */
-    int get_internal_size() { return m_internal_size; }
+    size_t get_parameter_memory_size(size_t &internal_size, size_t &param_size, size_t &flash_size);
+
+    /**
+     * @brief Gets the size of the variables in bytes.
+     *
+     * @param internal_size The size of the internal memory used by the variables in bytes.
+     * @param param_size The size of the parameter memory used by the variables in bytes.
+     * @param flash_size The size of the flash used by the variables in bytes.
+     *
+     * @return size_t Returns the size of the variables memory in bytes.
+     */
+    size_t get_variable_memory_size(size_t &internal_size, size_t &param_size, size_t &flash_size);
 
     /**
      * @brief Frees the memory allocated for PSRAM and internal roots.
@@ -203,14 +222,14 @@ public:
                 delete m_variables[i];
             }
 
-            for (int i = 0; i < m_paramters.size(); i++) {
-                delete m_paramters[i];
+            for (int i = 0; i < m_parameters.size(); i++) {
+                delete m_parameters[i];
             }
             root_free();
         }
 
         m_variables.clear();
-        m_paramters.clear();
+        m_parameters.clear();
         m_name2index.clear();
     }
 };

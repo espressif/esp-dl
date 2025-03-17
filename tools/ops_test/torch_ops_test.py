@@ -393,7 +393,13 @@ class CONCAT_TEST(nn.Module):
         self.config = config
 
     def forward(self, input1, input2):
-        return torch.cat([input1, input2], dim=self.config["axis"])
+
+        inputs = [input1, input2]
+        if self.config.get("relu", False):
+            relu_inputs = [nn.ReLU()(i) for i in inputs]
+            inputs += relu_inputs
+
+        return torch.cat(inputs, dim=self.config["axis"])
 
 
 class CLIP_TEST(nn.Module):
