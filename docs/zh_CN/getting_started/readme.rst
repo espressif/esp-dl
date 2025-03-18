@@ -80,7 +80,7 @@ ESP-DL 提供了一些开箱即用的 :project:`示例 <examples>`
 模型量化
 ------------------
 
-首先，请参考 `ESP-DL 算子支持状态 <../../../operator_support_state.md>`_，确保您的模型中的算子已经得到支持。
+首先，请参考 ESP-DL 算子支持状态 :project_file:`operator_support_state.md`，确保您的模型中的算子已经得到支持。
 
 ESP-DL 必须使用专有格式 ``.espdl`` 进行模型部署，深度学习模型需要进行量化和格式转换之后才能使用。ESP-PPQ 提供了 ``espdl_quantize_onnx`` 和 ``espdl_quantize_torch`` 两种接口以支持 ONNX 模型和 PyTorch 模型导出为 ``.espdl`` 模型。其他深度学习框架，如 TensorfFlow, PaddlePaddle 等都需要先将模型转换为 ONNX 。因此请确保您的模型可以转换为 ONNX 模型。更多详细信息，请参阅：
 

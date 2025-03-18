@@ -81,7 +81,7 @@ Delete ``build/``, ``sdkconfig``, ``dependencies.lock``, ``managed_components/``
 Model Quantization
 ------------------------
 
-First, please refer to `ESP-DL Operator Support State <../../../operator_support_state.md>`_ to ensure that the operators in your model are supported.
+First, please refer to :project_file:`operator_support_state.md` to ensure that the operators in your model are supported.
 
 ESP-DL must use the proprietary format ``.espdl`` for model deployment. Deep learning models need to be quantized and converted to the format before they can be used. ESP-PPQ provides two interfaces, ``espdl_quantize_onnx`` and ``espdl_quantize_torch``, to support ONNX models and PyTorch models to be exported as ``.espdl`` models. Other deep learning frameworks, such as TensorfFlow, PaddlePaddle, etc., need to convert the model to ONNX first. So make sure your model can be converted to ONNX model. For more details, please refer to:
 
