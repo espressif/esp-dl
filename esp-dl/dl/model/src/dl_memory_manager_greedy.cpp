@@ -130,7 +130,12 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
                     tensor_info[index]->update_time(i + 1); // free this tensor next step
                 input_shapes.push_back(tensor_info[index]->get_shape());
             } else {
-                input_shapes.push_back(context->get_tensor(name)->get_shape());
+                TensorBase *tensor = context->get_tensor(name);
+                if (tensor) {
+                    input_shapes.push_back(tensor->get_shape());
+                } else {
+                    input_shapes.push_back({});
+                }
             }
         }
 

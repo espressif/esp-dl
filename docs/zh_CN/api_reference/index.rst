@@ -10,4 +10,4 @@ API Reference
    tensor_api
    module_api
    model_api
-   fbs_api
+   flatbuffers_api

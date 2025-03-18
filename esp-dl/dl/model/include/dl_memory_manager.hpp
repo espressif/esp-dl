@@ -260,7 +260,6 @@ public:
 
     /**
      * @brief print tensor info
-     * @return void
      */
     void print()
     {
@@ -354,14 +353,12 @@ public:
  * @brief Prints detailed information about memory chunks in the specified list
  * @param tag          Character string identifying the memory pool type (e.g., "PSRAM" or "INTERNAL")
  * @param memory_list  Reference to list of MemoryChunk objects to display allocation details
- * @return void
  */
 void print_memory_list(const char *tag, std::list<MemoryChunk *> &memory_list);
 
 /**
  * @brief Sorts memory chunks in ascending order by their allocated size
  * @param memory_list  Reference to list of MemoryChunk objects to be sorted
- * @return void
  */
 void sort_memory_list(std::list<MemoryChunk *> &memory_list);
 

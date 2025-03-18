@@ -120,6 +120,9 @@ size_t ModelContext::get_parameter_memory_size(size_t &internal_size, size_t &ps
     flash_size = 0;
     for (int i = 0; i < m_parameters.size(); i++) {
         if (m_parameters[i]) {
+            if (!m_parameters[i]->auto_free) {
+                continue;
+            }
             memory_addr_type_t mem_type = dl::tool::memory_addr_type(m_parameters[i]->data);
             switch (mem_type) {
             case MEMORY_ADDR_INTERNAL:

@@ -42,7 +42,6 @@ public:
 
     /**
      * @brief Destroy the Module object. Return resource.
-     *
      */
     virtual ~Module();
 

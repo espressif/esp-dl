@@ -45,18 +45,18 @@ typedef enum { MEMORY_MANAGER_GREEDY = 0, LINEAR_MEMORY_MANAGER = 1 } memory_man
  */
 class Model {
 private:
-    fbs::FbsLoader *fbs_loader = nullptr; /*!< The instance of flatbuffers Loader */
-    fbs::FbsModel *fbs_model = nullptr;   /*!< The instance of flatbuffers Model */
+    fbs::FbsLoader *m_fbs_loader = nullptr; /*!< The instance of flatbuffers Loader */
+    fbs::FbsModel *m_fbs_model = nullptr;   /*!< The instance of flatbuffers Model */
     std::vector<dl::module::Module *>
-        execution_plan; /*!< This represents a valid topological sort (dependency ordered) execution plan. */
-    ModelContext *model_context = nullptr;       /*!< The pointer of model context */
-    std::map<std::string, TensorBase *> inputs;  /*!< The map of model input's name and TensorBase */
-    std::map<std::string, TensorBase *> outputs; /*!< The map of model output's name and TensorBase */
-    std::string name;                            /*!< The name of model */
-    int64_t version;                             /*!< The version of model */
-    std::string doc_string;                      /*!< doc string of model */
-    size_t internal_size;                        /*!< Internal RAM usage */
-    size_t psram_size;                           /*!< PSRAM usage */
+        m_execution_plan; /*!< This represents a valid topological sort (dependency ordered) execution plan. */
+    ModelContext *m_model_context = nullptr;       /*!< The pointer of model context */
+    std::map<std::string, TensorBase *> m_inputs;  /*!< The map of model input's name and TensorBase */
+    std::map<std::string, TensorBase *> m_outputs; /*!< The map of model output's name and TensorBase */
+    std::string m_name;                            /*!< The name of model */
+    int64_t m_version;                             /*!< The version of model */
+    std::string m_doc_string;                      /*!< doc string of model */
+    size_t m_internal_size;                        /*!< Internal RAM usage */
+    size_t m_psram_size;                           /*!< PSRAM usage */
 
 public:
     Model() {}
@@ -278,6 +278,11 @@ public:
                      std::map<std::string, TensorBase *> user_outputs = {});
 
     /**
+     * @brief Minimize the model.
+     */
+    void minimize();
+
+    /**
      * @brief Test whether the model inference result is correct.
      * The model should contain test_inputs and test_outputs.
      * Enable export_test_values option in esp-ppq to use this api.
@@ -363,7 +368,7 @@ public:
      *
      * @return fbs::FbsModel *
      */
-    virtual fbs::FbsModel *get_fbs_model() { return fbs_model; }
+    virtual fbs::FbsModel *get_fbs_model() { return m_fbs_model; }
 };
 
 } // namespace dl

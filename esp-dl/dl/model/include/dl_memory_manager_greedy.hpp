@@ -34,7 +34,6 @@ private:
      * @brief Simulates memory allocation process for given tensor information
      * @param tensor_info Vector containing metadata for all tensors in the network
      * @param node_num Total number of nodes in the execution plan
-     * @return void
      */
     void simulate(std::vector<TensorInfo *> &tensor_info, int node_num);
 
@@ -42,7 +41,6 @@ private:
      * @brief Simulates memory allocation with priority to internal RAM
      * @param tensor_info Vector containing tensor metadata
      * @param node_num Total computation nodes in the network
-     * @return void
      */
     void simulate_with_internal_memory(std::vector<TensorInfo *> &tensor_info, int node_num);
 
@@ -75,7 +73,6 @@ private:
 
     /**
      * @brief Releases all allocated memory blocks in both PSRAM and internal memory pools
-     * @return void Ensures complete memory cleanup
      */
     void free_memory_list();
 
@@ -113,7 +110,6 @@ public:
 
     /**
      * @brief Releases all allocated memory including tensor buffers and memory pools
-     * @return void Perform full memory cleanup
      */
     void free();
 };

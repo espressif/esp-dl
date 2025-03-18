@@ -7,6 +7,9 @@ namespace dl {
 
 #define CONTEXT_PARAMETER_OFFSET 10000000 /*!< Offset for parameter tensors */
 
+/**
+ * @brief Model Context class including variable tensors and parameters.
+ */
 class ModelContext {
 public:
     std::vector<TensorBase *> m_variables;  /*!< Variable tensors of model, the first one is nullptr */
@@ -67,7 +70,7 @@ public:
     int add_tensor(const std::string name, bool is_paramter = false, TensorBase *tensor = nullptr);
 
     /**
-     * @brief Push back a tensor to variable list.
+     * @brief Push back a tensor.
      *
      * @param tensor Pointer to the TensorBase object.
      * @param is_paramter Whether the tensor is a parameter (default: false).
@@ -112,7 +115,6 @@ public:
      * @brief Gets the variable tensor index by its name.
      *
      * @param name The name of the tensor.
-     * @param index The index of the tensor.
      * @return int Returns index if the name is found and is variable tensor, else -1
      */
     int get_variable_index(const std::string &name);
@@ -130,12 +132,6 @@ public:
      * @return int Returns the number of parameter tensors.
      */
     int get_parameter_count() { return m_parameters.size(); }
-
-    /**
-     * @brief Minimizes the context by clearing the name-to-index map.
-     * This is used to free unnecessary intermediate variables during the inference.
-     */
-    void minimize() { m_name2index.clear(); }
 
     /**
      * @brief Allocates memory for PSRAM and internal roots.
@@ -209,6 +205,16 @@ public:
             free(m_psram_root);
             m_psram_root = nullptr;
         }
+    }
+
+    /**
+     * @brief Minimizes the context by clearing the name-to-index map.
+     * This is used to free unnecessary intermediate variables during the inference.
+     */
+    void minimize()
+    {
+        std::map<std::string, int> temp;
+        m_name2index.swap(temp);
     }
 
     /**

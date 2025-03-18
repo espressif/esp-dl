@@ -206,43 +206,19 @@ public:
         return conv2d_op;
     }
 
-    void print(ModelContext *context = nullptr)
+    void print()
     {
-        if (context == nullptr) {
-            ESP_LOGI("Conv2d",
-                     "pads: %s, strides: [%d,%d], dilations: [%d,%d], group: %d, activation: %s, "
-                     "quant_type: %s.",
-                     shape_to_string(padding).c_str(),
-                     stride_y,
-                     stride_x,
-                     dilation_y,
-                     dilation_x,
-                     group,
-                     activation_type_to_string(activation),
-                     quant_type_to_string(quant_type));
-        } else {
-            TensorBase *input = context->get_tensor(m_inputs_index[0]);
-            TensorBase *filter = context->get_tensor(m_inputs_index[1]);
-            TensorBase *bias = nullptr;
-            if (m_inputs_index.size() == 3) {
-                bias = context->get_tensor(m_inputs_index[2]);
-            }
-            ESP_LOGI("Conv2d",
-                     "input:%s, filter:%s, bias:%s, pads: %s, strides: [%d,%d], dilations: [%d,%d], group: %d, "
-                     "activation: %s, "
-                     "quant_type: %s.",
-                     shape_to_string(input->shape).c_str(),
-                     shape_to_string(filter->shape).c_str(),
-                     bias == nullptr ? "false" : "true",
-                     shape_to_string(padding).c_str(),
-                     stride_y,
-                     stride_x,
-                     dilation_y,
-                     dilation_x,
-                     group,
-                     activation_type_to_string(activation),
-                     quant_type_to_string(quant_type));
-        }
+        ESP_LOGI("Conv2d",
+                 "pads: %s, strides: [%d,%d], dilations: [%d,%d], group: %d, activation: %s, "
+                 "quant_type: %s.",
+                 shape_to_string(padding).c_str(),
+                 stride_y,
+                 stride_x,
+                 dilation_y,
+                 dilation_x,
+                 group,
+                 activation_type_to_string(activation),
+                 quant_type_to_string(quant_type));
     }
 
     // void set_preload_addr(void *addr, size_t size)

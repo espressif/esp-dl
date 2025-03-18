@@ -29,6 +29,7 @@ INPUT = \
     $(PROJECT_PATH)/esp-dl/dl/model/include/dl_memory_manager_greedy.hpp \
     $(PROJECT_PATH)/esp-dl/dl/model/include/dl_memory_manager.hpp \
     $(PROJECT_PATH)/esp-dl/dl/model/include/dl_model_base.hpp \
+    $(PROJECT_PATH)/esp-dl/dl/model/include/dl_model_context.hpp \
 
 ## Get warnings for functions that have no documentation for their parameters or return value
 ##
