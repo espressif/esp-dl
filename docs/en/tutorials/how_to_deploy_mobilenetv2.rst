@@ -209,8 +209,11 @@ The top1 accuracy after quantization is only 60.5%, which is far from the accura
 
   Observing the Layerwise error, it is found that the errors of most layers are less than 1%, indicating that the quantization errors of most layers are small, and only a few layers have large errors. We can choose to quantize the layers with large errors using int16. For details, please see mixed precision quantization.
 
+.. _mixed_precision_quantization_label:
+
 Mixed precision quantization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+esp-dl supports mixed precision quantization, which can be used to quantize some layers using int16 and some layers using int8. The quantization error of the model can be reduced by using mixed precision quantization.
 
 **Quantization settings**
 
@@ -346,6 +349,8 @@ Mixed precision quantization
 **Quantization Error Analysis**
 
 After replacing the layer with the largest error with 16-bit quantization, it can be observed that the model accuracy is significantly improved. The top1 accuracy after quantization is 69.550%, which is close to the accuracy of the float model (71.878%). The cumulative error of the last layer of the model ``/classifier/classifier.1/Gemm`` is 9.117%.
+
+.. _layerwise_equalization_quantization_label:
 
 Layerwise equalization quantization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
