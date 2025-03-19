@@ -83,10 +83,10 @@ Model::~Model()
     // If fbs_loader is NULL, this means fbs_model is created outside this class. So don't delete it.
     if (m_fbs_loader) {
         delete m_fbs_loader;
-    }
 
-    if (m_fbs_model) {
-        delete m_fbs_model;
+        if (m_fbs_model) {
+            delete m_fbs_model;
+        }
     }
 
     if (m_model_context) {
@@ -338,20 +338,22 @@ void Model::print()
 void Model::minimize()
 {
     ESP_LOGW(TAG,
-             "Minimize() will delete all variables not used in model inference, which will make it impossible to test "
+             "Minimize() will delete variables not used in model inference, which will make it impossible to test "
              "or debug the model.");
     int start_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     int start_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 
+    // If fbs_loader is NULL, this means fbs_model is created outside this class. So don't delete it.
     if (m_fbs_loader) {
         delete m_fbs_loader;
         m_fbs_loader = nullptr;
+
+        if (m_fbs_model && m_fbs_model->m_param_copy) {
+            delete m_fbs_model;
+            m_fbs_model = nullptr;
+        }
     }
 
-    if (m_fbs_model && m_fbs_model->m_param_copy) {
-        delete m_fbs_model;
-        m_fbs_model = nullptr;
-    }
     m_model_context->minimize();
     dl::module::ModuleCreator::get_instance()->clear();
 
@@ -359,6 +361,12 @@ void Model::minimize()
     int end_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
     m_internal_size -= end_internal_size - start_internal_size;
     m_psram_size -= end_psram_size - start_psram_size;
+    if (m_internal_size < 0) {
+        m_internal_size = 0;
+    }
+    if (m_psram_size < 0) {
+        m_psram_size = 0;
+    }
 }
 
 esp_err_t Model::test()
@@ -435,7 +443,7 @@ std::map<std::string, mem_info> Model::get_memory_info()
 {
     std::map<std::string, mem_info> info;
 
-    size_t psram_rodata_size;
+    size_t psram_rodata_size = 0;
     info["fbs_model"].internal = 0;
     info["fbs_model"].psram = 0;
     info["fbs_model"].flash = 0;
@@ -451,9 +459,17 @@ std::map<std::string, mem_info> Model::get_memory_info()
     info["total"].internal = m_internal_size;
     info["total"].flash = info["fbs_model"].flash;
 
-    info["others"].internal = info["total"].internal - info["tensors"].internal - info["fbs_model"].internal;
-    info["others"].psram = info["total"].psram - info["tensors"].psram - info["fbs_model"].psram;
+    info["others"].internal = 0;
+    info["others"].psram = 0;
     info["others"].flash = 0;
+    int memory_size = info["total"].internal - info["tensors"].internal - info["fbs_model"].internal;
+    if (memory_size > 0) {
+        info["others"].internal = memory_size;
+    }
+    memory_size = info["total"].psram - info["tensors"].psram - info["fbs_model"].psram;
+    if (memory_size > 0) {
+        info["others"].psram = memory_size;
+    }
 
     return info;
 }

@@ -55,8 +55,8 @@ private:
     std::string m_name;                            /*!< The name of model */
     int64_t m_version;                             /*!< The version of model */
     std::string m_doc_string;                      /*!< doc string of model */
-    size_t m_internal_size;                        /*!< Internal RAM usage */
-    size_t m_psram_size;                           /*!< PSRAM usage */
+    int m_internal_size;                           /*!< Internal RAM usage */
+    int m_psram_size;                              /*!< PSRAM usage */
 
 public:
     Model() {}

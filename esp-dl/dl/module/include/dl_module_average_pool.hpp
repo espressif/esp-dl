@@ -114,7 +114,7 @@ public:
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
 
         if (pads.size() > 4) {
-            ESP_LOGE("AveragePool2D", "pads(%s) is not supported: %d", shape_to_string(pads).c_str());
+            ESP_LOGE("AveragePool2D", "pads(%s) is not supported", shape_to_string(pads).c_str());
             assert(false);
         }
 

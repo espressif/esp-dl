@@ -12,9 +12,10 @@
 namespace dl {
 // Define the enum type for module in-place operation mode
 typedef enum {
-    MODULE_NON_INPLACE = 0,              ///< Non inplace operation. the output will store to a separate memory
-    MODULE_INPLACE_UNCHANGED_BUFFER = 1, ///< Inplace operation which don't change the buffer data.
-    MODULE_INPLACE_CHANGED_BUFFER = 2    ///< Inplace operation which will change the buffer data.
+    MODULE_NON_INPLACE = 0, ///< Non inplace operation. the output will store to a separate memory
+    MODULE_INPLACE_UNCHANGED_BUFFER =
+        1,                            ///< Inplace operation which don't change the buffer data, like Reshape, Squeeze
+    MODULE_INPLACE_CHANGED_BUFFER = 2 ///< Inplace operation which will change the buffer data, like Add, Sub
 } module_inplace_t;
 
 namespace module {

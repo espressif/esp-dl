@@ -115,7 +115,7 @@ TEST_CASE("Test espdl model", "[dl_model]")
         model->run(graph_test_inputs, RUNTIME_MODE_SINGLE_CORE, graph_user_outputs);
         latency.end();
         model_run_time += latency.get_period();
-        ESP_LOGI(TAG, "model index:%d  run time:%d us\n", i, latency.get_period());
+        ESP_LOGI(TAG, "model index:%d  run time:%ld us\n", i, latency.get_period());
 
         ::compare_test_outputs(model, graph_user_outputs.empty() ? model->get_outputs() : graph_user_outputs);
         for (auto graph_test_inputs_iter = graph_test_inputs.begin(); graph_test_inputs_iter != graph_test_inputs.end();

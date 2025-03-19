@@ -44,6 +44,24 @@ TEST_CASE("Test dl model API: load()", "[api]")
     TEST_ASSERT_EQUAL(true, psram_size_before == psram_size_end);
 }
 
+TEST_CASE("Test dl model API: profile()", "[api]")
+{
+    ESP_LOGI(TAG, "Test dl model API: run()");
+    Model *model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
+    delete model;
+
+    int total_ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
+
+    model->profile();
+    model->minimize();
+    model->profile_memory();
+    delete model;
+
+    int total_ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    TEST_ASSERT_EQUAL(true, total_ram_size_before <= total_ram_size_end);
+}
+
 TEST_CASE("Test dl model API: run()", "[api]")
 {
     ESP_LOGI(TAG, "Test dl model API: run()");

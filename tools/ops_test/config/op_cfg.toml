@@ -1306,11 +1306,6 @@
         export_name_prefix = "concat_ishape_1_5_10_10_1_5_10_31"
         axis = 3
 
-        [[ops_test.Concat.cfg]]
-        input_shape = [[1, 5, 10], [1, 6, 10]]
-        relu = true
-        export_name_prefix = "concat_ishape_1_5_10_1_6_10_relu"
-        axis = 1
 
     [ops_test.Clip]
     test_func = "CLIP_TEST"

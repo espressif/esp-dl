@@ -62,8 +62,8 @@ ESP-DL provides a series of API to quickly load and run models.  A typical examp
 [Pedestrian Detection](./models/pedestrian_detect/)     
 [Human Face Detection](./models/human_face_detect/)     
 [Human Face Recognition](./models/human_face_recognition/)     
-[Imagenet Classification](./models/imagenet_cls/)    
-[COCO Detection](./models/coco_detect/)    
+[Imagenet Classification (MobileNetV2)](./models/imagenet_cls/)    
+[COCO Detection (YOLO11n)](./models/coco_detect/)    
 
 
 ## Support Operators

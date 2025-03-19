@@ -42,6 +42,7 @@ public:
     Gemm(activation_type_t activation = Linear, const char *name = nullptr, quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, MODULE_NON_INPLACE, quant_type), activation(activation)
     {
+        is_bias_reseted = false;
     }
 
     /**
