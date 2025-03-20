@@ -263,9 +263,9 @@ public:
      * @brief Change a new shape to the Tensor without changing its data.
      *
      * @param shape  the target shape
-     * @return TensorBase&  self
+     * @return TensorBase  *self
      */
-    TensorBase &reshape(std::vector<int> shape);
+    TensorBase *reshape(std::vector<int> shape);
 
     /**
      * @brief Flip the input Tensor along the specified axes.

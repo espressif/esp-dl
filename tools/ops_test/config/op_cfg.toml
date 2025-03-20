@@ -1143,6 +1143,22 @@
         input_shape = [1, 355]
         export_name_prefix = "tanh_ishap_1_355"
 
+    [ops_test.Relu]
+    test_func = "RELU_TEST"
+    quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
+        [[ops_test.Relu.cfg]]
+        input_shape = [1, 96, 20, 20]
+        export_name_prefix = "Relu_ishap_1_96_20_20"
+
+        [[ops_test.Relu.cfg]]
+        input_shape = [1, 30, 40]
+        export_name_prefix = "Relu_ishap_1_30_40"
+
+        [[ops_test.Relu.cfg]]
+        input_shape = [1, 355]
+        export_name_prefix = "Relu_ishap_1_355"
+
     [ops_test.LeakyRelu]
     test_func = "LEAKYRELU_TEST"
     quant_bits = ["int8", "int16"]
@@ -1289,6 +1305,7 @@
         input_shape = [[1, 5, 10, 10], [1, 5, 10, 31]]
         export_name_prefix = "concat_ishape_1_5_10_10_1_5_10_31"
         axis = 3
+
 
     [ops_test.Clip]
     test_func = "CLIP_TEST"

@@ -175,8 +175,8 @@ public:
     void clear()
     {
         if (!creators.empty()) {
-            creators.clear();
-            malloc_trim(0);
+            std::map<std::string, Creator> temp;
+            creators.swap(temp);
         }
     }
 

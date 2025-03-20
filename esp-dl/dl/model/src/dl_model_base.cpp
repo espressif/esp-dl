@@ -17,13 +17,14 @@ Model::Model(const char *name,
              bool param_copy)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
-    internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-    psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_model_context = new ModelContext();
     if (this->load(name, location, key, param_copy) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
-    internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-    psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    m_psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 }
 
 Model::Model(const char *name,
@@ -35,13 +36,14 @@ Model::Model(const char *name,
              bool param_copy)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
-    internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-    psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_model_context = new ModelContext();
     if (this->load(name, location, model_index, key, param_copy) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
-    internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-    psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    m_psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 }
 
 Model::Model(const char *name,
@@ -53,66 +55,68 @@ Model::Model(const char *name,
              bool param_copy)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
-    internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-    psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_model_context = new ModelContext();
     if (this->load(name, location, model_name, key, param_copy) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
-    internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-    psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    m_psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 }
 
 Model::Model(fbs::FbsModel *fbs_model, int max_internal_size, memory_manager_t mm_type)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
-    internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-    psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_model_context = new ModelContext();
     if (this->load(fbs_model) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
-    internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-    psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    m_psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 }
 
 Model::~Model()
 {
     // If fbs_loader is NULL, this means fbs_model is created outside this class. So don't delete it.
-    if (fbs_loader) {
-        delete fbs_loader;
+    if (m_fbs_loader) {
+        delete m_fbs_loader;
 
-        if (fbs_model) {
-            delete fbs_model;
+        if (m_fbs_model) {
+            delete m_fbs_model;
         }
     }
 
-    if (memory_manager) {
-        delete memory_manager;
+    if (m_model_context) {
+        delete m_model_context;
     }
-    if (!execution_plan.empty()) {
-        for (int i = 0; i < execution_plan.size(); i++) {
-            delete execution_plan[i];
+    if (!m_execution_plan.empty()) {
+        for (int i = 0; i < m_execution_plan.size(); i++) {
+            delete m_execution_plan[i];
         }
     }
 }
 
 esp_err_t Model::load(const char *name, fbs::model_location_type_t location, uint8_t *key, bool param_copy)
 {
-    fbs_loader = new fbs::FbsLoader(name, location);
-    return this->load(fbs_loader->load(key, param_copy));
+    m_fbs_loader = new fbs::FbsLoader(name, location);
+    return this->load(m_fbs_loader->load(key, param_copy));
 }
 
 esp_err_t Model::load(
     const char *name, fbs::model_location_type_t location, int model_index, uint8_t *key, bool param_copy)
 {
-    fbs_loader = new fbs::FbsLoader(name, location);
-    return this->load(fbs_loader->load(model_index, key, param_copy));
+    m_fbs_loader = new fbs::FbsLoader(name, location);
+    return this->load(m_fbs_loader->load(model_index, key, param_copy));
 }
 
 esp_err_t Model::load(
     const char *name, fbs::model_location_type_t location, const char *model_name, uint8_t *key, bool param_copy)
 {
-    fbs_loader = new fbs::FbsLoader(name, location);
-    return this->load(fbs_loader->load(model_name, key, param_copy));
+    m_fbs_loader = new fbs::FbsLoader(name, location);
+    return this->load(m_fbs_loader->load(model_name, key, param_copy));
 }
 
 esp_err_t Model::load(fbs::FbsModel *fbs_model)
@@ -123,81 +127,100 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
         ret = ESP_FAIL;
         return ret;
     }
-    this->fbs_model = fbs_model; // fbs_model is created by fbs_loader, so we don't need to delete it.
-    fbs_model->load_map();
-    this->name = fbs_model->get_model_name();
-    this->version = fbs_model->get_model_version();
-    this->doc_string = fbs_model->get_model_doc_string();
+    m_fbs_model = fbs_model; // fbs_model is created by fbs_loader, so we don't need to delete it.
+    m_fbs_model->load_map();
+    m_name = m_fbs_model->get_model_name();
+    m_version = m_fbs_model->get_model_version();
+    m_doc_string = m_fbs_model->get_model_doc_string();
 
     // Construct the execution plan.
-    execution_plan.clear();
+    m_execution_plan.clear();
     dl::module::ModuleCreator *module_creator = dl::module::ModuleCreator::get_instance();
+    m_model_context->clear();
+    std::vector<std::string> op_inputs;
+    std::vector<std::string> op_outputs;
 
-    std::vector<std::string> sorted_nodes = fbs_model->topological_sort();
+    std::vector<std::string> sorted_nodes = m_fbs_model->topological_sort();
     for (int i = 0; i < sorted_nodes.size(); i++) {
         std::string node_name = sorted_nodes[i];
-        std::string op_type = fbs_model->get_operation_type(node_name);
+
+        // Create and add module
+        std::string op_type = m_fbs_model->get_operation_type(node_name);
         if (op_type.empty()) {
             ESP_LOGE(TAG, "Can not find the operation %s", node_name.c_str());
             ret = ESP_FAIL;
             break;
         }
-        dl::module::Module *module = module_creator->create(fbs_model, op_type, node_name);
+        dl::module::Module *module = module_creator->create(m_fbs_model, op_type, node_name);
         if (!module) {
             ESP_LOGE(TAG, "Do not support %s, please implement and register it first.", op_type.c_str());
             ret = ESP_FAIL;
             break;
         }
-        execution_plan.push_back(module);
+        m_execution_plan.push_back(module);
+
+        // Add inputs and outputs
+        m_fbs_model->get_operation_inputs_and_outputs(node_name, op_inputs, op_outputs);
+        int index = 0;
+        for (int j = 0; j < op_inputs.size(); j++) {
+            bool is_parameter = m_fbs_model->is_parameter(op_inputs[j]);
+            if (is_parameter || op_inputs[j].empty()) {
+                index =
+                    m_model_context->add_tensor(op_inputs[j], true, m_fbs_model->get_operation_parameter(node_name, j));
+            } else {
+                index = m_model_context->add_tensor(op_inputs[j], false, nullptr);
+            }
+            module->m_inputs_index.push_back(index); // assign input index of module
+        }
+
+        for (int j = 0; j < op_outputs.size(); j++) {
+            index = m_model_context->add_tensor(op_outputs[j], false, nullptr);
+            module->m_outputs_index.push_back(index); // assign output index of
+        }
     }
 
-    this->memory_manager = nullptr;
     return ret;
 }
 
 void Model::build(size_t max_internal_size, memory_manager_t mm_type, bool preload)
 {
     // If memory manager has been created, delete it and reset all modules
-    this->fbs_model->load_map();
-    if (this->memory_manager) {
-        delete this->memory_manager;
-        for (int i = 0; i < execution_plan.size(); i++) {
-            dl::module::Module *module = execution_plan[i];
-            if (module) {
-                module->reset();
-            }
-        }
-    }
+    m_fbs_model->load_map();
+    MemoryManagerBase *memory_manager = nullptr;
 
     if (mm_type == MEMORY_MANAGER_GREEDY) {
-        this->memory_manager = new dl::memory::MemoryManagerGreedy(max_internal_size);
+        memory_manager = new MemoryManagerGreedy(max_internal_size);
+    } else {
+        ESP_LOGW(TAG, "Memory manager(%d) is not supported yet. Use MemoryManagerGreedy instead.", mm_type);
+        memory_manager = new MemoryManagerGreedy(max_internal_size);
     }
-    this->memory_manager->alloc(this->fbs_model, this->execution_plan);
+    memory_manager->alloc(m_fbs_model, m_execution_plan, m_model_context);
 
     // get the TensorBase* of inputs and outputs
-    std::vector<std::string> inputs_tmp = fbs_model->get_graph_inputs();
-    std::vector<std::string> outputs_tmp = fbs_model->get_graph_outputs();
-    this->inputs.clear();
-    this->outputs.clear();
+    std::vector<std::string> inputs_tmp = m_fbs_model->get_graph_inputs();
+    std::vector<std::string> outputs_tmp = m_fbs_model->get_graph_outputs();
+    m_inputs.clear();
+    m_outputs.clear();
     for (int i = 0; i < inputs_tmp.size(); i++) {
         TensorBase *input_tensor = this->get_intermediate(inputs_tmp[i]);
-        this->inputs.emplace(inputs_tmp[i], input_tensor);
+        m_inputs.emplace(inputs_tmp[i], input_tensor);
     }
     for (int i = 0; i < outputs_tmp.size(); i++) {
         TensorBase *output_tensor = this->get_intermediate(outputs_tmp[i]);
-        this->outputs.emplace(outputs_tmp[i], output_tensor);
+        m_outputs.emplace(outputs_tmp[i], output_tensor);
     }
 
-    this->fbs_model->clear_map();
+    m_fbs_model->clear_map();
+    delete memory_manager;
 }
 
 void Model::run(runtime_mode_t mode)
 {
     // execute each module.
-    for (int i = 0; i < execution_plan.size(); i++) {
-        dl::module::Module *module = execution_plan[i];
+    for (int i = 0; i < m_execution_plan.size(); i++) {
+        dl::module::Module *module = m_execution_plan[i];
         if (module) {
-            module->forward(this->memory_manager->tensors, mode);
+            module->forward(m_model_context, mode);
         } else {
             break;
         }
@@ -206,44 +229,37 @@ void Model::run(runtime_mode_t mode)
 
 void Model::run(TensorBase *input, runtime_mode_t mode)
 {
-    if (this->inputs.size() != 1) {
+    if (m_inputs.size() != 1) {
         ESP_LOGW(TAG, "The inputs of model is not just one! This API will assign data to first input");
     }
 
-    TensorBase *model_input = this->inputs.begin()->second;
+    TensorBase *model_input = m_inputs.begin()->second;
     if (!model_input->assign(input)) {
         ESP_LOGE(TAG, "Assign input failed");
         return;
     }
 
     // execute each module.
-    for (int i = 0; i < execution_plan.size(); i++) {
-        dl::module::Module *module = execution_plan[i];
-        if (module) {
-            module->forward(this->memory_manager->tensors, mode);
-        } else {
-            break;
-        }
-    }
+    this->run(mode);
 }
 
 void Model::run(std::map<std::string, TensorBase *> &user_inputs,
                 runtime_mode_t mode,
                 std::map<std::string, TensorBase *> user_outputs)
 {
-    if (user_inputs.size() != this->inputs.size()) {
+    if (user_inputs.size() != m_inputs.size()) {
         ESP_LOGE(TAG,
                  "The size of user_inputs(%d) don't equal with the size of model inputs(%d).",
                  user_inputs.size(),
-                 this->inputs.size());
+                 m_inputs.size());
         return;
     }
 
     for (auto user_inputs_iter = user_inputs.begin(); user_inputs_iter != user_inputs.end(); user_inputs_iter++) {
         std::string user_input_name = user_inputs_iter->first;
         TensorBase *user_input_tensor = user_inputs_iter->second;
-        auto graph_input_iter = this->inputs.find(user_input_name);
-        if (graph_input_iter == this->inputs.end()) {
+        auto graph_input_iter = m_inputs.find(user_input_name);
+        if (graph_input_iter == m_inputs.end()) {
             ESP_LOGE(TAG, "The input name(%s) isn't graph input.", user_input_name.c_str());
             return;
         }
@@ -255,21 +271,21 @@ void Model::run(std::map<std::string, TensorBase *> &user_inputs,
     }
 
     // execute each module.
-    for (int i = 0; i < execution_plan.size(); i++) {
-        dl::module::Module *module = execution_plan[i];
+    for (int i = 0; i < m_execution_plan.size(); i++) {
+        dl::module::Module *module = m_execution_plan[i];
         if (module) {
-            module->forward(this->memory_manager->tensors, mode);
+            module->forward(m_model_context, mode);
             // get the intermediate tensor for debug.
             if (!user_outputs.empty()) {
                 for (auto user_outputs_iter = user_outputs.begin(); user_outputs_iter != user_outputs.end();
                      user_outputs_iter++) {
                     int user_tensor_index =
-                        this->memory_manager->get_tensor_index(const_cast<std::string &>(user_outputs_iter->first));
+                        m_model_context->get_tensor_index(const_cast<std::string &>(user_outputs_iter->first));
                     if (user_tensor_index >= 0) {
                         std::vector<int> outputs_index = module->get_outputs_index();
                         for (int i = 0; i < outputs_index.size(); i++) {
                             if (user_tensor_index == outputs_index[i]) {
-                                user_outputs_iter->second->assign(this->memory_manager->tensors[user_tensor_index]);
+                                user_outputs_iter->second->assign(m_model_context->m_variables[user_tensor_index]);
                                 break;
                             }
                         }
@@ -285,7 +301,7 @@ void Model::run(std::map<std::string, TensorBase *> &user_inputs,
 
 std::map<std::string, TensorBase *> &Model::get_inputs()
 {
-    return this->inputs;
+    return m_inputs;
 }
 
 TensorBase *Model::get_intermediate(const std::string &name)
@@ -294,22 +310,22 @@ TensorBase *Model::get_intermediate(const std::string &name)
         ESP_LOGE(TAG, "Invalid name.");
         return nullptr;
     }
-    return this->memory_manager->get_tensor(name);
+    return m_model_context->get_tensor(name);
 }
 
 std::map<std::string, TensorBase *> &Model::get_outputs()
 {
-    return this->outputs;
+    return m_outputs;
 }
 
 void Model::print()
 {
-    if (!execution_plan.empty()) {
-        for (int i = 0; i < execution_plan.size(); i++) {
-            if (execution_plan[i]) {
+    if (!m_execution_plan.empty()) {
+        for (int i = 0; i < m_execution_plan.size(); i++) {
+            if (m_execution_plan[i]) {
                 ESP_LOGI(TAG, "------------------------------- %d -------------------------------", i);
-                if (execution_plan[i]) {
-                    execution_plan[i]->print();
+                if (m_execution_plan[i]) {
+                    m_execution_plan[i]->print();
                 } else {
                     break;
                 }
@@ -319,14 +335,48 @@ void Model::print()
     }
 }
 
+void Model::minimize()
+{
+    ESP_LOGW(TAG,
+             "Minimize() will delete variables not used in model inference, which will make it impossible to test "
+             "or debug the model.");
+    int start_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    int start_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+
+    // If fbs_loader is NULL, this means fbs_model is created outside this class. So don't delete it.
+    if (m_fbs_loader) {
+        delete m_fbs_loader;
+        m_fbs_loader = nullptr;
+
+        if (m_fbs_model && m_fbs_model->m_param_copy) {
+            delete m_fbs_model;
+            m_fbs_model = nullptr;
+        }
+    }
+
+    m_model_context->minimize();
+    dl::module::ModuleCreator::get_instance()->clear();
+
+    int end_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+    int end_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+    m_internal_size -= end_internal_size - start_internal_size;
+    m_psram_size -= end_psram_size - start_psram_size;
+    if (m_internal_size < 0) {
+        m_internal_size = 0;
+    }
+    if (m_psram_size < 0) {
+        m_psram_size = 0;
+    }
+}
+
 esp_err_t Model::test()
 {
     printf("\n");
-    fbs_model->load_map();
+    m_fbs_model->load_map();
     std::map<std::string, TensorBase *> graph_inputs = get_inputs();
     for (auto graph_inputs_iter = graph_inputs.begin(); graph_inputs_iter != graph_inputs.end(); graph_inputs_iter++) {
         std::string input_name = graph_inputs_iter->first;
-        TensorBase *test_input = fbs_model->get_test_input_tensor(input_name);
+        TensorBase *test_input = m_fbs_model->get_test_input_tensor(input_name);
         if (!test_input) {
             ESP_LOGE(TAG,
                      "Model input %s doesn't have a corresponding test input. Please enable export_test_values option "
@@ -336,25 +386,25 @@ esp_err_t Model::test()
         }
         if (!graph_inputs_iter->second->assign(test_input)) {
             ESP_LOGE(TAG, "Assign input failed");
-            fbs_model->clear_map();
+            m_fbs_model->clear_map();
             return ESP_FAIL;
         }
     }
 
-    std::vector<std::string> test_outputs_name = fbs_model->get_test_outputs_name();
+    std::vector<std::string> test_outputs_name = m_fbs_model->get_test_outputs_name();
     std::vector<int> test_outputs_index;
     assert(test_outputs_name.size() > 0);
     for (const auto &name : test_outputs_name) {
-        int index = memory_manager->get_tensor_index(name);
+        int index = m_model_context->get_tensor_index(name);
         if (index == -1) {
             ESP_LOGE(TAG, "There's no intermediate result or output named %s in model.", name.c_str());
             return ESP_FAIL;
         }
         test_outputs_index.emplace_back(index);
     }
-    for (int i = 0; i < execution_plan.size(); i++) {
-        dl::module::Module *module = execution_plan[i];
-        module->forward(memory_manager->tensors);
+    for (int i = 0; i < m_execution_plan.size(); i++) {
+        dl::module::Module *module = m_execution_plan[i];
+        module->forward(m_model_context);
         std::vector<int> module_outputs_index = module->get_outputs_index();
         for (int index : module_outputs_index) {
             auto iter = std::find(test_outputs_index.begin(), test_outputs_index.end(), index);
@@ -362,21 +412,21 @@ esp_err_t Model::test()
                 size_t iter_index = std::distance(test_outputs_index.begin(), iter);
                 std::string output_name = test_outputs_name[iter_index];
                 ESP_LOGI(TAG, "Testing output %s.", output_name.c_str());
-                dl::TensorBase *output = memory_manager->tensors[index];
-                dl::TensorBase *output_gt = fbs_model->get_test_output_tensor(output_name);
+                dl::TensorBase *output = m_model_context->m_variables[index];
+                dl::TensorBase *output_gt = m_fbs_model->get_test_output_tensor(output_name);
                 assert(output);
                 assert(output_gt);
                 if (output->get_dtype() == DATA_TYPE_INT16 || output->get_dtype() == DATA_TYPE_UINT16) {
                     // The int16 quantization cannot be fully aligned, and there may be rounding errors of +-1.
                     if (!output->equal(output_gt, 1 + 1e-5, true)) {
                         ESP_LOGE(TAG, "Test output %s does not match\n", output_name.c_str());
-                        fbs_model->clear_map();
+                        m_fbs_model->clear_map();
                         return ESP_FAIL;
                     }
                 } else {
                     if (!output->equal(output_gt, 1e-5, true)) {
                         ESP_LOGE(TAG, "Test output %s does not match\n", output_name.c_str());
-                        fbs_model->clear_map();
+                        m_fbs_model->clear_map();
                         return ESP_FAIL;
                     }
                 }
@@ -384,7 +434,7 @@ esp_err_t Model::test()
         }
     }
 
-    fbs_model->clear_map();
+    m_fbs_model->clear_map();
     ESP_LOGI(TAG, "Test Pass!");
     return ESP_OK;
 }
@@ -392,62 +442,57 @@ esp_err_t Model::test()
 std::map<std::string, mem_info> Model::get_memory_info()
 {
     std::map<std::string, mem_info> info;
-    std::vector<std::string> sorted_nodes = fbs_model->topological_sort();
-    assert(sorted_nodes.size() == execution_plan.size());
 
-    size_t psram_rodata_size;
-    fbs_model->get_model_size(
-        &info["fbs_model"].internal, &info["fbs_model"].psram, &psram_rodata_size, &info["fbs_model"].flash);
-    info["fbs_model"].psram += psram_rodata_size;
-
-    mem_info param_in_fbs, param_out_fbs;
-    for (int i = 0; i < sorted_nodes.size(); i++) {
-        execution_plan[i]->get_param_memory_size(&param_in_fbs, &param_out_fbs, fbs_model);
-        info["param_in_fbs"] += param_in_fbs;
-        info["param_out_fbs"] += param_out_fbs;
-    }
-    if (info["fbs_model"].flash > 0) {
-        info["param_in_fbs"].flash =
-            std::max(std::max(info["param_in_fbs"].internal, info["param_in_fbs"].psram), info["param_in_fbs"].flash) +
-            std::max(info["param_out_fbs"].internal, info["param_out_fbs"].psram);
+    size_t psram_rodata_size = 0;
+    info["fbs_model"].internal = 0;
+    info["fbs_model"].psram = 0;
+    info["fbs_model"].flash = 0;
+    if (m_fbs_model) {
+        m_fbs_model->get_model_size(
+            &info["fbs_model"].internal, &info["fbs_model"].psram, &psram_rodata_size, &info["fbs_model"].flash);
+        info["fbs_model"].psram += psram_rodata_size;
     }
 
-    info["mem_manager"].internal = memory_manager->get_internal_size();
-    info["mem_manager"].psram = memory_manager->get_psram_size();
-    info["mem_manager"].flash = 0;
+    m_model_context->get_tensor_memory_size(info["tensors"].internal, info["tensors"].psram, info["tensors"].flash);
 
-    info["total"].internal = internal_size;
-    info["total"].psram = psram_size;
-    info["total"].psram += psram_rodata_size;
+    info["total"].psram = m_psram_size + psram_rodata_size;
+    info["total"].internal = m_internal_size;
     info["total"].flash = info["fbs_model"].flash;
 
-    info["others"].internal = info["total"].internal - info["mem_manager"].internal - info["fbs_model"].internal -
-        info["param_out_fbs"].internal;
-    info["others"].psram =
-        info["total"].psram - info["mem_manager"].psram - info["fbs_model"].psram - info["param_out_fbs"].psram;
+    info["others"].internal = 0;
+    info["others"].psram = 0;
     info["others"].flash = 0;
+    int memory_size = info["total"].internal - info["tensors"].internal - info["fbs_model"].internal;
+    if (memory_size > 0) {
+        info["others"].internal = memory_size;
+    }
+    memory_size = info["total"].psram - info["tensors"].psram - info["fbs_model"].psram;
+    if (memory_size > 0) {
+        info["others"].psram = memory_size;
+    }
+
     return info;
 }
 
 std::map<std::string, module_info> Model::get_module_info()
 {
     std::map<std::string, module_info> module_info;
-    std::vector<std::string> sorted_nodes = fbs_model->topological_sort();
-    assert(sorted_nodes.size() == execution_plan.size());
+    std::vector<std::string> sorted_nodes = m_fbs_model->topological_sort();
+    assert(sorted_nodes.size() == m_execution_plan.size());
     DL_LOG_LATENCY_INIT();
     uint32_t total_latency = 0;
-    fbs_model->load_map();
+    m_fbs_model->load_map();
     for (int i = 0; i < sorted_nodes.size(); i++) {
         std::string module_name = sorted_nodes[i];
-        std::string module_type = fbs_model->get_operation_type(module_name);
+        std::string module_type = m_fbs_model->get_operation_type(module_name);
         DL_LOG_LATENCY_START();
-        execution_plan[i]->forward(memory_manager->tensors, RUNTIME_MODE_SINGLE_CORE);
+        m_execution_plan[i]->forward(m_model_context, RUNTIME_MODE_SINGLE_CORE);
         DL_LOG_LATENCY_END();
         uint32_t module_latency = DL_LOG_LATENCY_GET();
         total_latency += module_latency;
         module_info[module_name] = {module_type, module_latency};
     }
-    fbs_model->clear_map();
+    m_fbs_model->clear_map();
     module_info["total"] = {"", total_latency};
     return module_info;
 }
@@ -515,7 +560,7 @@ static void print_memory_info(const std::map<std::string, mem_info> &info)
              header[3].c_str());
     ESP_LOGI(TAG, "%s", sep.c_str());
     // body
-    std::vector<std::string> keys = {"fbs_model", "param_in_fbs", "param_out_fbs", "mem_manager", "others", "total"};
+    std::vector<std::string> keys = {"fbs_model", "tensors", "others", "total"};
     for (const auto &key : keys) {
         snprintf(internal_str, sizeof(internal_str), "%.2fKB", info.at(key).internal / 1024.f);
         snprintf(psram_str, sizeof(psram_str), "%.2fKB", info.at(key).psram / 1024.f);
@@ -593,7 +638,7 @@ void Model::print_module_info(const std::map<std::string, module_info> &info, bo
             ESP_LOGI(TAG, "%s", sep.c_str());
         }
     } else {
-        std::vector<std::string> sorted_nodes = fbs_model->topological_sort();
+        std::vector<std::string> sorted_nodes = m_fbs_model->topological_sort();
         sorted_nodes.emplace_back("total");
         for (const auto &key : sorted_nodes) {
 #if DL_LOG_LATENCY_UNIT
@@ -617,13 +662,16 @@ void Model::print_module_info(const std::map<std::string, module_info> &info, bo
 void Model::profile_memory()
 {
     printf("\n");
-    if (this->doc_string.empty()) {
-        ESP_LOGI(TAG, "model:%s, version:%lld", this->name.c_str(), this->version);
+    if (m_doc_string.empty()) {
+        ESP_LOGI(TAG, "model:%s, version:%lld", m_name.c_str(), m_version);
     } else {
-        ESP_LOGI(
-            TAG, "model:%s, version:%lld, description:%s", this->name.c_str(), this->version, this->doc_string.c_str());
+        ESP_LOGI(TAG, "model:%s, version:%lld, description:%s", m_name.c_str(), m_version, m_doc_string.c_str());
     }
     auto info = get_memory_info();
+    if (m_fbs_loader) {
+        ESP_LOGI(TAG, "%s", m_fbs_loader->get_model_location_string());
+    }
+
     print_memory_info(info);
     printf("\n");
 }
@@ -631,11 +679,10 @@ void Model::profile_memory()
 void Model::profile_module(bool sort_module_by_latency)
 {
     printf("\n");
-    if (this->doc_string.empty()) {
-        ESP_LOGI(TAG, "model:%s, version:%lld", this->name.c_str(), this->version);
+    if (m_doc_string.empty()) {
+        ESP_LOGI(TAG, "model:%s, version:%lld", m_name.c_str(), m_version);
     } else {
-        ESP_LOGI(
-            TAG, "model:%s, version:%lld, description:%s", this->name.c_str(), this->version, this->doc_string.c_str());
+        ESP_LOGI(TAG, "model:%s, version:%lld, description:%s", m_name.c_str(), m_version, m_doc_string.c_str());
     }
     auto info = get_module_info();
     print_module_info(info);
@@ -645,12 +692,12 @@ void Model::profile_module(bool sort_module_by_latency)
 void Model::profile(bool sort_module_by_latency)
 {
     printf("\n");
-    if (this->doc_string.empty()) {
-        ESP_LOGI(TAG, "model:%s, version:%lld", this->name.c_str(), this->version);
+    if (m_doc_string.empty()) {
+        ESP_LOGI(TAG, "model:%s, version:%lld", m_name.c_str(), m_version);
     } else {
-        ESP_LOGI(
-            TAG, "model:%s, version:%lld, description:%s", this->name.c_str(), this->version, this->doc_string.c_str());
+        ESP_LOGI(TAG, "model:%s, version:%lld, description:%s", m_name.c_str(), m_version, m_doc_string.c_str());
     }
+    ESP_LOGI(TAG, "%s", m_fbs_loader->get_model_location_string());
     auto mem_info = get_memory_info();
     print_memory_info(mem_info);
     printf("\n");

@@ -566,7 +566,7 @@ void TensorBase::print(bool print_data)
     }
 }
 
-TensorBase &TensorBase::reshape(std::vector<int> shape)
+TensorBase *TensorBase::reshape(std::vector<int> shape)
 {
     int size_gt = this->get_size();
     int index = -1;
@@ -595,7 +595,7 @@ TensorBase &TensorBase::reshape(std::vector<int> shape)
         shape[index] = size_gt / size;
         this->set_shape(shape);
     }
-    return *this;
+    return this;
 }
 
 template <typename T>

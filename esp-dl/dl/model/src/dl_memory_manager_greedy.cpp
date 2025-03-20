@@ -6,38 +6,14 @@
 static const char *TAG = "MemoryManagerGreedy";
 
 namespace dl {
-namespace memory {
 
-// std::vector<TensorBase *> MemoryManagerGreedy::alloc(fbs::FbsModel *fbs_model,
-//                                                      std::vector<dl::module::Module *> &execution_plan)
-// {
-//     std::vector<TensorInfo *> tensor_info;
-//     // get all tensor info from flatbuffers
-//     this->get_tensor_info_from_fbs(fbs_model, execution_plan, tensor_info);
-
-//     // simulate the memory allocation
-//     this->simulate(tensor_info, execution_plan.size());
-//     int psram_size = memory_list.back()->offset + memory_list.back()->size;
-
-//     // start to allocate tensors
-//     void *psram_root = this->psram_root_calloc(psram_size);
-//     this->tensors.reserve(tensor_info.size());
-//     for (int i = 0; i < tensor_info.size(); i++) {
-//         this->tensors.push_back(tensor_info[i]->create_tensor(nullptr, psram_root));
-//         delete tensor_info[i];
-//     }
-
-//     // free memory list
-//     this->free_memory_list();
-
-//     return this->tensors;
-// }
-
-void MemoryManagerGreedy::alloc(fbs::FbsModel *fbs_model, std::vector<dl::module::Module *> &execution_plan)
+bool MemoryManagerGreedy::alloc(fbs::FbsModel *fbs_model,
+                                std::vector<dl::module::Module *> &execution_plan,
+                                ModelContext *context)
 {
     std::vector<TensorInfo *> tensor_info;
     // get all tensor info from flatbuffers
-    this->get_tensor_info_from_fbs(fbs_model, execution_plan, tensor_info);
+    get_tensor_info_from_fbs(fbs_model, execution_plan, context, tensor_info);
 
     // simulate the memory allocation
 #if CONFIG_SPIRAM
@@ -50,32 +26,30 @@ void MemoryManagerGreedy::alloc(fbs::FbsModel *fbs_model, std::vector<dl::module
     simulate(tensor_info, execution_plan.size());
 #endif
 
-    if (!this->psram_memory_list.empty() && this->psram_size > 0) {
-        this->psram_root = tool::malloc_aligned(this->alignment, this->psram_size, MALLOC_CAP_SPIRAM);
-        if (!this->psram_root) {
-            ESP_LOGE(TAG,
-                     "Failed to alloc %.2fKB PSRAM, largest available PSRAM block size %.2fKB",
-                     this->psram_size / 1024.f,
-                     heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.f);
-            return;
-        }
+    void *psram_root = nullptr;
+    void *internal_root = nullptr;
+    int psram_size = 0;
+    int internal_size = 0;
+
+    if (!this->psram_memory_list.empty()) {
+        psram_size = psram_memory_list.back()->offset + psram_memory_list.back()->size;
     }
 
-    if (!this->internal_memory_list.empty() && this->internal_size > 0) {
-        this->internal_root = tool::malloc_aligned(this->alignment, this->internal_size, MALLOC_CAP_INTERNAL);
-        if (!this->internal_root) {
-            ESP_LOGE(TAG,
-                     "Failed to alloc %.2fKB internal RAM, largest available internal RAM block size %.2fKB",
-                     this->internal_size / 1024.f,
-                     heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
-            return;
-        }
+    if (!this->internal_memory_list.empty()) {
+        internal_size = internal_memory_list.back()->offset + internal_memory_list.back()->size;
     }
 
-    // start to allocate tensors
-    this->tensors.reserve(tensor_info.size());
-    for (int i = 0; i < tensor_info.size(); i++) {
-        this->tensors.push_back(tensor_info[i]->create_tensor(this->internal_root, this->psram_root));
+    // alloc memory for tensors
+    if (context->root_alloc(internal_size, psram_size, this->alignment)) {
+        psram_root = context->get_psram_root();
+        internal_root = context->get_internal_root();
+
+        // start to allocate tensors
+        for (int i = 0; i < tensor_info.size(); i++) {
+            context->update_tensor(i, tensor_info[i]->create_tensor(internal_root, psram_root));
+        }
+    } else {
+        ESP_LOGE(TAG, "root_alloc failed");
     }
 
     // free TensorInfo vector
@@ -85,38 +59,43 @@ void MemoryManagerGreedy::alloc(fbs::FbsModel *fbs_model, std::vector<dl::module
 
     // free memory list
     this->free_memory_list();
+
+    if (psram_root || internal_root) {
+        return true;
+    }
+
+    return false;
 }
 
 void MemoryManagerGreedy::free()
 {
-    if (!this->tensors.empty()) {
-        for (int i = 0; i < this->tensors.size(); ++i) {
-            delete tensors[i];
-        }
-        this->tensors.clear();
-    }
-    this->root_free();
-    this->name2index.clear();
     this->free_memory_list();
 }
 
 void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
                                                    std::vector<dl::module::Module *> execution_plan,
+                                                   ModelContext *context,
                                                    std::vector<TensorInfo *> &tensor_info)
 {
+    tensor_info.resize(context->get_variable_count());
     // 1. add graph inputs
     std::vector<std::string> graph_inputs = fbs_model->get_graph_inputs();
+    int index = -1;
+    std::string name;
 
     for (int i = 0; i < graph_inputs.size(); i++) {
-        std::string name = graph_inputs[i];
-        TensorInfo *info = new TensorInfo(name,
-                                          0,
-                                          -1,
-                                          fbs_model->get_value_info_shape(name),
-                                          fbs_model->get_value_info_dtype(name),
-                                          fbs_model->get_value_info_exponent(name));
-        tensor_info.push_back(info);
-        this->name2index.emplace(name, tensor_info.size() - 1);
+        name = graph_inputs[i];
+        index = context->get_variable_index(name);
+
+        if (index >= 0) {
+            TensorInfo *info = new TensorInfo(name,
+                                              0,
+                                              -1,
+                                              fbs_model->get_value_info_shape(name),
+                                              fbs_model->get_value_info_dtype(name),
+                                              fbs_model->get_value_info_exponent(name));
+            tensor_info[index] = info;
+        }
     }
 
     // 2. add tensor outputs and update time line of tensors
@@ -136,20 +115,27 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
         fbs_model->get_operation_inputs_and_outputs(sorted_nodes[i], op_inputs, op_outputs);
 
         for (int j = 0; j < op_inputs.size(); j++) {
-            auto iter = this->name2index.find(op_inputs[j]);
-            if (iter != this->name2index.end()) {
+            name = op_inputs[j];
+            index = context->get_variable_index(name);
+            if (index >= 0) {
                 // The previously existing tensor will dirty the input. Must disconnect the inplace link.
-                TensorInfo *follower_tensor = tensor_info[iter->second]->get_inplace_follower_tensor();
+                TensorInfo *follower_tensor = tensor_info[index]->get_inplace_follower_tensor();
                 if (follower_tensor) {
-                    tensor_info[iter->second]->set_inplace_follower_tensor(nullptr);
+                    tensor_info[index]->set_inplace_follower_tensor(nullptr);
                     follower_tensor->set_inplace_leader_tensor(nullptr);
                 }
 
-                auto out_iter = std::find(graph_outputs.begin(), graph_outputs.end(), iter->first);
+                auto out_iter = std::find(graph_outputs.begin(), graph_outputs.end(), name);
                 if (out_iter == graph_outputs.end())
-                    tensor_info[iter->second]->update_time(i + 1); // free this tensor next step
-                input_shapes.push_back(tensor_info[iter->second]->get_shape());
-                module->m_inputs_index.push_back(iter->second); // assign input index of module
+                    tensor_info[index]->update_time(i + 1); // free this tensor next step
+                input_shapes.push_back(tensor_info[index]->get_shape());
+            } else {
+                TensorBase *tensor = context->get_tensor(name);
+                if (tensor) {
+                    input_shapes.push_back(tensor->get_shape());
+                } else {
+                    input_shapes.push_back({});
+                }
             }
         }
 
@@ -157,7 +143,7 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
         std::vector<std::vector<int>> output_shapes = module->get_output_shape(input_shapes);
         if ((module->inplace == MODULE_INPLACE_UNCHANGED_BUFFER || module->inplace == MODULE_INPLACE_CHANGED_BUFFER) &&
             op_outputs.size() == 1) {
-            std::string name = op_outputs[0];
+            name = op_outputs[0];
             TensorInfo *inplace_tensor = nullptr;
             TensorInfo *info = new TensorInfo(name,
                                               i,
@@ -165,14 +151,17 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
                                               output_shapes[0],
                                               fbs_model->get_value_info_dtype(name),
                                               fbs_model->get_value_info_exponent(name));
+            index = context->get_variable_index(name);
+            tensor_info[index] = info;
 
             // inplace, loop all inputs and find a suitable inplace tensor
-            for (int index = 0; index < op_inputs.size(); index++) {
-                auto iter = name2index.find(op_inputs[index]);
-                if (iter != name2index.end()) {
-                    inplace_tensor = tensor_info[iter->second];
+            for (int j = 0; j < op_inputs.size(); j++) {
+                name = op_inputs[j];
+                index = context->get_variable_index(name);
+                if (index >= 0) {
+                    inplace_tensor = tensor_info[index];
                     if (inplace_tensor->get_size() >= info->get_size()) {
-                        auto out_iter = std::find(graph_outputs.begin(), graph_outputs.end(), iter->first);
+                        auto out_iter = std::find(graph_outputs.begin(), graph_outputs.end(), name);
                         if (out_iter == graph_outputs.end()) {
                             break;
                         } else {
@@ -199,41 +188,19 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
                     inplace_tensor->set_inplace_follower_tensor(info);
                 }
             }
-            tensor_info.push_back(info);
-            this->name2index.emplace(name, tensor_info.size() - 1);
-            module->m_outputs_index.push_back(tensor_info.size() - 1); // assign output index of module
         } else {
             for (int j = 0; j < op_outputs.size(); j++) {
-                std::string name = op_outputs[j];
+                name = op_outputs[j];
                 TensorInfo *info = new TensorInfo(name,
                                                   i,
                                                   -1,
                                                   output_shapes[j],
                                                   fbs_model->get_value_info_dtype(name),
                                                   fbs_model->get_value_info_exponent(name));
-                tensor_info.push_back(info);
-                this->name2index.emplace(name, tensor_info.size() - 1);
-                module->m_outputs_index.push_back(tensor_info.size() - 1); // assign output index of module
+                index = context->get_variable_index(name);
+                tensor_info[index] = info;
             }
         }
-    }
-}
-
-void MemoryManagerGreedy::set_preload_addr(std::vector<dl::module::Module *> execution_plan)
-{
-    void *internal_root = this->get_internal_root();
-    if (!internal_root) {
-        ESP_LOGW(TAG, "Internal root is nullptr, Ignore preload optimization\n");
-        return;
-    }
-
-    for (int i = 0; i < execution_plan.size(); i++) {
-        dl::module::Module *module = execution_plan[i];
-        if (!module) {
-            ESP_LOGE(__FUNCTION__, "module %d is nullptr\n", i);
-            break;
-        }
-        module->set_preload_addr(internal_root, this->internal_size);
     }
 }
 
@@ -281,12 +248,6 @@ void MemoryManagerGreedy::simulate(std::vector<TensorInfo *> &tensor_info, int n
         // print_memory_list("psram memory list:", this->memory_list);
         // print_memory_list("psram free list:", this->free_list);
     }
-
-#if CONFIG_SPIRAM
-    this->psram_size = psram_memory_list.back()->offset + psram_memory_list.back()->size;
-#else
-    this->internal_size = internal_memory_list.back()->offset + internal_memory_list.back()->size;
-#endif
 }
 
 void MemoryManagerGreedy::simulate_with_internal_memory(std::vector<TensorInfo *> &tensor_info, int node_num)
@@ -341,13 +302,6 @@ void MemoryManagerGreedy::simulate_with_internal_memory(std::vector<TensorInfo *
         // print_memory_list("psram free list", this->free_list);
         // print_memory_list("internal memory list", this->internal_memory_list);
         // print_memory_list("internal free list", this->internal_free_list);
-    }
-
-    if (!psram_memory_list.empty()) {
-        this->psram_size = psram_memory_list.back()->offset + psram_memory_list.back()->size;
-    }
-    if (!internal_memory_list.empty()) {
-        this->internal_size = internal_memory_list.back()->offset + internal_memory_list.back()->size;
     }
 }
 
@@ -490,7 +444,5 @@ void MemoryManagerGreedy::free_memory_list()
         internal_free_list.clear();
     }
 }
-
-} // namespace memory
 
 } // namespace dl

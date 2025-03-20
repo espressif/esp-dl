@@ -41,8 +41,6 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1);
-
         if (m_axis < 0) {
             m_axis += input_shapes[0].size();
         }
@@ -81,9 +79,9 @@ public:
         }
     }
 
-    void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
+    void forward(ModelContext *context, runtime_mode_t mode)
     {
-        TensorBase *input = tensors[m_inputs_index[0]];
+        TensorBase *input = context->get_tensor(m_inputs_index[0]);
         int num_slices = 1;
         int slice_size = 1;
 
@@ -95,7 +93,7 @@ public:
         int slice_index = 0;
 
         for (int i = 0; i < output_num; i++) {
-            TensorBase *output = tensors[m_outputs_index[i]];
+            TensorBase *output = context->get_tensor(m_outputs_index[i]);
 
             if (input->get_dtype() == dl::DATA_TYPE_INT8) {
                 forward_template(static_cast<int8_t *>(output->get_element_ptr()),
@@ -162,11 +160,6 @@ public:
                  "quant_type: %s, split shape: %s.",
                  quant_type_to_string(quant_type),
                  shape_to_string(m_split->get_shape()).c_str());
-    }
-
-    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
-    {
-        Module::get_param_memory_size(m_split, in_fbs, out_fbs, fbs_model);
     }
 };
 } // namespace module

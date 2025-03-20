@@ -45,16 +45,15 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1);
         // The output values with the same shape as the input tensor.
         std::vector<std::vector<int>> output_shapes(1, input_shapes[0]);
         return output_shapes;
     }
 
-    void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
+    void forward(ModelContext *context, runtime_mode_t mode)
     {
-        TensorBase *input = tensors[m_inputs_index[0]];
-        TensorBase *output = tensors[m_outputs_index[0]];
+        TensorBase *input = context->get_tensor(m_inputs_index[0]);
+        TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             forward_lut(input, output);

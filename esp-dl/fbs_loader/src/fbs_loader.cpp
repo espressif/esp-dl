@@ -499,4 +499,19 @@ void FbsLoader::list_models()
     }
 }
 
+const char *FbsLoader::get_model_location_string()
+{
+    switch (m_location) {
+    case MODEL_LOCATION_IN_FLASH_RODATA:
+        return "MODEL LOCATION IN FLASH RODATA";
+    case MODEL_LOCATION_IN_FLASH_PARTITION:
+        return "MODEL LOCATION IN FLASH PARTITION";
+    case MODEL_LOCATION_IN_SDCARD:
+        return "MODEL LOCATION IN SDCARD";
+    default:
+        return "MODEL LOCATION UNK";
+    }
+    return "MODEL LOCATION UNK";
+}
+
 } // namespace fbs

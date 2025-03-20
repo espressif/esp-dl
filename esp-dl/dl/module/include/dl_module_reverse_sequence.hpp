@@ -9,7 +9,6 @@ class ReverseSequence : public Module {
 private:
     int m_batch_axis;
     int m_time_axis;
-    TensorBase *m_sequence_lens;
 
     template <typename T>
     void reverse_sequence_impl(TensorBase *input, TensorBase *sequence_lens, TensorBase *output)
@@ -61,42 +60,26 @@ private:
 public:
     ReverseSequence(int batch_axis,
                     int time_axis,
-                    TensorBase *sequence_lens = nullptr,
                     const char *name = nullptr,
                     module_inplace_t inplace = MODULE_NON_INPLACE,
                     quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, inplace, quant_type), m_batch_axis(batch_axis), m_time_axis(time_axis)
     {
-        m_sequence_lens = sequence_lens;
-        if (m_sequence_lens) {
-            m_sequence_lens->print();
-        }
         assert(m_batch_axis != m_time_axis);
     }
 
-    ~ReverseSequence()
-    {
-        if (m_sequence_lens) {
-            delete m_sequence_lens;
-        }
-    }
+    ~ReverseSequence() {}
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() >= 1);
         return {input_shapes[0]}; // Output shape same as input
     }
 
-    void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
+    void forward(ModelContext *context, runtime_mode_t mode)
     {
-        TensorBase *input = tensors[m_inputs_index[0]];
-
-        TensorBase *sequence_lens = m_sequence_lens;
-        if (sequence_lens == nullptr) {
-            m_sequence_lens = tensors[m_inputs_index[1]];
-        }
-
-        TensorBase *output = tensors[m_outputs_index[0]];
+        TensorBase *input = context->get_tensor(m_inputs_index[0]);
+        TensorBase *sequence_lens = context->get_tensor(m_inputs_index[1]);
+        TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
         switch (this->quant_type) {
         case QUANT_TYPE_SYMM_8BIT:
@@ -128,10 +111,7 @@ public:
         int time_axis = 0;
         fbs_model->get_operation_attribute(node_name, "time_axis", time_axis);
 
-        TensorBase *sequence_lens = fbs_model->get_operation_parameter(node_name, 1);
-
-        return new ReverseSequence(
-            batch_axis, time_axis, sequence_lens, node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+        return new ReverseSequence(batch_axis, time_axis, node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
     }
 
     void print()

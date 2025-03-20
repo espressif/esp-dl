@@ -39,20 +39,20 @@ public:
         return output_shapes;
     }
 
-    void forward(std::vector<TensorBase *> &tensors, runtime_mode_t mode = RUNTIME_MODE_AUTO)
+    void forward(ModelContext *context, runtime_mode_t mode = RUNTIME_MODE_AUTO)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            forward_template<int8_t>(tensors, mode);
+            forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            forward_template<int16_t>(tensors, mode);
+            forward_template<int16_t>(context, mode);
         }
     }
 
     template <typename T>
-    void forward_template(std::vector<TensorBase *> &tensors, runtime_mode_t mode)
+    void forward_template(ModelContext *context, runtime_mode_t mode)
     {
-        TensorBase *input = tensors[m_inputs_index[0]];
-        TensorBase *output = tensors[m_outputs_index[0]];
+        TensorBase *input = context->get_tensor(m_inputs_index[0]);
+        TensorBase *output = context->get_tensor(m_outputs_index[0]);
         T *input_ptr = (T *)input->get_element_ptr();
         T *output_ptr = (T *)output->get_element_ptr();
 

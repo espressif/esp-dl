@@ -1,123 +1,43 @@
 #pragma once
 
+#include "dl_model_context.hpp"
 #include "dl_module_base.hpp"
 #include "esp_heap_caps.h"
 #include "fbs_model.hpp"
 #include <list>
 
 namespace dl {
-namespace memory {
-
 /**
  * @brief Memory manager base class, each model has its own memory manager
  * TODO: share memory manager with different models
  */
 class MemoryManagerBase {
-protected:
-    void *psram_root;    /*!< PSRAM root pointer */
-    void *internal_root; /*!< Internal ram pointer */
-
 public:
-    std::vector<TensorBase *> tensors;     /*!< All tensors in the model */
-    int alignment;                         /*!< The root pointer needs to be aligned must be a power of two */
-    std::map<std::string, int> name2index; /*!< Tensor name to index map */
-    size_t internal_size;                  /*!< The bytes of internal ram */
-    size_t psram_size;                     /*!< The bytes of psram */
+    int alignment; /*!< The root pointer needs to be aligned must be a power of two */
 
     /**
      * @brief Construct a new Memory Manager Base object
      *
      * @param alignment Memory address alignment
      */
-    MemoryManagerBase(int alignment = 16) :
-        psram_root(nullptr), internal_root(nullptr), tensors({}), alignment(alignment), internal_size(0), psram_size(0)
-    {
-    }
+    MemoryManagerBase(int alignment = 16) : alignment(alignment) {}
 
     /**
      * @brief Destroy the MemoryManager object. Return resource.
      */
-    virtual ~MemoryManagerBase() { this->reset(); }
+    virtual ~MemoryManagerBase() {}
 
     /**
      * @brief Allocate memory for each tensor, include all input and output tensors
      *
      * @param fbs_model       FlatBuffer's Model
      * @param execution_plan  Topological sorted module list
+     * @param context         Model context
+     * @return Bool Return true if the allocation is successful, false otherwise.
      */
-    virtual void alloc(fbs::FbsModel *fbs_model, std::vector<dl::module::Module *> &execution_plan) {};
-
-    /**
-     * @brief Set preload address for module's parameters
-     *
-     * @param execution_plan   Topological sorted module list
-     */
-    virtual void set_preload_addr(std::vector<dl::module::Module *> execution_plan) {}
-
-    /**
-     * @brief Reset the memory manager, free all memory for each tensor, include all input and output tensors
-     */
-    virtual void reset();
-
-    /**
-     * @brief Get tensor by index
-     *
-     * @param index The tensor index, type: int
-     *
-     * @return The TensorBase pointer
-     */
-    TensorBase *get_tensor(int index);
-
-    /**
-     * @brief Get tensor by name
-     *
-     * @param name The tensor name, type: std::string
-     *
-     * @return The TensorBase pointer
-     */
-    TensorBase *get_tensor(const std::string &name);
-
-    /**
-     * @brief Get tensor index by name
-     *
-     * @param name The tensor name, type: std::string
-     *
-     * @return The TensorBase index
-     */
-    int get_tensor_index(const std::string &name);
-
-    /**
-     * @brief Free psram root and internal root pointer
-     */
-    void root_free();
-
-    /**
-     * @brief Get PSRAM root pointer
-     *
-     * @return void*
-     */
-    void *get_psram_root() { return this->psram_root; }
-
-    /**
-     * @brief Get internal ram root pointer
-     *
-     * @return void*
-     */
-    void *get_internal_root() { return this->internal_root; }
-
-    /**
-     * @brief Get PSRAM size allocated by memory manager.
-     *
-     * @return size_t
-     */
-    size_t get_psram_size() { return this->psram_size; }
-
-    /**
-     * @brief Get internal RAM size allocated by memory manager.
-     *
-     * @return size_t
-     */
-    size_t get_internal_size() { return this->internal_size; }
+    virtual bool alloc(fbs::FbsModel *fbs_model,
+                       std::vector<dl::module::Module *> &execution_plan,
+                       ModelContext *context) = 0;
 };
 
 /**
@@ -340,7 +260,6 @@ public:
 
     /**
      * @brief print tensor info
-     *
      */
     void print()
     {
@@ -431,14 +350,16 @@ public:
 };
 
 /**
- * @brief print memory list
+ * @brief Prints detailed information about memory chunks in the specified list
+ * @param tag          Character string identifying the memory pool type (e.g., "PSRAM" or "INTERNAL")
+ * @param memory_list  Reference to list of MemoryChunk objects to display allocation details
  */
 void print_memory_list(const char *tag, std::list<MemoryChunk *> &memory_list);
 
 /**
- * @brief sort memory list by memory chunk size
+ * @brief Sorts memory chunks in ascending order by their allocated size
+ * @param memory_list  Reference to list of MemoryChunk objects to be sorted
  */
 void sort_memory_list(std::list<MemoryChunk *> &memory_list);
 
-}; // namespace memory
 } // namespace dl

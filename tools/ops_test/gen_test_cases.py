@@ -2,7 +2,9 @@
 
 import argparse
 import importlib
+import math
 import os
+import re
 import sys
 from typing import (
     Iterable,
@@ -148,6 +150,35 @@ class BaseInferencer:
             ]
 
 
+def get_op_set(op_test_config, ops):
+    op_set = []
+    for op_type in op_test_config:
+        op_set.append(op_type)
+
+    if "opset_" in ops[0]:
+        set_name = ops[0]
+        pattern = r"opset_(\d+)_(\d+)"
+        match = re.match(pattern, set_name)
+        if match:
+            number1 = int(match.group(1))
+            number2 = int(match.group(2))
+            left_num = len(op_set)
+            step = int(math.ceil(left_num / number1))
+            for i in range(number2):
+                left_num = left_num - step
+                step = int(math.ceil(left_num / (number1 - i - 1)))
+            start = len(op_set) - left_num
+            end = start + step
+            if end > len(op_set):
+                end = len(op_set)
+            op_set[:] = op_set[start:end]
+            return op_set
+    elif ops[0] == "ALL" or ops[0] == "all":
+        return op_set
+    else:
+        return ops
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="")
     parser.add_argument(
@@ -190,12 +221,7 @@ if __name__ == "__main__":
     op_test_config = config["ops_test"]
 
     # generate test cases
-    if args.ops:
-        op_set = args.ops
-    else:
-        op_set = []
-        for op_type in op_test_config:
-            op_set.append(op_type)
+    op_set = get_op_set(op_test_config, args.ops)
 
     for op_type in op_set:
         pkg = importlib.import_module(op_test_config[op_type]["package"])

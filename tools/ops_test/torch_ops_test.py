@@ -337,6 +337,16 @@ class TANH_TEST(nn.Module):
         return self.op(input)
 
 
+class RELU_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.op = nn.ReLU()
+
+    def forward(self, input):
+        return self.op(input)
+
+
 class LEAKYRELU_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -383,7 +393,13 @@ class CONCAT_TEST(nn.Module):
         self.config = config
 
     def forward(self, input1, input2):
-        return torch.cat([input1, input2], dim=self.config["axis"])
+
+        inputs = [input1, input2]
+        if self.config.get("relu", False):
+            relu_inputs = [nn.ReLU()(i) for i in inputs]
+            inputs += relu_inputs
+
+        return torch.cat(inputs, dim=self.config["axis"])
 
 
 class CLIP_TEST(nn.Module):

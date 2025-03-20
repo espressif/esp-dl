@@ -145,9 +145,9 @@ typedef enum {
  */
 class mem_info {
 public:
-    size_t psram;    /*!< PSRAM usage */
-    size_t internal; /*!< internal RAM usage */
-    size_t flash;    /*!< FLASH usage */
+    size_t psram = 0;    /*!< PSRAM usage */
+    size_t internal = 0; /*!< internal RAM usage */
+    size_t flash = 0;    /*!< FLASH usage */
     mem_info &operator+=(const mem_info &other)
     {
         psram += other.psram;

@@ -12,7 +12,7 @@ The rounding for ESP32-P4 is [rounding half to even](https://simple.wikipedia.or
 ## Support Operators
 
 The ESP-DL operator interface is aligned with ONNX. The opset 13 is recommended to export ONNX.
-Currently, the following 39 operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases](./tools/ops_test/config/op_cfg.toml) for details.
+Currently, the following 40 operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases](./tools/ops_test/config/op_cfg.toml) for details.
 | Operator                                                                                                                                                     | int8     | int16    | Restrictions                                |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|----------|---------------------------------------------|
 | Add[(ESP-DL)](esp-dl/dl/module/include/dl_module_add.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Add.html)                                             | &#10004; | &#10004; | Support up to 4D                            |
@@ -41,6 +41,7 @@ Currently, the following 39 operators have been implemented and tested. Some ope
 | Mul[(ESP-DL)](esp-dl/dl/module/include/dl_module_mul.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Mul.html)                                             | &#10004; | &#10004; | Support up to 4D                            |
 | Pad[(ESP-DL)](esp-dl/dl/module/include/dl_module_pad.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Pad.html)                                             | &#10004; | &#10004; | Do not support wrap mode                    |
 | PRelu[(ESP-DL)](esp-dl/dl/module/include/dl_module_prelu.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__PRelu.html)                                       | &#10004; | &#10004; |                                             |
+| Relu[(ESP-DL)](esp-dl/dl/module/include/dl_module_relu.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Relu.html)                                          | &#10004; | &#10004; |                                             |
 | Reshape[(ESP-DL)](esp-dl/dl/module/include/dl_module_reshape.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Reshape.html)                                 | &#10004; | &#10004; |                                             |
 | Resize[(ESP-DL)](esp-dl/dl/module/include/dl_module_resize.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Resize.html)                                    | &#10004; | &#10006; | Only support nearest and do not support roi |
 | ReverseSequence[(ESP-DL)](esp-dl/dl/module/include/dl_module_reverse_sequence.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__ReverseSequence.html)        | &#10004; | &#10004; |                                             |
@@ -55,4 +56,4 @@ Currently, the following 39 operators have been implemented and tested. Some ope
 | Transpose[(ESP-DL)](esp-dl/dl/module/include/dl_module_transpose.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Transpose.html)                           | &#10004; | &#10004; |                                             |
 | Unsqueeze[(ESP-DL)](esp-dl/dl/module/include/dl_module_unsqueeze.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Unsqueeze.html)                           | &#10004; | &#10004; |                                             |
 
-Generation Time: 2025-03-07 10:41:15
+Generation Time: 2025-03-10 20:38:31

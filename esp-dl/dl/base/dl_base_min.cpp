@@ -12,9 +12,9 @@ void c_impl_min_n_1(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
 {
     elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
     int32_t length = elem_args->output_d0;
-    int32_t temp = input1_ptr[0];
+    feature_t temp = input1_ptr[0];
     for (int i = 0; i < length; i++) {
-        int32_t buffer = std::max(input0_ptr[i], input1_ptr[0]);
+        int32_t buffer = std::max(input0_ptr[i], temp);
 
         tool::truncate<int32_t>(output_ptr[i], buffer);
     }
@@ -26,9 +26,9 @@ void c_impl_min_1_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
 {
     elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
     int32_t length = elem_args->output_d0;
-    int32_t temp = input0_ptr[0];
+    feature_t temp = input0_ptr[0];
     for (int i = 0; i < length; i++) {
-        int32_t buffer = std::max(input1_ptr[i], input0_ptr[0]);
+        int32_t buffer = std::max(input1_ptr[i], temp);
 
         tool::truncate<int32_t>(output_ptr[i], buffer);
     }

@@ -42,7 +42,6 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
-        assert(input_shapes.size() == 1);
         assert(m_indices);
 
         if (m_axis < 0) {
@@ -80,10 +79,10 @@ public:
         }
     }
 
-    void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode)
+    void forward(ModelContext *context, runtime_mode_t mode)
     {
-        TensorBase *input = tensors[m_inputs_index[0]];
-        TensorBase *output = tensors[m_outputs_index[0]];
+        TensorBase *input = context->get_tensor(m_inputs_index[0]);
+        TensorBase *output = context->get_tensor(m_outputs_index[0]);
         int outer_size = 1;
         int inner_size = 1;
         int indices_num = m_indices->get_size();
@@ -196,11 +195,6 @@ public:
                  "quant_type: %s, indices shape: %s.",
                  quant_type_to_string(quant_type),
                  shape_to_string(m_indices->get_shape()).c_str());
-    }
-
-    void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model) override
-    {
-        Module::get_param_memory_size(m_indices, in_fbs, out_fbs, fbs_model);
     }
 };
 } // namespace module

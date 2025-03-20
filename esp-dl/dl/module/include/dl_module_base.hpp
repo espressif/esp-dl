@@ -1,18 +1,21 @@
 #pragma once
 #include "dl_base.hpp"
 #include "dl_define.hpp"
+#include "dl_model_context.hpp"
 #include "dl_tensor_base.hpp"
 #include "dl_tool.hpp"
 #include "dl_tool_cache.hpp"
 #include "fbs_model.hpp"
 #include <functional>
 #include <iostream>
+
 namespace dl {
 // Define the enum type for module in-place operation mode
 typedef enum {
-    MODULE_NON_INPLACE = 0,              ///< Non inplace operation. the output will store to a separate memory
-    MODULE_INPLACE_UNCHANGED_BUFFER = 1, ///< Inplace operation which don't change the buffer data.
-    MODULE_INPLACE_CHANGED_BUFFER = 2    ///< Inplace operation which will change the buffer data.
+    MODULE_NON_INPLACE = 0, ///< Non inplace operation. the output will store to a separate memory
+    MODULE_INPLACE_UNCHANGED_BUFFER =
+        1,                            ///< Inplace operation which don't change the buffer data, like Reshape, Squeeze
+    MODULE_INPLACE_CHANGED_BUFFER = 2 ///< Inplace operation which will change the buffer data, like Add, Sub
 } module_inplace_t;
 
 namespace module {
@@ -40,36 +43,8 @@ public:
 
     /**
      * @brief Destroy the Module object. Return resource.
-     *
      */
     virtual ~Module();
-
-    /**
-     * @brief Retrieve the shape of this module's inputs
-     *
-     * @param input_shapes The feature_map shape of this module's inputs.
-     * @param inputs If the module has constant inputs, the order and quantity
-     *              of the parameters passed must be consistent with those defined
-     *              in ONNX. If it is a constant input, pass in its TensorBase pointer;
-     *              if not, pass in nullptr.
-     *
-     * @return std::vector<std::vector<int>> Input shapes
-     */
-    virtual std::vector<std::vector<int>> retrieve_inputs_shape(std::vector<std::vector<int>> &input_shapes,
-                                                                std::vector<dl::TensorBase *> inputs = {});
-
-    /**
-     * @brief Retrieve the module's inputs
-     *
-     * @param tensors All inputs and outputs from MemoryManager
-     * @param inputs If the module has constant inputs, the order and quantity
-     *              of the parameters passed must be consistent with those defined
-     *              in ONNX. If it is a constant input, pass in its TensorBase pointer;
-     *              if not, pass in nullptr.
-     * @return std::vector<TensorBase *> The final inputs.
-     */
-    virtual std::vector<TensorBase *> retrieve_inputs(std::vector<TensorBase *> &tensors,
-                                                      std::vector<dl::TensorBase *> inputs = {});
 
     /**
      * @brief Get the tensor index of this module's outputs
@@ -88,13 +63,12 @@ public:
     virtual std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes) = 0;
 
     /**
-     * @brief Run the module, high-level inferface for model layer
+     * @brief Build the module, high-level inferface for Module layer
      *
-     * @param tensors       All inputs and outputs from MemoryManager
+     * @param context   Model context including  all inputs and outputs and other runtime information
      * @param mode    Runtime mode, default is RUNTIME_MODE_AUTO
-     *
      */
-    virtual void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode = RUNTIME_MODE_AUTO) = 0;
+    virtual void forward(ModelContext *context, runtime_mode_t mode = RUNTIME_MODE_AUTO) = 0;
 
     /**
      * @brief Run the module, Low-level interface for base layer and multi-core processing
@@ -161,111 +135,6 @@ public:
     virtual void run(std::vector<dl::TensorBase *> inputs,
                      std::vector<dl::TensorBase *> outputs,
                      runtime_mode_t mode = RUNTIME_MODE_AUTO);
-
-    /**
-     * @brief Get the memory size of module parameters
-     *
-     * @param param         Module parameter tensor
-     * @param in_fbs        Memory info of parameter inside Flatbuffers model
-     * @param out_fbs       Memory info of parameter outside Flatbuffers model
-     * @param fbs_model     Flatbuffers model
-     */
-    static void get_param_memory_size(dl::TensorBase *param,
-                                      mem_info *in_fbs,
-                                      mem_info *out_fbs,
-                                      fbs::FbsModel *fbs_model)
-    {
-        *in_fbs = {};
-        *out_fbs = {};
-        if (param) {
-            memory_addr_type_t mem_type = dl::tool::memory_addr_type(param->data);
-            switch (mem_type) {
-            case MEMORY_ADDR_INTERNAL:
-                if (fbs_model->memory_addr_in_model(param->data)) {
-                    in_fbs->internal = param->get_bytes();
-                } else {
-                    out_fbs->internal = param->get_bytes();
-                }
-                break;
-            case MEMORY_ADDR_PSRAM:
-                if (fbs_model->memory_addr_in_model(param->data)) {
-                    in_fbs->psram = param->get_bytes();
-                } else {
-                    out_fbs->psram = param->get_bytes();
-                }
-                break;
-            case MEMORY_ADDR_FLASH:
-                if (fbs_model->memory_addr_in_model(param->data)) {
-                    in_fbs->flash = param->get_bytes();
-                } else {
-                    out_fbs->flash = param->get_bytes();
-                }
-                break;
-            default:
-                ESP_LOGE("module", "Wrong memory addr type.");
-            }
-        }
-    }
-
-    /**
-     * @brief Get the memory size of module parameters
-     *
-     * @param params        Module parameter tensors
-     * @param in_fbs        Memory info of parameters inside Flatbuffers model
-     * @param out_fbs       Memory info of parameters outside Flatbuffers model
-     * @param fbs_model     Flatbuffers model
-     */
-    static void get_param_memory_size(const std::vector<dl::TensorBase *> &params,
-                                      mem_info *in_fbs,
-                                      mem_info *out_fbs,
-                                      fbs::FbsModel *fbs_model)
-    {
-        *in_fbs = {};
-        *out_fbs = {};
-        for (const auto &param : params) {
-            if (param) {
-                memory_addr_type_t mem_type = dl::tool::memory_addr_type(param->data);
-                switch (mem_type) {
-                case MEMORY_ADDR_INTERNAL:
-                    if (fbs_model->memory_addr_in_model(param->data)) {
-                        in_fbs->internal += param->get_bytes();
-                    } else {
-                        out_fbs->internal += param->get_bytes();
-                    }
-                    break;
-                case MEMORY_ADDR_PSRAM:
-                    if (fbs_model->memory_addr_in_model(param->data)) {
-                        in_fbs->psram += param->get_bytes();
-                    } else {
-                        out_fbs->psram += param->get_bytes();
-                    }
-                    break;
-                case MEMORY_ADDR_FLASH:
-                    if (fbs_model->memory_addr_in_model(param->data)) {
-                        in_fbs->flash += param->get_bytes();
-                    } else {
-                        out_fbs->flash += param->get_bytes();
-                    }
-                    break;
-                default:
-                    ESP_LOGE("module", "Wrong memory addr type.");
-                }
-            }
-        }
-    }
-
-    /**
-     * @brief Get the memory size of module parameters
-     *
-     * @param in_fbs        Memory info of module parameters inside Flatbuffers model
-     * @param out_fbs       Memory info of module parameters outside Flatbuffers model
-     * @param fbs_model     Flatbuffers model
-     */
-    virtual void get_param_memory_size(mem_info *in_fbs, mem_info *out_fbs, fbs::FbsModel *fbs_model)
-    {
-        *in_fbs = {};
-        *out_fbs = {};
-    };
 };
 
 /**
