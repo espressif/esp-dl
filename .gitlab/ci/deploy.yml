@@ -25,7 +25,7 @@ push_to_github:
   stage: deploy
   image: $ESP_DOCS_ENV_IMAGE
   tags:
-    - deploy_docs
+    - deploy
   needs:
     - build_esp_dl_html
     - build_esp_dl_pdf

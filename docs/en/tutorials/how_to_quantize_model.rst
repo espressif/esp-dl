@@ -72,3 +72,20 @@ The output obtained by quantized model inference can be used to calculate variou
 
    1. Currently esp-dl only supports batch_size of 1, and does not support multi-batch or dynamic batch.
    2. The test input/output and the quantized model weights in the ``.info`` file are all 16-byte aligned. If the length is less than 16 bytes, it will be padded with 0.
+
+
+Advanced Quantization Methods
+---------------------------------
+
+If you want to further improve the performance of the quantized model, please try the the following advanced quantization methods:
+
+Post Training Quantization (PTQ)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- :ref:`Mixed precision quantization <mixed_precision_quantization_label>`
+- :ref:`Layerwise equalization quantization <layerwise_equalization_quantization_label>`
+- :ref:`Horizontal Layer Split Quantization <horizontal_layer_split_label>`
+
+Quantization Aware Training (QAT)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- :ref:`Quantization-Aware Training <quantization_aware_label>`

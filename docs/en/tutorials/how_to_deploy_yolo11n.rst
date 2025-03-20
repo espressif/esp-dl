@@ -253,8 +253,11 @@ With the same inputs, The mAP50:95 on COCO val2017 after quantization is only 30
 
 We noticed that although the layer-wise errors for all layers are small, the cumulative errors in some layers are relatively large. This may be related to the complex CSP structure in the yolo11n model, where the inputs to the ``Concat`` or ``Add`` layers may have different distributions or scales. We can choose to quantize certain layers using int16 and optimize the quantization with horizontal layer split pass. For more details, please refer to the mixed-precision + horizontal layer split pass quantization test.
 
-Mixed-Precision + Horizontal Layer Split Pass Quantization
+.. _horizontal_layer_split_label:
+
+Mixed-Precision + Horizontal Layer Split Quantization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Spliting convolution layers or GEMM layers can reduce quantization error for better performance.
 
 **Quantization settings**
 
@@ -474,6 +477,7 @@ After using 16-bits quantization on layers with higher layer-wise error and empl
 
 The graphwise error for the output layers of the model, /model.23/cv3.2/cv3.2.2/Conv, /model.23/cv2.2/cv2.2.2/Conv, /model.23/cv3.1/cv3.1.2/Conv, /model.23/cv2.1/cv2.1.2/Conv, /model.23/cv3.0/cv3.0.2/Conv and /model.23/cv2.0/cv2.0.2/Conv, are 0.784%, 8.208%, 0.360%, 4.214%, 0.189% and 4.308% respectively.
 
+.. _quantization_aware_label:
 
 Quantization-Aware Training
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

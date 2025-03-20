@@ -209,6 +209,9 @@
 
   观察 Layerwise error，发现大部分层的误差都在 1% 以下，说明大部分层的量化误差较小，只有少数几层误差较大，我们可以选择将误差较大的层使用 int16 进行量化。具体请看混合精度量化。
 
+
+.. _mixed_precision_quantization_label:
+
 混合精度量化
 ^^^^^^^^^^^^^^
 
@@ -347,6 +350,7 @@
 
 将之前误差最大的层替换为 16 位量化后，可以观察到模型准确度明显提升，量化后的 top1 准确率为 69.550%，和 float 模型的准确率 (71.878%) 比较接近。该模型的最后一层 ``/classifier/classifier.1/Gemm`` 的累计误差为 9.117%。
 
+.. _layerwise_equalization_quantization_label:
 
 层间均衡量化
 ^^^^^^^^^^^^^^^^
