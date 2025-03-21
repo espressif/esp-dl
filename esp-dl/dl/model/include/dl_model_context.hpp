@@ -160,10 +160,11 @@ public:
     /**
      * @brief Gets the size of the parameters in bytes.
      *
-     * @param mem_info The size of the memory used by the parameters in bytes.
+     * @param mem_info The size of the memory used by the parameters in bytes, filtered by copy option.
+     * @param copy Filter the parameters by auto_free.
      * @return size_t Returns the total size of the parameters memory in bytes.
      */
-    size_t get_parameter_memory_size(mem_info &mem_info);
+    size_t get_parameter_memory_size(mem_info &mem_info, bool copy);
 
     /**
      * @brief Get the variable memory size object

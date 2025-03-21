@@ -4,6 +4,7 @@
 #include "dl_model_base.hpp"
 #include "dl_module_creator.hpp"
 #include "fbs_model.hpp"
+#include <format>
 
 static const char *TAG = "dl::Model";
 
@@ -437,26 +438,22 @@ std::map<std::string, mem_info> Model::get_memory_info()
     info["fbs_model"].psram += psram_rodata_size;
 
     m_model_context->get_variable_memory_size(info["variable"]);
-    m_model_context->get_parameter_memory_size(info["parameter"]);
+    m_model_context->get_parameter_memory_size(info["parameter"], false);
+    m_model_context->get_parameter_memory_size(info["parameter_copy"], true);
 
     info["total"].psram = m_psram_size + psram_rodata_size;
     info["total"].internal = m_internal_size;
     info["total"].flash = info["fbs_model"].flash;
 
-    info["parameter_copy"] = {};
-    if (m_fbs_model->m_param_copy) {
-        info["others"] = info["total"] - info["fbs_model"] - info["parameter"] - info["variable"];
-        std::swap(info["parameter_copy"], info["parameter"]);
-    } else {
-        info["others"] = info["total"] - info["fbs_model"] - info["variable"];
+    if (!m_fbs_model->m_param_copy && std::max(info["parameter_copy"].psram, info["parameter_copy"].internal)) {
+        info["total"] += info["parameter_copy"];
     }
 
+    info["others"] = info["total"] - info["fbs_model"] - info["parameter_copy"] - info["variable"];
+
     if (info["fbs_model"].flash > 0 && info["parameter"].flash == 0) {
-        if (m_fbs_model->m_param_copy) {
-            info["parameter"].flash = std::max(info["parameter_copy"].psram, info["parameter_copy"].internal);
-        } else {
-            info["parameter"].flash = std::max(info["parameter"].psram, info["parameter"].internal);
-        }
+        info["parameter"].flash = std::max(info["parameter"].internal, info["parameter"].psram) +
+            std::max(info["parameter_copy"].internal, info["parameter_copy"].psram);
     }
 
     return info;

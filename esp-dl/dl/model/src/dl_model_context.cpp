@@ -112,12 +112,12 @@ int ModelContext::get_variable_index(const std::string &name)
     return -1;
 }
 
-size_t ModelContext::get_parameter_memory_size(mem_info &mem_info)
+size_t ModelContext::get_parameter_memory_size(mem_info &mem_info, bool copy)
 {
     size_t total_size = 0;
     mem_info = {};
     for (int i = 0; i < m_parameters.size(); i++) {
-        if (m_parameters[i]) {
+        if (m_parameters[i] && !(m_parameters[i]->auto_free ^ copy)) {
             memory_addr_type_t mem_type = dl::tool::memory_addr_type(m_parameters[i]->data);
             switch (mem_type) {
             case MEMORY_ADDR_INTERNAL:
