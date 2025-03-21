@@ -666,7 +666,9 @@ void Model::profile_memory()
     }
     auto info = get_memory_info();
 
-    ESP_LOGI(TAG, "%s", m_fbs_loader->get_model_location_string());
+    if (m_fbs_loader) {
+        ESP_LOGI(TAG, "%s", m_fbs_loader->get_model_location_string());
+    }
     print_memory_info(info);
     printf("\n");
 }
@@ -692,7 +694,9 @@ void Model::profile(bool sort_module_by_latency)
     } else {
         ESP_LOGI(TAG, "model:%s, version:%lld, description:%s", m_name.c_str(), m_version, m_doc_string.c_str());
     }
-    ESP_LOGI(TAG, "%s", m_fbs_loader->get_model_location_string());
+    if (m_fbs_loader) {
+        ESP_LOGI(TAG, "%s", m_fbs_loader->get_model_location_string());
+    }
     auto mem_info = get_memory_info();
     print_memory_info(mem_info);
     printf("\n");
