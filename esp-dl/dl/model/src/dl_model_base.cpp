@@ -372,6 +372,7 @@ void Model::minimize()
 esp_err_t Model::test()
 {
     printf("\n");
+    std::vector<TensorBase *> test_tensors_cache;
     m_fbs_model->load_map();
     std::map<std::string, TensorBase *> graph_inputs = get_inputs();
     for (auto graph_inputs_iter = graph_inputs.begin(); graph_inputs_iter != graph_inputs.end(); graph_inputs_iter++) {
@@ -386,9 +387,11 @@ esp_err_t Model::test()
         }
         if (!graph_inputs_iter->second->assign(test_input)) {
             ESP_LOGE(TAG, "Assign input failed");
+            delete test_input;
             m_fbs_model->clear_map();
             return ESP_FAIL;
         }
+        test_tensors_cache.emplace_back(test_input);
     }
 
     std::vector<std::string> test_outputs_name = m_fbs_model->get_test_outputs_name();
@@ -404,7 +407,7 @@ esp_err_t Model::test()
     }
     for (int i = 0; i < m_execution_plan.size(); i++) {
         dl::module::Module *module = m_execution_plan[i];
-        module->forward(m_model_context);
+        module->forward(m_model_context, RUNTIME_MODE_SINGLE_CORE);
         std::vector<int> module_outputs_index = module->get_outputs_index();
         for (int index : module_outputs_index) {
             auto iter = std::find(test_outputs_index.begin(), test_outputs_index.end(), index);
@@ -420,20 +423,26 @@ esp_err_t Model::test()
                     // The int16 quantization cannot be fully aligned, and there may be rounding errors of +-1.
                     if (!output->equal(output_gt, 1 + 1e-5, true)) {
                         ESP_LOGE(TAG, "Test output %s does not match\n", output_name.c_str());
+                        delete output_gt;
                         m_fbs_model->clear_map();
                         return ESP_FAIL;
                     }
                 } else {
                     if (!output->equal(output_gt, 1e-5, true)) {
                         ESP_LOGE(TAG, "Test output %s does not match\n", output_name.c_str());
+                        delete output_gt;
                         m_fbs_model->clear_map();
                         return ESP_FAIL;
                     }
                 }
+                test_tensors_cache.emplace_back(output_gt);
             }
         }
     }
 
+    for (auto &test_tensor : test_tensors_cache) {
+        delete test_tensor;
+    }
     m_fbs_model->clear_map();
     ESP_LOGI(TAG, "Test Pass!");
     return ESP_OK;
