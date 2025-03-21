@@ -33,11 +33,9 @@ void MNPPostprocessor::parse_stage(TensorBase *score, TensorBase *box, TensorBas
                 float scores[C];
                 scores[0] = dequantize(score_ptr[0], score_exp);
                 float max_score = scores[0];
-                int max_score_c = 0;
                 for (int i = 1; i < C; i++) {
                     scores[i] = dequantize(score_ptr[i], score_exp);
                     if (max_score < scores[i]) {
-                        max_score_c = i;
                         max_score = scores[i];
                     }
                 }
