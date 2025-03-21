@@ -55,8 +55,8 @@ private:
     std::string m_name;                            /*!< The name of model */
     int64_t m_version;                             /*!< The version of model */
     std::string m_doc_string;                      /*!< doc string of model */
-    int m_internal_size;                           /*!< Internal RAM usage */
-    int m_psram_size;                              /*!< PSRAM usage */
+    size_t m_internal_size;                        /*!< Internal RAM usage */
+    size_t m_psram_size;                           /*!< PSRAM usage */
 
 public:
     Model() {}
@@ -83,7 +83,7 @@ public:
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
           int max_internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
-          uint8_t *key = nullptr,
+          const uint8_t *key = nullptr,
           bool param_copy = true);
 
     /**
@@ -110,7 +110,7 @@ public:
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
           int max_internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
-          uint8_t *key = nullptr,
+          const uint8_t *key = nullptr,
           bool param_copy = true);
 
     /**
@@ -137,7 +137,7 @@ public:
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
           int max_internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
-          uint8_t *key = nullptr,
+          const uint8_t *key = nullptr,
           bool param_copy = true);
 
     /**
@@ -174,7 +174,7 @@ public:
      */
     virtual esp_err_t load(const char *rodata_address_or_partition_label_or_path,
                            fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
-                           uint8_t *key = nullptr,
+                           const uint8_t *key = nullptr,
                            bool param_copy = true);
 
     /**
@@ -199,7 +199,7 @@ public:
     virtual esp_err_t load(const char *rodata_address_or_partition_label_or_path,
                            fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
                            int model_index = 0,
-                           uint8_t *key = nullptr,
+                           const uint8_t *key = nullptr,
                            bool param_copy = true);
 
     /**
@@ -224,7 +224,7 @@ public:
     virtual esp_err_t load(const char *rodata_address_or_partition_label_or_path,
                            fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
                            const char *model_name = nullptr,
-                           uint8_t *key = nullptr,
+                           const uint8_t *key = nullptr,
                            bool param_copy = true);
 
     /**

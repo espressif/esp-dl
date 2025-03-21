@@ -112,53 +112,38 @@ int ModelContext::get_variable_index(const std::string &name)
     return -1;
 }
 
-size_t ModelContext::get_parameter_memory_size(size_t &internal_size, size_t &psram_size, size_t &flash_size)
+size_t ModelContext::get_parameter_memory_size(mem_info &mem_info)
 {
     size_t total_size = 0;
-    internal_size = 0;
-    psram_size = 0;
-    flash_size = 0;
+    mem_info = {};
     for (int i = 0; i < m_parameters.size(); i++) {
         if (m_parameters[i]) {
-            if (!m_parameters[i]->auto_free) {
-                continue;
-            }
             memory_addr_type_t mem_type = dl::tool::memory_addr_type(m_parameters[i]->data);
             switch (mem_type) {
             case MEMORY_ADDR_INTERNAL:
-                internal_size += m_parameters[i]->get_aligned_bytes();
+                mem_info.internal += m_parameters[i]->get_aligned_bytes();
                 break;
             case MEMORY_ADDR_PSRAM:
-                psram_size += m_parameters[i]->get_aligned_bytes();
+                mem_info.psram += m_parameters[i]->get_aligned_bytes();
                 break;
             case MEMORY_ADDR_FLASH:
-                flash_size += m_parameters[i]->get_aligned_bytes();
+                mem_info.flash += m_parameters[i]->get_aligned_bytes();
                 break;
             default:
-                ESP_LOGE("module", "Wrong memory addr type.");
+                ESP_LOGE(TAG, "Wrong memory addr type.");
             }
         }
     }
-    total_size = internal_size + psram_size + flash_size;
+    total_size = mem_info.internal + mem_info.psram + mem_info.flash;
     return total_size;
 }
 
-size_t ModelContext::get_variable_memory_size(size_t &internal_size, size_t &psram_size, size_t &flash_size)
+size_t ModelContext::get_variable_memory_size(mem_info &mem_info)
 {
-    flash_size = 0;
-    internal_size += m_internal_size;
-    psram_size = m_psram_size;
-    size_t total_size = internal_size + psram_size;
-    return total_size;
-}
-
-size_t ModelContext::get_tensor_memory_size(size_t &internal_size, size_t &psram_size, size_t &flash_size)
-{
-    size_t total_size = 0;
-    get_parameter_memory_size(internal_size, psram_size, flash_size);
-    internal_size += m_internal_size;
-    psram_size += m_psram_size;
-    total_size += internal_size + psram_size + flash_size;
+    mem_info.flash = 0;
+    mem_info.internal = m_internal_size;
+    mem_info.psram = m_psram_size;
+    size_t total_size = m_internal_size + m_psram_size;
     return total_size;
 }
 
