@@ -389,28 +389,18 @@ size_t TensorBase::set_preload_addr(void *addr, size_t size)
 void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise)
 {
     // The bias needs to be quantized to 32 bits.
-    assert(this->dtype == DATA_TYPE_INT32);
-
-#if CONFIG_IDF_TARGET_ESP32P4
-    // Reset bias layout for esp32p4
-    if (op_quant_type == QUANT_TYPE_SYMM_16BIT) {
-        this->dtype = DATA_TYPE_INT64;
-        size_t dtype_bytes = this->get_dtype_bytes();
-        size_t aligned_size = this->get_aligned_size();
-
-        int32_t *pre_data = static_cast<int32_t *>(this->data);
-        int64_t *cur_data = static_cast<int64_t *>(tool::calloc_aligned(16, aligned_size, dtype_bytes, this->caps));
-        assert(cur_data);
-        for (int i = 0; i < this->get_size(); i++) {
-            cur_data[i] = pre_data[i];
+    if (op_quant_type == QUANT_TYPE_SYMM_8BIT) {
+        assert(this->dtype == DATA_TYPE_INT32);
+    } else {
+        if (this->dtype != DATA_TYPE_INT64) {
+            ESP_LOGE(__FUNCTION__,
+                     "The quantization bit width of the bias has been modified. Please update esp-ppq and then "
+                     "re-quantize the model.");
         }
-        if (this->auto_free) {
-            heap_caps_free(this->data);
-        }
-        this->data = cur_data;
-        this->auto_free = true;
+        assert(this->dtype == DATA_TYPE_INT64);
     }
-#elif CONFIG_IDF_TARGET_ESP32S3
+
+#if CONFIG_IDF_TARGET_ESP32S3
     // Reset bias layout for esp32s3
     if (op_quant_type == QUANT_TYPE_SYMM_8BIT) {
         // 0x000AAAAA000BBBBB ==> 0xAAAAABBBBB
@@ -468,8 +458,9 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         }
         this->data = dst_ptr;
         this->auto_free = true;
+
     } else if (op_quant_type == QUANT_TYPE_SYMM_16BIT) {
-        // 0xAAAAAAAABBBBBBBB ==> 0xSSAAAAAAAASSBBBBBBBB
+        // 0x000000AAAAAAAAAA000000BBBBBBBBBB ==> 0xAAAAAAAAAABBBBBBBBBB
         size_t dtype_bytes = 2;
         size_t align = 16 / dtype_bytes;
         size_t data_num = this->get_size();
@@ -479,35 +470,33 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
             align_num = data_num;
             remain_num = 0;
         }
-        int32_t *src_ptr = static_cast<int32_t *>(this->data);
-        // Each element is allocated 8 bytes, which can meet the alignment requirements of the instructions.
-        int8_t *dst_ptr = static_cast<int8_t *>(tool::calloc_aligned(16, data_num, 8, this->caps));
-        assert(dst_ptr);
-        int8_t *dst_ptr_head = dst_ptr;
 
-        // 0xAAAAAAAABBBBBBBB ==> 0xSSAAAAAAAASSBBBBBBBB
-        int i = 0;
-        for (; i < align_num; i++) {
-            *(reinterpret_cast<int32_t *>(dst_ptr_head)) = src_ptr[i];
-            dst_ptr_head += sizeof(int32_t);
-            // Fill the symbol bit.
-            if (src_ptr[i] < 0) {
-                *dst_ptr_head = 0xff;
-            }
-            dst_ptr_head++;
+        int64_t *src_ptr = static_cast<int64_t *>(this->data);
+        int8_t *dst_ptr =
+            static_cast<int8_t *>(tool::calloc_aligned(16, data_num, this->get_dtype_bytes(), this->caps));
+        int8_t *dst_ptr_head = dst_ptr;
+        // 0x000000AAAAAAAAAA000000BBBBBBBBBB ==> 0xAAAAAAAAAABBBBBBBBBB
+        for (int i = 0; i < align_num; i++) {
+            dl::tool::copy_memory(dst_ptr, src_ptr, 5);
+            dst_ptr += 5;
+            src_ptr++;
 
             // Move to the 16-byte memory address alignment.
-            if (((i + 1) % (align >> 1) == 0) && (reinterpret_cast<uintptr_t>(dst_ptr_head) & 0xf)) {
-                dst_ptr_head = dst_ptr_head + 16 - (reinterpret_cast<uintptr_t>(dst_ptr_head) & 0xf);
+            if (((i + 1) % (align >> 1) == 0) && (reinterpret_cast<uintptr_t>(dst_ptr) & 0xf)) {
+                dst_ptr = dst_ptr + 16 - (reinterpret_cast<uintptr_t>(dst_ptr) & 0xf);
             }
         }
 
-        for (int j = 0; j < remain_num; j++, i++) {
-            (reinterpret_cast<int64_t *>(dst_ptr_head))[j] = src_ptr[i];
+        for (int j = 0; j < remain_num; j++) {
+            (reinterpret_cast<int64_t *>(dst_ptr))[j] = src_ptr[j];
         }
 
-        heap_caps_free(this->data);
-        this->data = dst_ptr;
+        if (this->auto_free) {
+            heap_caps_free(this->data);
+        }
+
+        this->data = dst_ptr_head;
+        this->auto_free = true;
     }
 #endif
 }
