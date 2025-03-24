@@ -1,8 +1,6 @@
 #include "dl_module_base.hpp"
 #include <string.h>
 
-static const char *TAG = "dl::module::Module";
-
 using namespace dl;
 
 namespace dl {

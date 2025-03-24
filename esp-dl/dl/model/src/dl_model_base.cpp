@@ -344,6 +344,7 @@ void Model::minimize()
 
     m_internal_size += heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_model_context->minimize();
+    m_fbs_model->clear_map();
     m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     dl::module::ModuleCreator::get_instance()->clear();
 }
