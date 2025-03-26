@@ -158,37 +158,21 @@ public:
     void *get_internal_root() { return m_internal_root; }
 
     /**
-     * @brief Gets the size of the tensor memory in bytes.
-     *
-     * @param internal_size The size of the internal memory used by the tensors in bytes.
-     * @param param_size The size of the parameter memory used by the tensors in bytes.
-     * @param flash_size The size of the flash used by the tensors in bytes.
-     *
-     * @return size_t Returns the size of the tensor memory in bytes.
-     */
-    size_t get_tensor_memory_size(size_t &internal_size, size_t &param_size, size_t &flash_size);
-
-    /**
      * @brief Gets the size of the parameters in bytes.
      *
-     * @param internal_size The size of the internal memory used by the parameters in bytes.
-     * @param param_size The size of the parameter memory used by the parameters in bytes.
-     * @param flash_size The size of the flash used by the parameters in bytes.
-     *
-     * @return size_t Returns the size of the parameters memory in bytes.
+     * @param mem_info The size of the memory used by the parameters in bytes, filtered by copy option.
+     * @param copy Filter the parameters by auto_free.
+     * @return size_t Returns the total size of the parameters memory in bytes.
      */
-    size_t get_parameter_memory_size(size_t &internal_size, size_t &param_size, size_t &flash_size);
+    size_t get_parameter_memory_size(mem_info &mem_info, bool copy);
 
     /**
-     * @brief Gets the size of the variables in bytes.
+     * @brief Get the variable memory size object
      *
-     * @param internal_size The size of the internal memory used by the variables in bytes.
-     * @param param_size The size of the parameter memory used by the variables in bytes.
-     * @param flash_size The size of the flash used by the variables in bytes.
-     *
-     * @return size_t Returns the size of the variables memory in bytes.
+     * @param mem_info The size of the memory used by the variables in bytes.
+     * @return size_t Returns the total size of the variables memory in bytes.
      */
-    size_t get_variable_memory_size(size_t &internal_size, size_t &param_size, size_t &flash_size);
+    size_t get_variable_memory_size(mem_info &mem_info);
 
     /**
      * @brief Frees the memory allocated for PSRAM and internal roots.

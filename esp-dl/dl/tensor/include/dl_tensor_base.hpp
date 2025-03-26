@@ -331,8 +331,7 @@ public:
      * @param end Ending indices
      * @param axes Axes that starts and ends apply to.
      * @param step Slice step, step = 1 if step is not specified
-     *
-     * @return Output tensor pointer, created by this slice function
+     * @return TensorBase* Output tensor pointer, created by this slice function
      */
     TensorBase *slice(const std::vector<int> &start,
                       const std::vector<int> &end,
@@ -350,8 +349,6 @@ public:
      * @param end     Ending indices
      * @param axes    Axes that starts and ends apply to.
      * @param step    Slice step, step = 1 if step is not specified
-     *
-     * @return Void
      */
     static void slice(TensorBase *input,
                       TensorBase *output,

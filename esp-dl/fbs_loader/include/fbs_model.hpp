@@ -387,14 +387,6 @@ public:
      */
     void get_model_size(size_t *internal_size, size_t *psram_size, size_t *psram_rodata_size, size_t *flash_size);
 
-    /**
-     * @brief Whether the memory address within the fbs model or not
-     *
-     * @param addr  memory address
-     * @return true if memory address within the fbs model else false
-     */
-    bool memory_addr_in_model(void *addr);
-
     bool m_param_copy; ///< copy flatbuffers param or not.
 
 private:

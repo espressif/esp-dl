@@ -4,6 +4,7 @@
 #include "dl_model_base.hpp"
 #include "dl_module_creator.hpp"
 #include "fbs_model.hpp"
+#include <format>
 
 static const char *TAG = "dl::Model";
 
@@ -13,7 +14,7 @@ Model::Model(const char *name,
              fbs::model_location_type_t location,
              int max_internal_size,
              memory_manager_t mm_type,
-             uint8_t *key,
+             const uint8_t *key,
              bool param_copy)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
@@ -32,7 +33,7 @@ Model::Model(const char *name,
              fbs::model_location_type_t location,
              int max_internal_size,
              memory_manager_t mm_type,
-             uint8_t *key,
+             const uint8_t *key,
              bool param_copy)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
@@ -51,7 +52,7 @@ Model::Model(const char *name,
              fbs::model_location_type_t location,
              int max_internal_size,
              memory_manager_t mm_type,
-             uint8_t *key,
+             const uint8_t *key,
              bool param_copy)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
@@ -99,21 +100,21 @@ Model::~Model()
     }
 }
 
-esp_err_t Model::load(const char *name, fbs::model_location_type_t location, uint8_t *key, bool param_copy)
+esp_err_t Model::load(const char *name, fbs::model_location_type_t location, const uint8_t *key, bool param_copy)
 {
     m_fbs_loader = new fbs::FbsLoader(name, location);
     return this->load(m_fbs_loader->load(key, param_copy));
 }
 
 esp_err_t Model::load(
-    const char *name, fbs::model_location_type_t location, int model_index, uint8_t *key, bool param_copy)
+    const char *name, fbs::model_location_type_t location, int model_index, const uint8_t *key, bool param_copy)
 {
     m_fbs_loader = new fbs::FbsLoader(name, location);
     return this->load(m_fbs_loader->load(model_index, key, param_copy));
 }
 
 esp_err_t Model::load(
-    const char *name, fbs::model_location_type_t location, const char *model_name, uint8_t *key, bool param_copy)
+    const char *name, fbs::model_location_type_t location, const char *model_name, const uint8_t *key, bool param_copy)
 {
     m_fbs_loader = new fbs::FbsLoader(name, location);
     return this->load(m_fbs_loader->load(model_name, key, param_copy));
@@ -340,33 +341,12 @@ void Model::minimize()
     ESP_LOGW(TAG,
              "Minimize() will delete variables not used in model inference, which will make it impossible to test "
              "or debug the model.");
-    int start_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-    int start_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 
-    // If fbs_loader is NULL, this means fbs_model is created outside this class. So don't delete it.
-    if (m_fbs_loader) {
-        delete m_fbs_loader;
-        m_fbs_loader = nullptr;
-
-        if (m_fbs_model && m_fbs_model->m_param_copy) {
-            delete m_fbs_model;
-            m_fbs_model = nullptr;
-        }
-    }
-
+    m_internal_size += heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_model_context->minimize();
+    m_fbs_model->clear_map();
+    m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     dl::module::ModuleCreator::get_instance()->clear();
-
-    int end_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-    int end_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
-    m_internal_size -= end_internal_size - start_internal_size;
-    m_psram_size -= end_psram_size - start_psram_size;
-    if (m_internal_size < 0) {
-        m_internal_size = 0;
-    }
-    if (m_psram_size < 0) {
-        m_psram_size = 0;
-    }
 }
 
 esp_err_t Model::test()
@@ -452,32 +432,29 @@ std::map<std::string, mem_info> Model::get_memory_info()
 {
     std::map<std::string, mem_info> info;
 
-    size_t psram_rodata_size = 0;
-    info["fbs_model"].internal = 0;
-    info["fbs_model"].psram = 0;
-    info["fbs_model"].flash = 0;
-    if (m_fbs_model) {
-        m_fbs_model->get_model_size(
-            &info["fbs_model"].internal, &info["fbs_model"].psram, &psram_rodata_size, &info["fbs_model"].flash);
-        info["fbs_model"].psram += psram_rodata_size;
-    }
+    size_t psram_rodata_size;
 
-    m_model_context->get_tensor_memory_size(info["tensors"].internal, info["tensors"].psram, info["tensors"].flash);
+    m_fbs_model->get_model_size(
+        &info["fbs_model"].internal, &info["fbs_model"].psram, &psram_rodata_size, &info["fbs_model"].flash);
+    info["fbs_model"].psram += psram_rodata_size;
+
+    m_model_context->get_variable_memory_size(info["variable"]);
+    m_model_context->get_parameter_memory_size(info["parameter"], false);
+    m_model_context->get_parameter_memory_size(info["parameter_copy"], true);
 
     info["total"].psram = m_psram_size + psram_rodata_size;
     info["total"].internal = m_internal_size;
     info["total"].flash = info["fbs_model"].flash;
 
-    info["others"].internal = 0;
-    info["others"].psram = 0;
-    info["others"].flash = 0;
-    int memory_size = info["total"].internal - info["tensors"].internal - info["fbs_model"].internal;
-    if (memory_size > 0) {
-        info["others"].internal = memory_size;
+    if (!m_fbs_model->m_param_copy && std::max(info["parameter_copy"].psram, info["parameter_copy"].internal)) {
+        info["total"] += info["parameter_copy"];
     }
-    memory_size = info["total"].psram - info["tensors"].psram - info["fbs_model"].psram;
-    if (memory_size > 0) {
-        info["others"].psram = memory_size;
+
+    info["others"] = info["total"] - info["fbs_model"] - info["parameter_copy"] - info["variable"];
+
+    if (info["fbs_model"].flash > 0 && info["parameter"].flash == 0) {
+        info["parameter"].flash = std::max(info["parameter"].internal, info["parameter"].psram) +
+            std::max(info["parameter_copy"].internal, info["parameter_copy"].psram);
     }
 
     return info;
@@ -539,61 +516,73 @@ static void print_table_name(const std::string &table_name, const std::string &s
 static void print_memory_info(const std::map<std::string, mem_info> &info)
 {
     std::string table_name = "memory summary";
-    std::vector<std::string> header = {"", "internal RAM", "PSRAM", "FLASH"};
-    auto it = std::max_element(
-        info.begin(), info.end(), [](const auto &a, const auto &b) { return a.first.size() < b.first.size(); });
-    size_t col0_width = it->first.size();
-    char internal_str[16];
-    snprintf(internal_str, sizeof(internal_str), "%.2fKB", info.at("total").internal / 1024.f);
-    char psram_str[16];
-    snprintf(psram_str, sizeof(psram_str), "%.2fKB", info.at("total").psram / 1024.f);
-    char flash_str[16];
-    snprintf(flash_str, sizeof(flash_str), "%.2fKB", info.at("total").flash / 1024.f);
-    size_t col1_width = std::max(header[1].size(), strlen(internal_str));
-    size_t col2_width = std::max(header[2].size(), strlen(psram_str));
-    size_t col3_width = std::max(header[3].size(), strlen(flash_str));
+    std::vector<std::string> row_headers = {"fbs_model", "parameter", "parameter_copy", "variable", "others", "total"};
+    std::vector<std::string> col_headers = {"", "internal RAM", "PSRAM", "FLASH"};
+
+    // get_col_width
+    size_t col0_width = strlen("parameter_copy");
+    std::string sub_prefix = "└── ";
+    auto get_fmt_size = [&sub_prefix](size_t size, bool sub_header) -> std::string {
+        std::string fmt_size = std::format("{:<.2f}KB", size / 1024.f);
+        if (sub_header) {
+            fmt_size = (fmt_size == "0.00KB") ? "" : sub_prefix + fmt_size;
+        } else if (fmt_size == "0.00KB") {
+            fmt_size = "─";
+        }
+        return fmt_size;
+    };
+    size_t col1_width = std::max(std::max(get_fmt_size(info.at("total").internal, false).size(),
+                                          get_fmt_size(info.at("parameter").internal, true).size()),
+                                 col_headers[1].size());
+    size_t col2_width = std::max(std::max(get_fmt_size(info.at("total").psram, false).size(),
+                                          get_fmt_size(info.at("parameter").psram, true).size()),
+                                 col_headers[2].size());
+    size_t col3_width = std::max(std::max(get_fmt_size(info.at("total").flash, false).size(),
+                                          get_fmt_size(info.at("parameter").flash, true).size()),
+                                 col_headers[3].size());
+
     std::string sep = gen_sep_str({col0_width, col1_width, col2_width, col3_width});
 
     // table name
     print_table_name(table_name, sep);
-    // header
+    // col_headers
     ESP_LOGI(TAG,
              "| %-*s | %-*s | %-*s | %-*s |",
              col0_width,
-             header[0].c_str(),
+             col_headers[0].c_str(),
              col1_width,
-             header[1].c_str(),
+             col_headers[1].c_str(),
              col2_width,
-             header[2].c_str(),
+             col_headers[2].c_str(),
              col3_width,
-             header[3].c_str());
+             col_headers[3].c_str());
     ESP_LOGI(TAG, "%s", sep.c_str());
     // body
-    std::vector<std::string> keys = {"fbs_model", "tensors", "others", "total"};
-    for (const auto &key : keys) {
-        snprintf(internal_str, sizeof(internal_str), "%.2fKB", info.at(key).internal / 1024.f);
-        snprintf(psram_str, sizeof(psram_str), "%.2fKB", info.at(key).psram / 1024.f);
-        snprintf(flash_str, sizeof(flash_str), "%.2fKB", info.at(key).flash / 1024.f);
-        ESP_LOGI(TAG,
-                 "| %-*s | %-*s | %-*s | %-*s |",
-                 col0_width,
-                 key.c_str(),
-                 col1_width,
-                 internal_str,
-                 col2_width,
-                 psram_str,
-                 col3_width,
-                 flash_str);
-        ESP_LOGI(TAG, "%s", sep.c_str());
+    for (int i = 0; i < row_headers.size(); i++) {
+        std::string row_header = row_headers[i];
+        bool sub_header = (row_header == "parameter");
+        std::string row = std::format("| {:<{}} | {:<{}} | {:<{}} | {:<{}} |",
+                                      sub_header ? (sub_prefix + row_header) : row_header,
+                                      col0_width,
+                                      get_fmt_size(info.at(row_header).internal, sub_header),
+                                      col1_width,
+                                      get_fmt_size(info.at(row_header).psram, sub_header),
+                                      col2_width,
+                                      get_fmt_size(info.at(row_header).flash, sub_header),
+                                      col3_width);
+        ESP_LOGI(TAG, "%s", row.c_str());
+        if (i == row_headers.size() - 1 || row_headers[i + 1] != "parameter") {
+            ESP_LOGI(TAG, "%s", sep.c_str());
+        }
     }
 }
 
 void Model::print_module_info(const std::map<std::string, module_info> &info, bool sort_module_by_latency)
 {
     std::string table_name = "module summary";
-    std::vector<std::string> header = {"name", "type", "latency"};
-    size_t col0_width = header[0].size();
-    size_t col1_width = header[1].size();
+    std::vector<std::string> col_headers = {"name", "type", "latency"};
+    size_t col0_width = col_headers[0].size();
+    size_t col1_width = col_headers[1].size();
     for (const auto &module_info : info) {
         col0_width = std::max(col0_width, module_info.first.size());
         col1_width = std::max(col1_width, module_info.second.type.size());
@@ -604,20 +593,20 @@ void Model::print_module_info(const std::map<std::string, module_info> &info, bo
 #else
     snprintf(latency_str, sizeof(latency_str), "%ldus", info.at("total").latency);
 #endif
-    size_t col2_width = std::max(header[2].size(), strlen(latency_str));
+    size_t col2_width = std::max(col_headers[2].size(), strlen(latency_str));
     std::string sep = gen_sep_str({col0_width, col1_width, col2_width});
 
     // table name
     print_table_name(table_name, sep);
-    // header
+    // col_headers
     ESP_LOGI(TAG,
              "| %-*s | %-*s | %-*s |",
              col0_width,
-             header[0].c_str(),
+             col_headers[0].c_str(),
              col1_width,
-             header[1].c_str(),
+             col_headers[1].c_str(),
              col2_width,
-             header[2].c_str());
+             col_headers[2].c_str());
     ESP_LOGI(TAG, "%s", sep.c_str());
     // body
     if (sort_module_by_latency) {
@@ -677,10 +666,10 @@ void Model::profile_memory()
         ESP_LOGI(TAG, "model:%s, version:%lld, description:%s", m_name.c_str(), m_version, m_doc_string.c_str());
     }
     auto info = get_memory_info();
+
     if (m_fbs_loader) {
         ESP_LOGI(TAG, "%s", m_fbs_loader->get_model_location_string());
     }
-
     print_memory_info(info);
     printf("\n");
 }
@@ -706,7 +695,9 @@ void Model::profile(bool sort_module_by_latency)
     } else {
         ESP_LOGI(TAG, "model:%s, version:%lld, description:%s", m_name.c_str(), m_version, m_doc_string.c_str());
     }
-    ESP_LOGI(TAG, "%s", m_fbs_loader->get_model_location_string());
+    if (m_fbs_loader) {
+        ESP_LOGI(TAG, "%s", m_fbs_loader->get_model_location_string());
+    }
     auto mem_info = get_memory_info();
     print_memory_info(mem_info);
     printf("\n");
