@@ -1611,6 +1611,12 @@
         input1_is_weight = false
 
         [[ops_test.MatMul.cfg]]
+        input_shape = [[1, 3, 10], [1, 10, 9]]
+        export_name_prefix = "MatMul_ishape0_3_10_ishape1_10_9"
+        activation_func = ""    # "", "ReLU"
+        input1_is_weight = false
+
+        [[ops_test.MatMul.cfg]]
         input_shape = [[1, 3, 10], [1, 10, 32]]
         export_name_prefix = "MatMul_ishape0_3_10_ishape1_10_32"
         activation_func = ""    # "", "ReLU"
