@@ -13,12 +13,12 @@ import urllib.request
 
 
 class CaliDataset(Dataset):
-    def __init__(self, path):
+    def __init__(self, path, img_shape=640):
         super().__init__()
         self.transform = transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Resize((640, 640)),
+                transforms.Resize((img_shape, img_shape)),
                 transforms.Normalize(mean=[0, 0, 0], std=[1, 1, 1]),
             ]
         )
@@ -44,9 +44,9 @@ def report_hook(blocknum, blocksize, total):
     print(f"\rDownloading calibration dataset: {percent:.2f}%", end="")
 
 
-def quant_yolo11n():
+def quant_yolo11n(imgsz):
     BATCH_SIZE = 32
-    INPUT_SHAPE = [3, 640, 640]
+    INPUT_SHAPE = [3, imgsz, imgsz]
     DEVICE = "cpu"
     TARGET = "esp32p4"
     NUM_OF_BITS = 8
@@ -56,7 +56,7 @@ def quant_yolo11n():
     )
     ESPDL_MODLE_PATH = os.path.join(
         script_dir,
-        "../../../../models/coco_detect/models/p4/yolo11_detect_yolo11n_s8_v1.espdl",
+        "../../../../models/coco_detect/models/p4/coco_detect_yolo11n_s8_v1.espdl",
     )
 
     yolo11n_caib_url = "https://dl.espressif.com/public/calib_yolo11n.zip"
@@ -75,7 +75,7 @@ def quant_yolo11n():
         assert check, "Simplified ONNX model could not be validated"
     onnx.save(onnx.shape_inference.infer_shapes(model), ONNX_PATH)
 
-    calibration_dataset = CaliDataset(CALIB_DIR)
+    calibration_dataset = CaliDataset(CALIB_DIR, img_shape=imgsz)
     dataloader = DataLoader(
         dataset=calibration_dataset, batch_size=BATCH_SIZE, shuffle=False
     )
@@ -131,4 +131,4 @@ def quant_yolo11n():
 
 
 if __name__ == "__main__":
-    quant_yolo11n()
+    quant_yolo11n(imgsz=640)
