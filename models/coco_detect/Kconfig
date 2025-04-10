@@ -1,14 +1,16 @@
 menu "models: coco_detect"
-    config COCO_DETECT_YOLO11N_S8_V1
-        bool "coco_detect_yolo11n_s8_v1"
-        default n
-    config COCO_DETECT_YOLO11N_S8_V2
-        bool "coco_detect_yolo11n_s8_v2"
-        default n
-        depends on IDF_TARGET_ESP32P4
-    config COCO_DETECT_YOLO11N_S8_V3
-        bool "coco_detect_yolo11n_s8_v3"
-        default y
+    choice
+        prompt "COCO Detect Model Selection"
+        default COCO_DETECT_YOLO11N_S8_V3
+        config COCO_DETECT_YOLO11N_S8_V1
+            bool "coco_detect_yolo11n_s8_v1"
+        config COCO_DETECT_YOLO11N_S8_V2
+            bool "coco_detect_yolo11n_s8_v2"
+        config COCO_DETECT_YOLO11N_S8_V3
+            bool "coco_detect_yolo11n_s8_v3"
+        config COCO_DETECT_YOLO11N_320_S8_V3
+            bool "coco_detect_yolo11n_320_s8_v3"
+    endchoice
 
 
     config COCO_DETECT_MODEL_TYPE
@@ -16,6 +18,7 @@ menu "models: coco_detect"
         default 0 if COCO_DETECT_YOLO11N_S8_V1
         default 1 if COCO_DETECT_YOLO11N_S8_V2
         default 2 if COCO_DETECT_YOLO11N_S8_V3
+        default 3 if COCO_DETECT_YOLO11N_320_S8_V3
 
     choice
         prompt "model location"
@@ -31,6 +34,7 @@ menu "models: coco_detect"
             select COCO_DETECT_YOLO11N_S8_V1
             select COCO_DETECT_YOLO11N_S8_V2
             select COCO_DETECT_YOLO11N_S8_V3
+            select COCO_DETECT_YOLO11N_320_S8_V3
     endchoice
 
     config COCO_DETECT_MODEL_LOCATION

@@ -4,24 +4,29 @@
 [supported]: https://img.shields.io/badge/-supported-green "supported"
 [no support]: https://img.shields.io/badge/-no_support-red "no support"
 
-| Chip     | YOLO11N_S8_V1          | YOLO11N_S8_V2           | YOLO11N_S8_V3           |
-|----------|------------------------|-------------------------|-------------------------|
-| ESP32-S3 | ![alt text][supported] | ![alt text][no support] | ![alt text][supported]  |
-| ESP32-P4 | ![alt text][supported] | ![alt text][supported]  | ![alt text][supported]  |
+| Chip     | YOLO11N_S8_V1          | YOLO11N_S8_V2           | YOLO11N_S8_V3           |  YOLO11N_320_S8_V3      |
+|----------|------------------------|-------------------------|-------------------------|-------------------------|
+| ESP32-S3 | ![alt text][supported] | ![alt text][supported]  | ![alt text][supported]  | ![alt text][supported]  |
+| ESP32-P4 | ![alt text][supported] | ![alt text][supported]  | ![alt text][supported]  | ![alt text][supported]  |
 
 - `yolo11n_s8_v1_s3` and `yolo11n_s8_v1_p4` use [8bit default configuration quantization](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#bit-default-configuration-quantization).
-- `yolo11n_s8_v2_p4` uses [Mixed-Precision + Horizontal Layer Split Pass Quantization](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#mixed-precision-horizontal-layer-split-pass-quantization).
-- `yolo11n_s8_v3_s3` and `yolo11n_s8_v3_p4` use [Quantization-Aware Training](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#quantization-aware-training).
+- `yolo11n_s8_v2_s3` and `yolo11n_s8_v2_p4` use [Mixed-Precision + Horizontal Layer Split Pass Quantization](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#mixed-precision-horizontal-layer-split-pass-quantization).
+- `yolo11n_s8_v3_s3` , `yolo11n_s8_v3_p4` , `yolo11n_320_s8_v3_s3` and `yolo11n_320_s8_v3_p4` use [Quantization-Aware Training](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#quantization-aware-training).
 
 ## Model Latency
 
-| name             | input(h*w*c)  | preprocess(us) | model(us) | postprocess(us) |
-|------------------|---------------|----------------|-----------|-----------------|
-| yolo11n_s8_v1_s3 | 640 * 640 * 3 | 207893         | 26919376  | 58994           |
-| yolo11n_s8_v3_s3 | 640 * 640 * 3 | 207892         | 26950089  | 58400           |
-| yolo11n_s8_v1_p4 | 640 * 640 * 3 | 105753         | 3109475   | 16610           |
-| yolo11n_s8_v2_p4 | 640 * 640 * 3 | 105758         | 3627073   | 16644           |
-| yolo11n_s8_v3_p4 | 640 * 640 * 3 | 105756         | 3104007   | 16178           |
+| name                 | input(h*w*c)  | Flash(MB) | PSRAM(MB) | preprocess(us) | model(us) | postprocess(us) | mAP50-95 on COCO val2017 |
+|----------------------|---------------|-----------|-----------|----------------|-----------|-----------------|--------------------------|
+| yolo11n_s8_v1_s3     | 640 * 640 * 3 | 8         | 8         | 207893         | 26919376  | 58994           | 0.307                    |
+| yolo11n_s8_v2_s3     | 640 * 640 * 3 | 16        | 16        | 207933         | 16795506  | 59283           | 0.332                    |  
+| yolo11n_s8_v3_s3     | 640 * 640 * 3 | 8         | 8         | 207892         | 26950089  | 58400           | 0.349                    |
+| yolo11n_s8_v1_p4     | 640 * 640 * 3 | 16        | 32        | 105753         | 3109475   | 16610           | 0.307                    |
+| yolo11n_s8_v2_p4     | 640 * 640 * 3 | 16        | 32        | 105758         | 3627073   | 16644           | 0.333                    |
+| yolo11n_s8_v3_p4     | 640 * 640 * 3 | 16        | 32        | 105751         | 3105649   | 16156           | 0.350                    |
+| yolo11n_320_s8_v3_s3 | 320 * 320 * 3 | 8         | 8         | 53559          | 6378812   | 19053           | 0.270                    |
+| yolo11n_320_s8_v3_p4 | 320 * 320 * 3 | 16        | 32        | 27387          | 665010    | 6811            | 0.269                    |
+
+Please note that the yolo11n_s8_v2_s3 model requires more than 8MB of PSRAM on ESP32-S3 when processing inputs of size 640 * 640 * 3.
 
 ## Model Usage
 
@@ -44,6 +49,8 @@ COCODetect *detect = new COCODetect(COCODetect::YOLO11N_S8_V1);
 // COCODetect *detect = new COCODetect(COCODetect::YOLO11N_S8_V2);
 // use YOLO11N_S8_V3
 // COCODetect *detect = new COCODetect(COCODetect::YOLO11N_S8_V3);
+// use YOLO11N_320_S8_V3
+// COCODetect *detect = new COCODetect(COCODetect::YOLO11N_320_S8_V3);
 ```
 > [!NOTE] 
 > If mutiple models is enabled in menuconfig, the default value is the first one. Pass in an explicit parameter to ``COCODetect`` to use one of them.
@@ -66,6 +73,7 @@ See [Kconfig](Kconfig).
 - CONFIG_COCO_DETECT_YOLO11N_S8_V1
 - CONFIG_COCO_DETECT_YOLO11N_S8_V2
 - CONFIG_COCO_DETECT_YOLO11N_S8_V3
+- CONFIG_COCO_DETECT_YOLO11N_320_S8_V3
 
 These options determines which models will be enabled. 
 

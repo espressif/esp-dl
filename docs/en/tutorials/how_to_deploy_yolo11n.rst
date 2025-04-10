@@ -241,7 +241,7 @@ The calibration dataset needs to match the input format of the model. The calibr
 
 **Quantization error analysis**
 
-With the same inputs, The mAP50:95 on COCO val2017 after quantization is only 30.8%, which is lower than that of the float model. There is a accuracy loss with:
+With the same inputs, The mAP50:95 on COCO val2017 after quantization is only 30.7%, which is lower than that of the float model. There is a accuracy loss with:
 
 - **Graphwise Error**
 
@@ -473,7 +473,7 @@ Spliting convolution layers or GEMM layers can reduce quantization error for bet
 
 **Quantization error analysis**
 
-After using 16-bits quantization on layers with higher layer-wise error and employing horizontal layer split pass, the quantized model's mAP50:95 on COCO val2017 improves to 33.4% with the same inputs. Additionally, a noticeable decrease in cumulative error of output layers can be observed. 
+After using 16-bits quantization on layers with higher layer-wise error and employing horizontal layer split pass, the quantized model's mAP50:95 on COCO val2017 improves to 33.3% with the same inputs. Additionally, a noticeable decrease in cumulative error of output layers can be observed. 
 
 The graphwise error for the output layers of the model, /model.23/cv3.2/cv3.2.2/Conv, /model.23/cv2.2/cv2.2.2/Conv, /model.23/cv3.1/cv3.1.2/Conv, /model.23/cv2.1/cv2.1.2/Conv, /model.23/cv3.0/cv3.0.2/Conv and /model.23/cv2.0/cv2.0.2/Conv, are 0.784%, 8.208%, 0.360%, 4.214%, 0.189% and 4.308% respectively.
 
@@ -678,9 +678,13 @@ To further improve the accuracy of the quantized model, we adopt the quantizatio
 
 **Quantization error analysis**
 
-After applying QAT to 8-bit quantization, the quantized model's mAP50:95 on COCO val2017 improves to 35.5% with the same inputs, while cumulative errors of out layers are significantly reduced. Compared to the other two quantization methods, the 8-bit QAT quantized model achieves the highest quantization accuracy with the lowest inference latency.
+After applying QAT to 8-bit quantization, the quantized model's mAP50:95 on COCO val2017 improves to 35.0% with the same inputs, while cumulative errors of out layers are significantly reduced. Compared to the other two quantization methods, the 8-bit QAT quantized model achieves the highest quantization accuracy with the lowest inference latency.
 
 The graphwise error for the output layers of the model, /model.23/cv3.2/cv3.2.2/Conv, /model.23/cv2.2/cv2.2.2/Conv, /model.23/cv3.1/cv3.1.2/Conv, /model.23/cv2.1/cv2.1.2/Conv, /model.23/cv3.0/cv3.0.2/Conv and /model.23/cv2.0/cv2.0.2/Conv, are 0.443%, 3.817%, 0.247%, 3.102%, 0.119% and 3.056% respectively.
+
+.. note::
+
+   If the model inference speed is a higher priority and a certain degree of accuracy loss is acceptable, you may consider quantizing the model with an input size of 320x320 for the YOLO11N model. The model inference speed of different input resolutions can be found in :project_file:`README.md <models/coco_detect/README.md>` .
 
 
 Model deployment
