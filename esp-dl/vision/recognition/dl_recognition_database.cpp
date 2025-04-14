@@ -1,5 +1,5 @@
 #include "dl_recognition_database.hpp"
-#include <unistd.h>
+#include <sys/stat.h>
 
 static const char *TAG = "dl::recognition::DataBase";
 
@@ -11,7 +11,8 @@ DataBase::DataBase(const char *db_path, int feat_len)
     int length = strlen(db_path) + 1;
     m_db_path = (char *)malloc(sizeof(char) * length);
     memcpy(m_db_path, db_path, length);
-    if (access(db_path, F_OK) == 0) {
+    struct stat st;
+    if (stat(db_path, &st) == 0) {
         load_database_from_storage(feat_len);
     } else {
         create_empty_database_in_storage(feat_len);
