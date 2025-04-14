@@ -38,6 +38,10 @@ ESP-PPQ is a quantization tool based on ppq. If you want to quantize your own mo
 pip uninstall ppq
 pip install git+https://github.com/espressif/esp-ppq.git
 ```
+Use esp-ppq with docker:
+```
+docker build -t esp-ppq:your_tag https://github.com/espressif/esp-ppq.git
+```
 
 ### Model Quantization
 

@@ -35,6 +35,10 @@ ESP-PPQ 是基于 ppq 的量化工具。如果你想量化自己的模型，请�
 pip uninstall ppq
 pip install git+https://github.com/espressif/esp-ppq.git
 ```
+在 docker 中使用 esp-ppq：
+```
+docker build -t esp-ppq:your_tag https://github.com/espressif/esp-ppq.git
+```
 
 ### Model Quantization
 
