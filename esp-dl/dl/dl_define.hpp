@@ -148,6 +148,10 @@ public:
     size_t psram;    /*!< PSRAM usage */
     size_t internal; /*!< internal RAM usage */
     size_t flash;    /*!< FLASH usage */
+
+    mem_info(size_t psram = 0, size_t internal = 0, size_t flash = 0)
+    : psram(psram), internal(internal), flash(flash) {}
+
     mem_info operator+(const mem_info &other) const
     {
         return mem_info(psram + other.psram, internal + other.internal, flash + other.flash);
