@@ -150,11 +150,11 @@ public:
     size_t flash;    /*!< FLASH usage */
     mem_info operator+(const mem_info &other) const
     {
-        return mem_info(psram + other.psram, internal + other.internal, flash + other.flash);
+        return {psram + other.psram, internal + other.internal, flash + other.flash};
     }
     mem_info operator-(const mem_info &other) const
     {
-        return mem_info(psram - other.psram, internal - other.internal, flash - other.flash);
+        return {psram - other.psram, internal - other.internal, flash - other.flash};
     }
     mem_info &operator+=(const mem_info &other)
     {
