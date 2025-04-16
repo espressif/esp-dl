@@ -305,6 +305,25 @@ std::map<std::string, TensorBase *> &Model::get_inputs()
     return m_inputs;
 }
 
+TensorBase *Model::get_input()
+{
+    assert(m_inputs.size() == 1);
+    return m_inputs.begin()->second;
+}
+
+TensorBase *Model::get_input(const std::string &name)
+{
+    if (name.empty()) {
+        return get_input();
+    }
+    auto it = m_inputs.find(name);
+    if (it == m_inputs.end()) {
+        ESP_LOGE(TAG, "%s not found in inputs.", name.c_str());
+        return nullptr;
+    }
+    return it->second;
+}
+
 TensorBase *Model::get_intermediate(const std::string &name)
 {
     if (name.empty()) {
@@ -317,6 +336,25 @@ TensorBase *Model::get_intermediate(const std::string &name)
 std::map<std::string, TensorBase *> &Model::get_outputs()
 {
     return m_outputs;
+}
+
+TensorBase *Model::get_output()
+{
+    assert(m_outputs.size() == 1);
+    return m_outputs.begin()->second;
+}
+
+TensorBase *Model::get_output(const std::string &name)
+{
+    if (name.empty()) {
+        return get_output();
+    }
+    auto it = m_outputs.find(name);
+    if (it == m_outputs.end()) {
+        ESP_LOGE(TAG, "%s not found in outputs.", name.c_str());
+        return nullptr;
+    }
+    return it->second;
 }
 
 void Model::print()
@@ -354,7 +392,7 @@ esp_err_t Model::test()
     printf("\n");
     std::vector<TensorBase *> test_tensors_cache;
     m_fbs_model->load_map();
-    std::map<std::string, TensorBase *> graph_inputs = get_inputs();
+    std::map<std::string, TensorBase *> &graph_inputs = get_inputs();
     for (auto graph_inputs_iter = graph_inputs.begin(); graph_inputs_iter != graph_inputs.end(); graph_inputs_iter++) {
         std::string input_name = graph_inputs_iter->first;
         TensorBase *test_input = m_fbs_model->get_test_input_tensor(input_name);

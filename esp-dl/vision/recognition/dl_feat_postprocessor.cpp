@@ -5,13 +5,7 @@ namespace feat {
 
 FeatPostprocessor::FeatPostprocessor(Model *model, const std::string &output_name)
 {
-    if (output_name.empty()) {
-        std::map<std::string, dl::TensorBase *> model_outputs_map = model->get_outputs();
-        assert(model_outputs_map.size() == 1);
-        m_model_output = model_outputs_map.begin()->second;
-    } else {
-        m_model_output = model->get_intermediate(output_name);
-    }
+    m_model_output = model->get_output(output_name);
     m_feat = new TensorBase(m_model_output->shape, nullptr, 0, DATA_TYPE_FLOAT);
 }
 

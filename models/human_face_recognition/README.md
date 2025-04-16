@@ -26,7 +26,7 @@
 
 ## Model Usage
 
-``HumanFaceFeat`` accepts a ``HumanFaceFeat::model_type_t`` parameter. It has a default value determined by [model type](#model-type) option in menuconfig.
+``HumanFaceFeat`` accepts a ``HumanFaceFeat::model_type_t`` parameter. It has a default value determined by [default model](#default-model) option in menuconfig.
 
 ### How to New `HumanFaceFeat`
 
@@ -45,22 +45,25 @@ HumanFaceFeat *feat = new HumanFaceFeat(HumanFaceFeat::MFN_S8_V1);
 // HumanFaceFeat *feat = new HumanFaceFeat(HumanFaceFeat::MBF_S8_V1);
 ```
 > [!NOTE] 
-> If mutiple models is enabled in menuconfig, the default value is the first one. Pass in an explicit parameter to ``HumanFaceFeat`` to use one of them.
+> If mutiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``HumanFaceFeat`` to use one of them.
 
 # Configurable Options in Menuconfig
 
 See [Kconfig](Kconfig).
 
-## Model Type
+## Model to flash
+
+- CONFIG_FLASH_HUMAN_FACE_FEAT_MFN_S8_V1
+- CONFIG_FLASH_HUMAN_FACE_FEAT_MBF_S8_V1
+
+Whether to flash the model when model location is set to FLASH rodata or FLASH partition.
+
+## Default Model
 
 - CONFIG_HUMAN_FACE_FEAT_MFN_S8_V1
 - CONFIG_HUMAN_FACE_FEAT_MBF_S8_V1
 
-These options determines which models will be enabled. 
-
-> [!NOTE] 
-> - If model location is set to FLASH partition or FLASH rodata, only the selected model type will be flashed.
-> - If model location is set to be in sdcard, all models will be selected automatically.
+Default model to use if no parameter is passed to ``HumanFaceFeat``.
 
 ## Model Location
 

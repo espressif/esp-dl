@@ -6,13 +6,7 @@ ClsPostprocessor::ClsPostprocessor(
     Model *model, const int top_k, const float score_thr, bool need_softmax, const std::string &output_name) :
     m_top_k(top_k), m_score_thr(score_thr), m_need_softmax(need_softmax), m_softmax_module(nullptr)
 {
-    if (output_name.empty()) {
-        std::map<std::string, dl::TensorBase *> model_outputs_map = model->get_outputs();
-        assert(model_outputs_map.size() == 1);
-        m_model_output = model_outputs_map.begin()->second;
-    } else {
-        m_model_output = model->get_intermediate(output_name);
-    }
+    m_model_output = model->get_output(output_name);
     m_output = new dl::TensorBase(m_model_output->shape, nullptr, 0, dl::DATA_TYPE_FLOAT);
     if (need_softmax) {
         m_softmax_module = new dl::module::Softmax(nullptr, -1, dl::MODULE_NON_INPLACE, dl::QUANT_TYPE_SYMM_8BIT);

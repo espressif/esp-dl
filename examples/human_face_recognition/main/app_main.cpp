@@ -76,7 +76,7 @@ extern "C" void app_main(void)
 
     auto res = human_face_recognizer->recognize(musk2, human_face_detect->run(musk2));
     for (const auto &k : res) {
-        printf("id: %d, sim: %f", k.id, k.similarity);
+        ESP_LOGI(TAG, "id: %d, sim: %f", k.id, k.similarity);
     }
 
     human_face_recognizer->clear_all_feats();

@@ -27,6 +27,7 @@ Pico::Pico(const char *model_name)
              model_name);
     m_model = new dl::Model(sd_path, static_cast<fbs::model_location_type_t>(CONFIG_PEDESTRIAN_DETECT_MODEL_LOCATION));
 #endif
+    m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor =
         new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
@@ -43,7 +44,7 @@ PedestrianDetect::PedestrianDetect(model_type_t model_type)
 {
     switch (model_type) {
     case model_type_t::PICO_S8_V1:
-#if CONFIG_PEDESTRIAN_DETECT_PICO_S8_V1
+#if CONFIG_PEDESTRIAN_DETECT_PICO_S8_V1 || CONFIG_PEDESTRIAN_DETECT_MODEL_IN_SDCARD
         m_model = new pedestrian_detect::Pico("pedestrian_detect_pico_s8_v1.espdl");
 #else
         ESP_LOGE("pedestrian_detect", "pedestrian_detect_s8_v1 is not selected in menuconfig.");
