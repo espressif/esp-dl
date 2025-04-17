@@ -43,8 +43,8 @@
 .patterns-model_pedestrian_detect: &patterns-model_pedestrian_detect
   - "models/pedestrian_detect/**/*"
 
-.patterns-model_yolo11_detect: &patterns-model_yolo11_detect
-  - "models/yolo11_detect/**/*"
+.patterns-model_coco_detect: &patterns-model_coco_detect
+  - "models/coco_detect/**/*"
 
 .patterns-model_cat_detect: &patterns-model_cat_detect
   - "models/cat_detect/**/*"
@@ -190,7 +190,7 @@
     - <<: *if-dev-push
       changes: *patterns-esp-dl
     - <<: *if-dev-push
-      changes: *patterns-model_yolo11_detect
+      changes: *patterns-model_coco_detect
     - <<: *if-dev-push
       changes: *patterns-example_yolo11_detect
     - <<: *if-dev-push

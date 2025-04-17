@@ -51,7 +51,7 @@ HumanFaceFeat *feat = new HumanFaceFeat(HumanFaceFeat::MFN_S8_V1);
 
 See [Kconfig](Kconfig).
 
-## Model to flash
+## Model to Flash
 
 - CONFIG_FLASH_HUMAN_FACE_FEAT_MFN_S8_V1
 - CONFIG_FLASH_HUMAN_FACE_FEAT_MBF_S8_V1
