@@ -15,6 +15,6 @@ public:
 class ImageNetCls : public dl::cls::ClsWrapper {
 public:
     typedef enum { MOBILENETV2_S8_V1 } model_type_t;
-    ImageNetCls(model_type_t model_type = static_cast<model_type_t>(CONFIG_IMAGENET_CLS_MODEL_TYPE),
+    ImageNetCls(model_type_t model_type = static_cast<model_type_t>(CONFIG_DEFAULT_IMAGENET_CLS_MODEL),
                 const int top_k = 5);
 };

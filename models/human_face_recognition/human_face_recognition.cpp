@@ -27,6 +27,7 @@ MFN::MFN(const char *model_name)
              model_name);
     m_model = new dl::Model(sd_path, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_FEAT_MODEL_LOCATION));
 #endif
+    m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor = new dl::image::FeatImagePreprocessor(
         m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5}, DL_IMAGE_CAP_RGB_SWAP | DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
@@ -34,7 +35,7 @@ MFN::MFN(const char *model_name)
     m_image_preprocessor = new dl::image::FeatImagePreprocessor(m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5});
 #endif
     m_postprocessor = new dl::feat::FeatPostprocessor(m_model);
-    m_feat_len = m_model->get_outputs().begin()->second->get_size();
+    m_feat_len = m_model->get_output()->get_size();
 }
 
 } // namespace human_face_recognition
@@ -43,14 +44,14 @@ HumanFaceFeat::HumanFaceFeat(model_type_t model_type)
 {
     switch (model_type) {
     case model_type_t::MFN_S8_V1:
-#if CONFIG_HUMAN_FACE_FEAT_MFN_S8_V1
+#if CONFIG_FLASH_HUMAN_FACE_FEAT_MFN_S8_V1 || CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
         m_model = new human_face_recognition::MFN("human_face_feat_mfn_s8_v1.espdl");
 #else
         ESP_LOGE("human_face_feat", "human_face_feat_mfn_s8_v1 is not selected in menuconfig.");
 #endif
         break;
     case model_type_t::MBF_S8_V1:
-#if CONFIG_HUMAN_FACE_FEAT_MBF_S8_V1
+#if CONFIG_HUMAN_FACE_FEAT_MBF_S8_V1 || CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
         m_model = new human_face_recognition::MBF("human_face_feat_mbf_s8_v1.espdl");
 #else
         ESP_LOGE("human_face_feat", "human_face_feat_mbf_s8_v1 is not selected in menuconfig.");

@@ -1,9 +1,20 @@
 menu "models: pedestrian_detect"
-    config PEDESTRIAN_DETECT_PICO_S8_V1
-        bool "pedestrian_detect_pico_s8_v1"
+    config FLASH_PEDESTRIAN_DETECT_PICO_S8_V1
+        bool "flash pedestrian_detect_pico_s8_v1"
+        depends on !PEDESTRIAN_DETECT_MODEL_IN_SDCARD
         default y
 
-    config PEDESTRIAN_DETECT_MODEL_TYPE
+    choice
+        prompt "default model"
+        default PEDESTRIAN_DETECT_PICO_S8_V1
+        help
+            default pedestrian_detect model
+        config PEDESTRIAN_DETECT_PICO_S8_V1
+            bool "pedestrian_detect_pico_s8_v1"
+            depends on PEDESTRIAN_DETECT_MODEL_IN_SDCARD || FLASH_PEDESTRIAN_DETECT_PICO_S8_V1
+    endchoice
+
+    config DEFAULT_PEDESTRIAN_DETECT_MODEL
         int
         default 0 if PEDESTRIAN_DETECT_PICO_S8_V1
 

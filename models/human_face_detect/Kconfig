@@ -1,9 +1,20 @@
 menu "models: human_face_detect"
-    config HUMAN_FACE_DETECT_MSRMNP_S8_V1
-        bool "human_face_detect_msrmnp_s8_v1"
+    config FLASH_HUMAN_FACE_DETECT_MSRMNP_S8_V1
+        bool "flash human_face_detect_msrmnp_s8_v1"
+        depends on !HUMAN_FACE_DETECT_MODEL_IN_SDCARD
         default y
 
-    config HUMAN_FACE_DETECT_MODEL_TYPE
+    choice
+        prompt "default model"
+        default HUMAN_FACE_DETECT_MSRMNP_S8_V1
+        help
+            default human_face_detect model
+        config HUMAN_FACE_DETECT_MSRMNP_S8_V1
+            bool "human_face_detect_msrmnp_s8_v1"
+            depends on HUMAN_FACE_DETECT_MODEL_IN_SDCARD || FLASH_HUMAN_FACE_DETECT_MSRMNP_S8_V1
+    endchoice
+
+    config DEFAULT_HUMAN_FACE_DETECT_MODEL
         int
         default 0 if HUMAN_FACE_DETECT_MSRMNP_S8_V1
 

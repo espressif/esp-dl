@@ -93,9 +93,9 @@ void MNPPostprocessor::parse_stage(TensorBase *score, TensorBase *box, TensorBas
 
 void MNPPostprocessor::postprocess()
 {
-    TensorBase *score = m_model->get_intermediate("score");
-    TensorBase *bbox = m_model->get_intermediate("box");
-    TensorBase *landmark = m_model->get_intermediate("landmark");
+    TensorBase *score = m_model->get_output("score");
+    TensorBase *bbox = m_model->get_output("box");
+    TensorBase *landmark = m_model->get_output("landmark");
     if (score->dtype == DATA_TYPE_INT8) {
         parse_stage<int8_t>(score, bbox, landmark, 0);
     } else {

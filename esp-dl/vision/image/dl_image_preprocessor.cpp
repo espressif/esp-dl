@@ -10,13 +10,7 @@ ImagePreprocessor::ImagePreprocessor(Model *model,
                                      const std::string &input_name) :
     m_mean(mean), m_std(std), m_caps(caps)
 {
-    if (input_name.empty()) {
-        std::map<std::string, dl::TensorBase *> model_inputs_map = model->get_inputs();
-        assert(model_inputs_map.size() == 1);
-        m_model_input = model_inputs_map.begin()->second;
-    } else {
-        m_model_input = model->get_intermediate(input_name);
-    }
+    m_model_input = model->get_input(input_name);
     assert(m_model_input->dtype == DATA_TYPE_INT8 || m_model_input->dtype == DATA_TYPE_INT16);
     assert(m_model_input->shape[3] == m_mean.size() && m_mean.size() == m_std.size());
     m_output = {.data = m_model_input->data,

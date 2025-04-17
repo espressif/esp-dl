@@ -1,9 +1,20 @@
 menu "models: imagenet_cls"
-    config IMAGENET_CLS_MOBILENETV2_S8_V1
-        bool "imagenet_cls_mobilenetv2_s8_v1"
+    config FLASH_IMAGENET_CLS_MOBILENETV2_S8_V1
+        bool "flash imagenet_cls_mobilenetv2_s8_v1"
+        depends on !IMAGENET_CLS_MODEL_IN_SDCARD
         default y
 
-    config IMAGENET_CLS_MODEL_TYPE
+    choice
+        prompt "default model"
+        default IMAGENET_CLS_MOBILENETV2_S8_V1
+        help
+            default imagenet_cls model
+        config IMAGENET_CLS_MOBILENETV2_S8_V1
+            bool "imagenet_cls_mobilenetv2_s8_v1"
+            depends on IMAGENET_CLS_MODEL_IN_SDCARD || FLASH_IMAGENET_CLS_MOBILENETV2_S8_V1
+    endchoice
+
+    config DEFAULT_IMAGENET_CLS_MODEL
         int
         default 0 if IMAGENET_CLS_MOBILENETV2_S8_V1
 

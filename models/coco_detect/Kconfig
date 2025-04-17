@@ -1,19 +1,41 @@
 menu "models: coco_detect"
+    config FLASH_COCO_DETECT_YOLO11N_S8_V1
+        bool "flash coco_detect_yolo11n_s8_v1"
+        depends on !COCO_DETECT_MODEL_IN_SDCARD
+        default n
+    config FLASH_COCO_DETECT_YOLO11N_S8_V2
+        bool "flash coco_detect_yolo11n_s8_v2"
+        depends on !COCO_DETECT_MODEL_IN_SDCARD
+        default n
+    config FLASH_COCO_DETECT_YOLO11N_S8_V3
+        bool "flash coco_detect_yolo11n_s8_v3"
+        depends on !COCO_DETECT_MODEL_IN_SDCARD
+        default y
+    config FLASH_COCO_DETECT_YOLO11N_320_S8_V3
+        bool "flash coco_detect_yolo11n_320_s8_v3"
+        depends on !COCO_DETECT_MODEL_IN_SDCARD
+        default n
+
     choice
-        prompt "COCO Detect Model Selection"
+        prompt "default model"
         default COCO_DETECT_YOLO11N_S8_V3
+        help
+            default coco_detect model
         config COCO_DETECT_YOLO11N_S8_V1
             bool "coco_detect_yolo11n_s8_v1"
+            depends on COCO_DETECT_MODEL_IN_SDCARD || FLASH_COCO_DETECT_YOLO11N_S8_V1
         config COCO_DETECT_YOLO11N_S8_V2
             bool "coco_detect_yolo11n_s8_v2"
+            depends on COCO_DETECT_MODEL_IN_SDCARD || FLASH_COCO_DETECT_YOLO11N_S8_V2
         config COCO_DETECT_YOLO11N_S8_V3
             bool "coco_detect_yolo11n_s8_v3"
+            depends on COCO_DETECT_MODEL_IN_SDCARD || FLASH_COCO_DETECT_YOLO11N_S8_V3
         config COCO_DETECT_YOLO11N_320_S8_V3
             bool "coco_detect_yolo11n_320_s8_v3"
+            depends on COCO_DETECT_MODEL_IN_SDCARD || FLASH_COCO_DETECT_YOLO11N_320_S8_V3
     endchoice
 
-
-    config COCO_DETECT_MODEL_TYPE
+    config DEFAULT_COCO_DETECT_MODEL
         int
         default 0 if COCO_DETECT_YOLO11N_S8_V1
         default 1 if COCO_DETECT_YOLO11N_S8_V2
@@ -31,10 +53,6 @@ menu "models: coco_detect"
             bool "flash_partition"
         config COCO_DETECT_MODEL_IN_SDCARD
             bool "sdcard"
-            select COCO_DETECT_YOLO11N_S8_V1
-            select COCO_DETECT_YOLO11N_S8_V2
-            select COCO_DETECT_YOLO11N_S8_V3
-            select COCO_DETECT_YOLO11N_320_S8_V3
     endchoice
 
     config COCO_DETECT_MODEL_LOCATION
