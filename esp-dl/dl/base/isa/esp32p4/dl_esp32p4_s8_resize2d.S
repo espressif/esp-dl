@@ -54,6 +54,66 @@ dl_esp32p4_s8_resize2d_nearest_2x2_c1:
     esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
     ret
 
+
+
+    .text
+    .align 2
+    .global dl_esp32p4_s8_resize2d_nearest_c1
+    .type   dl_esp32p4_s8_resize2d_nearest_c1, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_resize2d_nearest_c1:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: c_div_x
+    # a4: output_shift
+    # a5: output_scale address
+    # t3:
+    # t4:
+    # t5:
+    # t6:
+
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    lw  a3, 40(a2)
+    lw  a4, 48(a2)
+    blez  a3, dl_esp32p4_s8_resize2d_nearest_c1_end
+
+    addi  a5, a2, 52
+    esp.vldbc.8.ip  q1, a5, 0   // load output_scale
+    esp.vld.128.ip  q0, a1, 16
+
+    dl_esp32p4_s8_resize2d_nearest_c1_loop:
+        esp.zero.qacc
+        esp.vmulas.s8.qacc.ld.ip  q0, a1, 16, q0, q1
+        esp32p4_s8_128b_vector_shift_result  q2, a4
+        esp32p4_s8_128b_aligned_vector_store  q2, a0
+        addi  a3, a3, -1
+        bgtz  a3, dl_esp32p4_s8_resize2d_nearest_c1_loop
+
+    dl_esp32p4_s8_resize2d_nearest_c1_end:
+        ret
+
+
+
     .align 2
     .text
     .global dl_esp32p4_s8_unaligned_resize2d_nearest_2x2_c1
@@ -124,3 +184,103 @@ dl_esp32p4_s8_unaligned_resize2d_nearest_2x2_c1_remainder:
     dl_esp32p4_s8_store_remainder q4, t4, t5, s8, s9, t0, s1, t3
     esp32p4_pop_128_stacks_4r  s0, s1, s8, s9
     ret
+
+
+
+    .text
+    .align 2
+    .global dl_esp32p4_s8_unaligned_resize2d_nearest_c1
+    .type   dl_esp32p4_s8_unaligned_resize2d_nearest_c1, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_resize2d_nearest_c1:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: c_div_x / tmp value
+    # a4: output_shift
+    # a5: output_scale address
+    # t3: c_remainder
+    # t4: output_sar_byte / tmp value
+    # t5: tmp value
+    # t6:
+
+    # a6(not for extension instructions): tmp value
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    lw  a3, 40(a2)
+    lw  a4, 48(a2)
+    lw  t3, 44(a2)
+    blez  a3, dl_esp32p4_s8_unaligned_resize2d_nearest_c1_remainder
+
+    addi  a5, a2, 52
+    esp.vldbc.8.ip  q3, a5, 0   // load output_scale
+    esp.ld.128.usar.ip  q0, a1, 16
+
+    esp.ld.128.usar.ip  q2, a0, 0
+    esp.movx.r.sar.bytes  t4            // output_sar_byte
+
+    beqz  t4, dl_esp32p4_s8_unaligned_resize2d_nearest_c1_128b_loop
+    li  a6, 8
+    beq  t4, a6, dl_esp32p4_s8_unaligned_resize2d_nearest_c1_64b_loop
+
+    dl_esp32p4_s8_unaligned_resize2d_nearest_c1_32b_loop:
+        esp.ld.128.usar.ip  q1, a1, 16
+        esp.zero.qacc
+        esp.src.q.qup  q2, q0, q1
+        esp.vmulas.s8.qacc  q2, q3
+        esp32p4_s8_128b_vector_shift_result  q2, a4
+        esp32p4_s8_32b_unaligned_vector_store  q2, a0, t4
+        addi  a3, a3, -1
+        bgtz  a3, dl_esp32p4_s8_unaligned_resize2d_nearest_c1_32b_loop
+    j  dl_esp32p4_s8_unaligned_resize2d_nearest_c1_remainder
+
+    dl_esp32p4_s8_unaligned_resize2d_nearest_c1_64b_loop:
+        esp.ld.128.usar.ip  q1, a1, 16
+        esp.zero.qacc
+        esp.src.q.qup  q2, q0, q1
+        esp.vmulas.s8.qacc  q2, q3
+        esp32p4_s8_128b_vector_shift_result  q2, a4
+        esp32p4_s8_64b_unaligned_vector_store  q2, a0
+        addi  a3, a3, -1
+        bgtz  a3, dl_esp32p4_s8_unaligned_resize2d_nearest_c1_64b_loop
+    j  dl_esp32p4_s8_unaligned_resize2d_nearest_c1_remainder
+
+    dl_esp32p4_s8_unaligned_resize2d_nearest_c1_128b_loop:
+        esp.ld.128.usar.ip  q1, a1, 16
+        esp.zero.qacc
+        esp.src.q.qup  q2, q0, q1
+        esp.vmulas.s8.qacc  q2, q3
+        esp32p4_s8_128b_vector_shift_result  q2, a4
+        esp32p4_s8_128b_aligned_vector_store  q2, a0
+        addi  a3, a3, -1
+        bgtz  a3, dl_esp32p4_s8_unaligned_resize2d_nearest_c1_128b_loop
+
+    dl_esp32p4_s8_unaligned_resize2d_nearest_c1_remainder:
+        beqz  t3, dl_esp32p4_s8_unaligned_resize2d_nearest_c1_end
+
+        esp.ld.128.usar.xp  q1, a1, t3
+        esp.zero.qacc
+        esp.src.q  q2, q0, q1
+        esp.vmulas.s8.qacc  q2, q3
+        esp32p4_s8_128b_vector_shift_result  q2, a4
+        dl_esp32p4_s8_store_remainder  q2, a3, a5, t4, t5, a6, a0, t3
+
+    dl_esp32p4_s8_unaligned_resize2d_nearest_c1_end:
+        ret

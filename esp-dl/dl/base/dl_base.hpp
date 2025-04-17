@@ -2356,118 +2356,29 @@ struct resizeArgsType {
     int output_x_offset;       /*!<  5 */
     int output_y_offset;       /*!<  6 */
 
-    resize_mode_t resize_type; /*!<  7 */
+    resize_mode_t resize_mode; /*!<  7 */
 
-    float scale_y; /*!<  8 */
-    float scale_x; /*!<  9 */
+    float scale_h; /*!<  8 */
+    float scale_w; /*!<  9 */
 
     int c_div_x;     /*!< 10 */
     int c_remainder; /*!< 11 */
 
-    int output_shift; /*!< 12 */
-    int output_scale; /*!< 13 */
+    int output_shift;    /*!< 12 */
+    int output_scale;    /*!< 13 */
+    int dims;            /*!< 14 */
+    int output_height;   /*!< 15 */
+    int output_width;    /*!< 16 */
+    int align_corners;   /*!< 17 */
+    float scale_h_inv;   /*!< 18 */
+    float scale_w_inv;   /*!< 19 */
+    float *cache;        /*!< 20 */
+    int input_exponent;  /*!< 21 */
+    int output_exponent; /*!< 22 */
 };
-
-/**
- * @brief Get the resize operation args object
- *
- * @tparam feature_t
- * @param output
- * @param input
- * @param resize_type
- * @param scale_y
- * @param scale_x
- * @param runtime_mode
- * @return std::vector<resizeArgsType<feature_t>>
- */
-template <typename feature_t>
-std::vector<resizeArgsType<feature_t>> get_resize_operation_args(TensorBase *output,
-                                                                 TensorBase *input,
-                                                                 resize_mode_t resize_type,
-                                                                 float scale_y,
-                                                                 float scale_x,
-                                                                 const runtime_mode_t runtime_mode = RUNTIME_MODE_AUTO)
-{
-    resizeArgsType<feature_t> args;
-    args.input_element = (feature_t *)input->get_element_ptr();
-    args.input_height = input->shape[1]; // inputs and output are the same shape
-    args.input_width = input->shape[2];
-    args.input_channel = input->shape[3];
-    args.output_element = (feature_t *)output->get_element_ptr(); // output
-
-    args.resize_type = resize_type;
-    args.scale_y = scale_y;
-    args.scale_x = scale_x;
-
-    args.output_shift = output->exponent - input->exponent;
-    args.output_scale = 1;
-    if (args.output_shift < 0) { // ( * output_scale ) >> output_shift
-        args.output_scale = 1 << (-args.output_shift);
-        args.output_shift = 0;
-    }
-
-    // for ISA
-    int u = 16 / sizeof(feature_t);
-    args.c_div_x = input->shape[3] / u;
-    args.c_remainder = (args.input_channel % u) * sizeof(feature_t);
-    if (args.resize_type == RESIZE_NEAREST) {
-        if (args.scale_y == 2 && args.scale_x == 2) {
-            args.output_x_offset = args.input_channel;
-            args.output_y_offset = args.input_channel * args.input_width * 2;
-        }
-    }
-
-    // slice
-    std::vector<resizeArgsType<feature_t>> m_args(1, args);
-    if (runtime_mode == RUNTIME_MODE_MULTI_CORE) {
-        // TODO:
-    }
-
-    return m_args;
-}
 
 typedef void (*resize_c_impl_func_s16_t)(int16_t *, int16_t *, const resizeArgsType<int16_t> &);
 typedef void (*resize_c_impl_func_s8_t)(int8_t *, int8_t *, const resizeArgsType<int8_t> &);
-
-template <typename feature_t>
-void resize2d_operation_shell(const resizeArgsType<feature_t> &args,
-                              ImplFunc_t<feature_t, feature_t> resize_i_impl_func,
-                              void (*resize_c_impl_func)(feature_t *, feature_t *, const resizeArgsType<feature_t> &))
-{
-    feature_t *input_ptr = args.input_element;
-    feature_t *output_ptr = args.output_element;
-
-    if (resize_i_impl_func) {
-        if (args.resize_type == RESIZE_NEAREST) {
-            if (args.scale_y == 2 && args.scale_x == 2) {
-                for (int i = 0; i < args.input_height; i++) {
-                    for (int j = 0; j < args.input_width; j++) {
-                        resize_i_impl_func(output_ptr, input_ptr, (void *const)&args);
-                        input_ptr += args.input_channel;
-                        output_ptr += args.input_channel * 2;
-                    }
-                    output_ptr += args.input_channel * 2 * args.input_width;
-                }
-            }
-        }
-    } else // run c_impl_func
-    {
-        if (args.resize_type == RESIZE_NEAREST) {
-            if (args.scale_y == 2 && args.scale_x == 2) {
-                for (int i = 0; i < args.input_height; i++) {
-                    for (int j = 0; j < args.input_width; j++) {
-                        resize_c_impl_func(output_ptr, input_ptr, args);
-                        input_ptr += args.input_channel;
-                        output_ptr += args.input_channel * 2;
-                    }
-                    output_ptr += args.input_channel * 2 * args.input_width;
-                }
-            }
-        }
-    }
-
-    return;
-}
 
 struct requantizeArgsType {
     void *input_element;  /*!< 0 */

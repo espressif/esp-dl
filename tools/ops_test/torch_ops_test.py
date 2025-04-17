@@ -307,10 +307,24 @@ class RESIZE2D_TEST(nn.Module):
                     groups=1,
                     bias=True,
                 ),
-                nn.Upsample(scale_factor=2, mode="nearest"),
+                nn.Upsample(
+                    scale_factor=config["scale_factor"],
+                    mode=config["mode"],
+                    align_corners=(
+                        config["align_corners"] if config["align_corners"] else None
+                    ),
+                ),
             ]
         else:
-            op_list = [nn.Upsample(scale_factor=2, mode="nearest")]
+            op_list = [
+                nn.Upsample(
+                    scale_factor=config["scale_factor"],
+                    mode=config["mode"],
+                    align_corners=(
+                        config["align_corners"] if config["align_corners"] else None
+                    ),
+                )
+            ]
         self.ops = nn.Sequential(*op_list)
 
     def forward(self, input):
