@@ -27,6 +27,7 @@ MSR::MSR(const char *model_name)
              model_name);
     m_model = new dl::Model(path, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
 #endif
+    m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor = new dl::image::ImagePreprocessor(
         m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB_SWAP | DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
@@ -52,6 +53,7 @@ MNP::MNP(const char *model_name)
              model_name);
     m_model = new dl::Model(sd_path, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
 #endif
+    m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor = new dl::image::ImagePreprocessor(
         m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB_SWAP | DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
@@ -126,7 +128,7 @@ HumanFaceDetect::HumanFaceDetect(model_type_t model_type)
 {
     switch (model_type) {
     case model_type_t::MSRMNP_S8_V1: {
-#if CONFIG_HUMAN_FACE_DETECT_MSRMNP_S8_V1
+#if CONFIG_HUMAN_FACE_DETECT_MSRMNP_S8_V1 || CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
         m_model =
             new human_face_detect::MSRMNP("human_face_detect_msr_s8_v1.espdl", "human_face_detect_mnp_s8_v1.espdl");
 #else

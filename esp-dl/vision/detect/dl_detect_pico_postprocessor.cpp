@@ -65,12 +65,12 @@ template void PicoPostprocessor::parse_stage<int16_t>(TensorBase *score, TensorB
 
 void PicoPostprocessor::postprocess()
 {
-    TensorBase *score0 = m_model->get_intermediate("score0");
-    TensorBase *bbox0 = m_model->get_intermediate("bbox0");
-    TensorBase *score1 = m_model->get_intermediate("score1");
-    TensorBase *bbox1 = m_model->get_intermediate("bbox1");
-    TensorBase *score2 = m_model->get_intermediate("score2");
-    TensorBase *bbox2 = m_model->get_intermediate("bbox2");
+    TensorBase *score0 = m_model->get_output("score0");
+    TensorBase *bbox0 = m_model->get_output("bbox0");
+    TensorBase *score1 = m_model->get_output("score1");
+    TensorBase *bbox1 = m_model->get_output("bbox1");
+    TensorBase *score2 = m_model->get_output("score2");
+    TensorBase *bbox2 = m_model->get_output("bbox2");
 
     if (score0->dtype == DATA_TYPE_INT8) {
         parse_stage<int8_t>(score0, bbox0, 0);

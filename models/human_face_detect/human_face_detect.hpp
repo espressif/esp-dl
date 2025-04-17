@@ -38,5 +38,5 @@ public:
 class HumanFaceDetect : public dl::detect::DetectWrapper {
 public:
     typedef enum { MSRMNP_S8_V1 } model_type_t;
-    HumanFaceDetect(model_type_t model_type = static_cast<model_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_TYPE));
+    HumanFaceDetect(model_type_t model_type = static_cast<model_type_t>(CONFIG_DEFAULT_HUMAN_FACE_DETECT_MODEL));
 };

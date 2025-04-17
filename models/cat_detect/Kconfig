@@ -1,0 +1,55 @@
+menu "models: cat_detect"
+    config FLASH_ESPDET_PICO_224_224_CAT
+        bool "flash espdet_pico_224_224_cat"
+        depends on !CAT_DETECT_MODEL_IN_SDCARD
+        default y
+    config FLASH_ESPDET_PICO_416_416_CAT
+        bool "flash espdet_pico_416_416_cat"
+        depends on !CAT_DETECT_MODEL_IN_SDCARD
+        default n
+
+    choice
+        prompt "default model"
+        default ESPDET_PICO_224_224_CAT
+        help
+            default cat_detect model
+        config ESPDET_PICO_224_224_CAT
+            bool "espdet_pico_224_224_cat"
+            depends on CAT_DETECT_MODEL_IN_SDCARD || FLASH_ESPDET_PICO_224_224_CAT
+        config ESPDET_PICO_416_416_CAT
+            bool "espdet_pico_416_416_cat"
+            depends on CAT_DETECT_MODEL_IN_SDCARD || FLASH_ESPDET_PICO_416_416_CAT
+    endchoice
+
+    config DEFAULT_CAT_DETECT_MODEL
+        int
+        default 0 if ESPDET_PICO_224_224_CAT
+        default 1 if ESPDET_PICO_416_416_CAT
+
+    choice
+        prompt "model location"
+        default CAT_DETECT_MODEL_IN_FLASH_RODATA
+        help
+            cat_detect model location
+        config CAT_DETECT_MODEL_IN_FLASH_RODATA
+            bool "flash_rodata"
+        config CAT_DETECT_MODEL_IN_FLASH_PARTITION
+            bool "flash_partition"
+        config CAT_DETECT_MODEL_IN_SDCARD
+            bool "sdcard"
+    endchoice
+
+    config CAT_DETECT_MODEL_LOCATION
+        int
+        default 0 if CAT_DETECT_MODEL_IN_FLASH_RODATA
+        default 1 if CAT_DETECT_MODEL_IN_FLASH_PARTITION
+        default 2 if CAT_DETECT_MODEL_IN_SDCARD
+
+    config CAT_DETECT_MODEL_SDCARD_DIR
+        string "cat_detect model sdcard dir"
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
+        depends on CAT_DETECT_MODEL_IN_SDCARD
+        help
+            Directory of models relative to sdcard mount point.
+endmenu
