@@ -308,7 +308,11 @@ class RESIZE2D_TEST(nn.Module):
                     bias=True,
                 ),
                 nn.Upsample(
-                    scale_factor=config["scale_factor"],
+                    scale_factor=(
+                        tuple(config["scale_factor"])
+                        if isinstance(config["scale_factor"], list)
+                        else config["scale_factor"]
+                    ),
                     mode=config["mode"],
                     align_corners=(
                         config["align_corners"] if config["align_corners"] else None
@@ -318,7 +322,11 @@ class RESIZE2D_TEST(nn.Module):
         else:
             op_list = [
                 nn.Upsample(
-                    scale_factor=config["scale_factor"],
+                    scale_factor=(
+                        tuple(config["scale_factor"])
+                        if isinstance(config["scale_factor"], list)
+                        else config["scale_factor"]
+                    ),
                     mode=config["mode"],
                     align_corners=(
                         config["align_corners"] if config["align_corners"] else None

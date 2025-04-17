@@ -78,8 +78,10 @@ public:
 
     void print()
     {
-        ESP_LOGI(
-            "Transpose", "quant_type: %s. perm: %s", quant_type_to_string(quant_type), shape_to_string(m_perm).c_str());
+        ESP_LOGI("Transpose",
+                 "quant_type: %s. perm: %s",
+                 quant_type_to_string(quant_type),
+                 vector_to_string(m_perm).c_str());
     }
 };
 } // namespace module

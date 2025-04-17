@@ -102,7 +102,7 @@ public:
         ESP_LOGI("Squeeze",
                  "quant_type: %s, axes: %s.",
                  quant_type_to_string(quant_type),
-                 m_axes == nullptr ? "null" : shape_to_string(m_axes->get_shape()).c_str());
+                 m_axes == nullptr ? "null" : vector_to_string(m_axes->get_shape()).c_str());
     }
 };
 } // namespace module

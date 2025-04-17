@@ -162,7 +162,20 @@ public:
         return op;
     }
 
-    void print() { ESP_LOGI("Resize2D", "quant_type: %s.", quant_type_to_string(quant_type)); }
+    void print()
+    {
+        ESP_LOGI("Resize2D",
+                 "quant_type: %s, "
+                 "resize_mode: %d, "
+                 "scales: %s, "
+                 "sizes: %s, "
+                 "align_corners: %d.",
+                 quant_type_to_string(quant_type),
+                 m_resize_mode,
+                 vector_to_string(m_scales).c_str(),
+                 vector_to_string(m_sizes).c_str(),
+                 m_align_corners);
+    }
 };
 } // namespace module
 } // namespace dl

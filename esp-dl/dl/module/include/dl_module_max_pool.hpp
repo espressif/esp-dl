@@ -130,8 +130,8 @@ public:
         ESP_LOGI("MaxPool2D",
                  "quant_type: %s, kernel size: %s, pads size: %s, strides size: [%d, %d]",
                  quant_type_to_string(quant_type),
-                 shape_to_string(filter_shape).c_str(),
-                 shape_to_string(padding).c_str(),
+                 vector_to_string(filter_shape).c_str(),
+                 vector_to_string(padding).c_str(),
                  stride_y,
                  stride_x);
     }

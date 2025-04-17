@@ -159,7 +159,7 @@ public:
         ESP_LOGI("Split",
                  "quant_type: %s, split shape: %s.",
                  quant_type_to_string(quant_type),
-                 shape_to_string(m_split->get_shape()).c_str());
+                 vector_to_string(m_split->get_shape()).c_str());
     }
 };
 } // namespace module

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <type_traits>
 #include <variant>
 #include <vector>
 
@@ -66,9 +67,27 @@ const char *activation_type_to_string(activation_type_t type);
 const char *quant_type_to_string(quant_type_t type);
 
 /**
- * @brief Convert shape(vector<int>) to string
+ * @brief Convert vector to string
  */
-std::string shape_to_string(std::vector<int> shape);
+template <typename T>
+std::string vector_to_string(std::vector<T> shape)
+{
+    static_assert(std::is_arithmetic_v<T>, "T must be an arithmetic type (int, double, etc.)");
+
+    if (shape.empty()) {
+        return "[]";
+    }
+
+    std::string str = "[";
+    for (int i = 0; i < shape.size(); i++) {
+        str += std::to_string(shape[i]);
+        if (i != shape.size() - 1) {
+            str += ", ";
+        }
+    }
+    str += "]";
+    return str;
+}
 
 /**
  * @brief This class is designed according to PyTorch Tensor.

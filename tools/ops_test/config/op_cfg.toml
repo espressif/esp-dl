@@ -1117,17 +1117,17 @@
 
         [[ops_test.Resize.cfg]]
         input_shape = [1, 96, 5, 5]
-        export_name_prefix = "resize2d_ishap_1_96_5_5_scale_3_nearest"
+        export_name_prefix = "resize2d_ishap_1_96_5_5_scale_2_3_nearest"
         conv = false
-        scale_factor = 3.0
+        scale_factor = [2, 3]
         mode = "nearest"
         align_corners = false
 
         [[ops_test.Resize.cfg]]
         input_shape = [1, 110, 5, 5]
-        export_name_prefix = "resize2d_ishap_1_110_5_5_scale_3_nearest"
+        export_name_prefix = "resize2d_ishap_1_110_5_5_scale_2_3_nearest"
         conv = false
-        scale_factor = 3.0
+        scale_factor = [2, 3]
         mode = "nearest"
         align_corners = false
 
@@ -1153,7 +1153,7 @@
         input_shape = [1, 45, 8, 8]
         export_name_prefix = "resize2d_ishap_1_45_8_8_scale_3_linear"
         conv = false
-        scale_factor = 3.0
+        scale_factor = 3
         mode = "bilinear"
         align_corners = false
 
