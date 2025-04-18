@@ -103,7 +103,7 @@ public:
         ESP_LOGI("Reshape",
                  "quant_type: %s, shape: %s.",
                  quant_type_to_string(quant_type),
-                 shape_to_string(m_shape->get_shape()).c_str());
+                 vector_to_string(m_shape->get_shape()).c_str());
     }
 };
 } // namespace module

@@ -194,7 +194,7 @@ public:
         ESP_LOGI("Gather",
                  "quant_type: %s, indices shape: %s.",
                  quant_type_to_string(quant_type),
-                 shape_to_string(m_indices->get_shape()).c_str());
+                 vector_to_string(m_indices->get_shape()).c_str());
     }
 };
 } // namespace module

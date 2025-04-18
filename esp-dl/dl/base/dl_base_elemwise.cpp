@@ -93,9 +93,9 @@ std::vector<elemwiseArgsType<in_feature_t, out_feature_t>> get_elemwise_operatio
 
     // printf("merged shape:%d\n", merged_dims);
     // printf("shape: %s, shape:%s shape:%s\n",
-    //        shape_to_string(input0_shape).c_str(),
-    //        shape_to_string(input1_shape).c_str(),
-    //        shape_to_string(output_shape).c_str());
+    //        vector_to_string(input0_shape).c_str(),
+    //        vector_to_string(input1_shape).c_str(),
+    //        vector_to_string(output_shape).c_str());
 
     // Assign args
     // Note: d0 is the last dimension of the input/output tensor.

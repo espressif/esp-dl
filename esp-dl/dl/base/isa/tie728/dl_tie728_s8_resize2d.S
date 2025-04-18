@@ -47,6 +47,56 @@ dl_tie728_s8_resize2d_nearest_2x2_c1:
     0:
     retw
 
+
+
+    .text
+    .align 4
+    .global dl_tie728_s8_resize2d_nearest_c1
+    .type   dl_tie728_s8_resize2d_nearest_c1, @function
+    # .balign 4
+    # .option norvc
+dl_tie728_s8_resize2d_nearest_c1:
+
+    # a2: int8_t *output_ptr
+    # a3: int8_t *input_ptr
+    # a4: void *args
+
+    # a5: c_div_x
+    # a6: output_shift
+    # a7: output_scale address
+    # a8: tmp value
+    # a9:
+    # a10:
+    # a11:
+
+    # a12:
+    # a13:
+    # a14:
+    # a15:
+
+    entry  sp, 64
+
+    l32i  a5, a4, 40
+    l32i  a6, a4, 48
+    beqz  a5, dl_tie728_s8_resize2d_nearest_c1_end
+
+    addi  a7, a4, 52
+    ee.vldbc.8.ip  q1, a7, 0   // load output_scale
+    ee.vld.128.ip  q0, a3, 16
+
+    dl_tie728_s8_resize2d_nearest_c1_loop:
+        ee.zero.qacc
+        ee.vmulas.s8.qacc.ld.ip  q0, a3, 16, q0, q1
+        tie728_s8_vector_round_result  q2, a6, a8, q4
+        ee.vst.128.ip  q2, a2, 16
+        addi  a5, a5, -1
+        bgei  a5, 1, dl_tie728_s8_resize2d_nearest_c1_loop
+
+    dl_tie728_s8_resize2d_nearest_c1_end:
+        retw
+
+
+
     .align 4
     .text
     .global dl_tie728_s8_unaligned_resize2d_nearest_2x2_c1
@@ -111,3 +161,93 @@ dl_tie728_s8_unaligned_resize2d_nearest_2x2_c1_remainder:
     dl_tie728_s8_store_remainder q4, a5, a6, a7, a10, a12, a8
     dl_tie728_s8_store_remainder q4, a5, a6, a7, a10, a13, a8
     retw
+
+
+
+    .text
+    .align 4
+    .global dl_tie728_s8_unaligned_resize2d_nearest_c1
+    .type   dl_tie728_s8_unaligned_resize2d_nearest_c1, @function
+    # .balign 4
+    # .option norvc
+dl_tie728_s8_unaligned_resize2d_nearest_c1:
+
+    # a2: int8_t *output_ptr
+    # a3: int8_t *input_ptr
+    # a4: void *args
+
+    # a5: c_div_x / tmp value
+    # a6: output_shift
+    # a7: output_scale address
+    # a8: c_remainder
+    # a9: output_sar_byte / tmp value
+    # a10: tmp value
+    # a11:
+
+    # a12: tmp value
+    # a13:
+    # a14:
+    # a15:
+
+    entry  sp, 64
+
+    l32i  a5, a4, 40
+    l32i  a6, a4, 48
+    l32i  a8, a4, 44
+    beqz  a5, dl_tie728_s8_unaligned_resize2d_nearest_c1_remainder
+
+    addi  a7, a4, 52
+    ee.vldbc.8.ip  q3, a7, 0   // load output_scale
+    ee.ld.128.usar.ip  q0, a3, 16
+
+    ee.ld.128.usar.ip  q2, a2, 0
+    rur.sar_byte  a9            // output_sar_byte
+
+    beqz  a9, dl_tie728_s8_unaligned_resize2d_nearest_c1_128b_loop
+    movi  a12, 8
+    beq  a9, a12, dl_tie728_s8_unaligned_resize2d_nearest_c1_64b_loop
+
+    dl_tie728_s8_unaligned_resize2d_nearest_c1_32b_loop:
+        ee.ld.128.usar.ip  q1, a3, 16
+        ee.zero.qacc
+        ee.src.q.qup  q2, q0, q1
+        ee.vmulas.s8.qacc  q2, q3
+        tie728_s8_vector_round_result  q2, a6, a10, q4
+        dl_tie728_s8_unaligned_store0  q2, a2, a9
+        addi  a5, a5, -1
+        bgei  a5, 1, dl_tie728_s8_unaligned_resize2d_nearest_c1_32b_loop
+    j  dl_tie728_s8_unaligned_resize2d_nearest_c1_remainder
+
+    dl_tie728_s8_unaligned_resize2d_nearest_c1_64b_loop:
+        ee.ld.128.usar.ip  q1, a3, 16
+        ee.zero.qacc
+        ee.src.q.qup  q2, q0, q1
+        ee.vmulas.s8.qacc  q2, q3
+        tie728_s8_vector_round_result  q2, a6, a10, q4
+        dl_tie728_s8_unaligned_store1  q2, a2
+        addi  a5, a5, -1
+        bgei  a5, 1, dl_tie728_s8_unaligned_resize2d_nearest_c1_64b_loop
+    j  dl_tie728_s8_unaligned_resize2d_nearest_c1_remainder
+
+    dl_tie728_s8_unaligned_resize2d_nearest_c1_128b_loop:
+        ee.ld.128.usar.ip  q1, a3, 16
+        ee.zero.qacc
+        ee.src.q.qup  q2, q0, q1
+        ee.vmulas.s8.qacc  q2, q3
+        tie728_s8_vector_round_result  q2, a6, a10, q4
+        ee.vst.128.ip  q2, a2, 16
+        addi  a5, a5, -1
+        bgei  a5, 1, dl_tie728_s8_unaligned_resize2d_nearest_c1_128b_loop
+
+    dl_tie728_s8_unaligned_resize2d_nearest_c1_remainder:
+        beqz  a8, dl_tie728_s8_unaligned_resize2d_nearest_c1_end
+
+        ee.ld.128.usar.xp  q1, a3, a8
+        ee.zero.qacc
+        ee.src.q  q2, q0, q1
+        ee.vmulas.s8.qacc  q2, q3
+        tie728_s8_vector_round_result  q2, a6, a10, q4
+        dl_tie728_s8_store_remainder  q2, a5, a7, a9, a10, a2, a8
+
+    dl_tie728_s8_unaligned_resize2d_nearest_c1_end:
+        retw

@@ -211,7 +211,7 @@ public:
         ESP_LOGI("Conv2d",
                  "pads: %s, strides: [%d,%d], dilations: [%d,%d], group: %d, activation: %s, "
                  "quant_type: %s.",
-                 shape_to_string(padding).c_str(),
+                 vector_to_string(padding).c_str(),
                  stride_y,
                  stride_x,
                  dilation_y,
