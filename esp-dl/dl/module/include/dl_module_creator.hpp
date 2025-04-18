@@ -111,7 +111,7 @@ public:
             this->register_module("Sub", Sub::deserialize);
             this->register_module("Mul", Mul::deserialize);
             this->register_module("Div", Div::deserialize);
-            this->register_module("Resize", Resize2D::deserialize);
+            this->register_module("Resize", Resize::deserialize);
             this->register_module("GlobalAveragePool", GlobalAveragePool2D::deserialize);
             this->register_module("AveragePool", AveragePool2D::deserialize);
             this->register_module("Concat", Concat::deserialize);

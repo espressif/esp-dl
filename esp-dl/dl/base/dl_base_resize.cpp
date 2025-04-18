@@ -1,11 +1,11 @@
-#include "dl_base_resize2d.hpp"
+#include "dl_base_resize.hpp"
 
 #include "dl_base_isa.hpp"
 
 namespace dl {
 namespace base {
 template <typename feature_t>
-inline void resize2d_nearest_2x2_c1(feature_t *output_ptr, feature_t *input_ptr, const resizeArgsType<feature_t> &args)
+inline void resize_nearest_2x2_c1(feature_t *output_ptr, feature_t *input_ptr, const resizeArgsType<feature_t> &args)
 {
     feature_t *output_ptr_0_0 = output_ptr;
     feature_t *output_ptr_0_1 = output_ptr + args.output_x_offset;
@@ -22,56 +22,56 @@ inline void resize2d_nearest_2x2_c1(feature_t *output_ptr, feature_t *input_ptr,
 }
 
 template <typename feature_t>
-inline void resize2d_nearest_c1(feature_t *output_ptr, feature_t *input_ptr, const resizeArgsType<feature_t> &args)
+inline void resize_nearest_c1(feature_t *output_ptr, feature_t *input_ptr, const resizeArgsType<feature_t> &args)
 {
     for (int i = 0; i < args.input_channel; i++) {
         *(output_ptr++) = tool::round((float)(*input_ptr++) * args.output_scale / (1 << args.output_shift));
     }
 }
 
-inline void load_resized2d_nearest_2x2_c1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
-                                             resize_c_impl_func_s8_t &c_impl_func,
-                                             const resizeArgsType<int8_t> &args)
+inline void load_resize_nearest_2x2_c1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
+                                          resize_c_impl_func_s8_t &c_impl_func,
+                                          const resizeArgsType<int8_t> &args)
 {
 #if CONFIG_ESP32P4_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
-        i_impl_func = dl_esp32p4_s8_resize2d_nearest_2x2_c1;
+        i_impl_func = dl_esp32p4_s8_resize_nearest_2x2_c1;
     } else {
-        i_impl_func = dl_esp32p4_s8_unaligned_resize2d_nearest_2x2_c1;
+        i_impl_func = dl_esp32p4_s8_unaligned_resize_nearest_2x2_c1;
     }
 #elif CONFIG_TIE728_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
-        i_impl_func = dl_tie728_s8_resize2d_nearest_2x2_c1;
+        i_impl_func = dl_tie728_s8_resize_nearest_2x2_c1;
     } else {
-        i_impl_func = dl_tie728_s8_unaligned_resize2d_nearest_2x2_c1;
+        i_impl_func = dl_tie728_s8_unaligned_resize_nearest_2x2_c1;
     }
 #else
-    c_impl_func = resize2d_nearest_2x2_c1<int8_t>;
+    c_impl_func = resize_nearest_2x2_c1<int8_t>;
 #endif
 }
 
-inline void load_resized2d_nearest_c1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
-                                         resize_c_impl_func_s8_t &c_impl_func,
-                                         const resizeArgsType<int8_t> &args)
+inline void load_resize_nearest_c1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
+                                      resize_c_impl_func_s8_t &c_impl_func,
+                                      const resizeArgsType<int8_t> &args)
 {
 #if CONFIG_ESP32P4_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
-        i_impl_func = dl_esp32p4_s8_resize2d_nearest_c1;
+        i_impl_func = dl_esp32p4_s8_resize_nearest_c1;
     } else {
-        i_impl_func = dl_esp32p4_s8_unaligned_resize2d_nearest_c1;
+        i_impl_func = dl_esp32p4_s8_unaligned_resize_nearest_c1;
     }
 #elif CONFIG_TIE728_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
-        i_impl_func = dl_tie728_s8_resize2d_nearest_c1;
+        i_impl_func = dl_tie728_s8_resize_nearest_c1;
     } else {
-        i_impl_func = dl_tie728_s8_unaligned_resize2d_nearest_c1;
+        i_impl_func = dl_tie728_s8_unaligned_resize_nearest_c1;
     }
 #else
-    c_impl_func = resize2d_nearest_c1<int8_t>;
+    c_impl_func = resize_nearest_c1<int8_t>;
 #endif
 }
 
@@ -116,7 +116,7 @@ void linear_coeffs(int out_length, int in_length, int *in_xp, float *ratio, floa
 }
 
 template <typename feature_t>
-inline void resize2d_linear_c1(const resizeArgsType<feature_t> &args)
+inline void resize_linear_c1(const resizeArgsType<feature_t> &args)
 {
     int in_x, in_y;
     int prev_in_y = -2;
@@ -195,9 +195,9 @@ inline void resize2d_linear_c1(const resizeArgsType<feature_t> &args)
 }
 
 template <typename feature_t>
-void resize2d_operation_shell(const resizeArgsType<feature_t> &args,
-                              ImplFunc_t<feature_t, feature_t> resize_i_impl_func,
-                              void (*resize_c_impl_func)(feature_t *, feature_t *, const resizeArgsType<feature_t> &))
+void resize_operation_shell(const resizeArgsType<feature_t> &args,
+                            ImplFunc_t<feature_t, feature_t> resize_i_impl_func,
+                            void (*resize_c_impl_func)(feature_t *, feature_t *, const resizeArgsType<feature_t> &))
 {
     feature_t *input_ptr = args.input_element;
     feature_t *output_ptr = args.output_element;
@@ -261,7 +261,7 @@ void resize2d_operation_shell(const resizeArgsType<feature_t> &args,
                 }
             }
         } else if (args.resize_mode == RESIZE_LINEAR) {
-            resize2d_linear_c1(args);
+            resize_linear_c1(args);
         }
     }
 
@@ -269,31 +269,31 @@ void resize2d_operation_shell(const resizeArgsType<feature_t> &args,
 }
 
 template <>
-void resize2d<int8_t>(void *args_ptr)
+void resize<int8_t>(void *args_ptr)
 {
     const resizeArgsType<int8_t> &args = *((resizeArgsType<int8_t> *)args_ptr);
     ImplFunc_t<int8_t, int8_t> i_impl_func;
     resize_c_impl_func_s8_t c_impl_func = NULL;
     if (args.resize_mode == RESIZE_NEAREST) {
         if (args.scale_h == 2 && args.scale_w == 2) {
-            load_resized2d_nearest_2x2_c1_s8(i_impl_func, c_impl_func, args);
+            load_resize_nearest_2x2_c1_s8(i_impl_func, c_impl_func, args);
         } else {
-            load_resized2d_nearest_c1_s8(i_impl_func, c_impl_func, args);
+            load_resize_nearest_c1_s8(i_impl_func, c_impl_func, args);
         }
     }
-    resize2d_operation_shell<int8_t>(args, i_impl_func, c_impl_func);
+    resize_operation_shell<int8_t>(args, i_impl_func, c_impl_func);
 }
 
 template <>
-void resize2d<int16_t>(void *args_ptr)
+void resize<int16_t>(void *args_ptr)
 {
     // const resizeArgsType<int16_t> &args = *((resizeArgsType<int16_t> *)args_ptr);
     // if (args.resize_mode == RESIZE_NEAREST){
     //     if (args.scale_h == 2 && args.scale_w == 2){
     //         ImplFunc_t<int16_t, int16_t> i_impl_func;
     //         resize_c_impl_func_s16_t c_impl_func = NULL;
-    //         load_resized2d_nearest_2x2_c1_s16(i_impl_func, c_impl_func, args);
-    //         resize2d_operation_shell<int16_t>(args, i_impl_func, c_impl_func);
+    //         load_resize_nearest_2x2_c1_s16(i_impl_func, c_impl_func, args);
+    //         resize_operation_shell<int16_t>(args, i_impl_func, c_impl_func);
     //     }
     // }
 }
