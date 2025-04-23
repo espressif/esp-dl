@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dl_base_resize2d.hpp"
+#include "dl_base_resize.hpp"
 #include "dl_module_base.hpp"
 #include <math.h>
 
@@ -10,7 +10,7 @@ namespace module {
  * NOTE:
  * The input data layout for `resize` is NWC/NHWC, while the parameter data layout is NCW/NCHW.
  */
-class Resize2D : public Module {
+class Resize : public Module {
 private:
     const resize_mode_t m_resize_mode; /*!< one of RESIZE_NEAREST or RESIZE_LINEAR or RESIZE_CUBIC */
     std::vector<float> m_scales;       /*!< The scale array along each dimension. */
@@ -19,7 +19,7 @@ private:
     float *m_cache = nullptr; /*!< Temporary memory, used to cache the intermediate results of linear operations. */
 public:
     /**
-     * @brief Construct a new Resize2D object.
+     * @brief Construct a new Resize object.
      *
      * @param name                  name of module
      * @param resize_mode           one of RESIZE_NEAREST or RESIZE_LINEAR or RESIZE_CUBIC
@@ -28,12 +28,12 @@ public:
      * @param align_corners         If true, the corner pixels of the input and output tensors are aligned
      * @param quant_type            quant type
      */
-    Resize2D(const char *name = NULL,
-             const resize_mode_t resize_mode = RESIZE_NEAREST,
-             const std::vector<float> scales = {},
-             const std::vector<int64_t> sizes = {},
-             const bool align_corners = false,
-             quant_type_t quant_type = QUANT_TYPE_NONE) :
+    Resize(const char *name = NULL,
+           const resize_mode_t resize_mode = RESIZE_NEAREST,
+           const std::vector<float> scales = {},
+           const std::vector<int64_t> sizes = {},
+           const bool align_corners = false,
+           quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, MODULE_NON_INPLACE, quant_type),
         m_resize_mode(resize_mode),
         m_scales(scales),
@@ -43,9 +43,9 @@ public:
     }
 
     /**
-     * @brief Destroy the Resize2D object.
+     * @brief Destroy the Resize object.
      */
-    ~Resize2D()
+    ~Resize()
     {
         if (m_cache) {
             free(m_cache);
@@ -92,9 +92,9 @@ public:
     void forward_args(void *args)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            base::resize2d<int8_t>(args);
+            base::resize<int8_t>(args);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            base::resize2d<int16_t>(args);
+            base::resize<int16_t>(args);
         }
     }
 
@@ -109,7 +109,6 @@ public:
             output->assign(input);
         }
 
-        // Entering the 2x2 Assembly Special Case Optimization
         std::vector<base::resizeArgsType<T>> m_args =
             base::get_resize_operation_args<T>(output, input, m_resize_mode, m_scales, m_align_corners, m_cache);
         int task_size = m_args.size();
@@ -118,12 +117,12 @@ public:
         } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
             module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]);
         } else {
-            ESP_LOGE("Resize2D", "Only support task size is 1 or 2, currently task size is %d", task_size);
+            ESP_LOGE("Resize", "Only support task size is 1 or 2, currently task size is %d", task_size);
         }
     }
 
     /**
-     * @brief deserialize Resize2D module instance by node serialization information
+     * @brief deserialize Resize module instance by node serialization information
      */
     static Module *deserialize(fbs::FbsModel *fbs_model, std::string node_name)
     {
@@ -150,12 +149,12 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new Resize2D(node_name.c_str(),
-                              resize_mode,
-                              scales,
-                              sizes,
-                              coordinate_transformation_mode == "align_corners",
-                              quant_type);
+            op = new Resize(node_name.c_str(),
+                            resize_mode,
+                            scales,
+                            sizes,
+                            coordinate_transformation_mode == "align_corners",
+                            quant_type);
         }
         delete scales_tensor;
         delete sizes_tensor;
@@ -164,7 +163,7 @@ public:
 
     void print()
     {
-        ESP_LOGI("Resize2D",
+        ESP_LOGI("Resize",
                  "quant_type: %s, "
                  "resize_mode: %d, "
                  "scales: %s, "

@@ -291,7 +291,7 @@ class MAX_POOLING_TEST(nn.Module):
         return x
 
 
-class RESIZE2D_TEST(nn.Module):
+class RESIZE_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
@@ -308,10 +308,15 @@ class RESIZE2D_TEST(nn.Module):
                     bias=True,
                 ),
                 nn.Upsample(
+                    size=(
+                        tuple(config["size"])
+                        if isinstance(config.get("size", None), list)
+                        else config.get("size", None)
+                    ),
                     scale_factor=(
                         tuple(config["scale_factor"])
-                        if isinstance(config["scale_factor"], list)
-                        else config["scale_factor"]
+                        if isinstance(config.get("scale_factor", None), list)
+                        else config.get("scale_factor", None)
                     ),
                     mode=config["mode"],
                     align_corners=(
@@ -322,10 +327,15 @@ class RESIZE2D_TEST(nn.Module):
         else:
             op_list = [
                 nn.Upsample(
+                    size=(
+                        tuple(config["size"])
+                        if isinstance(config.get("size", None), list)
+                        else config.get("size", None)
+                    ),
                     scale_factor=(
                         tuple(config["scale_factor"])
-                        if isinstance(config["scale_factor"], list)
-                        else config["scale_factor"]
+                        if isinstance(config.get("scale_factor", None), list)
+                        else config.get("scale_factor", None)
                     ),
                     mode=config["mode"],
                     align_corners=(

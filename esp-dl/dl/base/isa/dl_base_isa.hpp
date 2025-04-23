@@ -320,10 +320,10 @@ void dl_tie728_s8_unaligned_relu_11c(int8_t *output_ptr, int8_t *input_ptr, void
 void dl_tie728_s8_prelu_11c(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 void dl_tie728_s8_unaligned_prelu_11c(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 
-void dl_tie728_s8_resize2d_nearest_2x2_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
-void dl_tie728_s8_resize2d_nearest_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
-void dl_tie728_s8_unaligned_resize2d_nearest_2x2_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
-void dl_tie728_s8_unaligned_resize2d_nearest_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_tie728_s8_resize_nearest_2x2_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_tie728_s8_resize_nearest_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_tie728_s8_unaligned_resize_nearest_2x2_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_tie728_s8_unaligned_resize_nearest_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 
 void dl_tie728_s8_s8_requantize_linear(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 void dl_tie728_s8_s16_requantize_linear(int8_t *output_ptr, int16_t *input_ptr, void *args_ptr);
@@ -652,10 +652,10 @@ void dl_esp32p4_s8_unaligned_avg_pool2d_22c1(int8_t *output_ptr, int8_t *input_p
 void dl_esp32p4_s8_avg_pool2d_hwc1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 void dl_esp32p4_s8_unaligned_avg_pool2d_hwc1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 
-void dl_esp32p4_s8_resize2d_nearest_2x2_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
-void dl_esp32p4_s8_resize2d_nearest_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
-void dl_esp32p4_s8_unaligned_resize2d_nearest_2x2_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
-void dl_esp32p4_s8_unaligned_resize2d_nearest_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_resize_nearest_2x2_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_resize_nearest_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_unaligned_resize_nearest_2x2_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_unaligned_resize_nearest_c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 
 void dl_esp32p4_s8_prelu_11c(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 void dl_esp32p4_s8_unaligned_prelu_11c(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);

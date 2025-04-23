@@ -1095,13 +1095,13 @@
         padding = [1, 1]
 
     [ops_test.Resize]
-    test_func = "RESIZE2D_TEST"
+    test_func = "RESIZE_TEST"
     quant_bits = ["int8"]
     package = "torch_ops_test"
-    restrictions = "Only support nearest and do not support roi"
+    restrictions = "support 1d/2d nearest/linear/bilinear, don't support roi and antialias"
         [[ops_test.Resize.cfg]]
         input_shape = [1, 96, 5, 5]
-        export_name_prefix = "resize2d_ishap_1_96_5_5_scale_2_nearest"
+        export_name_prefix = "resize_ishap_1_96_5_5_scale_2_nearest"
         conv = false
         scale_factor = 2.0
         mode = "nearest"
@@ -1109,7 +1109,7 @@
 
         [[ops_test.Resize.cfg]]
         input_shape = [1, 110, 5, 5]
-        export_name_prefix = "resize2d_ishap_1_110_5_5_scale_2_nearest"
+        export_name_prefix = "resize_ishap_1_110_5_5_scale_2_nearest"
         conv = false
         scale_factor = 2.0
         mode = "nearest"
@@ -1117,7 +1117,7 @@
 
         [[ops_test.Resize.cfg]]
         input_shape = [1, 96, 5, 5]
-        export_name_prefix = "resize2d_ishap_1_96_5_5_scale_2_3_nearest"
+        export_name_prefix = "resize_ishap_1_96_5_5_scale_2_3_nearest"
         conv = false
         scale_factor = [2, 3]
         mode = "nearest"
@@ -1125,7 +1125,7 @@
 
         [[ops_test.Resize.cfg]]
         input_shape = [1, 110, 5, 5]
-        export_name_prefix = "resize2d_ishap_1_110_5_5_scale_2_3_nearest"
+        export_name_prefix = "resize_ishap_1_110_5_5_scale_2_3_nearest"
         conv = false
         scale_factor = [2, 3]
         mode = "nearest"
@@ -1133,7 +1133,7 @@
 
         [[ops_test.Resize.cfg]]
         input_shape = [1, 16, 8, 8]
-        export_name_prefix = "resize2d_conv_ishap_1_16_8_8_scale_2_nearest"
+        export_name_prefix = "resize_conv_ishap_1_16_8_8_scale_2_nearest"
         conv = true
         in_features = 16
         out_features = 16
@@ -1143,7 +1143,7 @@
 
         [[ops_test.Resize.cfg]]
         input_shape = [1, 96, 5, 5]
-        export_name_prefix = "resize2d_ishap_1_96_5_5_scale_2_linear"
+        export_name_prefix = "resize_ishap_1_96_5_5_scale_2_linear"
         conv = false
         scale_factor = 2.0
         mode = "bilinear"
@@ -1151,7 +1151,7 @@
 
         [[ops_test.Resize.cfg]]
         input_shape = [1, 45, 8, 8]
-        export_name_prefix = "resize2d_ishap_1_45_8_8_scale_3_linear"
+        export_name_prefix = "resize_ishap_1_45_8_8_scale_3_linear"
         conv = false
         scale_factor = 3
         mode = "bilinear"
@@ -1159,10 +1159,58 @@
 
         [[ops_test.Resize.cfg]]
         input_shape = [1, 96, 5, 5]
-        export_name_prefix = "resize2d_ishap_1_96_5_5_scale_2_linear_align_corners"
+        export_name_prefix = "resize_ishap_1_96_5_5_scale_2_linear_align_corners"
         conv = false
         scale_factor = 2.0
         mode = "bilinear"
+        align_corners = true
+
+        [[ops_test.Resize.cfg]]
+        input_shape = [1, 110, 5, 5]
+        export_name_prefix = "resize_ishap_1_110_5_5_size_10_15_nearest"
+        conv = false
+        size = [10, 15]
+        mode = "nearest"
+        align_corners = false
+
+        [[ops_test.Resize.cfg]]
+        input_shape = [1, 96, 5, 5]
+        export_name_prefix = "resize_ishap_1_96_5_5_size_10_10_linear_align_corners"
+        conv = false
+        size = [10, 10]
+        mode = "bilinear"
+        align_corners = true
+
+        [[ops_test.Resize.cfg]]
+        input_shape = [1, 96, 5]
+        export_name_prefix = "resize_ishap_1_96_5_scale_2_nearest"
+        conv = false
+        scale_factor = 2
+        mode = "nearest"
+        align_corners = false
+
+        [[ops_test.Resize.cfg]]
+        input_shape = [1, 110, 5]
+        export_name_prefix = "resize_ishap_1_110_5_scale_3_nearest"
+        conv = false
+        scale_factor = 3
+        mode = "nearest"
+        align_corners = false
+
+        [[ops_test.Resize.cfg]]
+        input_shape = [1, 96, 5]
+        export_name_prefix = "resize_ishap_1_96_5_scale_2_linear"
+        conv = false
+        scale_factor = 2
+        mode = "linear"
+        align_corners = false
+
+        [[ops_test.Resize.cfg]]
+        input_shape = [1, 110, 5]
+        export_name_prefix = "resize_ishap_1_110_5_scale_3_linear_align_corners"
+        conv = false
+        scale_factor = 3
+        mode = "linear"
         align_corners = true
 
     [ops_test.Sigmoid]
