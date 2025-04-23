@@ -2377,9 +2377,6 @@ struct resizeArgsType {
     int output_exponent; /*!< 22 */
 };
 
-typedef void (*resize_c_impl_func_s16_t)(int16_t *, int16_t *, const resizeArgsType<int16_t> &);
-typedef void (*resize_c_impl_func_s8_t)(int8_t *, int8_t *, const resizeArgsType<int8_t> &);
-
 struct requantizeArgsType {
     void *input_element;  /*!< 0 */
     void *output_element; /*!< 1 */

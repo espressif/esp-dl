@@ -109,7 +109,6 @@ public:
             output->assign(input);
         }
 
-        // Entering the 2x2 Assembly Special Case Optimization
         std::vector<base::resizeArgsType<T>> m_args =
             base::get_resize_operation_args<T>(output, input, m_resize_mode, m_scales, m_align_corners, m_cache);
         int task_size = m_args.size();

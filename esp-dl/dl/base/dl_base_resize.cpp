@@ -5,15 +5,17 @@
 namespace dl {
 namespace base {
 template <typename feature_t>
-inline void resize_nearest_2x2_c1(feature_t *output_ptr, feature_t *input_ptr, const resizeArgsType<feature_t> &args)
+inline void resize_nearest_2x2_c1(feature_t *output_ptr, feature_t *input_ptr, void *args_ptr)
 {
+    resizeArgsType<feature_t> *args_ptr_t = reinterpret_cast<resizeArgsType<feature_t> *>(args_ptr);
     feature_t *output_ptr_0_0 = output_ptr;
-    feature_t *output_ptr_0_1 = output_ptr + args.output_x_offset;
-    feature_t *output_ptr_1_0 = output_ptr + args.output_y_offset;
-    feature_t *output_ptr_1_1 = output_ptr_1_0 + args.output_x_offset;
+    feature_t *output_ptr_0_1 = output_ptr + args_ptr_t->output_x_offset;
+    feature_t *output_ptr_1_0 = output_ptr + args_ptr_t->output_y_offset;
+    feature_t *output_ptr_1_1 = output_ptr_1_0 + args_ptr_t->output_x_offset;
 
-    for (int i = 0; i < args.input_channel; i++) {
-        feature_t output_value = tool::round((float)(*input_ptr++) * args.output_scale / (1 << args.output_shift));
+    for (int i = 0; i < args_ptr_t->input_channel; i++) {
+        feature_t output_value =
+            tool::round((float)(*input_ptr++) * args_ptr_t->output_scale / (1 << args_ptr_t->output_shift));
         *(output_ptr_0_0++) = output_value;
         *(output_ptr_0_1++) = output_value;
         *(output_ptr_1_0++) = output_value;
@@ -22,56 +24,54 @@ inline void resize_nearest_2x2_c1(feature_t *output_ptr, feature_t *input_ptr, c
 }
 
 template <typename feature_t>
-inline void resize_nearest_c1(feature_t *output_ptr, feature_t *input_ptr, const resizeArgsType<feature_t> &args)
+inline void resize_nearest_c1(feature_t *output_ptr, feature_t *input_ptr, void *args_ptr)
 {
-    for (int i = 0; i < args.input_channel; i++) {
-        *(output_ptr++) = tool::round((float)(*input_ptr++) * args.output_scale / (1 << args.output_shift));
+    resizeArgsType<feature_t> *args_ptr_t = reinterpret_cast<resizeArgsType<feature_t> *>(args_ptr);
+    for (int i = 0; i < args_ptr_t->input_channel; i++) {
+        *(output_ptr++) =
+            tool::round((float)(*input_ptr++) * args_ptr_t->output_scale / (1 << args_ptr_t->output_shift));
     }
 }
 
-inline void load_resize_nearest_2x2_c1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
-                                          resize_c_impl_func_s8_t &c_impl_func,
-                                          const resizeArgsType<int8_t> &args)
+inline void load_resize_nearest_2x2_c1_s8(ImplFunc_t<int8_t, int8_t> &impl_func, const resizeArgsType<int8_t> &args)
 {
 #if CONFIG_ESP32P4_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
-        i_impl_func = dl_esp32p4_s8_resize_nearest_2x2_c1;
+        impl_func = dl_esp32p4_s8_resize_nearest_2x2_c1;
     } else {
-        i_impl_func = dl_esp32p4_s8_unaligned_resize_nearest_2x2_c1;
+        impl_func = dl_esp32p4_s8_unaligned_resize_nearest_2x2_c1;
     }
 #elif CONFIG_TIE728_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
-        i_impl_func = dl_tie728_s8_resize_nearest_2x2_c1;
+        impl_func = dl_tie728_s8_resize_nearest_2x2_c1;
     } else {
-        i_impl_func = dl_tie728_s8_unaligned_resize_nearest_2x2_c1;
+        impl_func = dl_tie728_s8_unaligned_resize_nearest_2x2_c1;
     }
 #else
-    c_impl_func = resize_nearest_2x2_c1<int8_t>;
+    impl_func = resize_nearest_2x2_c1<int8_t>;
 #endif
 }
 
-inline void load_resize_nearest_c1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
-                                      resize_c_impl_func_s8_t &c_impl_func,
-                                      const resizeArgsType<int8_t> &args)
+inline void load_resize_nearest_c1_s8(ImplFunc_t<int8_t, int8_t> &impl_func, const resizeArgsType<int8_t> &args)
 {
 #if CONFIG_ESP32P4_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
-        i_impl_func = dl_esp32p4_s8_resize_nearest_c1;
+        impl_func = dl_esp32p4_s8_resize_nearest_c1;
     } else {
-        i_impl_func = dl_esp32p4_s8_unaligned_resize_nearest_c1;
+        impl_func = dl_esp32p4_s8_unaligned_resize_nearest_c1;
     }
 #elif CONFIG_TIE728_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
-        i_impl_func = dl_tie728_s8_resize_nearest_c1;
+        impl_func = dl_tie728_s8_resize_nearest_c1;
     } else {
-        i_impl_func = dl_tie728_s8_unaligned_resize_nearest_c1;
+        impl_func = dl_tie728_s8_unaligned_resize_nearest_c1;
     }
 #else
-    c_impl_func = resize_nearest_c1<int8_t>;
+    impl_func = resize_nearest_c1<int8_t>;
 #endif
 }
 
@@ -119,150 +119,160 @@ template <typename feature_t>
 inline void resize_linear_c1(const resizeArgsType<feature_t> &args)
 {
     int in_x, in_y;
-    int prev_in_y = -2;
     float x_ratio_0, x_ratio_1, y_ratio_0, y_ratio_1;
     float input_scale = DL_SCALE(args.input_exponent);
     float output_inv_scale = DL_RESCALE(args.output_exponent);
-    int *in_xp = reinterpret_cast<int *>(args.cache);
-    float *ratio = args.cache + args.output_width;
-    float *rows0 = args.cache + args.output_width + args.output_width * 2;
-    float *rows1 = rows0 + args.output_width * args.input_channel;
 
-    // Cache the calculation results of the width in advance to avoid repeated calculations.
-    linear_coeffs(args.output_width, args.input_width, in_xp, ratio, args.scale_w_inv, args.align_corners);
+    if (args.dims == 3) {
+        // 1d linear resize
+        int prev_in_x = -2;
+        float *cols0 = args.cache;
+        float *cols1 = cols0 + args.input_channel;
 
-    for (int y = 0; y < args.output_height; y++) {
-        linear_coeffs(y, in_y, y_ratio_0, y_ratio_1, args.input_height, args.scale_h_inv, args.align_corners);
+        for (int x = 0; x < args.output_width; x++) {
+            linear_coeffs(x, in_x, x_ratio_0, x_ratio_1, args.input_width, args.scale_w_inv, args.align_corners);
 
-        if (in_y == prev_in_y) {
-            // reuse all rows
-        } else if (in_y == prev_in_y + 1) {
-            // hresize one row
-            float *rows0_use = rows0;
-            rows0 = rows1;
-            rows1 = rows0_use;
+            if (in_x == prev_in_x) {
+                // reuse all cols
+            } else if (in_x == prev_in_x + 1) {
+                // wresize one col
+                float *cols0_use = cols0;
+                cols0 = cols1;
+                cols1 = cols0_use;
 
-            feature_t *input_y1 = args.input_element + (in_y + 1) * args.input_width * args.input_channel;
-            for (int x = 0; x < args.output_width; x++) {
-                in_x = in_xp[x];
-                x_ratio_0 = ratio[x * 2];
-                x_ratio_1 = ratio[x * 2 + 1];
-                feature_t *input_x0_y1 = input_y1 + in_x * args.input_channel;
-                feature_t *input_x1_y1 = input_y1 + (in_x + 1) * args.input_channel;
-                float *rows1_tmp = rows1 + x * args.input_channel;
+                feature_t *input_x1 = args.input_element + (in_x + 1) * args.input_channel;
+                for (int c = 0; c < args.input_channel; c++) {
+                    cols1[c] = dequantize(input_x1[c], input_scale);
+                }
+            } else {
+                // wresize two cols
+                feature_t *input_x0 = args.input_element + in_x * args.input_channel;
+                feature_t *input_x1 = args.input_element + (in_x + 1) * args.input_channel;
 
                 for (int c = 0; c < args.input_channel; c++) {
-                    rows1_tmp[c] = dequantize(input_x0_y1[c], input_scale) * x_ratio_0 +
-                        dequantize(input_x1_y1[c], input_scale) * x_ratio_1;
+                    cols0[c] = dequantize(input_x0[c], input_scale);
+                    cols1[c] = dequantize(input_x1[c], input_scale);
                 }
             }
-        } else {
-            // hresize two rows
-            feature_t *input_y0 = args.input_element + in_y * args.input_width * args.input_channel;
-            feature_t *input_y1 = args.input_element + (in_y + 1) * args.input_width * args.input_channel;
-            for (int x = 0; x < args.output_width; x++) {
-                in_x = in_xp[x];
-                x_ratio_0 = ratio[x * 2];
-                x_ratio_1 = ratio[x * 2 + 1];
-                feature_t *input_x0_y0 = input_y0 + in_x * args.input_channel;
-                feature_t *input_x1_y0 = input_y0 + (in_x + 1) * args.input_channel;
-                feature_t *input_x0_y1 = input_y1 + in_x * args.input_channel;
-                feature_t *input_x1_y1 = input_y1 + (in_x + 1) * args.input_channel;
-                float *rows0_tmp = rows0 + x * args.input_channel;
-                float *rows1_tmp = rows1 + x * args.input_channel;
+            prev_in_x = in_x;
 
-                for (int c = 0; c < args.input_channel; c++) {
-                    rows0_tmp[c] = dequantize(input_x0_y0[c], input_scale) * x_ratio_0 +
-                        dequantize(input_x1_y0[c], input_scale) * x_ratio_1;
-                    rows1_tmp[c] = dequantize(input_x0_y1[c], input_scale) * x_ratio_0 +
-                        dequantize(input_x1_y1[c], input_scale) * x_ratio_1;
-                }
+            feature_t *output_x = args.output_element + x * args.input_channel;
+            for (int c = 0; c < args.input_channel; c++) {
+                output_x[c] = quantize<feature_t>(cols0[c] * x_ratio_0 + cols1[c] * x_ratio_1, output_inv_scale);
             }
         }
-        prev_in_y = in_y;
+    } else if (args.dims == 4) {
+        // 2d linear resize
+        int prev_in_y = -2;
+        int *in_xp = reinterpret_cast<int *>(args.cache);
+        float *ratio = args.cache + args.output_width;
+        float *rows0 = args.cache + args.output_width + args.output_width * 2;
+        float *rows1 = rows0 + args.output_width * args.input_channel;
+        // Cache the calculation results of the width in advance to avoid repeated calculations.
+        linear_coeffs(args.output_width, args.input_width, in_xp, ratio, args.scale_w_inv, args.align_corners);
 
-        feature_t *output_y = args.output_element + y * args.output_width * args.input_channel;
-        for (int x = 0; x < args.output_width; x++) {
-            feature_t *output_x_y = output_y + x * args.input_channel;
-            float *rows0_tmp = rows0 + x * args.input_channel;
-            float *rows1_tmp = rows1 + x * args.input_channel;
-            for (int c = 0; c < args.input_channel; c++) {
-                output_x_y[c] =
-                    quantize<feature_t>(rows0_tmp[c] * y_ratio_0 + rows1_tmp[c] * y_ratio_1, output_inv_scale);
+        for (int y = 0; y < args.output_height; y++) {
+            linear_coeffs(y, in_y, y_ratio_0, y_ratio_1, args.input_height, args.scale_h_inv, args.align_corners);
+
+            if (in_y == prev_in_y) {
+                // reuse all rows
+            } else if (in_y == prev_in_y + 1) {
+                // hresize one row
+                float *rows0_use = rows0;
+                rows0 = rows1;
+                rows1 = rows0_use;
+
+                feature_t *input_y1 = args.input_element + (in_y + 1) * args.input_width * args.input_channel;
+                for (int x = 0; x < args.output_width; x++) {
+                    in_x = in_xp[x];
+                    x_ratio_0 = ratio[x * 2];
+                    x_ratio_1 = ratio[x * 2 + 1];
+                    feature_t *input_x0_y1 = input_y1 + in_x * args.input_channel;
+                    feature_t *input_x1_y1 = input_y1 + (in_x + 1) * args.input_channel;
+                    float *rows1_tmp = rows1 + x * args.input_channel;
+
+                    for (int c = 0; c < args.input_channel; c++) {
+                        rows1_tmp[c] = dequantize(input_x0_y1[c], input_scale) * x_ratio_0 +
+                            dequantize(input_x1_y1[c], input_scale) * x_ratio_1;
+                    }
+                }
+            } else {
+                // hresize two rows
+                feature_t *input_y0 = args.input_element + in_y * args.input_width * args.input_channel;
+                feature_t *input_y1 = args.input_element + (in_y + 1) * args.input_width * args.input_channel;
+                for (int x = 0; x < args.output_width; x++) {
+                    in_x = in_xp[x];
+                    x_ratio_0 = ratio[x * 2];
+                    x_ratio_1 = ratio[x * 2 + 1];
+                    feature_t *input_x0_y0 = input_y0 + in_x * args.input_channel;
+                    feature_t *input_x1_y0 = input_y0 + (in_x + 1) * args.input_channel;
+                    feature_t *input_x0_y1 = input_y1 + in_x * args.input_channel;
+                    feature_t *input_x1_y1 = input_y1 + (in_x + 1) * args.input_channel;
+                    float *rows0_tmp = rows0 + x * args.input_channel;
+                    float *rows1_tmp = rows1 + x * args.input_channel;
+
+                    for (int c = 0; c < args.input_channel; c++) {
+                        rows0_tmp[c] = dequantize(input_x0_y0[c], input_scale) * x_ratio_0 +
+                            dequantize(input_x1_y0[c], input_scale) * x_ratio_1;
+                        rows1_tmp[c] = dequantize(input_x0_y1[c], input_scale) * x_ratio_0 +
+                            dequantize(input_x1_y1[c], input_scale) * x_ratio_1;
+                    }
+                }
+            }
+            prev_in_y = in_y;
+
+            feature_t *output_y = args.output_element + y * args.output_width * args.input_channel;
+            for (int x = 0; x < args.output_width; x++) {
+                feature_t *output_x_y = output_y + x * args.input_channel;
+                float *rows0_tmp = rows0 + x * args.input_channel;
+                float *rows1_tmp = rows1 + x * args.input_channel;
+                for (int c = 0; c < args.input_channel; c++) {
+                    output_x_y[c] =
+                        quantize<feature_t>(rows0_tmp[c] * y_ratio_0 + rows1_tmp[c] * y_ratio_1, output_inv_scale);
+                }
             }
         }
     }
 }
 
 template <typename feature_t>
-void resize_operation_shell(const resizeArgsType<feature_t> &args,
-                            ImplFunc_t<feature_t, feature_t> resize_i_impl_func,
-                            void (*resize_c_impl_func)(feature_t *, feature_t *, const resizeArgsType<feature_t> &))
+void resize_operation_shell(const resizeArgsType<feature_t> &args, ImplFunc_t<feature_t, feature_t> resize_impl_func)
 {
     feature_t *input_ptr = args.input_element;
     feature_t *output_ptr = args.output_element;
 
-    // Linear does not support instruction acceleration.
-    if (resize_i_impl_func) {
-        if (args.resize_mode == RESIZE_NEAREST) {
-            if (args.scale_h == 2 && args.scale_w == 2) {
-                for (int i = 0; i < args.input_height; i++) {
-                    for (int j = 0; j < args.input_width; j++) {
-                        resize_i_impl_func(output_ptr, input_ptr, (void *const)&args);
-                        input_ptr += args.input_channel;
-                        output_ptr += args.input_channel * 2;
-                    }
-                    output_ptr += args.input_channel * 2 * args.input_width;
+    if (args.resize_mode == RESIZE_NEAREST) {
+        if (args.scale_h == 2 && args.scale_w == 2) {
+            for (int i = 0; i < args.input_height; i++) {
+                for (int j = 0; j < args.input_width; j++) {
+                    resize_impl_func(output_ptr, input_ptr, (void *)(&args));
+                    input_ptr += args.input_channel;
+                    output_ptr += args.input_channel * 2;
                 }
-            } else {
-                float scale_h_inv = args.scale_h_inv;
-                float scale_w_inv = args.scale_w_inv;
-                // Aligned with PyTorch, the `coordinate_transformation_mode` of `nearest` is "asymmetric".
-                for (int y = 0; y < args.output_height; y++) {
-                    int in_y = std::min((int)(y * scale_h_inv), (args.input_height - 1));
-                    feature_t *input_y_ptr = input_ptr + in_y * args.input_width * args.input_channel;
-                    feature_t *out_y_ptr = output_ptr + y * args.output_width * args.input_channel;
+                output_ptr += args.input_channel * 2 * args.input_width;
+            }
+        } else {
+            // support 1d/2d nearest mode
+            float scale_h_inv = args.scale_h_inv;
+            float scale_w_inv = args.scale_w_inv;
+            // Aligned with PyTorch, the `coordinate_transformation_mode` of `nearest` is "asymmetric".
+            for (int y = 0; y < args.output_height; y++) {
+                int in_y = std::min((int)(y * scale_h_inv), (args.input_height - 1));
+                feature_t *input_y_ptr = input_ptr + in_y * args.input_width * args.input_channel;
+                feature_t *out_y_ptr = output_ptr + y * args.output_width * args.input_channel;
 
-                    for (int x = 0; x < args.output_width; x++) {
-                        int in_x = std::min((int)(x * scale_w_inv), (args.input_width - 1));
-                        resize_i_impl_func(out_y_ptr + x * args.input_channel,
-                                           input_y_ptr + in_x * args.input_channel,
-                                           (void *const)&args);
-                    }
+                for (int x = 0; x < args.output_width; x++) {
+                    int in_x = std::min((int)(x * scale_w_inv), (args.input_width - 1));
+                    resize_impl_func(
+                        out_y_ptr + x * args.input_channel, input_y_ptr + in_x * args.input_channel, (void *)(&args));
                 }
             }
         }
-    } else // run c_impl_func
-    {
-        if (args.resize_mode == RESIZE_NEAREST) {
-            if (args.scale_h == 2 && args.scale_w == 2) {
-                for (int i = 0; i < args.input_height; i++) {
-                    for (int j = 0; j < args.input_width; j++) {
-                        resize_c_impl_func(output_ptr, input_ptr, args);
-                        input_ptr += args.input_channel;
-                        output_ptr += args.input_channel * 2;
-                    }
-                    output_ptr += args.input_channel * 2 * args.input_width;
-                }
-            } else {
-                float scale_h_inv = args.scale_h_inv;
-                float scale_w_inv = args.scale_w_inv;
-                // Aligned with PyTorch, the `coordinate_transformation_mode` of `nearest` is "asymmetric".
-                for (int y = 0; y < args.output_height; y++) {
-                    int in_y = std::min((int)(y * scale_h_inv), (args.input_height - 1));
-                    feature_t *input_y_ptr = input_ptr + in_y * args.input_width * args.input_channel;
-                    feature_t *out_y_ptr = output_ptr + y * args.output_width * args.input_channel;
-
-                    for (int x = 0; x < args.output_width; x++) {
-                        int in_x = std::min((int)(x * scale_w_inv), (args.input_width - 1));
-                        resize_c_impl_func(
-                            out_y_ptr + x * args.input_channel, input_y_ptr + in_x * args.input_channel, args);
-                    }
-                }
-            }
-        } else if (args.resize_mode == RESIZE_LINEAR) {
-            resize_linear_c1(args);
-        }
+    } else if (args.resize_mode == RESIZE_LINEAR) {
+        // Linear does not support instruction acceleration.
+        resize_linear_c1(args);
+    } else {
+        ESP_LOGE("resize", "Don't support this mode: %d.", args.resize_mode);
     }
 
     return;
@@ -272,16 +282,16 @@ template <>
 void resize<int8_t>(void *args_ptr)
 {
     const resizeArgsType<int8_t> &args = *((resizeArgsType<int8_t> *)args_ptr);
-    ImplFunc_t<int8_t, int8_t> i_impl_func;
-    resize_c_impl_func_s8_t c_impl_func = NULL;
+    ImplFunc_t<int8_t, int8_t> impl_func;
     if (args.resize_mode == RESIZE_NEAREST) {
         if (args.scale_h == 2 && args.scale_w == 2) {
-            load_resize_nearest_2x2_c1_s8(i_impl_func, c_impl_func, args);
+            load_resize_nearest_2x2_c1_s8(impl_func, args);
         } else {
-            load_resize_nearest_c1_s8(i_impl_func, c_impl_func, args);
+            // 3d or other 4d
+            load_resize_nearest_c1_s8(impl_func, args);
         }
     }
-    resize_operation_shell<int8_t>(args, i_impl_func, c_impl_func);
+    resize_operation_shell<int8_t>(args, impl_func);
 }
 
 template <>
@@ -290,10 +300,10 @@ void resize<int16_t>(void *args_ptr)
     // const resizeArgsType<int16_t> &args = *((resizeArgsType<int16_t> *)args_ptr);
     // if (args.resize_mode == RESIZE_NEAREST){
     //     if (args.scale_h == 2 && args.scale_w == 2){
-    //         ImplFunc_t<int16_t, int16_t> i_impl_func;
+    //         ImplFunc_t<int16_t, int16_t> impl_func;
     //         resize_c_impl_func_s16_t c_impl_func = NULL;
-    //         load_resize_nearest_2x2_c1_s16(i_impl_func, c_impl_func, args);
-    //         resize_operation_shell<int16_t>(args, i_impl_func, c_impl_func);
+    //         load_resize_nearest_2x2_c1_s16(impl_func, c_impl_func, args);
+    //         resize_operation_shell<int16_t>(args, impl_func, c_impl_func);
     //     }
     // }
 }

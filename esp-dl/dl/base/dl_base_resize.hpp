@@ -65,8 +65,14 @@ std::vector<resizeArgsType<feature_t>> get_resize_operation_args(TensorBase *out
     }
 
     if (!cache && args.resize_mode == RESIZE_LINEAR) {
-        // in_x coordinates + in_x ratio + x linear
-        int len = args.output_width + args.output_width * 2 + args.output_width * args.input_channel * 2;
+        int len = 0;
+        if (args.dims == 3) {
+            // in_x dequantize
+            len = args.input_channel * 2;
+        } else if (args.dims == 4) {
+            // in_x coordinates + in_x ratio + x linear
+            len = args.output_width + args.output_width * 2 + args.output_width * args.input_channel * 2;
+        }
         cache = static_cast<float *>(tool::calloc_aligned(16, len, sizeof(float), MALLOC_CAP_DEFAULT));
     }
     args.cache = cache;
