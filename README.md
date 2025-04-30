@@ -15,8 +15,8 @@ ESP-DL offers APIs to load, debug, and run AI models. The framework is easy to u
 - **8bit LUT Activation**: All activation functions except for ReLU and PReLU are implemented using an 8-bit LUT (Look Up Table) method in ESP-DL to accelerate inference. You can use any activation function, and their computational complexity remains the same.
 
 ## News
-
-- [2025/02/18] We supported yolo11n [espdl model](https://github.com/espressif/esp-dl/tree/master/models/coco_detect) and [example](https://github.com/espressif/esp-dl/tree/master/models/coco_detect).
+- [2025/04/30] We released a new [esp-detection](https://github.com/espressif/esp-detection)​​ project and the `​​ESPDet-Pico`​​ model, which can easily train and deploy object detection models. [espdet_pico_224_224_cat​​ espdl model](./models/cat_detect/) and [example](./examples/cat_detect/) is a cat detection model trained by ​esp-detection​​. Feel free to try it and share your feedback!   
+- [2025/02/18] We supported yolo11n [espdl model](https://github.com/espressif/esp-dl/tree/master/models/coco_detect) and [example](https://github.com/espressif/esp-dl/tree/master/examples/yolo11_detect).
 - [2025/01/09] We updated the schema of espdl model and released ESP-DL v3.1.0. Note: previous models can be load by new schema, but new model is not compatible with previous version. 
 - [2024/12/20] We released ESP-DL v3.0.0.
 
@@ -68,7 +68,7 @@ ESP-DL provides a series of API to quickly load and run models.  A typical examp
 [Human Face Recognition](./models/human_face_recognition/)     
 [Imagenet Classification (MobileNetV2)](./models/imagenet_cls/)    
 [COCO Detection (YOLO11n)](./models/coco_detect/)    
-
+[CAT Detection (​​ESPDet-Pico)](./models/cat_detect/) 
 
 ## Support Operators
 
