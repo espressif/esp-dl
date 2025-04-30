@@ -2,7 +2,7 @@
 
 dl_fft is a lightweight FFT library supporting both float32 and int16 data types.
 
-The float FFT implementation is come from esp-dsp. And we further optimized the int16 FFT to deliver enhanced precision and faster computation speeds.
+The FFT implementation is come from esp-dsp. And we further optimized the int16 FFT to achieving better precision.
 
 ### User Guide:
 ```

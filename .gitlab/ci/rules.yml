@@ -86,6 +86,10 @@
   - "tools/ops_test/gen_test_cases.py"
   - "tools/ops_test/ops_cases.py"
 
+.patterns-test_dl_fft: &patterns-test_dl_fft
+  - "tools/dl_fft/**/*"
+
+
 ##############
 # if anchors #
 ##############
@@ -244,6 +248,13 @@
       changes: *patterns-example_model_in_sdcard
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
+
+.rules:build:test_dl_fft:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-test_dl_fft
 
 .rules:pre_check:readme:
   rules:
