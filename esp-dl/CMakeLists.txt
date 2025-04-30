@@ -48,7 +48,7 @@ elseif(CONFIG_IDF_TARGET_ESP32P4)
 endif()
 
 set(requires        esp_mm
-                    esp_jpeg
+                    esp_new_jpeg
                     esp_driver_jpeg
                     esp_driver_ppa
                     esp_partition

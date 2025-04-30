@@ -71,8 +71,8 @@ typedef struct {
 
 typedef struct {
     void *data;
-    int width;
-    int height;
+    uint16_t width;
+    uint16_t height;
     pix_type_t pix_type;
 } img_t;
 
@@ -113,10 +113,8 @@ inline int get_img_channel(const img_t &img)
 }
 
 typedef struct {
-    uint8_t *data;
-    int width;
-    int height;
-    uint32_t data_size;
+    void *data;
+    size_t data_len;
 } jpeg_img_t;
 
 typedef enum {

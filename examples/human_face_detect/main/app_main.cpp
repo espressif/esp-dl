@@ -12,13 +12,9 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(bsp_sdcard_mount());
 #endif
 
-    dl::image::jpeg_img_t jpeg_img = {.data = (uint8_t *)human_face_jpg_start,
-                                      .width = 320,
-                                      .height = 240,
-                                      .data_size = (uint32_t)(human_face_jpg_end - human_face_jpg_start)};
-    dl::image::img_t img;
-    img.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
-    sw_decode_jpeg(jpeg_img, img, true);
+    dl::image::jpeg_img_t jpeg_img = {.data = (void *)human_face_jpg_start,
+                                      .data_len = (size_t)(human_face_jpg_end - human_face_jpg_start)};
+    auto img = sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     HumanFaceDetect *detect = new HumanFaceDetect();
 

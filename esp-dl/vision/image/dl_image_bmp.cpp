@@ -212,16 +212,15 @@ esp_err_t write_bmp(const img_t &img, const char *file_name, uint32_t caps)
         ESP_LOGE(TAG, "Do not support quant img type.");
         return ESP_FAIL;
     }
-    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565) {
-        img_t img_converted = {.data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_SPIRAM),
-                               .width = 0,
-                               .height = 0,
-                               .pix_type = DL_IMAGE_PIX_TYPE_RGB888};
+    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 ||
+        (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP))) {
+        img_t img_converted;
+        img_converted.data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
+        img_converted.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
         convert_img(img, img_converted, caps);
-        return write_rgb888_or_gray_bmp(img_converted, file_name);
-    }
-    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP)) {
-        convert_img(img, const_cast<img_t &>(img), caps);
+        esp_err_t ret = write_rgb888_or_gray_bmp(img_converted, file_name);
+        heap_caps_free(img_converted.data);
+        return ret;
     }
     return write_rgb888_or_gray_bmp(img, file_name);
 }
