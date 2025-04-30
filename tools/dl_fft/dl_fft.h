@@ -6,29 +6,6 @@
 extern "C" {
 #endif
 
-// typedef struct {
-//     int fft_point;
-//     int log2n;
-//     float *fftr2_table;
-//     float *rfft_table;
-// } dl_fft_f32_t;
-
-// typedef struct {
-//     int fft_point;
-//     int log2n;
-//     int16_t *fftr2_table;
-//     int16_t *rfft_table;
-// } dl_fft_s16_t;
-
-// dl_fft_f32_t *dl_fft_f32_init(int fft_point, uint32_t caps);
-// void dl_fft_f32_deinit(dl_fft_f32_t *handle);
-// esp_err_t dl_fft_f32_run(dl_fft_f32_t *handle, float *data);
-
-// dl_fft_s16_t *dl_fft_s16_init(int fft_point, uint32_t caps);
-// void dl_fft_s16_deinit(dl_fft_s16_t *handle);
-// esp_err_t dl_fft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int* out_exponent);
-// esp_err_t dl_fft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
-
 /**
  * @brief Single-precision floating-point FFT instance structure
  * @param fft_point  Number of FFT points

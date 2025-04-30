@@ -2,11 +2,8 @@
 #include "dl_rfft.h"
 #include "test_fft.h"
 
-
 static const char *TAG = "TEST DL AUDIO";
 static int LOOP = 10;
-
-
 
 TEST_CASE("Test dl fft", "[dl_fft]")
 {

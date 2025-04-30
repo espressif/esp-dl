@@ -1,16 +1,16 @@
 #pragma once
 
 #include "rfft_test_1024.h"
+#include "rfft_test_128.h"
 #include "rfft_test_2048.h"
 #include "rfft_test_256.h"
 #include "rfft_test_512.h"
-#include "rfft_test_128.h"
 
 #include "fft_test_1024.h"
+#include "fft_test_128.h"
 #include "fft_test_2048.h"
 #include "fft_test_256.h"
 #include "fft_test_512.h"
-#include "fft_test_128.h"
 
 #include "esp_heap_caps.h"
 #include "esp_timer.h"

@@ -1,8 +1,8 @@
 
-#include "kiss_fft.h"
-#include "kiss_fftr.h"
 #include "dl_fft.h"
 #include "dl_rfft.h"
+#include "kiss_fft.h"
+#include "kiss_fftr.h"
 #include "test_fft.h"
 
 static const char *TAG = "TEST DL AUDIO";
@@ -22,25 +22,25 @@ TEST_CASE("Test dl kiss fft s16", "[kiss_fft]")
         int nfft = test_nfft[i];
         printf("test rfft(%d) float: ", nfft);
         int16_t *x1 = (int16_t *)heap_caps_aligned_alloc(16, nfft * sizeof(int16_t), MALLOC_CAP_8BIT);
-        int16_t *x2 = (int16_t *)heap_caps_aligned_alloc(16, (nfft+2) * sizeof(int16_t), MALLOC_CAP_8BIT);
+        int16_t *x2 = (int16_t *)heap_caps_aligned_alloc(16, (nfft + 2) * sizeof(int16_t), MALLOC_CAP_8BIT);
         float *y = (float *)malloc((nfft + 2) * sizeof(float));
         float *gt = (float *)malloc(sizeof(float) * nfft);
         memcpy(x1, input[i], nfft * sizeof(int16_t));
         memcpy(gt, output[i], nfft * sizeof(float));
         gt[1] = output[i][nfft];
-        for (int j=0; j<nfft; j++) {
+        for (int j = 0; j < nfft; j++) {
             x1[j] = x1[j] * 2;
         }
         kiss_fftr_cfg fft_handle = kiss_fftr_alloc(nfft, 0, 0, 0);
         kiss_fftr(fft_handle, x1, (kiss_fft_cpx *)x2);
-        dl_short_to_float(x2, nfft+2, -16+i+7, y);
+        dl_short_to_float(x2, nfft + 2, -16 + i + 7, y);
         y[1] = y[nfft];
         TEST_ASSERT_EQUAL(true, check_fft_results(y, gt, nfft, target_db, 3e-2));
 
         start = esp_timer_get_time();
         for (int k = 0; k < LOOP; k++) {
             dl_get_fft_shift_s16(x1, nfft);
-            for (int j=0; j<nfft; j++) {
+            for (int j = 0; j < nfft; j++) {
                 x1[j] = x1[j] * 2;
             }
             kiss_fftr(fft_handle, x1, (kiss_fft_cpx *)x2);
