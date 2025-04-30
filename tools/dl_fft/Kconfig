@@ -1,0 +1,15 @@
+menu "DL_FFT Library"
+
+
+choice DL_FFT_KISS_FFT_SUPPORTED
+    prompt "Whether to support kiss fft"
+    default DL_FFT_WITHOUT_KISS_FFT
+
+    config DL_FFT_WITHOUT_KISS_FFT
+        bool "do not support kiss fft"
+
+    config DL_FFT_WITH_KISS_FFT
+        bool "support kiss fft"
+endchoice
+
+endmenu
