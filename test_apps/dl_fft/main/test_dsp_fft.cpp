@@ -60,7 +60,7 @@ TEST_CASE("Test dsp real rfft", "[dsp_fft]")
         memcpy(gt, output[i], nfft * sizeof(float));
         gt[1] = output[i][nfft];
 
-        if (dsp_power_of_two(nfft) % 2 == 1) {
+        if (dl_power_of_two(nfft) % 2 == 1) {
             dsps_fft4r_fc32(x, nfft >> 1);
             // Bit reverse
             dsps_bit_rev4r_fc32(x, nfft >> 1);
