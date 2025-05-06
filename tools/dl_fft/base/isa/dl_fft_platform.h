@@ -4,6 +4,7 @@
 extern "C" {
 #endif
 
+
 #if CONFIG_IDF_TARGET_ESP32
 void dl_fft2r_fc32_ae32_(float *data, int N, float *table);
 void dl_fft4r_fc32_ae32_(float *data, int N, float *table, int table_size);

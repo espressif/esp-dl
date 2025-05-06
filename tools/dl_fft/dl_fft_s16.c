@@ -8,7 +8,7 @@ static const char *TAG = "dl fft";
 // Create a new FFT handle
 dl_fft_s16_t *dl_fft_s16_init(int fft_point, uint32_t caps)
 {
-    if (!dsp_is_power_of_two(fft_point)) {
+    if (!dl_is_power_of_two(fft_point)) {
         ESP_LOGE(TAG, "FFT point must be power of two");
         return NULL;
     }
@@ -54,7 +54,7 @@ esp_err_t dl_fft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, i
 
     int fft_point = handle->fft_point;
     dl_fft2r_sc16(data, fft_point, handle->fftr2_table);
-    dl_bit_rev_sc16_ansi(data, fft_point);
+    dl_bitrev2r_sc16_ansi(data, fft_point);
     out_exponent[0] = in_exponent + handle->log2n;
 
     return ESP_OK;
@@ -69,7 +69,7 @@ esp_err_t dl_fft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent
     int fft_point = handle->fft_point;
     out_exponent[0] = 0;
     dl_fft2r_sc16_hp(data, fft_point, handle->fftr2_table, out_exponent);
-    dl_bit_rev_sc16_ansi(data, fft_point);
+    dl_bitrev2r_sc16_ansi(data, fft_point);
     out_exponent[0] = in_exponent + out_exponent[0];
 
     return ESP_OK;

@@ -13,15 +13,7 @@
 // limitations under the License.
 
 #include "dl_fft_base.h"
-#include "dsp_types.h"
-#include "dsps_fft2r.h"
-#include "esp_attr.h"
-#include "esp_log.h"
-#include <malloc.h>
-#include <math.h>
-#include <string.h>
 
-static const char *TAG = "fftr2_ansi";
 
 // unsigned short reverse(unsigned short x, unsigned short N, int order);
 
@@ -55,42 +47,48 @@ esp_err_t dl_fft2r_fc32_ansi(float *data, int N, float *w)
     return result;
 }
 
-// unsigned short reverse(unsigned short x, unsigned short N, int order)
-// {
-//     unsigned short b = x;
-
-//     b = (b & 0xff00) >> 8 | (b & 0x00fF) << 8;
-//     b = (b & 0xf0F0) >> 4 | (b & 0x0f0F) << 4;
-//     b = (b & 0xCCCC) >> 2 | (b & 0x3333) << 2;
-//     b = (b & 0xAAAA) >> 1 | (b & 0x5555) << 1;
-//     return b >> (16 - order);
-// }
-
-esp_err_t dl_bit_rev_fc32_ansi(float *data, int N)
+esp_err_t dl_bitrev2r_fc32_ansi(float *data, int N, uint16_t *reverse_tab, int reverse_size)
 {
     esp_err_t result = ESP_OK;
 
-    int j, k;
-    float r_temp, i_temp;
-    j = 0;
-    for (int i = 1; i < (N - 1); i++) {
-        k = N >> 1;
-        while (k <= j) {
-            j -= k;
-            k >>= 1;
+    if (reverse_tab) {
+        float r_temp, i_temp;
+        for (int n = 0; n < reverse_size; n++) {
+            uint16_t i = reverse_tab[n * 2];
+            uint16_t j = reverse_tab[n * 2 + 1];
+            r_temp = data[j];
+            data[j] = data[i];
+            data[i] = r_temp;
+            i_temp = data[j + 1];
+            data[j + 1] = data[i + 1];
+            data[i + 1] = i_temp;
         }
-        j += k;
-        if (i < j) {
-            r_temp = data[j * 2];
-            data[j * 2] = data[i * 2];
-            data[i * 2] = r_temp;
-            i_temp = data[j * 2 + 1];
-            data[j * 2 + 1] = data[i * 2 + 1];
-            data[i * 2 + 1] = i_temp;
+    } else {
+        int j, k;
+        float r_temp, i_temp;
+        j = 0;
+        for (int i = 1; i < (N - 1); i++) {
+            k = N >> 1;
+            while (k <= j) {
+                j -= k;
+                k >>= 1;
+            }
+            j += k;
+            if (i < j) {
+                r_temp = data[j * 2];
+                data[j * 2] = data[i * 2];
+                data[i * 2] = r_temp;
+                i_temp = data[j * 2 + 1];
+                data[j * 2 + 1] = data[i * 2 + 1];
+                data[i * 2 + 1] = i_temp;
+            }
         }
     }
+
+ 
     return result;
 }
+
 
 esp_err_t dl_cplx2reC_fc32_ansi(float *data, int N)
 {
@@ -138,16 +136,11 @@ esp_err_t dl_cplx2reC_fc32_ansi(float *data, int N)
     return result;
 }
 
-esp_err_t dl_gen_bitrev2r_table(int N, int step, char *name_ext)
-{
-    if (!dsp_is_power_of_two(N)) {
-        return ESP_ERR_DSP_INVALID_LENGTH;
-    }
 
-    int j, k;
-    j = 0;
-    int items_count = 0;
-    ESP_LOGD(TAG, "const uint16_t bitrev2r_table_%i_%s[] = {        ", N, name_ext);
+uint16_t* dl_gen_bitrev2r_table(int N, uint32_t caps, int *reverse_size)
+{
+    int count = 0, idx = 0;
+    int j = 0, k;
     for (int i = 1; i < (N - 1); i++) {
         k = N >> 1;
         while (k <= j) {
@@ -156,84 +149,33 @@ esp_err_t dl_gen_bitrev2r_table(int N, int step, char *name_ext)
         }
         j += k;
         if (i < j) {
-            ESP_LOGD(TAG, "%i, %i, ", i * step, j * step);
-            items_count++;
-            if ((items_count % 8) == 0) {
-                ESP_LOGD(TAG, " ");
+            count ++;
+        }
+    }
+    if (count*2 > UINT16_MAX) {
+        return NULL;
+    }
+    reverse_size[0] = count;
+    uint16_t *reverse_tab = (uint16_t *)heap_caps_malloc(2 * count * sizeof(uint16_t), caps);
+
+    if (reverse_tab) {
+        j=0;
+        for (int i = 1; i < (N - 1); i++) {
+            k = N >> 1;
+            while (k <= j) {
+                j -= k;
+                k >>= 1;
+            }
+            j += k;
+            if (i < j) {
+                reverse_tab[idx*2] = j*2;
+                reverse_tab[idx*2+1] = i*2;
+                idx++;
             }
         }
     }
-    ESP_LOGD(TAG, "};");
-    ESP_LOGD(TAG, "const uint16_t bitrev2r_table_%i_%s_size = %i;\n", N, name_ext, items_count);
 
-    ESP_LOGD(TAG, "extern const uint16_t bitrev2r_table_%i_%s[];", N, name_ext);
-    ESP_LOGD(TAG, "extern const uint16_t bitrev2r_table_%i_%s_size;\n", N, name_ext);
-    return ESP_OK;
-}
-
-esp_err_t dl_bit_rev2r_fc32(float *data, int N)
-{
-    uint16_t *table;
-    uint16_t table_size;
-    switch (N) {
-    case 16:
-        table = (uint16_t *)dsps_fft2r_rev_tables_fc32[0];
-        table_size = dsps_fft2r_rev_tables_fc32_size[0];
-        break;
-    case 32:
-        table = (uint16_t *)dsps_fft2r_rev_tables_fc32[1];
-        table_size = dsps_fft2r_rev_tables_fc32_size[1];
-        break;
-    case 64:
-        table = (uint16_t *)dsps_fft2r_rev_tables_fc32[2];
-        table_size = dsps_fft2r_rev_tables_fc32_size[2];
-        break;
-    case 128:
-        table = (uint16_t *)dsps_fft2r_rev_tables_fc32[3];
-        table_size = dsps_fft2r_rev_tables_fc32_size[3];
-        break;
-    case 256:
-        table = (uint16_t *)dsps_fft2r_rev_tables_fc32[4];
-        table_size = dsps_fft2r_rev_tables_fc32_size[4];
-        break;
-    case 512:
-        table = (uint16_t *)dsps_fft2r_rev_tables_fc32[5];
-        table_size = dsps_fft2r_rev_tables_fc32_size[5];
-        break;
-    case 1024:
-        table = (uint16_t *)dsps_fft2r_rev_tables_fc32[6];
-        table_size = dsps_fft2r_rev_tables_fc32_size[6];
-        break;
-    case 2048:
-        table = (uint16_t *)dsps_fft2r_rev_tables_fc32[7];
-        table_size = dsps_fft2r_rev_tables_fc32_size[7];
-        break;
-    case 4096:
-        table = (uint16_t *)dsps_fft2r_rev_tables_fc32[8];
-        table_size = dsps_fft2r_rev_tables_fc32_size[8];
-        break;
-
-    default:
-        return dl_bit_rev_fc32_ansi(data, N);
-        break;
-    }
-    return dl_bit_rev_lookup_fc32_ansi(data, table_size, table);
-}
-
-esp_err_t dl_bit_rev_lookup_fc32_ansi(float *data, int reverse_size, uint16_t *reverse_tab)
-{
-    float r_temp, i_temp;
-    for (int n = 0; n < reverse_size; n++) {
-        uint16_t i = reverse_tab[n * 2 + 0] >> 2;
-        uint16_t j = reverse_tab[n * 2 + 1] >> 2;
-        r_temp = data[j];
-        data[j] = data[i];
-        data[i] = r_temp;
-        i_temp = data[j + 1];
-        data[j + 1] = data[i + 1];
-        data[i + 1] = i_temp;
-    }
-    return ESP_OK;
+    return reverse_tab;
 }
 
 float *dl_gen_fftr2_table_f32(int fft_point, uint32_t caps)
@@ -248,7 +190,7 @@ float *dl_gen_fftr2_table_f32(int fft_point, uint32_t caps)
             fft_table[2 * i + 1] = sinf(i * e);
         }
 
-        dl_bit_rev_fc32_ansi(fft_table, fft_point >> 1);
+        dl_bitrev2r_fc32_ansi(fft_table, fft_point >> 1, NULL, 0);
     }
 
     return fft_table;

@@ -5,7 +5,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "dl_fft_platform.h"
 
 	.text
 	.align  4

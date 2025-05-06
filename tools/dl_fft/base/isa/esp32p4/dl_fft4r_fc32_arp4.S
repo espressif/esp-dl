@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "dl_fft_platform.h"
-
         .text
         .align  4
         .global dl_fft4r_fc32_arp4_

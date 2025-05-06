@@ -1,8 +1,5 @@
 #include "dl_fft_base.h"
-#include "dsp_common.h"
-#include "dsp_types.h"
-#include "esp_attr.h"
-#include <math.h>
+
 
 static inline int16_t xtfixed_bf_1(
     int16_t a0, int16_t a1, int16_t a2, int16_t a3, int16_t a4, int result_shift, int add_rount_mult)
@@ -234,7 +231,7 @@ static inline unsigned short reverse_sc16(unsigned short x, unsigned short N, in
     return b >> (16 - order);
 }
 
-esp_err_t dl_bit_rev_sc16_ansi(int16_t *data, int N)
+esp_err_t dl_bitrev2r_sc16_ansi(int16_t *data, int N)
 {
     esp_err_t result = ESP_OK;
 
@@ -391,7 +388,7 @@ int16_t *dl_gen_fftr2_table_sc16(int fft_point, uint32_t caps)
             fft_table[2 * i] = (int16_t)roundf(INT16_MAX * cosf(i * e));
             fft_table[2 * i + 1] = (int16_t)roundf(INT16_MAX * sinf(i * e));
         }
-        dl_bit_rev_sc16_ansi(fft_table, fft_point >> 1);
+        dl_bitrev2r_sc16_ansi(fft_table, fft_point >> 1);
     }
 
     return fft_table;

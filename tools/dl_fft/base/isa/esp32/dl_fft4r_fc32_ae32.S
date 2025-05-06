@@ -5,12 +5,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "dl_fft_platform.h"
 
-	.section .text
-	.global dl_fft4r_fc32_aes3_
+
+	.section .text # placed in IRAM instead of FLASH .text
 	.global dl_fft4r_fc32_ae32_
-	.type   dl_fft4r_fc32_aes3_,@function
 	.type   dl_fft4r_fc32_ae32_,@function
 
 // The function implements the following C code:
@@ -20,7 +18,7 @@
 //         return ESP_ERR_DSP_UNINITIALIZED;
 //     }
 //
-//     uint log2N = dsp_power_of_two(length);
+//     uint log2N = dl_power_of_two(length);
 //     if ((log2N & 0x01) != 0) {
 //         return ESP_ERR_DSP_INVALID_LENGTH;
 //     }
@@ -89,23 +87,34 @@
 //     return ESP_OK;
 // }
 
-// esp_err_t dl_fft4r_fc32_aes3_(data, N, dl_fft4r_w_table_fc32, dl_fft4r_w_table_size)
+// esp_err_t dl_fft4r_fc32_ae32_(data, N, dl_fft4r_w_table_fc32, dl_fft4r_w_table_size)
+
+//.ret_DSP_INVALID_LENGTH:
+//	movi.n   a2, ESP_ERR_DSP_INVALID_LENGTH
+//	retw.n
 
 	.align  4
-dl_fft4r_fc32_ae32_:		// this is added to make compatibility with libraries that already compiled and use ae32_ function.
-dl_fft4r_fc32_aes3_:
+dl_fft4r_fc32_ae32_:
 
 	entry   a1, 16        # no auto vars on stack
 
-	nsau    a6, a3        # inline dsp_power_of_two(N)
+//	bltui   a3, 4, .ret_DSP_INVALID_LENGTH # if N < 4 : return(ESP_ERR_DSP_INVALID_LENGTH)
+
+//	addi.n  a6, a3, -1
+//	and     a6, a3, a6
+//	bnez    a6, .ret_DSP_INVALID_LENGTH # if N not power of 2 : return(ESP_ERR_DSP_INVALID_LENGTH)
+
+	nsau    a6, a3        # inline dl_power_of_two(N)
 	movi.n  a7, 31
 	xor     a6, a6, a7
 
-	srli    a7, a6, 1     # log4N = dsp_power_of_two(N) >> 1;
+//	bbsi    a6, 0, .ret_DSP_INVALID_LENGTH # if N not power of 4 : return(ESP_ERR_DSP_INVALID_LENGTH)
+
+	srli    a7, a6, 1     # log4N = dl_power_of_two(N) >> 1;
 
 	addi.n  a6, a6, -1
 	ssr 		a6
-	srl     a6, a5        # w_step = table_size >> (dsp_power_of_two(N) - 1)
+	srl     a6, a5        # w_step = table_size >> (dl_power_of_two(N) - 1)
 
 	movi.n  a5, 2         # m = 2
 
@@ -128,16 +137,20 @@ dl_fft4r_fc32_aes3_:
 	addx8   a15, a3, a14  # p3 = p2 + (N << 1)
 
 	loopnez a3, .bf4_loop_end # for (uint k = 0; k < N; k++)
-	ee.ldf.64.ip f1, f0, a12, 0 # f0 = in0.re = *p0, f1 = in0.im = *(p0 + 1)
-	ee.ldf.64.ip f3, f2, a14, 0 # f2 = in2.re = *p2, f3 = in2.im = *(p2 + 1)
+	lsi     f1, a12, 4    #  f1 = in0.im = *(p0 + 1)
+	lsi     f3, a14, 4    #  f3 = in2.im = *(p2 + 1)
+	lsi     f0, a12, 0    #  f0 = in0.re = *p0
+	lsi     f2, a14, 0    #  f2 = in2.re = *p2
 	add.s   f5, f1, f3    #  f5 = in0.im + in2.im
 	sub.s   f7, f1, f3    #  f7 = in0.im - in2.im
+	lsi     f1, a13, 4    #  f1 = in1.im = *(p1 + 1)
+	lsi     f3, a15, 4    #  f3 = in3.im = *(p3 + 1)
 	add.s   f4, f0, f2    #  f4 = in0.re + in2.re
 	sub.s   f6, f0, f2    #  f6 = in0.re - in2.re
-	ee.ldf.64.ip f1, f0, a13, 0 # f0 = in1.re = *p1, f1 = in1.im = *(p1 + 1)
-	ee.ldf.64.ip f3, f2, a15, 0 # f2 = in3.re = *p3, f3 = in3.im = *(p3 + 1)
 	add.s   f9, f1, f3    #  f9 = in1.im + in3.im
 	sub.s   f11, f1, f3   # f11 = in1.im - in3.im
+	lsi     f0, a13, 0    #  f0 = in1.re = *p1
+	lsi     f2, a15, 0    #  f2 = in3.re = *p3
 	lsi     f12, a9, 0    # f12 = w0->re
 	lsi     f13, a10, 0   # f13 = w1->re
 	lsi     f14, a11, 0   # f14 = w2->re
@@ -151,29 +164,33 @@ dl_fft4r_fc32_aes3_:
 	add.s   f4, f4, f8    #  f4 = bf0.re = in0.re + in2.re + in1.re + in3.re
 	sub.s   f3, f7, f10   #  f3 = bf1.im = in0.im - in2.im - in1.re + in3.re
 	add.s   f7, f7, f10   #  f7 = bf3.im = in0.im - in2.im + in1.re - in3.re
-	mul.s   f10, f6, f14  # f10 = bf3.re * w2->re
-	ee.stf.64.ip f5, f4, a12, 8 # *p0 = f4 = bf0.re, *(p0 + 1) = f5 = bf0.im, p0 += 2
-	mul.s   f4, f2, f12   #  f4 = bf1.re * w0->re
-	mul.s   f11, f7, f14  # f11 = bf3.im * w2->re
+	ssi     f5, a12, 4    # *(p0 + 1) = f5 = bf0.im
+	ssip    f4, a12, 8    # *p0 = f4 = bf0.re , p0 += 2
 	mul.s   f5, f3, f12   #  f5 = bf1.im * w0->re
-	mul.s   f8, f0, f13   #  f8 = bf2.re * w1->re
+	mul.s   f4, f2, f12   #  f4 = bf1.re * w0->re
 	mul.s   f9, f1, f13   #  f9 = bf2.im * w1->re
+	mul.s   f8, f0, f13   #  f8 = bf2.re * w1->re
+	mul.s   f11, f7, f14  # f11 = bf3.im * w2->re
+	mul.s   f10, f6, f14  # f10 = bf3.re * w2->re
 	lsi     f12, a9, 4    # f12 = w0->im
 	lsi     f13, a10, 4   # f13 = w1->im
 	lsi     f14, a11, 4   # f14 = w2->im
+	addx4   a9, a6, a9    # w0 += m
+	addx8   a10, a6, a10  # w1 += 2 * m
+	addx4   a11, a6, a11
+	addx8   a11, a6, a11  # w2 += 3 * m
 	msub.s  f5, f2, f12   #  f5 = bf1.im * w0->re - bf1.re * w0->im
 	madd.s  f4, f3, f12   #  f4 = bf1.re * w0->re + bf1.im * w0->im
 	msub.s  f9, f0, f13   #  f9 = bf2.im * w1->re - bf2.re * w1->im
 	madd.s  f8, f1, f13   #  f8 = bf2.re * w1->re + bf2.im * w1->im
 	msub.s  f11, f6, f14  # f11 = bf3.im * w2->re - bf3.re * w2->im
 	madd.s  f10, f7, f14  # f10 = bf3.re * w2->re + bf3.im * w2->im
-	addx4   a9, a6, a9    # w0 += w_step
-	addx8   a10, a6, a10  # w1 += 2 * w_step
-	addx4   a11, a6, a11
-	addx8   a11, a6, a11  # w2 += 3 * w_step
-	ee.stf.64.ip f5, f4, a13, 8 # *p1 = f4, *(p1 + 1) = f5, p1 += 2
-	ee.stf.64.ip f9, f8, a14, 8 # *p2 = f8, *(p2 + 1) = f9, p2 += 2
-	ee.stf.64.ip f11, f10, a15, 8 # *p3 = f10, *(p3 + 1) = f11, p3 += 2
+	ssi     f5, a13, 4    # *(p1 + 1) = f5
+	ssip    f4, a13, 8    # *p1 = f4, p1 += 2
+	ssi     f9, a14, 4    # *(p2 + 1) = f9
+	ssip    f8, a14, 8    # *p2 = f8, p2 += 2
+	ssi     f11, a15, 4   # *(p3 + 1) = f11
+	ssip    f10, a15, 8   # *p3 = f10, p3 += 2
 .bf4_loop_end:
 
 	addi.n  a8, a8, 2     # j += 2
@@ -186,4 +203,5 @@ dl_fft4r_fc32_aes3_:
 	addi.n  a7, a7, -1    # log4N--
 	bnez    a7, .stage    # if log4N > 0
 
+//	movi.n  a2, DSP_OK    # return(DSP_OK)
 	retw

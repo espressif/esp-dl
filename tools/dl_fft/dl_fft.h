@@ -1,6 +1,5 @@
 #pragma once
 #include "dl_fft_base.h"
-#include "esp_heap_caps.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,6 +17,8 @@ typedef struct {
     int log2n;
     float *fftr2_table;
     float *rfft_table;
+    uint16_t *reverse_table;
+    int reverse_size;
 } dl_fft_f32_t;
 
 /**

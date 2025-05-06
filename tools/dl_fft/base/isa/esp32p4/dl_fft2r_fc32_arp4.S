@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "dl_fft_platform.h"
-
 
 // This is matrix multipliction function for esp32p4 processor.
     .text

@@ -6,8 +6,6 @@
  */
 
 
-#include "dl_fft_platform.h"
-
 	.text
 	.align  4
 	.global dl_fft2r_fc32_ae32_
