@@ -43,7 +43,7 @@ dl_fft_f32_t *dl_rfft_f32_init(int fft_point, uint32_t caps)
     if (handle->log2n % 2 == 1) {
         handle->reverse_table = dl_gen_bitrev4r_table(fft_point, caps, &handle->reverse_size);
     } else {
-        handle->reverse_table = dl_gen_bitrev2r_table(fft_point>>1, caps, &handle->reverse_size);
+        handle->reverse_table = dl_gen_bitrev2r_table(fft_point >> 1, caps, &handle->reverse_size);
     }
 
     return handle;
@@ -78,7 +78,7 @@ esp_err_t dl_rfft_f32_run(dl_fft_f32_t *handle, float *data)
         dl_bitrev4r_fc32_ansi(data, fft_point >> 1, handle->reverse_table, handle->reverse_size);
     } else {
         dl_fft2r_fc32(data, fft_point >> 1, fftr2_table);
-        dl_bitrev2r_fc32_ansi(data, fft_point>>1, handle->reverse_table, handle->reverse_size);
+        dl_bitrev2r_fc32_ansi(data, fft_point >> 1, handle->reverse_table, handle->reverse_size);
     }
 
     // Convert one complex vector with length N/2 to one real spectrum vector with length N/2

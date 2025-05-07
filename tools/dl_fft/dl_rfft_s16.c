@@ -50,32 +50,6 @@ void dl_rfft_s16_deinit(dl_fft_s16_t *handle)
     }
 }
 
-void direct_radix2_bit_reverse(int16_t *data, int log2n, int fft_point)
-{
-    int i, j;
-    for (i = 0; i < fft_point; i++) {
-        int num = log2n;
-        int bit, reversed_idx = 0;
-        uint32_t temp;
-        uint32_t *in_data = (uint32_t *)data;
-
-        j = i;
-        while (num > 0) {
-            bit = j & 1;
-            reversed_idx = (reversed_idx << 1) + bit;
-            j = j >> 1;
-            num--;
-        }
-
-        if (reversed_idx > i) {
-            temp = in_data[i];
-            in_data[i] = in_data[reversed_idx];
-            in_data[reversed_idx] = temp;
-        }
-        // printf("bit_rev ... %d\n", i);
-    }
-}
-
 // Perform FFT
 esp_err_t dl_rfft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent)
 {

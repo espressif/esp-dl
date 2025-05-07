@@ -13,7 +13,6 @@
 // limitations under the License.
 #include "dl_fft_base.h"
 
-
 esp_err_t dl_fft4r_fc32_ansi(float *data, int length, float *table, int table_size)
 {
     fc32_t bfly[4];
@@ -130,11 +129,9 @@ esp_err_t dl_bitrev4r_fc32_ansi(float *data, int N, uint16_t *reverse_tab, int r
             }
         }
     }
- 
+
     return result;
 }
-
-
 
 esp_err_t dl_cplx2real_fc32_ansi(float *data, int N, float *table, int table_size)
 {
@@ -173,7 +170,7 @@ esp_err_t dl_cplx2real_fc32_ansi(float *data, int N, float *table, int table_siz
     return ESP_OK;
 }
 
-uint16_t* dl_gen_bitrev4r_table(int N, uint32_t caps, int *reverse_size)
+uint16_t *dl_gen_bitrev4r_table(int N, uint32_t caps, int *reverse_size)
 {
     int log2N = dl_power_of_two(N);
     int log4N = log2N >> 1;
@@ -196,11 +193,11 @@ uint16_t* dl_gen_bitrev4r_table(int N, uint32_t caps, int *reverse_size)
             cnt--;
         }
         if (i < xx) {
-            count ++;
+            count++;
         }
     }
 
-    if (count*2 > UINT16_MAX) {
+    if (count * 2 > UINT16_MAX) {
         return NULL;
     }
     reverse_size[0] = count;
@@ -221,9 +218,9 @@ uint16_t* dl_gen_bitrev4r_table(int N, uint32_t caps, int *reverse_size)
                 cnt--;
             }
             if (i < xx) {
-                reverse_tab[idx*2] = i*2;
-                reverse_tab[idx*2+1] = xx*2;
-                idx ++;
+                reverse_tab[idx * 2] = i * 2;
+                reverse_tab[idx * 2 + 1] = xx * 2;
+                idx++;
             }
         }
     }

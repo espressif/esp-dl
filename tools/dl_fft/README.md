@@ -1,6 +1,6 @@
 ## DL_FFT
 
-dl_fft is a lightweight FFT library supporting both float32 and int16 data types.
+DL_FFT is a lightweight FFT library supporting both float32 and int16 data types.
 
 The FFT implementation is come from esp-dsp. And we further optimized the int16 FFT to achieving better precision.
 
@@ -11,14 +11,30 @@ The FFT implementation is come from esp-dsp. And we further optimized the int16 
 #include "dl_rfft.h"
 
 // float fft
-float  x1[nfft];
+float  x[nfft*2];
 dl_fft_f32_t *fft_handle = dl_fft_f32_init(nfft, MALLOC_CAP_8BIT);
 dl_fft_f32_run(fft_handle, x);
 dl_fft_f32_deinit(fft_handle);
 
+// float rfft
+float  x[nfft];
+dl_fft_f32_t *fft_handle = dl_rfft_f32_init(nfft, MALLOC_CAP_8BIT);
+dl_rfft_f32_run(fft_handle, x);
+dl_rfft_f32_deinit(fft_handle);
+
+// int16 fft
+int16_t  x[nfft*2];
+float  y[nfft*2];
+int in_exponent = -15;  //  float y = x * 2^in_exponent;
+int out_exponent;
+dl_fft_s16_t *fft_handle = dl_fft_s16_init(nfft, MALLOC_CAP_8BIT);
+dl_fft_s16_hp_run(fft_handle, x, in_exponent, &out_exponent);
+dl_short_to_float(x, nfft, out_exponent, y); // convert output from int16_t to float
+dl_fft_s16_deinit(fft_handle);
+
 // int16 rfft
-int16_t  x2[nfft];
-float  y2[nfft];
+int16_t  x[nfft];
+float  y[nfft];
 int in_exponent = -15;  //  float y = x * 2^in_exponent;
 int out_exponent;
 dl_fft_s16_t *fft_handle = dl_rfft_s16_init(nfft, MALLOC_CAP_8BIT);

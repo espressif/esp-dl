@@ -15,12 +15,16 @@ float cal_snr_item(float x, float y)
 float get_snr(const float *x, const float *gt, int size)
 {
     float mean_db = 0;
+    int count = 0;
     for (int i = 0; i < size; i++) {
         // printf("%d %f %f %f\n", i, gt[i], x[i], gt[i] - x[i]);
-        float snr_db = cal_snr_item(gt[i], gt[i] - x[i]);
-        mean_db += snr_db;
+        if (fabs(gt[i]) > 1e-6) {
+            float snr_db = cal_snr_item(gt[i], gt[i] - x[i]);
+            mean_db += snr_db;
+            count++;
+        }
     }
-    return mean_db / size;
+    return mean_db / count;
 }
 
 float get_rmse(const float *x, const float *gt, int size)

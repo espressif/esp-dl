@@ -247,4 +247,4 @@ build_dl_fft:
       - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
         TARGET: [esp32p4, esp32s3, esp32c3, esp32]
   variables:
-    EXAMPLE_DIR: tools/dl_fft
+    EXAMPLE_DIR: test_apps/dl_fft

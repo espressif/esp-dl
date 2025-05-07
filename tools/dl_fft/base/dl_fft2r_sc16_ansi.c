@@ -1,6 +1,5 @@
 #include "dl_fft_base.h"
 
-
 static inline int16_t xtfixed_bf_1(
     int16_t a0, int16_t a1, int16_t a2, int16_t a3, int16_t a4, int result_shift, int add_rount_mult)
 {

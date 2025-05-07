@@ -1,34 +1,35 @@
 #pragma once
 
 // #include "dsp_common.h"
+#include "dsp_types.h"
 #include "esp_attr.h"
 #include "esp_err.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include <math.h>
 #include <string.h>
-#include "dsp_types.h"
-#include "dl_fft_platform.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//common function
+#include "dl_fft_platform.h"
+
+// common function
 bool dl_is_power_of_two(int x);
 int dl_power_of_two(uint32_t n);
 float *dl_short_to_float(int16_t *x, int len, int exponent, float *y);
 
 // float fftr2
 float *dl_gen_fftr2_table_f32(int fft_point, uint32_t caps);
-uint16_t* dl_gen_bitrev2r_table(int N, uint32_t caps, int *reverse_size);
+uint16_t *dl_gen_bitrev2r_table(int N, uint32_t caps, int *reverse_size);
 
 esp_err_t dl_fft2r_fc32_ansi(float *data, int N, float *w);
 esp_err_t dl_bitrev2r_fc32_ansi(float *data, int N, uint16_t *reverse_tab, int reverse_size);
 
 // float fftr4
 float *dl_gen_rfft_table_f32(int fft_point, uint32_t caps);
-uint16_t* dl_gen_bitrev4r_table(int N, uint32_t caps, int *reverse_size);
+uint16_t *dl_gen_bitrev4r_table(int N, uint32_t caps, int *reverse_size);
 
 esp_err_t dl_fft4r_fc32_ansi(float *data, int length, float *table, int table_size);
 esp_err_t dl_bitrev4r_fc32_ansi(float *data, int N, uint16_t *reverse_tab, int reverse_size);
