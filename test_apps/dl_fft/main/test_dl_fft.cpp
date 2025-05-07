@@ -1,5 +1,6 @@
 #include "dl_fft.h"
 #include "dl_rfft.h"
+#include "dl_s16.h"
 #include "test_fft.h"
 
 static const char *TAG = "TEST DL AUDIO";
@@ -245,53 +246,49 @@ TEST_CASE("Test dl rfft hp s16", "[dl_fft]")
     TEST_ASSERT_EQUAL(true, ram_size_before == ram_size_end);
 }
 
-// TEST_CASE("Test sr rfft s16", "[dl_fft]")
-// {
-//     const int16_t *input[5] = {
-//         rfft_input_s16_128, rfft_input_s16_256, rfft_input_s16_512, rfft_input_s16_1024, rfft_input_s16_2048};
-//     const float *output[5] = {rfft_output_128, rfft_output_256, rfft_output_512, rfft_output_1024, rfft_output_2048};
-//     int test_nfft[5] = {128, 256, 512, 1024, 2048};
-//     float target_db = 100;
-//     int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-//     uint32_t start = 0, end = 0;
-//     int out_exponent = -15;
-//     float mean_db = 0.0;
+TEST_CASE("Test sr rfft hp s16", "[dl_fft]")
+{
+    const int16_t *input[5] = {
+        rfft_input_s16_128, rfft_input_s16_256, rfft_input_s16_512, rfft_input_s16_1024, rfft_input_s16_2048};
+    const float *output[5] = {rfft_output_128, rfft_output_256, rfft_output_512, rfft_output_1024, rfft_output_2048};
+    int test_nfft[5] = {128, 256, 512, 1024, 2048};
+    float target_db = 55;
+    int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    uint32_t start = 0, end = 0;
+    int out_exponent;
 
-//     for (int i = 0; i < 5; i++) {
-//         int nfft = test_nfft[i];
-//         printf("test rfft(%d) float: ", nfft);
-//         int16_t *x = (int16_t *)heap_caps_aligned_alloc(16, nfft * sizeof(int16_t), MALLOC_CAP_8BIT);
-//         float *y = (float *)malloc(nfft * sizeof(float));
-//         float *gt = (float *)malloc(sizeof(float) * nfft);
-//         // memcpy(x, input[i], nfft * sizeof(int16_t));
-//         memcpy(gt, output[i], nfft * sizeof(float));
-//         gt[1] = output[i][nfft];
+    for (int i = 0; i < 5; i++) {
+        int nfft = test_nfft[i];
+        printf("test rfft(%d) float: ", nfft);
+        int16_t *x = (int16_t *)heap_caps_aligned_alloc(16, nfft * sizeof(int16_t), MALLOC_CAP_8BIT);
+        float *y = (float *)malloc(nfft * sizeof(float));
+        float *gt = (float *)malloc(sizeof(float) * nfft);
+        memcpy(x, input[i], nfft * sizeof(int16_t));
+        memcpy(gt, output[i], nfft * sizeof(float));
+        gt[1] = output[i][nfft];
 
-//         for (int i = 0; i < nfft; i++) {
-//             x[i] = i;
-//         }
+        fft_s16_info_t *fft_handle = fft_info_init(nfft);
+        int ls = test_real_fft_hp(x, fft_handle);
+        dl_short_to_float(x, nfft, -15 + ls, y);
+        for (int j = 0; j < 10; j++) {
+            printf("%f %f\n", y[j], gt[j]);
+        }
+        gt[1] = -0.000977;
+        TEST_ASSERT_EQUAL(true, check_fft_results(y, gt, nfft, target_db, 1e-2));
 
-//         fft_s16_info_t *fft_handle = fft_info_init(nfft);
-//         test_real_fft(x, fft_handle);
-//         // dl_short_to_float(x, nfft, out_exponent+7+i, y);
+        start = esp_timer_get_time();
+        for (int k = 0; k < LOOP; k++) {
+            test_real_fft(x, fft_handle);
+        }
+        end = esp_timer_get_time();
+        printf("time:%ld us\n", (end - start) / LOOP);
+        // fft_info_destroy(fft_handle);
+        // free(x);
+        free(y);
+        free(gt);
+    }
 
-//         //  mean_db= get_snr(y, gt, nfft);
-
-//         // start = esp_timer_get_time();
-//         // for (int k=0; k<LOOP; k++) {
-//         //     test_real_fft_hp(x,fft_handle);
-//         // }
-//         // end = esp_timer_get_time();
-
-//         // TEST_ASSERT_EQUAL(true, mean_db > target_db);
-//         printf("snr: %f, time:%ld us\n", mean_db, (end - start) / LOOP);
-//         free(x);
-//         free(y);
-//         free(gt);
-//         fft_info_destroy(fft_handle);
-//     }
-
-//     int ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-//     ESP_LOGI(TAG, "ram size before: %d, end:%d", ram_size_before, ram_size_end);
-//     TEST_ASSERT_EQUAL(true, ram_size_before == ram_size_end);
-// }
+    int ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    ESP_LOGI(TAG, "ram size before: %d, end:%d", ram_size_before, ram_size_end);
+    TEST_ASSERT_EQUAL(true, ram_size_before == ram_size_end);
+}
