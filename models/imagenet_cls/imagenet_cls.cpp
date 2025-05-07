@@ -29,11 +29,11 @@ MobileNetV2::MobileNetV2(const char *model_name, const int top_k)
 #endif
     m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
-    m_image_preprocessor = new dl::image::ImagePreprocessor(
-        m_model, {123.675, 116.28, 103.53}, {58.395, 57.12, 57.375}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
-#else
     m_image_preprocessor =
         new dl::image::ImagePreprocessor(m_model, {123.675, 116.28, 103.53}, {58.395, 57.12, 57.375});
+#else
+    m_image_preprocessor = new dl::image::ImagePreprocessor(
+        m_model, {123.675, 116.28, 103.53}, {58.395, 57.12, 57.375}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
 #endif
     m_postprocessor = new dl::cls::ImageNetClsPostprocessor(m_model, top_k, std::numeric_limits<float>::lowest(), true);
 }

@@ -15,6 +15,7 @@ namespace dl {
 namespace image {
 img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t caps)
 {
+    assert(caps == 0 || caps == DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
     img_t img;
     img.pix_type = pix_type;
     jpeg_pixel_format_t output_type;
@@ -23,9 +24,8 @@ img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t c
         output_type = JPEG_PIXEL_FORMAT_RGB888;
         break;
     case DL_IMAGE_PIX_TYPE_RGB565:
-        // reverse endian definition in esp_new_jpeg
         output_type =
-            (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) ? JPEG_PIXEL_FORMAT_RGB565_LE : JPEG_PIXEL_FORMAT_RGB565_BE;
+            (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) ? JPEG_PIXEL_FORMAT_RGB565_BE : JPEG_PIXEL_FORMAT_RGB565_LE;
         break;
     default:
         ESP_LOGE(TAG, "Unsupported img pix format.");
@@ -73,24 +73,13 @@ img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t c
     return img;
 }
 
-jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
+jpeg_img_t sw_encode_jpeg_base(const img_t &img, uint8_t quality)
 {
     jpeg_img_t jpeg_img;
     jpeg_pixel_format_t src_type;
-    img_t img2encode = img;
     switch (img.pix_type) {
     case DL_IMAGE_PIX_TYPE_RGB888:
         src_type = JPEG_PIXEL_FORMAT_RGB888;
-        if (caps & DL_IMAGE_CAP_RGB_SWAP) {
-            img2encode.data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
-            convert_img(img, img2encode, caps);
-        }
-        break;
-    case DL_IMAGE_PIX_TYPE_RGB565:
-        src_type = JPEG_PIXEL_FORMAT_RGB888;
-        img2encode.data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
-        img2encode.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
-        convert_img(img, img2encode, caps);
         break;
     case DL_IMAGE_PIX_TYPE_GRAY:
         src_type = JPEG_PIXEL_FORMAT_GRAY;
@@ -99,11 +88,11 @@ jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
         ESP_LOGE(TAG, "Unsupported img pix format.");
         return {};
     }
-    jpeg_enc_config_t cfg = {.width = img2encode.width,
-                             .height = img2encode.height,
+    jpeg_enc_config_t cfg = {.width = img.width,
+                             .height = img.height,
                              .src_type = src_type,
-                             .subsampling = (img2encode.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? JPEG_SUBSAMPLE_GRAY
-                                                                                            : JPEG_SUBSAMPLE_420,
+                             .subsampling =
+                                 (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? JPEG_SUBSAMPLE_GRAY : JPEG_SUBSAMPLE_420,
                              .quality = quality,
                              .rotate = JPEG_ROTATE_0D,
                              .task_enable = false,
@@ -116,9 +105,9 @@ jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
         return {};
     }
 
-    int img_size = get_img_byte_size(img2encode);
+    int img_size = get_img_byte_size(img);
     // yuv420 use 1.5B to represent a pixel.
-    size_t out_buf_len = (img2encode.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? img_size : img_size / 2 + 1;
+    size_t out_buf_len = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? img_size : img_size / 2 + 1;
     jpeg_img.data = heap_caps_malloc(out_buf_len, MALLOC_CAP_DEFAULT);
     if (!jpeg_img.data) {
         ESP_LOGE(TAG, "Failed to alloc output buffer.");
@@ -127,8 +116,7 @@ jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
     }
 
     int out_len = 0;
-    if (jpeg_enc_process(
-            jpeg_enc, (uint8_t *)img2encode.data, img_size, (uint8_t *)jpeg_img.data, out_buf_len, &out_len) !=
+    if (jpeg_enc_process(jpeg_enc, (uint8_t *)img.data, img_size, (uint8_t *)jpeg_img.data, out_buf_len, &out_len) !=
         JPEG_ERR_OK) {
         ESP_LOGE(TAG, "Failed to encode jpeg.");
         jpeg_enc_close(jpeg_enc);
@@ -136,16 +124,31 @@ jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
     }
     jpeg_enc_close(jpeg_enc);
     jpeg_img.data_len = out_len;
-    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 ||
-        (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP))) {
-        heap_caps_free(img2encode.data);
-    }
     return jpeg_img;
 }
 
-#if CONFIG_IDF_TARGET_ESP32P4
-img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, bool swap_color_bytes)
+jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
 {
+    img_t img2encode = img;
+    bool free = false;
+    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 ||
+        (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP))) {
+        img2encode.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
+        img2encode.data = heap_caps_malloc(get_img_byte_size(img2encode), MALLOC_CAP_DEFAULT);
+        convert_img(img, img2encode, caps);
+        free = true;
+    };
+    jpeg_img_t ret = sw_encode_jpeg_base(img2encode, quality);
+    if (free) {
+        heap_caps_free(img2encode.data);
+    }
+    return ret;
+}
+
+#if CONFIG_IDF_TARGET_ESP32P4
+img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t caps)
+{
+    assert(caps == 0 || caps == DL_IMAGE_CAP_RGB_SWAP || caps == DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
     img_t img;
     img.pix_type = pix_type;
     jpeg_decode_picture_info_t header_info;
@@ -154,14 +157,18 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, bool swap_
         return {};
     }
 
+    jpeg_dec_rgb_element_order_t rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_BGR;
     jpeg_dec_output_format_t output_type;
     switch (pix_type) {
     case DL_IMAGE_PIX_TYPE_RGB888:
         output_type = JPEG_DECODE_OUT_FORMAT_RGB888;
+        rgb_order = (caps & DL_IMAGE_CAP_RGB_SWAP) ? JPEG_DEC_RGB_ELEMENT_ORDER_BGR : JPEG_DEC_RGB_ELEMENT_ORDER_RGB;
         assert(header_info.sample_method != JPEG_DOWN_SAMPLING_GRAY);
         break;
     case DL_IMAGE_PIX_TYPE_RGB565:
         output_type = JPEG_DECODE_OUT_FORMAT_RGB565;
+        rgb_order =
+            (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) ? JPEG_DEC_RGB_ELEMENT_ORDER_RGB : JPEG_DEC_RGB_ELEMENT_ORDER_BGR;
         assert(header_info.sample_method != JPEG_DOWN_SAMPLING_GRAY);
         break;
     case DL_IMAGE_PIX_TYPE_GRAY:
@@ -203,10 +210,8 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, bool swap_
     }
 
     // decode
-    jpeg_decode_cfg_t decode_cfg = {.output_format = output_type,
-                                    .rgb_order = swap_color_bytes ? JPEG_DEC_RGB_ELEMENT_ORDER_RGB
-                                                                  : JPEG_DEC_RGB_ELEMENT_ORDER_BGR,
-                                    .conv_std = JPEG_YUV_RGB_CONV_STD_BT601};
+    jpeg_decode_cfg_t decode_cfg = {
+        .output_format = output_type, .rgb_order = rgb_order, .conv_std = JPEG_YUV_RGB_CONV_STD_BT601};
     uint32_t out_len = 0;
     if (jpeg_decoder_process(jpgd_handle,
                              &decode_cfg,
@@ -225,7 +230,7 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, bool swap_
     return img;
 }
 
-jpeg_img_t hw_encode_jpeg(const img_t &img, uint8_t quality)
+jpeg_img_t hw_encode_jpeg_base(const img_t &img, uint8_t quality)
 {
     jpeg_img_t jpeg_img;
     jpeg_enc_input_format_t src_type;
@@ -288,6 +293,32 @@ jpeg_img_t hw_encode_jpeg(const img_t &img, uint8_t quality)
     ESP_ERROR_CHECK(jpeg_del_encoder_engine(jpeg_handle));
     jpeg_img.data_len = out_len;
     return jpeg_img;
+}
+
+jpeg_img_t hw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
+{
+    img_t img2encode = img;
+    bool free = false;
+    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 &&
+        ((caps & DL_IMAGE_CAP_RGB_SWAP) || (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN))) {
+        if (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) {
+            caps |= DL_IMAGE_CAP_RGB565_BYTE_SWAP;
+        }
+        img2encode.data = heap_caps_malloc(get_img_byte_size(img2encode), MALLOC_CAP_DEFAULT);
+        convert_img(img, img2encode, caps);
+        free = true;
+    };
+    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && !(caps & DL_IMAGE_CAP_RGB_SWAP)) {
+        caps |= DL_IMAGE_CAP_RGB_SWAP;
+        img2encode.data = heap_caps_malloc(get_img_byte_size(img2encode), MALLOC_CAP_DEFAULT);
+        convert_img(img, img2encode, caps);
+        free = true;
+    }
+    jpeg_img_t ret = hw_encode_jpeg_base(img2encode, quality);
+    if (free) {
+        heap_caps_free(img2encode.data);
+    }
+    return ret;
 }
 #endif
 
