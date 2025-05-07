@@ -106,7 +106,7 @@ public:
     void register_dl_modules()
     {
         if (creators.empty()) {
-            this->register_module("Conv", Conv2D::deserialize);
+            this->register_module("Conv", Conv::deserialize);
             this->register_module("Add", Add::deserialize);
             this->register_module("Sub", Sub::deserialize);
             this->register_module("Mul", Mul::deserialize);

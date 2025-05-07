@@ -11,21 +11,16 @@ namespace dl {
 namespace module {
 
 /**
- * @brief Activation(Conv2D(input, filter) + bias).
+ * @brief Activation(Conv(input, filter) + bias).
  *
- * @tparam feature_t supports int16_t and int8_t,
- *         - int16_t: stands for operation in int16_t quantize
- *         - int8_t: stands for operation in int8_t quantize
  */
-class Conv2D : public Module {
+class Conv : public Module {
 private:
-    const int stride_y;   /*!< stride in height */
-    const int stride_x;   /*!< stride in width */
-    const int dilation_y; /*!< dilation in height */
-    const int dilation_x; /*!< dilation in width */
-    const int group;
-    activation_type_t activation; /*!< activation of Conv2D, if you don't specify anything, no activation is applied */
-    std::vector<int> padding;     /*!< padding size needed in [top, bottom, left, right] of this operation */
+    std::vector<int> m_dilations;
+    std::vector<int> m_strides;
+    const int m_group;
+    activation_type_t activation; /*!< activation of Conv, if you don't specify anything, no activation is applied */
+    std::vector<int> m_pads;      /*!< pads size needed in [top, bottom, left, right] of this operation */
     bool is_bias_reseted;
 
     void reset_bias(ModelContext *context)
@@ -34,7 +29,7 @@ private:
             if (m_inputs_index.size() == 3) {
                 TensorBase *bias = context->get_tensor(m_inputs_index[2]);
                 if (bias) {
-                    bias->reset_bias_layout(quant_type, group != 1);
+                    bias->reset_bias_layout(quant_type, m_group != 1);
                 }
             }
             is_bias_reseted = true;
@@ -43,42 +38,38 @@ private:
 
 public:
     /**
-     * @brief Construct a new Conv2D object.
+     * @brief Construct a new Conv object.
      *
-     * @param activation      activation of Conv2D, if you don't specify anything, no activation is applied
-     * @param padding         the shape must be 4, the value of each position is: [padding top, padding bottom, padding
-     * left, padding right]
-     * @param stride_y        stride in height
-     * @param stride_x        stride in width
+     * @param activation      activation of Conv, if you don't specify anything, no activation is applied
+     * @param pads            the shape must be 2 or 4, the value of each position is: [pads top, pads bottom, pads
+     * left, pads right]
+     * @param dilations       dilation value along each spatial axis of the filter
+     * @param strides         stride along each spatial axis
      * @param group           group of Conv
      * @param name            name of module
      */
-    Conv2D(activation_type_t activation = Linear,
-           std::vector<int> padding = {},
-           const int stride_y = 1,
-           const int stride_x = 1,
-           const int dilation_y = 1,
-           const int dilation_x = 1,
-           const char *name = NULL,
-           const int group = 1,
-           quant_type_t quant_type = QUANT_TYPE_NONE) :
+    Conv(activation_type_t activation = Linear,
+         std::vector<int> pads = {},
+         std::vector<int> dilations = {},
+         std::vector<int> strides = {},
+         const char *name = NULL,
+         const int group = 1,
+         quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, MODULE_NON_INPLACE, quant_type),
-        stride_y(stride_y),
-        stride_x(stride_x),
-        dilation_y(dilation_y),
-        dilation_x(dilation_x),
-        group(group),
+        m_dilations(dilations),
+        m_strides(strides),
+        m_group(group),
         activation(activation),
-        padding(padding)
+        m_pads(pads)
     {
         is_bias_reseted = false;
     }
 
     /**
-     * @brief Destroy the Conv2D object.
+     * @brief Destroy the Conv object.
      *
      */
-    ~Conv2D() {}
+    ~Conv() {}
 
     /**
      * @brief Calculate the output shape
@@ -90,26 +81,29 @@ public:
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
         assert(input_shapes.size() >= 2);
-        assert(input_shapes[0].size() == 4);
-        int *input_shape = input_shapes[0].data();
-        int *filter_shape = input_shapes[1].data();
-        std::vector<int> output_shape(4);
+        assert(input_shapes[0].size() == 3 || input_shapes[0].size() == 4);
+        std::vector<int> input_shape = input_shapes[0];
+        std::vector<int> filter_shape = input_shapes[1];
+        std::vector<int> output_shape = input_shape;
 
         // refer to https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html
-        output_shape[0] = input_shape[0];
         output_shape[1] =
-            (input_shape[1] + padding[0] + padding[1] - dilation_y * (filter_shape[0] - 1) - 1) / stride_y + 1;
-        output_shape[2] =
-            (input_shape[2] + padding[2] + padding[3] - dilation_x * (filter_shape[1] - 1) - 1) / stride_x + 1;
-        output_shape[3] = group == 1 ? filter_shape[3] : input_shape[3];
+            (input_shape[1] + m_pads[0] + m_pads[1] - m_dilations[0] * (filter_shape[0] - 1) - 1) / m_strides[0] + 1;
+        if (input_shape.size() == 3) {
+            output_shape[2] = m_group == 1 ? filter_shape[2] : input_shape[2];
+        } else if (input_shape.size() == 4) {
+            output_shape[2] =
+                (input_shape[2] + m_pads[2] + m_pads[3] - m_dilations[1] * (filter_shape[1] - 1) - 1) / m_strides[1] +
+                1;
+            output_shape[3] = m_group == 1 ? filter_shape[3] : input_shape[3];
+        }
 
-        std::vector<std::vector<int>> output_shapes(1, output_shape);
-        return output_shapes;
+        return {output_shape};
     }
 
     void forward_args(void *args)
     {
-        if (group == 1) {
+        if (m_group == 1) {
             if (quant_type == QUANT_TYPE_SYMM_8BIT) {
                 base::conv2d<int8_t, int32_t, int32_t>(args);
             } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
@@ -149,13 +143,11 @@ public:
         std::vector<base::ArgsType<T>> m_args =
             base::get_conv_operation_args<T>(output,
                                              input,
-                                             this->padding,
+                                             m_pads,
                                              filter,
-                                             this->stride_y,
-                                             this->stride_x,
-                                             this->dilation_y,
-                                             this->dilation_x,
-                                             this->group,
+                                             m_strides,
+                                             m_dilations,
+                                             m_group,
                                              bias,
                                              this->activation,
                                              nullptr,
@@ -166,16 +158,16 @@ public:
         } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
             module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]);
         } else {
-            ESP_LOGE("Conv2D", "Only support task size is 1 or 2, currently task size is %d", task_size);
+            ESP_LOGE("Conv", "Only support task size is 1 or 2, currently task size is %d", task_size);
         }
     }
 
     /**
-     * @brief deserialize Conv2d module instance by node serialization information
+     * @brief deserialize Conv module instance by node serialization information
      */
     static Module *deserialize(fbs::FbsModel *fbs_model, std::string node_name)
     {
-        Module *conv2d_op = nullptr;
+        Module *conv_op = nullptr;
 
         std::vector<int> pads;
         std::vector<int> strides;
@@ -192,31 +184,24 @@ public:
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            conv2d_op = new Conv2D(activation_type,
-                                   {pads[0], pads[2], pads[1], pads[3]},
-                                   strides[0],
-                                   strides[1],
-                                   dilations[0],
-                                   dilations[1],
-                                   node_name.c_str(),
-                                   group,
-                                   quant_type);
+            if (pads.size() == 4) {
+                pads = {pads[0], pads[2], pads[1], pads[3]};
+            }
+            conv_op = new Conv(activation_type, pads, dilations, strides, node_name.c_str(), group, quant_type);
         }
 
-        return conv2d_op;
+        return conv_op;
     }
 
     void print()
     {
-        ESP_LOGI("Conv2d",
-                 "pads: %s, strides: [%d,%d], dilations: [%d,%d], group: %d, activation: %s, "
+        ESP_LOGI("Conv",
+                 "pads: %s, strides: %s, dilations: %s, group: %d, activation: %s, "
                  "quant_type: %s.",
-                 vector_to_string(padding).c_str(),
-                 stride_y,
-                 stride_x,
-                 dilation_y,
-                 dilation_x,
-                 group,
+                 vector_to_string(m_pads).c_str(),
+                 vector_to_string(m_strides).c_str(),
+                 vector_to_string(m_dilations).c_str(),
+                 m_group,
                  activation_type_to_string(activation),
                  quant_type_to_string(quant_type));
     }

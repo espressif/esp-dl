@@ -70,26 +70,26 @@ struct ArgsType {
     int output_shift; /*!< 43 */
     int output_scale; /*!< 44 */
 
-    int padding_h_head;
-    int padding_h_tail;
-    int padding_w_head;
-    int padding_w_tail;
-    int dilation_h;
-    int dilation_w;
-    int stride_x;
-    int stride_y;
-    int input_y_offset;
-    int filter_c;
-    int xtensa_dilation_y_offset_stable;
-    int tie_depth2d_dilation_y_offset_stable;
-    int input_width;
+    int padding_h_head;                       /*!< 45 */
+    int padding_h_tail;                       /*!< 46 */
+    int padding_w_head;                       /*!< 47 */
+    int padding_w_tail;                       /*!< 48 */
+    int dilation_h;                           /*!< 49 */
+    int dilation_w;                           /*!< 50 */
+    int stride_x;                             /*!< 51 */
+    int stride_y;                             /*!< 52 */
+    int input_y_offset;                       /*!< 53 */
+    int filter_c;                             /*!< 54 */
+    int xtensa_dilation_y_offset_stable;      /*!< 55 */
+    int tie_depth2d_dilation_y_offset_stable; /*!< 56 */
+    int input_width;                          /*!< 57 */
 
-    int filter_y_offset_c;
-    int filter_n_offset_c;
+    int filter_y_offset_c; /*!< 58 */
+    int filter_n_offset_c; /*!< 59 */
 
-    int element_num;
-    int input_height;
-    void *debug_value; /*!< 60 It will malloc 16 bytes memory if malloc_debug_memory = true */
+    int element_num;   /*!< 60 */
+    int input_height;  /*!< 61 */
+    void *debug_value; /*!< 62 It will malloc 16 bytes memory if malloc_debug_memory = true */
     bool auto_split;
 };
 
@@ -139,10 +139,8 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
                                                          TensorBase *input,
                                                          std::vector<int> &padding,
                                                          TensorBase *filter,
-                                                         const int stride_y,
-                                                         const int stride_x,
-                                                         const int dilation_y,
-                                                         const int dilation_x,
+                                                         const std::vector<int> &strides,
+                                                         const std::vector<int> &dilations,
                                                          const int group,
                                                          TensorBase *bias = NULL,
                                                          const activation_type_t activate = Linear,
@@ -151,51 +149,90 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
                                                          bool malloc_debug_memory = false)
 {
     ArgsType<feature_t> args;
-    args.input_element = (feature_t *)input->get_element_ptr(); // TODO: auto_split
-    args.input_channel = input->shape[3];
-    args.input_stride_y_offset = input->shape[2] * input->shape[3] * stride_y;
-    args.input_stride_x_offset = input->shape[3] * stride_x;
-    args.input_dilation_y_offset = input->shape[2] * input->shape[3] * dilation_y;
-    args.input_dilation_x_offset = input->shape[3] * dilation_x;
+    args.input_element = (feature_t *)input->get_element_ptr();
+    args.output_element = (feature_t *)output->get_element_ptr();
+    args.filter_element = filter->get_element_ptr();
 
-    args.output_element = (feature_t *)output->get_element_ptr(); // TODO: auto_split
-    args.output_height = output->shape[1];
-    args.output_width = output->shape[2];
-    args.output_channel = output->shape[3];
-    args.output_y_offset = output->shape[2] * output->shape[3];
-    args.output_x_offset = output->shape[3];
+    if (input->shape.size() == 3) {
+        args.input_height = 1;
+        args.input_width = input->shape[1];
+        args.input_channel = input->shape[2];
+        args.dilation_h = 1;
+        args.dilation_w = dilations[0];
+        args.stride_y = 1;
+        args.stride_x = strides[0];
 
-    args.filter_element = filter->get_element_ptr(); // TODO: auto_split
-    args.filter_height = filter->shape[0];
-    args.filter_width = filter->shape[1];
-    if (group == 1) {
-        // conv
-        args.filter_y_offset = 0;
-        args.filter_c = filter->shape[2]; // dw: filter->shape[3]. conv: filter->shape[2].
-    } else {
-        // depthwise
-        args.filter_y_offset = 16;
-        args.filter_c = filter->shape[3]; // dw: filter->shape[3]. conv: filter->shape[2].
+        args.output_height = 1;
+        args.output_width = output->shape[1];
+        args.output_channel = output->shape[2];
+
+        args.filter_height = 1;
+        args.filter_width = filter->shape[0];
+        if (group == 1) {
+            // conv
+            args.filter_y_offset = 0;
+            args.filter_c = filter->shape[1]; // dw: filter->shape[2]. conv: filter->shape[1].
+        } else {
+            // depthwise
+            args.filter_y_offset = 16;
+            args.filter_c = filter->shape[2]; // dw: filter->shape[2]. conv: filter->shape[1].
+        }
+        /* It's for c. We need to confirm whether the following definitions conform to the C logical implementation. */
+        args.filter_y_offset_c = args.filter_width * filter->shape[1];
+
+        args.padding_h_head = 0;
+        args.padding_h_tail = 0;
+        args.padding_w_head = padding[0];
+        args.padding_w_tail = padding[1];
+    } else if (input->shape.size() == 4) {
+        args.input_height = input->shape[1];
+        args.input_width = input->shape[2];
+        args.input_channel = input->shape[3];
+        args.dilation_h = dilations[0];
+        args.dilation_w = dilations[1];
+        args.stride_y = strides[0];
+        args.stride_x = strides[1];
+
+        args.output_height = output->shape[1];
+        args.output_width = output->shape[2];
+        args.output_channel = output->shape[3];
+
+        args.filter_height = filter->shape[0];
+        args.filter_width = filter->shape[1];
+        if (group == 1) {
+            // conv
+            args.filter_y_offset = 0;
+            args.filter_c = filter->shape[2]; // dw: filter->shape[3]. conv: filter->shape[2].
+        } else {
+            // depthwise
+            args.filter_y_offset = 16;
+            args.filter_c = filter->shape[3]; // dw: filter->shape[3]. conv: filter->shape[2].
+        }
+        /* It's for c. We need to confirm whether the following definitions conform to the C logical implementation. */
+        args.filter_y_offset_c = args.filter_width * filter->shape[2];
+
+        args.padding_h_head = padding[0];
+        args.padding_h_tail = padding[1];
+        args.padding_w_head = padding[2];
+        args.padding_w_tail = padding[3];
     }
-    args.filter_n_offset = 0;
-    args.filter_y_offset_c = filter->shape[1] * filter->shape[2];
-    args.filter_n_offset_c = args.filter_y_offset_c * filter->shape[0];
 
-    args.padding_h_head = padding[0];
-    args.padding_h_tail = padding[1];
-    args.padding_w_head = padding[2];
-    args.padding_w_tail = padding[3];
-    args.dilation_h = dilation_y;
-    args.dilation_w = dilation_x;
-    args.stride_x = stride_x;
-    args.stride_y = stride_y;
-    args.input_y_offset = input->shape[2] * input->shape[3];
-    args.input_channel_with_padding = input->shape[3];
-    args.input_height = input->shape[1];
-    args.input_width = input->shape[2];
+    args.filter_n_offset = 0;
+    args.filter_n_offset_c = args.filter_y_offset_c * args.filter_height;
+
+    args.input_stride_y_offset = args.input_width * args.input_channel * args.stride_y;
+    args.input_stride_x_offset = args.input_channel * args.stride_x;
+    args.input_dilation_y_offset = args.input_width * args.input_channel * args.dilation_h;
+    args.input_dilation_x_offset = args.input_channel * args.dilation_w;
+
+    args.output_y_offset = args.output_width * args.output_channel;
+    args.output_x_offset = args.output_channel;
+
+    args.input_y_offset = args.input_width * args.input_channel;
+    args.input_channel_with_padding = args.input_channel;
     args.auto_split = true;
-    // printf("input: %d, %d, %d, output: %d, %d, %d\n", input->shape[1], input->shape[2], input->shape[3],
-    // output->shape[1], output->shape[2], output->shape[3]);
+    // printf("input: %d, %d, %d, output: %d, %d, %d\n", input->shape[1], args.input_width, args.input_channel,
+    // output->shape[1], args.output_width, args.output_channel);
 
     args.mac_shift = output->exponent - filter->exponent - input->exponent;
 
@@ -226,19 +263,19 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
     }
 
     // for ISA
-    args.c_rs1_1 = (input->shape[3] >> 1) - 1;
-    args.c_rs2_1 = (input->shape[3] >> 2) - 1;
+    args.c_rs1_1 = (args.input_channel >> 1) - 1;
+    args.c_rs2_1 = (args.input_channel >> 2) - 1;
     int u = 16 / sizeof(feature_t);
-    args.n_div_x = output->shape[3] / u; // TODO: auto_split
-    args.c_div_x_1 = input->shape[3] / u - 1;
+    args.n_div_x = args.output_channel / u; // TODO: auto_split
+    args.c_div_x_1 = args.input_channel / u - 1;
 
     args.c_remainder = args.input_channel % u * sizeof(feature_t);
     args.n_remainder = args.output_channel % u;
 
-    args.xtensa_dilation_x_offset = (dilation_x * input->shape[3] - input->shape[3]) * sizeof(feature_t);
-    args.xtensa_dilation_y_offset_stable = dilation_y * input->shape[3] * input->shape[2];
-    args.xtensa_dilation_y_offset = (args.xtensa_dilation_y_offset_stable - input->shape[3] -
-                                     (filter->shape[1] - 1) * dilation_x * input->shape[3]) *
+    args.xtensa_dilation_x_offset = (args.dilation_w * args.input_channel - args.input_channel) * sizeof(feature_t);
+    args.xtensa_dilation_y_offset_stable = args.dilation_h * args.input_channel * args.input_width;
+    args.xtensa_dilation_y_offset = (args.xtensa_dilation_y_offset_stable - args.input_channel -
+                                     (args.filter_width - 1) * args.dilation_w * args.input_channel) *
         sizeof(feature_t);
 
     args.filter_y_offset_unaligned = 0;
@@ -248,16 +285,16 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
         : args.filter_element;
 
     if (group > 1) {
-        args.filter_w_rs1_1 = (filter->shape[1] >> 1) - 1;
-        args.tie_depth2d_dilation_x_offset = dilation_x * input->shape[3] * sizeof(feature_t);
-        args.tie_depth2d_dilation_y_offset_stable = dilation_y * input->shape[3] * input->shape[2];
-        args.tie_depth2d_dilation_y_offset =
-            (args.tie_depth2d_dilation_y_offset_stable - (filter->shape[1] - 1) * dilation_x * input->shape[3]) *
+        args.filter_w_rs1_1 = (args.filter_width >> 1) - 1;
+        args.tie_depth2d_dilation_x_offset = args.dilation_w * args.input_channel * sizeof(feature_t);
+        args.tie_depth2d_dilation_y_offset_stable = args.dilation_h * args.input_channel * args.input_width;
+        args.tie_depth2d_dilation_y_offset = (args.tie_depth2d_dilation_y_offset_stable -
+                                              (args.filter_width - 1) * args.dilation_w * args.input_channel) *
             sizeof(feature_t);
 
         args.tie_depth2d_next_hwx1 =
-            (filter->shape[1] - 1) * dilation_x + (filter->shape[0] - 1) * dilation_y * input->shape[2];
-        args.tie_depth2d_next_hwx1 = 16 - args.tie_depth2d_next_hwx1 * input->shape[3] * sizeof(feature_t);
+            (args.filter_width - 1) * args.dilation_w + (args.filter_height - 1) * args.dilation_h * args.input_width;
+        args.tie_depth2d_next_hwx1 = 16 - args.tie_depth2d_next_hwx1 * args.input_channel * sizeof(feature_t);
     }
     args.debug_value = nullptr;
     if (malloc_debug_memory) {
