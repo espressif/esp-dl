@@ -1,91 +1,194 @@
 #include "dl_image_jpeg.hpp"
+#include "esp_jpeg_common.h"
+#include "esp_jpeg_dec.h"
+#include "esp_jpeg_enc.h"
+#if CONFIG_IDF_TARGET_ESP32P4
+#include "driver/jpeg_decode.h"
+#include "driver/jpeg_encode.h"
+#endif
+#include "dl_image_color.hpp"
+#include "hal/cache_hal.h"
+#include "hal/cache_ll.h"
 
 static const char *TAG = "dl_image_jpeg";
 namespace dl {
 namespace image {
-#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4
-// software decode
-esp_err_t sw_decode_jpeg(const jpeg_img_t &jpeg_img,
-                         img_t &decoded_img,
-                         bool swap_color_bytes,
-                         esp_jpeg_image_scale_t scale)
+img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t caps)
 {
-    uint32_t outbuf_size = jpeg_img.height * jpeg_img.width * 3;
-    uint8_t *outbuf = (uint8_t *)heap_caps_malloc(outbuf_size, MALLOC_CAP_SPIRAM);
-    if (!(decoded_img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 || decoded_img.pix_type == DL_IMAGE_PIX_TYPE_RGB888)) {
+    img_t img;
+    img.pix_type = pix_type;
+    jpeg_pixel_format_t output_type;
+    switch (pix_type) {
+    case DL_IMAGE_PIX_TYPE_RGB888:
+        output_type = JPEG_PIXEL_FORMAT_RGB888;
+        break;
+    case DL_IMAGE_PIX_TYPE_RGB565:
+        // reverse endian definition in esp_new_jpeg
+        output_type =
+            (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) ? JPEG_PIXEL_FORMAT_RGB565_LE : JPEG_PIXEL_FORMAT_RGB565_BE;
+        break;
+    default:
         ESP_LOGE(TAG, "Unsupported img pix format.");
-        return ESP_FAIL;
+        return {};
     }
-    esp_jpeg_image_format_t out_format;
-    if (decoded_img.pix_type == DL_IMAGE_PIX_TYPE_RGB888) {
-        out_format = JPEG_IMAGE_FORMAT_RGB888;
-        swap_color_bytes = !swap_color_bytes;
-    } else {
-        out_format = JPEG_IMAGE_FORMAT_RGB565;
-    }
-    // JPEG decode config
-    esp_jpeg_image_cfg_t jpeg_cfg = {.indata = jpeg_img.data,
-                                     .indata_size = jpeg_img.data_size,
-                                     .outbuf = outbuf,
-                                     .outbuf_size = outbuf_size,
-                                     .out_format = out_format,
-                                     .out_scale = scale,
-                                     .flags =
-                                         {
-                                             .swap_color_bytes = swap_color_bytes,
-                                         },
-                                     .advanced = {},
-                                     .priv = {}};
+    jpeg_dec_config_t cfg = {.output_type = output_type,
+                             .scale = {.width = 0, .height = 0},
+                             .clipper = {.width = 0, .height = 0},
+                             .rotate = JPEG_ROTATE_0D,
+                             .block_enable = false};
 
-    esp_jpeg_image_output_t outimg;
-    ESP_RETURN_ON_ERROR(esp_jpeg_decode(&jpeg_cfg, &outimg), TAG, "Failed to decode img.");
-    assert(outimg.height == jpeg_img.height && outimg.width == jpeg_img.width);
-    decoded_img.data = (void *)outbuf;
-    decoded_img.height = jpeg_img.height;
-    decoded_img.width = jpeg_img.width;
-    return ESP_OK;
-}
-#endif
-#if CONFIG_IDF_TARGET_ESP32P4
-// hardware decode
-esp_err_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, img_t &decoded_img, bool swap_color_bytes)
-{
-    if (DL_IMAGE_IS_PIX_TYPE_QUANT(decoded_img.pix_type)) {
-        ESP_LOGE(TAG, "Can not decode to a quant img.");
-        return ESP_FAIL;
+    jpeg_dec_handle_t jpeg_dec = NULL;
+    if (jpeg_dec_open(&cfg, &jpeg_dec) != JPEG_ERR_OK) {
+        ESP_LOGE(TAG, "Failed to open jpeg decoder.");
+        return {};
     }
+
+    jpeg_dec_io_t jpeg_io = {};
+    jpeg_io.inbuf = (uint8_t *)jpeg_img.data;
+    jpeg_io.inbuf_len = jpeg_img.data_len;
+    jpeg_dec_header_info_t out_info = {};
+    if (jpeg_dec_parse_header(jpeg_dec, &jpeg_io, &out_info) != JPEG_ERR_OK) {
+        ESP_LOGE(TAG, "Failed to parse jpeg header.");
+        jpeg_dec_close(jpeg_dec);
+        return {};
+    }
+
+    img.width = out_info.width;
+    img.height = out_info.height;
+    size_t out_buf_len = get_img_byte_size(img);
+    img.data = heap_caps_aligned_alloc(16, out_buf_len, MALLOC_CAP_DEFAULT);
+    if (!img.data) {
+        ESP_LOGE(TAG, "Failed to alloc output buffer.");
+        jpeg_dec_close(jpeg_dec);
+        return {};
+    }
+    jpeg_io.outbuf = (uint8_t *)img.data;
+
+    if (jpeg_dec_process(jpeg_dec, &jpeg_io) != JPEG_ERR_OK) {
+        ESP_LOGE(TAG, "Failed to decode jpeg.");
+        jpeg_dec_close(jpeg_dec);
+        return {};
+    }
+    jpeg_dec_close(jpeg_dec);
+    return img;
+}
+
+jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
+{
+    jpeg_img_t jpeg_img;
+    jpeg_pixel_format_t src_type;
+    img_t img2encode = img;
+    switch (img.pix_type) {
+    case DL_IMAGE_PIX_TYPE_RGB888:
+        src_type = JPEG_PIXEL_FORMAT_RGB888;
+        if (caps & DL_IMAGE_CAP_RGB_SWAP) {
+            img2encode.data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
+            convert_img(img, img2encode, caps);
+        }
+        break;
+    case DL_IMAGE_PIX_TYPE_RGB565:
+        src_type = JPEG_PIXEL_FORMAT_RGB888;
+        img2encode.data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
+        img2encode.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
+        convert_img(img, img2encode, caps);
+        break;
+    case DL_IMAGE_PIX_TYPE_GRAY:
+        src_type = JPEG_PIXEL_FORMAT_GRAY;
+        break;
+    default:
+        ESP_LOGE(TAG, "Unsupported img pix format.");
+        return {};
+    }
+    jpeg_enc_config_t cfg = {.width = img2encode.width,
+                             .height = img2encode.height,
+                             .src_type = src_type,
+                             .subsampling = (img2encode.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? JPEG_SUBSAMPLE_GRAY
+                                                                                            : JPEG_SUBSAMPLE_420,
+                             .quality = quality,
+                             .rotate = JPEG_ROTATE_0D,
+                             .task_enable = false,
+                             .hfm_task_priority = 0,
+                             .hfm_task_core = 0};
+
+    jpeg_enc_handle_t jpeg_enc = NULL;
+    if (jpeg_enc_open(&cfg, &jpeg_enc) != JPEG_ERR_OK) {
+        ESP_LOGE(TAG, "Failed to open jpeg encoder.");
+        return {};
+    }
+
+    int img_size = get_img_byte_size(img2encode);
+    // yuv420 use 1.5B to represent a pixel.
+    size_t out_buf_len = (img2encode.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? img_size : img_size / 2 + 1;
+    jpeg_img.data = heap_caps_malloc(out_buf_len, MALLOC_CAP_DEFAULT);
+    if (!jpeg_img.data) {
+        ESP_LOGE(TAG, "Failed to alloc output buffer.");
+        jpeg_enc_close(jpeg_enc);
+        return {};
+    }
+
+    int out_len = 0;
+    if (jpeg_enc_process(
+            jpeg_enc, (uint8_t *)img2encode.data, img_size, (uint8_t *)jpeg_img.data, out_buf_len, &out_len) !=
+        JPEG_ERR_OK) {
+        ESP_LOGE(TAG, "Failed to encode jpeg.");
+        jpeg_enc_close(jpeg_enc);
+        return {};
+    }
+    jpeg_enc_close(jpeg_enc);
+    jpeg_img.data_len = out_len;
+    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 ||
+        (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP))) {
+        heap_caps_free(img2encode.data);
+    }
+    return jpeg_img;
+}
+
+#if CONFIG_IDF_TARGET_ESP32P4
+img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, bool swap_color_bytes)
+{
+    img_t img;
+    img.pix_type = pix_type;
     jpeg_decode_picture_info_t header_info;
-    ESP_RETURN_ON_ERROR(jpeg_decoder_get_info((const uint8_t *)jpeg_img.data, jpeg_img.data_size, &header_info),
-                        TAG,
-                        "Failed to get jpeg header info.");
-    printf("%d\t%d\t%d\t%d\n",
-           JPEG_DOWN_SAMPLING_YUV444,
-           JPEG_DOWN_SAMPLING_YUV422,
-           JPEG_DOWN_SAMPLING_YUV420,
-           JPEG_DOWN_SAMPLING_GRAY);
-    printf("%d\n", header_info.sample_method);
-    // if (header_info.sample_method == JPEG_DOWN_SAMPLING_GRAY) {
-    //     if (decoded_img.pix_type != DL_IMAGE_PIX_TYPE_GRAY) {
-    //         ESP_LOGE(TAG,
-    //                  "Input jpeg is a gray img, can not decode to fmt %s",
-    //                  pix_type_to_str(decoded_img.pix_type).c_str());
-    //         return ESP_FAIL;
-    //     }
-    // } else {
-    //     if (decoded_img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) {
-    //         ESP_LOGE(TAG,
-    //                  "Input jpeg is a color img, can not decode to fmt %s",
-    //                  pix_type_to_str(decoded_img.pix_type).c_str());
-    //         return ESP_FAIL;
-    //     }
-    // }
+    if (jpeg_decoder_get_info((const uint8_t *)jpeg_img.data, jpeg_img.data_len, &header_info) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get jpeg header info.");
+        return {};
+    }
+
+    jpeg_dec_output_format_t output_type;
+    switch (pix_type) {
+    case DL_IMAGE_PIX_TYPE_RGB888:
+        output_type = JPEG_DECODE_OUT_FORMAT_RGB888;
+        assert(header_info.sample_method != JPEG_DOWN_SAMPLING_GRAY);
+        break;
+    case DL_IMAGE_PIX_TYPE_RGB565:
+        output_type = JPEG_DECODE_OUT_FORMAT_RGB565;
+        assert(header_info.sample_method != JPEG_DOWN_SAMPLING_GRAY);
+        break;
+    case DL_IMAGE_PIX_TYPE_GRAY:
+        output_type = JPEG_DECODE_OUT_FORMAT_GRAY;
+        assert(header_info.sample_method == JPEG_DOWN_SAMPLING_GRAY);
+        break;
+    default:
+        ESP_LOGE(TAG, "Unsupported img pix format.");
+        return {};
+    }
+
     if (header_info.sample_method == JPEG_DOWN_SAMPLING_YUV422 ||
         header_info.sample_method == JPEG_DOWN_SAMPLING_YUV420) {
-        decoded_img.height = DL_IMAGE_ALIGN_UP(header_info.height, 16);
-        decoded_img.width = DL_IMAGE_ALIGN_UP(header_info.width, 16);
+        img.height = DL_IMAGE_ALIGN_UP(header_info.height, 16);
+        img.width = DL_IMAGE_ALIGN_UP(header_info.width, 16);
     } else {
-        decoded_img.height = header_info.height;
-        decoded_img.width = header_info.width;
+        img.height = header_info.height;
+        img.width = header_info.width;
+    }
+
+    // alloc output buffer
+    size_t out_buf_len = get_img_byte_size(img);
+    size_t alignment = cache_hal_get_cache_line_size(CACHE_LL_LEVEL_EXT_MEM, CACHE_TYPE_DATA);
+    img.data = heap_caps_aligned_calloc(alignment, 1, out_buf_len, MALLOC_CAP_DEFAULT);
+    if (!img.data) {
+        ESP_LOGE(TAG, "Failed to alloc output buffer.");
+        return {};
     }
 
     // new engine
@@ -94,63 +197,63 @@ esp_err_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, img_t &decoded_img, bool sw
         .intr_priority = 0,
         .timeout_ms = 40,
     };
-    ESP_RETURN_ON_ERROR(
-        jpeg_new_decoder_engine(&decode_eng_cfg, &jpgd_handle), TAG, "Failed to create decoder engine.");
-
-    // alloc output buffer
-    jpeg_decode_memory_alloc_cfg_t rx_mem_cfg = {
-        .buffer_direction = JPEG_DEC_ALLOC_OUTPUT_BUFFER,
-    };
-    size_t img_byte_size;
-    img_byte_size = get_img_byte_size(decoded_img);
-    size_t rx_buffer_size = 0;
-    uint8_t *rx_buf = (uint8_t *)jpeg_alloc_decoder_mem(img_byte_size, &rx_mem_cfg, &rx_buffer_size);
-    if (!rx_buf) {
-        ESP_LOGE(TAG, "Failed to allocate memory for jpeg decoder output.");
-        return ESP_FAIL;
+    if (jpeg_new_decoder_engine(&decode_eng_cfg, &jpgd_handle) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to create decoder engine.");
+        return {};
     }
 
     // decode
-    jpeg_decode_cfg_t decode_cfg = {.output_format = convert_pix_type_to_dec_output_fmt(decoded_img.pix_type),
+    jpeg_decode_cfg_t decode_cfg = {.output_format = output_type,
                                     .rgb_order = swap_color_bytes ? JPEG_DEC_RGB_ELEMENT_ORDER_RGB
                                                                   : JPEG_DEC_RGB_ELEMENT_ORDER_BGR,
                                     .conv_std = JPEG_YUV_RGB_CONV_STD_BT601};
-    uint32_t out_size = 0;
-    ESP_RETURN_ON_ERROR(
-        jpeg_decoder_process(
-            jpgd_handle, &decode_cfg, jpeg_img.data, jpeg_img.data_size, rx_buf, rx_buffer_size, &out_size),
-        TAG,
-        "Failed to run decoder process.");
+    uint32_t out_len = 0;
+    if (jpeg_decoder_process(jpgd_handle,
+                             &decode_cfg,
+                             (uint8_t *)jpeg_img.data,
+                             jpeg_img.data_len,
+                             (uint8_t *)img.data,
+                             out_buf_len,
+                             &out_len) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to run decoder process.");
+        ESP_ERROR_CHECK(jpeg_del_decoder_engine(jpgd_handle));
+        return {};
+    }
 
     // del engine
-    ESP_RETURN_ON_ERROR(jpeg_del_decoder_engine(jpgd_handle), TAG, "Failed to delete decoder engine.");
-
-    decoded_img.data = (void *)rx_buf;
-    return ESP_OK;
+    ESP_ERROR_CHECK(jpeg_del_decoder_engine(jpgd_handle));
+    return img;
 }
-// hardware encode
-esp_err_t hw_encode_jpeg(const img_t &img,
-                         jpeg_img_t &encoded_img,
-                         jpeg_down_sampling_type_t down_sample_mode,
-                         uint8_t img_quality)
+
+jpeg_img_t hw_encode_jpeg(const img_t &img, uint8_t quality)
 {
-    if (DL_IMAGE_IS_PIX_TYPE_QUANT(img.pix_type)) {
-        ESP_LOGE(TAG, "Can not encode a quant img.");
-        return ESP_FAIL;
+    jpeg_img_t jpeg_img;
+    jpeg_enc_input_format_t src_type;
+    switch (img.pix_type) {
+    case DL_IMAGE_PIX_TYPE_RGB888:
+        src_type = JPEG_ENCODE_IN_FORMAT_RGB888;
+        break;
+    case DL_IMAGE_PIX_TYPE_RGB565:
+        src_type = JPEG_ENCODE_IN_FORMAT_RGB565;
+        break;
+    case DL_IMAGE_PIX_TYPE_GRAY:
+        src_type = JPEG_ENCODE_IN_FORMAT_GRAY;
+        break;
+    default:
+        ESP_LOGE(TAG, "Unsupported img pix format.");
+        return {};
     }
-    if (get_img_channel(img) == 1) {
-        if (down_sample_mode != JPEG_DOWN_SAMPLING_GRAY) {
-            ESP_LOGE(TAG, "For gray img, jpeg down sample mode must be gray.");
-            return ESP_FAIL;
-        }
-    } else {
-        if (down_sample_mode == JPEG_DOWN_SAMPLING_GRAY) {
-            ESP_LOGE(TAG, "For color img, jpeg down sample mode must not be gray.");
-            return ESP_FAIL;
-        }
+
+    // alloc output buffer
+    int img_size = get_img_byte_size(img);
+    // yuv420 use 1.5B to represent a pixel.
+    size_t out_buf_len = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? img_size : img_size / 2 + 1;
+    size_t alignment = cache_hal_get_cache_line_size(CACHE_LL_LEVEL_EXT_MEM, CACHE_TYPE_DATA);
+    jpeg_img.data = heap_caps_aligned_calloc(alignment, 1, out_buf_len, MALLOC_CAP_DEFAULT);
+    if (!jpeg_img.data) {
+        ESP_LOGE(TAG, "Failed to alloc output buffer.");
+        return {};
     }
-    encoded_img.height = img.height;
-    encoded_img.width = img.width;
 
     // new engine
     jpeg_encoder_handle_t jpeg_handle;
@@ -158,56 +261,33 @@ esp_err_t hw_encode_jpeg(const img_t &img,
         .intr_priority = 0,
         .timeout_ms = 70,
     };
-    ESP_RETURN_ON_ERROR(
-        jpeg_new_encoder_engine(&encode_eng_cfg, &jpeg_handle), TAG, "Failed to create encoder engine.");
-
-    // alloc output buffer
-    jpeg_encode_memory_alloc_cfg_t rx_mem_cfg = {
-        .buffer_direction = JPEG_ENC_ALLOC_OUTPUT_BUFFER,
-    };
-    size_t rx_buffer_size = 0;
-    size_t img_size = get_img_byte_size(img);
-    // Assume that compression ratio is 1 to ensure the img is encoded successfully.
-    uint8_t *rx_buf = (uint8_t *)jpeg_alloc_encoder_mem(img_size, &rx_mem_cfg, &rx_buffer_size);
-    if (!rx_buf) {
-        ESP_LOGE(TAG, "Failed to allocate memory for jpeg encoder output.");
-        return ESP_FAIL;
+    if (jpeg_new_encoder_engine(&encode_eng_cfg, &jpeg_handle) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to create encoder engine.");
+        return {};
     }
 
     // encode
     jpeg_encode_cfg_t enc_config = {
         .height = (uint32_t)img.height,
         .width = (uint32_t)img.width,
-        .src_type = convert_pix_type_to_enc_input_fmt(img.pix_type),
-        .sub_sample = down_sample_mode,
-        .image_quality = img_quality,
+        .src_type = src_type,
+        .sub_sample = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? JPEG_DOWN_SAMPLING_GRAY : JPEG_DOWN_SAMPLING_YUV420,
+        .image_quality = quality,
     };
-    uint32_t out_size = 0;
-    ESP_RETURN_ON_ERROR(
-        jpeg_encoder_process(
-            jpeg_handle, &enc_config, (const uint8_t *)img.data, img_size, rx_buf, rx_buffer_size, &out_size),
-        TAG,
-        "Failed to run encoder process.");
+
+    uint32_t out_len = 0;
+    if (jpeg_encoder_process(
+            jpeg_handle, &enc_config, (uint8_t *)img.data, img_size, (uint8_t *)jpeg_img.data, out_buf_len, &out_len) !=
+        ESP_OK) {
+        ESP_LOGE(TAG, "Failed to run encoder process.");
+        ESP_ERROR_CHECK(jpeg_del_encoder_engine(jpeg_handle));
+        return {};
+    }
 
     // del engine
-    ESP_RETURN_ON_ERROR(jpeg_del_encoder_engine(jpeg_handle), TAG, "Failed to delete encoder engine.");
-
-    encoded_img.data = rx_buf;
-    encoded_img.data_size = out_size;
-    return ESP_OK;
-}
-
-esp_err_t write_jpeg(img_t &img, const char *file_name)
-{
-    jpeg_img_t jpeg_img;
-    ESP_RETURN_ON_ERROR(
-        hw_encode_jpeg(
-            img, jpeg_img, (get_img_channel(img) == 3) ? JPEG_DOWN_SAMPLING_YUV420 : JPEG_DOWN_SAMPLING_GRAY),
-        TAG,
-        "Failed to encode img.");
-    ESP_RETURN_ON_ERROR(write_jpeg(jpeg_img, file_name), TAG, "Failed to write jpeg img.");
-    heap_caps_free(jpeg_img.data);
-    return ESP_OK;
+    ESP_ERROR_CHECK(jpeg_del_encoder_engine(jpeg_handle));
+    jpeg_img.data_len = out_len;
+    return jpeg_img;
 }
 #endif
 
@@ -218,7 +298,7 @@ esp_err_t write_jpeg(jpeg_img_t &img, const char *file_name)
         ESP_LOGE(TAG, "Failed to open %s.", file_name);
         return ESP_FAIL;
     }
-    size_t size = fwrite(img.data, img.data_size, 1, f);
+    size_t size = fwrite(img.data, img.data_len, 1, f);
     if (size != 1) {
         ESP_LOGE(TAG, "Failed to write img data.");
         fclose(f);

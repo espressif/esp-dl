@@ -296,7 +296,7 @@ public:
      *
      * @return Memory usage statistics on internal and PSRAM.
      */
-    std::map<std::string, mem_info> get_memory_info();
+    std::map<std::string, mem_info_t> get_memory_info();
 
     /**
      * @brief Get module info
