@@ -7,15 +7,15 @@
 
 [ops_test]
     [ops_test.Conv]
-    test_func = "CONV2D_TEST"
+    test_func = "CONV_TEST"
     quant_bits = ["int8", "int16"]
     package = "torch_ops_test"
     targets = ["esp32s3", "esp32p4"]
-    restrictions = "Groups only support 1 or input_channels"
+    restrictions = "Support 1d/2d conv, groups only support 1 or input_channels"
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned
         input_shape = [1, 3, 224, 224]
-        export_name_prefix = "conv2d_ishap_1_3_224_224_kshap_16_3_3_3"
+        export_name_prefix = "conv2d_ishap_1_3_224_224_kshap_16_3_3_3_relu"
         export_path = ""
         in_channels = 3
         out_channels = 16
@@ -188,6 +188,186 @@
         stride = [1, 1]
         padding = [0, 0]
         dilation = [1, 1]
+        groups = 32
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Conv, pointwise, aligned
+        input_shape = [1, 3, 224]
+        export_name_prefix = "conv1d_ishap_1_3_224_kshap_16_3_3_relu"
+        export_path = ""
+        in_channels = 3
+        out_channels = 16
+        kernel_size = 3
+        stride = 2
+        padding = 0
+        dilation = 1
+        groups = 1
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Conv, pointwise, aligned
+        input_shape = [1, 16, 32]
+        export_name_prefix = "conv1d_ishap_1_16_32_kshap_32_16_1"
+        export_path = ""
+        in_channels = 16
+        out_channels = 32
+        kernel_size = 1
+        stride = 1
+        padding = 0
+        dilation = 1
+        groups = 1
+        bias = true
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Conv, pointwise, aligned, two task
+        input_shape = [1, 16, 120]
+        export_name_prefix = "conv1d_ishap_1_16_120_kshap_32_16_1"
+        export_path = ""
+        in_channels = 16
+        out_channels = 32
+        kernel_size = 1
+        stride = 1
+        padding = 0
+        dilation = 1
+        groups = 1
+        bias = true
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Conv, pointwise, aligned, two task
+        input_shape = [1, 16, 32]
+        export_name_prefix = "conv1d_ishap_1_16_32_kshap_32_16_5_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 32
+        kernel_size = 5
+        stride = 2
+        padding = 2
+        dilation = 1
+        groups = 1
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Conv, pointwise, aligned, two task
+        input_shape = [1, 16, 32]
+        export_name_prefix = "conv1d_ishap_1_16_32_kshap_32_16_7_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 32
+        kernel_size = 7
+        stride = 2
+        padding = 2
+        dilation = 1
+        groups = 1
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Conv, pointwise, aligned, two task
+        input_shape = [1, 48, 19]
+        export_name_prefix = "conv1d_ishap_1_48_19_kshap_16_48_3"
+        export_path = ""
+        in_channels = 48
+        out_channels = 16
+        kernel_size = 3
+        stride = 2
+        padding = 1
+        dilation = 1
+        groups = 1
+        bias = true
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Conv, pointwise, aligned, two task
+        input_shape = [1, 33, 29]
+        export_name_prefix = "conv1d_ishap_1_33_29_kshap_55_33_3"
+        export_path = ""
+        in_channels = 33
+        out_channels = 55
+        kernel_size = 3
+        stride = 1
+        padding = 1
+        dilation = 1
+        groups = 1
+        bias = true
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 16, 3]
+        export_name_prefix = "depthwise_conv1d_ishap_1_16_3_kshap_16_1_3_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 16
+        kernel_size = 3
+        stride = 1
+        padding = 1
+        dilation = 1
+        groups = 16
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 16, 20]
+        export_name_prefix = "depthwise_conv1d_ishap_1_16_20_kshap_16_1_5_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 16
+        kernel_size = 5
+        stride = 2
+        padding = 1
+        dilation = 1
+        groups = 16
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 16, 20]
+        export_name_prefix = "depthwise_conv1d_ishap_1_16_20_kshap_16_1_7_relu"
+        export_path = ""
+        in_channels = 16
+        out_channels = 16
+        kernel_size = 7
+        stride = 2
+        padding = 2
+        dilation = 1
+        groups = 16
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 30, 20]
+        export_name_prefix = "depthwise_conv1d_ishap_1_30_20_kshap_30_1_7_relu"
+        export_path = ""
+        in_channels = 30
+        out_channels = 30
+        kernel_size = 7
+        stride = 2
+        padding = 2
+        dilation = 1
+        groups = 30
+        bias = true
+        activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 32, 120]
+        export_name_prefix = "depthwise_conv1d_ishap_1_32_120_kshap_32_1_3_relu"
+        export_path = ""
+        in_channels = 32
+        out_channels = 32
+        kernel_size = 3
+        stride = 1
+        padding = 0
+        dilation = 1
         groups = 32
         bias = true
         activation_func = "ReLU"    # "", "ReLU"
