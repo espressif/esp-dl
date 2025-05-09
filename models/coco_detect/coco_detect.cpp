@@ -38,10 +38,10 @@ Yolo11n::Yolo11n(const char *model_name)
 #endif
     m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
+    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255});
+#else
     m_image_preprocessor =
         new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
-#else
-    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255});
 #endif
     m_postprocessor =
         new dl::detect::yolo11PostProcessor(m_model, 0.25, 0.7, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}});

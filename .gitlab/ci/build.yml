@@ -80,6 +80,17 @@ build_espdl_ops:
     EXAMPLE_DIR: test_apps/esp-dl
     MODEL_PATH: test_apps/esp-dl/models
 
+build_dl_image:
+  extends:
+    - .build_examples_template
+    - .rules:build:dl_image
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
+        TARGET: [esp32p4, esp32s3]
+  variables:
+    EXAMPLE_DIR: test_apps/dl_image
+
 build_example_human_face_recognition:
   extends:
     - .build_examples_template

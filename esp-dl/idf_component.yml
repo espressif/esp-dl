@@ -7,7 +7,7 @@ description: esp-dl is a lightweight and efficient neural network inference fram
 url: https://github.com/espressif/esp-dl/tree/master/esp-dl
 dependencies: 
   idf: ">=5.3"
-  espressif/esp_new_jpeg: "==0.6.1"
+  espressif/esp_new_jpeg: "^0.6.1"
 examples:
   - path: ../examples/human_face_detect
   - path: ../examples/human_face_recognition

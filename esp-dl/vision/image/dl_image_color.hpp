@@ -62,17 +62,17 @@ inline void convert_pixel_from_rgb888_to_rgb565(uint8_t *src_ptr, uint16_t *dst_
 {
     if (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) {
         if (caps & DL_IMAGE_CAP_RGB_SWAP) {
-            *dst_ptr = ((src_ptr[2] >> 3) << 11) | ((src_ptr[1] >> 2) << 5) | (src_ptr[0] >> 3);
-        } else {
-            *dst_ptr = ((src_ptr[0] >> 3) << 11) | ((src_ptr[1] >> 2) << 5) | (src_ptr[2] >> 3);
-        }
-    } else {
-        if (caps & DL_IMAGE_CAP_RGB_SWAP) {
             *dst_ptr =
                 ((src_ptr[1] & 0x1c) << 11) | ((src_ptr[0] >> 3) << 8) | ((src_ptr[2] >> 3) << 3) | (src_ptr[1] >> 5);
         } else {
             *dst_ptr =
                 ((src_ptr[1] & 0x1c) << 11) | ((src_ptr[2] >> 3) << 8) | ((src_ptr[0] >> 3) << 3) | (src_ptr[1] >> 5);
+        }
+    } else {
+        if (caps & DL_IMAGE_CAP_RGB_SWAP) {
+            *dst_ptr = ((src_ptr[2] >> 3) << 11) | ((src_ptr[1] >> 2) << 5) | (src_ptr[0] >> 3);
+        } else {
+            *dst_ptr = ((src_ptr[0] >> 3) << 11) | ((src_ptr[1] >> 2) << 5) | (src_ptr[2] >> 3);
         }
     }
 }
@@ -154,13 +154,13 @@ inline void convert_pixel_from_rgb565_to_rgb565(uint16_t *src_ptr, uint16_t *dst
             if (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) {
                 // from rrrrrggg gggbbbbb
                 // to   gggrrrrr bbbbbggg
-                *dst_ptr = (uint16_t)(((*src_ptr & 0xf800) >> 3) | ((*src_ptr & 0x700) >> 8) |
-                                      ((*src_ptr & 0xe0) << 8) | ((*src_ptr & 0x1f) << 3));
+                *dst_ptr = (uint16_t)(((*src_ptr & 0xf8) >> 3) | ((*src_ptr & 0xe000) >> 8) | ((*src_ptr & 0x7) << 8) |
+                                      ((*src_ptr & 0x1f00) << 3));
             } else {
                 // from gggbbbbb rrrrrggg
                 // to   bbbbbggg gggrrrrr
-                *dst_ptr = (uint16_t)(((*src_ptr & 0xf8) >> 3) | ((*src_ptr & 0xe000) >> 8) | ((*src_ptr & 0x7) << 8) |
-                                      ((*src_ptr & 0x1f00) << 3));
+                *dst_ptr = (uint16_t)(((*src_ptr & 0xf800) >> 3) | ((*src_ptr & 0x700) >> 8) |
+                                      ((*src_ptr & 0xe0) << 8) | ((*src_ptr & 0x1f) << 3));
             }
         } else {
             *dst_ptr = (uint16_t)((*src_ptr << 8) | (*src_ptr >> 8));
@@ -168,9 +168,9 @@ inline void convert_pixel_from_rgb565_to_rgb565(uint16_t *src_ptr, uint16_t *dst
     } else {
         if (caps & DL_IMAGE_CAP_RGB_SWAP) {
             if (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) {
-                *dst_ptr = (uint16_t)(((*src_ptr & 0xf800) >> 11) | (*src_ptr & 0x7e0) | ((*src_ptr & 0x1f) << 11));
-            } else {
                 *dst_ptr = (uint16_t)(((*src_ptr & 0xf8) << 5) | (*src_ptr & 0xe007) | ((*src_ptr & 0x1f00) >> 5));
+            } else {
+                *dst_ptr = (uint16_t)(((*src_ptr & 0xf800) >> 11) | (*src_ptr & 0x7e0) | ((*src_ptr & 0x1f) << 11));
             }
         } else {
             if (src_ptr == dst_ptr)

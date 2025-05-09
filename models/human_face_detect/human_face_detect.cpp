@@ -29,10 +29,10 @@ MSR::MSR(const char *model_name)
 #endif
     m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
+    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB_SWAP);
+#else
     m_image_preprocessor = new dl::image::ImagePreprocessor(
         m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB_SWAP | DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
-#else
-    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB_SWAP);
 #endif
     m_postprocessor = new dl::detect::MSRPostprocessor(
         m_model, 0.5, 0.5, 10, {{8, 8, 9, 9, {{16, 16}, {32, 32}}}, {16, 16, 9, 9, {{64, 64}, {128, 128}}}});
@@ -55,10 +55,10 @@ MNP::MNP(const char *model_name)
 #endif
     m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
+    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB_SWAP);
+#else
     m_image_preprocessor = new dl::image::ImagePreprocessor(
         m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB_SWAP | DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
-#else
-    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB_SWAP);
 #endif
     m_postprocessor = new dl::detect::MNPPostprocessor(m_model, 0.5, 0.5, 10, {{1, 1, 0, 0, {{48, 48}}}});
 }
