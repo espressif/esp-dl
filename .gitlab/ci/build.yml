@@ -44,8 +44,8 @@
     paths:
       - "**/build*/*.bin"
       # upload to s3 server to save the artifacts size
-      - "**/build*/*.map"
-      - "**/build*/*.elf"
+      # - "**/build*/*.map"
+      # - "**/build*/*.elf"
       - "**/build*/flasher_args.json"
       - "**/build*/flash_project_args"
       - "**/build*/config/sdkconfig.json"
@@ -247,3 +247,15 @@ build_esp_dl_pdf:
   parallel:
     matrix:
       - DOCLANG: ["en", "zh_CN"]
+
+
+build_dl_fft:
+  extends:
+    - .build_examples_template
+    - .rules:build:test_dl_fft
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
+        TARGET: [esp32p4, esp32s3, esp32c3, esp32]
+  variables:
+    EXAMPLE_DIR: test_apps/dl_fft
