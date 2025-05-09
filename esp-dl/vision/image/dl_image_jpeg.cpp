@@ -145,7 +145,7 @@ jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
     return ret;
 }
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_SOC_JPEG_CODEC_SUPPORTED
 img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t caps)
 {
     assert(caps == 0 || caps == DL_IMAGE_CAP_RGB_SWAP || caps == DL_IMAGE_CAP_RGB565_BIG_ENDIAN);

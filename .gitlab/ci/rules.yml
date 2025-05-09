@@ -30,6 +30,9 @@
 .patterns-esp-dl_vision: &patterns-esp-dl_vision
   - "esp-dl/vision/**/*"
 
+.patterns-esp-dl_image: &patterns-esp-dl_image
+  - "esp-dl/vision/image/*"
+
 # models folder, in the alphabetic order
 .patterns-model_human_face_recognition: &patterns-model_human_face_recognition
   - "models/human_face_recognition/**/*"
@@ -129,6 +132,16 @@
       changes: *patterns-esp-dl_dl
     - <<: *if-dev-push
       changes: *patterns-esp-dl_fbs_loader
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+# rules for dl image
+.rules:build:dl_image:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl_image
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 

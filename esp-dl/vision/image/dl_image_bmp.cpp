@@ -32,7 +32,6 @@ typedef struct {
 
 esp_err_t write_bmp_base(const img_t &img, const char *file_name)
 {
-    // TODO rgb565->rgb888, rgb -> bgr
     bmp_file_header_t bmp_file_header;
     bmp_info_header_t bmp_info_header;
     FILE *f = fopen(file_name, "wb");

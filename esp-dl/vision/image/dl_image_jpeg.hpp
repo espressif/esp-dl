@@ -41,7 +41,7 @@ jpeg_img_t sw_encode_jpeg_base(const img_t &img, uint8_t quality = 80);
  * @return jpeg_img_t
  */
 jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps = 0, uint8_t quality = 80);
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_SOC_JPEG_CODEC_SUPPORTED
 /**
  * @brief Hardware jpeg decode.
  * @note Support decoding into GRAY/RGB888/RGB565. Unable to decode a image if w * h is not divided by 8. The decoded

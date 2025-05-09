@@ -111,3 +111,22 @@ test_espdl_api:
   variables:
     TEST_TARGET: ${IDF_TARGET}
     TEST_ENV: ${IDF_TARGET}
+
+test_dl_image:
+  extends:
+    - .pytest_template
+    - .rules:build:dl_image
+  needs:
+    - job: "build_dl_image"
+      artifacts: true
+  parallel:
+    matrix:
+      - IDF_TARGET: [esp32p4, esp32s3]
+        IDF_VERSION: "5.3"
+  tags:
+    - ${IDF_TARGET}
+  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  variables:
+    TEST_FOLDER: 'test_apps/dl_image'
+    TEST_TARGET: ${IDF_TARGET}
+    TEST_ENV: ${IDF_TARGET}
