@@ -10,12 +10,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class CONV2D_TEST(nn.Module):
+class CONV_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
 
+        conv_class = nn.Conv1d if len(config["input_shape"]) == 3 else nn.Conv2d
+
         op_list = [
-            nn.Conv2d(
+            conv_class(
                 in_channels=config["in_channels"],
                 out_channels=config["out_channels"],
                 kernel_size=config["kernel_size"],
@@ -287,7 +289,7 @@ class MAX_POOLING_TEST(nn.Module):
 
     def forward(self, input):
         x = self.pre_max_pool(input)
-        x = self.max_pool(input)
+        x = self.max_pool(x)
         return x
 
 
@@ -862,25 +864,25 @@ if __name__ == "__main__":
     config = toml.load(args.config)
 
     # get model
-    conv2d_cfg = config["ops_test"]["conv2d"]["cfg"][0]
+    conv_cfg = config["ops_test"]["Conv"]["cfg"][0]
     add2d_cfg = config["ops_test"]["add2d"]["cfg"][0]
     add2d_relu_cfg = config["ops_test"]["add2d"]["cfg"][1]
     mul2d_cfg = config["ops_test"]["mul2d"]["cfg"][0]
     mul2d_relu_cfg = config["ops_test"]["mul2d"]["cfg"][1]
     global_average_pooling_cfg = config["ops_test"]["global_average_pooling"]["cfg"][0]
     average_pooling_cfg = config["ops_test"]["average_pooling"]["cfg"][0]
-    resize2d_cfg = config["ops_test"]["resize2d"]["cfg"][0]
-    conv2d = CONV2D_TEST(conv2d_cfg)
+    resize_cfg = config["ops_test"]["resize"]["cfg"][0]
+    conv = CONV_TEST(conv_cfg)
     add2d = ADD2D_TEST(add2d_cfg)
     add2d_relu = ADD2D_TEST(add2d_relu_cfg)
     mul2d = MUL2D_TEST(mul2d_cfg)
     mul2d_relu = ADD2D_TEST(mul2d_relu_cfg)
     global_average_pooling = GLOBAL_AVERAGE_POOLING_TEST(global_average_pooling_cfg)
     average_pooling = AVERAGE_POOLING_TEST(average_pooling_cfg)
-    resize2d = RESIZE2D_TEST(resize2d_cfg)
+    resize = RESIZE_TEST(resize_cfg)
 
     # get inputs
-    conv2d_inputs = torch.randn(conv2d_cfg["input_shape"])
+    conv_inputs = torch.randn(conv_cfg["input_shape"])
     add2d_inputs = [
         torch.randn(add2d_cfg["input_shape"][0]),
         torch.randn(add2d_cfg["input_shape"][1]),
@@ -893,11 +895,11 @@ if __name__ == "__main__":
         global_average_pooling_cfg["input_shape"]
     )
     average_pooling_inputs = torch.randn(average_pooling_cfg["input_shape"])
-    resize2d_inputs = torch.randn(resize2d_cfg["input_shape"])
+    resize_inputs = torch.randn(resize_cfg["input_shape"])
     # print network
-    # summary(conv2d, input_data=conv2d_inputs, col_names=("input_size", "output_size", "num_params"), device=torch.device('cpu'))
+    # summary(conv, input_data=conv_inputs, col_names=("input_size", "output_size", "num_params"), device=torch.device('cpu'))
     # forward
-    conv2d_outputs = conv2d(conv2d_inputs)
+    conv_outputs = conv(conv_inputs)
     add2d_outputs = add2d(*add2d_inputs)
     add2d_relu_outputs = add2d_relu(*add2d_inputs)
     mul2d_outputs = mul2d(*mul2d_inputs)
@@ -906,7 +908,7 @@ if __name__ == "__main__":
         global_average_pooling_inputs
     )
     average_pooling_outputs = average_pooling(average_pooling_inputs)
-    resize2d_outputs = resize2d(resize2d_inputs)
+    resize_outputs = resize(resize_inputs)
 
     print(f"Test {os.path.basename(sys.argv[0])} Module End...")
     pass

@@ -164,7 +164,7 @@ public:
      * @param copy Filter the parameters by auto_free.
      * @return size_t Returns the total size of the parameters memory in bytes.
      */
-    size_t get_parameter_memory_size(mem_info &mem_info, bool copy);
+    size_t get_parameter_memory_size(mem_info_t &mem_info, bool copy);
 
     /**
      * @brief Get the variable memory size object
@@ -172,7 +172,7 @@ public:
      * @param mem_info The size of the memory used by the variables in bytes.
      * @return size_t Returns the total size of the variables memory in bytes.
      */
-    size_t get_variable_memory_size(mem_info &mem_info);
+    size_t get_variable_memory_size(mem_info_t &mem_info);
 
     /**
      * @brief Frees the memory allocated for PSRAM and internal roots.

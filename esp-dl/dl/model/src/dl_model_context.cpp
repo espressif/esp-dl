@@ -112,7 +112,7 @@ int ModelContext::get_variable_index(const std::string &name)
     return -1;
 }
 
-size_t ModelContext::get_parameter_memory_size(mem_info &mem_info, bool copy)
+size_t ModelContext::get_parameter_memory_size(mem_info_t &mem_info, bool copy)
 {
     size_t total_size = 0;
     mem_info = {};
@@ -138,7 +138,7 @@ size_t ModelContext::get_parameter_memory_size(mem_info &mem_info, bool copy)
     return total_size;
 }
 
-size_t ModelContext::get_variable_memory_size(mem_info &mem_info)
+size_t ModelContext::get_variable_memory_size(mem_info_t &mem_info)
 {
     mem_info.flash = 0;
     mem_info.internal = m_internal_size;

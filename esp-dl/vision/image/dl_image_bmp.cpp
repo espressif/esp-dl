@@ -30,9 +30,8 @@ typedef struct {
 } bmp_info_header_t;
 #pragma pack(pop)
 
-esp_err_t write_rgb888_or_gray_bmp(const img_t &img, const char *file_name)
+esp_err_t write_bmp_base(const img_t &img, const char *file_name)
 {
-    // TODO rgb565->rgb888, rgb -> bgr
     bmp_file_header_t bmp_file_header;
     bmp_info_header_t bmp_info_header;
     FILE *f = fopen(file_name, "wb");
@@ -44,8 +43,7 @@ esp_err_t write_rgb888_or_gray_bmp(const img_t &img, const char *file_name)
 
     int channel = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? 1 : 3;
     int row_stride = img.width * channel;
-    int row_stride_padded = DL_IMAGE_ALIGN_UP(row_stride, 4);
-    ; // every row 4 byte align
+    int row_stride_padded = DL_IMAGE_ALIGN_UP(row_stride, 4); // every row 4 byte align
 
     if (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) {
         uint8_t color_table[256 * 4];
@@ -135,14 +133,39 @@ esp_err_t write_rgb888_or_gray_bmp(const img_t &img, const char *file_name)
     fclose(f);
     return ESP_OK;
 }
-esp_err_t read_bmp(img_t &img, const char *file_name)
+
+esp_err_t write_bmp(const img_t &img, const char *file_name, uint32_t caps)
 {
+    if (img.pix_type != DL_IMAGE_PIX_TYPE_RGB565 && img.pix_type != DL_IMAGE_PIX_TYPE_RGB888 &&
+        img.pix_type != DL_IMAGE_PIX_TYPE_GRAY) {
+        ESP_LOGE(TAG, "Unsupported img type.");
+        return ESP_FAIL;
+    }
+    img_t img2write = img;
+    bool free = false;
+    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 ||
+        (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP))) {
+        img2write.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
+        img2write.data = heap_caps_malloc(get_img_byte_size(img2write), MALLOC_CAP_DEFAULT);
+        convert_img(img, img2write, caps);
+        free = true;
+    };
+    esp_err_t ret = write_bmp_base(img2write, file_name);
+    if (free) {
+        heap_caps_free(img2write.data);
+    }
+    return ret;
+}
+
+img_t read_bmp(const char *file_name)
+{
+    img_t img;
     bmp_file_header_t bmp_file_header;
     bmp_info_header_t bmp_info_header;
     FILE *f = fopen(file_name, "rb");
     if (!f) {
         ESP_LOGE(TAG, "Failed to open %s.", file_name);
-        return ESP_FAIL;
+        return {};
     }
     fread(&bmp_file_header, sizeof(bmp_file_header_t), 1, f);
     fread(&bmp_info_header, sizeof(bmp_info_header_t), 1, f);
@@ -151,7 +174,7 @@ esp_err_t read_bmp(img_t &img, const char *file_name)
     if (bmp_file_header.file_type != 0x4D42) {
         ESP_LOGE(TAG, "It is not a bmp file.");
         fclose(f);
-        return ESP_FAIL;
+        return {};
     }
 
     // set img info
@@ -163,28 +186,32 @@ esp_err_t read_bmp(img_t &img, const char *file_name)
     img.height = bmp_info_header.height;
     img.width = bmp_info_header.width;
     int channel = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? 1 : 3;
-    img.data = heap_caps_malloc(img.height * img.width * channel, MALLOC_CAP_SPIRAM);
-    assert(img.data);
+    img.data = heap_caps_malloc(img.height * img.width * channel, MALLOC_CAP_DEFAULT);
+    if (!img.data) {
+        fclose(f);
+        ESP_LOGE(TAG, "Failed to alloc memory");
+        return {};
+    }
     int row_stride = img.width * channel;
     int row_stride_padded = DL_IMAGE_ALIGN_UP(row_stride, 4); // every row 4 byte align
 
     if (fseek(f, 0, SEEK_END) != 0) {
         ESP_LOGE(TAG, "Failed to seek bmp file.");
         fclose(f);
-        return ESP_FAIL;
+        return {};
     }
     long pos = ftell(f);
     // check file size
     if (bmp_file_header.file_size != pos) {
         ESP_LOGE(TAG, "Bmp file size does not match bmp info header.");
         fclose(f);
-        return ESP_FAIL;
+        return {};
     }
     // check img data size
     if (pos - bmp_file_header.offset_data != img.height * row_stride_padded) {
         ESP_LOGE(TAG, "Image data size does not match bmp info header.");
         fclose(f);
-        return ESP_FAIL;
+        return {};
     }
 
     // read img data
@@ -192,38 +219,20 @@ esp_err_t read_bmp(img_t &img, const char *file_name)
     if (fseek(f, bmp_file_header.offset_data, SEEK_SET) != 0) {
         ESP_LOGE(TAG, "Failed to seek bmp file.");
         fclose(f);
-        return ESP_FAIL;
+        return {};
     }
 
     for (int i = 0; i < img.height; i++) {
         fread(img_ptr, 1, row_stride, f);
-        if (row_stride_padded != row_stride && fseek(f, row_stride_padded - row_stride, SEEK_CUR) != 0) {
+        if (fseek(f, row_stride_padded - row_stride, SEEK_CUR) != 0) {
             ESP_LOGE(TAG, "Failed to seek bmp file.");
             fclose(f);
-            return ESP_FAIL;
+            return {};
         }
         img_ptr -= row_stride;
     }
-    return ESP_OK;
-}
-esp_err_t write_bmp(const img_t &img, const char *file_name, uint32_t caps)
-{
-    if (DL_IMAGE_IS_PIX_TYPE_QUANT(img.pix_type)) {
-        ESP_LOGE(TAG, "Do not support quant img type.");
-        return ESP_FAIL;
-    }
-    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565) {
-        img_t img_converted = {.data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_SPIRAM),
-                               .width = 0,
-                               .height = 0,
-                               .pix_type = DL_IMAGE_PIX_TYPE_RGB888};
-        convert_img(img, img_converted, caps);
-        return write_rgb888_or_gray_bmp(img_converted, file_name);
-    }
-    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP)) {
-        convert_img(img, const_cast<img_t &>(img), caps);
-    }
-    return write_rgb888_or_gray_bmp(img, file_name);
+    fclose(f);
+    return img;
 }
 } // namespace image
 } // namespace dl

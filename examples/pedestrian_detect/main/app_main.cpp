@@ -12,15 +12,9 @@ extern "C" void app_main(void)
     ESP_ERROR_CHECK(bsp_sdcard_mount());
 #endif
 
-    dl::image::jpeg_img_t jpeg_img = {
-        .data = (uint8_t *)pedestrian_jpg_start,
-        .width = 640,
-        .height = 480,
-        .data_size = (uint32_t)(pedestrian_jpg_end - pedestrian_jpg_start),
-    };
-    dl::image::img_t img;
-    img.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
-    sw_decode_jpeg(jpeg_img, img, true);
+    dl::image::jpeg_img_t jpeg_img = {.data = (void *)pedestrian_jpg_start,
+                                      .data_len = (size_t)(pedestrian_jpg_end - pedestrian_jpg_start)};
+    auto img = sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     PedestrianDetect *detect = new PedestrianDetect();
 

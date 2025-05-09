@@ -30,9 +30,10 @@ MFN::MFN(const char *model_name)
     m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor = new dl::image::FeatImagePreprocessor(
+        m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5}, DL_IMAGE_CAP_RGB_SWAP);
+#else
+    m_image_preprocessor = new dl::image::FeatImagePreprocessor(
         m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5}, DL_IMAGE_CAP_RGB_SWAP | DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
-#elif CONFIG_IDF_TARGET_ESP32S3
-    m_image_preprocessor = new dl::image::FeatImagePreprocessor(m_model, {127.5, 127.5, 127.5}, {127.5, 127.5, 127.5});
 #endif
     m_postprocessor = new dl::feat::FeatPostprocessor(m_model);
     m_feat_len = m_model->get_output()->get_size();

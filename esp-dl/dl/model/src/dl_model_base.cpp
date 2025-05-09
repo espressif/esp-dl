@@ -466,9 +466,9 @@ esp_err_t Model::test()
     return ESP_OK;
 }
 
-std::map<std::string, mem_info> Model::get_memory_info()
+std::map<std::string, mem_info_t> Model::get_memory_info()
 {
-    std::map<std::string, mem_info> info;
+    std::map<std::string, mem_info_t> info;
 
     size_t psram_rodata_size;
 
@@ -551,7 +551,7 @@ static void print_table_name(const std::string &table_name, const std::string &s
     ESP_LOGI(TAG, "%s", sep.c_str());
 }
 
-static void print_memory_info(const std::map<std::string, mem_info> &info)
+static void print_memory_info(const std::map<std::string, mem_info_t> &info)
 {
     std::string table_name = "memory summary";
     std::vector<std::string> row_headers = {"fbs_model", "parameter", "parameter_copy", "variable", "others", "total"};

@@ -19,7 +19,7 @@ Currently, the following 40 operators have been implemented and tested. Some ope
 | AveragePool[(ESP-DL)](esp-dl/dl/module/include/dl_module_average_pool.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__AveragePool.html)                    | &#10004; | &#10004; |                                                                        |
 | Clip[(ESP-DL)](esp-dl/dl/module/include/dl_module_clip.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Clip.html)                                          | &#10004; | &#10004; |                                                                        |
 | Concat[(ESP-DL)](esp-dl/dl/module/include/dl_module_concat.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Concat.html)                                    | &#10004; | &#10004; |                                                                        |
-| Conv[(ESP-DL)](esp-dl/dl/module/include/dl_module_conv.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Conv.html)                                          | &#10004; | &#10004; | Groups only support 1 or input_channels                                |
+| Conv[(ESP-DL)](esp-dl/dl/module/include/dl_module_conv.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Conv.html)                                          | &#10004; | &#10004; | Support 1d/2d conv, groups only support 1 or input_channels            |
 | Div[(ESP-DL)](esp-dl/dl/module/include/dl_module_div.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Div.html)                                             | &#10004; | &#10004; | Support up to 4D                                                       |
 | Elu[(ESP-DL)](esp-dl/dl/module/include/dl_module_elu.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Elu.html)                                             | &#10004; | &#10004; |                                                                        |
 | Equal[(ESP-DL)](esp-dl/dl/module/include/dl_module_equal.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Equal.html)                                       | &#10004; | &#10004; |                                                                        |
@@ -56,4 +56,4 @@ Currently, the following 40 operators have been implemented and tested. Some ope
 | Transpose[(ESP-DL)](esp-dl/dl/module/include/dl_module_transpose.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Transpose.html)                           | &#10004; | &#10004; |                                                                        |
 | Unsqueeze[(ESP-DL)](esp-dl/dl/module/include/dl_module_unsqueeze.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Unsqueeze.html)                           | &#10004; | &#10004; |                                                                        |
 
-Generation Time: 2025-04-22 15:48:54
+Generation Time: 2025-04-24 14:56:29
