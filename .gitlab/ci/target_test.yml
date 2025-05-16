@@ -116,7 +116,7 @@ test_espdl_api:
 test_dl_fft:
   extends:
     - .pytest_api_template
-    - .rules:build:espdl_ops
+    - .rules:build:test_dl_fft
   needs:
     - job: "build_dl_fft"
       artifacts: true
