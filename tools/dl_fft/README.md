@@ -3,6 +3,7 @@
 DL_FFT is a lightweight FFT library supporting both float32 and int16 data types.
 
 The FFT implementation is come from esp-dsp. And we further optimized the int16 FFT to achieving better precision.
+For int16 FFT, we recommend to use `dl_fft_s16_hp_run` or `dl_rfft_s16_hp_run` interface. `hp` means "high precision".
 
 ### User Guide:
 ```

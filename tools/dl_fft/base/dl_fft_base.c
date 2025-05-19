@@ -30,7 +30,7 @@ int dl_power_of_two(uint32_t n)
     return pos;
 }
 
-float *dl_short_to_float(int16_t *x, int len, int exponent, float *y)
+float *dl_short_to_float(const int16_t *x, int len, int exponent, float *y)
 {
     float scale = 1.0;
     if (exponent > 0) {
@@ -42,4 +42,28 @@ float *dl_short_to_float(int16_t *x, int len, int exponent, float *y)
         y[i] = scale * x[i];
     }
     return y;
+}
+
+int16_t dl_array_max_q_s16(const int16_t *x, int size)
+{
+    int32_t max = x[0];
+    for (int i = 1; i < size; i++) {
+        if (x[i] > max) {
+            max = x[i];
+        } else if (-x[i] > max) {
+            max = -x[i];
+        }
+    }
+
+    if (max == 0) {
+        return 1;
+    }
+
+    uint16_t k = 2;
+    while (max > 1) {
+        k++;
+        max = max >> 1;
+    }
+
+    return k;
 }

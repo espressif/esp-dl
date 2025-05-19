@@ -66,3 +66,23 @@ esp_err_t dl_fft_f32_run(dl_fft_f32_t *handle, float *data)
 
     return ESP_OK;
 }
+
+esp_err_t dl_ifft_f32_run(dl_fft_f32_t *handle, float *data)
+{
+    if (!handle || !data) {
+        return ESP_FAIL;
+    }
+
+    int fft_point = handle->fft_point;
+    float scale = 1.0f / fft_point;
+
+    dl_ifft2r_fc32(data, fft_point, handle->fftr2_table);
+    dl_bitrev2r_fc32_ansi(data, fft_point, handle->reverse_table, handle->reverse_size);
+
+    // Scale by 1/N
+    for (int i = 0; i < fft_point * 2; i++) {
+        data[i] *= scale;
+    }
+
+    return ESP_OK;
+}

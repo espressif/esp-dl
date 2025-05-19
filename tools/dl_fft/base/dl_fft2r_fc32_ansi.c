@@ -46,6 +46,36 @@ esp_err_t dl_fft2r_fc32_ansi(float *data, int N, float *w)
     return result;
 }
 
+esp_err_t dl_ifft2r_fc32_ansi(float *data, int N, float *w)
+{
+    esp_err_t result = ESP_OK;
+
+    int ie, ia, m;
+    float re_temp, im_temp;
+    float c, s;
+    ie = 1;
+    for (int N2 = N / 2; N2 > 0; N2 >>= 1) {
+        ia = 0;
+        for (int j = 0; j < ie; j++) {
+            c = w[2 * j];
+            s = -w[2 * j + 1];
+            for (int i = 0; i < N2; i++) {
+                m = ia + N2;
+                re_temp = c * data[2 * m] + s * data[2 * m + 1];
+                im_temp = c * data[2 * m + 1] - s * data[2 * m];
+                data[2 * m] = data[2 * ia] - re_temp;
+                data[2 * m + 1] = data[2 * ia + 1] - im_temp;
+                data[2 * ia] = data[2 * ia] + re_temp;
+                data[2 * ia + 1] = data[2 * ia + 1] + im_temp;
+                ia++;
+            }
+            ia += N2;
+        }
+        ie <<= 1;
+    }
+    return result;
+}
+
 esp_err_t dl_bitrev2r_fc32_ansi(float *data, int N, uint16_t *reverse_tab, int reverse_size)
 {
     esp_err_t result = ESP_OK;
