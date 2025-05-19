@@ -487,7 +487,7 @@ To further improve the accuracy of the quantized model, we adopt the quantizatio
 **Quantization settings**
 
 - :project_file:`yolo11n_qat.py <examples/tutorial/how_to_quantize_model/quantize_yolo11n/yolo11n_qat.py>`
-- :project_file:`train.py <examples/tutorial/how_to_quantize_model/quantize_yolo11n/trainer.py>`
+- :project_file:`trainer.py <examples/tutorial/how_to_quantize_model/quantize_yolo11n/trainer.py>`
 
 **Quantization results**
 

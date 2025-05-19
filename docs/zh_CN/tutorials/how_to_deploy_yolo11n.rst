@@ -487,7 +487,7 @@
 **量化设置**
 
 - :project_file:`yolo11n_qat.py <examples/tutorial/how_to_quantize_model/quantize_yolo11n/yolo11n_qat.py>`
-- :project_file:`train.py <examples/tutorial/how_to_quantize_model/quantize_yolo11n/trainer.py>`
+- :project_file:`trainer.py <examples/tutorial/how_to_quantize_model/quantize_yolo11n/trainer.py>`
 
 **量化结果**
 

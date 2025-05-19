@@ -16,6 +16,7 @@ jobs:
           directories: >
             esp-dl;
             models/coco_detect;
+            models/coco_pose;
             models/human_face_detect;
             models/human_face_recognition;
             models/pedestrian_detect;

@@ -87,6 +87,7 @@ ESP-DL 必须使用专有格式 ``.espdl`` 进行模型部署，深度学习模�
 - :doc:`如何量化模型 </tutorials/how_to_quantize_model>`
 - :ref:`如何量化 MobileNetV2 <how_to_quantize_mobilenetv2>`
 - :ref:`如何量化 YOLO11n <how_to_quantize_yolo11n>`
+- :ref:`如何量化 YOLO11n-pose <how_to_quantize_yolo11n-pose>`
 
 模型部署
 ----------------
