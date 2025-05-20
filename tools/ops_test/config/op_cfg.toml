@@ -120,6 +120,36 @@
         [[ops_test.Conv.cfg]]
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 3, 3]
+        export_name_prefix = "conv2d_ishap_1_16_3_3_kshap_16_16_3_3"
+        export_path = ""
+        in_channels = 16
+        out_channels = 16
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 1
+        bias = false
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 31, 3, 3]
+        export_name_prefix = "conv2d_ishap_1_31_3_3_kshap_31_31_5_5"
+        export_path = ""
+        in_channels = 31
+        out_channels = 31
+        kernel_size = [5, 5]
+        stride = [1, 1]
+        padding = [2, 2]
+        dilation = [1, 1]
+        groups = 1
+        bias = false
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 16, 3, 3]
         export_name_prefix = "depthwise_conv2d_ishap_1_16_3_3_kshap_16_1_3_3_relu"
         export_path = ""
         in_channels = 16
@@ -191,6 +221,51 @@
         groups = 32
         bias = true
         activation_func = "ReLU"    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 16, 3, 3]
+        export_name_prefix = "depthwise_conv2d_ishap_1_16_3_3_kshap_16_1_5_5"
+        export_path = ""
+        in_channels = 16
+        out_channels = 16
+        kernel_size = [5, 5]
+        stride = [1, 1]
+        padding = [2, 2]
+        dilation = [1, 1]
+        groups = 16
+        bias = false
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 16, 9, 9]
+        export_name_prefix = "depthwise_conv2d_ishap_1_16_9_9_kshap_16_1_5_5"
+        export_path = ""
+        in_channels = 16
+        out_channels = 16
+        kernel_size = [5, 5]
+        stride = [1, 1]
+        padding = [12, 12]
+        dilation = [3, 3]
+        groups = 16
+        bias = false
+        activation_func = ""    # "", "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Can be configured as 1-d or 2-d arrays
+        input_shape = [1, 31, 3, 3]
+        export_name_prefix = "depthwise_conv2d_ishap_1_31_3_3_kshap_31_1_5_5"
+        export_path = ""
+        in_channels = 31
+        out_channels = 31
+        kernel_size = [5, 5]
+        stride = [1, 1]
+        padding = [2, 2]
+        dilation = [1, 1]
+        groups = 31
+        bias = false
+        activation_func = ""    # "", "ReLU"
 
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned
@@ -1242,6 +1317,13 @@
         stride = [1, 1]
         padding = [1, 1]
 
+        [[ops_test.AveragePool.cfg]]
+        input_shape = [1, 16, 3, 3]
+        export_name_prefix = "average_pooling_ishap_1_16_3_3_kshape_5_5"
+        kernel_size = [5, 5]
+        stride = [1, 1]
+        padding = [2, 2]
+
     [ops_test.MaxPool]
     test_func = "MAX_POOLING_TEST"
     quant_bits = ["int8", "int16"]
@@ -1273,6 +1355,13 @@
         kernel_size = [2, 2]
         stride = [1, 1]
         padding = [1, 1]
+
+        [[ops_test.MaxPool.cfg]]
+        input_shape = [1, 16, 3, 3]
+        export_name_prefix = "max_pooling_ishap_1_16_3_3_kshape_5_5"
+        kernel_size = [5, 5]
+        stride = [1, 1]
+        padding = [2, 2]
 
     [ops_test.Resize]
     test_func = "RESIZE_TEST"

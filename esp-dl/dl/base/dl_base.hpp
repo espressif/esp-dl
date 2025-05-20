@@ -215,6 +215,9 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
         args.padding_h_tail = padding[1];
         args.padding_w_head = padding[2];
         args.padding_w_tail = padding[3];
+    } else {
+        ESP_LOGE(__FUNCTION__, "Do not support input shape.");
+        return {};
     }
 
     args.filter_n_offset = 0;
@@ -346,10 +349,15 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                             args.stride_y +
                         1) -
             n_h_head;
+        if (n_h_body < 0)
+            n_h_body = 0;
         int n_w_body =
             ((args.input_width + args.padding_w_head - args.dilation_w * (args.filter_width - 1) - 1) / args.stride_x +
              1) -
             n_w_head;
+        if (n_w_body < 0)
+            n_w_body = 0;
+
         int n_h_tail = args.output_height - n_h_head - n_h_body;
         int n_w_tail = args.output_width - n_w_head - n_w_body;
         int filter_h = args.filter_height;
@@ -375,13 +383,25 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                 for (size_t output_y = 0; output_y < n_h_head; output_y++) {
                     args.filter_height = filter_h -
                         ((args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) / args.dilation_h;
+                    // Fix for filter_size > input_size
+                    int filter_height_excess = filter_h -
+                        (args.input_height + (args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) /
+                            args.dilation_h;
+                    if (filter_height_excess > 0) {
+                        args.filter_height -= filter_height_excess;
+                    } else {
+                        filter_height_excess = 0;
+                    }
+
                     input_y_real = input_ptr +
                         args.input_y_offset *
-                            ((args.stride_y * output_y + (filter_h - args.filter_height) * args.dilation_h) -
+                            ((args.stride_y * output_y +
+                              (filter_h - args.filter_height - filter_height_excess) * args.dilation_h) -
                              args.padding_h_head);
-                    filter_ptr_y = filter_ptr + (filter_h - args.filter_height) * filter_w * filter_c_n_ptr_offset;
-                    filter_ptr_y_unaligned =
-                        filter_ptr_unaligned + (filter_h - args.filter_height) * filter_w * args.filter_c;
+                    filter_ptr_y = filter_ptr +
+                        (filter_h - args.filter_height - filter_height_excess) * filter_w * filter_c_n_ptr_offset;
+                    filter_ptr_y_unaligned = filter_ptr_unaligned +
+                        (filter_h - args.filter_height - filter_height_excess) * filter_w * args.filter_c;
                     args.filter_n_offset = (filter_w * (filter_h - args.filter_height)) * filter_c_n_offset;
                     args.filter_n_offset_unaligned =
                         (filter_w * (filter_h - args.filter_height)) * unaligned_filter_c_n_offset;
@@ -389,9 +409,21 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -400,9 +432,10 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                             (args.xtensa_dilation_y_offset_stable - args.input_channel -
                              (args.filter_width - 1) * args.dilation_w * args.input_channel_with_padding) *
                             sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * args.filter_c;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * args.filter_c;
 
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         n_wise_tail(output_yx, NULL, args);
@@ -454,9 +487,21 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -465,9 +510,10 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                             (args.xtensa_dilation_y_offset_stable - args.input_channel -
                              (args.filter_width - 1) * args.dilation_w * args.input_channel_with_padding) *
                             sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * args.filter_c;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * args.filter_c;
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         n_wise_tail(output_yx, NULL, args);
                         output_yx += args.output_x_offset;
@@ -520,9 +566,21 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -531,9 +589,10 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                             (args.xtensa_dilation_y_offset_stable - args.input_channel -
                              (args.filter_width - 1) * args.dilation_w * args.input_channel_with_padding) *
                             sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * args.filter_c;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * args.filter_c;
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         n_wise_tail(output_yx, NULL, args);
                         output_yx += args.output_x_offset;
@@ -578,13 +637,25 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                 for (size_t output_y = 0; output_y < n_h_head; output_y++) {
                     args.filter_height = filter_h -
                         ((args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) / args.dilation_h;
+                    // Fix for filter_size > input_size
+                    int filter_height_excess = filter_h -
+                        (args.input_height + (args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) /
+                            args.dilation_h;
+                    if (filter_height_excess > 0) {
+                        args.filter_height -= filter_height_excess;
+                    } else {
+                        filter_height_excess = 0;
+                    }
+
                     input_y_real = input_ptr +
                         args.input_y_offset *
-                            ((args.stride_y * output_y + (filter_h - args.filter_height) * args.dilation_h) -
+                            ((args.stride_y * output_y +
+                              (filter_h - args.filter_height - filter_height_excess) * args.dilation_h) -
                              args.padding_h_head);
-                    filter_ptr_y = filter_ptr + (filter_h - args.filter_height) * filter_w * filter_c_n_ptr_offset;
-                    filter_ptr_y_unaligned =
-                        filter_ptr_unaligned + (filter_h - args.filter_height) * filter_w * args.filter_c;
+                    filter_ptr_y = filter_ptr +
+                        (filter_h - args.filter_height - filter_height_excess) * filter_w * filter_c_n_ptr_offset;
+                    filter_ptr_y_unaligned = filter_ptr_unaligned +
+                        (filter_h - args.filter_height - filter_height_excess) * filter_w * args.filter_c;
                     args.filter_n_offset = (filter_w * (filter_h - args.filter_height)) * filter_c_n_offset;
                     args.filter_n_offset_unaligned =
                         (filter_w * (filter_h - args.filter_height)) * unaligned_filter_c_n_offset;
@@ -592,9 +663,21 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -603,9 +686,10 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                             (args.xtensa_dilation_y_offset_stable - args.input_channel -
                              (args.filter_width - 1) * args.dilation_w * args.input_channel_with_padding) *
                             sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * args.filter_c;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * args.filter_c;
 
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         output_yx += args.output_x_offset;
@@ -655,9 +739,21 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -666,9 +762,10 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                             (args.xtensa_dilation_y_offset_stable - args.input_channel -
                              (args.filter_width - 1) * args.dilation_w * args.input_channel_with_padding) *
                             sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * args.filter_c;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * args.filter_c;
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         output_yx += args.output_x_offset;
                     }
@@ -718,9 +815,21 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -729,9 +838,10 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                             (args.xtensa_dilation_y_offset_stable - args.input_channel -
                              (args.filter_width - 1) * args.dilation_w * args.input_channel_with_padding) *
                             sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * args.filter_c;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * args.filter_c;
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         output_yx += args.output_x_offset;
                     }
@@ -783,23 +893,47 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             for (size_t output_y = 0; output_y < n_h_head; output_y++) {
                 args.filter_height = filter_h -
                     ((args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) / args.dilation_h;
+                // Fix for filter_size > input_size
+                int filter_height_excess = filter_h -
+                    (args.input_height + (args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) /
+                        args.dilation_h;
+                if (filter_height_excess > 0) {
+                    args.filter_height -= filter_height_excess;
+                } else {
+                    filter_height_excess = 0;
+                }
+
                 input_y_real = input_ptr +
                     args.input_y_offset *
-                        ((args.stride_y * output_y + (filter_h - args.filter_height) * args.dilation_h) -
+                        ((args.stride_y * output_y +
+                          (filter_h - args.filter_height - filter_height_excess) * args.dilation_h) -
                          args.padding_h_head);
-                filter_ptr_y = filter_ptr + (filter_h - args.filter_height) * filter_w * filter_c_n_ptr_offset;
+                filter_ptr_y = filter_ptr +
+                    (filter_h - args.filter_height - filter_height_excess) * filter_w * filter_c_n_ptr_offset;
                 args.filter_n_offset = (filter_w * (filter_h - args.filter_height)) * filter_c_n_offset;
 
                 for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                     args.filter_width = filter_w -
                         ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                    // Fix for filter_size > input_size
+                    int filter_width_excess = filter_w -
+                        (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) /
+                            args.dilation_w;
+                    if (filter_width_excess > 0) {
+                        args.filter_width -= filter_width_excess;
+                    } else {
+                        filter_width_excess = 0;
+                    }
+
                     input_x_real = input_y_real +
                         args.input_channel *
-                            ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                            ((args.stride_x * output_x +
+                              (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                              args.padding_w_head);
                     args.filter_y_offset =
                         (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
-                    args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
+                    args.filter_element =
+                        filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
                     c_impl_func(buffer, input_x_real, args);
                     n_wise_tail(output_yx, buffer, args);
                     output_yx += args.output_x_offset;
@@ -838,13 +972,25 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                 for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                     args.filter_width = filter_w -
                         ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                    // Fix for filter_size > input_size
+                    int filter_width_excess = filter_w -
+                        (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) /
+                            args.dilation_w;
+                    if (filter_width_excess > 0) {
+                        args.filter_width -= filter_width_excess;
+                    } else {
+                        filter_width_excess = 0;
+                    }
+
                     input_x_real = input_y_real +
                         args.input_channel *
-                            ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                            ((args.stride_x * output_x +
+                              (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                              args.padding_w_head);
                     args.filter_y_offset =
                         (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
-                    args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
+                    args.filter_element =
+                        filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
                     c_impl_func(buffer, input_x_real, args);
                     n_wise_tail(output_yx, buffer, args);
                     output_yx += args.output_x_offset;
@@ -884,13 +1030,25 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                 for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                     args.filter_width = filter_w -
                         ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                    // Fix for filter_size > input_size
+                    int filter_width_excess = filter_w -
+                        (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) /
+                            args.dilation_w;
+                    if (filter_width_excess > 0) {
+                        args.filter_width -= filter_width_excess;
+                    } else {
+                        filter_width_excess = 0;
+                    }
+
                     input_x_real = input_y_real +
                         args.input_channel *
-                            ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                            ((args.stride_x * output_x +
+                              (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                              args.padding_w_head);
                     args.filter_y_offset =
                         (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
-                    args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
+                    args.filter_element =
+                        filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
                     c_impl_func(buffer, input_x_real, args);
                     n_wise_tail(output_yx, buffer, args);
                     output_yx += args.output_x_offset;
@@ -1015,10 +1173,14 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                             args.stride_y +
                         1) -
             n_h_head;
+        if (n_h_body < 0)
+            n_h_body = 0;
         int n_w_body =
             ((args.input_width + args.padding_w_head - args.dilation_w * (args.filter_width - 1) - 1) / args.stride_x +
              1) -
             n_w_head;
+        if (n_w_body < 0)
+            n_w_body = 0;
         int n_h_tail = args.output_height - n_h_head - n_h_body;
         int n_w_tail = args.output_width - n_w_head - n_w_body;
         int filter_h = args.filter_height;
@@ -1041,22 +1203,46 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                 for (size_t output_y = 0; output_y < n_h_head; output_y++) {
                     args.filter_height = filter_h -
                         ((args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) / args.dilation_h;
+                    // Fix for filter_size > input_size
+                    int filter_height_excess = filter_h -
+                        (args.input_height + (args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) /
+                            args.dilation_h;
+                    if (filter_height_excess > 0) {
+                        args.filter_height -= filter_height_excess;
+                    } else {
+                        filter_height_excess = 0;
+                    }
+
                     input_y_real = input_ptr +
                         args.input_y_offset *
-                            ((args.stride_y * output_y + (filter_h - args.filter_height) * args.dilation_h) -
+                            ((args.stride_y * output_y +
+                              (filter_h - args.filter_height - filter_height_excess) * args.dilation_h) -
                              args.padding_h_head);
-                    filter_ptr_y = filter_ptr + (filter_h - args.filter_height) * filter_w * filter_c_n_ptr_offset;
-                    filter_ptr_y_unaligned =
-                        filter_ptr_unaligned + (filter_h - args.filter_height) * filter_w * c_remainder_num;
+                    filter_ptr_y = filter_ptr +
+                        (filter_h - args.filter_height - filter_height_excess) * filter_w * filter_c_n_ptr_offset;
+                    filter_ptr_y_unaligned = filter_ptr_unaligned +
+                        (filter_h - args.filter_height - filter_height_excess) * filter_w * c_remainder_num;
                     args.filter_n_offset = (filter_w * (filter_h - args.filter_height)) * filter_c_n_offset;
 
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         args.filter_w_rs1_1 = (args.filter_width >> 1) - 1;
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width + 1) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -1069,9 +1255,10 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                             ((args.filter_width - 1) * args.dilation_w +
                              (args.filter_height - 1) * args.dilation_h * args.input_width) *
                                 args.input_channel_with_padding * sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * c_remainder_num;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * c_remainder_num;
 
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         n_wise_tail(output_yx, NULL, args);
@@ -1133,10 +1320,22 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         args.filter_w_rs1_1 = (args.filter_width >> 1) - 1;
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width + 1) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -1149,9 +1348,10 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                             ((args.filter_width - 1) * args.dilation_w +
                              (args.filter_height - 1) * args.dilation_h * args.input_width) *
                                 args.input_channel_with_padding * sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * c_remainder_num;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * c_remainder_num;
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         n_wise_tail(output_yx, NULL, args);
                         output_yx += args.output_x_offset;
@@ -1214,10 +1414,22 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         args.filter_w_rs1_1 = (args.filter_width >> 1) - 1;
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width + 1) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -1230,9 +1442,10 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                             ((args.filter_width - 1) * args.dilation_w +
                              (args.filter_height - 1) * args.dilation_h * args.input_width) *
                                 args.input_channel_with_padding * sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * c_remainder_num;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * c_remainder_num;
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         n_wise_tail(output_yx, NULL, args);
                         output_yx += args.output_x_offset;
@@ -1289,22 +1502,46 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                 for (size_t output_y = 0; output_y < n_h_head; output_y++) {
                     args.filter_height = filter_h -
                         ((args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) / args.dilation_h;
+                    // Fix for filter_size > input_size
+                    int filter_height_excess = filter_h -
+                        (args.input_height + (args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) /
+                            args.dilation_h;
+                    if (filter_height_excess > 0) {
+                        args.filter_height -= filter_height_excess;
+                    } else {
+                        filter_height_excess = 0;
+                    }
+
                     input_y_real = input_ptr +
                         args.input_y_offset *
-                            ((args.stride_y * output_y + (filter_h - args.filter_height) * args.dilation_h) -
+                            ((args.stride_y * output_y +
+                              (filter_h - args.filter_height - filter_height_excess) * args.dilation_h) -
                              args.padding_h_head);
-                    filter_ptr_y = filter_ptr + (filter_h - args.filter_height) * filter_w * filter_c_n_ptr_offset;
-                    filter_ptr_y_unaligned =
-                        filter_ptr_unaligned + (filter_h - args.filter_height) * filter_w * c_remainder_num;
+                    filter_ptr_y = filter_ptr +
+                        (filter_h - args.filter_height - filter_height_excess) * filter_w * filter_c_n_ptr_offset;
+                    filter_ptr_y_unaligned = filter_ptr_unaligned +
+                        (filter_h - args.filter_height - filter_height_excess) * filter_w * c_remainder_num;
                     args.filter_n_offset = (filter_w * (filter_h - args.filter_height)) * filter_c_n_offset;
 
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         args.filter_w_rs1_1 = (args.filter_width >> 1) - 1;
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width + 1) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -1317,9 +1554,10 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                             ((args.filter_width - 1) * args.dilation_w +
                              (args.filter_height - 1) * args.dilation_h * args.input_width) *
                                 args.input_channel_with_padding * sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * c_remainder_num;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * c_remainder_num;
 
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         output_yx += args.output_x_offset;
@@ -1340,6 +1578,7 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                     args.filter_y_offset_unaligned = 0;
                     args.filter_element = filter_ptr_y;
                     args.filter_element_unaligned = filter_ptr_y_unaligned;
+
                     for (size_t output_x = 0; output_x < n_w_body; output_x++) {
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         output_yx += args.output_x_offset;
@@ -1378,10 +1617,22 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         args.filter_w_rs1_1 = (args.filter_width >> 1) - 1;
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width + 1) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -1394,9 +1645,10 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                             ((args.filter_width - 1) * args.dilation_w +
                              (args.filter_height - 1) * args.dilation_h * args.input_width) *
                                 args.input_channel_with_padding * sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * c_remainder_num;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * c_remainder_num;
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         output_yx += args.output_x_offset;
                     }
@@ -1456,10 +1708,22 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                     for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                         args.filter_width = filter_w -
                             ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                        // Fix for filter_size > input_size
+                        int filter_width_excess = filter_w -
+                            (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w -
+                             1) /
+                                args.dilation_w;
+                        if (filter_width_excess > 0) {
+                            args.filter_width -= filter_width_excess;
+                        } else {
+                            filter_width_excess = 0;
+                        }
+
                         args.filter_w_rs1_1 = (args.filter_width >> 1) - 1;
                         input_x_real = input_y_real +
                             args.input_channel *
-                                ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                                ((args.stride_x * output_x +
+                                  (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                                  args.padding_w_head);
                         args.filter_y_offset =
                             (filter_w - args.filter_width + 1) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
@@ -1472,9 +1736,10 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                             ((args.filter_width - 1) * args.dilation_w +
                              (args.filter_height - 1) * args.dilation_h * args.input_width) *
                                 args.input_channel_with_padding * sizeof(feature_t);
-                        args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
-                        args.filter_element_unaligned =
-                            filter_ptr_y_unaligned + (filter_w - args.filter_width) * c_remainder_num;
+                        args.filter_element =
+                            filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
+                        args.filter_element_unaligned = filter_ptr_y_unaligned +
+                            (filter_w - args.filter_width - filter_width_excess) * c_remainder_num;
                         i_impl_func(output_yx, input_x_real, (void *const)&args);
                         output_yx += args.output_x_offset;
                     }
@@ -1536,22 +1801,46 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
             for (size_t output_y = 0; output_y < n_h_head; output_y++) {
                 args.filter_height = filter_h -
                     ((args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) / args.dilation_h;
+                // Fix for filter_size > input_size
+                int filter_height_excess = filter_h -
+                    (args.input_height + (args.padding_h_head - output_y * args.stride_y) + args.dilation_h - 1) /
+                        args.dilation_h;
+                if (filter_height_excess > 0) {
+                    args.filter_height -= filter_height_excess;
+                } else {
+                    filter_height_excess = 0;
+                }
+
                 input_y_real = input_ptr +
                     args.input_y_offset *
-                        ((args.stride_y * output_y + (filter_h - args.filter_height) * args.dilation_h) -
+                        ((args.stride_y * output_y +
+                          (filter_h - args.filter_height - filter_height_excess) * args.dilation_h) -
                          args.padding_h_head);
-                filter_ptr_y = filter_ptr + (filter_h - args.filter_height) * filter_w * filter_c_n_ptr_offset;
+                filter_ptr_y = filter_ptr +
+                    (filter_h - args.filter_height - filter_height_excess) * filter_w * filter_c_n_ptr_offset;
 
                 for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                     args.filter_width = filter_w -
                         ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                    // Fix for filter_size > input_size
+                    int filter_width_excess = filter_w -
+                        (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) /
+                            args.dilation_w;
+                    if (filter_width_excess > 0) {
+                        args.filter_width -= filter_width_excess;
+                    } else {
+                        filter_width_excess = 0;
+                    }
+
                     input_x_real = input_y_real +
                         args.input_channel *
-                            ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                            ((args.stride_x * output_x +
+                              (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                              args.padding_w_head);
                     args.filter_y_offset =
                         (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
-                    args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
+                    args.filter_element =
+                        filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
                     c_impl_func(buffer, input_x_real, args);
                     n_wise_tail(output_yx, buffer, args);
                     output_yx += args.output_x_offset;
@@ -1589,13 +1878,25 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                 for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                     args.filter_width = filter_w -
                         ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                    // Fix for filter_size > input_size
+                    int filter_width_excess = filter_w -
+                        (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) /
+                            args.dilation_w;
+                    if (filter_width_excess > 0) {
+                        args.filter_width -= filter_width_excess;
+                    } else {
+                        filter_width_excess = 0;
+                    }
+
                     input_x_real = input_y_real +
                         args.input_channel *
-                            ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                            ((args.stride_x * output_x +
+                              (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                              args.padding_w_head);
                     args.filter_y_offset =
                         (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
-                    args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
+                    args.filter_element =
+                        filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
                     c_impl_func(buffer, input_x_real, args);
                     n_wise_tail(output_yx, buffer, args);
                     output_yx += args.output_x_offset;
@@ -1634,13 +1935,25 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
                 for (size_t output_x = 0; output_x < n_w_head; output_x++) {
                     args.filter_width = filter_w -
                         ((args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) / args.dilation_w;
+                    // Fix for filter_size > input_size
+                    int filter_width_excess = filter_w -
+                        (args.input_width + (args.padding_w_head - output_x * args.stride_x) + args.dilation_w - 1) /
+                            args.dilation_w;
+                    if (filter_width_excess > 0) {
+                        args.filter_width -= filter_width_excess;
+                    } else {
+                        filter_width_excess = 0;
+                    }
+
                     input_x_real = input_y_real +
                         args.input_channel *
-                            ((args.stride_x * output_x + (filter_w - args.filter_width) * args.dilation_w) -
+                            ((args.stride_x * output_x +
+                              (filter_w - args.filter_width - filter_width_excess) * args.dilation_w) -
                              args.padding_w_head);
                     args.filter_y_offset =
                         (filter_w - args.filter_width) * filter_c_n_offset; // ??? c， xtensa， tie 顺序不同
-                    args.filter_element = filter_ptr_y + (filter_w - args.filter_width) * filter_c_n_ptr_offset;
+                    args.filter_element =
+                        filter_ptr_y + (filter_w - args.filter_width - filter_width_excess) * filter_c_n_ptr_offset;
                     c_impl_func(buffer, input_x_real, args);
                     n_wise_tail(output_yx, buffer, args);
                     output_yx += args.output_x_offset;

@@ -123,7 +123,7 @@ public:
      * @param output  Output tensor
      * @param mode    Runtime mode
      */
-    virtual void run(TensorBase *input, TensorBase *output, runtime_mode_t mode = RUNTIME_MODE_AUTO);
+    virtual void run(TensorBase *input, TensorBase *output, runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE);
 
     /**
      * @brief Run the module by inputs and outputs
@@ -134,7 +134,7 @@ public:
      */
     virtual void run(std::vector<dl::TensorBase *> inputs,
                      std::vector<dl::TensorBase *> outputs,
-                     runtime_mode_t mode = RUNTIME_MODE_AUTO);
+                     runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE);
 };
 
 /**
