@@ -58,8 +58,10 @@ void yolo11posePostProcessor::parse_stage(TensorBase *score, TensorBase *box, Te
                         float kpt_conf = dequantize(kpt_ptr[idx + 2], kpt_exp);
 
                         if (kpt_conf >= coco_kpt_conf_th) {
-                            keypoints_vec[2 * k] = static_cast<int>((kpt_x * 2.0 * stride_x + (center_x - offset_x)) * inv_resize_scale_x);
-                            keypoints_vec[2 * k + 1] = static_cast<int>((kpt_y * 2.0 * stride_y + (center_y - offset_y)) * inv_resize_scale_y);
+                            keypoints_vec[2 * k] =
+                                static_cast<int>((kpt_x * 2.0 * stride_x + (center_x - offset_x)) * inv_resize_scale_x);
+                            keypoints_vec[2 * k + 1] =
+                                static_cast<int>((kpt_y * 2.0 * stride_y + (center_y - offset_y)) * inv_resize_scale_y);
                         } else {
                             keypoints_vec[2 * k] = 0;
                             keypoints_vec[2 * k + 1] = 0;
@@ -87,7 +89,7 @@ void yolo11posePostProcessor::parse_stage(TensorBase *score, TensorBase *box, Te
             }
 
             box_ptr += 4 * reg_max;
-            kpt_ptr += coco_kpt_total; 
+            kpt_ptr += coco_kpt_total;
         }
     }
 }
