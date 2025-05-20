@@ -5,7 +5,7 @@ default_stages: [pre-commit]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         # note: whitespace exclusions use multiline regex, see https://pre-commit.com/#regular-expressions
@@ -36,12 +36,12 @@ repos:
         description: Forces to replace line ending by the UNIX 'lf' character
 
   - repo: https://github.com/psf/black
-    rev: 24.8.0
+    rev: 25.1.0
     hooks:
       - id: black
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v18.1.8
+    rev: v20.1.4
     hooks:
       - id: clang-format
         types_or: [c++, c, cuda]

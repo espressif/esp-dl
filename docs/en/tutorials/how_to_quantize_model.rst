@@ -88,4 +88,5 @@ Post Training Quantization (PTQ)
 
 Quantization Aware Training (QAT)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- :ref:`Quantization-Aware Training <quantization_aware_label>`
+- :ref:`YOLO11n Quantization-Aware Training <quantization_aware_label>`
+- :ref:`YOLO11n-pose Quantization-Aware Training <quantization_aware_pose_label>`

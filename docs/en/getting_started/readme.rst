@@ -88,6 +88,7 @@ ESP-DL must use the proprietary format ``.espdl`` for model deployment. Deep lea
 - :doc:`How to quantize model </tutorials/how_to_quantize_model>`
 - :ref:`How to quantize MobileNetV2 <how_to_quantize_mobilenetv2>`
 - :ref:`How to quantize YOLO11n <how_to_quantize_yolo11n>`
+- :ref:`How to quantize YOLO11n-pose <how_to_quantize_yolo11n-pose>`
 
 Model deployment
 ---------------------

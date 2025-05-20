@@ -12,4 +12,5 @@ Tutorials
    how_to_run_model
    how_to_deploy_mobilenetv2
    how_to_deploy_yolo11n
+   how_to_deploy_yolo11n-pose
    how_to_add_a_new_module(operator)

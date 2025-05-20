@@ -49,6 +49,9 @@
 .patterns-model_coco_detect: &patterns-model_coco_detect
   - "models/coco_detect/**/*"
 
+.patterns-model_coco_pose: &patterns-model_coco_pose
+  - "models/coco_pose/**/*"
+
 .patterns-model_cat_detect: &patterns-model_cat_detect
   - "models/cat_detect/**/*"
 
@@ -67,6 +70,9 @@
 
 .patterns-example_yolo11_detect: &patterns-example_yolo11_detect
 - "examples/yolo11_detect/**/*"
+
+.patterns-example_yolo11_pose: &patterns-example_yolo11_pose
+- "examples/yolo11_pose/**/*"
 
 .patterns-example_cat_detect: &patterns-example_cat_detect
 - "examples/cat_detect/**/*"
@@ -210,6 +216,19 @@
       changes: *patterns-model_coco_detect
     - <<: *if-dev-push
       changes: *patterns-example_yolo11_detect
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_yolo11_pose:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_coco_pose
+    - <<: *if-dev-push
+      changes: *patterns-example_yolo11_pose
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 

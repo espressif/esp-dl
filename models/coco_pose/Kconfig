@@ -1,0 +1,56 @@
+menu "models: coco_pose"
+    config FLASH_COCO_POSE_YOLO11N_POSE_S8_V1
+        bool "flash coco_pose_yolo11n_pose_s8_v1"
+        depends on !COCO_POSE_MODEL_IN_SDCARD
+        default n
+    config FLASH_COCO_POSE_YOLO11N_POSE_S8_V2
+        bool "flash coco_pose_yolo11n_pose_s8_v2"
+        depends on !COCO_POSE_MODEL_IN_SDCARD
+        default y
+
+    choice
+        prompt "default model"
+        default COCO_POSE_YOLO11N_POSE_S8_V2
+        help
+            default coco_pose model
+        config COCO_POSE_YOLO11N_POSE_S8_V1
+            bool "coco_pose_yolo11n_pose_s8_v1"
+            depends on COCO_POSE_MODEL_IN_SDCARD || FLASH_COCO_POSE_YOLO11N_POSE_S8_V1
+        config COCO_POSE_YOLO11N_POSE_S8_V2
+            bool "coco_pose_yolo11n_pose_s8_v2"
+            depends on COCO_POSE_MODEL_IN_SDCARD || FLASH_COCO_POSE_YOLO11N_POSE_S8_V2
+    endchoice
+
+    config DEFAULT_COCO_POSE_MODEL
+        int
+        default 0 if COCO_POSE_YOLO11N_POSE_S8_V1
+        default 1 if COCO_POSE_YOLO11N_POSE_S8_V2
+
+
+    choice
+        prompt "model location"
+        default COCO_POSE_MODEL_IN_FLASH_RODATA
+        help
+            coco_pose model location
+        config COCO_POSE_MODEL_IN_FLASH_RODATA
+            bool "flash_rodata"
+        config COCO_POSE_MODEL_IN_FLASH_PARTITION
+            bool "flash_partition"
+        config COCO_POSE_MODEL_IN_SDCARD
+            bool "sdcard"
+    endchoice
+
+    config COCO_POSE_MODEL_LOCATION
+        int
+        default 0 if COCO_POSE_MODEL_IN_FLASH_RODATA
+        default 1 if COCO_POSE_MODEL_IN_FLASH_PARTITION
+        default 2 if COCO_POSE_MODEL_IN_SDCARD
+
+    config COCO_POSE_MODEL_SDCARD_DIR
+        string "coco_pose model sdcard dir"
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
+        depends on COCO_POSE_MODEL_IN_SDCARD
+        help
+            Directory of models relative to sdcard mount point.
+endmenu

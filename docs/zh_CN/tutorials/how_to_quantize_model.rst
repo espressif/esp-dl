@@ -89,4 +89,5 @@ ESP-DL 必须使用专有格式 ``.espdl`` 进行模型部署。这是一种量�
 
 量化感知训练 (QAT)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- :ref:`量化感知训练 <quantization_aware_label>`
+- :ref:`YOLO11n 量化感知训练 <quantization_aware_label>`
+- :ref:`YOLO11n-pose 量化感知训练 <quantization_aware_pose_label>`
