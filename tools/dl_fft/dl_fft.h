@@ -9,29 +9,29 @@ extern "C" {
  * @brief Single-precision floating-point FFT instance structure
  * @param fft_point  Number of FFT points
  * @param log2n      Log base 2 of FFT points
- * @param fftr2_table  FFT real to complex coefficient table
+ * @param fft_table  FFT real to complex coefficient table
  * @param rfft_table   FFT complex to real coefficient table
  */
 typedef struct {
     int fft_point;
     int log2n;
-    float *fftr2_table;
+    float *fft_table;
     float *rfft_table;
-    uint16_t *reverse_table;
-    int reverse_size;
+    uint16_t *bitrev_table;
+    int bitrev_size;
 } dl_fft_f32_t;
 
 /**
  * @brief 16-bit fixed-point FFT instance structure
  * @param fft_point  Number of FFT points
  * @param log2n      Log base 2 of FFT points
- * @param fftr2_table  FFT real to complex coefficient table
+ * @param fft_table  FFT real to complex coefficient table
  * @param rfft_table   FFT complex to real coefficient table
  */
 typedef struct {
     int fft_point;
     int log2n;
-    int16_t *fftr2_table;
+    int16_t *fft_table;
     int16_t *rfft_table;
 } dl_fft_s16_t;
 
@@ -59,7 +59,7 @@ void dl_fft_f32_deinit(dl_fft_f32_t *handle);
 esp_err_t dl_fft_f32_run(dl_fft_f32_t *handle, float *data);
 
 /**
- * @brief Execute single-precision inverse floating-point FFT transform
+ * @brief Execute single-precision floating-point inverse FFT transform
  * @param handle  FFT instance handle
  * @param data    Input/output buffer, in-place ifft calculation
  * @return esp_err_t  ESP_OK on success, error code otherwise
@@ -92,7 +92,7 @@ void dl_fft_s16_deinit(dl_fft_s16_t *handle);
 esp_err_t dl_fft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
 
 /**
- * @brief Execute inverse 16-bit fixed-point FFT transform
+ * @brief Execute 16-bit fixed-point inverse FFT transform
  * @param handle        FFT instance handle
  * @param data          Input/output buffer, in-place fft calculation
  * @param in_exponent   Input data exponent (2^in_exponent scaling factor)
@@ -112,7 +112,7 @@ esp_err_t dl_ifft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, 
 esp_err_t dl_fft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
 
 /**
- * @brief Execute inverse 16-bit fixed-point FFT with high-precision scaling
+ * @brief Execute 16-bit fixed-point inverse FFT with high-precision scaling
  * @param handle        FFT instance handle
  * @param data          Input/output buffer, in-place fft calculation
  * @param in_exponent   Input data exponent (2^in_exponent scaling factor)

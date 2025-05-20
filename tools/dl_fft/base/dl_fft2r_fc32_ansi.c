@@ -76,15 +76,15 @@ esp_err_t dl_ifft2r_fc32_ansi(float *data, int N, float *w)
     return result;
 }
 
-esp_err_t dl_bitrev2r_fc32_ansi(float *data, int N, uint16_t *reverse_tab, int reverse_size)
+esp_err_t dl_bitrev2r_fc32_ansi(float *data, int N, uint16_t *bitrev_table, int bitrev_size)
 {
     esp_err_t result = ESP_OK;
 
-    if (reverse_tab) {
+    if (bitrev_table) {
         float r_temp, i_temp;
-        for (int n = 0; n < reverse_size; n++) {
-            uint16_t i = reverse_tab[n * 2];
-            uint16_t j = reverse_tab[n * 2 + 1];
+        for (int n = 0; n < bitrev_size; n++) {
+            uint16_t i = bitrev_table[n * 2];
+            uint16_t j = bitrev_table[n * 2 + 1];
             r_temp = data[j];
             data[j] = data[i];
             data[i] = r_temp;
@@ -163,7 +163,7 @@ esp_err_t dl_cplx2reC_fc32_ansi(float *data, int N)
     return result;
 }
 
-uint16_t *dl_gen_bitrev2r_table(int N, uint32_t caps, int *reverse_size)
+uint16_t *dl_gen_bitrev2r_table(int N, uint32_t caps, int *bitrev_size)
 {
     int count = 0, idx = 0;
     int j = 0, k;
@@ -181,10 +181,10 @@ uint16_t *dl_gen_bitrev2r_table(int N, uint32_t caps, int *reverse_size)
     if (count * 2 > UINT16_MAX) {
         return NULL;
     }
-    reverse_size[0] = count;
-    uint16_t *reverse_tab = (uint16_t *)heap_caps_malloc(2 * count * sizeof(uint16_t), caps);
+    bitrev_size[0] = count;
+    uint16_t *bitrev_table = (uint16_t *)heap_caps_malloc(2 * count * sizeof(uint16_t), caps);
 
-    if (reverse_tab) {
+    if (bitrev_table) {
         j = 0;
         for (int i = 1; i < (N - 1); i++) {
             k = N >> 1;
@@ -194,14 +194,14 @@ uint16_t *dl_gen_bitrev2r_table(int N, uint32_t caps, int *reverse_size)
             }
             j += k;
             if (i < j) {
-                reverse_tab[idx * 2] = j * 2;
-                reverse_tab[idx * 2 + 1] = i * 2;
+                bitrev_table[idx * 2] = j * 2;
+                bitrev_table[idx * 2 + 1] = i * 2;
                 idx++;
             }
         }
     }
 
-    return reverse_tab;
+    return bitrev_table;
 }
 
 float *dl_gen_fftr2_table_f32(int fft_point, uint32_t caps)

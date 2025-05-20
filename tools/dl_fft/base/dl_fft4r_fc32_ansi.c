@@ -15,7 +15,7 @@
 
 esp_err_t dl_fft4r_fc32_ansi(float *data, int length, float *table, int table_size)
 {
-    fc32_t bfly[4];
+    dl_fc32_t bfly[4];
     int log2N = dl_power_of_two(length);
     int log4N = log2N >> 1;
     if ((log2N & 0x01) != 0) {
@@ -23,7 +23,7 @@ esp_err_t dl_fft4r_fc32_ansi(float *data, int length, float *table, int table_si
     }
 
     int m = 2;
-    int wind_step = table_size / length;
+    int wind_step = 2;
     while (1) { /// radix 4
         if (log4N == 0) {
             break;
@@ -32,20 +32,20 @@ esp_err_t dl_fft4r_fc32_ansi(float *data, int length, float *table, int table_si
         for (int j = 0; j < m; j += 2) {         // j: which FFT of this step
             int start_index = j * (length << 1); // n: n-point FFT
 
-            fc32_t *ptrc0 = (fc32_t *)data + start_index;
-            fc32_t *ptrc1 = ptrc0 + length;
-            fc32_t *ptrc2 = ptrc1 + length;
-            fc32_t *ptrc3 = ptrc2 + length;
+            dl_fc32_t *ptrc0 = (dl_fc32_t *)data + start_index;
+            dl_fc32_t *ptrc1 = ptrc0 + length;
+            dl_fc32_t *ptrc2 = ptrc1 + length;
+            dl_fc32_t *ptrc3 = ptrc2 + length;
 
-            fc32_t *winc0 = (fc32_t *)table;
-            fc32_t *winc1 = winc0;
-            fc32_t *winc2 = winc0;
+            dl_fc32_t *winc0 = (dl_fc32_t *)table;
+            dl_fc32_t *winc1 = winc0;
+            dl_fc32_t *winc2 = winc0;
 
             for (int k = 0; k < length; k++) {
-                fc32_t in0 = *ptrc0;
-                fc32_t in2 = *ptrc2;
-                fc32_t in1 = *ptrc1;
-                fc32_t in3 = *ptrc3;
+                dl_fc32_t in0 = *ptrc0;
+                dl_fc32_t in2 = *ptrc2;
+                dl_fc32_t in1 = *ptrc1;
+                dl_fc32_t in3 = *ptrc3;
 
                 bfly[0].re = in0.re + in2.re + in1.re + in3.re;
                 bfly[0].im = in0.im + in2.im + in1.im + in3.im;
@@ -84,14 +84,85 @@ esp_err_t dl_fft4r_fc32_ansi(float *data, int length, float *table, int table_si
     return ESP_OK;
 }
 
-esp_err_t dl_bitrev4r_fc32_ansi(float *data, int N, uint16_t *reverse_tab, int reverse_size)
+esp_err_t dl_ifft4r_fc32_ansi(float *data, int length, float *table, int table_size)
+{
+    dl_fc32_t bfly[4];
+    int log2N = dl_power_of_two(length);
+    int log4N = log2N >> 1;
+    if ((log2N & 0x01) != 0) {
+        return ESP_FAIL;
+    }
+
+    int m = 2;
+    int wind_step = 2;
+    while (1) { /// radix 4
+        if (log4N == 0) {
+            break;
+        }
+        length = length >> 2;
+        for (int j = 0; j < m; j += 2) {         // j: which FFT of this step
+            int start_index = j * (length << 1); // n: n-point FFT
+
+            dl_fc32_t *ptrc0 = (dl_fc32_t *)data + start_index;
+            dl_fc32_t *ptrc1 = ptrc0 + length;
+            dl_fc32_t *ptrc2 = ptrc1 + length;
+            dl_fc32_t *ptrc3 = ptrc2 + length;
+
+            dl_fc32_t *winc0 = (dl_fc32_t *)table;
+            dl_fc32_t *winc1 = winc0;
+            dl_fc32_t *winc2 = winc0;
+
+            for (int k = 0; k < length; k++) {
+                dl_fc32_t in0 = *ptrc0;
+                dl_fc32_t in2 = *ptrc2;
+                dl_fc32_t in1 = *ptrc1;
+                dl_fc32_t in3 = *ptrc3;
+
+                bfly[0].re = in0.re + in2.re + in1.re + in3.re;
+                bfly[0].im = in0.im + in2.im + in1.im + in3.im;
+
+                bfly[1].re = in0.re - in2.re - in1.im + in3.im; // this fft & ifft is different
+                bfly[1].im = in0.im - in2.im + in1.re - in3.re; // this fft & ifft is different
+
+                bfly[2].re = in0.re + in2.re - in1.re - in3.re;
+                bfly[2].im = in0.im + in2.im - in1.im - in3.im;
+
+                bfly[3].re = in0.re - in2.re + in1.im - in3.im; // this fft & ifft is different
+                bfly[3].im = in0.im - in2.im - in1.re + in3.re; // this fft & ifft is different
+
+                *ptrc0 = bfly[0];
+                ptrc1->re = bfly[1].re * winc0->re - bfly[1].im * winc0->im; // this fft & ifft is different
+                ptrc1->im = bfly[1].im * winc0->re + bfly[1].re * winc0->im; // this fft & ifft is different
+                ptrc2->re = bfly[2].re * winc1->re - bfly[2].im * winc1->im; // this fft & ifft is different
+                ptrc2->im = bfly[2].im * winc1->re + bfly[2].re * winc1->im; // this fft & ifft is different
+                ptrc3->re = bfly[3].re * winc2->re - bfly[3].im * winc2->im; // this fft & ifft is different
+                ptrc3->im = bfly[3].im * winc2->re + bfly[3].re * winc2->im; // this fft & ifft is different
+
+                winc0 += 1 * wind_step;
+                winc1 += 2 * wind_step;
+                winc2 += 3 * wind_step;
+
+                ptrc0++;
+                ptrc1++;
+                ptrc2++;
+                ptrc3++;
+            }
+        }
+        m = m << 2;
+        wind_step = wind_step << 2;
+        log4N--;
+    }
+    return ESP_OK;
+}
+
+esp_err_t dl_bitrev4r_fc32_ansi(float *data, int N, uint16_t *bitrev_table, int bitrev_size)
 {
     esp_err_t result = ESP_OK;
-    if (reverse_tab) {
+    if (bitrev_table) {
         float r_temp, i_temp;
-        for (int n = 0; n < reverse_size; n++) {
-            uint16_t i = reverse_tab[n * 2];
-            uint16_t j = reverse_tab[n * 2 + 1];
+        for (int n = 0; n < bitrev_size; n++) {
+            uint16_t i = bitrev_table[n * 2];
+            uint16_t j = bitrev_table[n * 2 + 1];
             r_temp = data[j];
             i_temp = data[j + 1];
             data[j] = data[i];
@@ -133,10 +204,9 @@ esp_err_t dl_bitrev4r_fc32_ansi(float *data, int N, uint16_t *reverse_tab, int r
     return result;
 }
 
-esp_err_t dl_cplx2real_fc32_ansi(float *data, int N, float *table, int table_size)
+esp_err_t dl_rfft_post_proc_fc32_ansi(float *data, int N, float *table)
 {
-    int wind_step = table_size / (N);
-    fc32_t *result = (fc32_t *)data;
+    dl_fc32_t *result = (dl_fc32_t *)data;
     // Original formula...
     // result[0].re = result[0].re + result[0].im;
     // result[N].re = result[0].re - result[0].im;
@@ -147,18 +217,18 @@ esp_err_t dl_cplx2real_fc32_ansi(float *data, int N, float *table, int table_siz
     result[0].re = tmp_re + result[0].im;
     result[0].im = tmp_re - result[0].im;
 
-    fc32_t f1k, f2k;
+    dl_fc32_t f1k, f2k;
     for (int k = 1; k <= N / 2; k++) {
-        fc32_t fpk = result[k];
-        fc32_t fpnk = result[N - k];
+        dl_fc32_t fpk = result[k];
+        dl_fc32_t fpnk = result[N - k];
         f1k.re = fpk.re + fpnk.re;
         f1k.im = fpk.im - fpnk.im;
         f2k.re = fpk.re - fpnk.re;
         f2k.im = fpk.im + fpnk.im;
 
-        float c = -table[k * wind_step + 1];
-        float s = -table[k * wind_step];
-        fc32_t tw;
+        float c = -table[k * 2 - 1];
+        float s = -table[k * 2 - 2];
+        dl_fc32_t tw;
         tw.re = c * f2k.re - s * f2k.im;
         tw.im = s * f2k.re + c * f2k.im;
 
@@ -170,12 +240,42 @@ esp_err_t dl_cplx2real_fc32_ansi(float *data, int N, float *table, int table_siz
     return ESP_OK;
 }
 
-uint16_t *dl_gen_bitrev4r_table(int N, uint32_t caps, int *reverse_size)
+esp_err_t dl_rfft_pre_proc_fc32_ansi(float *data, int N, float *table)
+{
+    dl_fc32_t *result = (dl_fc32_t *)data;
+    float tmp_re = result[0].re;
+    result[0].re = (tmp_re + result[0].im) * 0.5;
+    result[0].im = (tmp_re - result[0].im) * 0.5;
+
+    dl_fc32_t f1k, f2k;
+    for (int k = 1; k <= N / 2; k++) {
+        dl_fc32_t fpk = result[k];
+        dl_fc32_t fpnk = result[N - k];
+        f1k.re = fpk.re + fpnk.re;
+        f1k.im = fpk.im - fpnk.im;
+        f2k.re = fpk.re - fpnk.re;
+        f2k.im = fpk.im + fpnk.im;
+
+        float c = -table[k * 2 - 1];
+        float s = table[k * 2 - 2];
+        dl_fc32_t tw;
+        tw.re = c * f2k.re - s * f2k.im;
+        tw.im = s * f2k.re + c * f2k.im;
+
+        result[k].re = 0.5 * (f1k.re + tw.re);
+        result[k].im = 0.5 * (f1k.im + tw.im);
+        result[N - k].re = 0.5 * (f1k.re - tw.re);
+        result[N - k].im = 0.5 * (tw.im - f1k.im);
+    }
+    return ESP_OK;
+}
+
+uint16_t *dl_gen_bitrev4r_table(int N, uint32_t caps, int *bitrev_size)
 {
     int log2N = dl_power_of_two(N);
     int log4N = log2N >> 1;
     if ((log2N & 0x01) != 0) {
-        reverse_size[0] = 0;
+        bitrev_size[0] = 0;
         return NULL;
     }
     int count = 0, idx = 0;
@@ -200,10 +300,10 @@ uint16_t *dl_gen_bitrev4r_table(int N, uint32_t caps, int *reverse_size)
     if (count * 2 > UINT16_MAX) {
         return NULL;
     }
-    reverse_size[0] = count;
-    uint16_t *reverse_tab = (uint16_t *)heap_caps_malloc(2 * count * sizeof(uint16_t), caps);
+    bitrev_size[0] = count;
+    uint16_t *bitrev_table = (uint16_t *)heap_caps_malloc(2 * count * sizeof(uint16_t), caps);
 
-    if (reverse_tab) {
+    if (bitrev_table) {
         for (int i = 0; i < N; i++) {
             int cnt;
             int xx;
@@ -218,16 +318,16 @@ uint16_t *dl_gen_bitrev4r_table(int N, uint32_t caps, int *reverse_size)
                 cnt--;
             }
             if (i < xx) {
-                reverse_tab[idx * 2] = i * 2;
-                reverse_tab[idx * 2 + 1] = xx * 2;
+                bitrev_table[idx * 2] = i * 2;
+                bitrev_table[idx * 2 + 1] = xx * 2;
                 idx++;
             }
         }
     }
-    return reverse_tab;
+    return bitrev_table;
 }
 
-float *dl_gen_rfft_table_f32(int fft_point, uint32_t caps)
+float *dl_gen_fft4r_table_f32(int fft_point, uint32_t caps)
 {
     float *fft_table = (float *)heap_caps_aligned_alloc(16, fft_point * sizeof(float) * 2, caps);
 
@@ -241,3 +341,254 @@ float *dl_gen_rfft_table_f32(int fft_point, uint32_t caps)
 
     return fft_table;
 }
+
+float *dl_gen_rfft_table_f32(int fft_point, uint32_t caps)
+{
+    float *fft_table = (float *)heap_caps_aligned_alloc(16, fft_point * sizeof(float), caps);
+
+    if (fft_table) {
+        for (int i = 1; i <= fft_point >> 1; i++) {
+            float angle = 2 * M_PI * i * 1.0 / fft_point;
+            fft_table[2 * i - 2] = cosf(angle);
+            fft_table[2 * i - 1] = sinf(angle);
+        }
+    }
+
+    return fft_table;
+}
+
+// float *dl_gen_rfft_table_f32(int fft_point, uint32_t caps)
+// {
+//     float *fft_table = (float *)heap_caps_aligned_alloc(16, fft_point * sizeof(float), caps);
+
+//     if (fft_table) {
+//         for (int i = 1; i <= fft_point / 2; i++) {
+//             float angle = 2 * M_PI * i * 1.0 / fft_point;
+//             fft_table[2 * i - 2] = cosf(angle);
+//             fft_table[2 * i - 1] = sinf(angle);
+//         }
+//     }
+
+//     return fft_table;
+// }
+
+// int j;
+// float *ptr0;
+// float *ptr1;
+// float *ptr2;
+// float *ptr3;
+// float *win0;
+// float *win1;
+// float *win2;
+// int start_index;
+
+// ptr0 = data;
+// ptr1 = data;
+// ptr2 = data;
+// ptr3 = data;
+// win0 = win;
+// win1 = win;
+// win2 = win;
+
+// m <<= 1; // m = m << 1;
+
+// while (log4N > 0) { // radix 4
+//     n >>= 2; // n = n >> 2;
+
+//     for (j = 0; j < m; j += 2) { // j: which FFT of this step
+//         start_index = j * (n << 1); // start_index = j * (n << 1);
+//         ptr0 = data + (start_index << 1); // ptr0 = data + (start_index << 1);
+//         ptr1 = ptr0 + (n << 1); // ptr1 = ptr0 + (n << 1);
+//         ptr2 = ptr1 + (n << 1); // ptr2 = ptr1 + (n << 1);
+//         ptr3 = ptr2 + (n << 1); // ptr3 = ptr2 + (n << 1);
+
+//         for (int k = 0; k < n; k++) {
+//             float f1 = *(ptr0 + 1);
+//             float f3 = *(ptr2 + 1);
+//             float f0 = *ptr0;
+//             float f2 = *ptr2;
+//             float f5 = f1 + f3;
+//             float f7 = f1 - f3;
+//             f1 = *(ptr1 + 1);
+//             f3 = *(ptr3 + 1);
+
+//             float f4 = f0 + f2;
+//             float f6 = f0 - f2;
+//             float f9 = f1 + f3;
+//             float f11 = f1 - f3;
+
+//             f0 = *ptr1;
+//             f2 = *ptr3;
+
+//             float f12 = *win0; // f12 = win[k * 1 * m * 2 + 0];
+//             float f13 = *win1; // f13 = win[k * 2 * m * 2 + 0];
+//             float f8 = f0 + f2;
+//             float f10 = f0 - f2;
+
+//             f1 = f5 - f9;
+//             f5 = f5 + f9;
+//             f2 = f6 - f11; // this fft & ifft is different
+//             f6 = f6 + f11; // this fft & ifft is different
+
+//             f0 = f4 - f8;
+//             f4 = f4 + f8;
+//             f3 = f7 + f10; // this fft & ifft is different
+//             f7 = f7 - f10; // this fft & ifft is different
+
+//             float f14 = *win2; // f14 = win[k * 3 * m * 2 + 0];
+
+//             *(ptr0 + 1) = f5;
+//             *ptr0 = f4; ptr0 += 2;
+
+//             f5 = f3 * f12;
+//             f4 = f2 * f12;
+//             f9 = f1 * f13;
+//             f8 = f0 * f13;
+//             f11 = f7 * f14;
+//             f10 = f6 * f14;
+
+//             f12 = *(win0 + 1); // f12 = win[k * 1 * m * 2 + 1];
+//             f13 = *(win1 + 1); // f13 = win[k * 2 * m * 2 + 1];
+//             f14 = *(win2 + 1); // f14 = win[k * 3 * m * 2 + 1];
+
+//             win0 += m; // win0 += 1 * m;
+//             win1 += 2 * m; // win1 += 2 * m;
+//             win2 += 3 * m; // win2 += 3 * m;
+
+//             f5 += f2 * f12;
+//             f4 -= f3 * f12;
+//             f9 += f0 * f13;
+//             f8 -= f1 * f13;
+//             f11 += f6 * f14;
+//             f10 -= f7 * f14;
+
+//             *(ptr1 + 1) = f5;
+//             *ptr1 = f4; ptr1 += 2;
+//             *(ptr2 + 1) = f9;
+//             *ptr2 = f8; ptr2 += 2;
+//             *(ptr3 + 1) = f11;
+//             *ptr3 = f10; ptr3 += 2;
+//         }
+//         win0 = win;
+//         win1 = win;
+//         win2 = win;
+//     }
+//     m <<= 2; // m = m << 2;
+//     log4N--; // log4N--;
+// }
+
+// int j;
+
+// float *ptr0;
+// float *ptr1;
+// float *ptr2;
+// float *ptr3;
+// float *win0;
+// float *win1;
+// float *win2;
+// int start_index;
+
+// ptr0 = data;
+// ptr1 = data;
+// ptr2 = data;
+// ptr3 = data;
+// win0 = win;
+// win1 = win;
+// win2 = win;
+
+// m <<= 1; // m = m * 2
+
+// while (1) {
+//     if (log4N == 0) {
+//         break;
+//     }
+//     n >>= 2; // n = n / 4
+
+//     for (j = 0; j < m; j += 2) {
+//         start_index = j * n;
+//         start_index <<= 1; // start_index = (j * n) * 2;
+//         ptr0 = data + start_index;
+//         ptr1 = ptr0 + n * 2;
+//         ptr2 = ptr1 + n * 2;
+//         ptr3 = ptr2 + n * 2;
+
+//         for (int k = 0; k < n; k++) {
+//             float f1 = ptr0[1];
+//             float f3 = ptr2[1];
+//             float f0 = ptr0[0];
+//             float f2 = ptr2[0];
+//             float f5 = f1 + f3;
+//             float f7 = f1 - f3;
+//             f1 = ptr1[1];
+//             f3 = ptr3[1];
+
+//             float f4 = f0 + f2;
+//             float f6 = f0 - f2;
+//             float f9 = f1 + f3;
+//             float f11 = f1 - f3;
+
+//             f0 = ptr1[0];
+//             f2 = ptr3[0];
+
+//             float f12 = win0[0];
+//             float f13 = win1[0];
+//             float f8 = f0 + f2;
+//             float f10 = f0 - f2;
+
+//             f1 = f5 - f9;
+//             f5 = f5 + f9;
+//             f2 = f6 + f11;
+//             f6 = f6 - f11;
+
+//             f0 = f4 - f8;
+//             f4 = f4 + f8;
+//             f3 = f7 - f10;
+//             f7 = f7 + f10;
+
+//             float f14 = win2[0];
+
+//             ptr0[1] = f5;
+//             ptr0[0] = f4;
+//             ptr0 += 2;
+
+//             f5 = f3 * f12;
+//             f4 = f2 * f12;
+//             f9 = f1 * f13;
+//             f8 = f0 * f13;
+//             f11 = f7 * f14;
+//             f10 = f6 * f14;
+
+//             f12 = win0[1];
+//             f13 = win1[1];
+//             f14 = win2[1];
+
+//             win0 += m;
+//             win1 += 2 * m;
+//             win2 += 3 * m;
+
+//             f5 -= f2 * f12;
+//             f4 += f3 * f12;
+//             f9 -= f0 * f13;
+//             f8 += f1 * f13;
+//             f11 -= f6 * f14;
+//             f10 += f7 * f14;
+
+//             ptr1[1] = f5;
+//             ptr1[0] = f4;
+//             ptr1 += 2;
+//             ptr2[1] = f9;
+//             ptr2[0] = f8;
+//             ptr2 += 2;
+//             ptr3[1] = f11;
+//             ptr3[0] = f10;
+//             ptr3 += 2;
+//         }
+
+//         win0 = win;
+//         win1 = win;
+//         win2 = win;
+//     }
+
+//     m <<= 2; // m = m * 4
+//     log4N--; // log4N = log4N - 1
+// }

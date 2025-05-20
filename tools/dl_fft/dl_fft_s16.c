@@ -18,14 +18,14 @@ dl_fft_s16_t *dl_fft_s16_init(int fft_point, uint32_t caps)
         ESP_LOGE(TAG, "Failed to allocate FFT handle");
         return NULL;
     }
-    handle->fftr2_table = NULL;
+    handle->fft_table = NULL;
     handle->rfft_table = NULL;
     handle->fft_point = fft_point;
     handle->log2n = dl_power_of_two(fft_point);
 
     // Allocate and generate FFT table
-    handle->fftr2_table = dl_gen_fftr2_table_sc16(fft_point, caps);
-    if (!handle->fftr2_table) {
+    handle->fft_table = dl_gen_fft_table_sc16(fft_point, caps);
+    if (!handle->fft_table) {
         ESP_LOGE(TAG, "Failed to generate FFT table");
         dl_fft_s16_deinit(handle);
         return NULL;
@@ -38,8 +38,8 @@ dl_fft_s16_t *dl_fft_s16_init(int fft_point, uint32_t caps)
 void dl_fft_s16_deinit(dl_fft_s16_t *handle)
 {
     if (handle) {
-        if (handle->fftr2_table) {
-            free(handle->fftr2_table);
+        if (handle->fft_table) {
+            free(handle->fft_table);
         }
         free(handle);
     }
@@ -53,7 +53,7 @@ esp_err_t dl_fft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, i
     }
 
     int fft_point = handle->fft_point;
-    dl_fft2r_sc16(data, fft_point, handle->fftr2_table);
+    dl_fft2r_sc16(data, fft_point, handle->fft_table);
     dl_bitrev2r_sc16_ansi(data, fft_point);
     out_exponent[0] = in_exponent + handle->log2n;
 
@@ -67,7 +67,7 @@ esp_err_t dl_ifft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, 
     }
 
     int fft_point = handle->fft_point;
-    dl_ifft2r_sc16(data, fft_point, handle->fftr2_table);
+    dl_ifft2r_sc16(data, fft_point, handle->fft_table);
     dl_bitrev2r_sc16_ansi(data, fft_point);
 
     out_exponent[0] = in_exponent;
@@ -83,7 +83,7 @@ esp_err_t dl_fft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent
 
     int fft_point = handle->fft_point;
     out_exponent[0] = 0;
-    dl_fft2r_sc16_hp(data, fft_point, handle->fftr2_table, out_exponent);
+    dl_fft2r_sc16_hp(data, fft_point, handle->fft_table, out_exponent);
     dl_bitrev2r_sc16_ansi(data, fft_point);
     out_exponent[0] = in_exponent + out_exponent[0];
 
@@ -98,7 +98,7 @@ esp_err_t dl_ifft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponen
 
     int fft_point = handle->fft_point;
     out_exponent[0] = 0;
-    dl_ifft2r_sc16_hp(data, fft_point, handle->fftr2_table, out_exponent);
+    dl_ifft2r_sc16_hp(data, fft_point, handle->fft_table, out_exponent);
     dl_bitrev2r_sc16_ansi(data, fft_point);
     out_exponent[0] = in_exponent + out_exponent[0] - handle->log2n;
 

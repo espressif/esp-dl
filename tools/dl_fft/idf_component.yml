@@ -4,7 +4,3 @@ description: dl_fft is a lightweight and efficient fft library for all espressif
 url: https://github.com/espressif/esp-dl/tree/master/esp-dl/tools/dl_fft
 dependencies: 
   idf: ">=5.0"
-  espressif/esp-dsp: ">=1.6.0"
-files:
-  exclude:
-    - "test_app/**/*"

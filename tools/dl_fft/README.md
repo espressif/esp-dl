@@ -1,11 +1,11 @@
-## DL_FFT
+# DL_FFT
 
 DL_FFT is a lightweight FFT library supporting both float32 and int16 data types.
 
 The FFT implementation is come from esp-dsp. And we further optimized the int16 FFT to achieving better precision.
 For int16 FFT, we recommend to use `dl_fft_s16_hp_run` or `dl_rfft_s16_hp_run` interface. `hp` means "high precision".
 
-### User Guide:
+## User Guide:
 ```
 
 #include "dl_fft.h"
@@ -47,7 +47,7 @@ dl_rfft_s16_deinit(fft_handle);
 ```
 Please refer to [dl_fft.h](./dl_fft.h) and [dl_rfft.h](./dl_rfft.h) for more details. 
 
-### FAQ:
+## FAQ:
 
 #### 1. Why not just use esp-dsp directly? 
 
@@ -60,7 +60,7 @@ Because esp-dsp uses global variables to share FFT tables and other parameters i
 3. Leverages hardware acceleration. Uses built-in FFT instructions on ESP32-S3 and ESP32-P4 to further speed up int16 FFT computations.
 
 
-### Benchmark
+## Benchmark
 
 #### ES32-S3 fft benchmark:
 | FFT Method         | 128-point (time/snr/rmse) | 256-point (time/snr/rmse) | 512-point (time/snr/rmse) | 1024-point (time/snr/rmse) | 2048-point (time/snr/rmse) |
@@ -86,3 +86,8 @@ Because esp-dsp uses global variables to share FFT tables and other parameters i
 | dl_rfft_hp_s16     | 59μs / 75.73dB / 0.00046 | 126μs / 74.20dB / 0.00073 | 282μs / 72.74dB / 0.00110 | 605μs / 72.96dB / 0.00143 | 1332μs / 70.30dB / 0.00295 |
 | kiss_rfft_s16      | 63μs / 61.26dB / 0.00180 | 154μs / 60.24dB / 0.00326 | 296μs / 56.97dB / 0.00651 | 702μs / 53.54dB / 0.01324 | 1366μs / 51.32dB / 0.02560 |
 
+## Reference
+
+- [esp-dsp](https://github.com/espressif/esp-dsp)
+- [kissfft](https://github.com/mborgerding/kissfft)
+- [fftw](https://github.com/FFTW/fftw3)

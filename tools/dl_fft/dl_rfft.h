@@ -40,6 +40,14 @@ void dl_rfft_f32_deinit(dl_fft_f32_t *handle);
 esp_err_t dl_rfft_f32_run(dl_fft_f32_t *handle, float *data);
 
 /**
+ * @brief Execute single-precision floating-point real inverse FFT transform
+ * @param handle  FFT instance handle
+ * @param data    Input/output buffer, in-place fft calculation
+ * @return esp_err_t  ESP_OK on success, error code otherwise
+ */
+esp_err_t dl_irfft_f32_run(dl_fft_f32_t *handle, float *data);
+
+/**
  * @brief Execute 16-bit fixed-point FFT transform
  * @param handle        FFT instance handle
  * @param data          Input/output buffer, in-place fft calculation
