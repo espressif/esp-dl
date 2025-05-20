@@ -12,7 +12,7 @@ dl_fft_s16_t *dl_rfft_s16_init(int fft_point, uint32_t caps)
         ESP_LOGE(TAG, "Failed to allocate FFT handle");
         return NULL;
     }
-    handle->fftr2_table = NULL;
+    handle->fft_table = NULL;
     handle->rfft_table = NULL;
     handle->fft_point = fft_point;
     handle->log2n = dl_power_of_two(fft_point);
@@ -26,8 +26,8 @@ dl_fft_s16_t *dl_rfft_s16_init(int fft_point, uint32_t caps)
     }
 
     // fft table
-    handle->fftr2_table = dl_gen_fftr2_table_sc16(fft_point >> 1, caps);
-    if (!handle->fftr2_table) {
+    handle->fft_table = dl_gen_fft_table_sc16(fft_point >> 1, caps);
+    if (!handle->fft_table) {
         ESP_LOGE(TAG, "Failed to generate FFT table");
         dl_rfft_s16_deinit(handle);
         return NULL;
@@ -40,8 +40,8 @@ dl_fft_s16_t *dl_rfft_s16_init(int fft_point, uint32_t caps)
 void dl_rfft_s16_deinit(dl_fft_s16_t *handle)
 {
     if (handle) {
-        if (handle->fftr2_table) {
-            free(handle->fftr2_table);
+        if (handle->fft_table) {
+            free(handle->fft_table);
         }
         if (handle->rfft_table) {
             free(handle->rfft_table);
@@ -58,9 +58,9 @@ esp_err_t dl_rfft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, 
     }
 
     int cpx_point = handle->fft_point >> 1;
-    dl_fft2r_sc16(data, cpx_point, handle->fftr2_table);
+    dl_fft2r_sc16(data, cpx_point, handle->fft_table);
     dl_bitrev2r_sc16_ansi(data, cpx_point);
-    dl_cplx2real_sc16_ansi(data, cpx_point, handle->rfft_table);
+    dl_rfft_post_proc_sc16_ansi(data, cpx_point, handle->rfft_table);
     out_exponent[0] = in_exponent + handle->log2n;
 
     return ESP_OK;
@@ -74,11 +74,46 @@ esp_err_t dl_rfft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponen
 
     int cpx_point = handle->fft_point >> 1;
     out_exponent[0] = 0;
-    dl_fft2r_sc16_hp(data, cpx_point, handle->fftr2_table, out_exponent);
+    dl_fft2r_sc16_hp(data, cpx_point, handle->fft_table, out_exponent);
     dl_bitrev2r_sc16_ansi(data, cpx_point);
-    // dl_cplx2real_sc16_hp_ansi(data, cpx_point, handle->rfft_table, out_exponent);
-    dl_cplx2real_sc16_ansi(data, cpx_point, handle->rfft_table);
+    dl_rfft_post_proc_sc16_ansi(data, cpx_point, handle->rfft_table);
     out_exponent[0] = in_exponent + out_exponent[0] + 1;
+
+    return ESP_OK;
+}
+
+esp_err_t dl_irfft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent)
+{
+    if (!handle || !data) {
+        return ESP_FAIL;
+    }
+
+    int cpx_point = handle->fft_point >> 1;
+    out_exponent[0] = 0;
+
+    dl_rfft_pre_proc_sc16_ansi(data, cpx_point, handle->rfft_table);
+    dl_ifft2r_sc16(data, cpx_point, handle->fft_table);
+    dl_bitrev2r_sc16_ansi(data, cpx_point);
+
+    out_exponent[0] = in_exponent + 1;
+
+    return ESP_OK;
+}
+
+esp_err_t dl_irfft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent)
+{
+    if (!handle || !data) {
+        return ESP_FAIL;
+    }
+
+    int cpx_point = handle->fft_point >> 1;
+    out_exponent[0] = 0;
+
+    dl_rfft_pre_proc_sc16_ansi(data, cpx_point, handle->rfft_table);
+    dl_ifft2r_sc16_hp(data, cpx_point, handle->fft_table, out_exponent);
+    dl_bitrev2r_sc16_ansi(data, cpx_point);
+
+    out_exponent[0] = in_exponent + out_exponent[0] + 2 - handle->log2n;
 
     return ESP_OK;
 }

@@ -1,6 +1,6 @@
 #include "dl_fft_base.h"
 
-static inline int16_t xtfixed_bf_1(
+static inline int16_t dl_xtfixed_bf_1(
     int16_t a0, int16_t a1, int16_t a2, int16_t a3, int16_t a4, int result_shift, int add_rount_mult)
 {
     int result = a0;
@@ -11,7 +11,7 @@ static inline int16_t xtfixed_bf_1(
     return (int16_t)result;
 }
 
-static inline int16_t xtfixed_bf_2(
+static inline int16_t dl_xtfixed_bf_2(
     int16_t a0, int16_t a1, int16_t a2, int16_t a3, int16_t a4, int result_shift, int add_rount_mult)
 {
     int result = a0;
@@ -22,7 +22,7 @@ static inline int16_t xtfixed_bf_2(
     return (int16_t)result;
 }
 
-static inline int16_t xtfixed_bf_3(
+static inline int16_t dl_xtfixed_bf_3(
     int16_t a0, int16_t a1, int16_t a2, int16_t a3, int16_t a4, int result_shift, int add_rount_mult)
 {
     int result = a0;
@@ -33,7 +33,7 @@ static inline int16_t xtfixed_bf_3(
     return (int16_t)result;
 }
 
-static inline int16_t xtfixed_bf_4(
+static inline int16_t dl_xtfixed_bf_4(
     int16_t a0, int16_t a1, int16_t a2, int16_t a3, int16_t a4, int result_shift, int add_rount_mult)
 {
     int result = a0;
@@ -44,30 +44,6 @@ static inline int16_t xtfixed_bf_4(
     return (int16_t)result;
 }
 
-int16_t dl_get_fft_shift_s16(int16_t *x, int size)
-{
-    int32_t max = x[0];
-    for (int i = 1; i < size; i++) {
-        if (x[i] > max) {
-            max = x[i];
-        } else if (-x[i] > max) {
-            max = -x[i];
-        }
-    }
-
-    if (max == 0) {
-        return 1;
-    }
-
-    uint16_t k = 2;
-    while (max > 1) {
-        k++;
-        max = max >> 1;
-    }
-
-    return k;
-}
-
 esp_err_t dl_fft2r_sc16_ansi(int16_t *data, int N, int16_t *table)
 {
     esp_err_t result = ESP_OK;
@@ -76,9 +52,9 @@ esp_err_t dl_fft2r_sc16_ansi(int16_t *data, int N, int16_t *table)
     uint32_t *in_data = (uint32_t *)data;
 
     int ie, ia, m;
-    sc16_t cs; // c - re, s - im
-    sc16_t m_data;
-    sc16_t a_data;
+    dl_sc16_t cs; // c - re, s - im
+    dl_sc16_t m_data;
+    dl_sc16_t a_data;
     int add_rount_mult = 1 << 15;
 
     ie = 1;
@@ -94,40 +70,111 @@ esp_err_t dl_fft2r_sc16_ansi(int16_t *data, int N, int16_t *table)
                 a_data.data = in_data[ia];
                 // data[2 * m] = data[2 * ia] - re_temp;
                 // data[2 * m + 1] = data[2 * ia + 1] - im_temp;
-                sc16_t m1;
-                m1.re = xtfixed_bf_1(a_data.re,
-                                     cs.re,
-                                     m_data.re,
-                                     cs.im,
-                                     m_data.im,
-                                     16,
-                                     add_rount_mult); //(a_data.re - temp.re + shift_const) >> 1;
-                m1.im = xtfixed_bf_2(a_data.im,
-                                     cs.re,
-                                     m_data.im,
-                                     cs.im,
-                                     m_data.re,
-                                     16,
-                                     add_rount_mult); //(a_data.im - temp.im + shift_const) >> 1;
+                dl_sc16_t m1;
+                m1.re = dl_xtfixed_bf_1(a_data.re,
+                                        cs.re,
+                                        m_data.re,
+                                        cs.im,
+                                        m_data.im,
+                                        16,
+                                        add_rount_mult); //(a_data.re - temp.re + shift_const) >> 1;
+                m1.im = dl_xtfixed_bf_2(a_data.im,
+                                        cs.re,
+                                        m_data.im,
+                                        cs.im,
+                                        m_data.re,
+                                        16,
+                                        add_rount_mult); //(a_data.im - temp.im + shift_const) >> 1;
                 in_data[m] = m1.data;
 
                 // data[2 * ia] = data[2 * ia] + re_temp;
                 // data[2 * ia + 1] = data[2 * ia + 1] + im_temp;
-                sc16_t m2;
-                m2.re = xtfixed_bf_3(a_data.re,
-                                     cs.re,
-                                     m_data.re,
-                                     cs.im,
-                                     m_data.im,
-                                     16,
-                                     add_rount_mult); //(a_data.re + temp.re + shift_const) >> 1;
-                m2.im = xtfixed_bf_4(a_data.im,
-                                     cs.re,
-                                     m_data.im,
-                                     cs.im,
-                                     m_data.re,
-                                     16,
-                                     add_rount_mult); //(a_data.im + temp.im + shift_const)>>1;
+                dl_sc16_t m2;
+                m2.re = dl_xtfixed_bf_3(a_data.re,
+                                        cs.re,
+                                        m_data.re,
+                                        cs.im,
+                                        m_data.im,
+                                        16,
+                                        add_rount_mult); //(a_data.re + temp.re + shift_const) >> 1;
+                m2.im = dl_xtfixed_bf_4(a_data.im,
+                                        cs.re,
+                                        m_data.im,
+                                        cs.im,
+                                        m_data.re,
+                                        16,
+                                        add_rount_mult); //(a_data.im + temp.im + shift_const)>>1;
+                in_data[ia] = m2.data;
+                ia++;
+            }
+            ia += N2;
+        }
+        ie <<= 1;
+    }
+    return result;
+}
+
+esp_err_t dl_ifft2r_sc16_ansi(int16_t *data, int N, int16_t *table)
+{
+    esp_err_t result = ESP_OK;
+
+    uint32_t *w = (uint32_t *)table;
+    uint32_t *in_data = (uint32_t *)data;
+
+    int ie, ia, m;
+    dl_sc16_t cs; // c - re, s - im
+    dl_sc16_t m_data;
+    dl_sc16_t a_data;
+    int add_rount_mult = 1 << 15;
+
+    ie = 1;
+    for (int N2 = N / 2; N2 > 0; N2 >>= 1) {
+        ia = 0;
+        for (int j = 0; j < ie; j++) {
+            cs.data = w[j];
+            cs.im = -cs.im;
+            // c = w[2 * j];
+            // s = w[2 * j + 1];
+            for (int i = 0; i < N2; i++) {
+                m = ia + N2;
+                m_data.data = in_data[m];
+                a_data.data = in_data[ia];
+                // data[2 * m] = data[2 * ia] - re_temp;
+                // data[2 * m + 1] = data[2 * ia + 1] - im_temp;
+                dl_sc16_t m1;
+                m1.re = dl_xtfixed_bf_1(a_data.re,
+                                        cs.re,
+                                        m_data.re,
+                                        cs.im,
+                                        m_data.im,
+                                        16,
+                                        add_rount_mult); //(a_data.re - temp.re + shift_const) >> 1;
+                m1.im = dl_xtfixed_bf_2(a_data.im,
+                                        cs.re,
+                                        m_data.im,
+                                        cs.im,
+                                        m_data.re,
+                                        16,
+                                        add_rount_mult); //(a_data.im - temp.im + shift_const) >> 1;
+                in_data[m] = m1.data;
+
+                // data[2 * ia] = data[2 * ia] + re_temp;
+                // data[2 * ia + 1] = data[2 * ia + 1] + im_temp;
+                dl_sc16_t m2;
+                m2.re = dl_xtfixed_bf_3(a_data.re,
+                                        cs.re,
+                                        m_data.re,
+                                        cs.im,
+                                        m_data.im,
+                                        16,
+                                        add_rount_mult); //(a_data.re + temp.re + shift_const) >> 1;
+                m2.im = dl_xtfixed_bf_4(a_data.im,
+                                        cs.re,
+                                        m_data.im,
+                                        cs.im,
+                                        m_data.re,
+                                        16,
+                                        add_rount_mult); //(a_data.im + temp.im + shift_const)>>1;
                 in_data[ia] = m2.data;
                 ia++;
             }
@@ -146,9 +193,9 @@ esp_err_t dl_fft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift
     uint32_t *in_data = (uint32_t *)data;
 
     int ie, ia, m;
-    sc16_t cs; // c - re, s - im
-    sc16_t m_data;
-    sc16_t a_data;
+    dl_sc16_t cs; // c - re, s - im
+    dl_sc16_t m_data;
+    dl_sc16_t a_data;
     int add_rount_mult = 1 << 15;
     bool flag = true;
 
@@ -158,7 +205,7 @@ esp_err_t dl_fft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift
         ia = 0;
         int loop_shift = 16;
         if (flag || N2 == 1) {
-            loop_shift = dl_get_fft_shift_s16(data, N);
+            loop_shift = dl_array_max_q_s16(data, N);
             flag = false;
         } else {
             flag = true;
@@ -175,40 +222,122 @@ esp_err_t dl_fft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift
                 a_data.data = in_data[ia];
                 // data[2 * m] = data[2 * ia] - re_temp;
                 // data[2 * m + 1] = data[2 * ia + 1] - im_temp;
-                sc16_t m1;
-                m1.re = xtfixed_bf_1(a_data.re,
-                                     cs.re,
-                                     m_data.re,
-                                     cs.im,
-                                     m_data.im,
-                                     loop_shift,
-                                     add_rount_mult); //(a_data.re - temp.re + shift_const) >> 1;
-                m1.im = xtfixed_bf_2(a_data.im,
-                                     cs.re,
-                                     m_data.im,
-                                     cs.im,
-                                     m_data.re,
-                                     loop_shift,
-                                     add_rount_mult); //(a_data.im - temp.im + shift_const) >> 1;
+                dl_sc16_t m1;
+                m1.re = dl_xtfixed_bf_1(a_data.re,
+                                        cs.re,
+                                        m_data.re,
+                                        cs.im,
+                                        m_data.im,
+                                        loop_shift,
+                                        add_rount_mult); //(a_data.re - temp.re + shift_const) >> 1;
+                m1.im = dl_xtfixed_bf_2(a_data.im,
+                                        cs.re,
+                                        m_data.im,
+                                        cs.im,
+                                        m_data.re,
+                                        loop_shift,
+                                        add_rount_mult); //(a_data.im - temp.im + shift_const) >> 1;
                 in_data[m] = m1.data;
 
                 // data[2 * ia] = data[2 * ia] + re_temp;
                 // data[2 * ia + 1] = data[2 * ia + 1] + im_temp;
-                sc16_t m2;
-                m2.re = xtfixed_bf_3(a_data.re,
-                                     cs.re,
-                                     m_data.re,
-                                     cs.im,
-                                     m_data.im,
-                                     loop_shift,
-                                     add_rount_mult); //(a_data.re + temp.re + shift_const) >> 1;
-                m2.im = xtfixed_bf_4(a_data.im,
-                                     cs.re,
-                                     m_data.im,
-                                     cs.im,
-                                     m_data.re,
-                                     loop_shift,
-                                     add_rount_mult); //(a_data.im + temp.im + shift_const)>>1;
+                dl_sc16_t m2;
+                m2.re = dl_xtfixed_bf_3(a_data.re,
+                                        cs.re,
+                                        m_data.re,
+                                        cs.im,
+                                        m_data.im,
+                                        loop_shift,
+                                        add_rount_mult); //(a_data.re + temp.re + shift_const) >> 1;
+                m2.im = dl_xtfixed_bf_4(a_data.im,
+                                        cs.re,
+                                        m_data.im,
+                                        cs.im,
+                                        m_data.re,
+                                        loop_shift,
+                                        add_rount_mult); //(a_data.im + temp.im + shift_const)>>1;
+                in_data[ia] = m2.data;
+                ia++;
+            }
+            ia += N2;
+        }
+        ie <<= 1;
+    }
+    return result;
+}
+
+esp_err_t dl_ifft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift)
+{
+    esp_err_t result = ESP_OK;
+
+    uint32_t *w = (uint32_t *)table;
+    uint32_t *in_data = (uint32_t *)data;
+
+    int ie, ia, m;
+    dl_sc16_t cs; // c - re, s - im
+    dl_sc16_t m_data;
+    dl_sc16_t a_data;
+    int add_rount_mult = 1 << 15;
+    bool flag = true;
+
+    ie = 1;
+    shift[0] = 0;
+    for (int N2 = N / 2; N2 > 0; N2 >>= 1) {
+        ia = 0;
+        int loop_shift = 16;
+        if (flag || N2 == 1) {
+            loop_shift = dl_array_max_q_s16(data, N);
+            flag = false;
+        } else {
+            flag = true;
+        }
+        shift[0] += loop_shift - 15;
+        add_rount_mult = 1 << (loop_shift - 1);
+        for (int j = 0; j < ie; j++) {
+            cs.data = w[j];
+            cs.im = -cs.im;
+            // c = w[2 * j];
+            // s = w[2 * j + 1];
+            for (int i = 0; i < N2; i++) {
+                m = ia + N2;
+                m_data.data = in_data[m];
+                a_data.data = in_data[ia];
+                // data[2 * m] = data[2 * ia] - re_temp;
+                // data[2 * m + 1] = data[2 * ia + 1] - im_temp;
+                dl_sc16_t m1;
+                m1.re = dl_xtfixed_bf_1(a_data.re,
+                                        cs.re,
+                                        m_data.re,
+                                        cs.im,
+                                        m_data.im,
+                                        loop_shift,
+                                        add_rount_mult); //(a_data.re - temp.re + shift_const) >> 1;
+                m1.im = dl_xtfixed_bf_2(a_data.im,
+                                        cs.re,
+                                        m_data.im,
+                                        cs.im,
+                                        m_data.re,
+                                        loop_shift,
+                                        add_rount_mult); //(a_data.im - temp.im + shift_const) >> 1;
+                in_data[m] = m1.data;
+
+                // data[2 * ia] = data[2 * ia] + re_temp;
+                // data[2 * ia + 1] = data[2 * ia + 1] + im_temp;
+                dl_sc16_t m2;
+                m2.re = dl_xtfixed_bf_3(a_data.re,
+                                        cs.re,
+                                        m_data.re,
+                                        cs.im,
+                                        m_data.im,
+                                        loop_shift,
+                                        add_rount_mult); //(a_data.re + temp.re + shift_const) >> 1;
+                m2.im = dl_xtfixed_bf_4(a_data.im,
+                                        cs.re,
+                                        m_data.im,
+                                        cs.im,
+                                        m_data.re,
+                                        loop_shift,
+                                        add_rount_mult); //(a_data.im + temp.im + shift_const)>>1;
                 in_data[ia] = m2.data;
                 ia++;
             }
@@ -262,10 +391,10 @@ esp_err_t dl_cplx2reC_sc16(int16_t *data, int N)
     int n2 = N << (1); // we will operate with int32 indexes
     uint32_t *in_data = (uint32_t *)data;
 
-    sc16_t kl;
-    sc16_t kh;
-    sc16_t nl;
-    sc16_t nh;
+    dl_sc16_t kl;
+    dl_sc16_t kh;
+    dl_sc16_t nl;
+    dl_sc16_t nh;
 
     for (i = 0; i < (N / 4); i++) {
         kl.data = in_data[i + 1];
@@ -292,9 +421,9 @@ esp_err_t dl_cplx2reC_sc16(int16_t *data, int N)
     return result;
 }
 
-esp_err_t dl_cplx2real_sc16_ansi(int16_t *data, int N, int16_t *table)
+esp_err_t dl_rfft_post_proc_sc16_ansi(int16_t *data, int N, int16_t *table)
 {
-    sc16_t *result = (sc16_t *)data;
+    dl_sc16_t *result = (dl_sc16_t *)data;
     // Original formula...
     // result[0].re = result[0].re + result[0].im;
     // result[N].re = result[0].re - result[0].im;
@@ -308,8 +437,8 @@ esp_err_t dl_cplx2real_sc16_ansi(int16_t *data, int N, int16_t *table)
 
     int32_t f1k_re, f1k_im, f2k_re, f2k_im, tw_re, tw_im;
     for (int k = 1; k <= N / 2; k++) {
-        sc16_t fpk = result[k];
-        sc16_t fpnk = result[N - k];
+        dl_sc16_t fpk = result[k];
+        dl_sc16_t fpnk = result[N - k];
         f1k_re = fpk.re + fpnk.re;
         f1k_im = fpk.im - fpnk.im;
         f2k_re = fpk.re - fpnk.re;
@@ -330,16 +459,49 @@ esp_err_t dl_cplx2real_sc16_ansi(int16_t *data, int N, int16_t *table)
     return ESP_OK;
 }
 
+esp_err_t dl_rfft_pre_proc_sc16_ansi(int16_t *data, int N, int16_t *table)
+{
+    dl_sc16_t *result = (dl_sc16_t *)data;
+
+    int32_t tmp_re = result[0].re + 2;
+    result[0].re = (tmp_re + result[0].im) >> 2;
+    result[0].im = (tmp_re - result[0].im) >> 2;
+    int round = 1 << 16;
+
+    int32_t f1k_re, f1k_im, f2k_re, f2k_im, tw_re, tw_im;
+    for (int k = 1; k <= N / 2; k++) {
+        dl_sc16_t fpk = result[k];
+        dl_sc16_t fpnk = result[N - k];
+        f1k_re = fpk.re + fpnk.re;
+        f1k_im = fpk.im - fpnk.im;
+        f2k_re = fpk.re - fpnk.re;
+        f2k_im = fpk.im + fpnk.im;
+
+        int16_t c = -table[k * 2 - 1];
+        int16_t s = table[k * 2 - 2];
+        tw_re = c * f2k_re - s * f2k_im;
+        tw_im = s * f2k_re + c * f2k_im;
+        f1k_re = f1k_re << 15;
+        f1k_im = f1k_im << 15;
+
+        result[k].re = (f1k_re + tw_re + round) >> 17;
+        result[k].im = (f1k_im + tw_im + round) >> 17;
+        result[N - k].re = (f1k_re - tw_re + round) >> 17;
+        result[N - k].im = (tw_im - f1k_im + round) >> 17;
+    }
+    return ESP_OK;
+}
+
 esp_err_t dl_cplx2real_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift)
 {
-    sc16_t *result = (sc16_t *)data;
+    dl_sc16_t *result = (dl_sc16_t *)data;
     // Original formula...
     // result[0].re = result[0].re + result[0].im;
     // result[N].re = result[0].re - result[0].im;
     // result[0].im = 0;
     // result[N].im = 0;
     // Optimized one:
-    int loop_shift = dl_get_fft_shift_s16(data, N);
+    int loop_shift = dl_array_max_q_s16(data, N);
     int round = 1 << loop_shift;
     int32_t tmp_re = result[0].re;
     shift[0] += loop_shift - 15;
@@ -355,8 +517,8 @@ esp_err_t dl_cplx2real_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *s
     int32_t f1k_re, f1k_im, f2k_re, f2k_im, tw_re, tw_im;
     loop_shift += 1;
     for (int k = 1; k <= N / 2; k++) {
-        sc16_t fpk = result[k];
-        sc16_t fpnk = result[N - k];
+        dl_sc16_t fpk = result[k];
+        dl_sc16_t fpnk = result[N - k];
         f1k_re = fpk.re + fpnk.re;
         f1k_im = fpk.im - fpnk.im;
         f2k_re = fpk.re - fpnk.re;
@@ -377,7 +539,7 @@ esp_err_t dl_cplx2real_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *s
     return ESP_OK;
 }
 
-int16_t *dl_gen_fftr2_table_sc16(int fft_point, uint32_t caps)
+int16_t *dl_gen_fft_table_sc16(int fft_point, uint32_t caps)
 {
     int16_t *fft_table = (int16_t *)heap_caps_aligned_alloc(16, fft_point * sizeof(int16_t), caps);
 

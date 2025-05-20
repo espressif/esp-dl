@@ -100,6 +100,7 @@ def generate_fft_test_case(n, output_dir):
 
         # 写入预期输出数据
         numpy_to_c_array(fft_result, f"fft_output_{n}", f)
+        numpy_to_c_array_s16(fft_result, f"fft_output_s16_{n}", f)
 
         # 结束头文件保护
         f.write(f"#endif // FFT_TEST_{n}_H\n")

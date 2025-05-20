@@ -40,6 +40,54 @@ void dl_rfft_f32_deinit(dl_fft_f32_t *handle);
 esp_err_t dl_rfft_f32_run(dl_fft_f32_t *handle, float *data);
 
 /**
+ * @brief Execute single-precision floating-point real inverse FFT transform
+ * @param handle  FFT instance handle
+ * @param data    Input/output buffer, in-place fft calculation
+ * @return esp_err_t  ESP_OK on success, error code otherwise
+ */
+esp_err_t dl_irfft_f32_run(dl_fft_f32_t *handle, float *data);
+
+/**
+ * @brief Execute 16-bit fixed-point FFT transform
+ * @param handle        FFT instance handle
+ * @param data          Input/output buffer, in-place fft calculation
+ * @param in_exponent   Input data exponent (2^in_exponent scaling factor)
+ * @param out_exponent  Output data exponent (2^out_exponent scaling factor)
+ * @return esp_err_t    ESP_OK on success, error code otherwise
+ */
+esp_err_t dl_fft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
+
+/**
+ * @brief Execute inverse 16-bit fixed-point FFT transform
+ * @param handle        FFT instance handle
+ * @param data          Input/output buffer, in-place fft calculation
+ * @param in_exponent   Input data exponent (2^in_exponent scaling factor)
+ * @param out_exponent  Output data exponent (2^out_exponent scaling factor)
+ * @return esp_err_t    ESP_OK on success, error code otherwise
+ */
+esp_err_t dl_ifft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
+
+/**
+ * @brief Execute 16-bit fixed-point FFT with high-precision scaling
+ * @param handle        FFT instance handle
+ * @param data          Input/output buffer, in-place fft calculation
+ * @param in_exponent   Input data exponent (2^in_exponent scaling factor)
+ * @param out_exponent  Output data exponent (2^out_exponent scaling factor)
+ * @return esp_err_t    ESP_OK on success, error code otherwise
+ */
+esp_err_t dl_fft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
+
+/**
+ * @brief Execute inverse 16-bit fixed-point FFT with high-precision scaling
+ * @param handle        FFT instance handle
+ * @param data          Input/output buffer, in-place fft calculation
+ * @param in_exponent   Input data exponent (2^in_exponent scaling factor)
+ * @param out_exponent  Output data exponent (2^out_exponent scaling factor)
+ * @return esp_err_t    ESP_OK on success, error code otherwise
+ */
+esp_err_t dl_ifft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
+
+/**
  * @brief Initialize a 16-bit fixed-point real FFT instance
  * @param fft_point  Number of FFT points (must be power of two)
  * @param caps       Configuration flags for memory allocation, same with esp-idf heap_caps_malloc
@@ -73,6 +121,26 @@ esp_err_t dl_rfft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, 
  * @return esp_err_t    ESP_OK on success, error code otherwise
  */
 esp_err_t dl_rfft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
+
+/**
+ * @brief Execute 16-bit fixed-point real inverse FFT transform
+ * @param handle        FFT instance handle
+ * @param data          Input/output buffer, in-place fft calculation
+ * @param in_exponent   Input data exponent (2^in_exponent scaling factor)
+ * @param out_exponent  Output data exponent (2^out_exponent scaling factor)
+ * @return esp_err_t    ESP_OK on success, error code otherwise
+ */
+esp_err_t dl_irfft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
+
+/**
+ * @brief Execute 16-bit fixed-point real inverse FFT with high-precision scaling
+ * @param handle        FFT instance handle
+ * @param data          Input/output buffer, in-place fft calculation
+ * @param in_exponent   Input data exponent (2^in_exponent scaling factor)
+ * @param out_exponent  Output data exponent (2^out_exponent scaling factor)
+ * @return esp_err_t    ESP_OK on success, error code otherwise
+ */
+esp_err_t dl_irfft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
 #ifdef __cplusplus
 }
 #endif
