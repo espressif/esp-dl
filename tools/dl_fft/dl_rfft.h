@@ -121,6 +121,26 @@ esp_err_t dl_rfft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, 
  * @return esp_err_t    ESP_OK on success, error code otherwise
  */
 esp_err_t dl_rfft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
+
+/**
+ * @brief Execute 16-bit fixed-point real inverse FFT transform
+ * @param handle        FFT instance handle
+ * @param data          Input/output buffer, in-place fft calculation
+ * @param in_exponent   Input data exponent (2^in_exponent scaling factor)
+ * @param out_exponent  Output data exponent (2^out_exponent scaling factor)
+ * @return esp_err_t    ESP_OK on success, error code otherwise
+ */
+esp_err_t dl_irfft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
+
+/**
+ * @brief Execute 16-bit fixed-point real inverse FFT with high-precision scaling
+ * @param handle        FFT instance handle
+ * @param data          Input/output buffer, in-place fft calculation
+ * @param in_exponent   Input data exponent (2^in_exponent scaling factor)
+ * @param out_exponent  Output data exponent (2^out_exponent scaling factor)
+ * @return esp_err_t    ESP_OK on success, error code otherwise
+ */
+esp_err_t dl_irfft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, int *out_exponent);
 #ifdef __cplusplus
 }
 #endif

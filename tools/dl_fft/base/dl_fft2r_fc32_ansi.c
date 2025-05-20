@@ -117,50 +117,85 @@ esp_err_t dl_bitrev2r_fc32_ansi(float *data, int N, uint16_t *bitrev_table, int 
     return result;
 }
 
-esp_err_t dl_cplx2reC_fc32_ansi(float *data, int N)
+esp_err_t dl_rfft_post_proc_fc32_ansi(float *data, int N, float *table)
 {
-    esp_err_t result = ESP_OK;
+    dl_fc32_t *result = (dl_fc32_t *)data;
+    // Original formula...
+    // result[0].re = result[0].re + result[0].im;
+    // result[N].re = result[0].re - result[0].im;
+    // result[0].im = 0;
+    // result[N].im = 0;
+    // Optimized one:
+    float tmp_re = result[0].re;
+    result[0].re = tmp_re + result[0].im;
+    result[0].im = tmp_re - result[0].im;
 
-    int i;
-    int n2 = N << 1;
+    dl_fc32_t f1k, f2k;
+    for (int k = 1; k <= N / 2; k++) {
+        dl_fc32_t fpk = result[k];
+        dl_fc32_t fpnk = result[N - k];
+        f1k.re = fpk.re + fpnk.re;
+        f1k.im = fpk.im - fpnk.im;
+        f2k.re = fpk.re - fpnk.re;
+        f2k.im = fpk.im + fpnk.im;
 
-    float rkl = 0;
-    float rkh = 0;
-    float rnl = 0;
-    float rnh = 0;
-    float ikl = 0;
-    float ikh = 0;
-    float inl = 0;
-    float inh = 0;
+        float c = -table[k * 2 - 1];
+        float s = -table[k * 2 - 2];
+        dl_fc32_t tw;
+        tw.re = c * f2k.re - s * f2k.im;
+        tw.im = s * f2k.re + c * f2k.im;
 
-    for (i = 0; i < (N / 4); i++) {
-        rkl = data[i * 2 + 0 + 2];
-        ikl = data[i * 2 + 1 + 2];
-        rnl = data[n2 - i * 2 - 2];
-        inl = data[n2 - i * 2 - 1];
-
-        rkh = data[i * 2 + 0 + 2 + N];
-        ikh = data[i * 2 + 1 + 2 + N];
-        rnh = data[n2 - i * 2 - 2 - N];
-        inh = data[n2 - i * 2 - 1 - N];
-
-        data[i * 2 + 0 + 2] = rkl + rnl;
-        data[i * 2 + 1 + 2] = ikl - inl;
-
-        data[n2 - i * 2 - 1 - N] = inh - ikh;
-        data[n2 - i * 2 - 2 - N] = rkh + rnh;
-
-        data[i * 2 + 0 + 2 + N] = ikl + inl;
-        data[i * 2 + 1 + 2 + N] = rnl - rkl;
-
-        data[n2 - i * 2 - 1] = rkh - rnh;
-        data[n2 - i * 2 - 2] = ikh + inh;
+        result[k].re = 0.5 * (f1k.re + tw.re);
+        result[k].im = 0.5 * (f1k.im + tw.im);
+        result[N - k].re = 0.5 * (f1k.re - tw.re);
+        result[N - k].im = 0.5 * (tw.im - f1k.im);
     }
-    data[N] = data[1];
-    data[1] = 0;
-    data[N + 1] = 0;
+    return ESP_OK;
+}
 
-    return result;
+esp_err_t dl_rfft_pre_proc_fc32_ansi(float *data, int N, float *table)
+{
+    dl_fc32_t *result = (dl_fc32_t *)data;
+    float tmp_re = result[0].re;
+    result[0].re = (tmp_re + result[0].im) * 0.5;
+    result[0].im = (tmp_re - result[0].im) * 0.5;
+
+    dl_fc32_t f1k, f2k;
+    for (int k = 1; k <= N / 2; k++) {
+        dl_fc32_t fpk = result[k];
+        dl_fc32_t fpnk = result[N - k];
+        f1k.re = fpk.re + fpnk.re;
+        f1k.im = fpk.im - fpnk.im;
+        f2k.re = fpk.re - fpnk.re;
+        f2k.im = fpk.im + fpnk.im;
+
+        float c = -table[k * 2 - 1];
+        float s = table[k * 2 - 2];
+        dl_fc32_t tw;
+        tw.re = c * f2k.re - s * f2k.im;
+        tw.im = s * f2k.re + c * f2k.im;
+
+        result[k].re = 0.5 * (f1k.re + tw.re);
+        result[k].im = 0.5 * (f1k.im + tw.im);
+        result[N - k].re = 0.5 * (f1k.re - tw.re);
+        result[N - k].im = 0.5 * (tw.im - f1k.im);
+    }
+    return ESP_OK;
+}
+
+float *dl_gen_rfft_table_f32(int fft_point, uint32_t caps)
+{
+    float *fft_table = (float *)heap_caps_aligned_alloc(16, fft_point * sizeof(float), caps);
+
+    if (fft_table) {
+        for (int i = 1; i <= fft_point >> 1; i++) {
+            float angle = 2 * M_PI * i * 1.0 / fft_point;
+            fft_table[2 * i - 2] = cosf(angle);
+            fft_table[2 * i - 1] = sinf(angle);
+        }
+    }
+
+    return fft_table;
 }
 
 uint16_t *dl_gen_bitrev2r_table(int N, uint32_t caps, int *bitrev_size)

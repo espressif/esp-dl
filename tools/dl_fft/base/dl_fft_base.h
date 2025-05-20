@@ -51,14 +51,15 @@ esp_err_t dl_ifft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shif
 esp_err_t dl_ifft2r_sc16_ansi(int16_t *data, int N, int16_t *table);
 
 esp_err_t dl_bitrev2r_sc16_ansi(int16_t *data, int N);
-esp_err_t dl_cplx2real_sc16_ansi(int16_t *data, int N, int16_t *table);
+esp_err_t dl_rfft_post_proc_sc16_ansi(int16_t *data, int N, int16_t *table);
+esp_err_t dl_rfft_pre_proc_sc16_ansi(int16_t *data, int N, int16_t *table);
 esp_err_t dl_cplx2real_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift);
 
 #if CONFIG_IDF_TARGET_ESP32
 #define dl_fft2r_fc32 dl_fft2r_fc32_ae32_
 #define dl_ifft2r_fc32 dl_ifft2r_fc32_ae32_
 #define dl_fft4r_fc32 dl_fft4r_fc32_ae32_
-#define dl_ifft4r_fc32 dl_ifft4r_fc32_ansi
+#define dl_ifft4r_fc32 dl_ifft4r_fc32_ae32_
 #elif CONFIG_IDF_TARGET_ESP32S3
 #define dl_fft2r_fc32 dl_fft2r_fc32_aes3_
 #define dl_ifft2r_fc32 dl_ifft2r_fc32_aes3_
@@ -68,7 +69,7 @@ esp_err_t dl_cplx2real_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *s
 #define dl_fft2r_fc32 dl_fft2r_fc32_arp4_
 #define dl_ifft2r_fc32 dl_ifft2r_fc32_arp4_
 #define dl_fft4r_fc32 dl_fft4r_fc32_arp4_
-#define dl_ifft4r_fc32 dl_ifft4r_fc32_ansi
+#define dl_ifft4r_fc32 dl_ifft4r_fc32_arp4_
 #else
 #define dl_fft2r_fc32 dl_fft2r_fc32_ansi
 #define dl_ifft2r_fc32 dl_ifft2r_fc32_ansi

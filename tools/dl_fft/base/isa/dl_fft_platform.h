@@ -8,6 +8,7 @@ extern "C" {
 void dl_fft2r_fc32_ae32_(float *data, int N, float *table);
 void dl_ifft2r_fc32_ae32_(float *data, int N, float *table);
 void dl_fft4r_fc32_ae32_(float *data, int N, float *table, int table_size);
+void dl_ifft4r_fc32_ae32_(float *data, int N, float *table, int table_size);
 
 #elif CONFIG_IDF_TARGET_ESP32S3
 void dl_fft2r_fc32_aes3_(float *data, int N, float *table);
@@ -27,6 +28,7 @@ void dl_ifft4r_fc32_aes3_(float *data, int N, float *table, int table_size);
 void dl_fft2r_fc32_arp4_(float *data, int N, float *table);
 void dl_ifft2r_fc32_arp4_(float *data, int N, float *table);
 void dl_fft4r_fc32_arp4_(float *data, int N, float *table, int table_size);
+void dl_ifft4r_fc32_arp4_(float *data, int N, float *table, int table_size);
 #endif
 
 #ifdef __cplusplus

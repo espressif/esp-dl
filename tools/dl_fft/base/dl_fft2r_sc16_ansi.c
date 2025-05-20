@@ -421,7 +421,7 @@ esp_err_t dl_cplx2reC_sc16(int16_t *data, int N)
     return result;
 }
 
-esp_err_t dl_cplx2real_sc16_ansi(int16_t *data, int N, int16_t *table)
+esp_err_t dl_rfft_post_proc_sc16_ansi(int16_t *data, int N, int16_t *table)
 {
     dl_sc16_t *result = (dl_sc16_t *)data;
     // Original formula...
@@ -446,6 +446,39 @@ esp_err_t dl_cplx2real_sc16_ansi(int16_t *data, int N, int16_t *table)
 
         int16_t c = -table[k * 2 - 1];
         int16_t s = -table[k * 2 - 2];
+        tw_re = c * f2k_re - s * f2k_im;
+        tw_im = s * f2k_re + c * f2k_im;
+        f1k_re = f1k_re << 15;
+        f1k_im = f1k_im << 15;
+
+        result[k].re = (f1k_re + tw_re + round) >> 17;
+        result[k].im = (f1k_im + tw_im + round) >> 17;
+        result[N - k].re = (f1k_re - tw_re + round) >> 17;
+        result[N - k].im = (tw_im - f1k_im + round) >> 17;
+    }
+    return ESP_OK;
+}
+
+esp_err_t dl_rfft_pre_proc_sc16_ansi(int16_t *data, int N, int16_t *table)
+{
+    dl_sc16_t *result = (dl_sc16_t *)data;
+
+    int32_t tmp_re = result[0].re + 2;
+    result[0].re = (tmp_re + result[0].im) >> 2;
+    result[0].im = (tmp_re - result[0].im) >> 2;
+    int round = 1 << 16;
+
+    int32_t f1k_re, f1k_im, f2k_re, f2k_im, tw_re, tw_im;
+    for (int k = 1; k <= N / 2; k++) {
+        dl_sc16_t fpk = result[k];
+        dl_sc16_t fpnk = result[N - k];
+        f1k_re = fpk.re + fpnk.re;
+        f1k_im = fpk.im - fpnk.im;
+        f2k_re = fpk.re - fpnk.re;
+        f2k_im = fpk.im + fpnk.im;
+
+        int16_t c = -table[k * 2 - 1];
+        int16_t s = table[k * 2 - 2];
         tw_re = c * f2k_re - s * f2k_im;
         tw_im = s * f2k_re + c * f2k_im;
         f1k_re = f1k_re << 15;

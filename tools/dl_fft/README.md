@@ -2,10 +2,10 @@
 
 DL_FFT is a lightweight FFT library supporting both float32 and int16 data types.
 
-The FFT implementation is come from esp-dsp. And we further optimized the int16 FFT to achieving better precision.
+The float FFT implementation is come from esp-dsp. And we further optimized the int16 FFT to achieving better precision.
 For int16 FFT, we recommend to use `dl_fft_s16_hp_run` or `dl_rfft_s16_hp_run` interface. `hp` means "high precision".
 
-## User Guide:
+## Get Started
 ```
 
 #include "dl_fft.h"
@@ -15,32 +15,38 @@ For int16 FFT, we recommend to use `dl_fft_s16_hp_run` or `dl_rfft_s16_hp_run` i
 float  x[nfft*2];
 dl_fft_f32_t *fft_handle = dl_fft_f32_init(nfft, MALLOC_CAP_8BIT);
 dl_fft_f32_run(fft_handle, x);
+dl_ifft_f32_run(fft_handle, x);
 dl_fft_f32_deinit(fft_handle);
 
 // float rfft
 float  x[nfft];
 dl_fft_f32_t *fft_handle = dl_rfft_f32_init(nfft, MALLOC_CAP_8BIT);
 dl_rfft_f32_run(fft_handle, x);
+dl_irfft_f32_run(fft_handle, x);
 dl_rfft_f32_deinit(fft_handle);
 
 // int16 fft
 int16_t  x[nfft*2];
 float  y[nfft*2];
 int in_exponent = -15;  //  float y = x * 2^in_exponent;
-int out_exponent;
+int fft_exponent;
+int ifft_exponent;
 dl_fft_s16_t *fft_handle = dl_fft_s16_init(nfft, MALLOC_CAP_8BIT);
-dl_fft_s16_hp_run(fft_handle, x, in_exponent, &out_exponent);
-dl_short_to_float(x, nfft, out_exponent, y); // convert output from int16_t to float
+dl_fft_s16_hp_run(fft_handle, x, in_exponent, &fft_exponent);
+dl_fft_s16_hp_run(fft_handle, x, fft_exponent, &ifft_exponent);
+dl_short_to_float(x, nfft, ifft_exponent, y); // convert output from int16_t to float
 dl_fft_s16_deinit(fft_handle);
 
 // int16 rfft
 int16_t  x[nfft];
 float  y[nfft];
 int in_exponent = -15;  //  float y = x * 2^in_exponent;
-int out_exponent;
+int fft_exponent;
+int ifft_exponent;
 dl_fft_s16_t *fft_handle = dl_rfft_s16_init(nfft, MALLOC_CAP_8BIT);
-dl_rfft_s16_hp_run(fft_handle, x, in_exponent, &out_exponent);
-dl_short_to_float(x, nfft, out_exponent, y); // convert output from int16_t to float
+dl_rfft_s16_hp_run(fft_handle, x, in_exponent, &fft_exponent);
+dl_rfft_s16_hp_run(fft_handle, x, fft_exponent, &ifft_exponent);
+dl_short_to_float(x, nfft, ifft_exponent, y); // convert output from int16_t to float
 dl_rfft_s16_deinit(fft_handle);
 
 
@@ -51,13 +57,13 @@ Please refer to [dl_fft.h](./dl_fft.h) and [dl_rfft.h](./dl_rfft.h) for more det
 
 #### 1. Why not just use esp-dsp directly? 
 
-Because esp-dsp uses global variables to share FFT tables and other parameters in order to minimize memory consumption. This introduces significant risks for independent components—your FFT results might be corrupted by other programs, and this is something you have little control over.  
+Because esp-dsp uses global variables to share FFT tables and other parameters in order to minimize memory consumption. This introduces significant risks for independent components. Your FFT results might be corrupted by other programs, and this is something you have little control over.  
 
 #### 2. What does dl_fft do?
 
-1. Provides a re-repackaged interface. Users no longer need to worry about their FFT results being affected by other programs. All FFT tables are allocated and released within the function scope.  
-2. Reimplements an int16 FFT. Performs dynamic quantization during butterfly operations, achieving better precision.  
-3. Leverages hardware acceleration. Uses built-in FFT instructions on ESP32-S3 and ESP32-P4 to further speed up int16 FFT computations.
+1. Provides an unified and simple FFT/IFFT interface. Users no longer need to worry about their FFT results being affected by other programs. All FFT tables are allocated and released within the function scope.  
+2. Reimplements an int16 FFT/IFFT. Dynamic quantization is used during butterfly operations to achieve better precision.  
+3. [TODO] Uses built-in FFT instructions on ESP32-S3 and ESP32-P4 to further accelerate int16 FFT/IFFT.
 
 
 ## Benchmark
