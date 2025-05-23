@@ -484,6 +484,75 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
 #endif
 }
 
+void TensorBase::push(TensorBase *new_tensor, int dim)
+{
+    if (dim < 0 || dim >= this->shape.size()) {
+        ESP_LOGE(__FUNCTION__, "The dim is out of range.");
+        return;
+    }
+
+    if (this->dtype != new_tensor->dtype) {
+        ESP_LOGE(__FUNCTION__, "this->dtype != new_tensor->dtype");
+        return;
+    }
+
+    if (new_tensor->shape[dim] > this->shape[dim]) {
+        ESP_LOGE(__FUNCTION__,
+                 "The time series dimension size of new tensor "
+                 "is greater than that of the current tensor.");
+        return;
+    }
+
+    // NCW or NWC
+    int loop_num = 1;
+    int move_chunk_size = 1;
+    int copy_chunk_size = 1;
+    for (int i = this->shape.size() - 1; i >= 0; i--) {
+        if (i != dim) {
+            assert(this->shape[i] == new_tensor->shape[i]);
+        }
+
+        if (i < dim) {
+            loop_num *= this->shape[i];
+        } else if (i == dim) {
+            move_chunk_size *= (this->shape[i] - new_tensor->shape[i]);
+            copy_chunk_size *= new_tensor->shape[i];
+        } else if (i > dim) {
+            move_chunk_size *= this->shape[i];       // The move size of the current tensor
+            copy_chunk_size *= new_tensor->shape[i]; // The copy size of the new tensor
+        }
+    }
+
+    // Since the old one is removed to free up space for the new one, their sizes are equal.
+    int move_offset = copy_chunk_size;
+    int current_loop_stride = move_chunk_size + copy_chunk_size;
+
+    for (int i = 0; i < loop_num; i++) {
+        if (this->dtype == DATA_TYPE_INT8) {
+            // move chunk
+            tool::copy_memory(get_element_ptr<int8_t>() + i * current_loop_stride,
+                              get_element_ptr<int8_t>() + i * current_loop_stride + move_offset,
+                              move_chunk_size);
+            // copy new tensor
+            tool::copy_memory(get_element_ptr<int8_t>() + i * current_loop_stride + move_chunk_size,
+                              new_tensor->get_element_ptr<int8_t>() + i * copy_chunk_size,
+                              copy_chunk_size);
+        } else if (this->dtype == DATA_TYPE_INT16) {
+            // move chunk
+            tool::copy_memory(get_element_ptr<int16_t>() + i * current_loop_stride,
+                              get_element_ptr<int16_t>() + i * current_loop_stride + move_offset,
+                              move_chunk_size);
+            // copy new tensor
+            tool::copy_memory(get_element_ptr<int16_t>() + i * current_loop_stride + move_chunk_size,
+                              new_tensor->get_element_ptr<int16_t>() + i * copy_chunk_size,
+                              copy_chunk_size);
+        } else {
+            ESP_LOGE(__FUNCTION__, "Don't support dtype: %d", this->dtype);
+        }
+    }
+    return;
+}
+
 void TensorBase::print(bool print_data)
 {
     ESP_LOGI(__FUNCTION__,

@@ -1,0 +1,38 @@
+[meta]
+    seed = 0
+    batch_size = 1
+    calib_steps = 8         # The minimum value for calib_steps is 8.
+
+[model_0_config]
+    offline_input_shape = [1, 64, 36]
+    export_name_prefix = "model_0_ishap_1_64_36_kshap_3"
+    in_channels = 64
+    expand_channels = 128
+    out_channels = 64
+    kernel_size = 3
+    stride = 1
+    padding = 4
+    dilation = 2
+    streaming_input_shape = [1, 64, 3]
+    streaming_cache_shape = [1, 128, 4]
+
+[model_1_config]
+    offline_input_shape = [1, 64, 36]
+    export_name_prefix = "model_1_ishap_1_64_36_kshap_3"
+    in_channels = 64
+    expand_channels = 128
+    out_channels = 64
+    streaming_input_shape = [1, 64, 3]
+
+[model_2_config]
+    offline_input_shape = [1, 64, 36]
+    export_name_prefix = "model_2_ishap_1_64_36_kshap_3"
+    in_channels = 64
+    expand_channels = 128
+    out_channels = 64
+    kernel_size = 3
+    stride = 1
+    padding = 4
+    dilation = 2
+    streaming_input_shape = [1, 64, 3]
+    streaming_cache_shape = [1, 128, 4]

@@ -10,7 +10,7 @@ static const char *TAG = "dl::Model";
 
 namespace dl {
 
-Model::Model(const char *name,
+Model::Model(const char *rodata_address_or_partition_label_or_path,
              fbs::model_location_type_t location,
              int max_internal_size,
              memory_manager_t mm_type,
@@ -21,14 +21,14 @@ Model::Model(const char *name,
     m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
     m_model_context = new ModelContext();
-    if (this->load(name, location, key, param_copy) == ESP_OK) {
+    if (this->load(rodata_address_or_partition_label_or_path, location, key, param_copy) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
     m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 }
 
-Model::Model(const char *name,
+Model::Model(const char *rodata_address_or_partition_label_or_path,
              int model_index,
              fbs::model_location_type_t location,
              int max_internal_size,
@@ -40,14 +40,14 @@ Model::Model(const char *name,
     m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
     m_model_context = new ModelContext();
-    if (this->load(name, location, model_index, key, param_copy) == ESP_OK) {
+    if (this->load(rodata_address_or_partition_label_or_path, location, model_index, key, param_copy) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
     m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 }
 
-Model::Model(const char *name,
+Model::Model(const char *rodata_address_or_partition_label_or_path,
              const char *model_name,
              fbs::model_location_type_t location,
              int max_internal_size,
@@ -59,7 +59,7 @@ Model::Model(const char *name,
     m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
     m_model_context = new ModelContext();
-    if (this->load(name, location, model_name, key, param_copy) == ESP_OK) {
+    if (this->load(rodata_address_or_partition_label_or_path, location, model_name, key, param_copy) == ESP_OK) {
         this->build(max_internal_size, mm_type);
     }
     m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
