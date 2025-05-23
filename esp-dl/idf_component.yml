@@ -18,3 +18,4 @@ examples:
   - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_flash_rodata
   - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_sdcard
   - path: ../examples/tutorial/how_to_run_model
+  - path: ../examples/tutorial/how_to_run_streaming_model

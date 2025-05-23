@@ -101,12 +101,12 @@ public:
     int size;                     ///< size of element including padding
     std::vector<int> shape;       ///< shape of Tensor
     dtype_t dtype;                ///< data type of element
-    int exponent;                 ///<  exponent of element
-    bool auto_free;               ///<  free element when object destroy
-    std::vector<int> axis_offset; ///<  element offset of each axis
-    void *data;                   ///<  data pointer
-    void *cache;                  ///<  cache pointer， used for preload and do not need to free
-    uint32_t caps;                ///<  flags indicating the type of memory
+    int exponent;                 ///< exponent of element
+    bool auto_free;               ///< free element when object destroy
+    std::vector<int> axis_offset; ///< element offset of each axis
+    void *data;                   ///< data pointer
+    void *cache;                  ///< cache pointer， used for preload and do not need to free
+    uint32_t caps;                ///< flags indicating the type of memory
 
     /**
      * @brief Construct a TensorBase object
@@ -487,6 +487,16 @@ public:
      *
      */
     void reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise);
+
+    /**
+     * @brief Push new_tensor to current tensor. The time series dimension size of new tensor must is lesser or equal
+     * than that of the current tensor."
+     *
+     * @param new_tensor  The new tensor will be pushed
+     * @param dim   Specify the dimension on which to perform streaming stack pushes
+     *
+     */
+    void push(TensorBase *new_tensor, int dim);
 
     /**
      * @brief print the information of TensorBase

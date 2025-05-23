@@ -89,6 +89,9 @@
 .patterns-example_model_in_sdcard: &patterns-example_model_in_sdcard
 - "examples/tutorial/how_to_load_test_profile_model/model_in_sdcard/**/*"
 
+.patterns-example_how_to_run_streaming_model: &patterns-example_how_to_run_streaming_model
+- "examples/tutorial/how_to_run_streaming_model/**/*"
+
 # tool forder
 .patterns-tool_ops_test: &patterns-tool_ops_test
   - "tools/ops_test/config/op_cfg.toml"
@@ -278,6 +281,15 @@
     - <<: *if-label-build
     - <<: *if-dev-push
       changes: *patterns-example_model_in_sdcard
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_how_to_run_streaming_model:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-example_how_to_run_streaming_model
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 
