@@ -69,6 +69,8 @@ The rounding for ESP32-P4 is [rounding half to even](https://simple.wikipedia.or
 
 The ESP-DL operator interface is aligned with ONNX. The opset 13 is recommended to export ONNX.
 Currently, the following {op_num} operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases]({config_file}) for details.
+
+Most operators maintain the same input/output data layout as ONNX or PyTorch. However, to fully leverage instruction-level acceleration, certain operators such as Conv, GlobalAveragePool, AveragePool, MaxPool, and Resize adopt NHWC or NWC data layouts for their inputs/outputs.
 """
 
     current_time = datetime.now()

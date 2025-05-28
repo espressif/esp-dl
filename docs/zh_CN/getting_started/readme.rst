@@ -88,6 +88,7 @@ ESP-DL 必须使用专有格式 ``.espdl`` 进行模型部署，深度学习模�
 - :ref:`如何量化 MobileNetV2 <how_to_quantize_mobilenetv2>`
 - :ref:`如何量化 YOLO11n <how_to_quantize_yolo11n>`
 - :ref:`如何量化 YOLO11n-pose <how_to_quantize_yolo11n-pose>`
+- :ref:`如何量化流式模型 <how_to_quantize_streaming_model>`
 
 模型部署
 ----------------
@@ -96,3 +97,4 @@ ESP-DL 提供了一系列 API 来快速加载和运行模型。更多详细信�
 
 - :doc:`如何加载和测试模型 </tutorials/how_to_load_test_profile_model>`
 - :doc:`如何进行模型推理 </tutorials/how_to_run_model>`
+- :ref:`如何部署流式模型 <how_to_deploy_streaming_model>`
