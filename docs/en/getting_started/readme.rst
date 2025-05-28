@@ -89,6 +89,7 @@ ESP-DL must use the proprietary format ``.espdl`` for model deployment. Deep lea
 - :ref:`How to quantize MobileNetV2 <how_to_quantize_mobilenetv2>`
 - :ref:`How to quantize YOLO11n <how_to_quantize_yolo11n>`
 - :ref:`How to quantize YOLO11n-pose <how_to_quantize_yolo11n-pose>`
+- :ref:`How to quantize streaming model <how_to_quantize_streaming_model>`
 
 Model deployment
 ---------------------
@@ -97,3 +98,4 @@ ESP-DL provides a series of APIs to quickly load and run models. For more detail
 
 - :doc:`How to load & test & profile model </tutorials/how_to_load_test_profile_model>`
 - :doc:`How to run model </tutorials/how_to_run_model>`
+- :ref:`How to deploy streaming model <how_to_deploy_streaming_model>`
