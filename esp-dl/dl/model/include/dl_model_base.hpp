@@ -389,6 +389,14 @@ public:
     virtual TensorBase *get_output(const std::string &name);
 
     /**
+     * @brief Get the model's metadata prop
+     *
+     * @param key   The key of metadata prop
+     * @return The value of metadata prop
+     */
+    std::string get_metadata_prop(const std::string &key);
+
+    /**
      * @brief Print the model.
      */
     virtual void print();
