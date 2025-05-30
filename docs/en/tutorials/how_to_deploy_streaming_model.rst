@@ -4,6 +4,7 @@ How to Deploy Streaming Models
 :link_to_translation:`zh_CN:[中文]`
 
 Time series models are now widely applied in various fields, such as audio processing. Audio models typically have two deployment modes when deployed:
+
 - Offline mode: The model receives the complete audio data (e.g., an entire speech file) at once and processes it as a whole.
 - Streaming mode: In streaming mode, the model receives audio data frame by frame (or block by block) in real-time, processes it, and outputs intermediate results.
 

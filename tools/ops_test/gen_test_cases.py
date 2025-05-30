@@ -115,6 +115,7 @@ class BaseInferencer:
                 export_config=True,
                 verbose=1,
                 int16_lut_step=1,
+                metadata_props={"target": self.target},
             )
 
         else:
@@ -135,6 +136,7 @@ class BaseInferencer:
                 export_config=True,
                 verbose=1,
                 int16_lut_step=1,
+                metadata_props={"target": self.target},
             )
 
     def load_calibration_dataset(self) -> Iterable:

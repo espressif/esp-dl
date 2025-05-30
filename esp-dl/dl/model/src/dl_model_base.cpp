@@ -357,6 +357,14 @@ TensorBase *Model::get_output(const std::string &name)
     return it->second;
 }
 
+std::string Model::get_metadata_prop(const std::string &key)
+{
+    if (!m_fbs_model) {
+        return "";
+    }
+    return m_fbs_model->get_model_metadata_prop(key);
+}
+
 void Model::print()
 {
     if (!m_execution_plan.empty()) {

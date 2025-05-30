@@ -377,6 +377,14 @@ public:
     std::string get_model_doc_string();
 
     /**
+     * @brief Get the model's metadata prop
+     *
+     * @param key   The key of metadata prop
+     * @return The value of metadata prop
+     */
+    std::string get_model_metadata_prop(const std::string &key);
+
+    /**
      * @brief Get the model size
      *
      * @param internal_size        Flatbuffers model internal RAM usage
