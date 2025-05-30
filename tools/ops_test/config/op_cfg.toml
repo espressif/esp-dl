@@ -1277,6 +1277,7 @@
     test_func = "GLOBAL_AVERAGE_POOLING_TEST"
     quant_bits = ["int8", "int16"]
     package = "torch_ops_test"
+    restrictions = "Support 1d/2d"
         [[ops_test.GlobalAveragePool.cfg]]
         input_shape = [1, 96, 5, 5]
         export_name_prefix = "global_average_pooling_ishap_1_96_5_5"
@@ -1285,10 +1286,19 @@
         input_shape = [1, 51, 3, 3]
         export_name_prefix = "global_average_pooling_ishap_1_51_3_3"
 
+        [[ops_test.GlobalAveragePool.cfg]]
+        input_shape = [1, 96, 5]
+        export_name_prefix = "global_average_pooling_ishap_1_96_5"
+
+        [[ops_test.GlobalAveragePool.cfg]]
+        input_shape = [1, 51, 3]
+        export_name_prefix = "global_average_pooling_ishap_1_51_3"
+
     [ops_test.AveragePool]
     test_func = "AVERAGE_POOLING_TEST"
     quant_bits = ["int8", "int16"]
     package = "torch_ops_test"
+    restrictions = "Support 1d/2d, don't support dilation"
         [[ops_test.AveragePool.cfg]]
         input_shape = [1, 96, 7, 7]
         export_name_prefix = "average_pooling_ishap_1_96_7_7_kshape_2_3"
@@ -1324,10 +1334,46 @@
         stride = [1, 1]
         padding = [2, 2]
 
+        [[ops_test.AveragePool.cfg]]
+        input_shape = [1, 96, 7]
+        export_name_prefix = "average_pooling_ishap_1_96_7_kshape_3"
+        kernel_size = [3]
+        stride = [2]
+        padding = [0]
+
+        [[ops_test.AveragePool.cfg]]
+        input_shape = [1, 96, 5]
+        export_name_prefix = "average_pooling_ishap_1_96_5_kshape_2"
+        kernel_size = [2]
+        stride = [2]
+        padding = [0]
+
+        [[ops_test.AveragePool.cfg]]
+        input_shape = [1, 51, 5]
+        export_name_prefix = "average_pooling_ishap_1_51_5_kshape_3"
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+
+        [[ops_test.AveragePool.cfg]]
+        input_shape = [1, 51, 7]
+        export_name_prefix = "average_pooling_ishap_1_51_7_kshape_2"
+        kernel_size = [2]
+        stride = [1]
+        padding = [1]
+
+        [[ops_test.AveragePool.cfg]]
+        input_shape = [1, 16, 3]
+        export_name_prefix = "average_pooling_ishap_1_16_3_kshape_5"
+        kernel_size = [5]
+        stride = [1]
+        padding = [2]
+
     [ops_test.MaxPool]
     test_func = "MAX_POOLING_TEST"
     quant_bits = ["int8", "int16"]
     package = "torch_ops_test"
+    restrictions = "Support 1d/2d, don't support dilation"
         [[ops_test.MaxPool.cfg]]
         input_shape = [1, 96, 7, 7]
         export_name_prefix = "max_pooling_ishap_1_96_7_7_kshape_2_3"
@@ -1362,6 +1408,41 @@
         kernel_size = [5, 5]
         stride = [1, 1]
         padding = [2, 2]
+
+        [[ops_test.MaxPool.cfg]]
+        input_shape = [1, 96, 7]
+        export_name_prefix = "max_pooling_ishap_1_96_7_kshape_3"
+        kernel_size = [3]
+        stride = [2]
+        padding = [0]
+
+        [[ops_test.MaxPool.cfg]]
+        input_shape = [1, 96, 5]
+        export_name_prefix = "max_pooling_ishap_1_96_5_kshape_2"
+        kernel_size = [2]
+        stride = [2]
+        padding = [0]
+
+        [[ops_test.MaxPool.cfg]]
+        input_shape = [1, 51, 5]
+        export_name_prefix = "max_pooling_ishap_1_51_5_kshape_3"
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+
+        [[ops_test.MaxPool.cfg]]
+        input_shape = [1, 51, 7]
+        export_name_prefix = "max_pooling_ishap_1_51_7_kshape_2"
+        kernel_size = [2]
+        stride = [1]
+        padding = [1]
+
+        [[ops_test.MaxPool.cfg]]
+        input_shape = [1, 16, 3]
+        export_name_prefix = "max_pooling_ishap_1_16_3_kshape_5"
+        kernel_size = [5]
+        stride = [1]
+        padding = [2]
 
     [ops_test.Resize]
     test_func = "RESIZE_TEST"
