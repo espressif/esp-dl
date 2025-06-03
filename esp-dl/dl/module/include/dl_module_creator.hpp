@@ -112,8 +112,8 @@ public:
             this->register_module("Mul", Mul::deserialize);
             this->register_module("Div", Div::deserialize);
             this->register_module("Resize", Resize::deserialize);
-            this->register_module("GlobalAveragePool", GlobalAveragePool2D::deserialize);
-            this->register_module("AveragePool", AveragePool2D::deserialize);
+            this->register_module("GlobalAveragePool", GlobalAveragePool::deserialize);
+            this->register_module("AveragePool", AveragePool::deserialize);
             this->register_module("Concat", Concat::deserialize);
             this->register_module("Sigmoid", Sigmoid::deserialize);
             this->register_module("Tanh", Tanh::deserialize);
@@ -138,7 +138,7 @@ public:
             this->register_module("Squeeze", Squeeze::deserialize);
             this->register_module("Unsqueeze", Unsqueeze::deserialize);
             this->register_module("Softmax", Softmax::deserialize);
-            this->register_module("MaxPool", MaxPool2D::deserialize);
+            this->register_module("MaxPool", MaxPool::deserialize);
             this->register_module("Slice", Slice::deserialize);
             this->register_module("Pad", Pad::deserialize);
             this->register_module("MatMul", MatMul::deserialize);

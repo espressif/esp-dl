@@ -253,7 +253,11 @@ class GLOBAL_AVERAGE_POOLING_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self.global_avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.global_avg_pool = (
+            nn.AdaptiveAvgPool1d(1)
+            if len(config["input_shape"]) == 3
+            else nn.AdaptiveAvgPool2d((1, 1))
+        )
 
     def forward(self, input):
         return self.global_avg_pool(input)
@@ -263,7 +267,10 @@ class AVERAGE_POOLING_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self.avg_pool = nn.AvgPool2d(
+        avgpool_class = (
+            nn.AvgPool1d if len(config["input_shape"]) == 3 else nn.AvgPool2d
+        )
+        self.avg_pool = avgpool_class(
             kernel_size=config["kernel_size"],
             stride=config["stride"],
             padding=config["padding"],
@@ -277,11 +284,17 @@ class MAX_POOLING_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
+        conv_class, maxpool_class = (
+            (nn.Conv1d, nn.MaxPool1d)
+            if len(config["input_shape"]) == 3
+            else (nn.Conv2d, nn.MaxPool2d)
+        )
+
         c = self.config["input_shape"][1]
         self.pre_max_pool = nn.Sequential(
-            nn.Conv2d(c, c, kernel_size=3, padding=1), nn.ReLU()
+            conv_class(c, c, kernel_size=3, padding=1), nn.ReLU()
         )
-        self.max_pool = nn.MaxPool2d(
+        self.max_pool = maxpool_class(
             kernel_size=config["kernel_size"],
             stride=config["stride"],
             padding=config["padding"],
