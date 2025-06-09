@@ -22,7 +22,7 @@ from quantize_onnx_model import quant_yolo11n
 
 class QuantizedModelValidator(BaseValidator):
     @smart_inference_mode()
-    def __call__(self, trainer=None, model=None):
+    def __call__(self, trainer=None, model=None, executor=None):
         """Executes validation process, running inference on dataloader and computing performance metrics."""
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
@@ -113,8 +113,6 @@ class QuantizedModelValidator(BaseValidator):
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
 
-        executor = ppq_graph_init(quant_yolo11n, 640, "cpu")
-
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
             self.batch_i = batch_i
@@ -165,9 +163,18 @@ class QuantizedModelValidator(BaseValidator):
         return stats
 
 
-class QuantDetectionValidator(DetectionValidator):
-    def __call__(self, trainer=None, model=None):
-        return QuantizedModelValidator.__call__(self, trainer, model)
+def make_quant_validator_class(executor):
+    class QuantDetectionValidator(DetectionValidator):
+        def __init__(
+            self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None
+        ):
+            super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+            self.executor = executor
+
+        def __call__(self, trainer=None, model=None):
+            return QuantizedModelValidator.__call__(self, trainer, model, self.executor)
+
+    return QuantDetectionValidator
 
 
 class QuantPoseValidator(PoseValidator):
@@ -223,10 +230,12 @@ def ppq_graph_inference(executor, task, inputs, device):
 
 
 if __name__ == "__main__":
+    executor = ppq_graph_init(quant_yolo11n, 640, "cpu")
+    QuantDetectionValidator = make_quant_validator_class(executor)
     # eval quantized yolo11n model
     model = YOLO("yolo11n.pt")
     results = model.val(
-        ata="coco.yaml",
+        data="coco.yaml",
         split="val",
         imgsz=640,
         device="cpu",
