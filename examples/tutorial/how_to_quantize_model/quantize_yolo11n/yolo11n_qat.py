@@ -32,6 +32,10 @@ def qat():
     cali_path = "calib_yolo11n"
     yolo11n_caib_url = "https://dl.espressif.com/public/calib_yolo11n.zip"
 
+    urllib.request.urlretrieve(
+        yolo11n_caib_url, "calib_yolo11n.zip", reporthook=report_hook
+    )
+
     with zipfile.ZipFile("calib_yolo11n.zip", "r") as zip_file:
         zip_file.extractall("./")
 
@@ -108,16 +112,22 @@ def qat():
     # Start QAT train, only support single GPU when using cuda
     # ------------------------------------------------------------
     trainer = Trainer(graph=graph, onnx_path=ONNX_PATH, device=device)
-
+    best_mAP50_95 = 0
     for epoch in range(EPOCH):
         trainer.epoch(training_dataloader)
+        if not os.path.exists(str(epoch)):
+            os.mkdir(str(epoch))
         qat_graph = trainer.save(
-            os.path.join("coco_detect_yolo11n_s8_v3.espdl"),
-            os.path.join("coco_detect_yolo11n_s8_v3.native"),
+            os.path.join(str(epoch), "coco_detect_yolo11n_s8_v3.espdl"),
+            os.path.join(str(epoch), "coco_detect_yolo11n_s8_v3.native"),
         )
         # evaluate trained quantized model per epoch
-        mAP50_95 = trainer.eval()
-        print(f"Epoch, {epoch} mAP: {mAP50_95}")
+        current_mAP50_95 = trainer.eval()
+        print(f"Epoch: {epoch}, mAP: {current_mAP50_95}")
+
+        if current_mAP50_95 > best_mAP50_95:
+            trainer.save("Best.espdl", "Best.native")
+
     return qat_graph
 
 

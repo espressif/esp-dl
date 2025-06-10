@@ -17,7 +17,7 @@ import onnxruntime as ort
 from ppq.core import TargetPlatform
 import ppq.lib as PFL
 from ppq.parser import NativeExporter
-from yolo11n_eval import QuantDetectionValidator, YOLO11n
+from yolo11n_eval import make_quant_validator_class
 
 
 class CaliDataset(Dataset):
@@ -96,7 +96,6 @@ class Trainer:
 
         self._epoch = 0
         self._step = 0
-        self._best_metric = 0
         self._executor = TorchExecutor(graph, device=device)
         self._training_graph = TrainableGraph(graph)
         self._loss_fn = torch.nn.MSELoss()
@@ -169,16 +168,18 @@ class Trainer:
         Split your dataset into training and evaluation dataset at first, then
             use eval function to monitor model performance on evaluation dataset.
         """
-
+        QuantDetectionValidator = make_quant_validator_class(self._executor)
         # load yolo11n.pt to enter val method and run BaseGraph inference
-        model = YOLO11n("yolo11n.pt")
-        model.to(self._device)
+        model = YOLO("yolo11n.pt")
         results = model.val(
-            data="coco.yaml",
+            data="coco.yaml",  # change to "coco.yaml"
             imgsz=640,
             device=self._device,
             validator=QuantDetectionValidator,
+            rect=False,
+            save_json=True,
         )
+
         return results.box.map
 
     def save(self, file_path: str, file_path2: str):
