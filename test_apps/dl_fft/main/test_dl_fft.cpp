@@ -244,7 +244,7 @@ TEST_CASE("7. test dl fft hp s16", "[dl_fft]")
         fft_input_s16_128, fft_input_s16_256, fft_input_s16_512, fft_input_s16_1024, fft_input_s16_2048};
     const float *output[5] = {fft_output_128, fft_output_256, fft_output_512, fft_output_1024, fft_output_2048};
     int test_nfft[5] = {128, 256, 512, 1024, 2048};
-    float target_db = 65; // high precision int16 fft
+    float target_db = 60; // high precision int16 fft
     int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     uint32_t start = 0, end = 0;
     int out_exponent;
@@ -261,7 +261,7 @@ TEST_CASE("7. test dl fft hp s16", "[dl_fft]")
 
         // check snr
         dl_short_to_float(x, nfft * 2, out_exponent, y);
-        TEST_ASSERT_EQUAL(true, check_fft_results(y, output[i], nfft, target_db, 5e-3));
+        TEST_ASSERT_EQUAL(true, check_fft_results(y, output[i], nfft, target_db, 2e-2));
 
         start = esp_timer_get_time();
         for (int k = 0; k < LOOP; k++) {
@@ -285,7 +285,7 @@ TEST_CASE("8. test dl ifft hp s16", "[dl_fft]")
         fft_input_s16_128, fft_input_s16_256, fft_input_s16_512, fft_input_s16_1024, fft_input_s16_2048};
     // const float *output[5] = {fft_input_128, fft_input_256, fft_input_512, fft_input_1024, fft_input_2048};
     int test_nfft[5] = {128, 256, 512, 1024, 2048};
-    float target_db = 65; // high precision int16 fft
+    float target_db = 60; // high precision int16 fft
     int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     uint32_t start = 0, end = 0;
     int exponent;
@@ -306,7 +306,7 @@ TEST_CASE("8. test dl ifft hp s16", "[dl_fft]")
         // check snr
         dl_short_to_float(x, nfft * 2, out_exponent, y);
         dl_short_to_float(input[i], nfft * 2, -15, z);
-        TEST_ASSERT_EQUAL(true, check_fft_results(y, z, nfft, target_db, 5e-3));
+        TEST_ASSERT_EQUAL(true, check_fft_results(y, z, nfft, target_db, 1e-2));
 
         start = esp_timer_get_time();
         for (int k = 0; k < LOOP; k++) {

@@ -196,7 +196,7 @@ esp_err_t dl_fft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift
     uint32_t *w = (uint32_t *)table;
     uint32_t *in_data = (uint32_t *)data;
 
-    int ie, ia, m;
+    int ie, ia, m, loop_num = 2;
     dl_sc16_t cs; // c - re, s - im
     dl_sc16_t m_data;
     dl_sc16_t a_data;
@@ -207,11 +207,14 @@ esp_err_t dl_fft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift
     for (int N2 = N / 2; N2 > 0; N2 >>= 1) {
         ia = 0;
         int loop_shift = 16;
-        if (N2 == N / 2 || N2 == 1) {
+        if (loop_num == 2) {
             loop_shift = dl_array_max_q_s16(data, N * 2);
             if (loop_shift < 16) {
                 loop_shift += 1;
             }
+            loop_num = 0;
+        } else {
+            loop_num += 1;
         }
         shift[0] += loop_shift - 15;
         add_rount_mult = 1 << (loop_shift - 1);
@@ -276,7 +279,7 @@ esp_err_t dl_ifft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shif
     uint32_t *w = (uint32_t *)table;
     uint32_t *in_data = (uint32_t *)data;
 
-    int ie, ia, m;
+    int ie, ia, m, loop_num = 2;
     dl_sc16_t cs; // c - re, s - im
     dl_sc16_t m_data;
     dl_sc16_t a_data;
@@ -287,11 +290,14 @@ esp_err_t dl_ifft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shif
     for (int N2 = N / 2; N2 > 0; N2 >>= 1) {
         ia = 0;
         int loop_shift = 16;
-        if (N2 == N / 2 || N2 == 1) {
+        if (loop_num == 2) {
             loop_shift = dl_array_max_q_s16(data, N * 2);
             if (loop_shift < 16) {
                 loop_shift += 1;
             }
+            loop_num = 0;
+        } else {
+            loop_num += 1;
         }
         shift[0] += loop_shift - 15;
         add_rount_mult = 1 << (loop_shift - 1);
