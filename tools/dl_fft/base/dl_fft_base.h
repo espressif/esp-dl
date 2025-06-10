@@ -19,6 +19,7 @@ bool dl_is_power_of_two(int x);
 int dl_power_of_two(uint32_t n);
 float *dl_short_to_float(const int16_t *x, int len, int exponent, float *y);
 int16_t dl_array_max_q_s16(const int16_t *x, int size);
+int dl_float_to_short(const float *x, int len, int16_t *y, int out_exponent);
 
 // float fftr2
 float *dl_gen_fftr2_table_f32(int fft_point, uint32_t caps);

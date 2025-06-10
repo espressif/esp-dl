@@ -8,6 +8,7 @@ static inline int16_t dl_xtfixed_bf_1(
     result -= (int32_t)a1 * (int32_t)a2 + (int32_t)a3 * (int32_t)a4;
     result += add_rount_mult;
     result = result >> result_shift;
+
     return (int16_t)result;
 }
 
@@ -19,6 +20,7 @@ static inline int16_t dl_xtfixed_bf_2(
     result -= ((int32_t)a1 * (int32_t)a2 - (int32_t)a3 * (int32_t)a4);
     result += add_rount_mult;
     result = result >> result_shift;
+
     return (int16_t)result;
 }
 
@@ -30,6 +32,7 @@ static inline int16_t dl_xtfixed_bf_3(
     result += (int32_t)a1 * (int32_t)a2 + (int32_t)a3 * (int32_t)a4;
     result += add_rount_mult;
     result = result >> result_shift;
+
     return (int16_t)result;
 }
 
@@ -41,6 +44,7 @@ static inline int16_t dl_xtfixed_bf_4(
     result += (int32_t)a1 * (int32_t)a2 - (int32_t)a3 * (int32_t)a4;
     result += add_rount_mult;
     result = result >> result_shift;
+
     return (int16_t)result;
 }
 
@@ -192,23 +196,25 @@ esp_err_t dl_fft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift
     uint32_t *w = (uint32_t *)table;
     uint32_t *in_data = (uint32_t *)data;
 
-    int ie, ia, m;
+    int ie, ia, m, loop_num = 2;
     dl_sc16_t cs; // c - re, s - im
     dl_sc16_t m_data;
     dl_sc16_t a_data;
     int add_rount_mult = 1 << 15;
-    bool flag = true;
 
     ie = 1;
     shift[0] = 0;
     for (int N2 = N / 2; N2 > 0; N2 >>= 1) {
         ia = 0;
         int loop_shift = 16;
-        if (flag || N2 == 1) {
-            loop_shift = dl_array_max_q_s16(data, N);
-            flag = false;
+        if (loop_num == 2) {
+            loop_shift = dl_array_max_q_s16(data, N * 2);
+            if (loop_shift < 16) {
+                loop_shift += 1;
+            }
+            loop_num = 0;
         } else {
-            flag = true;
+            loop_num += 1;
         }
         shift[0] += loop_shift - 15;
         add_rount_mult = 1 << (loop_shift - 1);
@@ -273,23 +279,25 @@ esp_err_t dl_ifft2r_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shif
     uint32_t *w = (uint32_t *)table;
     uint32_t *in_data = (uint32_t *)data;
 
-    int ie, ia, m;
+    int ie, ia, m, loop_num = 2;
     dl_sc16_t cs; // c - re, s - im
     dl_sc16_t m_data;
     dl_sc16_t a_data;
     int add_rount_mult = 1 << 15;
-    bool flag = true;
 
     ie = 1;
     shift[0] = 0;
     for (int N2 = N / 2; N2 > 0; N2 >>= 1) {
         ia = 0;
         int loop_shift = 16;
-        if (flag || N2 == 1) {
-            loop_shift = dl_array_max_q_s16(data, N);
-            flag = false;
+        if (loop_num == 2) {
+            loop_shift = dl_array_max_q_s16(data, N * 2);
+            if (loop_shift < 16) {
+                loop_shift += 1;
+            }
+            loop_num = 0;
         } else {
-            flag = true;
+            loop_num += 1;
         }
         shift[0] += loop_shift - 15;
         add_rount_mult = 1 << (loop_shift - 1);
