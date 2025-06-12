@@ -89,16 +89,17 @@ int round(T value)
 template int round(float value);
 template int round(double value);
 
-int shift_and_round_half_even(int value, int shift)
+template <typename T>
+T shift_and_round_half_even(T value, int shift)
 {
-    int shifted = 0;
+    int64_t shifted = 0;
 
     if (shift <= 0) {
-        shifted = value << -shift;
+        shifted = static_cast<int64_t>(value) << -shift;
     } else {
-        shifted = value >> shift;
-        int remainder = value & ((1 << shift) - 1);
-        int half = 1 << (shift - 1);
+        shifted = static_cast<int64_t>(value) >> shift;
+        int64_t remainder = value & ((static_cast<int64_t>(1) << shift) - 1);
+        int64_t half = (static_cast<int64_t>(1)) << (shift - 1);
 
         if (remainder > half) {
             shifted += 1;
@@ -109,24 +110,26 @@ int shift_and_round_half_even(int value, int shift)
         }
     }
 
-    return shifted;
+    return static_cast<T>(shifted);
 }
 
-int shift_and_round_half_up(int value, int shift)
+template <typename T>
+T shift_and_round_half_up(T value, int shift)
 {
-    int shifted = 0;
+    int64_t shifted = 0;
 
     if (shift <= 0) {
-        shifted = value << -shift;
+        shifted = (static_cast<int64_t>(value)) << -shift;
     } else {
-        int half = 1 << (shift - 1);
+        int64_t half = (static_cast<int64_t>(1)) << (shift - 1);
         shifted = (value + half) >> shift;
     }
 
-    return shifted;
+    return static_cast<T>(shifted);
 }
 
-int shift_and_round(int value, int shift)
+template <typename T>
+T shift_and_round(T value, int shift)
 {
 #if CONFIG_IDF_TARGET_ESP32P4
     return shift_and_round_half_even(value, shift);
@@ -134,6 +137,9 @@ int shift_and_round(int value, int shift)
     return shift_and_round_half_up(value, shift);
 #endif
 }
+
+template int32_t shift_and_round(int32_t value, int shift);
+template int64_t shift_and_round(int64_t value, int shift);
 
 void set_zero(void *ptr, const int n)
 {
@@ -187,6 +193,8 @@ memory_addr_type_t memory_addr_type(void *address)
     } else {
         return MEMORY_ADDR_UKN;
     }
+#else
+    return MEMORY_ADDR_UKN;
 #endif
 }
 

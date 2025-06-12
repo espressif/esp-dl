@@ -90,7 +90,8 @@ int round(T value);
  * @param value The Integer value.
  * @return int
  */
-int shift_and_round(int value, int shift);
+template <typename T>
+T shift_and_round(T value, int shift);
 
 /**
  * @brief Set memory zero.

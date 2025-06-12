@@ -205,7 +205,11 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
             args.filter_c = filter->shape[2]; // dw: filter->shape[3]. conv: filter->shape[2].
         } else {
             // depthwise
+#if CONFIG_TIE728_BOOST || CONFIG_ESP32P4_BOOST
             args.filter_y_offset = 16;
+#else
+            args.filter_y_offset = 0;
+#endif
             args.filter_c = filter->shape[3]; // dw: filter->shape[3]. conv: filter->shape[2].
         }
         /* It's for c. We need to confirm whether the following definitions conform to the C logical implementation. */
@@ -887,7 +891,7 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             feature_t *input_x_real;
             feature_t *filter_ptr_y;
             feature_t *output_yx = output_ptr;
-            int filter_c_n_offset = args.output_channel;
+            int filter_c_n_offset = args.input_channel;
             int filter_c_n_ptr_offset = filter_c_n_offset;
 
             for (size_t output_y = 0; output_y < n_h_head; output_y++) {

@@ -246,16 +246,16 @@ inline void load_depthwise_conv2d_33c1_s16(ImplFunc_t<int16_t, int16_t> &i_impl_
     if (args.bias_element) {
         switch (args.activation_type) {
         case Linear:
-            n_wise_func = buffer_bias_linear<int16_t, int16_t, DL_S16_BUFFER_TYPE>;
+            n_wise_func = buffer_bias_linear<int16_t, DL_S16_BUFFER_TYPE, DL_S16_BUFFER_TYPE>;
             break;
         case ReLU:
-            n_wise_func = buffer_bias_relu<int16_t, int16_t, DL_S16_BUFFER_TYPE>;
+            n_wise_func = buffer_bias_relu<int16_t, DL_S16_BUFFER_TYPE, DL_S16_BUFFER_TYPE>;
             break;
         case LeakyReLU:
-            n_wise_func = buffer_bias_leakyrelu<int16_t, int16_t, DL_S16_BUFFER_TYPE>;
+            // n_wise_func = buffer_bias_leakyrelu<int16_t, DL_S16_BUFFER_TYPE, DL_S16_BUFFER_TYPE>;
             break;
         case PReLU:
-            n_wise_func = buffer_bias_prelu<int16_t, int16_t, DL_S16_BUFFER_TYPE>;
+            // n_wise_func = buffer_bias_prelu<int16_t, DL_S16_BUFFER_TYPE, DL_S16_BUFFER_TYPE>;
             break;
         }
     } else {
@@ -267,10 +267,10 @@ inline void load_depthwise_conv2d_33c1_s16(ImplFunc_t<int16_t, int16_t> &i_impl_
             n_wise_func = buffer_0000_relu<int16_t, DL_S16_BUFFER_TYPE>;
             break;
         case LeakyReLU:
-            n_wise_func = buffer_0000_leakyrelu<int16_t, DL_S16_BUFFER_TYPE>;
+            // n_wise_func = buffer_0000_leakyrelu<int16_t, DL_S16_BUFFER_TYPE>;
             break;
         case PReLU:
-            n_wise_func = buffer_0000_prelu<int16_t, DL_S16_BUFFER_TYPE>;
+            // n_wise_func = buffer_0000_prelu<int16_t, DL_S16_BUFFER_TYPE>;
             break;
         }
     }
@@ -428,16 +428,16 @@ inline void load_depthwise_conv2d_hwc1_s16(ImplFunc_t<int16_t, int16_t> &i_impl_
     if (args.bias_element) {
         switch (args.activation_type) {
         case Linear:
-            n_wise_func = buffer_bias_linear<int16_t, int16_t, DL_S16_BUFFER_TYPE>;
+            n_wise_func = buffer_bias_linear<int16_t, DL_S16_BUFFER_TYPE, DL_S16_BUFFER_TYPE>;
             break;
         case ReLU:
-            n_wise_func = buffer_bias_relu<int16_t, int16_t, DL_S16_BUFFER_TYPE>;
+            n_wise_func = buffer_bias_relu<int16_t, DL_S16_BUFFER_TYPE, DL_S16_BUFFER_TYPE>;
             break;
         case LeakyReLU:
-            n_wise_func = buffer_bias_leakyrelu<int16_t, int16_t, DL_S16_BUFFER_TYPE>;
+            // n_wise_func = buffer_bias_leakyrelu<int16_t, DL_S16_BUFFER_TYPE, DL_S16_BUFFER_TYPE>;
             break;
         case PReLU:
-            n_wise_func = buffer_bias_prelu<int16_t, int16_t, DL_S16_BUFFER_TYPE>;
+            // n_wise_func = buffer_bias_prelu<int16_t, DL_S16_BUFFER_TYPE, DL_S16_BUFFER_TYPE>;
             break;
         }
     } else {
@@ -449,10 +449,10 @@ inline void load_depthwise_conv2d_hwc1_s16(ImplFunc_t<int16_t, int16_t> &i_impl_
             n_wise_func = buffer_0000_relu<int16_t, DL_S16_BUFFER_TYPE>;
             break;
         case LeakyReLU:
-            n_wise_func = buffer_0000_leakyrelu<int16_t, DL_S16_BUFFER_TYPE>;
+            // n_wise_func = buffer_0000_leakyrelu<int16_t, DL_S16_BUFFER_TYPE>;
             break;
         case PReLU:
-            n_wise_func = buffer_0000_prelu<int16_t, DL_S16_BUFFER_TYPE>;
+            // n_wise_func = buffer_0000_prelu<int16_t, DL_S16_BUFFER_TYPE>;
             break;
         }
     }
@@ -710,16 +710,16 @@ inline void load_depthwise_conv2d_s8_per_tensor_c_func(c_impl_func_s8_t &c_impl_
     if (args.bias_element) {
         switch (args.activation_type) {
         case Linear:
-            n_wise_func = buffer_bias_linear<int8_t, int8_t, int32_t>;
+            n_wise_func = buffer_bias_linear<int8_t, int32_t, int32_t>;
             break;
         case ReLU:
-            n_wise_func = buffer_bias_relu<int8_t, int8_t, int32_t>;
+            n_wise_func = buffer_bias_relu<int8_t, int32_t, int32_t>;
             break;
         case LeakyReLU:
-            n_wise_func = buffer_bias_leakyrelu<int8_t, int8_t, int32_t>;
+            // n_wise_func = buffer_bias_leakyrelu<int8_t, int32_t, int32_t>;
             break;
         case PReLU:
-            n_wise_func = buffer_bias_prelu<int8_t, int8_t, int32_t>;
+            // n_wise_func = buffer_bias_prelu<int8_t, int32_t, int32_t>;
             break;
         }
     } else {
@@ -731,10 +731,10 @@ inline void load_depthwise_conv2d_s8_per_tensor_c_func(c_impl_func_s8_t &c_impl_
             n_wise_func = buffer_0000_relu<int8_t, int32_t>;
             break;
         case LeakyReLU:
-            n_wise_func = buffer_0000_leakyrelu<int8_t, int32_t>;
+            // n_wise_func = buffer_0000_leakyrelu<int8_t, int32_t>;
             break;
         case PReLU:
-            n_wise_func = buffer_0000_prelu<int8_t, int32_t>;
+            // n_wise_func = buffer_0000_prelu<int8_t, int32_t>;
             break;
         }
     }
@@ -809,7 +809,7 @@ void depthwise_conv2d<int8_t, int32_t, int32_t>(void *args_ptr)
     }
 
     if (!i_impl_func || !i_impl_func_sp) {
-        load_depthwise_conv2d_s8_per_channel_c_func(c_impl_func, c_impl_func_sp, n_wise_func, args);
+        load_depthwise_conv2d_s8_per_tensor_c_func(c_impl_func, c_impl_func_sp, n_wise_func, args);
     }
     dwconv_operation_shell<int8_t, int32_t>(
         args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
