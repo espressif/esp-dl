@@ -4,6 +4,10 @@
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "sdkconfig.h"
+#if CONFIG_SOC_JPEG_CODEC_SUPPORTED
+#include "driver/jpeg_decode.h"
+#include "driver/jpeg_encode.h"
+#endif
 
 namespace dl {
 namespace image {
@@ -52,9 +56,15 @@ jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps = 0, uint8_t quality =
  * @param caps Default to 0, decode to RGB565 in little endian RGB/ RGB888 in RGB. When pix_type is
  * DL_IMAGE_PIX_TYPE_RGB565, set caps to DL_IMAGE_CAP_RGB565_BIG_ENDIAN to get a big endian image. When pix_type is
  * DL_IMAGE_PIX_TYPE_RGB888, set caps to DL_IMAGE_CAP_RGB_SWAP to get a BGR image.
+ * @param timeout_ms Timeout in ms, if decode process takes more than this time, it will be considered as a failure.
+ * @param yuv_rgb_conv_std JPEG decoder yuv->rgb standard
  * @return img_t
  */
-img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t caps = 0);
+img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img,
+                     pix_type_t pix_type,
+                     uint32_t caps = 0,
+                     int timeout_ms = 60,
+                     jpeg_yuv_rgb_conv_std_t yuv_rgb_conv_std = JPEG_YUV_RGB_CONV_STD_BT601);
 
 /**
  * @brief Hardware jpeg encode
@@ -63,9 +73,15 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t c
  *
  * @param img The image to encode.
  * @param quality Compression quality.
+ * @param timeout_ms Timeout in ms, if encode process takes more than this time, it will be considered as a failure.
+ * @param rgb_sub_sample_method JPEG down sampling method for RGB img, can be one of JPEG_DOWN_SAMPLING_YUV444,
+ * JPEG_DOWN_SAMPLING_YUV422 or JPEG_DOWN_SAMPLING_YUV420
  * @return jpeg_img_t
  */
-jpeg_img_t hw_encode_jpeg_base(const img_t &img, uint8_t quality = 80);
+jpeg_img_t hw_encode_jpeg_base(const img_t &img,
+                               uint8_t quality = 80,
+                               int timeout_ms = 70,
+                               jpeg_down_sampling_type_t rgb_sub_sample_method = JPEG_DOWN_SAMPLING_YUV420);
 
 /**
  * @brief Extend hw_encode_jpeg_base, add support to encode RGB565 in little endian/ RGB565 in little endian BGR/ RGB888
@@ -77,10 +93,17 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img, uint8_t quality = 80);
  * RGB888 image in BGR. Set to DL_IMAGE_CAP_RGB565_BIG_ENDIAN | DL_IMAGE_CAP_RGB_SWAP to encode a RGB565 image in big
  * endian and BGR.
  * @param quality Compression quality.
+ * @param timeout_ms Timeout in ms, if encode process takes more than this time, it will be considered as a failure.
+ * @param rgb_sub_sample_method JPEG down sampling method for RGB img, can be one of JPEG_DOWN_SAMPLING_YUV444,
+ * JPEG_DOWN_SAMPLING_YUV422 or JPEG_DOWN_SAMPLING_YUV420
  * @return jpeg_img_t
  */
-jpeg_img_t hw_encode_jpeg(const img_t &img, uint32_t caps = 0, uint8_t quality = 80);
+jpeg_img_t hw_encode_jpeg(const img_t &img,
+                          uint32_t caps = 0,
+                          uint8_t quality = 80,
+                          int timeout_ms = 70,
+                          jpeg_down_sampling_type_t rgb_sub_sample_method = JPEG_DOWN_SAMPLING_YUV420);
 #endif
-esp_err_t write_jpeg(jpeg_img_t &img, const char *file_name);
+esp_err_t write_jpeg(const jpeg_img_t &img, const char *file_name);
 } // namespace image
 } // namespace dl

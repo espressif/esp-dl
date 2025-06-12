@@ -1,12 +1,8 @@
 #include "dl_image_jpeg.hpp"
+#include "dl_image_color.hpp"
 #include "esp_jpeg_common.h"
 #include "esp_jpeg_dec.h"
 #include "esp_jpeg_enc.h"
-#if CONFIG_IDF_TARGET_ESP32P4
-#include "driver/jpeg_decode.h"
-#include "driver/jpeg_encode.h"
-#endif
-#include "dl_image_color.hpp"
 #include "hal/cache_hal.h"
 #include "hal/cache_ll.h"
 
@@ -67,6 +63,7 @@ img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t c
     if (jpeg_dec_process(jpeg_dec, &jpeg_io) != JPEG_ERR_OK) {
         ESP_LOGE(TAG, "Failed to decode jpeg.");
         jpeg_dec_close(jpeg_dec);
+        heap_caps_free(img.data);
         return {};
     }
     jpeg_dec_close(jpeg_dec);
@@ -120,6 +117,7 @@ jpeg_img_t sw_encode_jpeg_base(const img_t &img, uint8_t quality)
         JPEG_ERR_OK) {
         ESP_LOGE(TAG, "Failed to encode jpeg.");
         jpeg_enc_close(jpeg_enc);
+        heap_caps_free(jpeg_img.data);
         return {};
     }
     jpeg_enc_close(jpeg_enc);
@@ -146,7 +144,11 @@ jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
 }
 
 #if CONFIG_SOC_JPEG_CODEC_SUPPORTED
-img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t caps)
+img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img,
+                     pix_type_t pix_type,
+                     uint32_t caps,
+                     int timeout_ms,
+                     jpeg_yuv_rgb_conv_std_t yuv_rgb_conv_std)
 {
     assert(caps == 0 || caps == DL_IMAGE_CAP_RGB_SWAP || caps == DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
     img_t img;
@@ -191,29 +193,35 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t c
         img.width = header_info.width;
     }
 
-    // alloc output buffer
-    size_t out_buf_len = get_img_byte_size(img);
-    size_t alignment = cache_hal_get_cache_line_size(CACHE_LL_LEVEL_EXT_MEM, CACHE_TYPE_DATA);
-    img.data = heap_caps_aligned_calloc(alignment, 1, out_buf_len, MALLOC_CAP_DEFAULT);
-    if (!img.data) {
-        ESP_LOGE(TAG, "Failed to alloc output buffer.");
-        return {};
-    }
-
     // new engine
     jpeg_decoder_handle_t jpgd_handle;
     jpeg_decode_engine_cfg_t decode_eng_cfg = {
         .intr_priority = 0,
-        .timeout_ms = 40,
+        .timeout_ms = timeout_ms,
     };
     if (jpeg_new_decoder_engine(&decode_eng_cfg, &jpgd_handle) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to create decoder engine.");
         return {};
     }
 
+    // alloc output buffer
+    size_t out_buf_len = get_img_byte_size(img);
+#if CONFIG_SPIRAM
+    uint32_t cache_level = CACHE_LL_LEVEL_EXT_MEM;
+#else
+    uint32_t cache_level = CACHE_LL_LEVEL_INT_MEM;
+#endif
+    size_t alignment = cache_hal_get_cache_line_size(cache_level, CACHE_TYPE_DATA);
+    out_buf_len = DL_IMAGE_ALIGN_UP(out_buf_len, alignment);
+    img.data = heap_caps_aligned_calloc(alignment, 1, out_buf_len, MALLOC_CAP_DEFAULT);
+    if (!img.data) {
+        ESP_LOGE(TAG, "Failed to alloc output buffer.");
+        ESP_ERROR_CHECK(jpeg_del_decoder_engine(jpgd_handle));
+        return {};
+    }
+
     // decode
-    jpeg_decode_cfg_t decode_cfg = {
-        .output_format = output_type, .rgb_order = rgb_order, .conv_std = JPEG_YUV_RGB_CONV_STD_BT601};
+    jpeg_decode_cfg_t decode_cfg = {.output_format = output_type, .rgb_order = rgb_order, .conv_std = yuv_rgb_conv_std};
     uint32_t out_len = 0;
     if (jpeg_decoder_process(jpgd_handle,
                              &decode_cfg,
@@ -224,6 +232,7 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t c
                              &out_len) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to run decoder process.");
         ESP_ERROR_CHECK(jpeg_del_decoder_engine(jpgd_handle));
+        heap_caps_free(img.data);
         return {};
     }
 
@@ -232,7 +241,10 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t c
     return img;
 }
 
-jpeg_img_t hw_encode_jpeg_base(const img_t &img, uint8_t quality)
+jpeg_img_t hw_encode_jpeg_base(const img_t &img,
+                               uint8_t quality,
+                               int timeout_ms,
+                               jpeg_down_sampling_type_t rgb_sub_sample_method)
 {
     jpeg_img_t jpeg_img;
     jpeg_enc_input_format_t src_type;
@@ -251,25 +263,32 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img, uint8_t quality)
         return {};
     }
 
-    // alloc output buffer
-    int img_size = get_img_byte_size(img);
-    // yuv420 use 1.5B to represent a pixel.
-    size_t out_buf_len = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? img_size : img_size / 2 + 1;
-    size_t alignment = cache_hal_get_cache_line_size(CACHE_LL_LEVEL_EXT_MEM, CACHE_TYPE_DATA);
-    jpeg_img.data = heap_caps_aligned_calloc(alignment, 1, out_buf_len, MALLOC_CAP_DEFAULT);
-    if (!jpeg_img.data) {
-        ESP_LOGE(TAG, "Failed to alloc output buffer.");
-        return {};
-    }
-
     // new engine
     jpeg_encoder_handle_t jpeg_handle;
     jpeg_encode_engine_cfg_t encode_eng_cfg = {
         .intr_priority = 0,
-        .timeout_ms = 70,
+        .timeout_ms = timeout_ms,
     };
     if (jpeg_new_encoder_engine(&encode_eng_cfg, &jpeg_handle) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to create encoder engine.");
+        return {};
+    }
+
+    // alloc output buffer
+    int img_size = get_img_byte_size(img);
+    // yuv420 use 1.5B to represent a pixel.
+    size_t out_buf_len = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? img_size : img_size / 2 + 1;
+#if CONFIG_SPIRAM
+    uint32_t cache_level = CACHE_LL_LEVEL_EXT_MEM;
+#else
+    uint32_t cache_level = CACHE_LL_LEVEL_INT_MEM;
+#endif
+    size_t alignment = cache_hal_get_cache_line_size(cache_level, CACHE_TYPE_DATA);
+    out_buf_len = DL_IMAGE_ALIGN_UP(out_buf_len, alignment);
+    jpeg_img.data = heap_caps_aligned_calloc(alignment, 1, out_buf_len, MALLOC_CAP_DEFAULT);
+    if (!jpeg_img.data) {
+        ESP_LOGE(TAG, "Failed to alloc output buffer.");
+        ESP_ERROR_CHECK(jpeg_del_encoder_engine(jpeg_handle));
         return {};
     }
 
@@ -278,7 +297,7 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img, uint8_t quality)
         .height = (uint32_t)img.height,
         .width = (uint32_t)img.width,
         .src_type = src_type,
-        .sub_sample = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? JPEG_DOWN_SAMPLING_GRAY : JPEG_DOWN_SAMPLING_YUV420,
+        .sub_sample = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? JPEG_DOWN_SAMPLING_GRAY : rgb_sub_sample_method,
         .image_quality = quality,
     };
 
@@ -288,6 +307,7 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img, uint8_t quality)
         ESP_OK) {
         ESP_LOGE(TAG, "Failed to run encoder process.");
         ESP_ERROR_CHECK(jpeg_del_encoder_engine(jpeg_handle));
+        heap_caps_free(jpeg_img.data);
         return {};
     }
 
@@ -297,7 +317,8 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img, uint8_t quality)
     return jpeg_img;
 }
 
-jpeg_img_t hw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
+jpeg_img_t hw_encode_jpeg(
+    const img_t &img, uint32_t caps, uint8_t quality, int timeout_ms, jpeg_down_sampling_type_t rgb_sub_sample_method)
 {
     img_t img2encode = img;
     bool free = false;
@@ -316,7 +337,7 @@ jpeg_img_t hw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
         convert_img(img, img2encode, caps);
         free = true;
     }
-    jpeg_img_t ret = hw_encode_jpeg_base(img2encode, quality);
+    jpeg_img_t ret = hw_encode_jpeg_base(img2encode, quality, timeout_ms, rgb_sub_sample_method);
     if (free) {
         heap_caps_free(img2encode.data);
     }
@@ -324,7 +345,7 @@ jpeg_img_t hw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
 }
 #endif
 
-esp_err_t write_jpeg(jpeg_img_t &img, const char *file_name)
+esp_err_t write_jpeg(const jpeg_img_t &img, const char *file_name)
 {
     FILE *f = fopen(file_name, "wb");
     if (!f) {
