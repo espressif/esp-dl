@@ -22,22 +22,25 @@ public:
     HumanFaceFeat(model_type_t model_type = static_cast<model_type_t>(CONFIG_DEFAULT_HUMAN_FACE_FEAT_MODEL));
 };
 
-class HumanFaceRecognizer : public dl::recognition::DataBase {
+class HumanFaceRecognizer {
 private:
-    HumanFaceFeat *m_feat_extract;
+    HumanFaceFeat m_feat;
+    dl::recognition::DataBase m_db;
     float m_thr;
     int m_top_k;
 
 public:
-    HumanFaceRecognizer(HumanFaceFeat *feat_model, char *db_path, float thr = 0.5, int top_k = 1) :
-        dl::recognition::DataBase(db_path, feat_model->m_feat_len),
-        m_feat_extract(feat_model),
-        m_thr(thr),
-        m_top_k(top_k)
-    {
-    }
+    HumanFaceRecognizer(char *db_path,
+                        HumanFaceFeat::model_type_t model_type =
+                            static_cast<HumanFaceFeat::model_type_t>(CONFIG_DEFAULT_HUMAN_FACE_FEAT_MODEL),
+                        float thr = 0.5,
+                        int top_k = 1);
 
     std::vector<dl::recognition::result_t> recognize(const dl::image::img_t &img,
                                                      std::list<dl::detect::result_t> &detect_res);
     esp_err_t enroll(const dl::image::img_t &img, std::list<dl::detect::result_t> &detect_res);
+    esp_err_t clear_all_feats();
+    esp_err_t delete_feat(uint16_t id);
+    esp_err_t delete_last_feat();
+    int get_num_feats();
 };
