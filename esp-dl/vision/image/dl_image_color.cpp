@@ -170,7 +170,7 @@ esp_err_t convert_img_ppa(const img_t &src_img,
     srm_oper_config.in.pic_h = src_img.height;
     srm_oper_config.in.pic_w = src_img.width;
     srm_oper_config.in.srm_cm = input_srm_color_mode;
-    srm_oper_config.rgb_swap = !(caps & DL_IMAGE_CAP_RGB_SWAP);
+    srm_oper_config.rgb_swap = caps & DL_IMAGE_CAP_RGB_SWAP;
     srm_oper_config.byte_swap =
         (src_img.pix_type == DL_IMAGE_PIX_TYPE_RGB565) && (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
 
