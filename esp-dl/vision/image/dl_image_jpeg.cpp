@@ -180,9 +180,11 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t c
         return {};
     }
 
-    if (header_info.sample_method == JPEG_DOWN_SAMPLING_YUV422 ||
-        header_info.sample_method == JPEG_DOWN_SAMPLING_YUV420) {
+    if (header_info.sample_method == JPEG_DOWN_SAMPLING_YUV420) {
         img.height = DL_IMAGE_ALIGN_UP(header_info.height, 16);
+        img.width = DL_IMAGE_ALIGN_UP(header_info.width, 16);
+    } else if (header_info.sample_method == JPEG_DOWN_SAMPLING_YUV422) {
+        img.height = DL_IMAGE_ALIGN_UP(header_info.height, 8);
         img.width = DL_IMAGE_ALIGN_UP(header_info.width, 16);
     } else {
         img.height = header_info.height;
