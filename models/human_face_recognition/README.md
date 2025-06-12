@@ -94,10 +94,8 @@ This component also contains `HumanFaceRecognizer`. It's a integration of `Human
 
 ## How to New Human Face Recognizer
 
-See [How to New HumanFaceFeat](#how-to-new-humanfacefeat), create a feature extractor first. Then pass it into `HumanFaceRecognizer`.
-
 ```cpp
-HumanFaceRecognizer *human_face_recognizer = new HumanFaceRecognizer(feat, "path/to/database");
+HumanFaceRecognizer *human_face_recognizer = new HumanFaceRecognizer("path/to/database");
 ```
 
 ## How to Enroll a Human Face

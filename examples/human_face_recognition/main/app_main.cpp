@@ -42,7 +42,6 @@ extern "C" void app_main(void)
     auto musk2 = sw_decode_jpeg(musk2_jpeg, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     HumanFaceDetect *human_face_detect = new HumanFaceDetect();
-    HumanFaceFeat *human_face_feat = new HumanFaceFeat();
 
     char db_path[64];
 #if CONFIG_DB_FATFS_FLASH
@@ -52,7 +51,7 @@ extern "C" void app_main(void)
 #else
     snprintf(db_path, sizeof(db_path), "%s/face.db", CONFIG_BSP_SD_MOUNT_POINT);
 #endif
-    auto human_face_recognizer = new HumanFaceRecognizer(human_face_feat, db_path);
+    auto human_face_recognizer = new HumanFaceRecognizer(db_path);
 
     human_face_recognizer->enroll(bill1, human_face_detect->run(bill1));
     human_face_recognizer->enroll(bill2, human_face_detect->run(bill2));
@@ -66,7 +65,6 @@ extern "C" void app_main(void)
     human_face_recognizer->clear_all_feats();
 
     delete human_face_detect;
-    delete human_face_feat;
     delete human_face_recognizer;
 
     heap_caps_free(bill1.data);

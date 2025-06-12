@@ -64,6 +64,11 @@ HumanFaceFeat::HumanFaceFeat(model_type_t model_type)
     m_feat_len = m_model->m_feat_len;
 }
 
+HumanFaceRecognizer::HumanFaceRecognizer(char *db_path, HumanFaceFeat::model_type_t model_type, float thr, int top_k) :
+    m_feat(model_type), m_db(db_path, m_feat.m_feat_len), m_thr(thr), m_top_k(top_k)
+{
+}
+
 std::vector<dl::recognition::result_t> HumanFaceRecognizer::recognize(const dl::image::img_t &img,
                                                                       std::list<dl::detect::result_t> &detect_res)
 {
@@ -72,8 +77,8 @@ std::vector<dl::recognition::result_t> HumanFaceRecognizer::recognize(const dl::
         ESP_LOGW("HumanFaceRecognizer", "Failed to recognize. No face detected.");
         return {};
     } else if (detect_res.size() == 1) {
-        auto feat = m_feat_extract->run(img, detect_res.back().keypoint);
-        return query_feat(feat, m_thr, m_top_k);
+        auto feat = m_feat.run(img, detect_res.back().keypoint);
+        return m_db.query_feat(feat, m_thr, m_top_k);
     } else {
         auto max_detect_res =
             std::max_element(detect_res.begin(),
@@ -81,8 +86,8 @@ std::vector<dl::recognition::result_t> HumanFaceRecognizer::recognize(const dl::
                              [](const dl::detect::result_t &a, const dl::detect::result_t &b) -> bool {
                                  return a.box_area() > b.box_area();
                              });
-        auto feat = m_feat_extract->run(img, max_detect_res->keypoint);
-        return query_feat(feat, m_thr, m_top_k);
+        auto feat = m_feat.run(img, max_detect_res->keypoint);
+        return m_db.query_feat(feat, m_thr, m_top_k);
     }
 }
 
@@ -92,8 +97,8 @@ esp_err_t HumanFaceRecognizer::enroll(const dl::image::img_t &img, std::list<dl:
         ESP_LOGW("HumanFaceRecognizer", "Failed to enroll. No face detected.");
         return ESP_FAIL;
     } else if (detect_res.size() == 1) {
-        auto feat = m_feat_extract->run(img, detect_res.back().keypoint);
-        return enroll_feat(feat);
+        auto feat = m_feat.run(img, detect_res.back().keypoint);
+        return m_db.enroll_feat(feat);
     } else {
         auto max_detect_res =
             std::max_element(detect_res.begin(),
@@ -101,7 +106,27 @@ esp_err_t HumanFaceRecognizer::enroll(const dl::image::img_t &img, std::list<dl:
                              [](const dl::detect::result_t &a, const dl::detect::result_t &b) -> bool {
                                  return a.box_area() > b.box_area();
                              });
-        auto feat = m_feat_extract->run(img, max_detect_res->keypoint);
-        return enroll_feat(feat);
+        auto feat = m_feat.run(img, max_detect_res->keypoint);
+        return m_db.enroll_feat(feat);
     }
+}
+
+esp_err_t HumanFaceRecognizer::clear_all_feats()
+{
+    return m_db.clear_all_feats();
+}
+
+esp_err_t HumanFaceRecognizer::delete_feat(uint16_t id)
+{
+    return m_db.delete_feat(id);
+}
+
+esp_err_t HumanFaceRecognizer::delete_last_feat()
+{
+    return m_db.delete_last_feat();
+}
+
+int HumanFaceRecognizer::get_num_feats()
+{
+    return m_db.get_num_feats();
 }

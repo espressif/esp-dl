@@ -50,7 +50,6 @@ public:
     float get_top_left_y() { return m_crop_area[1]; };
 
     void preprocess(const img_t &img, const std::vector<int> &crop_area = {});
-    void preprocess(const img_t &img, uint16_t rescaled_w, uint16_t rescaled_h, const std::vector<int> &crop_area = {});
     void preprocess(const img_t &img, dl::math::Matrix<float> *M_inv);
 };
 
