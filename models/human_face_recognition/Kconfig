@@ -37,7 +37,6 @@ menu "models: human_face_feat"
             bool "flash_partition"
         config HUMAN_FACE_FEAT_MODEL_IN_SDCARD
             bool "sdcard"
-            select HUMAN_FACE_FEAT_MBF_S8_V1
     endchoice
 
     config HUMAN_FACE_FEAT_MODEL_LOCATION
