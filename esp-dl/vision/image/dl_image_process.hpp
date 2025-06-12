@@ -62,7 +62,8 @@ void resize(const img_t &src_img,
             const std::vector<int> &crop_area = {},
             float *scale_x_ret = nullptr,
             float *scale_y_ret = nullptr);
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_SOC_PPA_SUPPORTED
+float get_ppa_scale(uint16_t src, uint16_t dst, float *err_pct = nullptr);
 esp_err_t resize_ppa(const img_t &src_img,
                      img_t &dst_img,
                      ppa_client_handle_t ppa_handle,

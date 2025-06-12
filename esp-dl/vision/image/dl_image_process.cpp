@@ -380,7 +380,28 @@ void resize(const img_t &src_img,
     }
 }
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_SOC_PPA_SUPPORTED
+float get_ppa_scale(uint16_t src, uint16_t dst, float *err_pct)
+{
+    float scale = (float)dst / (float)src;
+    // ppa use 8 bit to store int part of scale, 4 bit to store frac part of scale.
+    if (!(scale >= 0.0625 && scale < 256)) {
+        ESP_LOGE(TAG,
+                 "PPA can not scale from %d to %d, expected scale is %.2f, only support [0.0625, 256).",
+                 src,
+                 dst,
+                 scale);
+        return -1;
+    }
+    float scale_int;
+    float scale_frac = modf(scale, &scale_int);
+    scale_frac = floorf((scale_frac) / 0.0625) * 0.0625;
+    if (err_pct) {
+        *err_pct = ((float)dst - scale * (float)src) / (float)dst;
+    }
+    return scale_int + scale_frac;
+}
+
 esp_err_t resize_ppa(const img_t &src_img,
                      img_t &dst_img,
                      ppa_client_handle_t ppa_handle,
@@ -413,25 +434,15 @@ esp_err_t resize_ppa(const img_t &src_img,
     memset(&srm_oper_config, 0, sizeof(ppa_srm_oper_config_t));
     float ppa_scale_x, ppa_scale_y;
     if (crop_area.empty()) {
-        float scale_x = (float)dst_img.width / (float)src_img.width;
-        float scale_y = (float)dst_img.height / (float)src_img.height;
-        if (scale_x == 1 && scale_y == 1) {
+        if (dst_img.width == src_img.width && dst_img.height == src_img.height) {
             return convert_img_ppa(
                 src_img, dst_img, ppa_handle, ppa_buffer, ppa_buffer_size, caps, norm_lut, crop_area);
         }
-        // ppa use 8 bit to store int part of scale, 4 bit to store frac part of scale.
-        if (!(scale_x >= 0.0625 && scale_x < 256 && scale_y >= 0.0625 && scale_y < 256)) {
-            return ESP_FAIL;
-        }
-        float scale_x_int, scale_y_int;
-        float scale_x_frac = modf(scale_x, &scale_x_int);
-        float scale_y_frac = modf(scale_y, &scale_y_int);
-        scale_x_frac = floorf((scale_x_frac) / 0.0625) * 0.0625;
-        scale_y_frac = floorf((scale_y_frac) / 0.0625) * 0.0625;
-        ppa_scale_x = scale_x_int + scale_x_frac;
-        ppa_scale_y = scale_y_int + scale_y_frac;
-        float err_pct_x = ((float)dst_img.width - ppa_scale_x * (float)src_img.width) / (float)dst_img.width;
-        float err_pct_y = ((float)dst_img.height - ppa_scale_y * (float)src_img.height) / (float)dst_img.height;
+        float err_pct_x;
+        float err_pct_y;
+        ppa_scale_x = get_ppa_scale(src_img.width, dst_img.width, &err_pct_x);
+        ppa_scale_y = get_ppa_scale(src_img.height, dst_img.height, &err_pct_y);
+
         // black border caused by inacurrate scale, avoid using ppa if it exceeds the threshold.
         if (!(err_pct_x < ppa_err_pct_thr && err_pct_y < ppa_err_pct_thr)) {
             return ESP_FAIL;
@@ -454,27 +465,16 @@ esp_err_t resize_ppa(const img_t &src_img,
         assert(crop_area[1] < src_img.height && crop_area[1] >= 0);
         assert(crop_area[2] <= src_img.width && crop_area[2] > 0);
         assert(crop_area[3] <= src_img.height && crop_area[3] > 0);
-        float scale_x = (float)dst_img.width / (float)(crop_area[2] - crop_area[0]);
-        float scale_y = (float)dst_img.height / (float)(crop_area[3] - crop_area[1]);
-        if (scale_x == 1 && scale_y == 1) {
+        uint16_t src_img_width = crop_area[2] - crop_area[0];
+        uint16_t src_img_height = crop_area[3] - crop_area[1];
+        if (dst_img.width == src_img_width && dst_img.height == src_img_height) {
             return convert_img_ppa(
                 src_img, dst_img, ppa_handle, ppa_buffer, ppa_buffer_size, caps, norm_lut, crop_area);
         }
-        // ppa use 8 bit to store int part of scale, 4 bit to store frac part of scale.
-        if (!(scale_x >= 0.0625 && scale_x < 256 && scale_y >= 0.0625 && scale_y < 256)) {
-            return ESP_FAIL;
-        }
-        float scale_x_int, scale_y_int;
-        float scale_x_frac = modf(scale_x, &scale_x_int);
-        float scale_y_frac = modf(scale_y, &scale_y_int);
-        scale_x_frac = floorf((scale_x_frac) / 0.0625) * 0.0625;
-        scale_y_frac = floorf((scale_y_frac) / 0.0625) * 0.0625;
-        ppa_scale_x = scale_x_int + scale_x_frac;
-        ppa_scale_y = scale_y_int + scale_y_frac;
-        float err_pct_x =
-            ((float)dst_img.width - ppa_scale_x * (float)(crop_area[2] - crop_area[0])) / (float)dst_img.width;
-        float err_pct_y =
-            ((float)dst_img.height - ppa_scale_y * (float)(crop_area[3] - crop_area[1])) / (float)dst_img.height;
+        float err_pct_x;
+        float err_pct_y;
+        ppa_scale_x = get_ppa_scale(src_img_width, dst_img.width, &err_pct_x);
+        ppa_scale_y = get_ppa_scale(src_img_height, dst_img.height, &err_pct_y);
         // black border caused by inacurrate scale, avoid using ppa if it exceeds the threshold.
         if (!(err_pct_x < ppa_err_pct_thr && err_pct_y < ppa_err_pct_thr)) {
             return ESP_FAIL;
@@ -487,8 +487,8 @@ esp_err_t resize_ppa(const img_t &src_img,
         }
         srm_oper_config.in.block_offset_y = crop_area[1];
         srm_oper_config.in.block_offset_x = crop_area[0];
-        srm_oper_config.in.block_h = crop_area[3] - crop_area[1];
-        srm_oper_config.in.block_w = crop_area[2] - crop_area[0];
+        srm_oper_config.in.block_h = src_img_width;
+        srm_oper_config.in.block_w = src_img_width;
     }
     srm_oper_config.in.buffer = (const void *)src_img.data;
     srm_oper_config.in.pic_h = src_img.height;
