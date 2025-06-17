@@ -137,6 +137,12 @@ public:
         }
     }
 
+#if CONFIG_SPIRAM
+    void *operator new(size_t size) { return heap_caps_malloc(size, MALLOC_CAP_SPIRAM); }
+
+    void operator delete(void *ptr) { heap_caps_free(ptr); }
+#endif
+
     /**
      * @brief Assign tensor to this tensor
      *
