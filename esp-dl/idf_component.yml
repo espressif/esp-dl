@@ -1,6 +1,7 @@
 version: "3.1.3"
 license: "MIT"
 targets:
+  - esp32
   - esp32s3
   - esp32p4
 description: esp-dl is a lightweight and efficient neural network inference framework designed specifically for ESP series chips.

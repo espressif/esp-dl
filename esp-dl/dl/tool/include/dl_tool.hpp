@@ -11,6 +11,7 @@
 #include "dl_define.hpp"
 #include "esp_cpu.h"
 #include "esp_log.h"
+#include "esp_memory_utils.h"
 #include "esp_mmu_map.h"
 #include "esp_system.h"
 #include "esp_timer.h"
