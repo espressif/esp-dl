@@ -154,7 +154,10 @@ def build_and_copy(apps_to_build, model_path):
 
     for target, build_path in target_apps.items():
         basedir = build_path.parent
-        target_model_path = model_path / target
+        if target in ["esp32s3", "esp32p4"]:
+            target_model_path = model_path / target
+        else:
+            target_model_path = model_path / "c"
         opset = [subdir for subdir in target_model_path.iterdir() if subdir.is_dir()]
         for op_path in opset:
             op_build_path = basedir / f"build_{target}_{op_path.name}"

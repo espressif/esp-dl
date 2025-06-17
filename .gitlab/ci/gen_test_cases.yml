@@ -25,7 +25,7 @@ install_esp_ppq:
         TARGET: [esp32p4]
       - IMAGE: [python:3.11]
         TORCH: [torch]
-        TARGET: [esp32s3]
+        TARGET: [esp32s3, c]
   variables:
     MODEL_PATH: test_apps/esp-dl/models
     CONFIG_FILE: tools/ops_test/config/op_cfg.toml
@@ -38,7 +38,7 @@ gen_espdl_ops_cases:
     - .rules:gen:ops_test
   parallel:
     matrix:
-      - TARGET: [esp32p4, esp32s3]
+      - TARGET: [esp32p4, esp32s3, c]
         BITS: [8, 16]
   variables:
     IMAGE: "python:3.8"
