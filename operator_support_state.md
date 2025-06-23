@@ -6,9 +6,13 @@
 ## Quantization Strategy
 
 The quantization type of all operators is symmetric quantization. Now ESP-DL supports both 8-bit and 16-bit.
-The ESP32 operator is implemented in C, which is significantly slower compared to the ESP32-S3 and ESP32-P4. Its rounding method follows [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up).
-The rounding for ESP32-S3 is [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up).
-The rounding for ESP32-P4 is [rounding half to even](https://simple.wikipedia.org/wiki/Rounding#Round_half_to_even).
+The ``ESP32`` uses [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up) as its rounding strategy. Its operator is implemented in C, which is significantly slower compared to the ESP32-S3 and ESP32-P4.
+
+    - When quantizing **ESP32** platform models using **ESP-PPQ**, set the target to ``c``. Because ESP-DL implements its operators in C.
+    - When deploying **ESP32** platform models using **ESP-DL**, set the project compilation target to ``esp32``.
+
+The rounding for ``ESP32-S3`` is [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up).
+The rounding for ``ESP32-P4`` is [rounding half to even](https://simple.wikipedia.org/wiki/Rounding#Round_half_to_even).
 
 ## Support Operators
 
@@ -59,4 +63,4 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Transpose[(ESP-DL)](esp-dl/dl/module/include/dl_module_transpose.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Transpose.html)                           | &#10004; | &#10004; |                                                                        |
 | Unsqueeze[(ESP-DL)](esp-dl/dl/module/include/dl_module_unsqueeze.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Unsqueeze.html)                           | &#10004; | &#10004; |                                                                        |
 
-Generation Time: 2025-06-17 14:02:25
+Generation Time: 2025-06-23 11:52:22

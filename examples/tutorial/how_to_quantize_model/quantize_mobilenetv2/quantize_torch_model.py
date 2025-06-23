@@ -95,7 +95,7 @@ if __name__ == "__main__":
     BATCH_SIZE = 32
     INPUT_SHAPE = [3, 224, 224]
     DEVICE = "cpu"  #  'cuda' or 'cpu', if you use cuda, please make sure that cuda is available
-    TARGET = "esp32p4"
+    TARGET = "esp32p4"  #  'c', 'esp32s3' or 'esp32p4'
     NUM_OF_BITS = 8
     ESPDL_MODEL_PATH = "models/torch/mobilenet_v2.espdl"
     CALIB_DIR = "./imagenet"

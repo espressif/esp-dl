@@ -46,7 +46,16 @@ After executing the script, three files will be exported:
 
 .. note::
 
-   1. The ``.espdl`` models of different platforms cannot be mixed, otherwise the inference results will be inaccurate. The ROUND strategy used by ``ESP32S3`` is ``ROUND_HALF_UP``, and the one used by ``ESP32P4`` is ``ROUND_HALF_EVEN``.
+   1. The ``.espdl`` models of different platforms cannot be mixed, otherwise the inference results will be inaccurate.
+
+      - The ``ESP32`` uses ``ROUND_HALF_UP`` as its rounding strategy.
+
+         - When quantizing **ESP32** platform models using **ESP-PPQ**, set the target to ``c``. Because ESP-DL implements its operators in C.
+         - When deploying **ESP32** platform models using **ESP-DL**, set the project compilation target to ``esp32``.
+
+      - The ROUND strategy used by ``ESP32S3`` is ``ROUND_HALF_UP``.
+      - The ROUND strategy used by ``ESP32P4`` is ``ROUND_HALF_EVEN``.
+
    2. The quantization strategy currently used by ESP-DL is symmetric quantization + POWER OF TWO.
 
 .. _add_test_input_output:
