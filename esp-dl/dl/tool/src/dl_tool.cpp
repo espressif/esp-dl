@@ -89,16 +89,19 @@ int round(T value)
 template int round(float value);
 template int round(double value);
 
-int shift_and_round_half_even(int value, int shift)
+template <typename T>
+T shift_and_round_half_even(T value, int shift)
 {
-    int shifted = 0;
+    T ret = 0;
 
     if (shift <= 0) {
-        shifted = value << -shift;
+        int64_t shifted = 0;
+        shifted = static_cast<int64_t>(value) << -shift;
+        tool::truncate(ret, shifted);
     } else {
-        shifted = value >> shift;
-        int remainder = value & ((1 << shift) - 1);
-        int half = 1 << (shift - 1);
+        T shifted = value >> shift;
+        T remainder = value & ((static_cast<T>(1) << shift) - 1);
+        T half = (static_cast<T>(1)) << (shift - 1);
 
         if (remainder > half) {
             shifted += 1;
@@ -107,26 +110,30 @@ int shift_and_round_half_even(int value, int shift)
                 shifted += 1;
             }
         }
+        ret = shifted;
     }
-
-    return shifted;
+    return ret;
 }
 
-int shift_and_round_half_up(int value, int shift)
+template <typename T>
+T shift_and_round_half_up(T value, int shift)
 {
-    int shifted = 0;
+    int64_t shifted = 0;
+    T ret = 0;
 
     if (shift <= 0) {
-        shifted = value << -shift;
+        shifted = (static_cast<int64_t>(value)) << -shift;
+        tool::truncate(ret, shifted);
     } else {
-        int half = 1 << (shift - 1);
+        int64_t half = (static_cast<int64_t>(1)) << (shift - 1);
         shifted = (value + half) >> shift;
+        ret = static_cast<T>(shifted);
     }
-
-    return shifted;
+    return ret;
 }
 
-int shift_and_round(int value, int shift)
+template <typename T>
+T shift_and_round(T value, int shift)
 {
 #if CONFIG_IDF_TARGET_ESP32P4
     return shift_and_round_half_even(value, shift);
@@ -134,6 +141,9 @@ int shift_and_round(int value, int shift)
     return shift_and_round_half_up(value, shift);
 #endif
 }
+
+template int32_t shift_and_round(int32_t value, int shift);
+template int64_t shift_and_round(int64_t value, int shift);
 
 void set_zero(void *ptr, const int n)
 {
@@ -158,36 +168,32 @@ void copy_memory(void *dst, void *src, const size_t n)
 memory_addr_type_t memory_addr_type(void *address)
 {
 #if CONFIG_IDF_TARGET_ESP32P4
-    if ((intptr_t)address >= 0x30100000 && (intptr_t)address <= 0x30101fff) {
+    if (esp_ptr_in_tcm(address)) {
         return MEMORY_ADDR_TCM;
-    } else if ((intptr_t)address >= 0x40000000 && (intptr_t)address <= 0x43ffffff) {
-        return MEMORY_ADDR_FLASH;
-    } else if ((intptr_t)address >= 0x48000000 && (intptr_t)address <= 0x4bffffff) {
-        return MEMORY_ADDR_PSRAM;
-    } else if ((intptr_t)address >= 0x4ff00000 && (intptr_t)address <= 0x4ffbffff) {
-        return MEMORY_ADDR_INTERNAL;
-    } else {
-        return MEMORY_ADDR_UKN;
-    }
-#elif CONFIG_IDF_TARGET_ESP32S3
-    if ((intptr_t)address >= 0x3c000000 && (intptr_t)address <= 0x3dffffff) {
-        esp_paddr_t paddr;
-        mmu_target_t target;
-        ESP_ERROR_CHECK(esp_mmu_vaddr_to_paddr(address, &paddr, &target));
-        switch (target) {
-        case MMU_TARGET_FLASH0:
-            return MEMORY_ADDR_FLASH;
-        case MMU_TARGET_PSRAM0:
-            return MEMORY_ADDR_PSRAM;
-        default:
-            return MEMORY_ADDR_UKN;
-        }
-    } else if ((intptr_t)address >= 0x3fc88000 && (intptr_t)address <= 0x3fcfffff) {
-        return MEMORY_ADDR_INTERNAL;
-    } else {
-        return MEMORY_ADDR_UKN;
     }
 #endif
+
+#if CONFIG_SPIRAM_RODATA || CONFIG_SPIRAM_XIP_FROM_PSRAM
+    esp_paddr_t paddr;
+    mmu_target_t target;
+    ESP_ERROR_CHECK(esp_mmu_vaddr_to_paddr(address, &paddr, &target));
+    if (target == MMU_TARGET_PSRAM0) {
+        return MEMORY_ADDR_PSRAM;
+    } else if (target == MMU_TARGET_FLASH0) {
+        return MEMORY_ADDR_FLASH;
+    }
+#else
+    if (esp_ptr_external_ram(address)) {
+        return MEMORY_ADDR_PSRAM;
+    } else if (esp_ptr_in_drom(address)) {
+        return MEMORY_ADDR_FLASH;
+    }
+#endif
+    else if (esp_ptr_internal(address)) {
+        return MEMORY_ADDR_INTERNAL;
+    } else {
+        return MEMORY_ADDR_UKN;
+    }
 }
 
 HEAP_IRAM_ATTR void *malloc_aligned(size_t alignment, size_t size, uint32_t caps)

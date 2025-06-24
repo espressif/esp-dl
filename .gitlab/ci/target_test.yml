@@ -1,5 +1,5 @@
 variables:
-  DOCKER_TARGET_TEST_v5_3_ENV_IMAGE: "$CI_DOCKER_REGISTRY/target-test-env-v5.4:1"
+  DOCKER_TARGET_TEST_v5_3_ENV_IMAGE: "$CI_DOCKER_REGISTRY/target-test-env-v5.3:1"
   TEST_CASE_CONFIG: "tools/ops_test/config/op_cfg.toml"
 
 .test_template: &test_template
@@ -82,7 +82,7 @@ test_espdl_ops:
       optional: true
   parallel:
     matrix:
-      - IDF_TARGET: [esp32p4, esp32s3]
+      - IDF_TARGET: [esp32p4, esp32s3, esp32]
         IDF_VERSION: "5.3"
         TEST_MODEL: ["opset_5_0", "opset_5_1", "opset_5_2", "opset_5_3", "opset_5_4"]
   tags:
@@ -103,7 +103,7 @@ test_espdl_api:
       optional: true
   parallel:
     matrix:
-      - IDF_TARGET: [esp32p4, esp32s3]
+      - IDF_TARGET: [esp32p4, esp32s3, esp32]
         IDF_VERSION: "5.3"
   tags:
     - ${IDF_TARGET}

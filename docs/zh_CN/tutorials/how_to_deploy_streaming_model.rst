@@ -174,6 +174,7 @@
 .. note::
 
     基础的模型加载和推理方法，可参考其它文档，这里不再赘述：
+
     - :doc:`如何加载和测试模型 </tutorials/how_to_load_test_profile_model>`
     - :doc:`如何进行模型推理 </tutorials/how_to_run_model>`
 

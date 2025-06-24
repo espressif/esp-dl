@@ -26,10 +26,10 @@ inline void buffer_bias_linear(feature_t *output_ptr, buffer_t *buffer_ptr, cons
         }
     } else {
         for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
-            // right shift
-            buffer_ptr[output_c] = DL_RIGHT_SHIFT(buffer_ptr[output_c], args.mac_shift);
             // Bias
             buffer_ptr[output_c] += bias_ptr[output_c];
+            // right shift
+            buffer_ptr[output_c] = tool::shift_and_round(buffer_ptr[output_c], args.mac_shift);
 
             tool::truncate(output_ptr[output_c], buffer_ptr[output_c]);
             buffer_ptr[output_c] = 0;
@@ -59,10 +59,10 @@ inline void buffer_bias_relu(feature_t *output_ptr, buffer_t *buffer_ptr, const 
         }
     } else {
         for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
-            // right shift
-            buffer_ptr[output_c] = DL_RIGHT_SHIFT(buffer_ptr[output_c], args.mac_shift);
             // Bias
             buffer_ptr[output_c] += bias_ptr[output_c];
+            // right shift
+            buffer_ptr[output_c] = tool::shift_and_round(buffer_ptr[output_c], args.mac_shift);
             // Activation
             if (buffer_ptr[output_c] < 0)
                 buffer_ptr[output_c] = 0;
@@ -174,7 +174,7 @@ inline void buffer_0000_linear(feature_t *output_ptr, buffer_t *buffer_ptr, cons
     } else {
         for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
             // right shift
-            buffer_ptr[output_c] = DL_RIGHT_SHIFT(buffer_ptr[output_c], args.mac_shift);
+            buffer_ptr[output_c] = tool::shift_and_round(buffer_ptr[output_c], args.mac_shift);
 
             tool::truncate(output_ptr[output_c], buffer_ptr[output_c]);
             buffer_ptr[output_c] = 0;
@@ -200,7 +200,7 @@ inline void buffer_0000_relu(feature_t *output_ptr, buffer_t *buffer_ptr, const 
     } else {
         for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
             // right shift
-            buffer_ptr[output_c] = DL_RIGHT_SHIFT(buffer_ptr[output_c], args.mac_shift);
+            buffer_ptr[output_c] = tool::shift_and_round(buffer_ptr[output_c], args.mac_shift);
             // Activation
             if (buffer_ptr[output_c] < 0)
                 buffer_ptr[output_c] = 0;

@@ -171,6 +171,7 @@ Model Deployment
 .. note::
 
     For basic model loading and inference methods, please refer to other documents:
+
     - :doc:`How to Load and Test a Model </tutorials/how_to_load_test_profile_model>`
     - :doc:`How to Perform Model Inference </tutorials/how_to_run_model>`
 

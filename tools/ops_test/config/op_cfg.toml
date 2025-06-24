@@ -14,8 +14,8 @@
     restrictions = "Support 1d/2d conv, groups only support 1 or input_channels"
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned
-        input_shape = [1, 3, 224, 224]
-        export_name_prefix = "conv2d_ishap_1_3_224_224_kshap_16_3_3_3_relu"
+        input_shape = [1, 3, 100, 50]
+        export_name_prefix = "conv2d_ishap_1_3_100_50_kshap_16_3_3_3_relu"
         export_path = ""
         in_channels = 3
         out_channels = 16
@@ -29,8 +29,8 @@
 
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned
-        input_shape = [1, 16, 32, 32]
-        export_name_prefix = "conv2d_ishap_1_16_32_32_kshap_32_16_1_1"
+        input_shape = [1, 16, 20, 20]
+        export_name_prefix = "conv2d_ishap_1_16_20_20_kshap_32_16_1_1"
         export_path = ""
         in_channels = 16
         out_channels = 32
@@ -44,8 +44,8 @@
 
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned, two task
-        input_shape = [1, 16, 120, 120]
-        export_name_prefix = "conv2d_ishap_1_16_120_120_kshap_32_16_1_1"
+        input_shape = [1, 16, 100, 50]
+        export_name_prefix = "conv2d_ishap_1_16_100_50_kshap_32_16_1_1"
         export_path = ""
         in_channels = 16
         out_channels = 32
@@ -59,8 +59,8 @@
 
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned, two task
-        input_shape = [1, 16, 32, 32]
-        export_name_prefix = "conv2d_ishap_1_16_32_32_kshap_32_16_5_5_relu"
+        input_shape = [1, 16, 22, 22]
+        export_name_prefix = "conv2d_ishap_1_16_22_22_kshap_32_16_5_5_relu"
         export_path = ""
         in_channels = 16
         out_channels = 32
@@ -74,25 +74,10 @@
 
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned, two task
-        input_shape = [1, 16, 32, 32]
-        export_name_prefix = "conv2d_ishap_1_16_32_32_kshap_32_16_7_7_relu"
+        input_shape = [1, 32, 19, 23]
+        export_name_prefix = "conv2d_ishap_1_32_19_23_kshap_16_32_3_3"
         export_path = ""
-        in_channels = 16
-        out_channels = 32
-        kernel_size = [7, 7]
-        stride = [2, 2]
-        padding = [2, 2]
-        dilation = [1, 1]
-        groups = 1
-        bias = true
-        activation_func = "ReLU"    # "", "ReLU"
-
-        [[ops_test.Conv.cfg]]
-        # Conv, pointwise, aligned, two task
-        input_shape = [1, 48, 19, 29]
-        export_name_prefix = "conv2d_ishap_1_48_19_29_kshap_16_48_3_3"
-        export_path = ""
-        in_channels = 48
+        in_channels = 32
         out_channels = 16
         kernel_size = [3, 3]
         stride = [2, 2]
@@ -104,11 +89,11 @@
 
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned, two task
-        input_shape = [1, 33, 19, 29]
-        export_name_prefix = "conv2d_ishap_1_33_19_29_kshap_55_33_3_3"
+        input_shape = [1, 22, 19, 23]
+        export_name_prefix = "conv2d_ishap_1_22_19_23_kshap_33_22_3_3"
         export_path = ""
-        in_channels = 33
-        out_channels = 55
+        in_channels = 22
+        out_channels = 33
         kernel_size = [3, 3]
         stride = [1, 1]
         padding = [1, 1]
@@ -134,11 +119,11 @@
 
         [[ops_test.Conv.cfg]]
         # Can be configured as 1-d or 2-d arrays
-        input_shape = [1, 31, 3, 3]
-        export_name_prefix = "conv2d_ishap_1_31_3_3_kshap_31_31_5_5"
+        input_shape = [1, 27, 3, 3]
+        export_name_prefix = "conv2d_ishap_1_27_3_3_kshap_27_27_5_5"
         export_path = ""
-        in_channels = 31
-        out_channels = 31
+        in_channels = 27
+        out_channels = 27
         kernel_size = [5, 5]
         stride = [1, 1]
         padding = [2, 2]
@@ -170,21 +155,6 @@
         in_channels = 16
         out_channels = 16
         kernel_size = [5, 5]
-        stride = [2, 2]
-        padding = [1, 1]
-        dilation = [1, 1]
-        groups = 16
-        bias = true
-        activation_func = "ReLU"    # "", "ReLU"
-
-        [[ops_test.Conv.cfg]]
-        # Can be configured as 1-d or 2-d arrays
-        input_shape = [1, 16, 20, 20]
-        export_name_prefix = "depthwise_conv2d_ishap_1_16_20_20_kshap_16_1_7_7_relu"
-        export_path = ""
-        in_channels = 16
-        out_channels = 16
-        kernel_size = [7, 7]
         stride = [1, 2]
         padding = [2, 2]
         dilation = [1, 1]
@@ -194,23 +164,23 @@
 
         [[ops_test.Conv.cfg]]
         # Can be configured as 1-d or 2-d arrays
-        input_shape = [1, 30, 20, 20]
-        export_name_prefix = "depthwise_conv2d_ishap_1_30_20_20_kshap_30_1_7_7_relu"
+        input_shape = [1, 25, 20, 20]
+        export_name_prefix = "depthwise_conv2d_ishap_1_25_20_20_kshap_25_1_7_7_relu"
         export_path = ""
-        in_channels = 30
-        out_channels = 30
+        in_channels = 25
+        out_channels = 25
         kernel_size = [7, 7]
         stride = [1, 2]
         padding = [2, 2]
         dilation = [1, 1]
-        groups = 30
+        groups = 25
         bias = true
         activation_func = "ReLU"    # "", "ReLU"
 
         [[ops_test.Conv.cfg]]
         # Can be configured as 1-d or 2-d arrays
-        input_shape = [1, 32, 120, 120]
-        export_name_prefix = "depthwise_conv2d_ishap_1_32_120_120_kshap_32_1_3_3_relu"
+        input_shape = [1, 32, 100, 50]
+        export_name_prefix = "depthwise_conv2d_ishap_1_32_100_50_kshap_32_1_3_3_relu"
         export_path = ""
         in_channels = 32
         out_channels = 32
@@ -254,23 +224,23 @@
 
         [[ops_test.Conv.cfg]]
         # Can be configured as 1-d or 2-d arrays
-        input_shape = [1, 31, 3, 3]
-        export_name_prefix = "depthwise_conv2d_ishap_1_31_3_3_kshap_31_1_5_5"
+        input_shape = [1, 27, 3, 3]
+        export_name_prefix = "depthwise_conv2d_ishap_1_27_3_3_kshap_27_1_5_5"
         export_path = ""
-        in_channels = 31
-        out_channels = 31
+        in_channels = 27
+        out_channels = 27
         kernel_size = [5, 5]
         stride = [1, 1]
         padding = [2, 2]
         dilation = [1, 1]
-        groups = 31
+        groups = 27
         bias = false
         activation_func = ""    # "", "ReLU"
 
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned
-        input_shape = [1, 3, 224]
-        export_name_prefix = "conv1d_ishap_1_3_224_kshap_16_3_3_relu"
+        input_shape = [1, 3, 50]
+        export_name_prefix = "conv1d_ishap_1_3_50_kshap_16_3_3_relu"
         export_path = ""
         in_channels = 3
         out_channels = 16
@@ -299,8 +269,8 @@
 
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned, two task
-        input_shape = [1, 16, 120]
-        export_name_prefix = "conv1d_ishap_1_16_120_kshap_32_16_1"
+        input_shape = [1, 16, 50]
+        export_name_prefix = "conv1d_ishap_1_16_50_kshap_32_16_1"
         export_path = ""
         in_channels = 16
         out_channels = 32
@@ -329,25 +299,10 @@
 
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned, two task
-        input_shape = [1, 16, 32]
-        export_name_prefix = "conv1d_ishap_1_16_32_kshap_32_16_7_relu"
+        input_shape = [1, 32, 19]
+        export_name_prefix = "conv1d_ishap_1_32_19_kshap_16_32_3"
         export_path = ""
-        in_channels = 16
-        out_channels = 32
-        kernel_size = 7
-        stride = 2
-        padding = 2
-        dilation = 1
-        groups = 1
-        bias = true
-        activation_func = "ReLU"    # "", "ReLU"
-
-        [[ops_test.Conv.cfg]]
-        # Conv, pointwise, aligned, two task
-        input_shape = [1, 48, 19]
-        export_name_prefix = "conv1d_ishap_1_48_19_kshap_16_48_3"
-        export_path = ""
-        in_channels = 48
+        in_channels = 32
         out_channels = 16
         kernel_size = 3
         stride = 2
@@ -359,11 +314,11 @@
 
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned, two task
-        input_shape = [1, 33, 29]
-        export_name_prefix = "conv1d_ishap_1_33_29_kshap_55_33_3"
+        input_shape = [1, 22, 29]
+        export_name_prefix = "conv1d_ishap_1_22_29_kshap_33_22_3"
         export_path = ""
-        in_channels = 33
-        out_channels = 55
+        in_channels = 22
+        out_channels = 33
         kernel_size = 3
         stride = 1
         padding = 1
@@ -434,8 +389,8 @@
 
         [[ops_test.Conv.cfg]]
         # Can be configured as 1-d or 2-d arrays
-        input_shape = [1, 32, 120]
-        export_name_prefix = "depthwise_conv1d_ishap_1_32_120_kshap_32_1_3_relu"
+        input_shape = [1, 32, 50]
+        export_name_prefix = "depthwise_conv1d_ishap_1_32_50_kshap_32_1_3_relu"
         export_path = ""
         in_channels = 32
         out_channels = 32
@@ -2220,40 +2175,40 @@
     quant_bits = ["int8", "int16"]
     package = "torch_ops_test"
         [[ops_test.Requantize.cfg]]
-        input_shape = [1, 16, 100, 100]
-        export_name_prefix = "Requantize_ishape_1_16_100_100_shift_right"
+        input_shape = [1, 16, 50, 50]
+        export_name_prefix = "Requantize_ishape_1_16_50_50_shift_right"
         shift_left = false
 
         [[ops_test.Requantize.cfg]]
-        input_shape = [1, 16, 100, 100]
-        export_name_prefix = "Requantize_ishape_1_16_100_100_shift_left"
+        input_shape = [1, 16, 50, 50]
+        export_name_prefix = "Requantize_ishape_1_16_50_50_shift_left"
         shift_left = true
 
         [[ops_test.Requantize.cfg]]
-        input_shape = [1, 13, 100, 100]
-        export_name_prefix = "Requantize_ishape_1_13_100_100_shift_right"
+        input_shape = [1, 13, 50, 50]
+        export_name_prefix = "Requantize_ishape_1_13_50_50_shift_right"
         shift_left = false
 
         [[ops_test.Requantize.cfg]]
-        input_shape = [1, 13, 100, 100]
-        export_name_prefix = "Requantize_ishape_1_13_100_100_shift_left"
+        input_shape = [1, 13, 50, 50]
+        export_name_prefix = "Requantize_ishape_1_13_50_50_shift_left"
         shift_left = true
 
         [[ops_test.Requantize.cfg]]
-        input_shape = [1, 16, 100, 100]
-        export_name_prefix = "Requantize_ishape_1_16_100_100_shift_right_dispatch_add"
+        input_shape = [1, 16, 50, 50]
+        export_name_prefix = "Requantize_ishape_1_16_50_50_shift_right_dispatch_add"
         shift_left = false
         dispatch_table = {"/Add" = 16}
 
         [[ops_test.Requantize.cfg]]
-        input_shape = [1, 16, 100, 100]
-        export_name_prefix = "Requantize_ishape_1_16_100_100_shift_left_dispatch_add"
+        input_shape = [1, 16, 50, 50]
+        export_name_prefix = "Requantize_ishape_1_16_50_50_shift_left_dispatch_add"
         shift_left = true
         dispatch_table = {"/Add_1" = 16}
 
         [[ops_test.Requantize.cfg]]
-        input_shape = [1, 16, 100, 100]
-        export_name_prefix = "Requantize_ishape_1_16_100_100_shift_right_dispatch_sigmoid_sub"
+        input_shape = [1, 16, 50, 50]
+        export_name_prefix = "Requantize_ishape_1_16_50_50_shift_right_dispatch_sigmoid_sub"
         shift_left = false
         dispatch_table = {"/Sigmoid" = 16, "/Sub" = 16}
 

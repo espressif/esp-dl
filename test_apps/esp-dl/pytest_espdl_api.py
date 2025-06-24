@@ -4,12 +4,14 @@ from pytest_embedded import Dut
 
 @pytest.mark.target("esp32p4")
 @pytest.mark.target("esp32s3")
+@pytest.mark.target("esp32")
 @pytest.mark.env("esp32p4")
 @pytest.mark.env("esp32s3")
+@pytest.mark.env("esp32")
 @pytest.mark.parametrize(
     "config",
     [
-        "Conv",
+        "Gemm",
     ],
 )
 def test_model_common(dut: Dut) -> None:

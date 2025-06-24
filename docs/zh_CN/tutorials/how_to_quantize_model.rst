@@ -46,7 +46,16 @@ ESP-DL 必须使用专有格式 ``.espdl`` 进行模型部署。这是一种量�
 
 .. note::
 
-   1. 不同平台的 ``.espdl`` 模型不能混用，推理结果会有误差。``ESP32S3`` 使用的 ROUND 策略是 ``ROUND_HALF_UP``, ``ESP32P4`` 使用的则是 ``ROUND_HALF_EVEN``。
+   1. 不同平台的 ``.espdl`` 模型不能混用，推理结果会有误差。
+
+      - ``ESP32`` 使用的 ROUND 策略是 ``ROUND_HALF_UP``。
+
+         - 使用 **ESP-PPQ** 量化 **ESP32** 平台模型时，需将 target 设置为 ``c``，因为在 ESP-DL 中，其算子实现采用 C 语言编写。
+         - 使用 **ESP-DL** 部署 **ESP32** 平台模型时，项目编译 target 则设置为 ``esp32``。
+
+      - ``ESP32S3`` 使用的 ROUND 策略是 ``ROUND_HALF_UP``。
+      - ``ESP32P4`` 使用的则是 ``ROUND_HALF_EVEN``。
+
    2. 目前 ESP-DL 使用的量化策略是 对称量化 + POWER OF TWO。
 
 .. _add_test_input_output:

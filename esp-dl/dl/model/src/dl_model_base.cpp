@@ -567,13 +567,13 @@ static void print_memory_info(const std::map<std::string, mem_info_t> &info)
 
     // get_col_width
     size_t col0_width = strlen("parameter_copy");
-    std::string sub_prefix = "└── ";
+    std::string sub_prefix = " -- ";
     auto get_fmt_size = [&sub_prefix](size_t size, bool sub_header) -> std::string {
         std::string fmt_size = std::format("{:<.2f}KB", size / 1024.f);
         if (sub_header) {
             fmt_size = (fmt_size == "0.00KB") ? "" : sub_prefix + fmt_size;
         } else if (fmt_size == "0.00KB") {
-            fmt_size = "─";
+            fmt_size = "";
         }
         return fmt_size;
     };

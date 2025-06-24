@@ -14,7 +14,7 @@ if __name__ == "__main__":
     ONNX_MODEL_PATH = "sin_model.onnx"
     ESPDL_MODEL_PATH = "sin_model.espdl"
     INPUT_SHAPE = [1, 1]  # 1 个输入特征
-    TARGET = "esp32s3"  # 目标量化精度
+    TARGET = "esp32s3"  # 量化目标类型，可选 'c', 'esp32s3' or 'esp32p4'
     NUM_OF_BITS = 8  # 量化位数
     DEVICE = "cpu"  # 'cuda' or 'cpu', if you use cuda, please make sure that cuda is available
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
         calib_steps=32,  # 校准的步数
         input_shape=INPUT_SHAPE,  # 输入形状，批次为 1
         inputs=None,
-        target=TARGET,  # 目标量化类型
+        target=TARGET,  # 量化目标类型
         num_of_bits=NUM_OF_BITS,  # 量化位数
         collate_fn=collate_fn,
         dispatching_override=None,

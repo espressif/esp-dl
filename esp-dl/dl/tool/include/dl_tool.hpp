@@ -11,6 +11,7 @@
 #include "dl_define.hpp"
 #include "esp_cpu.h"
 #include "esp_log.h"
+#include "esp_memory_utils.h"
 #include "esp_mmu_map.h"
 #include "esp_system.h"
 #include "esp_timer.h"
@@ -90,7 +91,8 @@ int round(T value);
  * @param value The Integer value.
  * @return int
  */
-int shift_and_round(int value, int shift);
+template <typename T>
+T shift_and_round(T value, int shift);
 
 /**
  * @brief Set memory zero.

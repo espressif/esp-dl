@@ -56,14 +56,19 @@ def create_md(config_file, output_path):
 
     content = """# Operator Support State
 
-| Supported Targets | ESP32-S3 | ESP32-P4 |
-| ----------------- | -------- | -------- |
+| Supported Targets | ESP32 | ESP32-S3 | ESP32-P4 |
+| ----------------- | ----- | -------- | -------- |
 
 ## Quantization Strategy
 
 The quantization type of all operators is symmetric quantization. Now ESP-DL supports both 8-bit and 16-bit.
-The rounding for ESP32-S3 is [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up).
-The rounding for ESP32-P4 is [rounding half to even](https://simple.wikipedia.org/wiki/Rounding#Round_half_to_even).
+The ``ESP32`` uses [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up) as its rounding strategy. Its operator is implemented in C, which is significantly slower compared to the ESP32-S3 and ESP32-P4.
+
+    - When quantizing **ESP32** platform models using **ESP-PPQ**, set the target to ``c``. Because ESP-DL implements its operators in C.
+    - When deploying **ESP32** platform models using **ESP-DL**, set the project compilation target to ``esp32``.
+
+The rounding for ``ESP32-S3`` is [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up).
+The rounding for ``ESP32-P4`` is [rounding half to even](https://simple.wikipedia.org/wiki/Rounding#Round_half_to_even).
 
 ## Support Operators
 
