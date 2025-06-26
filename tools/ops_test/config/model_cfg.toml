@@ -1,11 +1,9 @@
 [meta]
     seed = 0
-    quant_bits = 8          # Only support 8 or 16 now.
-    batch_size = 32
-    calib_steps = 32         # The minimum value for calib_steps is 8.
+    batch_size = 1
+    calib_steps = 8         # The minimum value for calib_steps is 8.
     model_version = 1
-    target = "esp32p4"
-
+    opset = 13
 
 [models_test]
     [models_test.picodet]

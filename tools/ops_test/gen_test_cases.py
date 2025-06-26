@@ -216,47 +216,67 @@ if __name__ == "__main__":
         help="the version of the test case, (defaults: v1.0)",
     )
     parser.add_argument("--ops", nargs="+", type=str, help="An array of ops")
+    parser.add_argument(
+        "--models", type=str, default=None, help="Specify the model to test."
+    )
     args = parser.parse_args()
 
     # load config
     config = toml.load(args.config)
-    op_test_config = config["ops_test"]
 
-    # generate test cases
-    op_set = get_op_set(op_test_config, args.ops)
+    if not args.models:
+        op_test_config = config["ops_test"]
 
-    for op_type in op_set:
-        pkg = importlib.import_module(op_test_config[op_type]["package"])
-        op_configs = op_test_config[op_type]["cfg"]
-        op_test_func = op_test_config[op_type]["test_func"]
-        quant_bits = op_test_config[op_type].get("quant_bits", [])
+        # generate test cases
+        op_set = get_op_set(op_test_config, args.ops)
 
-        if (args.bits == 8 and "int8" in quant_bits) or (
-            args.bits == 16 and "int16" in quant_bits
-        ):
-            export_path = os.path.join(args.output_path, op_type)
-            for cfg in op_configs:
+        for op_type in op_set:
+            pkg = importlib.import_module(op_test_config[op_type]["package"])
+            op_configs = op_test_config[op_type]["cfg"]
+            op_test_func = op_test_config[op_type]["test_func"]
+            quant_bits = op_test_config[op_type].get("quant_bits", [])
+
+            if (args.bits == 8 and "int8" in quant_bits) or (
+                args.bits == 16 and "int16" in quant_bits
+            ):
+                export_path = os.path.join(args.output_path, op_type)
+                for cfg in op_configs:
+                    print(
+                        "Op Test Function: ",
+                        op_test_func,
+                        "Configs: ",
+                        cfg,
+                        "Package: ",
+                        pkg.__name__,
+                        "Output Path: ",
+                        export_path,
+                    )
+                    op = getattr(pkg, op_test_func)(cfg)
+                    BaseInferencer(
+                        op,
+                        export_path=export_path,
+                        model_cfg=cfg,
+                        target=args.target,
+                        num_of_bits=args.bits,
+                        model_version=args.version,
+                        meta_cfg=config["meta"],
+                    )()
+            else:
                 print(
-                    "Op Test Function: ",
-                    op_test_func,
-                    "Configs: ",
-                    cfg,
-                    "Package: ",
-                    pkg.__name__,
-                    "Output Path: ",
-                    export_path,
+                    f"Skip op: {op_type}, do not support quantization with {args.bits} bits."
                 )
-                op = getattr(pkg, op_test_func)(cfg)
-                BaseInferencer(
-                    op,
-                    export_path=export_path,
-                    model_cfg=cfg,
-                    target=args.target,
-                    num_of_bits=args.bits,
-                    model_version=args.version,
-                    meta_cfg=config["meta"],
-                )()
+    else:
+        model_config = config["models_test"][args.models]
+        if args.bits == 8 or args.bits == 16:
+            model = onnx.load(model_config["onnx_model_path"])
+            BaseInferencer(
+                model,
+                export_path=args.output_path,
+                model_cfg=model_config,
+                target=args.target,
+                num_of_bits=args.bits,
+                model_version=args.version,
+                meta_cfg=config["meta"],
+            )()
         else:
-            print(
-                f"Skip op: {op_type}, do not support quantization with {args.bits} bits."
-            )
+            print(f"Do not support quantization with {args.bits} bits.")
