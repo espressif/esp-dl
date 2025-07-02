@@ -858,6 +858,16 @@ class IDENTITY_TEST(nn.Module):
         return output
 
 
+class SWISH_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.op = nn.SiLU()
+
+    def forward(self, input):
+        return self.op(input)
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 
