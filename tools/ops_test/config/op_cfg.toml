@@ -2445,7 +2445,13 @@
         time_axis = 1
         export_name_prefix = "ReverseSequence_ishape_1_5_20"
 
-
+    [ops_test.Swish]
+    test_func = "SWISH_TEST"
+    quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
+        [[ops_test.Swish.cfg]]
+        input_shape = [1, 96, 20, 20]
+        export_name_prefix = "swish_ishap_1_96_20_20"
 
 
 [models_test]

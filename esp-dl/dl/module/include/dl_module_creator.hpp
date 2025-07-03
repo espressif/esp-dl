@@ -39,6 +39,7 @@
 #include "dl_module_sqrt.hpp"
 #include "dl_module_squeeze.hpp"
 #include "dl_module_sub.hpp"
+#include "dl_module_swish.hpp"
 #include "dl_module_tanh.hpp"
 #include "dl_module_transpose.hpp"
 #include "dl_module_unsqueeze.hpp"
@@ -152,6 +153,7 @@ public:
             this->register_module("LessOrEqual", LessOrEqual::deserialize);
             this->register_module("ReverseSequence", ReverseSequence::deserialize);
             this->register_module("Identity", Identity::deserialize);
+            this->register_module("Swish", Swish::deserialize);
         }
     }
 
