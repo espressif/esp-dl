@@ -70,7 +70,7 @@ HumanFaceRecognizer::HumanFaceRecognizer(char *db_path, HumanFaceFeat::model_typ
 }
 
 std::vector<dl::recognition::result_t> HumanFaceRecognizer::recognize(const dl::image::img_t &img,
-                                                                      std::list<dl::detect::result_t> &detect_res)
+                                                                      const std::list<dl::detect::result_t> &detect_res)
 {
     std::vector<std::vector<dl::recognition::result_t>> res;
     if (detect_res.empty()) {
@@ -91,7 +91,7 @@ std::vector<dl::recognition::result_t> HumanFaceRecognizer::recognize(const dl::
     }
 }
 
-esp_err_t HumanFaceRecognizer::enroll(const dl::image::img_t &img, std::list<dl::detect::result_t> &detect_res)
+esp_err_t HumanFaceRecognizer::enroll(const dl::image::img_t &img, const std::list<dl::detect::result_t> &detect_res)
 {
     if (detect_res.empty()) {
         ESP_LOGW("HumanFaceRecognizer", "Failed to enroll. No face detected.");
