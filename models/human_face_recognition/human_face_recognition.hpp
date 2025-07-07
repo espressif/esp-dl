@@ -37,8 +37,8 @@ public:
                         int top_k = 1);
 
     std::vector<dl::recognition::result_t> recognize(const dl::image::img_t &img,
-                                                     std::list<dl::detect::result_t> &detect_res);
-    esp_err_t enroll(const dl::image::img_t &img, std::list<dl::detect::result_t> &detect_res);
+                                                     const std::list<dl::detect::result_t> &detect_res);
+    esp_err_t enroll(const dl::image::img_t &img, const std::list<dl::detect::result_t> &detect_res);
     esp_err_t clear_all_feats();
     esp_err_t delete_feat(uint16_t id);
     esp_err_t delete_last_feat();
