@@ -4,7 +4,7 @@ from ppq.core import QuantizationVisibility, TargetPlatform
 from ppq.executor import TorchExecutor
 from ppq.quantization.optim import *
 
-from trainer_supervised import Trainer, CaliDataset
+from trainer import Trainer, CaliDataset
 from ppq.api import get_target_platform
 from torch.utils.data import DataLoader
 from PIL import Image
@@ -42,7 +42,7 @@ def worker_init_fn(worker_id):
 def get_dataset(batchsz=32, imgsz=640, num_workers=8):
     # train dataset
     dataset = YOLODataset
-    yaml_path = "ultralytics/cfg/datasets/coco-pose.yaml"
+    yaml_path = "coco-pose.yaml"
     with open(yaml_path, errors="ignore", encoding="utf-8") as f:
         s = f.read()
         s = re.sub(
@@ -91,6 +91,7 @@ def qat():
     CFG_PLATFORM = get_target_platform("esp32p4", 8)
     cali_path = "calib_yolo11n-pose"
     calib_steps = 32
+    EPOCH = 6
 
     with zipfile.ZipFile("calib_yolo11n-pose.zip", "r") as zip_file:
         zip_file.extractall("./")
@@ -172,16 +173,25 @@ def qat():
     # ------------------------------------------------------------
     trainer = Trainer(graph=graph)
 
-    for epoch in range(6):
+    current_pose_mAP50_95 = trainer.eval()  # before training
+    best_pose_mAP50_95 = 0
+    for epoch in range(EPOCH):
         trainer.epoch(train_loader)
         if not os.path.exists(str(epoch)):
             os.mkdir(str(epoch))
-        final_graph = trainer.save(
-            os.path.join(str(epoch), "p4_yolo11n_pose_qat_640.espdl"),
-            os.path.join(str(epoch), "p4_yolo11n_pose_qat_640.native"),
+        qat_graph = trainer.save(
+            os.path.join(str(epoch), "coco_pose_yolo11n_pose_s8_p4_v2.espdl"),
+            os.path.join(str(epoch), "coco_pose_yolo11n_pose_s8_p4_v2.native"),
         )
-    return final_graph
+        # evaluate trained quantized model per epoch
+        current_pose_mAP50_95 = trainer.eval()
+        print(f"Epoch: {epoch}, mAP: {current_pose_mAP50_95}")
+
+        if current_pose_mAP50_95 > best_pose_mAP50_95:
+            trainer.save("Best_p4.espdl", "Best_p4.native")
+            best_pose_mAP50_95 = current_pose_mAP50_95
+    return qat_graph
 
 
 if __name__ == "__main__":
-    final_graph = qat()
+    qat_graph = qat()

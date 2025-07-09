@@ -52,11 +52,11 @@ def quant_yolo11n_pose(imgsz):
     NUM_OF_BITS = 8
     script_dir = os.path.dirname(os.path.abspath(__file__))
     ONNX_PATH = os.path.join(
-        script_dir, "../../../../models/coco_detect/models/yolo11n-pose.onnx"
+        script_dir, "../../../../models/coco_pose/models/yolo11n-pose.onnx"
     )
     ESPDL_MODLE_PATH = os.path.join(
         script_dir,
-        "../../../../models/coco_detect/models/p4/coco_pose_yolo11n_pose_s8_v1.espdl",
+        "../../../../models/coco_pose/models/p4/coco_pose_yolo11n_pose_s8_v1.espdl",
     )
 
     yolo11n_pose_caib_url = "https://dl.espressif.com/public/calib_yolo11n-pose.zip"

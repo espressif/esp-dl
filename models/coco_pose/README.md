@@ -10,16 +10,16 @@
 | ESP32-P4 | ![alt text][supported] | ![alt text][supported]  |
 
 - `yolo11n_pose_s8_v1_s3` and `yolo11n_pose_s8_v1_p4` use 8bit default configuration quantization.
-- `yolo11n_pose_s8_v2_s3` , `yolo11n_pose_s8_v2_p4` use Quantization-Aware Training.
+- `yolo11n_pose_s8_v2_s3` and `yolo11n_pose_s8_v2_p4` use Quantization-Aware Training.
 
 ## Model Latency
 
 | name                      | input(h*w*c)  | Flash(MB) | PSRAM(MB) | preprocess(us) | model(us) | postprocess(us) | mAP50-95 on COCO |
 |---------------------------|---------------|-----------|-----------|----------------|-----------|-----------------|------------------|
-| yolo11n_pose_s8_v1_s3     | 640 * 640 * 3 | 8         | 8         | 202842         | 28687664  | 10427           | 0.431            |
-| yolo11n_pose_s8_v2_s3     | 640 * 640 * 3 | 8         | 8         | 202837         | 28695904  | 10259           | 0.451            |  
-| yolo11n_pose_s8_v1_p4     | 640 * 640 * 3 | 16        | 32        | 105768         | 3346157   | 6538            | 0.429            |
-| yolo11n_pose_s8_v2_p4     | 640 * 640 * 3 | 16        | 32        | 105770         | 3344908   | 7258            | 0.454            |
+| yolo11n_pose_s8_v1_s3     | 640 * 640 * 3 | 8         | 8         | 202665         | 27880033  | 10941           | 0.429            | 
+| yolo11n_pose_s8_v2_s3     | 640 * 640 * 3 | 8         | 8         | 202825         | 27862048  | 10755           | 0.452            | 
+| yolo11n_pose_s8_v1_p4     | 640 * 640 * 3 | 16        | 32        | 105778         | 2988259   | 6304            | 0.431            |
+| yolo11n_pose_s8_v2_p4     | 640 * 640 * 3 | 16        | 32        | 105777         | 2994932   | 7074            | 0.449            |
 
 ## Model Usage
 

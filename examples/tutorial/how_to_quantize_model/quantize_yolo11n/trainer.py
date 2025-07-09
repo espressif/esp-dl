@@ -7,17 +7,17 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 import os
-import numpy as np
 from PIL import Image
-from torch.nn.functional import linear, normalize
-from typing import Callable
 from ultralytics import YOLO
-import onnx
-import onnxruntime as ort
+from ppq.parser import NativeExporter
 from ppq.core import TargetPlatform
 import ppq.lib as PFL
-from ppq.parser import NativeExporter
+from ultralytics.nn.tasks import DetectionModel
+from ultralytics.utils import DEFAULT_CFG_DICT, IterableSimpleNamespace
 from yolo11n_eval import make_quant_validator_class
+
+
+imgsz = 640
 
 
 class CaliDataset(Dataset):
@@ -26,11 +26,10 @@ class CaliDataset(Dataset):
         self.transform = transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Resize((640, 640)),
+                transforms.Resize((imgsz, imgsz)),
                 transforms.Normalize(mean=[0, 0, 0], std=[1, 1, 1]),
             ]
         )
-
         self.imgs_path = []
         self.path = path
         for img_name in os.listdir(self.path):
@@ -42,32 +41,6 @@ class CaliDataset(Dataset):
 
     def __getitem__(self, idx):
         img = Image.open(self.imgs_path[idx])  # 0~255 hwc #RGB
-        img = self.transform(img)
-        return img
-
-
-class TrainDataset(Dataset):
-    def __init__(self, path):
-        super().__init__()
-        self.transform = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Resize((640, 640)),
-                transforms.Normalize(mean=[0, 0, 0], std=[1, 1, 1]),
-            ]
-        )
-        self.imgs_path = []
-        self.path = path
-        for img_name in os.listdir(self.path):
-            if img_name.endswith(".jpg"):
-                img_path = os.path.join(self.path, img_name)
-                self.imgs_path.append(img_path)
-
-    def __len__(self):
-        return len(self.imgs_path)
-
-    def __getitem__(self, idx):
-        img = Image.open(self.imgs_path[idx])
         if img.mode == "L":
             img = img.convert("RGB")
         img = self.transform(img)
@@ -92,23 +65,44 @@ class Trainer:
         Tuning them carefully, as hyperparameters will greatly affects training result.
     """
 
-    def __init__(self, graph: BaseGraph, onnx_path, device: str = "cpu") -> None:
+    def __init__(self, graph: BaseGraph, device: str = "cuda") -> None:
 
         self._epoch = 0
         self._step = 0
-        self._executor = TorchExecutor(graph, device=device)
-        self._training_graph = TrainableGraph(graph)
-        self._loss_fn = torch.nn.MSELoss()
-        self._graph = graph
-        self._onnx_path = onnx_path
+        self._best_metric = 0
         self._device = device
+        self._executor = TorchExecutor(graph, device=self._device)
+        self._training_graph = TrainableGraph(graph)
+        self.graph = graph
 
         for tensor in self._training_graph.parameters():
             tensor.requires_grad = True
         self._optimizer = torch.optim.SGD(
-            params=[{"params": self._training_graph.parameters()}], lr=3e-5
+            params=[{"params": self._training_graph.parameters()}],
+            lr=1e-6,
+            momentum=0.937,
+            weight_decay=5e-4,
         )
         self._lr_scheduler = None
+
+        self.model = DetectionModel(nc=80)
+        self.model = self.model.to(self._device)
+        overrides = {
+            "data": DEFAULT_CFG_DICT["data"],
+            "model": "yolo11n",
+            "task": "detect",
+            "device": "cuda",
+        }
+        cfg = {
+            **DEFAULT_CFG_DICT,
+            **overrides,
+        }  # combine default and model args (prefer model args)
+        self.model.args = IterableSimpleNamespace(**cfg)
+
+    def preprocess_batch(self, batch):
+        """Preprocesses a batch of images by scaling and converting to float."""
+        batch["img"] = batch["img"].to(self._device, non_blocking=True).float() / 255
+        return batch
 
     def epoch(self, dataloader: Iterable) -> float:
         """Do one epoch Training with given dataloader.
@@ -123,36 +117,31 @@ class Trainer:
         for bidx, batch in enumerate(
             tqdm(dataloader, desc=f"Epoch {self._epoch}: ", total=len(dataloader))
         ):
-            data = batch
-            data = data.to(self._device)
-            _, loss = self.step(data, True)
+            _, loss = self.step(batch, True)
             epoch_loss += loss
 
         self._epoch += 1
+
         print(f"Epoch Loss: {epoch_loss / len(dataloader):.4f}")
         return epoch_loss
 
     def step(self, data: torch.Tensor, training: bool) -> Tuple[torch.Tensor, float]:
-        """Do one step Training with given data(torch.Tensor) and label(torch.Tensor).
-
-        This one-step-forward function assume that your model have only one input and output variable.
-
-        If the training model has more input or output variable, then you might need to
-            rewrite this function by yourself.
+        """
+        Do one step Training with given data(torch.Tensor) and label(torch.Tensor).
         """
         if training:
-            # quantized model inference
-            pred = self._executor.forward_with_gradient(data)
-            # fp32 model inference
-            session = ort.InferenceSession(self._onnx_path)
-            input_name = session.get_inputs()[0].name
-            output_fp32 = session.run(None, {input_name: np.array(data.cpu())})
-            # init QAT training loss
-            loss = 0
-            for i in range(len(pred)):
-                loss += self._loss_fn(
-                    pred[i], torch.Tensor(output_fp32[i]).to(self._device)
-                )
+            data = self.preprocess_batch(data)
+            graph_outputs = self._executor.forward_with_gradient(data["img"])
+
+            x = [
+                torch.cat((graph_outputs[i], graph_outputs[i + 1]), 1)
+                for i in range(0, 6, 2)
+            ]
+
+            preds = x
+
+            # loss
+            loss = self.model.loss(data, preds)[0]
             loss.backward()
             if self._lr_scheduler is not None:
                 self._lr_scheduler.step(epoch=self._epoch)
@@ -160,7 +149,7 @@ class Trainer:
             self._training_graph.zero_grad()
 
             self._step += 1
-            return pred, loss.item()
+            return preds, loss.item()
 
     def eval(self) -> float:
         """Do Evaluation process on given dataloader.
@@ -179,22 +168,21 @@ class Trainer:
             rect=False,
             save_json=True,
         )
-
         return results.box.map
 
     def save(self, file_path: str, file_path2: str):
         """Save model to given path.
         Saved model can be read by ppq.api.load_native_model function.
         """
-        # export .espdl
+
         PFL.Exporter(platform=TargetPlatform.ESPDL_INT8).export(
-            file_path=file_path, graph=self._graph
+            file_path=file_path, graph=self.graph
         )
-        qat_graph = self._graph
-        # export .native
+        final_graph = self.graph
+
         exporter = NativeExporter()
-        exporter.export(file_path=file_path2, graph=self._graph)
-        return qat_graph
+        exporter.export(file_path=file_path2, graph=self.graph)
+        return final_graph
 
     def clear(self):
         """Clear training state."""

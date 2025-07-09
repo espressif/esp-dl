@@ -1,4 +1,4 @@
-version: "0.1.0"
+version: "0.2.0"
 license: "MIT"
 description: coco pose model.
 url: https://github.com/espressif/esp-dl/tree/master/models/coco_pose

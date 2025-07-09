@@ -33,7 +33,10 @@ def create_md(config_file, output_path):
         quant_bits = op_test_config[op_type].get("quant_bits", [])
         restrictions = op_test_config[op_type].get("restrictions", "")
 
-        onnx_op_link = onnx_link.replace("##", op_type)
+        if op_type.lower() in ["swish"]:
+            onnx_op_link = ""
+        else:
+            onnx_op_link = onnx_link.replace("##", op_type)
         espdl_op_link = espdl_link.replace("##", camel_to_snake(op_type))
 
         item = [op_type + espdl_op_link + onnx_op_link]
