@@ -123,7 +123,7 @@ test_dl_fft:
       optional: true
   parallel:
     matrix:
-      - IDF_TARGET: [esp32p4, esp32s3]
+      - IDF_TARGET: [esp32p4, esp32s3, esp32]
         IDF_VERSION: "5.3"
   tags:
     - ${IDF_TARGET}
