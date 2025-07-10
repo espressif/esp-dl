@@ -58,96 +58,96 @@
 .. code-block::
 
    Layer                                        | NOISE:SIGNAL POWER RATIO 
-   /model.10/m/m.0/ffn/ffn.1/conv/Conv:         | ████████████████████ | 36.042%
-   /model.10/m/m.0/attn/proj/conv/Conv:         | ████████████████     | 28.761%
-   /model.23/cv3.2/cv3.2.0/cv3.2.0.0/conv/Conv: | █████████████        | 22.876%
-   /model.23/cv2.2/cv2.2.0/conv/Conv:           | ████████████         | 21.570%
-   /model.23/cv3.2/cv3.2.1/cv3.2.1.1/conv/Conv: | ████████████         | 21.467%
-   /model.23/cv3.2/cv3.2.0/cv3.2.0.1/conv/Conv: | ████████████         | 21.021%
-   /model.23/cv2.2/cv2.2.1/conv/Conv:           | ████████████         | 20.973%
-   /model.23/cv3.1/cv3.1.1/cv3.1.1.1/conv/Conv: | ███████████          | 19.432%
-   /model.22/m.0/cv2/conv/Conv:                 | ███████████          | 19.320%
-   /model.23/cv3.0/cv3.0.1/cv3.0.1.1/conv/Conv: | ███████████          | 19.243%
-   /model.22/m.0/cv3/conv/Conv:                 | ███████████          | 19.029%
-   /model.22/cv2/conv/Conv:                     | ██████████           | 18.488%
-   /model.22/m.0/m/m.1/cv2/conv/Conv:           | ██████████           | 18.222%
-   /model.23/cv2.1/cv2.1.1/conv/Conv:           | ██████████           | 17.400%
-   /model.8/m.0/cv2/conv/Conv:                  | █████████            | 16.189%
-   /model.23/cv2.0/cv2.0.1/conv/Conv:           | █████████            | 15.585%
-   /model.10/m/m.0/attn/pe/conv/Conv:           | ████████             | 14.687%
-   /model.10/m/m.0/attn/qkv/conv/Conv:          | ████████             | 14.601%
-   /model.23/cv2.1/cv2.1.0/conv/Conv:           | ████████             | 14.154%
-   /model.22/cv1/conv/Conv:                     | ████████             | 14.102%
-   /model.10/m/m.0/attn/MatMul_1:               | ████████             | 13.998%
-   /model.10/cv1/conv/Conv:                     | ███████              | 13.560%
-   /model.23/cv3.1/cv3.1.0/cv3.1.0.1/conv/Conv: | ██████               | 11.771%
-   /model.19/m.0/cv2/conv/Conv:                 | ██████               | 11.216%
-   /model.22/m.0/m/m.0/cv2/conv/Conv:           | ██████               | 11.140%
-   /model.23/cv3.2/cv3.2.1/cv3.2.1.0/conv/Conv: | ██████               | 11.057%
-   /model.13/m.0/cv2/conv/Conv:                 | ██████               | 10.881%
-   /model.20/conv/Conv:                         | ██████               | 10.692%
-   /model.23/cv2.2/cv2.2.2/Conv:                | █████                | 9.888%
-   /model.10/cv2/conv/Conv:                     | █████                | 9.788%
-   /model.8/cv2/conv/Conv:                      | █████                | 9.477%
-   /model.8/m.0/cv1/conv/Conv:                  | █████                | 9.422%
-   /model.19/cv2/conv/Conv:                     | █████                | 9.102%
-   /model.8/cv1/conv/Conv:                      | █████                | 9.101%
-   /model.8/m.0/cv3/conv/Conv:                  | █████                | 9.068%
-   /model.23/cv3.0/cv3.0.0/cv3.0.0.1/conv/Conv: | █████                | 9.014%
-   /model.22/m.0/m/m.0/cv1/conv/Conv:           | █████                | 8.996%
-   /model.6/m.0/cv2/conv/Conv:                  | █████                | 8.882%
-   /model.22/m.0/m/m.1/cv1/conv/Conv:           | █████                | 8.637%
-   /model.13/cv2/conv/Conv:                     | █████                | 8.556%
-   /model.8/m.0/m/m.0/cv1/conv/Conv:            | █████                | 8.461%
-   /model.8/m.0/m/m.0/cv2/conv/Conv:            | █████                | 8.362%
-   /model.19/cv1/conv/Conv:                     | ████                 | 8.194%
-   /model.8/m.0/m/m.1/cv1/conv/Conv:            | ████                 | 8.021%
-   /model.13/cv1/conv/Conv:                     | ████                 | 7.910%
-   /model.10/m/m.0/attn/MatMul:                 | ████                 | 7.861%
-   /model.19/m.0/cv1/conv/Conv:                 | ████                 | 7.520%
-   /model.22/m.0/cv1/conv/Conv:                 | ████                 | 7.239%
-   /model.8/m.0/m/m.1/cv2/conv/Conv:            | ████                 | 7.054%
-   /model.23/cv2.0/cv2.0.0/conv/Conv:           | ████                 | 7.042%
-   /model.13/m.0/cv1/conv/Conv:                 | ████                 | 6.987%
-   /model.23/cv2.0/cv2.0.2/Conv:                | ████                 | 6.739%
-   /model.23/cv2.1/cv2.1.2/Conv:                | ████                 | 6.734%
-   /model.23/cv3.1/cv3.1.1/cv3.1.1.0/conv/Conv: | ████                 | 6.660%
-   /model.17/conv/Conv:                         | ███                  | 6.025%
-   /model.16/m.0/cv2/conv/Conv:                 | ███                  | 5.897%
-   /model.6/cv2/conv/Conv:                      | ███                  | 5.815%
-   /model.6/m.0/cv3/conv/Conv:                  | ███                  | 5.814%
-   /model.6/cv1/conv/Conv:                      | ███                  | 5.693%
-   /model.7/conv/Conv:                          | ███                  | 5.570%
-   /model.9/cv2/conv/Conv:                      | ███                  | 5.382%
-   /model.10/m/m.0/ffn/ffn.0/conv/Conv:         | ███                  | 5.173%
-   /model.6/m.0/m/m.0/cv1/conv/Conv:            | ███                  | 5.168%
-   /model.16/m.0/cv1/conv/Conv:                 | ███                  | 5.087%
-   /model.23/cv3.1/cv3.1.0/cv3.1.0.0/conv/Conv: | ███                  | 5.010%
-   /model.16/cv2/conv/Conv:                     | ███                  | 4.991%
-   /model.2/cv2/conv/Conv:                      | ██                   | 4.552%
-   /model.6/m.0/m/m.0/cv2/conv/Conv:            | ██                   | 4.443%
-   /model.3/conv/Conv:                          | ██                   | 4.318%
-   /model.23/cv3.0/cv3.0.1/cv3.0.1.0/conv/Conv: | ██                   | 4.304%
-   /model.6/m.0/m/m.1/cv1/conv/Conv:            | ██                   | 3.968%
-   /model.5/conv/Conv:                          | ██                   | 3.948%
-   /model.6/m.0/cv1/conv/Conv:                  | ██                   | 3.863%
-   /model.4/cv1/conv/Conv:                      | ██                   | 3.720%
+   /model.10/m/m.0/ffn/ffn.1/conv/Conv:         | ████████████████████ | 36.008%
+   /model.10/m/m.0/attn/proj/conv/Conv:         | ████████████████     | 28.705%
+   /model.23/cv3.2/cv3.2.0/cv3.2.0.0/conv/Conv: | █████████████        | 22.865%
+   /model.23/cv2.2/cv2.2.0/conv/Conv:           | ████████████         | 21.718%
+   /model.23/cv3.2/cv3.2.1/cv3.2.1.1/conv/Conv: | ████████████         | 21.624%
+   /model.23/cv2.2/cv2.2.1/conv/Conv:           | ████████████         | 21.392%
+   /model.23/cv3.2/cv3.2.0/cv3.2.0.1/conv/Conv: | ████████████         | 21.224%
+   /model.22/m.0/cv2/conv/Conv:                 | ███████████          | 19.763%
+   /model.23/cv3.0/cv3.0.1/cv3.0.1.1/conv/Conv: | ███████████          | 19.436%
+   /model.22/m.0/cv3/conv/Conv:                 | ███████████          | 19.378%
+   /model.23/cv3.1/cv3.1.1/cv3.1.1.1/conv/Conv: | ██████████           | 18.913%
+   /model.22/m.0/m/m.1/cv2/conv/Conv:           | ██████████           | 18.645%
+   /model.22/cv2/conv/Conv:                     | ██████████           | 18.628%
+   /model.23/cv2.1/cv2.1.1/conv/Conv:           | ██████████           | 17.980%
+   /model.8/m.0/cv2/conv/Conv:                  | █████████            | 16.247%
+   /model.23/cv2.0/cv2.0.1/conv/Conv:           | █████████            | 15.602%
+   /model.10/m/m.0/attn/qkv/conv/Conv:          | ████████             | 14.666%
+   /model.10/m/m.0/attn/pe/conv/Conv:           | ████████             | 14.556%
+   /model.23/cv2.1/cv2.1.0/conv/Conv:           | ████████             | 14.302%
+   /model.22/cv1/conv/Conv:                     | ████████             | 13.921%
+   /model.10/m/m.0/attn/MatMul_1:               | ████████             | 13.905%
+   /model.10/cv1/conv/Conv:                     | ███████              | 13.494%
+   /model.23/cv3.1/cv3.1.0/cv3.1.0.1/conv/Conv: | ██████               | 11.800%
+   /model.19/m.0/cv2/conv/Conv:                 | ██████               | 11.515%
+   /model.22/m.0/m/m.0/cv2/conv/Conv:           | ██████               | 11.286%
+   /model.20/conv/Conv:                         | ██████               | 10.930%
+   /model.13/m.0/cv2/conv/Conv:                 | ██████               | 10.882%
+   /model.23/cv3.2/cv3.2.1/cv3.2.1.0/conv/Conv: | ██████               | 10.692%
+   /model.23/cv2.2/cv2.2.2/Conv:                | ██████               | 10.113%
+   /model.10/cv2/conv/Conv:                     | █████                | 9.720%
+   /model.8/cv2/conv/Conv:                      | █████                | 9.598%
+   /model.8/m.0/cv1/conv/Conv:                  | █████                | 9.470%
+   /model.19/cv2/conv/Conv:                     | █████                | 9.314%
+   /model.22/m.0/m/m.0/cv1/conv/Conv:           | █████                | 9.068%
+   /model.23/cv3.0/cv3.0.0/cv3.0.0.1/conv/Conv: | █████                | 9.065%
+   /model.8/cv1/conv/Conv:                      | █████                | 9.051%
+   /model.8/m.0/cv3/conv/Conv:                  | █████                | 9.044%
+   /model.6/m.0/cv2/conv/Conv:                  | █████                | 8.811%
+   /model.22/m.0/m/m.1/cv1/conv/Conv:           | █████                | 8.781%
+   /model.13/cv2/conv/Conv:                     | █████                | 8.687%
+   /model.8/m.0/m/m.0/cv1/conv/Conv:            | █████                | 8.503%
+   /model.8/m.0/m/m.0/cv2/conv/Conv:            | █████                | 8.470%
+   /model.19/cv1/conv/Conv:                     | ████                 | 8.199%
+   /model.10/m/m.0/attn/MatMul:                 | ████                 | 8.117%
+   /model.8/m.0/m/m.1/cv1/conv/Conv:            | ████                 | 7.964%
+   /model.13/cv1/conv/Conv:                     | ████                 | 7.734%
+   /model.19/m.0/cv1/conv/Conv:                 | ████                 | 7.661%
+   /model.22/m.0/cv1/conv/Conv:                 | ████                 | 7.490%
+   /model.13/m.0/cv1/conv/Conv:                 | ████                 | 7.162%
+   /model.8/m.0/m/m.1/cv2/conv/Conv:            | ████                 | 7.145%
+   /model.23/cv2.0/cv2.0.0/conv/Conv:           | ████                 | 7.041%
+   /model.23/cv2.1/cv2.1.2/Conv:                | ████                 | 6.917%
+   /model.23/cv2.0/cv2.0.2/Conv:                | ████                 | 6.778%
+   /model.23/cv3.1/cv3.1.1/cv3.1.1.0/conv/Conv: | ████                 | 6.641%
+   /model.17/conv/Conv:                         | ███                  | 6.125%
+   /model.16/m.0/cv2/conv/Conv:                 | ███                  | 5.937%
+   /model.6/cv2/conv/Conv:                      | ███                  | 5.838%
+   /model.6/m.0/cv3/conv/Conv:                  | ███                  | 5.832%
+   /model.6/cv1/conv/Conv:                      | ███                  | 5.688%
+   /model.7/conv/Conv:                          | ███                  | 5.612%
+   /model.9/cv2/conv/Conv:                      | ███                  | 5.367%
+   /model.10/m/m.0/ffn/ffn.0/conv/Conv:         | ███                  | 5.158%
+   /model.6/m.0/m/m.0/cv1/conv/Conv:            | ███                  | 5.143%
+   /model.16/m.0/cv1/conv/Conv:                 | ███                  | 5.137%
+   /model.23/cv3.1/cv3.1.0/cv3.1.0.0/conv/Conv: | ███                  | 5.087%
+   /model.16/cv2/conv/Conv:                     | ███                  | 4.989%
+   /model.2/cv2/conv/Conv:                      | ██                   | 4.547%
+   /model.6/m.0/m/m.0/cv2/conv/Conv:            | ██                   | 4.441%
+   /model.23/cv3.0/cv3.0.1/cv3.0.1.0/conv/Conv: | ██                   | 4.343%
+   /model.3/conv/Conv:                          | ██                   | 4.304%
+   /model.6/m.0/m/m.1/cv1/conv/Conv:            | ██                   | 4.006%
+   /model.5/conv/Conv:                          | ██                   | 3.932%
+   /model.6/m.0/cv1/conv/Conv:                  | ██                   | 3.837%
+   /model.4/cv1/conv/Conv:                      | ██                   | 3.687%
    /model.2/cv1/conv/Conv:                      | ██                   | 3.565%
-   /model.4/cv2/conv/Conv:                      | ██                   | 3.538%
-   /model.16/cv1/conv/Conv:                     | ██                   | 3.110%
-   /model.2/m.0/cv2/conv/Conv:                  | █                    | 2.844%
-   /model.6/m.0/m/m.1/cv2/conv/Conv:            | █                    | 2.762%
-   /model.4/m.0/cv1/conv/Conv:                  | █                    | 2.532%
-   /model.9/cv1/conv/Conv:                      | █                    | 2.015%
-   /model.4/m.0/cv2/conv/Conv:                  | █                    | 1.761%
-   /model.23/cv3.0/cv3.0.0/cv3.0.0.0/conv/Conv: | █                    | 1.317%
-   /model.1/conv/Conv:                          | █                    | 1.315%
-   /model.23/cv3.2/cv3.2.2/Conv:                | █                    | 1.114%
-   /model.2/m.0/cv1/conv/Conv:                  |                      | 0.731%
-   /model.23/cv3.1/cv3.1.2/Conv:                |                      | 0.491%
+   /model.4/cv2/conv/Conv:                      | ██                   | 3.559%
+   /model.16/cv1/conv/Conv:                     | ██                   | 3.107%
+   /model.2/m.0/cv2/conv/Conv:                  | ██                   | 2.882%
+   /model.6/m.0/m/m.1/cv2/conv/Conv:            | █                    | 2.758%
+   /model.4/m.0/cv1/conv/Conv:                  | █                    | 2.564%
+   /model.9/cv1/conv/Conv:                      | █                    | 2.017%
+   /model.4/m.0/cv2/conv/Conv:                  | █                    | 1.785%
+   /model.23/cv3.0/cv3.0.0/cv3.0.0.0/conv/Conv: | █                    | 1.327%
+   /model.1/conv/Conv:                          | █                    | 1.313%
+   /model.23/cv3.2/cv3.2.2/Conv:                | █                    | 1.155%
+   /model.2/m.0/cv1/conv/Conv:                  |                      | 0.727%
+   /model.23/cv3.1/cv3.1.2/Conv:                |                      | 0.493%
    /model.23/cv3.0/cv3.0.2/Conv:                |                      | 0.282%
    /model.0/conv/Conv:                          |                      | 0.159%
-   Analysing Layerwise quantization error:: 100%|██| 89/89 [07:46<00:00,  5.24s/it]
+   Analysing Layerwise quantization error:: 100%|██████████| 89/89 [03:39<00:00,  2.46s/it]
    Layer                                        | NOISE:SIGNAL POWER RATIO 
    /model.1/conv/Conv:                          | ████████████████████ | 0.384%
    /model.22/cv1/conv/Conv:                     | █████████████        | 0.247%
@@ -245,7 +245,7 @@
 
 - **累计误差 (Graphwise Error)**
 
-   模型的输出层是 /model.23/cv3.2/cv3.2.2/Conv，/model.23/cv2.2/cv2.2.2/Conv，/model.23/cv3.1/cv3.1.2/Conv，/model.23/cv2.1/cv2.1.2/Conv，/model.23/cv3.0/cv3.0.2/Conv 和 /model.23/cv2.0/cv2.0.2/Conv，累计误差分别为 1.114%%，9.888%%，0.491%，6.734%，0.282% 和 6.739% 。通常，如果输出层的累计误差小于 10%，则量化模型的精度损失较小。
+   模型的输出层是 /model.23/cv3.2/cv3.2.2/Conv，/model.23/cv2.2/cv2.2.2/Conv，/model.23/cv3.1/cv3.1.2/Conv，/model.23/cv2.1/cv2.1.2/Conv，/model.23/cv3.0/cv3.0.2/Conv 和 /model.23/cv2.0/cv2.0.2/Conv，累计误差分别为 1.155%，10.113%，0.493%，6.917%，0.282% 和 6.778% 。通常，如果输出层的累计误差小于 10%，则量化模型的精度损失较小。
 
 - **逐层误差 (Layerwise error)**
 
@@ -285,98 +285,98 @@
 .. code-block::
 
    Layer                                        | NOISE:SIGNAL POWER RATIO 
-   /model.10/m/m.0/ffn/ffn.1/conv/Conv:         | ████████████████████ | 24.841%
-   /model.10/m/m.0/attn/proj/conv/Conv:         | ███████████████      | 19.061%
-   /model.23/cv2.2/cv2.2.1/conv/Conv:           | ██████████████       | 17.927%
-   /model.23/cv3.2/cv3.2.0/cv3.2.0.0/conv/Conv: | ██████████████       | 17.396%
-   /model.23/cv2.2/cv2.2.0/conv/Conv:           | ██████████████       | 17.061%
-   /model.22/m.0/cv3/conv/Conv:                 | ████████████         | 15.563%
-   /model.23/cv3.2/cv3.2.0/cv3.2.0.1/conv/Conv: | ████████████         | 15.427%
-   /model.23/cv3.0/cv3.0.1/cv3.0.1.1/conv/Conv: | ████████████         | 14.890%
-   /model.22/m.0/m/m.1/cv2/conv/Conv:           | ████████████         | 14.784%
-   /model.23/cv3.2/cv3.2.1/cv3.2.1.1/conv/Conv: | ███████████          | 14.243%
-   /model.22/cv2/conv/Conv:                     | ███████████          | 14.098%
-   /model.22/m.0/cv2/conv/Conv:                 | ███████████          | 13.945%
-   /model.23/cv3.1/cv3.1.1/cv3.1.1.1/conv/Conv: | ███████████          | 13.489%
-   /model.23/cv2.1/cv2.1.1/conv/Conv:           | █████████            | 10.919%
-   /model.23/cv2.0/cv2.0.1/conv/Conv:           | ████████             | 10.073%
-   /model.23/cv2.1/cv2.1.0/conv/Conv:           | ████████             | 9.819%
-   /model.22/cv1/conv/Conv:                     | ███████              | 9.093%
-   /model.10/m/m.0/attn/MatMul_1:               | ███████              | 8.414%
-   /model.22/m.0/m/m.0/cv2/conv/Conv:           | ███████              | 8.245%
-   /model.23/cv2.2/cv2.2.2/Conv:                | ███████              | 8.208%
-   /model.23/cv3.1/cv3.1.0/cv3.1.0.1/conv/Conv: | ██████               | 8.031%
-   /model.10/m/m.0/attn/qkv/conv/Conv:          | ██████               | 7.818%
-   /model.13/m.0/cv2/conv/Conv:                 | ██████               | 7.717%
-   /model.19/m.0/cv2/conv/Conv:                 | ██████               | 7.404%
-   /model.20/conv/Conv:                         | ██████               | 7.161%
-   /model.23/cv3.2/cv3.2.1/cv3.2.1.0/conv/Conv: | ██████               | 7.080%
-   /model.10/m/m.0/attn/pe/conv/Conv:           | █████                | 6.814%
-   /model.23/cv3.0/cv3.0.0/cv3.0.0.1/conv/Conv: | █████                | 6.764%
-   /model.22/m.0/m/m.1/cv1/conv/Conv:           | █████                | 6.539%
-   /model.22/m.0/m/m.0/cv1/conv/Conv:           | █████                | 6.418%
-   /model.19/cv2/conv/Conv:                     | █████                | 6.206%
-   /model.13/cv2/conv/Conv:                     | █████                | 5.894%
-   /model.10/cv1/conv/Conv:                     | █████                | 5.757%
-   /model.10/cv2/conv/Conv:                     | █████                | 5.716%
-   /model.19/cv1/conv/Conv:                     | ████                 | 5.279%
-   /model.22/m.0/cv1/conv/Conv:                 | ████                 | 5.072%
-   /model.19/m.0/cv1/conv/Conv:                 | ████                 | 5.036%
-   /model.23/cv3.1/cv3.1.1/cv3.1.1.0/conv/Conv: | ████                 | 4.979%
-   /model.8/m.0/cv2/conv/Conv:                  | ████                 | 4.862%
-   /model.10/m/m.0/attn/MatMul:                 | ████                 | 4.670%
-   /model.13/cv1/conv/Conv:                     | ████                 | 4.594%
-   /model.23/cv2.0/cv2.0.0/conv/Conv:           | ████                 | 4.441%
-   /model.23/cv2.0/cv2.0.2/Conv:                | ███                  | 4.308%
-   /model.13/m.0/cv1/conv/Conv:                 | ███                  | 4.278%
-   /model.23/cv2.1/cv2.1.2/Conv:                | ███                  | 4.214%
-   /model.6/m.0/cv2/conv/Conv:                  | ███                  | 4.031%
-   /model.17/conv/Conv:                         | ███                  | 3.760%
-   /model.16/m.0/cv2/conv/Conv:                 | ███                  | 3.521%
-   /model.8/m.0/cv1/conv/Conv:                  | ███                  | 3.227%
-   /model.16/m.0/cv1/conv/Conv:                 | ██                   | 3.185%
-   /model.23/cv3.1/cv3.1.0/cv3.1.0.0/conv/Conv: | ██                   | 3.178%
-   /model.23/cv3.0/cv3.0.1/cv3.0.1.0/conv/Conv: | ██                   | 3.150%
-   /model.8/cv2/conv/Conv:                      | ██                   | 3.067%
-   /model.8/m.0/cv3/conv/Conv:                  | ██                   | 3.067%
-   /model.16/cv2/conv/Conv:                     | ██                   | 3.054%
-   /model.2/cv2/conv/Conv:                      | ██                   | 3.053%
-   /model.8/m.0/m/m.1/cv1/conv/Conv:            | ██                   | 3.049%
-   /model.6/m.0/cv3/conv/Conv:                  | ██                   | 3.049%
-   /model.8/cv1/conv/Conv:                      | ██                   | 2.984%
-   /model.8/m.0/m/m.0/cv2/conv/Conv:            | ██                   | 2.934%
-   /model.10/m/m.0/ffn/ffn.0/conv/Conv:         | ██                   | 2.794%
-   /model.6/cv1/conv/Conv:                      | ██                   | 2.783%
-   /model.8/m.0/m/m.0/cv1/conv/Conv:            | ██                   | 2.753%
-   /model.2/cv1/conv/Conv:                      | ██                   | 2.697%
-   /model.6/cv2/conv/Conv:                      | ██                   | 2.616%
-   /model.8/m.0/m/m.1/cv2/conv/Conv:            | ██                   | 2.596%
-   /model.9/cv2/conv/Conv:                      | ██                   | 2.500%
-   /model.3/conv/Conv:                          | ██                   | 2.499%
-   /model.2/m.0/cv2/conv/Conv:                  | ██                   | 2.469%
-   /model.6/m.0/m/m.0/cv2/conv/Conv:            | ██                   | 2.235%
-   /model.6/m.0/m/m.0/cv1/conv/Conv:            | ██                   | 2.233%
-   /model.4/cv2/conv/Conv:                      | ██                   | 2.150%
-   /model.7/conv/Conv:                          | ██                   | 2.075%
+   /model.10/m/m.0/ffn/ffn.1/conv/Conv:         | ████████████████████ | 24.835%
+   /model.10/m/m.0/attn/proj/conv/Conv:         | ███████████████      | 18.632%
+   /model.23/cv2.2/cv2.2.1/conv/Conv:           | ██████████████       | 17.908%
+   /model.23/cv3.2/cv3.2.0/cv3.2.0.0/conv/Conv: | ██████████████       | 16.922%
+   /model.23/cv2.2/cv2.2.0/conv/Conv:           | █████████████        | 16.754%
+   /model.22/m.0/cv3/conv/Conv:                 | ████████████         | 15.404%
+   /model.23/cv3.2/cv3.2.0/cv3.2.0.1/conv/Conv: | ████████████         | 15.042%
+   /model.23/cv3.0/cv3.0.1/cv3.0.1.1/conv/Conv: | ████████████         | 14.948%
+   /model.22/m.0/m/m.1/cv2/conv/Conv:           | ████████████         | 14.702%
+   /model.23/cv3.2/cv3.2.1/cv3.2.1.1/conv/Conv: | ███████████          | 13.683%
+   /model.22/cv2/conv/Conv:                     | ███████████          | 13.654%
+   /model.22/m.0/cv2/conv/Conv:                 | ███████████          | 13.514%
+   /model.23/cv3.1/cv3.1.1/cv3.1.1.1/conv/Conv: | ██████████           | 12.885%
+   /model.23/cv2.1/cv2.1.1/conv/Conv:           | █████████            | 10.865%
+   /model.23/cv2.0/cv2.0.1/conv/Conv:           | ████████             | 9.875%
+   /model.23/cv2.1/cv2.1.0/conv/Conv:           | ████████             | 9.658%
+   /model.22/cv1/conv/Conv:                     | ███████              | 8.917%
+   /model.10/m/m.0/attn/MatMul_1:               | ███████              | 8.368%
+   /model.23/cv2.2/cv2.2.2/Conv:                | ███████              | 8.156%
+   /model.22/m.0/m/m.0/cv2/conv/Conv:           | ██████               | 8.056%
+   /model.10/m/m.0/attn/qkv/conv/Conv:          | ██████               | 7.948%
+   /model.23/cv3.1/cv3.1.0/cv3.1.0.1/conv/Conv: | ██████               | 7.824%
+   /model.13/m.0/cv2/conv/Conv:                 | ██████               | 7.504%
+   /model.19/m.0/cv2/conv/Conv:                 | ██████               | 7.290%
+   /model.20/conv/Conv:                         | ██████               | 6.986%
+   /model.10/m/m.0/attn/pe/conv/Conv:           | ██████               | 6.926%
+   /model.23/cv3.0/cv3.0.0/cv3.0.0.1/conv/Conv: | █████                | 6.771%
+   /model.23/cv3.2/cv3.2.1/cv3.2.1.0/conv/Conv: | █████                | 6.756%
+   /model.22/m.0/m/m.1/cv1/conv/Conv:           | █████                | 6.465%
+   /model.22/m.0/m/m.0/cv1/conv/Conv:           | █████                | 6.274%
+   /model.19/cv2/conv/Conv:                     | █████                | 6.116%
+   /model.10/cv1/conv/Conv:                     | █████                | 5.868%
+   /model.13/cv2/conv/Conv:                     | █████                | 5.815%
+   /model.10/cv2/conv/Conv:                     | ████                 | 5.664%
+   /model.19/cv1/conv/Conv:                     | ████                 | 5.178%
+   /model.8/m.0/cv2/conv/Conv:                  | ████                 | 4.970%
+   /model.19/m.0/cv1/conv/Conv:                 | ████                 | 4.919%
+   /model.23/cv3.1/cv3.1.1/cv3.1.1.0/conv/Conv: | ████                 | 4.864%
+   /model.22/m.0/cv1/conv/Conv:                 | ████                 | 4.844%
+   /model.10/m/m.0/attn/MatMul:                 | ████                 | 4.650%
+   /model.13/cv1/conv/Conv:                     | ████                 | 4.564%
+   /model.23/cv2.0/cv2.0.0/conv/Conv:           | ███                  | 4.389%
+   /model.13/m.0/cv1/conv/Conv:                 | ███                  | 4.243%
+   /model.23/cv2.0/cv2.0.2/Conv:                | ███                  | 4.232%
+   /model.23/cv2.1/cv2.1.2/Conv:                | ███                  | 4.222%
+   /model.6/m.0/cv2/conv/Conv:                  | ███                  | 4.023%
+   /model.17/conv/Conv:                         | ███                  | 3.754%
+   /model.16/m.0/cv2/conv/Conv:                 | ███                  | 3.511%
+   /model.8/m.0/cv1/conv/Conv:                  | ███                  | 3.277%
+   /model.16/m.0/cv1/conv/Conv:                 | ██                   | 3.158%
+   /model.23/cv3.0/cv3.0.1/cv3.0.1.0/conv/Conv: | ██                   | 3.155%
+   /model.23/cv3.1/cv3.1.0/cv3.1.0.0/conv/Conv: | ██                   | 3.152%
+   /model.8/cv2/conv/Conv:                      | ██                   | 3.119%
+   /model.8/m.0/m/m.1/cv1/conv/Conv:            | ██                   | 3.106%
+   /model.8/m.0/cv3/conv/Conv:                  | ██                   | 3.083%
+   /model.6/m.0/cv3/conv/Conv:                  | ██                   | 3.068%
+   /model.8/cv1/conv/Conv:                      | ██                   | 3.035%
+   /model.16/cv2/conv/Conv:                     | ██                   | 3.002%
+   /model.2/cv2/conv/Conv:                      | ██                   | 2.992%
+   /model.8/m.0/m/m.0/cv2/conv/Conv:            | ██                   | 2.971%
+   /model.6/cv1/conv/Conv:                      | ██                   | 2.819%
+   /model.8/m.0/m/m.0/cv1/conv/Conv:            | ██                   | 2.809%
+   /model.10/m/m.0/ffn/ffn.0/conv/Conv:         | ██                   | 2.760%
+   /model.2/cv1/conv/Conv:                      | ██                   | 2.683%
+   /model.6/cv2/conv/Conv:                      | ██                   | 2.630%
+   /model.8/m.0/m/m.1/cv2/conv/Conv:            | ██                   | 2.615%
+   /model.9/cv2/conv/Conv:                      | ██                   | 2.540%
+   /model.3/conv/Conv:                          | ██                   | 2.503%
+   /model.2/m.0/cv2/conv/Conv:                  | ██                   | 2.474%
+   /model.6/m.0/m/m.0/cv1/conv/Conv:            | ██                   | 2.273%
+   /model.6/m.0/m/m.0/cv2/conv/Conv:            | ██                   | 2.246%
+   /model.4/cv2/conv/Conv:                      | ██                   | 2.141%
+   /model.7/conv/Conv:                          | ██                   | 2.120%
    /model.6/m.0/m/m.1/cv1/conv/Conv:            | ██                   | 2.069%
-   /model.5/conv/Conv:                          | ██                   | 1.998%
-   /model.16/cv1/conv/Conv:                     | █                    | 1.899%
-   /model.4/cv1/conv/Conv:                      | █                    | 1.808%
-   /model.4/m.0/cv1/conv/Conv:                  | █                    | 1.741%
-   /model.6/m.0/cv1/conv/Conv:                  | █                    | 1.734%
-   /model.6/m.0/m/m.1/cv2/conv/Conv:            | █                    | 1.523%
-   /model.4/m.0/cv2/conv/Conv:                  | █                    | 1.248%
-   /model.23/cv3.0/cv3.0.0/cv3.0.0.0/conv/Conv: | █                    | 0.875%
-   /model.23/cv3.2/cv3.2.2/Conv:                | █                    | 0.784%
-   /model.1/conv/Conv:                          | █                    | 0.781%
-   PPQ_Operation_2:                             |                      | 0.698%
-   /model.9/cv1/conv/Conv:                      |                      | 0.680%
-   /model.2/m.0/cv1/conv/Conv:                  |                      | 0.508%
-   /model.23/cv3.1/cv3.1.2/Conv:                |                      | 0.360%
-   /model.23/cv3.0/cv3.0.2/Conv:                |                      | 0.189%
+   /model.5/conv/Conv:                          | ██                   | 2.015%
+   /model.16/cv1/conv/Conv:                     | █                    | 1.894%
+   /model.4/cv1/conv/Conv:                      | █                    | 1.793%
+   /model.4/m.0/cv1/conv/Conv:                  | █                    | 1.776%
+   /model.6/m.0/cv1/conv/Conv:                  | █                    | 1.731%
+   /model.6/m.0/m/m.1/cv2/conv/Conv:            | █                    | 1.550%
+   /model.4/m.0/cv2/conv/Conv:                  | █                    | 1.257%
+   /model.23/cv3.0/cv3.0.0/cv3.0.0.0/conv/Conv: | █                    | 0.886%
+   /model.1/conv/Conv:                          | █                    | 0.775%
+   /model.23/cv3.2/cv3.2.2/Conv:                | █                    | 0.771%
+   PPQ_Operation_2:                             |                      | 0.696%
+   /model.9/cv1/conv/Conv:                      |                      | 0.695%
+   /model.2/m.0/cv1/conv/Conv:                  |                      | 0.534%
+   /model.23/cv3.1/cv3.1.2/Conv:                |                      | 0.339%
+   /model.23/cv3.0/cv3.0.2/Conv:                |                      | 0.190%
    PPQ_Operation_0:                             |                      | 0.110%
    /model.0/conv/Conv:                          |                      | 0.099%
-   Analysing Layerwise quantization error:: 100%|██| 91/91 [12:32<00:00,  8.27s/it]
+   Analysing Layerwise quantization error:: 100%|██████████| 91/91 [04:13<00:00,  2.79s/it]
    Layer                                        | NOISE:SIGNAL POWER RATIO 
    /model.22/cv1/conv/Conv:                     | ████████████████████ | 0.244%
    /model.9/cv2/conv/Conv:                      | █████████████        | 0.156%
@@ -391,6 +391,7 @@
    /model.2/m.0/cv1/conv/Conv:                  | ████                 | 0.045%
    /model.10/m/m.0/attn/pe/conv/Conv:           | ██                   | 0.029%
    /model.2/m.0/cv2/conv/Conv:                  | ██                   | 0.029%
+   /model.10/m/m.0/attn/MatMul:                 | ██                   | 0.025%
    /model.6/cv1/conv/Conv:                      | ██                   | 0.025%
    /model.22/m.0/m/m.0/cv1/conv/Conv:           | ██                   | 0.023%
    /model.16/cv2/conv/Conv:                     | ██                   | 0.021%
@@ -463,7 +464,6 @@
    /model.23/cv3.2/cv3.2.0/cv3.2.0.0/conv/Conv: |                      | 0.001%
    /model.6/m.0/cv2/conv/Conv:                  |                      | 0.001%
    /model.23/cv3.0/cv3.0.2/Conv:                |                      | 0.000%
-   /model.10/m/m.0/attn/MatMul:                 |                      | 0.000%
    /model.23/cv3.1/cv3.1.0/cv3.1.0.0/conv/Conv: |                      | 0.000%
    /model.8/m.0/cv2/conv/Conv:                  |                      | 0.000%
    /model.22/m.0/cv2/conv/Conv:                 |                      | 0.000%
@@ -473,9 +473,9 @@
 
 **量化误差分析**
 
-在对逐层误差较高的层使用16-bit量化，并采用算子分裂过程后，在相同输入下，量化后的模型在 COCO val2017 上的 mAP50:95 提升至33.3%；同时可以观察到输出层的累计误差明显减少。
+在对逐层误差较高的层使用16-bit量化，并采用算子分裂过程后，在相同输入下，量化后的模型在 COCO val2017 上的 mAP50:95 提升至33.4%；同时可以观察到输出层的累计误差明显减少。
 
-模型的输出层/model.23/cv3.2/cv3.2.2/Conv， /model.23/cv2.2/cv2.2.2/Conv， /model.23/cv3.1/cv3.1.2/Conv， /model.23/cv2.1/cv2.1.2/Conv， /model.23/cv3.0/cv3.0.2/Conv和/model.23/cv2.0/cv2.0.2/Conv的累计误差分别为0.784%，8.208%，0.360%，4.214%，0.189%和4.308%。
+模型的输出层/model.23/cv3.2/cv3.2.2/Conv， /model.23/cv2.2/cv2.2.2/Conv， /model.23/cv3.1/cv3.1.2/Conv， /model.23/cv2.1/cv2.1.2/Conv， /model.23/cv3.0/cv3.0.2/Conv和/model.23/cv2.0/cv2.0.2/Conv的累计误差分别为0.771%，8.156%，0.339%，4.222%，0.190%和4.232%。
 
 .. _quantization_aware_label:
 
@@ -494,183 +494,183 @@
 .. code-block::
 
    Layer                                        | NOISE:SIGNAL POWER RATIO 
-   /model.10/m/m.0/ffn/ffn.1/conv/Conv:         | ████████████████████ | 23.754%
-   /model.10/m/m.0/attn/proj/conv/Conv:         | ██████████████       | 16.118%
-   /model.23/cv3.2/cv3.2.0/cv3.2.0.1/conv/Conv: | █████████            | 10.878%
-   /model.8/m.0/cv2/conv/Conv:                  | █████████            | 10.527%
-   /model.22/m.0/cv3/conv/Conv:                 | █████████            | 10.298%
-   /model.23/cv3.2/cv3.2.1/cv3.2.1.1/conv/Conv: | █████████            | 10.188%
-   /model.10/m/m.0/attn/pe/conv/Conv:           | ████████             | 10.093%
-   /model.22/m.0/m/m.1/cv2/conv/Conv:           | ████████             | 9.891%
-   /model.23/cv3.2/cv3.2.0/cv3.2.0.0/conv/Conv: | ████████             | 9.839%
-   /model.23/cv3.1/cv3.1.1/cv3.1.1.1/conv/Conv: | ████████             | 9.827%
-   /model.23/cv2.2/cv2.2.0/conv/Conv:           | ████████             | 9.658%
-   /model.23/cv3.0/cv3.0.1/cv3.0.1.1/conv/Conv: | ████████             | 9.168%
-   /model.22/m.0/cv2/conv/Conv:                 | ███████              | 8.604%
-   /model.10/m/m.0/attn/MatMul_1:               | ███████              | 8.596%
-   /model.10/m/m.0/attn/qkv/conv/Conv:          | ███████              | 8.541%
-   /model.23/cv2.2/cv2.2.1/conv/Conv:           | ███████              | 8.528%
-   /model.22/cv2/conv/Conv:                     | ███████              | 8.442%
-   /model.23/cv2.1/cv2.1.1/conv/Conv:           | ███████              | 8.306%
-   /model.23/cv2.0/cv2.0.1/conv/Conv:           | ███████              | 8.015%
-   /model.10/cv1/conv/Conv:                     | ███████              | 7.998%
-   /model.22/cv1/conv/Conv:                     | ██████               | 7.307%
-   /model.8/cv1/conv/Conv:                      | ██████               | 7.265%
-   /model.23/cv2.1/cv2.1.0/conv/Conv:           | ██████               | 6.989%
-   /model.23/cv3.1/cv3.1.0/cv3.1.0.1/conv/Conv: | ██████               | 6.716%
-   /model.6/m.0/cv2/conv/Conv:                  | █████                | 6.595%
-   /model.2/cv2/conv/Conv:                      | █████                | 6.131%
-   /model.22/m.0/m/m.0/cv2/conv/Conv:           | █████                | 6.078%
-   /model.10/m/m.0/attn/MatMul:                 | █████                | 6.055%
-   /model.19/m.0/cv2/conv/Conv:                 | █████                | 5.999%
-   /model.8/m.0/cv1/conv/Conv:                  | █████                | 5.919%
-   /model.13/m.0/cv2/conv/Conv:                 | █████                | 5.863%
-   /model.20/conv/Conv:                         | █████                | 5.638%
-   /model.8/cv2/conv/Conv:                      | █████                | 5.616%
-   /model.10/cv2/conv/Conv:                     | █████                | 5.464%
-   /model.23/cv3.0/cv3.0.0/cv3.0.0.1/conv/Conv: | █████                | 5.443%
-   /model.2/m.0/cv2/conv/Conv:                  | ████                 | 5.426%
-   /model.8/m.0/m/m.0/cv1/conv/Conv:            | ████                 | 5.390%
-   /model.13/cv2/conv/Conv:                     | ████                 | 5.256%
-   /model.19/cv2/conv/Conv:                     | ████                 | 5.231%
-   /model.13/cv1/conv/Conv:                     | ████                 | 5.131%
-   /model.23/cv3.2/cv3.2.1/cv3.2.1.0/conv/Conv: | ████                 | 5.122%
-   /model.6/cv1/conv/Conv:                      | ████                 | 5.049%
-   /model.6/cv2/conv/Conv:                      | ████                 | 4.788%
-   /model.8/m.0/m/m.0/cv2/conv/Conv:            | ████                 | 4.706%
-   /model.19/cv1/conv/Conv:                     | ████                 | 4.586%
-   /model.7/conv/Conv:                          | ████                 | 4.586%
-   /model.8/m.0/m/m.1/cv1/conv/Conv:            | ████                 | 4.541%
-   /model.8/m.0/cv3/conv/Conv:                  | ████                 | 4.529%
-   /model.3/conv/Conv:                          | ████                 | 4.361%
-   /model.13/m.0/cv1/conv/Conv:                 | ████                 | 4.359%
-   /model.22/m.0/m/m.1/cv1/conv/Conv:           | ████                 | 4.328%
-   /model.6/m.0/cv3/conv/Conv:                  | ███                  | 4.156%
-   /model.22/m.0/m/m.0/cv1/conv/Conv:           | ███                  | 4.083%
-   /model.23/cv2.0/cv2.0.0/conv/Conv:           | ███                  | 3.998%
-   /model.19/m.0/cv1/conv/Conv:                 | ███                  | 3.974%
-   /model.23/cv2.2/cv2.2.2/Conv:                | ███                  | 3.817%
-   /model.16/m.0/cv1/conv/Conv:                 | ███                  | 3.797%
-   /model.16/m.0/cv2/conv/Conv:                 | ███                  | 3.654%
-   /model.4/cv1/conv/Conv:                      | ███                  | 3.544%
-   /model.4/cv2/conv/Conv:                      | ███                  | 3.488%
-   /model.22/m.0/cv1/conv/Conv:                 | ███                  | 3.423%
-   /model.8/m.0/m/m.1/cv2/conv/Conv:            | ███                  | 3.382%
-   /model.23/cv3.0/cv3.0.1/cv3.0.1.0/conv/Conv: | ███                  | 3.299%
-   /model.17/conv/Conv:                         | ███                  | 3.296%
-   /model.6/m.0/m/m.0/cv1/conv/Conv:            | ███                  | 3.267%
-   /model.5/conv/Conv:                          | ███                  | 3.147%
-   /model.23/cv2.1/cv2.1.2/Conv:                | ███                  | 3.102%
-   /model.16/cv2/conv/Conv:                     | ███                  | 3.091%
-   /model.6/m.0/m/m.0/cv2/conv/Conv:            | ███                  | 3.080%
-   /model.23/cv2.0/cv2.0.2/Conv:                | ██                   | 3.056%
-   /model.23/cv3.1/cv3.1.1/cv3.1.1.0/conv/Conv: | ██                   | 2.989%
-   /model.2/cv1/conv/Conv:                      | ██                   | 2.874%
-   /model.23/cv3.1/cv3.1.0/cv3.1.0.0/conv/Conv: | ██                   | 2.843%
-   /model.6/m.0/cv1/conv/Conv:                  | ██                   | 2.819%
-   /model.9/cv2/conv/Conv:                      | ██                   | 2.662%
-   /model.6/m.0/m/m.1/cv1/conv/Conv:            | ██                   | 2.633%
-   /model.10/m/m.0/ffn/ffn.0/conv/Conv:         | ██                   | 2.581%
-   /model.4/m.0/cv1/conv/Conv:                  | ██                   | 2.545%
-   /model.16/cv1/conv/Conv:                     | ██                   | 2.171%
-   /model.4/m.0/cv2/conv/Conv:                  | ██                   | 1.942%
-   /model.6/m.0/m/m.1/cv2/conv/Conv:            | ██                   | 1.925%
-   /model.2/m.0/cv1/conv/Conv:                  | █                    | 1.721%
-   /model.9/cv1/conv/Conv:                      | █                    | 1.140%
-   /model.1/conv/Conv:                          | █                    | 1.117%
-   /model.23/cv3.0/cv3.0.0/cv3.0.0.0/conv/Conv: | █                    | 0.831%
-   /model.23/cv3.2/cv3.2.2/Conv:                |                      | 0.443%
-   /model.23/cv3.1/cv3.1.2/Conv:                |                      | 0.247%
-   /model.0/conv/Conv:                          |                      | 0.150%
-   /model.23/cv3.0/cv3.0.2/Conv:                |                      | 0.119%
-   Analysing Layerwise quantization error:: 100%|██████████| 89/89 [04:44<00:00,  3.20s/it]
+   /model.10/m/m.0/ffn/ffn.1/conv/Conv:         | ████████████████████ | 29.837%
+   /model.10/m/m.0/attn/proj/conv/Conv:         | ████████████████     | 23.397%
+   /model.10/m/m.0/attn/pe/conv/Conv:           | ██████████           | 15.253%
+   /model.23/cv3.1/cv3.1.1/cv3.1.1.1/conv/Conv: | ██████████           | 14.819%
+   /model.10/m/m.0/attn/MatMul_1:               | ██████████           | 14.725%
+   /model.23/cv3.0/cv3.0.1/cv3.0.1.1/conv/Conv: | ██████████           | 14.315%
+   /model.23/cv3.2/cv3.2.0/cv3.2.0.1/conv/Conv: | █████████            | 14.212%
+   /model.23/cv3.2/cv3.2.1/cv3.2.1.1/conv/Conv: | █████████            | 14.187%
+   /model.10/m/m.0/attn/qkv/conv/Conv:          | █████████            | 13.797%
+   /model.23/cv2.2/cv2.2.0/conv/Conv:           | █████████            | 13.721%
+   /model.22/m.0/cv2/conv/Conv:                 | █████████            | 13.540%
+   /model.23/cv3.2/cv3.2.0/cv3.2.0.0/conv/Conv: | █████████            | 13.408%
+   /model.8/m.0/cv2/conv/Conv:                  | █████████            | 12.809%
+   /model.22/m.0/cv3/conv/Conv:                 | ████████             | 12.623%
+   /model.23/cv2.1/cv2.1.1/conv/Conv:           | ████████             | 12.472%
+   /model.23/cv2.1/cv2.1.0/conv/Conv:           | ████████             | 12.177%
+   /model.22/m.0/m/m.1/cv2/conv/Conv:           | ████████             | 11.719%
+   /model.23/cv2.2/cv2.2.1/conv/Conv:           | ████████             | 11.711%
+   /model.10/cv1/conv/Conv:                     | ████████             | 11.589%
+   /model.22/cv2/conv/Conv:                     | ████████             | 11.551%
+   /model.23/cv2.0/cv2.0.1/conv/Conv:           | ████████             | 11.505%
+   /model.10/m/m.0/attn/MatMul:                 | ████████             | 11.346%
+   /model.22/cv1/conv/Conv:                     | ███████              | 10.201%
+   /model.23/cv3.1/cv3.1.0/cv3.1.0.1/conv/Conv: | ██████               | 9.710%
+   /model.13/m.0/cv2/conv/Conv:                 | ██████               | 9.538%
+   /model.20/conv/Conv:                         | ██████               | 8.870%
+   /model.19/m.0/cv2/conv/Conv:                 | ██████               | 8.713%
+   /model.23/cv3.0/cv3.0.0/cv3.0.0.1/conv/Conv: | █████                | 8.157%
+   /model.22/m.0/m/m.0/cv2/conv/Conv:           | █████                | 8.005%
+   /model.8/cv2/conv/Conv:                      | █████                | 7.952%
+   /model.8/m.0/cv1/conv/Conv:                  | █████                | 7.697%
+   /model.13/cv2/conv/Conv:                     | █████                | 7.557%
+   /model.19/cv2/conv/Conv:                     | █████                | 7.443%
+   /model.10/cv2/conv/Conv:                     | █████                | 7.403%
+   /model.6/m.0/cv2/conv/Conv:                  | █████                | 7.099%
+   /model.8/cv1/conv/Conv:                      | █████                | 6.996%
+   /model.19/cv1/conv/Conv:                     | █████                | 6.912%
+   /model.8/m.0/m/m.0/cv1/conv/Conv:            | █████                | 6.908%
+   /model.8/m.0/cv3/conv/Conv:                  | ████                 | 6.755%
+   /model.23/cv3.2/cv3.2.1/cv3.2.1.0/conv/Conv: | ████                 | 6.746%
+   /model.8/m.0/m/m.0/cv2/conv/Conv:            | ████                 | 6.743%
+   /model.8/m.0/m/m.1/cv1/conv/Conv:            | ████                 | 6.638%
+   /model.13/cv1/conv/Conv:                     | ████                 | 6.361%
+   /model.2/m.0/cv2/conv/Conv:                  | ████                 | 6.274%
+   /model.13/m.0/cv1/conv/Conv:                 | ████                 | 6.261%
+   /model.19/m.0/cv1/conv/Conv:                 | ████                 | 6.191%
+   /model.22/m.0/m/m.0/cv1/conv/Conv:           | ████                 | 6.036%
+   /model.23/cv2.2/cv2.2.2/Conv:                | ████                 | 5.999%
+   /model.22/m.0/m/m.1/cv1/conv/Conv:           | ████                 | 5.899%
+   /model.23/cv2.0/cv2.0.0/conv/Conv:           | ████                 | 5.618%
+   /model.8/m.0/m/m.1/cv2/conv/Conv:            | ████                 | 5.560%
+   /model.22/m.0/cv1/conv/Conv:                 | ███                  | 5.336%
+   /model.16/m.0/cv2/conv/Conv:                 | ███                  | 5.316%
+   /model.17/conv/Conv:                         | ███                  | 5.113%
+   /model.6/m.0/cv3/conv/Conv:                  | ███                  | 5.103%
+   /model.16/m.0/cv1/conv/Conv:                 | ███                  | 5.101%
+   /model.23/cv3.1/cv3.1.1/cv3.1.1.0/conv/Conv: | ███                  | 5.052%
+   /model.2/cv2/conv/Conv:                      | ███                  | 5.003%
+   /model.6/cv2/conv/Conv:                      | ███                  | 4.968%
+   /model.6/cv1/conv/Conv:                      | ███                  | 4.792%
+   /model.23/cv2.1/cv2.1.2/Conv:                | ███                  | 4.543%
+   /model.7/conv/Conv:                          | ███                  | 4.520%
+   /model.3/conv/Conv:                          | ███                  | 4.362%
+   /model.16/cv2/conv/Conv:                     | ███                  | 4.028%
+   /model.23/cv2.0/cv2.0.2/Conv:                | ███                  | 4.001%
+   /model.23/cv3.1/cv3.1.0/cv3.1.0.0/conv/Conv: | ███                  | 3.954%
+   /model.9/cv2/conv/Conv:                      | ███                  | 3.901%
+   /model.6/m.0/m/m.0/cv1/conv/Conv:            | ███                  | 3.891%
+   /model.10/m/m.0/ffn/ffn.0/conv/Conv:         | ██                   | 3.791%
+   /model.23/cv3.0/cv3.0.1/cv3.0.1.0/conv/Conv: | ██                   | 3.711%
+   /model.4/cv1/conv/Conv:                      | ██                   | 3.673%
+   /model.6/m.0/m/m.0/cv2/conv/Conv:            | ██                   | 3.620%
+   /model.6/m.0/m/m.1/cv1/conv/Conv:            | ██                   | 3.513%
+   /model.4/cv2/conv/Conv:                      | ██                   | 3.421%
+   /model.5/conv/Conv:                          | ██                   | 3.320%
+   /model.6/m.0/cv1/conv/Conv:                  | ██                   | 3.073%
+   /model.2/cv1/conv/Conv:                      | ██                   | 3.021%
+   /model.16/cv1/conv/Conv:                     | ██                   | 2.764%
+   /model.6/m.0/m/m.1/cv2/conv/Conv:            | ██                   | 2.454%
+   /model.4/m.0/cv1/conv/Conv:                  | ██                   | 2.408%
+   /model.4/m.0/cv2/conv/Conv:                  | █                    | 1.689%
+   /model.2/m.0/cv1/conv/Conv:                  | █                    | 1.602%
+   /model.9/cv1/conv/Conv:                      | █                    | 1.568%
+   /model.1/conv/Conv:                          | █                    | 1.205%
+   /model.23/cv3.0/cv3.0.0/cv3.0.0.0/conv/Conv: | █                    | 1.091%
+   /model.23/cv3.2/cv3.2.2/Conv:                |                      | 0.746%
+   /model.23/cv3.1/cv3.1.2/Conv:                |                      | 0.480%
+   /model.23/cv3.0/cv3.0.2/Conv:                |                      | 0.386%
+   /model.0/conv/Conv:                          |                      | 0.163%
+   Analysing Layerwise quantization error:: 100%|██████████| 89/89 [04:01<00:00,  2.72s/it]
    Layer                                        | NOISE:SIGNAL POWER RATIO 
-   /model.2/cv2/conv/Conv:                      | ████████████████████ | 1.462%
-   /model.3/conv/Conv:                          | ██████████           | 0.764%
-   /model.4/cv2/conv/Conv:                      | ██████████           | 0.763%
-   /model.10/cv2/conv/Conv:                     | ███████              | 0.535%
-   /model.9/cv2/conv/Conv:                      | ██████               | 0.439%
-   /model.2/cv1/conv/Conv:                      | █████                | 0.395%
-   /model.4/cv1/conv/Conv:                      | █████                | 0.361%
-   /model.1/conv/Conv:                          | █████                | 0.347%
-   /model.2/m.0/cv1/conv/Conv:                  | ███                  | 0.192%
-   /model.4/m.0/cv2/conv/Conv:                  | ███                  | 0.184%
-   /model.22/cv1/conv/Conv:                     | ██                   | 0.179%
-   /model.5/conv/Conv:                          | ██                   | 0.161%
-   /model.16/cv1/conv/Conv:                     | ██                   | 0.154%
-   /model.10/cv1/conv/Conv:                     | ██                   | 0.145%
-   /model.16/m.0/cv2/conv/Conv:                 | ██                   | 0.142%
-   /model.16/m.0/cv1/conv/Conv:                 | ██                   | 0.113%
-   /model.4/m.0/cv1/conv/Conv:                  | █                    | 0.107%
-   /model.0/conv/Conv:                          | █                    | 0.100%
-   /model.10/m/m.0/attn/pe/conv/Conv:           | █                    | 0.095%
-   /model.6/cv1/conv/Conv:                      | █                    | 0.082%
-   /model.23/cv2.2/cv2.2.2/Conv:                | █                    | 0.082%
-   /model.16/cv2/conv/Conv:                     | █                    | 0.076%
-   /model.6/cv2/conv/Conv:                      | █                    | 0.066%
-   /model.22/m.0/cv1/conv/Conv:                 | █                    | 0.060%
-   /model.13/cv2/conv/Conv:                     | █                    | 0.056%
-   /model.19/cv2/conv/Conv:                     | █                    | 0.041%
-   /model.10/m/m.0/attn/qkv/conv/Conv:          |                      | 0.034%
-   /model.7/conv/Conv:                          |                      | 0.033%
-   /model.13/cv1/conv/Conv:                     |                      | 0.033%
-   /model.23/cv2.2/cv2.2.0/conv/Conv:           |                      | 0.032%
-   /model.10/m/m.0/ffn/ffn.0/conv/Conv:         |                      | 0.032%
-   /model.23/cv2.0/cv2.0.0/conv/Conv:           |                      | 0.029%
-   /model.13/m.0/cv1/conv/Conv:                 |                      | 0.029%
-   /model.2/m.0/cv2/conv/Conv:                  |                      | 0.026%
-   /model.19/cv1/conv/Conv:                     |                      | 0.025%
-   /model.6/m.0/cv3/conv/Conv:                  |                      | 0.024%
-   /model.19/m.0/cv2/conv/Conv:                 |                      | 0.024%
-   /model.17/conv/Conv:                         |                      | 0.023%
-   /model.23/cv2.0/cv2.0.2/Conv:                |                      | 0.021%
-   /model.19/m.0/cv1/conv/Conv:                 |                      | 0.019%
-   /model.23/cv3.2/cv3.2.2/Conv:                |                      | 0.019%
-   /model.9/cv1/conv/Conv:                      |                      | 0.017%
-   /model.23/cv2.1/cv2.1.0/conv/Conv:           |                      | 0.015%
-   /model.8/cv1/conv/Conv:                      |                      | 0.014%
-   /model.22/m.0/cv3/conv/Conv:                 |                      | 0.014%
-   /model.13/m.0/cv2/conv/Conv:                 |                      | 0.014%
-   /model.8/m.0/cv3/conv/Conv:                  |                      | 0.012%
-   /model.23/cv2.2/cv2.2.1/conv/Conv:           |                      | 0.011%
-   /model.23/cv2.1/cv2.1.2/Conv:                |                      | 0.011%
-   /model.22/m.0/m/m.1/cv1/conv/Conv:           |                      | 0.010%
-   /model.22/m.0/m/m.0/cv1/conv/Conv:           |                      | 0.009%
-   /model.20/conv/Conv:                         |                      | 0.009%
-   /model.8/cv2/conv/Conv:                      |                      | 0.009%
-   /model.6/m.0/m/m.1/cv1/conv/Conv:            |                      | 0.008%
-   /model.10/m/m.0/ffn/ffn.1/conv/Conv:         |                      | 0.008%
-   /model.23/cv3.1/cv3.1.0/cv3.1.0.1/conv/Conv: |                      | 0.008%
+   /model.2/cv2/conv/Conv:                      | ████████████████████ | 0.935%
+   /model.9/cv2/conv/Conv:                      | ██████████████████   | 0.826%
+   /model.2/m.0/cv1/conv/Conv:                  | ███████████████      | 0.698%
+   /model.3/conv/Conv:                          | █████████████        | 0.611%
+   /model.4/cv2/conv/Conv:                      | ██████████           | 0.491%
+   /model.10/cv2/conv/Conv:                     | █████████            | 0.408%
+   /model.23/cv2.2/cv2.2.2/Conv:                | ██████               | 0.283%
+   /model.2/cv1/conv/Conv:                      | ██████               | 0.261%
+   /model.4/cv1/conv/Conv:                      | █████                | 0.249%
+   /model.1/conv/Conv:                          | █████                | 0.217%
+   /model.22/cv1/conv/Conv:                     | ████                 | 0.201%
+   /model.10/cv1/conv/Conv:                     | ███                  | 0.143%
+   /model.5/conv/Conv:                          | ███                  | 0.136%
+   /model.16/cv1/conv/Conv:                     | ███                  | 0.128%
+   /model.10/m/m.0/attn/pe/conv/Conv:           | ███                  | 0.120%
+   /model.0/conv/Conv:                          | ███                  | 0.118%
+   /model.16/m.0/cv1/conv/Conv:                 | ██                   | 0.105%
+   /model.16/cv2/conv/Conv:                     | ██                   | 0.094%
+   /model.16/m.0/cv2/conv/Conv:                 | ██                   | 0.092%
+   /model.23/cv2.0/cv2.0.0/conv/Conv:           | ██                   | 0.089%
+   /model.4/m.0/cv1/conv/Conv:                  | ██                   | 0.071%
+   /model.22/m.0/cv1/conv/Conv:                 | █                    | 0.067%
+   /model.19/cv2/conv/Conv:                     | █                    | 0.063%
+   /model.6/cv2/conv/Conv:                      | █                    | 0.061%
+   /model.4/m.0/cv2/conv/Conv:                  | █                    | 0.059%
+   /model.17/conv/Conv:                         | █                    | 0.054%
+   /model.13/cv2/conv/Conv:                     | █                    | 0.053%
+   /model.8/m.0/cv3/conv/Conv:                  | █                    | 0.051%
+   /model.6/cv1/conv/Conv:                      | █                    | 0.047%
+   /model.23/cv2.2/cv2.2.0/conv/Conv:           | █                    | 0.042%
+   /model.23/cv3.0/cv3.0.0/cv3.0.0.1/conv/Conv: | █                    | 0.041%
+   /model.13/cv1/conv/Conv:                     | █                    | 0.040%
+   /model.7/conv/Conv:                          | █                    | 0.038%
+   /model.10/m/m.0/attn/qkv/conv/Conv:          | █                    | 0.038%
+   /model.13/m.0/cv1/conv/Conv:                 | █                    | 0.033%
+   /model.23/cv2.1/cv2.1.0/conv/Conv:           | █                    | 0.031%
+   /model.6/m.0/m/m.1/cv1/conv/Conv:            | █                    | 0.028%
+   /model.19/m.0/cv2/conv/Conv:                 | █                    | 0.027%
+   /model.8/m.0/m/m.1/cv1/conv/Conv:            | █                    | 0.026%
+   /model.2/m.0/cv2/conv/Conv:                  | █                    | 0.026%
+   /model.19/m.0/cv1/conv/Conv:                 |                      | 0.022%
+   /model.6/m.0/cv3/conv/Conv:                  |                      | 0.021%
+   /model.19/cv1/conv/Conv:                     |                      | 0.021%
+   /model.9/cv1/conv/Conv:                      |                      | 0.016%
+   /model.22/m.0/m/m.1/cv1/conv/Conv:           |                      | 0.016%
+   /model.13/m.0/cv2/conv/Conv:                 |                      | 0.015%
+   /model.23/cv3.1/cv3.1.0/cv3.1.0.1/conv/Conv: |                      | 0.015%
+   /model.22/m.0/m/m.0/cv1/conv/Conv:           |                      | 0.014%
+   /model.8/cv1/conv/Conv:                      |                      | 0.013%
+   /model.23/cv2.0/cv2.0.2/Conv:                |                      | 0.013%
+   /model.23/cv2.2/cv2.2.1/conv/Conv:           |                      | 0.012%
+   /model.10/m/m.0/ffn/ffn.0/conv/Conv:         |                      | 0.011%
+   /model.23/cv3.2/cv3.2.0/cv3.2.0.1/conv/Conv: |                      | 0.011%
+   /model.8/cv2/conv/Conv:                      |                      | 0.011%
+   /model.23/cv2.1/cv2.1.2/Conv:                |                      | 0.010%
+   /model.22/m.0/cv3/conv/Conv:                 |                      | 0.010%
    /model.23/cv2.1/cv2.1.1/conv/Conv:           |                      | 0.008%
+   /model.10/m/m.0/ffn/ffn.1/conv/Conv:         |                      | 0.008%
    /model.23/cv2.0/cv2.0.1/conv/Conv:           |                      | 0.007%
-   /model.23/cv3.0/cv3.0.0/cv3.0.0.1/conv/Conv: |                      | 0.007%
    /model.10/m/m.0/attn/proj/conv/Conv:         |                      | 0.007%
-   /model.8/m.0/m/m.1/cv1/conv/Conv:            |                      | 0.007%
    /model.8/m.0/cv1/conv/Conv:                  |                      | 0.007%
-   /model.23/cv3.1/cv3.1.1/cv3.1.1.0/conv/Conv: |                      | 0.006%
-   /model.23/cv3.2/cv3.2.0/cv3.2.0.1/conv/Conv: |                      | 0.005%
+   /model.22/m.0/m/m.0/cv2/conv/Conv:           |                      | 0.006%
+   /model.8/m.0/m/m.1/cv2/conv/Conv:            |                      | 0.005%
    /model.22/cv2/conv/Conv:                     |                      | 0.005%
-   /model.6/m.0/m/m.0/cv1/conv/Conv:            |                      | 0.004%
-   /model.22/m.0/m/m.0/cv2/conv/Conv:           |                      | 0.004%
+   /model.20/conv/Conv:                         |                      | 0.005%
+   /model.23/cv3.1/cv3.1.1/cv3.1.1.0/conv/Conv: |                      | 0.005%
+   /model.6/m.0/m/m.0/cv1/conv/Conv:            |                      | 0.005%
+   /model.8/m.0/m/m.0/cv1/conv/Conv:            |                      | 0.004%
    /model.23/cv3.1/cv3.1.1/cv3.1.1.1/conv/Conv: |                      | 0.003%
-   /model.6/m.0/cv1/conv/Conv:                  |                      | 0.003%
-   /model.8/m.0/m/m.0/cv1/conv/Conv:            |                      | 0.003%
-   /model.8/m.0/m/m.1/cv2/conv/Conv:            |                      | 0.003%
    /model.8/m.0/m/m.0/cv2/conv/Conv:            |                      | 0.003%
+   /model.23/cv3.0/cv3.0.0/cv3.0.0.0/conv/Conv: |                      | 0.003%
+   /model.6/m.0/cv1/conv/Conv:                  |                      | 0.003%
+   /model.23/cv3.2/cv3.2.2/Conv:                |                      | 0.003%
+   /model.23/cv3.2/cv3.2.1/cv3.2.1.0/conv/Conv: |                      | 0.003%
    /model.6/m.0/m/m.1/cv2/conv/Conv:            |                      | 0.003%
-   /model.23/cv3.2/cv3.2.1/cv3.2.1.0/conv/Conv: |                      | 0.002%
-   /model.23/cv3.1/cv3.1.2/Conv:                |                      | 0.002%
-   /model.23/cv3.0/cv3.0.0/cv3.0.0.0/conv/Conv: |                      | 0.002%
    /model.23/cv3.2/cv3.2.1/cv3.2.1.1/conv/Conv: |                      | 0.002%
    /model.22/m.0/m/m.1/cv2/conv/Conv:           |                      | 0.002%
    /model.6/m.0/m/m.0/cv2/conv/Conv:            |                      | 0.002%
+   /model.23/cv3.0/cv3.0.1/cv3.0.1.0/conv/Conv: |                      | 0.002%
    /model.10/m/m.0/attn/MatMul_1:               |                      | 0.002%
    /model.23/cv3.0/cv3.0.2/Conv:                |                      | 0.001%
-   /model.23/cv3.0/cv3.0.1/cv3.0.1.0/conv/Conv: |                      | 0.001%
+   /model.23/cv3.1/cv3.1.2/Conv:                |                      | 0.001%
    /model.23/cv3.0/cv3.0.1/cv3.0.1.1/conv/Conv: |                      | 0.001%
+   /model.23/cv3.1/cv3.1.0/cv3.1.0.0/conv/Conv: |                      | 0.001%
    /model.23/cv3.2/cv3.2.0/cv3.2.0.0/conv/Conv: |                      | 0.001%
    /model.6/m.0/cv2/conv/Conv:                  |                      | 0.000%
-   /model.23/cv3.1/cv3.1.0/cv3.1.0.0/conv/Conv: |                      | 0.000%
    /model.10/m/m.0/attn/MatMul:                 |                      | 0.000%
    /model.8/m.0/cv2/conv/Conv:                  |                      | 0.000%
    /model.22/m.0/cv2/conv/Conv:                 |                      | 0.000%
@@ -678,9 +678,9 @@
 
 **量化误差分析**
 
-在对8-bit量化应用量化感知训练后，在相同输入下，量化后的模型在 COCO val2017 上的 mAP50:95 提升至35.0%；同时输出层的累计误差大幅减少。相比前两种量化方式，量化感知训练后的8-bit量化模型可以在最快的推理速度下达到最高的量化精度。
+在对8-bit量化应用量化感知训练后，在相同输入下，量化后的模型在 COCO val2017 上的 mAP50:95 提升至36.0%；同时输出层的累计误差大幅减少。相比前两种量化方式，量化感知训练后的8-bit量化模型可以在最快的推理速度下达到最高的量化精度。
 
-模型的输出层/model.23/cv3.2/cv3.2.2/Conv， /model.23/cv2.2/cv2.2.2/Conv， /model.23/cv3.1/cv3.1.2/Conv， /model.23/cv2.1/cv2.1.2/Conv， /model.23/cv3.0/cv3.0.2/Conv和/model.23/cv2.0/cv2.0.2/Conv的累计误差分别为0.443%，3.817%，0.247%，3.102%，0.119%和3.056%。
+模型的输出层/model.23/cv3.2/cv3.2.2/Conv， /model.23/cv2.2/cv2.2.2/Conv， /model.23/cv3.1/cv3.1.2/Conv， /model.23/cv2.1/cv2.1.2/Conv， /model.23/cv3.0/cv3.0.2/Conv和/model.23/cv2.0/cv2.0.2/Conv的累计误差分别为0.746%，5.999%，0.480%，4.543%，0.386%和4.001%。
 
 .. note::
    

@@ -9,6 +9,8 @@ import os
 from PIL import Image
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG_DICT, IterableSimpleNamespace
+from yolo11n_pose_eval import make_quant_validator_class
+from ultralytics import YOLO
 
 imgsz = 640
 
@@ -104,7 +106,6 @@ class Trainer:
             then you are supposed to rewrite the logic of epoch function by yourself.
         """
         epoch_loss = 0
-        print("len(dataloader)=", len(dataloader))
         for bidx, batch in enumerate(
             tqdm(dataloader, desc=f"Epoch {self._epoch}: ", total=len(dataloader))
         ):
@@ -121,6 +122,7 @@ class Trainer:
         """
         Do one step Training with given data(torch.Tensor) and label(torch.Tensor).
         """
+        # supervised training
         if training:
             data = self.preprocess_batch(data)
             graph_outputs = self._executor.forward_with_gradient(data["img"])
@@ -146,6 +148,25 @@ class Trainer:
 
             self._step += 1
             return preds, loss.item()
+
+    def eval(self) -> float:
+        """Do Evaluation process on given dataloader.
+
+        Split your dataset into training and evaluation dataset at first, then
+            use eval function to monitor model performance on evaluation dataset.
+        """
+        QuantPoseValidator = make_quant_validator_class(self._executor)
+        # load yolo11n-pose.pt to enter val method and run BaseGraph inference
+        model = YOLO("yolo11n-pose.pt")
+        results = model.val(
+            data="coco-pose.yaml",  # change to "coco-pose.yaml"
+            imgsz=640,
+            device=self._device,
+            validator=QuantPoseValidator,
+            rect=False,
+            save_json=True,
+        )
+        return results.pose.map
 
     def save(self, file_path: str, file_path2: str):
         """Save model to given path.

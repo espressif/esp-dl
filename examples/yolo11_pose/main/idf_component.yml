@@ -1,7 +1,7 @@
 ## IDF Component Manager Manifest File
 dependencies:
   espressif/coco_pose:
-    version: "^0.1.0"
+    version: "^0.2.0"
     override_path: "../../../models/coco_pose"
   espressif/esp32_p4_function_ev_board_noglib:
     version: "^4.0.1"

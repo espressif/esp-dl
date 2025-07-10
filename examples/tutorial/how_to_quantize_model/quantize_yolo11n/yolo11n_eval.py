@@ -1,8 +1,7 @@
 from ultralytics import YOLO
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.models.yolo.detect.val import DetectionValidator
-from ultralytics.models.yolo.pose.val import PoseValidator
-from ultralytics.nn.modules.head import Detect, Pose
+from ultralytics.nn.modules.head import Detect
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
@@ -177,11 +176,6 @@ def make_quant_validator_class(executor):
     return QuantDetectionValidator
 
 
-class QuantPoseValidator(PoseValidator):
-    def __call__(self, trainer=None, model=None):
-        return QuantizedModelValidator.__call__(self, trainer, model)
-
-
 def ppq_graph_init(quant_func, imgsz, device, native_path=None):
     """
     Init ppq graph inference.
@@ -202,7 +196,7 @@ def ppq_graph_init(quant_func, imgsz, device, native_path=None):
 def ppq_graph_inference(executor, task, inputs, device):
     """ppq graph inference"""
     graph_outputs = executor(inputs)
-    if task in ["detect", "pose"]:
+    if task == "detect":
         x = [
             torch.cat((graph_outputs[i], graph_outputs[i + 1]), 1)
             for i in range(0, 6, 2)
@@ -213,17 +207,6 @@ def ppq_graph_inference(executor, task, inputs, device):
 
         y = detect_model._inference(x)
 
-        if task == "pose":
-            bs = x[0].shape[0]
-            kpt = torch.cat(
-                [graph_outputs[i].view(bs, 51, -1) for i in range(6, 9)], dim=-1
-            )
-            pose = Pose(nc=1, kpt_shape=(17, 3), ch=[32, 64, 128])
-            pose.strides, pose.anchors = detect_model.strides, detect_model.anchors
-
-            pred_kpt = pose.kpts_decode(bs, kpt)
-            preds = (torch.cat([y, pred_kpt], 1), (x, kpt))
-            return preds
         return y
     else:
         raise NotImplementedError(f"{task} is not supported.")

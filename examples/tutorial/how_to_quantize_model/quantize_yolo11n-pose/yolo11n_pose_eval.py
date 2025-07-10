@@ -1,6 +1,5 @@
 from ultralytics import YOLO
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.models.yolo.detect.val import DetectionValidator
 from ultralytics.models.yolo.pose.val import PoseValidator
 from ultralytics.nn.modules.head import Detect, Pose
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
@@ -17,12 +16,12 @@ import json
 import torch
 from ppq.api import load_native_graph
 from ppq.executor import TorchExecutor
-from quantize_yolo11n_pose import quant_yolo11n_pose
+from quantize_onnx_model import quant_yolo11n_pose
 
 
 class QuantizedModelValidator(BaseValidator):
     @smart_inference_mode()
-    def __call__(self, trainer=None, model=None):
+    def __call__(self, trainer=None, model=None, executor=None):
         """Executes validation process, running inference on dataloader and computing performance metrics."""
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
@@ -113,19 +112,15 @@ class QuantizedModelValidator(BaseValidator):
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
 
-        executor = ppq_graph_init(quant_yolo11n_pose, 640, "cuda")
-        # executor = ppq_graph_init(quant_yolo11n_pose, 640, "cuda", "6/p4_yolo11n_pose_qat_640.native")
-
         for batch_i, batch in enumerate(bar):
             self.run_callbacks("on_val_batch_start")
             self.batch_i = batch_i
             # Preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
-
             # Inference
             with dt[1]:
-                preds = ppq_graph_inference(executor, "pose", batch["img"], "cuda")
+                preds = ppq_graph_inference(executor, "pose", batch["img"], "cpu")
             # Loss
             with dt[2]:
                 if self.training:
@@ -167,14 +162,18 @@ class QuantizedModelValidator(BaseValidator):
         return stats
 
 
-class QuantDetectionValidator(DetectionValidator):
-    def __call__(self, trainer=None, model=None):
-        return QuantizedModelValidator.__call__(self, trainer, model)
+def make_quant_validator_class(executor):
+    class QuantPoseValidator(PoseValidator):
+        def __init__(
+            self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None
+        ):
+            super().__init__(dataloader, save_dir, pbar, args, _callbacks)
+            self.executor = executor
 
+        def __call__(self, trainer=None, model=None):
+            return QuantizedModelValidator.__call__(self, trainer, model, self.executor)
 
-class QuantPoseValidator(PoseValidator):
-    def __call__(self, trainer=None, model=None):
-        return QuantizedModelValidator.__call__(self, trainer, model)
+    return QuantPoseValidator
 
 
 def ppq_graph_init(quant_func, imgsz, device, native_path=None):
@@ -197,7 +196,7 @@ def ppq_graph_init(quant_func, imgsz, device, native_path=None):
 def ppq_graph_inference(executor, task, inputs, device):
     """ppq graph inference"""
     graph_outputs = executor(inputs)
-    if task in ["detect", "pose"]:
+    if task == "pose":
         x = [
             torch.cat((graph_outputs[i], graph_outputs[i + 1]), 1)
             for i in range(0, 6, 2)
@@ -208,29 +207,30 @@ def ppq_graph_inference(executor, task, inputs, device):
 
         y = detect_model._inference(x)
 
-        if task == "pose":
-            bs = x[0].shape[0]
-            kpt = torch.cat(
-                [graph_outputs[i].view(bs, 51, -1) for i in range(6, 9)], dim=-1
-            )
-            pose = Pose(nc=1, kpt_shape=(17, 3), ch=[32, 64, 128])
-            pose.strides, pose.anchors = detect_model.strides, detect_model.anchors
+        bs = x[0].shape[0]
+        kpt = torch.cat(
+            [graph_outputs[i].view(bs, 51, -1) for i in range(6, 9)], dim=-1
+        )
+        pose = Pose(nc=1, kpt_shape=(17, 3), ch=[32, 64, 128])
+        pose.strides, pose.anchors = detect_model.strides, detect_model.anchors
 
-            pred_kpt = pose.kpts_decode(bs, kpt)
-            preds = (torch.cat([y, pred_kpt], 1), (x, kpt))
-            return preds
-        return y
+        pred_kpt = pose.kpts_decode(bs, kpt)
+        preds = (torch.cat([y, pred_kpt], 1), (x, kpt))
+
+        return preds
+
     else:
         raise NotImplementedError(f"{task} is not supported.")
 
 
 if __name__ == "__main__":
-
+    executor = ppq_graph_init(quant_yolo11n_pose, 640, "cpu")
+    QuantPoseValidator = make_quant_validator_class(executor)
     model = YOLO("yolo11n-pose.pt")
     results = model.val(
         data="coco-pose.yaml",
         imgsz=640,
-        device="6",
+        device="cpu",
         validator=QuantPoseValidator,
         rect=False,
     )
