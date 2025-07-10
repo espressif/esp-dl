@@ -4,5 +4,5 @@ description: coco pose model.
 url: https://github.com/espressif/esp-dl/tree/master/models/coco_pose
 dependencies: 
   espressif/esp-dl:
-    version: "^3.1.2"
+    version: "^3.1.5"
     override_path: "../../esp-dl"

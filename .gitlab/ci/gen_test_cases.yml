@@ -3,6 +3,7 @@
   image: ${IMAGE}
   tags: ["build", "amd64"]
   dependencies: []
+  timeout: 2 hour
   artifacts:
     when: always
     paths:
