@@ -1,6 +1,6 @@
 import os
-from ppq import QuantizationSettingFactory
-from ppq.api import espdl_quantize_onnx, get_target_platform
+from esp_ppq import QuantizationSettingFactory
+from esp_ppq.api import espdl_quantize_onnx, get_target_platform
 from torch.utils.data import DataLoader
 import torch
 from torch.utils.data import Dataset

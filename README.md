@@ -15,7 +15,8 @@ ESP-DL offers APIs to load, debug, and run AI models. The framework is easy to u
 - **8bit LUT Activation**: All activation functions except for ReLU and PReLU are implemented using an 8-bit LUT (Look Up Table) method in ESP-DL to accelerate inference. You can use any activation function, and their computational complexity remains the same.
 
 ## News
-- [2025/04/30] We released a new [esp-detection](https://github.com/espressif/esp-detection)​​ project and the `​​ESPDet-Pico`​​ model, which can easily train and deploy object detection models. [espdet_pico_224_224_cat​​ espdl model](./models/cat_detect/) and [example](./examples/cat_detect/) is a cat detection model trained by ​esp-detection​​. Feel free to try it and share your feedback!   
+- [2025/07/22] Rename the ESP-PPQ package from ppq to esp-ppq to avoid conflicts with ppq, and upgrade all ESP-PPQ dependencies to the latest versions. **Note: In the quantization script, pay attention to modifying the package name.**
+- [2025/04/30] We released a new [esp-detection](https://github.com/espressif/esp-detection) project and the `ESPDet-Pico` model, which can easily train and deploy object detection models. [espdet_pico_224_224_cat espdl model](./models/cat_detect/) and [example](./examples/cat_detect/) is a cat detection model trained by esp-detection. Feel free to try it and share your feedback!
 - [2025/02/18] We supported yolo11n [espdl model](https://github.com/espressif/esp-dl/tree/master/models/coco_detect) and [example](https://github.com/espressif/esp-dl/tree/master/examples/yolo11_detect).
 - [2025/01/09] We updated the schema of espdl model and released ESP-DL v3.1.0. Note: previous models can be load by new schema, but new model is not compatible with previous version. 
 - [2024/12/20] We released ESP-DL v3.0.0.
@@ -33,15 +34,15 @@ ESP-DL runs based on ESP-IDF. For detailed instructions on how to get ESP-IDF, p
 
 - **ESP-PPQ**
 
-ESP-PPQ is a quantization tool based on ppq. If you want to quantize your own model, please install esp-ppq using the following command:
+ESP-PPQ is a quantization tool based on ppq. If you want to quantize your own model, you can install esp-ppq using the following method. For more installation methods, please refer to the [Getting Started](https://docs.espressif.com/projects/esp-dl/en/latest/getting_started/readme.html#).
+
 ```
-pip uninstall ppq
-pip install git+https://github.com/espressif/esp-ppq.git
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+   pip install esp-ppq
 ```
-Use esp-ppq with docker:
-```
-docker build -t esp-ppq:your_tag https://github.com/espressif/esp-ppq.git
-```
+
+> [!NOTE]
+> - The example code installs the Linux PyTorch CPU version. Please install the appropriate PyTorch version based on your actual needs.
 
 ### Model Quantization
 

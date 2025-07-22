@@ -1,7 +1,7 @@
 from typing import Iterable, Tuple
 import torch
-from ppq.executor import TorchExecutor
-from ppq.IR import BaseGraph, TrainableGraph
+from esp_ppq.executor import TorchExecutor
+from esp_ppq.IR import BaseGraph, TrainableGraph
 from tqdm import tqdm
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -170,18 +170,18 @@ class Trainer:
 
     def save(self, file_path: str, file_path2: str):
         """Save model to given path.
-        Saved model can be read by ppq.api.load_native_model function.
+        Saved model can be read by esp_ppq.api.load_native_model function.
         """
 
-        from ppq.core import TargetPlatform
-        import ppq.lib as PFL
+        from esp_ppq.core import TargetPlatform
+        import esp_ppq.lib as PFL
 
         PFL.Exporter(platform=TargetPlatform.ESPDL_INT8).export(
             file_path=file_path, graph=self.graph
         )
         final_graph = self.graph
 
-        from ppq.parser import NativeExporter
+        from esp_ppq.parser import NativeExporter
 
         exporter = NativeExporter()
         exporter.export(file_path=file_path2, graph=self.graph)

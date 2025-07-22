@@ -38,12 +38,55 @@ ESP-DL 基于 ESP-IDF 运行。有关如何获取 ESP-IDF 的详细说明，请�
 ESP-PPQ
 ^^^^^^^^^^^^^^^
 
-ESP-PPQ 是基于 ppq 的量化工具。ESP-PPQ 在 `PPQ <https://github.com/OpenPPL/ppq>`__ 的基础上添加了乐鑫定制的 quantizer 和 exporter，方便用户根据不同的芯片选择和 ESP-DL 匹配的量化规则，并导出为 ESP-DL 可以直接加载的标准模型文件。ESP-PPQ 兼容 PPQ 所有的 API 和量化脚本。更多细节请参考 `PPQ 文档和视频 <https://github.com/OpenPPL/ppq>`__。如果您想量化自己的模型，请使用以下命令安装 esp-ppq：
+ESP-PPQ 是基于 ppq 的量化工具，其 `代码 <https://github.com/espressif/esp-ppq>`__ 已全部开源。ESP-PPQ 在 `PPQ <https://github.com/OpenPPL/ppq>`__ 的基础上添加了乐鑫定制的 quantizer 和 exporter，方便用户根据不同的芯片选择和 ESP-DL 匹配的量化规则，并导出为 ESP-DL 可以直接加载的标准模型文件。ESP-PPQ 兼容 PPQ 所有的 API 和量化脚本。更多细节请参考 `PPQ 文档和视频 <https://github.com/OpenPPL/ppq>`__。如果您想量化自己的模型，可以使用如下方式安装 esp-ppq：
+
+**方式一: 使用 pip 安装包**
 
 .. code-block:: bash
 
-   pip uninstall ppq
-   pip install git+https://github.com/espressif/esp-ppq.git
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+   pip install esp-ppq
+
+**方式二: 使用 pip 安装源码，以便保持与 master 分支同步**
+
+.. code-block:: bash
+
+   git clone https://github.com/espressif/esp-ppq.git
+   cd esp-ppq
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+   pip install -e .
+
+**方式三: 使用 uv 安装包**
+
+.. code-block:: bash
+
+   uv pip install "esp-ppq[cpu]" --torch-backend=cpu
+   # GPU
+   # uv pip install "esp-ppq[cpu]" --torch-backend=cu124
+   # AMD GPU
+   # uv pip install "esp-ppq[cpu]" --torch-backend=rocm6.2
+   # Intel XPU
+   # uv pip install "esp-ppq[cpu]" --torch-backend=xpu
+
+**方式四: 使用 uv 安装源码，以便保持与 master 分支同步**
+
+.. code-block:: bash
+
+   git clone https://github.com/espressif/esp-ppq.git
+   cd esp-ppq
+   uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+   uv pip install -e .
+
+**方式五: 在 docker 中使用 esp-ppq**
+
+.. code-block:: bash
+
+   docker build -t esp-ppq:your_tag https://github.com/espressif/esp-ppq.git
+
+.. note::
+
+    - 示例代码中安装的是 linux pytorch cpu 版本，请根据实际情况安装对应的 pytorch。
+    - 如果使用 uv 安装包，仅需要更改 ``--torch-backend`` 参数即可，其会忽略项目中配置的 pytorch URLs 索引。
 
 快速开始
 --------------

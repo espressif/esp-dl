@@ -1,13 +1,13 @@
-import ppq.lib as PFL
+import esp_ppq.lib as PFL
 import torch
-from ppq.core import QuantizationVisibility, TargetPlatform
-from ppq.executor import TorchExecutor
-from ppq.quantization.optim import *
+from esp_ppq.core import QuantizationVisibility, TargetPlatform
+from esp_ppq.executor import TorchExecutor
+from esp_ppq.quantization.optim import *
 from trainer import Trainer, CaliDataset
-from ppq.api import get_target_platform
+from esp_ppq.api import get_target_platform
 from torch.utils.data import DataLoader
 from PIL import Image
-from ppq.api.interface import load_onnx_graph
+from esp_ppq.api.interface import load_onnx_graph
 from ultralytics.data.dataset import YOLODataset
 import yaml
 import re

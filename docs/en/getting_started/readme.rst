@@ -39,12 +39,55 @@ ESP-DL runs based on ESP-IDF. For detailed instructions on how to get ESP-IDF, s
 ESP-PPQ
 ^^^^^^^^^^^^^^^^
 
-ESP-PPQ is a quantization tool based on ppq. ESP-PPQ adds Espressif's customized quantizer and exporter based on `PPQ <https://github.com/OpenPPL/ppq>`__, which makes it convenient for users to select quantization rules that match ESP-DL according to different chip selections, and export them to standard model files that can be directly loaded by ESP-DL. ESP-PPQ is compatible with all PPQ APIs and quantization scripts. For more details, please refer to `PPQ documents and videos <https://github.com/OpenPPL/ppq>`__. If you want to quantize your own model, please install esp-ppq with the following command:
+ESP-PPQ is a quantization tool based on ppq, and its `source code <https://github.com/espressif/esp-ppq>`__ is fully open-sourced. ESP-PPQ adds Espressif's customized quantizer and exporter based on `PPQ <https://github.com/OpenPPL/ppq>`__, which makes it convenient for users to select quantization rules that match ESP-DL according to different chip selections, and export them to standard model files that can be directly loaded by ESP-DL. ESP-PPQ is compatible with all PPQ APIs and quantization scripts. For more details, please refer to `PPQ documents and videos <https://github.com/OpenPPL/ppq>`__. If you want to quantize your model, you can install esp-ppq using the following method:
+
+**Method 1: Install the package using pip**
 
 .. code-block:: bash
 
-   pip uninstall ppq
-   pip install git+https://github.com/espressif/esp-ppq.git
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+   pip install esp-ppq
+
+**Method 2: Install from source with pip to stay synchronized with the master branch**
+
+.. code-block:: bash
+
+   git clone https://github.com/espressif/esp-ppq.git
+   cd esp-ppq
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+   pip install -e .
+
+**Method 3: Install the package using uv**
+
+.. code-block:: bash
+
+   uv pip install "esp-ppq[cpu]" --torch-backend=cpu
+   # GPU
+   # uv pip install "esp-ppq[cpu]" --torch-backend=cu124
+   # AMD GPU
+   # uv pip install "esp-ppq[cpu]" --torch-backend=rocm6.2
+   # Intel XPU
+   # uv pip install "esp-ppq[cpu]" --torch-backend=xpu
+
+**Method 4: Install from source using uv to stay in sync with the master branch**
+
+.. code-block:: bash
+
+   git clone https://github.com/espressif/esp-ppq.git
+   cd esp-ppq
+   uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+   uv pip install -e .
+
+**Method 5: Use esp-ppq with docker**
+
+.. code-block:: bash
+
+   docker build -t esp-ppq:your_tag https://github.com/espressif/esp-ppq.git
+
+.. note::
+
+    - The example code installs the Linux PyTorch CPU version. Please install the appropriate PyTorch version based on your actual needs.
+    - If installing the package with uv, simply modify the ``--torch-backend`` parameter, which will override the PyTorch URLs index configured in the project.
 
 Quick Start
 --------------

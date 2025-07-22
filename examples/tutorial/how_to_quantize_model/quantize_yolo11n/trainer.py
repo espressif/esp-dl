@@ -1,17 +1,17 @@
 from typing import Iterable, Tuple
 import numbers
 import torch
-from ppq.executor import TorchExecutor
-from ppq.IR import BaseGraph, TrainableGraph
+from esp_ppq.executor import TorchExecutor
+from esp_ppq.IR import BaseGraph, TrainableGraph
 from tqdm import tqdm
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 import os
 from PIL import Image
 from ultralytics import YOLO
-from ppq.parser import NativeExporter
-from ppq.core import TargetPlatform
-import ppq.lib as PFL
+from esp_ppq.parser import NativeExporter
+from esp_ppq.core import TargetPlatform
+import esp_ppq.lib as PFL
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG_DICT, IterableSimpleNamespace
 from yolo11n_eval import make_quant_validator_class
@@ -172,7 +172,7 @@ class Trainer:
 
     def save(self, file_path: str, file_path2: str):
         """Save model to given path.
-        Saved model can be read by ppq.api.load_native_model function.
+        Saved model can be read by esp_ppq.api.load_native_model function.
         """
 
         PFL.Exporter(platform=TargetPlatform.ESPDL_INT8).export(

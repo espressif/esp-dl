@@ -10,8 +10,8 @@ import onnx
 import torch
 import toml
 import torch.nn.functional as F
-from ppq import QuantizationSettingFactory
-from ppq.api import (
+from esp_ppq import QuantizationSettingFactory
+from esp_ppq.api import (
     espdl_quantize_onnx,
     espdl_quantize_torch,
     get_target_platform,
