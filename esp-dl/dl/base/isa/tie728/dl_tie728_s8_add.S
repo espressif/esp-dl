@@ -33,16 +33,13 @@ dl_tie728_s8_add_w1_16_w2_16:
     l32i  a6, a5, 44
     srai a5, a6, 4
 
-    movi a14, 0
-tie728_s8_add_w1_16_w2_16_loop:
-    beq a14, a5, tie728_s8_add_w1_16_w2_16_end
-    ee.vld.128.ip q0, a3, 16
-    ee.vld.128.ip q1, a4, 16
-    ee.vadds.s8 q2, q0, q1
-    ee.vst.128.ip q2, a2, 16
-    addi a14, a14, 1
-    j tie728_s8_add_w1_16_w2_16_loop
-tie728_s8_add_w1_16_w2_16_end:
+    loopgtz a5, 0f
+        ee.vld.128.ip q0, a3, 16
+        ee.vld.128.ip q1, a4, 16
+        ee.vadds.s8 q2, q0, q1
+        ee.vst.128.ip q2, a2, 16
+    0:
+
     retw
 
 
@@ -79,15 +76,11 @@ dl_tie728_s8_add_w1_16_w2_1:
     srai a5, a6, 4
     ee.vldbc.8.ip q1, a4, 0
 
-    movi a14, 0
-tie728_s8_add_w1_16_w2_1_loop:
-    beq a14, a5, tie728_s8_add_w1_16_w2_1_end
-    ee.vld.128.ip q0, a3, 16
-    ee.vadds.s8 q2, q0, q1
-    ee.vst.128.ip q2, a2, 16
-    addi a14, a14, 1
-    j tie728_s8_add_w1_16_w2_1_loop
-tie728_s8_add_w1_16_w2_1_end:
+    loopgtz a5, 0f
+        ee.vld.128.ip q0, a3, 16
+        ee.vadds.s8 q2, q0, q1
+        ee.vst.128.ip q2, a2, 16
+    0:
     retw
 
 
@@ -124,15 +117,11 @@ dl_tie728_s8_add_w1_1_w2_16:
     srai a5, a6, 4
     ee.vldbc.8.ip q0, a3, 0
 
-    movi a14, 0
-tie728_s8_add_w1_1_w2_16_loop:
-    beq a14, a5, tie728_s8_add_w1_1_w2_16_end
-    ee.vld.128.ip q1, a4, 16
-    ee.vadds.s8 q2, q0, q1
-    ee.vst.128.ip q2, a2, 16
-    addi a14, a14, 1
-    j tie728_s8_add_w1_1_w2_16_loop
-tie728_s8_add_w1_1_w2_16_end:
+    loopgtz a5, 0f
+        ee.vld.128.ip q1, a4, 16
+        ee.vadds.s8 q2, q0, q1
+        ee.vst.128.ip q2, a2, 16
+    0:
     retw
 
 

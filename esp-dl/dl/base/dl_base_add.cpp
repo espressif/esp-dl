@@ -51,7 +51,7 @@ void elemwise_add(elemwiseArgsType<int8_t> *args)
     if (args->output_d0 >= ilen) {
 #if CONFIG_IDF_TARGET_ESP32P4
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-            elemwise_func = dl_esp32p4_s8_add_w1_16_w2_16;
+            elemwise_func = dl_esp32p4_s8_add2d_11c; // dl_esp32p4_s8_add_w1_16_w2_16;
         } else if (args->input1_d0 == 1) {
             if (args->input0_d0 % ilen == 0) {
                 elemwise_func = dl_esp32p4_s8_add_w1_16_w2_1;
@@ -69,7 +69,7 @@ void elemwise_add(elemwiseArgsType<int8_t> *args)
         }
 #elif CONFIG_IDF_TARGET_ESP32S3
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-            elemwise_func = dl_tie728_s8_add_w1_16_w2_16;
+            elemwise_func = dl_tie728_s8_add2d_11c;
         } else if (args->input1_d0 == 1) {
             if (args->input0_d0 % ilen == 0) {
                 elemwise_func = dl_tie728_s8_add_w1_16_w2_1;
@@ -126,7 +126,7 @@ void elemwise_add(elemwiseArgsType<int16_t> *args)
     if (args->output_d0 >= ilen) {
 #if CONFIG_IDF_TARGET_ESP32P4
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-            elemwise_func = dl_esp32p4_s16_add_w1_8_w2_8;
+            elemwise_func = dl_esp32p4_s16_add2d_11c;
         } else if (args->input1_d0 == 1) {
             if (args->input0_d0 % ilen == 0) {
                 elemwise_func = dl_esp32p4_s16_add_w1_8_w2_1;
@@ -144,7 +144,7 @@ void elemwise_add(elemwiseArgsType<int16_t> *args)
         }
 #elif CONFIG_IDF_TARGET_ESP32S3
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
-            elemwise_func = dl_tie728_s16_add_w1_8_w2_8;
+            elemwise_func = dl_tie728_s16_add2d_11c;
         } else if (args->input1_d0 == 1) {
             if (args->input0_d0 % ilen == 0) {
                 elemwise_func = dl_tie728_s16_add_w1_8_w2_1;
