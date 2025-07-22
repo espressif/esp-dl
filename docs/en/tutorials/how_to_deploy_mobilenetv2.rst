@@ -219,7 +219,7 @@ esp-dl supports mixed precision quantization, which can be used to quantize some
 
 .. code-block:: python
 
-   from ppq.api import get_target_platform
+   from esp_ppq.api import get_target_platform
    target="esp32p4"
    num_of_bits=8
    batch_size=32

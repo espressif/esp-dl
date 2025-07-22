@@ -334,6 +334,10 @@
   rules:
     - <<: *if-protected
 
+.rules:deploy:push_to_github:
+  rules:
+    - <<: *if-protected
+
 # relus for tools
 .rules:gen:ops_test:
   rules:

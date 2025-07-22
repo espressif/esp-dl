@@ -14,8 +14,8 @@ from ultralytics.utils.torch_utils import (
 )
 import json
 import torch
-from ppq.api import load_native_graph
-from ppq.executor import TorchExecutor
+from esp_ppq.api import load_native_graph
+from esp_ppq.executor import TorchExecutor
 from quantize_onnx_model import quant_yolo11n
 
 

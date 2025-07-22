@@ -21,6 +21,7 @@ ESP-DL 提供了加载、调试和运行 AI 模型的 API。该框架易于使�
 
 ## 更新 
 
+- [2025/07/22] 将 ESP-PPQ 的包名从 ppq 改为 esp-ppq，以避免与 ppq 冲突，同时将 ESP-PPQ 依赖包全部升级到最新版。**注意: 量化脚本中需注意修改包名**。
 - [2025/04/30] 我们发布了全新的 [esp-detection](https://github.com/espressif/esp-detection) 项目和 `ESPDet-Pico` 模型，可轻松训练并部署目标检测模型。[espdet_pico_224_224_cat 模型](./models/cat_detect/) 和 [示例](./examples/cat_detect/) 是基于 esp-detection 训练的猫咪检测模型，欢迎试用并反馈意见！    
 - [2025/02/18] 新增支持 YOLO11n 模型，提供 [espdl 模型](https://github.com/espressif/esp-dl/tree/master/models/coco_detect) 及 [示例](https://github.com/espressif/esp-dl/tree/master/examples/yolo11_detect)。    
 - [2025/01/09] 更新了 espdl 模型架构，发布 ESP-DL v3.1.0。注意：旧版模型可被新架构加载，但新版模型不兼容旧版本。   
@@ -39,15 +40,15 @@ ESP-DL 基于 ESP-IDF 运行。有关如何获取 ESP-IDF 的详细说明，请�
 
 - **ESP-PPQ**
 
-ESP-PPQ 是基于 ppq 的量化工具。如果你想量化自己的模型，请使用以下命令安装 esp-ppq：
+ESP-PPQ 是基于 ppq 的量化工具。如果你想量化自己的模型，可以使用如下方式安装 esp-ppq，更多安装方法请参考 [入门指南](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/getting_started/readme.html#)：
+
 ```
-pip uninstall ppq
-pip install git+https://github.com/espressif/esp-ppq.git
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+   pip install esp-ppq
 ```
-在 docker 中使用 esp-ppq：
-```
-docker build -t esp-ppq:your_tag https://github.com/espressif/esp-ppq.git
-```
+
+> [!NOTE]
+> - 示例代码中安装的是 linux pytorch cpu 版本，请根据实际情况安装对应的 pytorch。
 
 ### Model Quantization
 

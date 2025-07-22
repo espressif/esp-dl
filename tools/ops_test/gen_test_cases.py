@@ -13,9 +13,9 @@ from typing import (
 import onnx
 import toml
 import torch
-from ppq import QuantizationSettingFactory
-from ppq.api import espdl_quantize_onnx, espdl_quantize_torch, get_target_platform
-from ppq.quantization.optim import *
+from esp_ppq import QuantizationSettingFactory
+from esp_ppq.api import espdl_quantize_onnx, espdl_quantize_torch, get_target_platform
+from esp_ppq.quantization.optim import *
 from torch.utils.data import DataLoader
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

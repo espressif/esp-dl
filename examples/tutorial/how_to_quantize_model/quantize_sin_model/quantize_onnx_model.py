@@ -1,6 +1,6 @@
 from sin_model import generate_data, SinPredictor
 from torch.utils.data import DataLoader, TensorDataset
-from ppq.api import espdl_quantize_onnx
+from esp_ppq.api import espdl_quantize_onnx
 
 
 def collate_fn(batch):

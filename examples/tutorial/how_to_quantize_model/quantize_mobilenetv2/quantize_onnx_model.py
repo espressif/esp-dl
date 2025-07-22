@@ -7,8 +7,8 @@ from datasets.imagenet_util import (
     evaluate_ppq_module_with_imagenet,
     load_imagenet_from_directory,
 )
-from ppq import QuantizationSettingFactory, QuantizationSetting
-from ppq.api import espdl_quantize_onnx, get_target_platform
+from esp_ppq import QuantizationSettingFactory, QuantizationSetting
+from esp_ppq.api import espdl_quantize_onnx, get_target_platform
 from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms

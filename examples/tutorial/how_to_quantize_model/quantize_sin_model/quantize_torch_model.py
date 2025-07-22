@@ -1,8 +1,8 @@
 from sin_model import generate_data, SinPredictor
 from torch.utils.data import DataLoader, TensorDataset
 import torch
-from ppq.api import espdl_quantize_torch
-from ppq.executor.torch import TorchExecutor
+from esp_ppq.api import espdl_quantize_torch
+from esp_ppq.executor.torch import TorchExecutor
 
 
 def collate_fn(batch):
