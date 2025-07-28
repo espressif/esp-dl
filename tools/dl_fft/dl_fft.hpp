@@ -258,24 +258,28 @@ public:
             dl_fft_f32_deinit(handle);
         }
         fft_f32_handles.clear();
+        std::vector<dl_fft_f32_t *>().swap(fft_f32_handles);
 
         // Clear FFT int16 handles
         for (auto *handle : fft_s16_handles) {
             dl_fft_s16_deinit(handle);
         }
         fft_s16_handles.clear();
+        std::vector<dl_fft_s16_t *>().swap(fft_s16_handles);
 
         // Clear RFFT float32 handles
         for (auto *handle : rfft_f32_handles) {
             dl_rfft_f32_deinit(handle);
         }
         rfft_f32_handles.clear();
+        std::vector<dl_fft_f32_t *>().swap(rfft_f32_handles);
 
         // Clear RFFT int16 handles
         for (auto *handle : rfft_s16_handles) {
             dl_rfft_s16_deinit(handle);
         }
         rfft_s16_handles.clear();
+        std::vector<dl_fft_s16_t *>().swap(rfft_s16_handles);
     }
 
     // Get handle count for debugging
