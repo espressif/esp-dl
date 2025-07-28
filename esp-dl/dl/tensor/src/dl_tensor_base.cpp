@@ -167,7 +167,7 @@ TensorBase::TensorBase(
     this->caps = caps;
 }
 
-bool TensorBase::assign(TensorBase *tensor)
+bool TensorBase::assign(TensorBase *tensor, int start_position)
 {
     if (tensor == nullptr || this->get_size() != tensor->get_size()) {
         return false;
@@ -181,9 +181,21 @@ bool TensorBase::assign(TensorBase *tensor)
 
         if (this->dtype == DATA_TYPE_INT8) {
             int8_t *data = (int8_t *)this->data;
-            for (int i = 0; i < this->get_size(); i++) {
-                data[i] = quantize<int8_t>(src_data[i], inv_scale);
+            int data_size = this->get_size();
+            // Ensure start_position is within valid range [0, data_size)
+            if (start_position < 0 || start_position >= data_size)
+                return false;
+
+            int i = 0;
+            // Copy from start_position to end of src_data
+            for (int j = start_position; j < data_size; i++, j++) {
+                data[i] = quantize<int8_t>(src_data[j], inv_scale);
             }
+            // Wrap around and copy from start of src_data to start_position - 1
+            for (int j = 0; j < start_position; ++i, ++j) {
+                data[i] = quantize<int8_t>(src_data[j], inv_scale);
+            }
+
         } else if (this->dtype == DATA_TYPE_INT16) {
             int16_t *data = (int16_t *)this->data;
             for (int i = 0; i < this->get_size(); i++) {
