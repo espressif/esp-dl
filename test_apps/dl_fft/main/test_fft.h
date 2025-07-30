@@ -27,6 +27,8 @@ float get_snr(const float *x, const float *gt, int size);
 float get_rmse(const float *x, const float *gt, int size);
 
 bool check_fft_results(const float *x, const float *gt, int size, float snr_threshold, float rmse_threshold);
+
+bool check_is_same(const float *x, const float *gt, int size, float threshold);
 #ifdef __cplusplus
 }
 #endif

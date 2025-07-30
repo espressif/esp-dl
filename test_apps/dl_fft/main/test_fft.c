@@ -57,3 +57,14 @@ bool check_fft_results(const float *x, const float *gt, int size, float snr_thre
     }
     return pass;
 }
+
+bool check_is_same(const float *x, const float *gt, int size, float threshold)
+{
+    for (int i = 0; i < size; i++) {
+        if (fabs(x[i] - gt[i]) > threshold) {
+            return false;
+        }
+    }
+    printf("check is same pass\n");
+    return true;
+}
