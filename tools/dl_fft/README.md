@@ -6,6 +6,8 @@ The float FFT implementation is come from esp-dsp. And we further optimized the 
 For int16 FFT, we recommend to use `dl_fft_s16_hp_run` or `dl_rfft_s16_hp_run` interface. `hp` means "high precision".
 
 ## Get Started
+
+### C interface
 ```
 
 #include "dl_fft.h"
@@ -13,21 +15,23 @@ For int16 FFT, we recommend to use `dl_fft_s16_hp_run` or `dl_rfft_s16_hp_run` i
 
 // float fft
 float  x[nfft*2];
+
+float *x = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float) *2, MALLOC_CAP_8BIT);
 dl_fft_f32_t *fft_handle = dl_fft_f32_init(nfft, MALLOC_CAP_8BIT);
 dl_fft_f32_run(fft_handle, x);
 dl_ifft_f32_run(fft_handle, x);
 dl_fft_f32_deinit(fft_handle);
 
 // float rfft
-float  x[nfft];
+float *x = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float), MALLOC_CAP_8BIT);
 dl_fft_f32_t *fft_handle = dl_rfft_f32_init(nfft, MALLOC_CAP_8BIT);
 dl_rfft_f32_run(fft_handle, x);
 dl_irfft_f32_run(fft_handle, x);
 dl_rfft_f32_deinit(fft_handle);
 
 // int16 fft
-int16_t  x[nfft*2];
-float  y[nfft*2];
+int16_t *x= (float *)heap_caps_aligned_alloc(16, nfft * sizeof(int16_t) * 2, MALLOC_CAP_8BIT);
+float *y = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float) *2, MALLOC_CAP_8BIT);
 int in_exponent = -15;  //  float y = x * 2^in_exponent;
 int fft_exponent;
 int ifft_exponent;
@@ -38,8 +42,8 @@ dl_short_to_float(x, nfft, ifft_exponent, y); // convert output from int16_t to 
 dl_fft_s16_deinit(fft_handle);
 
 // int16 rfft
-int16_t  x[nfft];
-float  y[nfft];
+int16_t *x= (float *)heap_caps_aligned_alloc(16, nfft * sizeof(int16_t), MALLOC_CAP_8BIT);
+float *y = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float), MALLOC_CAP_8BIT);
 int in_exponent = -15;  //  float y = x * 2^in_exponent;
 int fft_exponent;
 int ifft_exponent;
@@ -52,6 +56,32 @@ dl_rfft_s16_deinit(fft_handle);
 
 ```
 Please refer to [dl_fft.h](./dl_fft.h) and [dl_rfft.h](./dl_rfft.h) for more details. 
+
+
+### C++ interface:
+```
+float *x1 = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float) *2, MALLOC_CAP_8BIT);
+int16_t *x2= (float *)heap_caps_aligned_alloc(16, nfft * sizeof(int16_t)*2, MALLOC_CAP_8BIT);
+FFT *fft = FFT::get_instance();
+
+# float 
+fft->fft(x1, nfft);
+fft->ifft(x1, nfft);
+fft->rfft(x1, nfft);
+fft->irfft(x1, nfft);
+
+#int16_t
+int in_exponent=-15;
+int out_exponent;
+fft->fft_hp(x2, nfft, in_exponent, &out_exponent);
+fft->ifft_hp(x2, nfft, in_exponent, &out_exponent);
+fft->rfft_hp(x2, nfft, in_exponent, &out_exponent);
+fft->irfft_hp(x2, nfft, in_exponent, &out_exponent);
+```
+Please refer to [dl_fft.hpp](./dl_fft.hpp) for more details.
+
+> Note: The input array x must be allocated with heap_caps_aligned_alloc and aligned to 16 bytes.
+
 
 ## FAQ:
 
