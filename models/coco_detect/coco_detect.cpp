@@ -53,28 +53,28 @@ COCODetect::COCODetect(model_type_t model_type)
 {
     switch (model_type) {
     case model_type_t::YOLO11N_S8_V1:
-#if CONFIG_COCO_DETECT_YOLO11N_S8_V1 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
+#if CONFIG_FLASH_COCO_DETECT_YOLO11N_S8_V1 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
         m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_s8_v1.espdl");
 #else
         ESP_LOGE("coco_detect", "coco_detect_yolo11n_s8_v1 is not selected in menuconfig.");
 #endif
         break;
     case model_type_t::YOLO11N_S8_V2:
-#if CONFIG_COCO_DETECT_YOLO11N_S8_V2 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
+#if CONFIG_FLASH_COCO_DETECT_YOLO11N_S8_V2 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
         m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_s8_v2.espdl");
 #else
         ESP_LOGE("coco_detect", "coco_detect_yolo11n_s8_v2 is not selected in menuconfig.");
 #endif
         break;
     case model_type_t::YOLO11N_S8_V3:
-#if CONFIG_COCO_DETECT_YOLO11N_S8_V3 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
+#if CONFIG_FLASH_COCO_DETECT_YOLO11N_S8_V3 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
         m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_s8_v3.espdl");
 #else
         ESP_LOGE("coco_detect", "coco_detect_yolo11n_s8_v3 is not selected in menuconfig.");
 #endif
         break;
     case model_type_t::YOLO11N_320_S8_V3:
-#if CONFIG_COCO_DETECT_YOLO11N_320_S8_V3 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
+#if CONFIG_FLASH_COCO_DETECT_YOLO11N_320_S8_V3 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
         m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_320_s8_v3.espdl");
 #else
         ESP_LOGE("coco_detect", "coco_detect_yolo11n_320_s8_v3 is not selected in menuconfig.");

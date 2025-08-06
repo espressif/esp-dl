@@ -44,7 +44,7 @@ ImageNetCls::ImageNetCls(model_type_t model_type, const int top_k)
 {
     switch (model_type) {
     case model_type_t::MOBILENETV2_S8_V1:
-#if CONFIG_IMAGENET_CLS_MOBILENETV2_S8_V1 || CONFIG_IMAGENET_CLS_MODEL_IN_SDCARD
+#if CONFIG_FLASH_IMAGENET_CLS_MOBILENETV2_S8_V1 || CONFIG_IMAGENET_CLS_MODEL_IN_SDCARD
         m_model = new imagenet_cls::MobileNetV2("imagenet_cls_mobilenetv2_s8_v1.espdl", top_k);
 #else
         ESP_LOGE("imagenet_cls", "imagenet_cls_mobilenetv2_s8_v1 is not selected in menuconfig.");

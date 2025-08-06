@@ -44,14 +44,14 @@ CatDetect::CatDetect(model_type_t model_type)
 {
     switch (model_type) {
     case model_type_t::ESPDET_PICO_224_224_CAT:
-#if CONFIG_ESPDET_PICO_224_224_CAT || CONFIG_CAT_DETECT_MODEL_IN_SDCARD
+#if CONFIG_FLASH_ESPDET_PICO_224_224_CAT || CONFIG_CAT_DETECT_MODEL_IN_SDCARD
         m_model = new cat_detect::ESPDet("espdet_pico_224_224_cat.espdl");
 #else
         ESP_LOGE("cat_detect", "espdet_pico_224_224_cat is not selected in menuconfig.");
 #endif
         break;
     case model_type_t::ESPDET_PICO_416_416_CAT:
-#if CONFIG_ESPDET_PICO_416_416_CAT || CONFIG_CAT_DETECT_MODEL_IN_SDCARD
+#if CONFIG_FLASH_ESPDET_PICO_416_416_CAT || CONFIG_CAT_DETECT_MODEL_IN_SDCARD
         m_model = new cat_detect::ESPDet("espdet_pico_416_416_cat.espdl");
 #else
         ESP_LOGE("cat_detect", "espdet_pico_416_416_cat is not selected in menuconfig.");

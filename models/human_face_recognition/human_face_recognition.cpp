@@ -52,7 +52,7 @@ HumanFaceFeat::HumanFaceFeat(model_type_t model_type)
 #endif
         break;
     case model_type_t::MBF_S8_V1:
-#if CONFIG_HUMAN_FACE_FEAT_MBF_S8_V1 || CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
+#if CONFIG_FLASH_HUMAN_FACE_FEAT_MBF_S8_V1 || CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
         m_model = new human_face_recognition::MBF("human_face_feat_mbf_s8_v1.espdl");
 #else
         ESP_LOGE("human_face_feat", "human_face_feat_mbf_s8_v1 is not selected in menuconfig.");

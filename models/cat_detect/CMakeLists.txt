@@ -26,10 +26,10 @@ if (NOT CONFIG_CAT_DETECT_MODEL_IN_SDCARD)
 
     file(MAKE_DIRECTORY ${BUILD_DIR}/espdl_models)
     set(models)
-    if(CONFIG_ESPDET_PICO_224_224_CAT)
+    if(CONFIG_FLASH_ESPDET_PICO_224_224_CAT)
         list(APPEND models ${models_dir}/espdet_pico_224_224_cat.espdl)
     endif()
-    if(CONFIG_ESPDET_PICO_416_416_CAT)
+    if(CONFIG_FLASH_ESPDET_PICO_416_416_CAT)
         list(APPEND models ${models_dir}/espdet_pico_416_416_cat.espdl)
     endif()
 

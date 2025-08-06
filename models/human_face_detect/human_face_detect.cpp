@@ -128,7 +128,7 @@ HumanFaceDetect::HumanFaceDetect(model_type_t model_type)
 {
     switch (model_type) {
     case model_type_t::MSRMNP_S8_V1: {
-#if CONFIG_HUMAN_FACE_DETECT_MSRMNP_S8_V1 || CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
+#if CONFIG_FLASH_HUMAN_FACE_DETECT_MSRMNP_S8_V1 || CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
         m_model =
             new human_face_detect::MSRMNP("human_face_detect_msr_s8_v1.espdl", "human_face_detect_mnp_s8_v1.espdl");
 #else

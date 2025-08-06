@@ -44,7 +44,7 @@ PedestrianDetect::PedestrianDetect(model_type_t model_type)
 {
     switch (model_type) {
     case model_type_t::PICO_S8_V1:
-#if CONFIG_PEDESTRIAN_DETECT_PICO_S8_V1 || CONFIG_PEDESTRIAN_DETECT_MODEL_IN_SDCARD
+#if CONFIG_FLASH_PEDESTRIAN_DETECT_PICO_S8_V1 || CONFIG_PEDESTRIAN_DETECT_MODEL_IN_SDCARD
         m_model = new pedestrian_detect::Pico("pedestrian_detect_pico_s8_v1.espdl");
 #else
         ESP_LOGE("pedestrian_detect", "pedestrian_detect_s8_v1 is not selected in menuconfig.");
