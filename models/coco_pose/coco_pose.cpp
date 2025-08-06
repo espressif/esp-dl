@@ -34,8 +34,8 @@ Yolo11nPose::Yolo11nPose(const char *model_name)
 #endif
     m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
-    m_image_preprocessor =
-        new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
+    m_image_preprocessor = new dl::image::ImagePreprocessor(
+        m_model, {0, 0, 0}, {255, 255, 255}, dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
 #else
     m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255});
 #endif

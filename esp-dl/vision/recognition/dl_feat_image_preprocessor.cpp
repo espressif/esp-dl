@@ -24,7 +24,7 @@ void FeatImagePreprocessor::preprocess(const dl::image::img_t &img, const std::v
         source_coord.array[i][1] = h_scale * s_std_ldks_112[2 * i + 1];
     }
     dl::math::Matrix<float> M_inv = dl::math::get_similarity_transform(source_coord, dest_coord);
-    m_image_preprocessor->preprocess(img, &M_inv);
+    m_image_preprocessor->preprocess(img, M_inv, true);
 }
 } // namespace image
 } // namespace dl

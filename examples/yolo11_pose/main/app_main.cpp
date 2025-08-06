@@ -1,4 +1,5 @@
 #include "coco_pose.hpp"
+#include "dl_image_jpeg.hpp"
 #include "esp_log.h"
 #include "bsp/esp-bsp.h"
 
@@ -13,7 +14,7 @@ extern "C" void app_main(void)
 #endif
 
     dl::image::jpeg_img_t jpeg_img = {.data = (void *)bus_jpg_start, .data_len = (size_t)(bus_jpg_end - bus_jpg_start)};
-    auto img = sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
+    auto img = dl::image::sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     COCOPose *pose = new COCOPose();
     auto &pose_results = pose->run(img);

@@ -1,6 +1,5 @@
 #include "dl_image.hpp"
 #include "unity.h"
-#include "bsp/esp-bsp.h"
 
 extern const uint8_t color_320x240_jpg_start[] asm("_binary_color_320x240_jpg_start");
 extern const uint8_t color_320x240_jpg_end[] asm("_binary_color_320x240_jpg_end");
@@ -10,11 +9,10 @@ extern const uint8_t gray_320x240_jpg_start[] asm("_binary_gray_320x240_jpg_star
 extern const uint8_t gray_320x240_jpg_end[] asm("_binary_gray_320x240_jpg_end");
 
 using namespace dl::image;
+extern bool mount;
 
 TEST_CASE("Test sw decode/encode", "[dl_image]")
 {
-    auto ret = bsp_sdcard_mount();
-    bool mount = (ret == ESP_OK);
     jpeg_img_t jpeg_img = {.data = (void *)color_405x540_jpg_start,
                            .data_len = (size_t)(color_405x540_jpg_end - color_405x540_jpg_start)};
     int64_t start, end;
@@ -83,7 +81,7 @@ TEST_CASE("Test sw decode/encode", "[dl_image]")
     heap_caps_free(img.data);
     heap_caps_free(encoded_img.data);
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_SOC_JPEG_CODEC_SUPPORTED
     // test_encode gray
     jpeg_img = {.data = (void *)gray_320x240_jpg_start,
                 .data_len = (size_t)(gray_320x240_jpg_end - gray_320x240_jpg_start)};
@@ -99,17 +97,11 @@ TEST_CASE("Test sw decode/encode", "[dl_image]")
     heap_caps_free(img.data);
     heap_caps_free(encoded_img.data);
 #endif
-
-    if (mount) {
-        ESP_ERROR_CHECK(bsp_sdcard_unmount());
-    }
 }
 
 #if CONFIG_SOC_JPEG_CODEC_SUPPORTED
 TEST_CASE("Test hw decode/encode", "[dl_image]")
 {
-    auto ret = bsp_sdcard_mount();
-    bool mount = (ret == ESP_OK);
     jpeg_img_t jpeg_img = {.data = (void *)color_320x240_jpg_start,
                            .data_len = (size_t)(color_320x240_jpg_end - color_320x240_jpg_start)};
     int64_t start, end;
@@ -218,17 +210,11 @@ TEST_CASE("Test hw decode/encode", "[dl_image]")
     // cleanup
     heap_caps_free(img.data);
     heap_caps_free(encoded_img.data);
-
-    if (mount) {
-        ESP_ERROR_CHECK(bsp_sdcard_unmount());
-    }
 }
 #endif
 
 TEST_CASE("Test BMP", "[dl_image][ignore]")
 {
-    ESP_ERROR_CHECK(bsp_sdcard_mount());
-
     jpeg_img_t jpeg_img = {.data = (void *)color_405x540_jpg_start,
                            .data_len = (size_t)(color_405x540_jpg_end - color_405x540_jpg_start)};
     img_t img = sw_decode_jpeg(jpeg_img, DL_IMAGE_PIX_TYPE_RGB888);
@@ -238,7 +224,7 @@ TEST_CASE("Test BMP", "[dl_image][ignore]")
     heap_caps_free(img.data);
     heap_caps_free(bmp_img.data);
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_SOC_JPEG_CODEC_SUPPORTED
     jpeg_img = {.data = (void *)gray_320x240_jpg_start,
                 .data_len = (size_t)(gray_320x240_jpg_end - gray_320x240_jpg_start)};
     img = hw_decode_jpeg(jpeg_img, DL_IMAGE_PIX_TYPE_GRAY);
@@ -248,6 +234,4 @@ TEST_CASE("Test BMP", "[dl_image][ignore]")
     heap_caps_free(img.data);
     heap_caps_free(bmp_img.data);
 #endif
-
-    ESP_ERROR_CHECK(bsp_sdcard_unmount());
 }

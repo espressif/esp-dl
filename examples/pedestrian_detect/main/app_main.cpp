@@ -1,3 +1,4 @@
+#include "dl_image_jpeg.hpp"
 #include "esp_log.h"
 #include "pedestrian_detect.hpp"
 #include "bsp/esp-bsp.h"
@@ -14,7 +15,7 @@ extern "C" void app_main(void)
 
     dl::image::jpeg_img_t jpeg_img = {.data = (void *)pedestrian_jpg_start,
                                       .data_len = (size_t)(pedestrian_jpg_end - pedestrian_jpg_start)};
-    auto img = sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
+    auto img = dl::image::sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     PedestrianDetect *detect = new PedestrianDetect();
 

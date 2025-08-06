@@ -1,6 +1,7 @@
 #include "esp_heap_caps.h"
 #include "unity.h"
 #include "unity_test_runner.h"
+#include "bsp/esp-bsp.h"
 
 #define TEST_INTERNAL_MEMORY_LEAK_THRESHOLD (-800)
 #define TEST_SPIRAM_MEMORY_LEAK_THRESHOLD (-100)
@@ -19,6 +20,7 @@ void set_spiram_leak_threshold(int threshold)
 
 static size_t before_free_internal;
 static size_t before_free_spiram;
+bool mount;
 
 static void check_leak(size_t before_free, size_t after_free, const char *type, int leak_threshold)
 {
@@ -30,6 +32,8 @@ static void check_leak(size_t before_free, size_t after_free, const char *type, 
 
 void setUp(void)
 {
+    auto ret = bsp_sdcard_mount();
+    mount = (ret == ESP_OK);
     before_free_internal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     before_free_spiram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 }
@@ -43,6 +47,9 @@ void tearDown(void)
 
     internal_leak_threshold = TEST_INTERNAL_MEMORY_LEAK_THRESHOLD;
     spiram_leak_threshold = TEST_SPIRAM_MEMORY_LEAK_THRESHOLD;
+    if (mount) {
+        ESP_ERROR_CHECK(bsp_sdcard_unmount());
+    }
 }
 
 extern "C" void app_main(void)

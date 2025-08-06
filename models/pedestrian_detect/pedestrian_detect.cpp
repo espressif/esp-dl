@@ -32,7 +32,7 @@ Pico::Pico(const char *model_name)
     m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1});
 #else
     m_image_preprocessor =
-        new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
+        new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
 #endif
     m_postprocessor =
         new dl::detect::PicoPostprocessor(m_model, 0.7, 0.5, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}});
