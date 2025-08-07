@@ -21,6 +21,8 @@ public:
     ImageTransformer &set_warp_affine_matrix(const math::Matrix<float> &M, bool inv = false);
     std::vector<int> &get_src_img_crop_area();
     std::vector<int> &get_dst_img_border();
+    const img_t &get_src_img();
+    const img_t &get_dst_img();
     float get_scale_x(bool inv = false);
     float get_scale_y(bool inv = false);
     void reset();

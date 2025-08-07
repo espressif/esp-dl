@@ -159,6 +159,16 @@ std::vector<int> &ImageTransformer::get_dst_img_border()
     return m_border;
 }
 
+const img_t &ImageTransformer::get_src_img()
+{
+    return m_src_img;
+}
+
+const img_t &ImageTransformer::get_dst_img()
+{
+    return m_dst_img;
+}
+
 float ImageTransformer::get_scale_x(bool inv)
 {
     return inv ? m_inv_scale_x : m_scale_x;

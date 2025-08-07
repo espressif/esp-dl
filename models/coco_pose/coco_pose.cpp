@@ -39,8 +39,9 @@ Yolo11nPose::Yolo11nPose(const char *model_name)
 #else
     m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255});
 #endif
+    m_image_preprocessor->enable_letterbox({114, 114, 114});
     m_postprocessor = new dl::detect::yolo11posePostProcessor(
-        m_model, 0.25, 0.7, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}});
+        m_model, m_image_preprocessor, 0.25, 0.7, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}});
 }
 
 } // namespace coco_pose

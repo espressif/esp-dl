@@ -35,8 +35,13 @@ MSR::MSR(const char *model_name)
     m_image_preprocessor = new dl::image::ImagePreprocessor(
         m_model, {0, 0, 0}, {1, 1, 1}, dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
 #endif
-    m_postprocessor = new dl::detect::MSRPostprocessor(
-        m_model, 0.5, 0.5, 10, {{8, 8, 9, 9, {{16, 16}, {32, 32}}}, {16, 16, 9, 9, {{64, 64}, {128, 128}}}});
+    m_postprocessor =
+        new dl::detect::MSRPostprocessor(m_model,
+                                         m_image_preprocessor,
+                                         0.5,
+                                         0.5,
+                                         10,
+                                         {{8, 8, 9, 9, {{16, 16}, {32, 32}}}, {16, 16, 9, 9, {{64, 64}, {128, 128}}}});
 }
 
 MNP::MNP(const char *model_name)
@@ -62,7 +67,8 @@ MNP::MNP(const char *model_name)
     m_image_preprocessor = new dl::image::ImagePreprocessor(
         m_model, {0, 0, 0}, {1, 1, 1}, dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
 #endif
-    m_postprocessor = new dl::detect::MNPPostprocessor(m_model, 0.5, 0.5, 10, {{1, 1, 0, 0, {{48, 48}}}});
+    m_postprocessor =
+        new dl::detect::MNPPostprocessor(m_model, m_image_preprocessor, 0.5, 0.5, 10, {{1, 1, 0, 0, {{48, 48}}}});
 }
 
 MNP::~MNP()
@@ -95,10 +101,6 @@ std::list<dl::detect::result_t> &MNP::run(const dl::image::img_t &img, std::list
         DL_LOG_INFER_LATENCY_ARRAY_END(1);
 
         DL_LOG_INFER_LATENCY_ARRAY_START(2);
-        m_postprocessor->set_resize_scale_x(m_image_preprocessor->get_resize_scale_x());
-        m_postprocessor->set_resize_scale_y(m_image_preprocessor->get_resize_scale_y());
-        m_postprocessor->set_top_left_x(m_image_preprocessor->get_top_left_x());
-        m_postprocessor->set_top_left_y(m_image_preprocessor->get_top_left_y());
         m_postprocessor->postprocess();
         DL_LOG_INFER_LATENCY_ARRAY_END(2);
     }

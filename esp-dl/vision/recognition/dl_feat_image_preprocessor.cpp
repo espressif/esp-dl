@@ -14,8 +14,9 @@ void FeatImagePreprocessor::preprocess(const dl::image::img_t &img, const std::v
 {
     assert(landmarks.size() == 10);
     // align face
-    float h_scale = (float)m_image_preprocessor->m_model_input->shape[1] / 112.0;
-    float w_scale = (float)m_image_preprocessor->m_model_input->shape[2] / 112.0;
+    auto model_input = m_image_preprocessor->get_model_input();
+    float h_scale = (float)model_input->shape[1] / 112.0;
+    float w_scale = (float)model_input->shape[2] / 112.0;
     dl::math::Matrix<float> source_coord(5, 2);
     dl::math::Matrix<float> dest_coord(5, 2);
     dest_coord.set_value(landmarks);
