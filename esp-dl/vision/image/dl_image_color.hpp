@@ -1,8 +1,11 @@
 #pragma once
 #include "dl_image_define.hpp"
 #include "esp_err.h"
+#include "esp_heap_caps.h"
+#include <algorithm> // std::min/std::max
 #include <concepts>
 #include <cstring> // for memset/memcpy
+#include <vector>
 
 namespace dl {
 namespace image {
@@ -320,6 +323,192 @@ struct Gray2Gray : public LUT<QuantType, 1> {
     constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept { *dst = m_lut[*src]; }
 };
 
+struct HSVTablesSingleton {
+    static inline constexpr int hsv_shift = 12;
+    int *m_sdiv_table;
+    int *m_hdiv_table;
+
+protected:
+    HSVTablesSingleton()
+    {
+        m_sdiv_table = (int *)heap_caps_malloc(256 * sizeof(int), MALLOC_CAP_DEFAULT);
+        m_hdiv_table = (int *)heap_caps_malloc(256 * sizeof(int), MALLOC_CAP_DEFAULT);
+        m_sdiv_table[0] = m_hdiv_table[0] = 0;
+        for (int i = 1; i < 256; i++) {
+            m_sdiv_table[i] = static_cast<int>((255 << hsv_shift) / (1. * i));
+            m_hdiv_table[i] = static_cast<int>((180 << hsv_shift) / (6. * i));
+        }
+    }
+
+public:
+    static HSVTablesSingleton &getInstance()
+    {
+        static HSVTablesSingleton g_tables;
+        return g_tables;
+    }
+};
+
+template <bool RGBSwap>
+struct RGB8882HSV {
+    RGB8882HSV()
+    {
+        const HSVTablesSingleton &global_tables = HSVTablesSingleton::getInstance();
+        m_hdiv_table = global_tables.m_hdiv_table;
+        m_sdiv_table = global_tables.m_sdiv_table;
+    }
+
+    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    {
+        constexpr int hsv_shift = HSVTablesSingleton::hsv_shift;
+        constexpr int round_delta = 1 << (hsv_shift - 1);
+        int r, g, b;
+        if constexpr (RGBSwap) {
+            r = src[2], g = src[1], b = src[0];
+        } else {
+            r = src[0], g = src[1], b = src[2];
+        }
+        int h, s, v = b;
+        int vmin = b;
+        int vr, vg;
+
+        v = std::max(std::max(v, g), r);
+        vmin = std::min(std::min(vmin, g), r);
+
+        uint8_t diff = (uint8_t)(v - vmin);
+        vr = v == r ? -1 : 0;
+        vg = v == g ? -1 : 0;
+
+        s = (diff * m_sdiv_table[v] + round_delta) >> hsv_shift;
+        h = (vr & (g - b)) + (~vr & ((vg & (b - r + 2 * diff)) + ((~vg) & (r - g + 4 * diff))));
+        h = (h * m_hdiv_table[diff] + round_delta) >> hsv_shift;
+        h += h < 0 ? 180 : 0;
+
+        dst[0] = (uint8_t)h;
+        dst[1] = (uint8_t)s;
+        dst[2] = (uint8_t)v;
+    }
+
+    const int *m_hdiv_table;
+    const int *m_sdiv_table;
+};
+
+template <bool RGB565BE, bool RGBSwap>
+struct RGB5652HSV {
+    RGB5652RGB888<RGB565BE, RGBSwap> m_rgb5652rgb888;
+    RGB8882HSV<false> m_rgb8882hsv;
+
+    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    {
+        uint8_t rgb888[3];
+        m_rgb5652rgb888(src, rgb888);
+        m_rgb8882hsv(rgb888, dst);
+    }
+};
+
+template <bool HAcrossZero>
+struct HSV2HSVMask {
+    HSV2HSVMask(const std::vector<uint8_t> &hsv_min, const std::vector<uint8_t> &hsv_max)
+    {
+        m_h_min = hsv_min[0];
+        m_h_max = hsv_max[0];
+        m_s_min = hsv_min[1];
+        m_s_max = hsv_max[1];
+        m_v_min = hsv_min[2];
+        m_v_max = hsv_max[2];
+    }
+
+    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    {
+        uint8_t h = src[0], s = src[1], v = src[2];
+        if constexpr (HAcrossZero) {
+            if ((h >= m_h_min || h <= m_h_max) && s >= m_s_min && s <= m_s_max && v >= m_v_min && v <= m_v_max) {
+                *dst = 255;
+            } else {
+                *dst = 0;
+            }
+        } else {
+            if (h >= m_h_min && h <= m_h_max && s >= m_s_min && s <= m_s_max && v >= m_v_min && v <= m_v_max) {
+                *dst = 255;
+            } else {
+                *dst = 0;
+            }
+        }
+    }
+
+    uint8_t m_h_min;
+    uint8_t m_h_max;
+    uint8_t m_s_min;
+    uint8_t m_s_max;
+    uint8_t m_v_min;
+    uint8_t m_v_max;
+};
+
+template <bool RGBSwap, bool HAcrossZero>
+struct RGB8882HSVMask {
+    RGB8882HSVMask(const std::vector<uint8_t> &hsv_min, const std::vector<uint8_t> &hsv_max) :
+        m_hsv2hsv_mask(hsv_min, hsv_max)
+    {
+    }
+    RGB8882HSV<RGBSwap> m_rgb8882hsv;
+    HSV2HSVMask<HAcrossZero> m_hsv2hsv_mask;
+
+    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    {
+        uint8_t hsv[3];
+        m_rgb8882hsv(src, hsv);
+        m_hsv2hsv_mask(hsv, dst);
+    }
+};
+
+template <bool RGBSwap, bool HAcrossZero>
+struct RGB8882HSVAndHSVMask {
+    RGB8882HSVAndHSVMask(const std::vector<uint8_t> &hsv_min, const std::vector<uint8_t> &hsv_max) :
+        m_hsv2hsv_mask(hsv_min, hsv_max)
+    {
+    }
+    RGB8882HSV<RGBSwap> m_rgb8882hsv;
+    HSV2HSVMask<HAcrossZero> m_hsv2hsv_mask;
+
+    constexpr void operator()(const uint8_t *src, uint8_t *dst_hsv, uint8_t *dst_hsv_mask) const noexcept
+    {
+        m_rgb8882hsv(src, dst_hsv);
+        m_hsv2hsv_mask(dst_hsv, dst_hsv_mask);
+    }
+};
+
+template <bool RGB565BE, bool RGBSwap, bool HAcrossZero>
+struct RGB5652HSVMask {
+    RGB5652HSVMask(const std::vector<uint8_t> &hsv_min, const std::vector<uint8_t> &hsv_max) :
+        m_hsv2hsv_mask(hsv_min, hsv_max)
+    {
+    }
+    RGB5652HSV<RGB565BE, RGBSwap> m_rgb5652hsv;
+    HSV2HSVMask<HAcrossZero> m_hsv2hsv_mask;
+
+    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    {
+        uint8_t hsv[3];
+        m_rgb5652hsv(src, hsv);
+        m_hsv2hsv_mask(hsv, dst);
+    }
+};
+
+template <bool RGB565BE, bool RGBSwap, bool HAcrossZero>
+struct RGB5652HSVAndHSVMask {
+    RGB5652HSVAndHSVMask(const std::vector<uint8_t> &hsv_min, const std::vector<uint8_t> &hsv_max) :
+        m_hsv2hsv_mask(hsv_min, hsv_max)
+    {
+    }
+    RGB5652HSV<RGB565BE, RGBSwap> m_rgb5652hsv;
+    HSV2HSVMask<HAcrossZero> m_hsv2hsv_mask;
+
+    constexpr void operator()(const uint8_t *src, uint8_t *dst_hsv, uint8_t *dst_hsv_mask) const noexcept
+    {
+        m_rgb5652hsv(src, dst_hsv);
+        m_hsv2hsv_mask(dst_hsv, dst_hsv_mask);
+    }
+};
+
 template <typename Func>
 esp_err_t pixel_cvt_dispatch(
     const Func &func, pix_type_t src_pix_type, pix_type_t dst_pix_type, uint32_t caps, void *norm_quant_lut)
@@ -403,6 +592,16 @@ esp_err_t pixel_cvt_dispatch(
             } else if (rgb_swap && !rgb565_swap && !rgb565be) {
                 func(RGB5652RGB565<true, false, false>());
             }
+        } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_HSV) {
+            if (rgb565be && rgb_swap) {
+                func(RGB5652HSV<true, true>());
+            } else if (rgb565be && !rgb_swap) {
+                func(RGB5652HSV<true, false>());
+            } else if (!rgb565be && rgb_swap) {
+                func(RGB5652HSV<false, true>());
+            } else {
+                func(RGB5652HSV<false, false>());
+            }
         } else {
             has_impl = false;
         }
@@ -452,6 +651,12 @@ esp_err_t pixel_cvt_dispatch(
                 func(RGB8882RGB565<false, true>());
             } else {
                 func(RGB8882RGB565<false, false>());
+            }
+        } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_HSV) {
+            if (rgb_swap) {
+                func(RGB8882HSV<true>());
+            } else {
+                func(RGB8882HSV<false>());
             }
         } else {
             has_impl = false;

@@ -16,7 +16,8 @@ typedef enum {
     DL_IMAGE_PIX_TYPE_GRAY,
     DL_IMAGE_PIX_TYPE_GRAY_QINT8,
     DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-    DL_IMAGE_PIX_TYPE_RGB565
+    DL_IMAGE_PIX_TYPE_RGB565,
+    DL_IMAGE_PIX_TYPE_HSV,
 } pix_type_t;
 
 typedef struct {
@@ -47,6 +48,7 @@ inline constexpr size_t get_pix_byte_size(pix_type_t pix_type) noexcept
     switch (pix_type) {
     case DL_IMAGE_PIX_TYPE_RGB888:
     case DL_IMAGE_PIX_TYPE_RGB888_QINT8:
+    case DL_IMAGE_PIX_TYPE_HSV:
         return 3;
     case DL_IMAGE_PIX_TYPE_RGB565:
     case DL_IMAGE_PIX_TYPE_GRAY_QINT16:
@@ -68,6 +70,7 @@ inline constexpr int get_pix_channel_num(pix_type_t pix_type) noexcept
     case DL_IMAGE_PIX_TYPE_RGB888_QINT8:
     case DL_IMAGE_PIX_TYPE_RGB888_QINT16:
     case DL_IMAGE_PIX_TYPE_RGB565:
+    case DL_IMAGE_PIX_TYPE_HSV:
         return 3;
     case DL_IMAGE_PIX_TYPE_GRAY:
     case DL_IMAGE_PIX_TYPE_GRAY_QINT8:
