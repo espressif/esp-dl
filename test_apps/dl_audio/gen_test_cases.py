@@ -12,24 +12,27 @@ import torchaudio.compliance.kaldi as kaldi
 WAV_FILE = "test_cases/test.wav"
 FBANK_FILE = "test_cases/test_fbank.bin"
 SPECT_FILE = "test_cases/test_spectrogram.bin"
+MFCC_FILE = "test_cases/test_mfcc.bin"
 
 test_configs = [
     dict(
         frame_shift=10.0,
         frame_length=25.0,
         num_mel_bins=26,
+        num_ceps=13,
         use_power=True,
-        use_log_fbank=False,
+        use_log_fbank=True,
         low_freq=0.0,
         high_freq=0.0,
         preemphasis_coefficient=0.97,
         remove_dc_offset=False,
-        window_type="rectangular",
+        window_type="hanning",
     ),
     dict(
         frame_shift=10.0,
         frame_length=25.0,
         num_mel_bins=26,
+        num_ceps=13,
         use_power=True,
         use_log_fbank=False,
         low_freq=0.0,
@@ -42,8 +45,9 @@ test_configs = [
         frame_shift=32.0,
         frame_length=32.0,
         num_mel_bins=80,
+        num_ceps=30,
         use_power=True,
-        use_log_fbank=False,
+        use_log_fbank=True,
         low_freq=50.0,
         high_freq=7000.0,
         preemphasis_coefficient=0.97,
@@ -54,6 +58,7 @@ test_configs = [
         frame_shift=16.0,
         frame_length=32.0,
         num_mel_bins=48,
+        num_ceps=11,
         use_power=False,
         use_log_fbank=False,
         low_freq=0.0,
@@ -66,6 +71,7 @@ test_configs = [
         frame_shift=32.0,
         frame_length=50.0,
         num_mel_bins=32,
+        num_ceps=23,
         use_power=True,
         use_log_fbank=True,
         low_freq=100.0,
@@ -101,8 +107,9 @@ def save_test_cases(f, cfg, mat):
     )
     f.write(
         struct.pack(
-            "<IIII",
+            "<IIIII",
             int(cfg["num_mel_bins"]),
+            int(cfg["num_ceps"]),
             int(cfg["use_power"]),
             int(cfg["use_log_fbank"]),
             int(cfg["remove_dc_offset"]),
@@ -167,7 +174,37 @@ def test_spectrogram(output_file):
     print(f"Wrote {len(test_configs)} cases with config -> {output_file}")
 
 
+def test_mfcc(output_file: str = FBANK_FILE):
+    waveform, sr = torchaudio.load(WAV_FILE)
+    assert sr == 16000
+    waveform = waveform[0]
+    print(waveform.shape)
+
+    with open(output_file, "wb") as f:
+        f.write(struct.pack("<II", 0xFBA5FBA5, len(test_configs)))  # header
+        for cfg in test_configs:
+            mat = kaldi.mfcc(
+                waveform.unsqueeze(0),
+                sample_frequency=sr,
+                num_mel_bins=cfg["num_mel_bins"],
+                num_ceps=cfg["num_ceps"],
+                frame_shift=cfg["frame_shift"],
+                frame_length=cfg["frame_length"],
+                low_freq=cfg["low_freq"],
+                high_freq=cfg["high_freq"],
+                preemphasis_coefficient=cfg["preemphasis_coefficient"],
+                window_type=cfg["window_type"],
+                remove_dc_offset=cfg["remove_dc_offset"],
+                use_energy=False,
+            )
+            cfg["use_log_fbank"] = True
+            cfg["use_power"] = True
+            save_test_cases(f, cfg, mat)
+    print(f"Wrote {len(test_configs)} cases with config -> {output_file}")
+
+
 if __name__ == "__main__":
     test_fbank(FBANK_FILE)
     test_spectrogram(SPECT_FILE)
+    test_mfcc(MFCC_FILE)
     # test_kaldifeat(FBANK_FILE)

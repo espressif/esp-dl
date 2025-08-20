@@ -17,8 +17,9 @@ struct SpeechFeatureConfig {
     int frame_length = 25;                       /*!< Frame length in milliseconds */
     int frame_shift = 10;                        /*!< Frame step in milliseconds */
     int num_mel_bins = 26;                       /*!< Number of mel filterbank bins */
-    int num_cepstral = 13;                       /*!< Number of cepstral coefficients (for MFCC) */
+    int num_ceps = 13;                           /*!< Number of cepstral coefficients (for MFCC) */
     float preemphasis = 0.97f;                   /*!< Preemphasis coefficient */
+    float cepstral_lifter = 22.0;                /*！< Constant that controls scaling of MFCCs >*/
     WinType window_type = WinType::HANNING;      /*!< Window type */
     float low_freq = 80.0f;                      /*!< Lower edge of mel filters */
     float high_freq = 7600.0f;                   /*!< Upper edge of mel filters */
@@ -123,7 +124,7 @@ public:
      * @param input_len Length of input data
      * @return std::vector<int> Output shape as [num_frames, feature_dim]
      */
-    virtual std::vector<int> get_output_shape(int input_len) = 0;
+    std::vector<int> get_output_shape(int input_len);
 
     /**
      * @brief Get the configuration object

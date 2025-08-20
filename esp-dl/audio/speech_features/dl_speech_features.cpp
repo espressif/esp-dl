@@ -3,25 +3,27 @@
 namespace dl {
 namespace audio {
 
+static const char *tag = "dl::audio";
+
 void print_speech_feature_config(const SpeechFeatureConfig &config)
 {
-    printf("SpeechFeatureConfig:\n");
-    printf("  sample_rate: %d\n", config.sample_rate);
-    printf("  frame_length: %d\n", config.frame_length);
-    printf("  frame_shift: %d\n", config.frame_shift);
-    printf("  num_mel_bins: %d\n", config.num_mel_bins);
-    printf("  num_cepstral: %d\n", config.num_cepstral);
-    printf("  preemphasis: %.2f\n", config.preemphasis);
-    printf("  window_type: %s\n", win_type_to_string(config.window_type));
-    printf("  low_freq: %.2f\n", config.low_freq);
-    printf("  high_freq: %.2f\n", config.high_freq);
-    printf("  log_epsilon: %.2e\n", config.log_epsilon);
-    printf("  use_log_fbank: %d\n", config.use_log_fbank);
-    printf("  use_power: %s\n", config.use_power ? "true" : "false");
-    printf("  use_energy: %s\n", config.use_energy ? "true" : "false");
-    printf("  raw_energy: %s\n", config.raw_energy ? "true" : "false");
-    printf("  use_int16_fft: %s\n", config.use_int16_fft ? "true" : "false");
-    printf("  remove_dc_offset: %s\n", config.remove_dc_offset ? "true" : "false");
+    ESP_LOGI(tag, "SpeechFeatureConfig");
+    ESP_LOGI(tag, "  sample_rate: %d", config.sample_rate);
+    ESP_LOGI(tag, "  frame_length: %d", config.frame_length);
+    ESP_LOGI(tag, "  frame_shift: %d", config.frame_shift);
+    ESP_LOGI(tag, "  num_mel_bins: %d", config.num_mel_bins);
+    ESP_LOGI(tag, "  num_ceps: %d", config.num_ceps);
+    ESP_LOGI(tag, "  preemphasis: %.2f", config.preemphasis);
+    ESP_LOGI(tag, "  window_type: %s", win_type_to_string(config.window_type));
+    ESP_LOGI(tag, "  low_freq: %.2f", config.low_freq);
+    ESP_LOGI(tag, "  high_freq: %.2f", config.high_freq);
+    ESP_LOGI(tag, "  log_epsilon: %.2e", config.log_epsilon);
+    ESP_LOGI(tag, "  use_log_fbank: %d", config.use_log_fbank);
+    ESP_LOGI(tag, "  use_power: %s", config.use_power ? "true" : "false");
+    ESP_LOGI(tag, "  use_energy: %s", config.use_energy ? "true" : "false");
+    ESP_LOGI(tag, "  raw_energy: %s", config.raw_energy ? "true" : "false");
+    ESP_LOGI(tag, "  use_int16_fft: %s", config.use_int16_fft ? "true" : "false");
+    ESP_LOGI(tag, "  remove_dc_offset: %s", config.remove_dc_offset ? "true" : "false");
 }
 
 esp_err_t SpeechFeatureBase::process(const float *input, int input_len, float *output)
@@ -74,6 +76,15 @@ esp_err_t SpeechFeatureBase::process(const int16_t *input, int input_len, float 
     }
 
     return ESP_OK;
+}
+
+std::vector<int> SpeechFeatureBase::get_output_shape(int input_len)
+{
+    // Calculate number of frames
+    int num_frames = get_frame_num(input_len, m_win_len, m_win_step);
+
+    // Return shape as [num_frames, num_mel_bins]
+    return std::vector<int>{num_frames, m_feature_dim};
 }
 
 } // namespace audio

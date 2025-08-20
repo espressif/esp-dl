@@ -1,7 +1,9 @@
 // fbank_bin_v2.hpp
 #include "dl_audio_wav.hpp"
 #include "dl_fbank.hpp"
+#include "dl_mfcc.hpp"
 #include "dl_spectrogram.hpp"
+#include "esp_timer.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "unity.h"
@@ -18,7 +20,8 @@ extern const uint8_t test_fbank_bin_start[] asm("_binary_test_fbank_bin_start");
 extern const uint8_t test_fbank_bin_end[] asm("_binary_test_fbank_bin_end");
 extern const uint8_t test_spectrogram_bin_start[] asm("_binary_test_spectrogram_bin_start");
 extern const uint8_t test_spectrogram_bin_end[] asm("_binary_test_spectrogram_bin_end");
-
+extern const uint8_t test_mfcc_bin_start[] asm("_binary_test_mfcc_bin_start");
+extern const uint8_t test_mfcc_bin_end[] asm("_binary_test_mfcc_bin_end");
 using namespace dl::audio;
 
 struct SpeechFeatureCase {
@@ -69,7 +72,7 @@ SpeechFeatureCase *load_test_case(const uint8_t *start, int idx)
 
     char window_name[16];
     for (int i = 0; i < idx; ++i) {
-        p += 52; // Skip config
+        p += 56; // Skip config
         uint32_t T = read_u32_LE(p);
         uint32_t D = read_u32_LE(p);
         p += T * D * sizeof(float); // Skip data
@@ -83,11 +86,11 @@ SpeechFeatureCase *load_test_case(const uint8_t *start, int idx)
     cfg.high_freq = read_f32_LE(p);
     cfg.preemphasis = read_f32_LE(p);
     cfg.num_mel_bins = read_u32_LE(p);
+    cfg.num_ceps = read_u32_LE(p);
     cfg.use_power = static_cast<bool>(read_u32_LE(p));
     cfg.use_log_fbank = static_cast<bool>(read_u32_LE(p));
     cfg.remove_dc_offset = static_cast<bool>(read_u32_LE(p));
     memcpy(window_name, p, 16);
-    printf("window type: %s\n", window_name);
     cfg.window_type = win_type_from_string(window_name);
     p += 16;
 
@@ -132,6 +135,7 @@ TEST_CASE("1. test dl spectrogram", "[dl_audio]")
     dl_audio_t *input = decode_wav(test_wav_start, test_wav_end - test_wav_start);
     print_audio_info(input);
     int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    uint32_t start, stop;
 
     for (size_t i = 0; i < cases_num; ++i) {
         SpeechFeatureCase *c = load_test_case(test_spectrogram_bin_start, i);
@@ -147,10 +151,11 @@ TEST_CASE("1. test dl spectrogram", "[dl_audio]")
                 printf("error: malloc\n");
                 exit(-1);
             }
-
+            start = esp_timer_get_time();
             handle->process(input->data, input->length, output);
+            stop = esp_timer_get_time();
             TEST_ASSERT_EQUAL(true, check_is_same(output, size, c->data));
-            printf("test %d pass\n\n", i);
+            printf("test %d pass, time:%ld us \n\n", i, stop - start);
             free(output);
         }
         delete handle;
@@ -168,6 +173,7 @@ TEST_CASE("2. test dl fbank", "[dl_audio]")
     dl_audio_t *input = decode_wav(test_wav_start, test_wav_end - test_wav_start);
     print_audio_info(input);
     int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    uint32_t start, stop;
 
     for (size_t i = 0; i < cases_num; ++i) {
         SpeechFeatureCase *c = load_test_case(test_fbank_bin_start, i);
@@ -184,9 +190,51 @@ TEST_CASE("2. test dl fbank", "[dl_audio]")
                 exit(-1);
             }
 
+            start = esp_timer_get_time();
             handle->process(input->data, input->length, output);
+            stop = esp_timer_get_time();
             TEST_ASSERT_EQUAL(true, check_is_same(output, size, c->data));
-            printf("test %d pass\n\n", i);
+            printf("test %d pass, time:%ld us \n\n", i, stop - start);
+            free(output);
+        }
+        delete handle;
+        free(c->data);
+        delete c;
+    }
+
+    int ram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    printf("ram size before: %d\n", ram_size_before);
+    printf("ram size after: %d\n", ram_size_after);
+}
+
+TEST_CASE("3. test dl mfcc", "[dl_audio]")
+{
+    int cases_num = get_case_num(test_mfcc_bin_start, test_mfcc_bin_end);
+    dl_audio_t *input = decode_wav(test_wav_start, test_wav_end - test_wav_start);
+    print_audio_info(input);
+    int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    uint32_t start, stop;
+
+    for (size_t i = 0; i < cases_num; ++i) {
+        SpeechFeatureCase *c = load_test_case(test_mfcc_bin_start, i);
+
+        MFCC *handle = new MFCC(c->cfg);
+        handle->print_config();
+        std::vector<int> shape = handle->get_output_shape(input->length);
+        int size = shape[0] * shape[1];
+        if (size > 0) {
+            float *output = (float *)malloc(shape[0] * shape[1] * sizeof(float));
+            printf("shape of output feature is %d x %d\n", shape[0], shape[1]);
+            if (output == nullptr) {
+                printf("error: malloc\n");
+                exit(-1);
+            }
+
+            start = esp_timer_get_time();
+            handle->process(input->data, input->length, output);
+            stop = esp_timer_get_time();
+            TEST_ASSERT_EQUAL(true, check_is_same(output, size, c->data));
+            printf("test %d pass, time:%ld us \n\n", i, stop - start);
             free(output);
         }
         delete handle;

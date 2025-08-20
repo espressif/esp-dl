@@ -159,9 +159,9 @@ float *compute_spectrum(float *x, int win_len, bool use_power);
  *
  * @param x1 First array.
  * @param x2 Second array.
- * @param y  Output (accumulated result).
  * @param len Length of arrays.
  */
-void dotprod_f32(float *x1, float *x2, float *y, int len);
+float dotprod_f32(float *x1, float *x2, int len);
+
 } // namespace audio
 } // namespace dl

@@ -276,9 +276,11 @@ float *compute_spectrum(float *x, int win_len, bool use_power)
     return x; // x: [nfft//2+1], power or magnitude
 }
 
-void dotprod_f32(float *x1, float *x2, float *y, int len)
+float dotprod_f32(float *x1, float *x2, int len)
 {
-    for (int i = 0; i < len; i++) *y += x1[i] * x2[i];
+    float sum = 0;
+    for (int i = 0; i < len; i++) sum += x1[i] * x2[i];
+    return sum;
 }
 
 float *mel_dotprod(float *x, mel_filter_t *mel_filter, float *output)
@@ -290,10 +292,9 @@ float *mel_dotprod(float *x, mel_filter_t *mel_filter, float *output)
     int x_shift = 0;
     int len = 0;
     for (int j = 0; j < nfilter; j++) {
-        output[j] = 0.0;
         len = bank_pos[j * 2 + 1] - bank_pos[j * 2] + 1;
         x_shift = bank_pos[j * 2];
-        dotprod_f32(coeff + coeff_shift, x + x_shift, output + j, len);
+        output[j] = dotprod_f32(coeff + coeff_shift, x + x_shift, len);
         coeff_shift += len;
     }
 

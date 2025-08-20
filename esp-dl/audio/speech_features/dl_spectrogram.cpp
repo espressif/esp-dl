@@ -64,14 +64,5 @@ esp_err_t Spectrogram::process_frame(const int16_t *input, int win_len, float *o
     return process_frame(m_cache, win_len, output, prev / 32768.0f);
 }
 
-std::vector<int> Spectrogram::get_output_shape(int input_len)
-{
-    // Calculate number of frames
-    int num_frames = get_frame_num(input_len, m_win_len, m_win_step);
-
-    // Return shape as [num_frames, num_mel_bins]
-    return std::vector<int>{num_frames, m_feature_dim};
-}
-
 } // namespace audio
 } // namespace dl

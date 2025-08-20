@@ -4,7 +4,8 @@ set(srcs app_main.cpp
 file(GLOB embed_files  ${PROJECT_DIR}/test_cases/test*)
 
 set(requires    unity
-                esp-dl)
+                esp-dl
+                esp_timer)
 
 
 idf_component_register(SRCS ${srcs}

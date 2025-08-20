@@ -23,7 +23,7 @@ public:
      * @param config Speech feature configuration
      * @param caps Memory allocation capabilities
      */
-    Fbank(const SpeechFeatureConfig config, uint32_t caps = MALLOC_CAP_DEFAULT) : SpeechFeatureBase(config)
+    Fbank(const SpeechFeatureConfig config, uint32_t caps = MALLOC_CAP_DEFAULT) : SpeechFeatureBase(config, caps)
     {
         m_fft_config = dl_rfft_f32_init(m_fft_size, caps);
         m_cache =
@@ -78,14 +78,6 @@ public:
      * @return esp_err_t ESP_OK on success, error code otherwise
      */
     esp_err_t process_frame(const int16_t *input, int win_len, float *output, int16_t prev = 0) override;
-
-    /**
-     * @brief Get the output shape for given input length
-     *
-     * @param input_len Length of input data
-     * @return std::vector<int> Output shape as [num_frames, num_mel_bins]
-     */
-    std::vector<int> get_output_shape(int input_len);
 };
 
 } // namespace audio

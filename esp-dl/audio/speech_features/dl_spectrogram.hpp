@@ -32,6 +32,9 @@ public:
             (float *)heap_caps_aligned_alloc(16, sizeof(float) * m_fft_size, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
         assert(m_cache != nullptr);
         m_win_func = win_func_init(config.window_type, m_win_len);
+
+        m_config.use_power = true;  // allgned with torchaudio.compliance.kaldi.spectrogram
+        m_config.use_log_fbank = 1; // allgned with torchaudio.compliance.kaldi.spectrogram
     }
 
     /**
@@ -74,14 +77,6 @@ public:
      * @return esp_err_t ESP_OK on success, error code otherwise
      */
     esp_err_t process_frame(const int16_t *input, int win_len, float *output, int16_t prev = 0) override;
-
-    /**
-     * @brief Get the output shape for given input length
-     *
-     * @param input_len Length of input data
-     * @return std::vector<int> Output shape as [num_frames, num_mel_bins]
-     */
-    std::vector<int> get_output_shape(int input_len);
 };
 
 } // namespace audio
