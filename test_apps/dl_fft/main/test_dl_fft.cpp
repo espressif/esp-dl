@@ -5,6 +5,7 @@
 
 static const char *TAG = "TEST DL AUDIO";
 static int LOOP = 10;
+using namespace dl;
 
 TEST_CASE("1. test dl fft", "[dl_fft]")
 {

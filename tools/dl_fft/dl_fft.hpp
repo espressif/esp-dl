@@ -6,9 +6,8 @@
 #include "dl_fft.h"
 #include "dl_rfft.h"
 
+namespace dl {
 class FFT {
-    using FFTInitFunc = std::function<void *(int, uint32_t)>;
-
 private:
     // Private constructor for singleton
     FFT() = default;
@@ -289,3 +288,5 @@ public:
         return fft_f32_handles.size() + fft_s16_handles.size() + rfft_f32_handles.size() + rfft_s16_handles.size();
     }
 };
+
+} // namespace dl
