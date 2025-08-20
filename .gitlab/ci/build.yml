@@ -277,7 +277,7 @@ build_dl_fft:
     - .rules:build:test_dl_fft
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
+      - IMAGE: [espressif/idf:release-v5.3]
         TARGET: [esp32p4, esp32s3, esp32c3, esp32]
   variables:
     EXAMPLE_DIR: test_apps/dl_fft
