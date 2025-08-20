@@ -6,38 +6,38 @@ namespace dl {
 namespace audio {
 
 /**
- * @brief Fbank (Filter Bank) features extraction class
+ * @brief Spectrogram features extraction class
+ *        Allgned with torchaudio.compliance.kaldi.spectrogram
+ *        Note: this implementation of spectrogram has fixed energy_floor = 0.0
  */
-class Fbank : public SpeechFeatureBase {
+class Spectrogram : public SpeechFeatureBase {
 private:
-    // Fbank specific parameters
+    // Spectrogram specific parameters
     dl_fft_f32_t *m_fft_config; /*!< FFT configuration */
-    mel_filter_t *m_mel_filter; /*!< Mel filterbank coefficients */
     float *m_win_func;          /*!< Window function coefficients */
     float *m_cache;             /*!< Cache buffer for intermediate computations */
 
 public:
     /**
-     * @brief Construct a new Fbank object
+     * @brief Construct a new Spectrogram object
      *
      * @param config Speech feature configuration
      * @param caps Memory allocation capabilities
      */
-    Fbank(const SpeechFeatureConfig config, uint32_t caps = MALLOC_CAP_DEFAULT) : SpeechFeatureBase(config)
+    Spectrogram(const SpeechFeatureConfig config, uint32_t caps = MALLOC_CAP_DEFAULT) : SpeechFeatureBase(config, caps)
     {
         m_fft_config = dl_rfft_f32_init(m_fft_size, caps);
+        m_feature_dim = m_fft_size / 2 + 1;
         m_cache =
             (float *)heap_caps_aligned_alloc(16, sizeof(float) * m_fft_size, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+        assert(m_cache != nullptr);
         m_win_func = win_func_init(config.window_type, m_win_len);
-        m_feature_dim = config.use_energy ? config.num_mel_bins + 1 : config.num_mel_bins;
-        m_mel_filter = mel_filter_init(
-            m_fft_size, config.num_mel_bins, config.low_freq, config.high_freq, config.sample_rate, m_caps);
     }
 
     /**
-     * @brief Destroy the Fbank object
+     * @brief Destroy the Spectrogram object
      */
-    ~Fbank()
+    ~Spectrogram()
     {
         if (m_fft_config) {
             dl_rfft_f32_deinit(m_fft_config);
@@ -51,10 +51,6 @@ public:
         if (m_win_func) {
             free(m_win_func);
         }
-
-        if (m_mel_filter) {
-            mel_filter_deinit(m_mel_filter);
-        }
     }
 
     /**
@@ -62,7 +58,7 @@ public:
      *
      * @param input Input audio data
      * @param win_len Window length
-     * @param output Output Fbank features
+     * @param output Output Spectrogram features
      * @param prev Previous sample for pre-emphasis
      * @return esp_err_t ESP_OK on success, error code otherwise
      */
@@ -73,7 +69,7 @@ public:
      *
      * @param input Input audio data
      * @param win_len Window length
-     * @param output Output Fbank features
+     * @param output Output Spectrogram features
      * @param prev Previous sample for pre-emphasis
      * @return esp_err_t ESP_OK on success, error code otherwise
      */

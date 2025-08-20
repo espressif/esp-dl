@@ -1,4 +1,4 @@
-#include "dl_fbank.hpp"
+#include "dl_spectrogram.hpp"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +6,7 @@
 namespace dl {
 namespace audio {
 
-esp_err_t Fbank::process_frame(const float *input, int win_len, float *output, float prev)
+esp_err_t Spectrogram::process_frame(const float *input, int win_len, float *output, float prev)
 {
     if (input == nullptr || output == nullptr) {
         return ESP_ERR_INVALID_ARG;
@@ -20,18 +20,16 @@ esp_err_t Fbank::process_frame(const float *input, int win_len, float *output, f
         remove_dc_offset(m_cache, win_len);
     }
 
-    if (m_config.raw_energy && m_config.use_energy) {
+    if (m_config.raw_energy) {
         output[0] = compute_energy(m_cache, win_len, m_config.log_epsilon);
-        output += 1;
     }
 
     apply_preemphasis(m_cache, win_len, m_config.preemphasis, prev);
 
     apply_window(m_cache, win_len, m_win_func);
 
-    if (!m_config.raw_energy && m_config.use_energy) {
+    if (!m_config.raw_energy) {
         output[0] = compute_energy(m_cache, win_len, m_config.log_epsilon);
-        output += 1;
     }
 
     if (win_len < m_fft_size) {
@@ -42,20 +40,18 @@ esp_err_t Fbank::process_frame(const float *input, int win_len, float *output, f
 
     compute_spectrum(m_cache, m_fft_size, m_config.use_power);
 
-    mel_dotprod(m_cache, m_mel_filter, output);
-
     if (m_config.use_log_fbank == 1) {
         float epsilon = m_config.log_epsilon;
-        for (int j = 0; j < m_config.num_mel_bins; j++) output[j] = logf(MAX(output[j], epsilon));
+        for (int j = 1; j < m_feature_dim; j++) output[j] = logf(MAX(m_cache[j], epsilon));
     } else if (m_config.use_log_fbank == 2) {
         float epsilon = m_config.log_epsilon;
-        for (int j = 0; j < m_config.num_mel_bins; j++) output[j] = logf(output[j] + epsilon);
+        for (int j = 1; j < m_feature_dim; j++) output[j] = logf(m_cache[j] + epsilon);
     }
 
     return ESP_OK;
 }
 
-esp_err_t Fbank::process_frame(const int16_t *input, int win_len, float *output, int16_t prev)
+esp_err_t Spectrogram::process_frame(const int16_t *input, int win_len, float *output, int16_t prev)
 {
     if (input == nullptr || output == nullptr) {
         return ESP_ERR_INVALID_ARG;
@@ -68,7 +64,7 @@ esp_err_t Fbank::process_frame(const int16_t *input, int win_len, float *output,
     return process_frame(m_cache, win_len, output, prev / 32768.0f);
 }
 
-std::vector<int> Fbank::get_output_shape(int input_len)
+std::vector<int> Spectrogram::get_output_shape(int input_len)
 {
     // Calculate number of frames
     int num_frames = get_frame_num(input_len, m_win_len, m_win_step);

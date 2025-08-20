@@ -3,8 +3,7 @@
 #include "dl_audio_common.hpp"
 #include "dl_fft.hpp"
 #include "esp_err.h"
-#include <functional>
-#include <stdint.h>
+#include <stdlib.h>
 #include <vector>
 
 namespace dl {
@@ -17,7 +16,6 @@ struct SpeechFeatureConfig {
     int sample_rate = 16000;                     /*!< Sample rate in Hz */
     int frame_length = 25;                       /*!< Frame length in milliseconds */
     int frame_shift = 10;                        /*!< Frame step in milliseconds */
-    int fft_size = 512;                          /*!< FFT size */
     int num_mel_bins = 26;                       /*!< Number of mel filterbank bins */
     int num_cepstral = 13;                       /*!< Number of cepstral coefficients (for MFCC) */
     float preemphasis = 0.97f;                   /*!< Preemphasis coefficient */
@@ -26,32 +24,16 @@ struct SpeechFeatureConfig {
     float high_freq = 7600.0f;                   /*!< Upper edge of mel filters */
     float log_epsilon = 1.1920928955078125e-07f; /*!< log epsilon: torch.finfo(torch.float32).eps */
     int use_log_fbank = 1;   /*!< 0: return fbank, 1: return log(x+log_epsilon), 2: return log(max(x, log_epsilon)) */
-    bool use_power = true;   /*!< If true, use power of fft spectrum, else use magnitude of fft spectrum */
-    bool use_energy = false; /*!< Include energy feature */
-    bool use_int16_fft = false; /*!< If true, use float fft, else use int16 fft for faster speed */
+    bool raw_energy = true;  /*!< If True, compute energy before preemphasis and windowing (Default: True) */
+    bool use_power = true;   /*!< If true, use power, else use magnitude. (Default: True) */
+    bool use_energy = false; /*!< Add an extra dimension with energy to the FBANK output. (Default: False) */
+    bool use_int16_fft = false;   /*!< If true, use float fft, else use int16 fft for faster speed. (Default: False) */
+    bool remove_dc_offset = true; /*!< Subtract mean from waveform on each frame (Default: True) */
 
     SpeechFeatureConfig() = default;
 };
 
-void print_speech_feature_config(const SpeechFeatureConfig &config)
-{
-    printf("SpeechFeatureConfig:\n");
-    printf("  sample_rate: %d\n", config.sample_rate);
-    printf("  frame_length: %d\n", config.frame_length);
-    printf("  frame_shift: %d\n", config.frame_shift);
-    printf("  fft_size: %d\n", config.fft_size);
-    printf("  num_mel_bins: %d\n", config.num_mel_bins);
-    printf("  num_cepstral: %d\n", config.num_cepstral);
-    printf("  preemphasis: %.2f\n", config.preemphasis);
-    printf("  window_type: %d\n", static_cast<int>(config.window_type));
-    printf("  low_freq: %.2f\n", config.low_freq);
-    printf("  high_freq: %.2f\n", config.high_freq);
-    printf("  log_epsilon: %.2e\n", config.log_epsilon);
-    printf("  use_log_fbank: %d\n", config.use_log_fbank);
-    printf("  use_power: %s\n", config.use_power ? "true" : "false");
-    printf("  use_energy: %s\n", config.use_energy ? "true" : "false");
-    printf("  use_int16_fft: %s\n", config.use_int16_fft ? "true" : "false");
-}
+void print_speech_feature_config(const SpeechFeatureConfig &config);
 
 /**
  * @brief Base class for speech features extraction
@@ -59,6 +41,11 @@ void print_speech_feature_config(const SpeechFeatureConfig &config)
 class SpeechFeatureBase {
 protected:
     SpeechFeatureConfig m_config;
+    uint32_t m_caps;   /*!< Memory allocation capabilities */
+    int m_win_len;     /*!< Frame length */
+    int m_win_step;    /*!< Frame step size */
+    int m_fft_size;    /*!< FFT size, must be power of 2 and larger than frame length */
+    int m_feature_dim; /*!< Feature dimension */
 
 public:
     /**
@@ -66,12 +53,26 @@ public:
      *
      * @param config Speech feature configuration
      */
-    explicit SpeechFeatureBase(const SpeechFeatureConfig config) { m_config = config; }
+    explicit SpeechFeatureBase(const SpeechFeatureConfig config, uint32_t caps = MALLOC_CAP_DEFAULT)
+    {
+        m_config = config;
+        if (m_config.high_freq <= 0) {
+            m_config.high_freq = config.sample_rate / 2.0;
+        }
+        assert(m_config.preemphasis >= 0.0f);
+        assert(m_config.preemphasis < 1.0f);
+
+        m_caps = caps;
+        m_win_len = config.frame_length * config.sample_rate / 1000;
+        m_win_step = config.frame_shift * config.sample_rate / 1000;
+        m_fft_size = next_power_of_2(m_win_len);
+        m_feature_dim = 0;
+    }
 
     /**
      * @brief Destroy the Speech Feature Base object
      */
-    virtual ~SpeechFeatureBase();
+    virtual ~SpeechFeatureBase() = default;
 
     // Core interface
     /**
@@ -104,7 +105,7 @@ public:
      * @param output Output features
      * @return esp_err_t ESP_OK on success, error code otherwise
      */
-    virtual esp_err_t process(const float *input, int input_len, float *output) = 0;
+    esp_err_t process(const float *input, int input_len, float *output);
 
     /**
      * @brief Process entire int16 audio data
@@ -114,7 +115,7 @@ public:
      * @param output Output features
      * @return esp_err_t ESP_OK on success, error code otherwise
      */
-    virtual esp_err_t process(const int16_t *input, int input_len, float *output) = 0;
+    esp_err_t process(const int16_t *input, int input_len, float *output);
 
     /**
      * @brief Get the output shape for given input length
@@ -131,25 +132,7 @@ public:
      */
     const SpeechFeatureConfig &config() const { return m_config; }
 
-    // void print_config()
-    // {
-    //     printf("SpeechFeatureConfig:\n");
-    //     printf("  sample_rate: %d\n", config.sample_rate);
-    //     printf("  frame_length: %d\n", config.frame_length);
-    //     printf("  frame_shift: %d\n", config.frame_shift);
-    //     printf("  fft_size: %d\n", config.fft_size);
-    //     printf("  num_mel_bins: %d\n", config.num_mel_bins);
-    //     printf("  num_cepstral: %d\n", config.num_cepstral);
-    //     printf("  preemphasis: %.2f\n", config.preemphasis);
-    //     printf("  window_type: %d\n", static_cast<int>(config.window_type));
-    //     printf("  low_freq: %.2f\n", config.low_freq);
-    //     printf("  high_freq: %.2f\n", config.high_freq);
-    //     printf("  log_epsilon: %.2e\n", config.log_epsilon);
-    //     printf("  use_log_fbank: %d\n", config.use_log_fbank);
-    //     printf("  use_power: %s\n", config.use_power ? "true" : "false");
-    //     printf("  use_energy: %s\n", config.use_energy ? "true" : "false");
-    //     printf("  use_int16_fft: %s\n", config.use_int16_fft ? "true" : "false");
-    // }
+    void print_config() { print_speech_feature_config(m_config); }
 };
 
 } // namespace audio

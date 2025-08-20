@@ -12,19 +12,21 @@ namespace audio {
 
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
-#define M_PI 3.14159265358979323846
+#define M_2PI 6.283185307179586476925286766559005
 
 /**
  * @brief Window function type enumeration.
  */
 enum class WinType {
     HANNING,     /*!< Hanning window */
+    HANN,        /*!< Hanning window, see https://pytorch.org/docs/stable/generated/torch.hann_window.html */
     SINE,        /*!< Sine window */
     HAMMING,     /*!< Hamming window */
     POVEY,       /*!< Povey window, used in Kaldi */
+    BLACKMAN,    /*!< Blackman window */
     RECTANGULAR, /*!< Rectangular window */
     WN9,         /*!< Special predefined window */
-    UNKNOWN      /*!< Unknown type */
+    NONE,        /*!< No window function or unknown window */
 };
 
 /**
@@ -39,12 +41,16 @@ typedef struct {
 /**
  * @brief Initialize window function data of the specified type.
  *
- * @param win_type Window type, use WinType enum.
- * @param win_len  Window length.
- * @return float*  Pointer to the allocated window data. Caller must free it. Returns nullptr on failure or invalid
- * arguments.
+ * This function allocates and initializes the window function data based on the specified type and length.
+ * The caller is responsible for freeing the allocated memory.
+ *
+ * @param win_type Window type, specified using the WinType enum.
+ * @param win_len  Length of the window function.
+ * @param caps     Memory allocation capabilities (default is MALLOC_CAP_DEFAULT).
+ * @param blackman_coeff Coefficient for Blackman window (default is 0.42f, ignored for other window types).
+ * @return float*  Pointer to the allocated window data. Returns nullptr on failure or invalid arguments.
  */
-float *win_func_init(WinType win_type, int win_len);
+float *win_func_init(WinType win_type, int win_len, uint32_t caps = MALLOC_CAP_DEFAULT, float blackman_coeff = 0.42f);
 
 /**
  * @brief Convert a string to the corresponding window type enum.
@@ -53,6 +59,22 @@ float *win_func_init(WinType win_type, int win_len);
  * @return WinType Corresponding window type enum. Returns WinType::UNKNOWN if not recognized.
  */
 WinType win_type_from_string(const char *str);
+
+/**
+ * @brief Convert a window type enum to its corresponding string representation.
+ *
+ * @param win_type Window type enum value.
+ * @return const char* String representation of the window type. Returns "unknown" if not recognized.
+ */
+const char *win_type_to_string(WinType win_type);
+
+int get_frame_num(int input_len, int win_len, int win_step);
+
+uint32_t next_power_of_2(uint32_t x);
+
+void remove_dc_offset(float *x, int n);
+
+float compute_energy(float *x, int len, float epsilon);
 
 /**
  * @brief Initialize mel filter data.
@@ -79,17 +101,23 @@ void mel_filter_deinit(mel_filter_t *mel_filter);
 /**
  * @brief Apply window function and preemphasis to input signal.
  *
- * @param input             Input signal.
+ * @param x             Input signal.
  * @param win_len           Window length.
- * @param output            Output signal.
  * @param preemphasis_coeff Preemphasis coefficient.
- * @param win_func          Window function.
  * @param prev              Previous sample for preemphasis.
  * @return float*           Pointer to output.
  */
-float *apply_window_and_preemphasis(
-    const float *input, int win_len, float *output, float preemphasis_coeff, float *win_func, float prev = 0);
+float *apply_preemphasis(float *x, int win_len, float preemphasis_coeff, float prev);
 
+/**
+ * @brief Apply window function and preemphasis to input signal.
+ *
+ * @param x             Input signal.
+ * @param win_len           Window length.
+ * @param win_func          Window function.
+ * @return float*           Pointer to output.
+ */
+float *apply_window(float *x, int win_len, float *win_func);
 /**
  * @brief Apply mel filterbank to spectrum.
  *
@@ -117,15 +145,14 @@ float hz2mel(float x);
 float mel2hz(float x);
 
 /**
- * @brief Compute spectrum from time domain signal.
+ * @brief Compute spectrum.
  *
- * @param fft_handle FFT handle.
  * @param x         Input signal.
  * @param win_len   Window length.
  * @param use_power If true, compute power spectrum, else magnitude.
  * @return float*   Pointer to output spectrum.
  */
-float *compute_spectrum(FFT *fft_handle, float *x, int win_len, bool use_power);
+float *compute_spectrum(float *x, int win_len, bool use_power);
 
 /**
  * @brief Dot product of two float arrays.

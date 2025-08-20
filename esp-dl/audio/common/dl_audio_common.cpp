@@ -7,18 +7,23 @@ namespace audio {
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
-// 新接口：window_data 在函数内分配，返回分配的指针，需调用者负责释放
-float *win_func_init(WinType win_type, int win_len)
+float *win_func_init(WinType win_type, int win_len, uint32_t caps, float blackman_coeff)
 {
     if (win_len <= 0)
         return nullptr;
-    float *window_data = (float *)malloc(sizeof(float) * win_len);
+
+    float *window_data = (float *)heap_caps_malloc(sizeof(float) * win_len, caps);
     if (!window_data)
         return nullptr;
 
     double a = 2.0f * M_PI / (win_len - 1);
+
+    if (win_type == WinType::HANN) {
+        a = 2.0f * M_PI / win_len;
+    }
+
     for (int i = 0; i < win_len; i++) {
-        double i_fl = (double)i;
+        double i_fl = static_cast<double>(i);
         switch (win_type) {
         case WinType::HANNING:
             window_data[i] = 0.5f - 0.5f * cosf(a * i_fl);
@@ -29,17 +34,24 @@ float *win_func_init(WinType win_type, int win_len)
         case WinType::HAMMING:
             window_data[i] = 0.54f - 0.46f * cosf(a * i_fl);
             break;
+        case WinType::HANN:
+            window_data[i] = 0.5f - 0.5f * cosf(a * i_fl);
+            break;
         case WinType::POVEY:
             window_data[i] = powf(0.5f - 0.5f * cosf(a * i_fl), 0.85f);
             break;
         case WinType::RECTANGULAR:
             window_data[i] = 1.0f;
             break;
+        case WinType::BLACKMAN:
+            window_data[i] = blackman_coeff - 0.5f * cosf(a * i_fl) + (0.5 - blackman_coeff) * cosf(2.0f * a * i_fl);
+            break;
         default:
             free(window_data);
             return nullptr;
         }
     }
+
     return window_data;
 }
 
@@ -47,7 +59,7 @@ float *win_func_init(WinType win_type, int win_len)
 WinType win_type_from_string(const char *str)
 {
     if (!str)
-        return WinType::UNKNOWN;
+        return WinType::NONE;
     if (strcmp(str, "hanning") == 0)
         return WinType::HANNING;
     if (strcmp(str, "sine") == 0)
@@ -58,17 +70,104 @@ WinType win_type_from_string(const char *str)
         return WinType::POVEY;
     if (strcmp(str, "rectangular") == 0)
         return WinType::RECTANGULAR;
-    return WinType::UNKNOWN;
+    if (strcmp(str, "NONE") == 0)
+        return WinType::NONE;
+    return WinType::NONE;
+}
+
+const char *win_type_to_string(WinType win_type)
+{
+    switch (win_type) {
+    case WinType::HANNING:
+        return "hanning";
+    case WinType::SINE:
+        return "sine";
+    case WinType::HAMMING:
+        return "hamming";
+    case WinType::POVEY:
+        return "povey";
+    case WinType::RECTANGULAR:
+        return "rectangular";
+    default:
+        return "none";
+    }
+}
+
+int get_frame_num(int input_len, int win_len, int win_step)
+{
+    int num_frames = 0;
+    if (input_len >= win_len) {
+        num_frames = 1 + (input_len - win_len) / win_step;
+    }
+    return num_frames;
+}
+
+void remove_dc_offset(float *x, int n)
+{
+    float sum = 0;
+    for (int32_t i = 0; i != n; ++i) {
+        sum += x[i];
+    }
+
+    float mean = sum / n;
+
+    for (int32_t i = 0; i != n; ++i) {
+        x[i] -= mean;
+    }
+}
+
+static void RemoveDcOffset(float *d, int32_t n)
+{
 }
 
 float hz2mel(float x)
 {
-    return 2595.0 * log10f(1.0 + (x) / 700.0);
+    // return 2595.0 * log10f(1.0 + (x) / 700.0);
+    return 1127.0 * logf(1.0 + (x) / 700.0);
 }
 
 float mel2hz(float x)
 {
-    return 700.0 * (powf(10.0, (x) / 2595.0) - 1.0);
+    // return 700.0 * (powf(10.0, (x) / 2595.0) - 1.0);
+    return 700.0 * (exp(x / 1127.0) - 1.0);
+}
+
+uint32_t next_power_of_2(uint32_t x)
+{
+    if (x == 0) {
+        return 1;
+    }
+
+    uint32_t power = 1;
+    x--;
+
+// Count leading zeros and calculate bit length
+#if defined(__GNUC__) || defined(__clang__)
+    // Use compiler built-in for efficiency if available
+    uint32_t leading_zeros = __builtin_clz(x);
+    power = 32 - leading_zeros;
+#else
+    // Manual bit length calculation
+    while (x >>= 1) {
+        power++;
+    }
+#endif
+
+    // Return 2^power
+    return 1U << power;
+}
+
+float compute_energy(float *x, int len, float epsilon)
+{
+    float sum_squares = 0.0f;
+
+    // Compute sum of squares
+    for (int i = 0; i < len; i++) {
+        sum_squares += x[i] * x[i];
+    }
+
+    // Return log of the energy
+    return logf(MAX(sum_squares, epsilon));
 }
 
 mel_filter_t *mel_filter_init(int nfft, int nfilter, int low_freq, int high_freq, int sample_rate, uint32_t caps)
@@ -129,34 +228,29 @@ void mel_filter_deinit(mel_filter_t *mel_filter)
     }
 }
 
-float *apply_window_and_preemphasis(
-    const float *input, int win_len, float *output, float preemphasis_coeff, float *win_func, float prev)
+float *apply_preemphasis(float *x, int win_len, float preemphasis_coeff, float prev)
 {
     // Preemphasis
     if (preemphasis_coeff > 1e-7) {
         for (int i = win_len - 1; i >= 1; i--) {
-            output[i] = input[i] - input[i - 1] * preemphasis_coeff;
+            x[i] = x[i] - x[i - 1] * preemphasis_coeff;
         }
-        output[0] = input[0] - prev * preemphasis_coeff;
-
-        // Add window function, eg. hanning
-        if (win_func != NULL) {
-            for (int i = 0; i < win_len; i++) output[i] *= win_func[i];
-        }
-    } else if (win_func != NULL) {
-        for (int i = 0; i < win_len; i++) output[i] = input[i] * win_func[i];
-    } else {
-        if (input != output) {
-            memcpy(output, input, sizeof(float) * win_len);
-        }
+        x[0] = x[0] - prev * preemphasis_coeff;
     }
-    return output;
+    return x;
 }
 
-float *compute_spectrum(FFT *fft_handle, float *x, int win_len, bool use_power)
+float *apply_window(float *x, int win_len, float *win_func)
 {
-    // FFT
-    fft_handle->rfft(x, win_len);
+    if (win_func != NULL) {
+        for (int i = 0; i < win_len; i++) x[i] = x[i] * win_func[i];
+    }
+
+    return x;
+}
+
+float *compute_spectrum(float *x, int win_len, bool use_power)
+{
     int spect_len = win_len / 2 + 1;
 
     if (use_power) {
