@@ -11,6 +11,8 @@ set(src_dirs        ./dl/tool/src
                     ./vision/image
                     ./vision/recognition
                     ./vision/classification
+                    ./audio/common
+                    ./audio/speech_features
                     )
 
 set(include_dirs    ./dl
@@ -26,6 +28,8 @@ set(include_dirs    ./dl
                     ./vision/image
                     ./vision/recognition
                     ./vision/classification
+                    ./audio/common
+                    ./audio/speech_features
                     )
 
 if(CONFIG_IDF_TARGET_ESP32)
@@ -47,7 +51,8 @@ elseif(CONFIG_IDF_TARGET_ESP32P4)
     list(APPEND src_dirs        dl/base/isa/esp32p4)
 endif()
 
-set(requires        esp_mm
+set(requires        dl_fft
+                    esp_mm
                     esp_new_jpeg
                     esp_driver_jpeg
                     esp_driver_ppa

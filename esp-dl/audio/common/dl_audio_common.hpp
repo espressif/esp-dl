@@ -25,8 +25,7 @@ enum class WinType {
     POVEY,       /*!< Povey window, used in Kaldi */
     BLACKMAN,    /*!< Blackman window */
     RECTANGULAR, /*!< Rectangular window */
-    WN9,         /*!< Special predefined window */
-    NONE,        /*!< No window function or unknown window */
+    NONE,        /*!< No window function */
 };
 
 /**
@@ -56,7 +55,7 @@ float *win_func_init(WinType win_type, int win_len, uint32_t caps = MALLOC_CAP_D
  * @brief Convert a string to the corresponding window type enum.
  *
  * @param str Window type string (e.g., "hanning", "sine").
- * @return WinType Corresponding window type enum. Returns WinType::UNKNOWN if not recognized.
+ * @return WinType Corresponding window type enum. Returns WinType::NONE if not recognized.
  */
 WinType win_type_from_string(const char *str);
 
@@ -64,16 +63,44 @@ WinType win_type_from_string(const char *str);
  * @brief Convert a window type enum to its corresponding string representation.
  *
  * @param win_type Window type enum value.
- * @return const char* String representation of the window type. Returns "unknown" if not recognized.
+ * @return const char* String representation of the window type. Returns "none" if not recognized.
  */
 const char *win_type_to_string(WinType win_type);
 
+/**
+ * @brief Calculate the number of frames for audio processing.
+ *
+ * @param input_len Length of input audio data.
+ * @param win_len   Window length.
+ * @param win_step  Window step size.
+ * @return int      Number of frames.
+ */
 int get_frame_num(int input_len, int win_len, int win_step);
 
+/**
+ * @brief Calculate the next power of 2 for a given number.
+ *
+ * @param x Input number.
+ * @return uint32_t Next power of 2.
+ */
 uint32_t next_power_of_2(uint32_t x);
 
+/**
+ * @brief Remove DC offset from audio signal.
+ *
+ * @param x Input/output signal.
+ * @param n Length of signal.
+ */
 void remove_dc_offset(float *x, int n);
 
+/**
+ * @brief Compute energy of audio signal and return its logarithm.
+ *
+ * @param x       Input signal.
+ * @param len     Length of signal.
+ * @param epsilon Minimum value for logarithm to avoid log(0).
+ * @return float  Logarithm of energy.
+ */
 float compute_energy(float *x, int len, float epsilon);
 
 /**
@@ -160,6 +187,7 @@ float *compute_spectrum(float *x, int win_len, bool use_power);
  * @param x1 First array.
  * @param x2 Second array.
  * @param len Length of arrays.
+ * @return float Dot product result.
  */
 float dotprod_f32(float *x1, float *x2, int len);
 

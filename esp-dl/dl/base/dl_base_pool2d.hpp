@@ -207,7 +207,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
     int n_w_tail = args.output_width - n_w_head - n_w_body;
     int filter_h = args.filter_height;
     int filter_w = args.filter_width;
-    int new_pool_exponent = args.pool_exponent;
+
+#if !CONFIG_ACCURATE_INFER
     int max_value = INT_MAX;
 #if CONFIG_ESP32P4_BOOST
     if (sizeof(feature_t) == 1) {
@@ -222,8 +223,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
         max_value = 16384;
     }
 #endif
-
-#if !CONFIG_ACCURATE_INFER
+    int new_pool_exponent = args.pool_exponent;
     if (i_impl_func && i_impl_func_sp) {
         feature_t *input_syx_real = input_ptr_real;
         feature_t *output_yx = output_ptr;

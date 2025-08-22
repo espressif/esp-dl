@@ -116,10 +116,6 @@ void remove_dc_offset(float *x, int n)
     }
 }
 
-static void RemoveDcOffset(float *d, int32_t n)
-{
-}
-
 float hz2mel(float x)
 {
     // return 2595.0 * log10f(1.0 + (x) / 700.0);
