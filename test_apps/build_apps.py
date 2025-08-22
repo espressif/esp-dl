@@ -207,7 +207,7 @@ def main(args):  # type: (argparse.Namespace) -> None
         collect_size_info=args.collect_size_info,
         keep_going=True,
         ignore_warning_strs=IGNORE_WARNINGS,
-        copy_sdkconfig=True,
+        copy_sdkconfig=False,
     )
     if args.model_path and os.path.exists(args.model_path):
         build_and_copy(apps_to_build, args.model_path)

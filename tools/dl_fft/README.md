@@ -7,6 +7,7 @@ For int16 FFT, we recommend to use `dl_fft_s16_hp_run` or `dl_rfft_s16_hp_run` i
 
 ## Get Started
 
+
 ### C interface
 ```
 
@@ -56,30 +57,6 @@ dl_rfft_s16_deinit(fft_handle);
 
 ```
 Please refer to [dl_fft.h](./dl_fft.h) and [dl_rfft.h](./dl_rfft.h) for more details. 
-
-
-### C++ interface:
-```
-float *x1 = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float) *2, MALLOC_CAP_8BIT);
-int16_t *x2= (float *)heap_caps_aligned_alloc(16, nfft * sizeof(int16_t)*2, MALLOC_CAP_8BIT);
-FFT *fft = FFT::get_instance();
-
-# float 
-fft->fft(x1, nfft);
-fft->ifft(x1, nfft);
-fft->rfft(x1, nfft);
-fft->irfft(x1, nfft);
-
-#int16_t
-int in_exponent=-15;
-int out_exponent;
-fft->fft_hp(x2, nfft, in_exponent, &out_exponent);
-fft->ifft_hp(x2, nfft, in_exponent, &out_exponent);
-fft->rfft_hp(x2, nfft, in_exponent, &out_exponent);
-fft->irfft_hp(x2, nfft, in_exponent, &out_exponent);
-```
-Please refer to [dl_fft.hpp](./dl_fft.hpp) for more details.
-
 > Note: The input array x must be allocated with heap_caps_aligned_alloc and aligned to 16 bytes.
 
 
