@@ -151,3 +151,23 @@ test_dl_image:
     TEST_FOLDER: 'test_apps/dl_image'
     TEST_TARGET: ${IDF_TARGET}
     TEST_ENV: ${IDF_TARGET}
+
+test_dl_audio:
+  extends:
+    - .pytest_api_template
+    - .rules:build:test_dl_audio
+  needs:
+    - job: "build_dl_audio"
+      artifacts: true
+      optional: true
+  parallel:
+    matrix:
+      - IDF_TARGET: [esp32p4, esp32s3, esp32]
+        IDF_VERSION: "5.3"
+  tags:
+    - ${IDF_TARGET}
+  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  variables:
+    TEST_FOLDER: 'test_apps/dl_audio'
+    TEST_TARGET: ${IDF_TARGET}
+    TEST_ENV: ${IDF_TARGET}

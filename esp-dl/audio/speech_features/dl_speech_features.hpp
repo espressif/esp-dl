@@ -34,6 +34,16 @@ struct SpeechFeatureConfig {
     SpeechFeatureConfig() = default;
 };
 
+/**
+ * @brief Prints the configuration details of the speech feature settings.
+ *
+ * This function outputs the parameters and settings defined in the
+ * SpeechFeatureConfig structure to the console or a log for debugging
+ * or informational purposes.
+ *
+ * @param config A constant reference to a SpeechFeatureConfig object
+ *               containing the speech feature configuration to be printed.
+ */
 void print_speech_feature_config(const SpeechFeatureConfig &config);
 
 /**
