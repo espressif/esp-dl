@@ -31,8 +31,6 @@ elseif(CONFIG_IDF_TARGET_ESP32P4)
 endif()
 
 
-set(requires       esp-dsp)
-
-idf_component_register(SRCS ${srcs}  INCLUDE_DIRS ${include_dirs} REQUIRES ${requires})
+idf_component_register(SRCS ${srcs}  INCLUDE_DIRS ${include_dirs})
 
 component_compile_options(-ffast-math -O2)

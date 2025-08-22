@@ -7,6 +7,7 @@ For int16 FFT, we recommend to use `dl_fft_s16_hp_run` or `dl_rfft_s16_hp_run` i
 
 ## Get Started
 
+
 ### C interface
 ```
 
@@ -56,6 +57,8 @@ dl_rfft_s16_deinit(fft_handle);
 
 ```
 Please refer to [dl_fft.h](./dl_fft.h) and [dl_rfft.h](./dl_rfft.h) for more details. 
+> Note: The input array x must be allocated with heap_caps_aligned_alloc and aligned to 16 bytes.
+
 
 
 ### C++ interface:
