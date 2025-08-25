@@ -25,7 +25,7 @@ test_configs = [
         low_freq=0.0,
         high_freq=0.0,
         preemphasis_coefficient=0.97,
-        remove_dc_offset=False,
+        remove_dc_offset=True,
         window_type="hanning",
     ),
     dict(
@@ -38,7 +38,7 @@ test_configs = [
         low_freq=0.0,
         high_freq=8000.0,
         preemphasis_coefficient=0.0,
-        remove_dc_offset=False,
+        remove_dc_offset=True,
         window_type="hamming",
     ),
     dict(

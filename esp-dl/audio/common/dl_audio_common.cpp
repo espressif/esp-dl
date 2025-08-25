@@ -3,10 +3,6 @@
 namespace dl {
 namespace audio {
 
-// 新增：定义窗口类型枚举
-#define MAX(x, y) ((x) > (y) ? (x) : (y))
-#define MIN(x, y) ((x) < (y) ? (x) : (y))
-
 float *win_func_init(WinType win_type, int win_len, uint32_t caps, float blackman_coeff)
 {
     if (win_len <= 0)
@@ -104,14 +100,18 @@ int get_frame_num(int input_len, int win_len, int win_step)
 
 void remove_dc_offset(float *x, int n)
 {
+    if (n <= 0) {
+        return; // Avoid division by zero
+    }
+
     float sum = 0;
-    for (int32_t i = 0; i != n; ++i) {
+    for (int i = 0; i != n; ++i) {
         sum += x[i];
     }
 
     float mean = sum / n;
 
-    for (int32_t i = 0; i != n; ++i) {
+    for (int i = 0; i != n; ++i) {
         x[i] -= mean;
     }
 }
