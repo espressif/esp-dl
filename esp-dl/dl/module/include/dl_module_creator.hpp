@@ -27,6 +27,16 @@
 #include "dl_module_mul.hpp"
 #include "dl_module_pad.hpp"
 #include "dl_module_prelu.hpp"
+#include "dl_module_reduce_l1.hpp"
+#include "dl_module_reduce_l2.hpp"
+#include "dl_module_reduce_log_sum.hpp"
+#include "dl_module_reduce_log_sum_exp.hpp"
+#include "dl_module_reduce_max.hpp"
+#include "dl_module_reduce_mean.hpp"
+#include "dl_module_reduce_min.hpp"
+#include "dl_module_reduce_prod.hpp"
+#include "dl_module_reduce_sum.hpp"
+#include "dl_module_reduce_sum_square.hpp"
 #include "dl_module_relu.hpp"
 #include "dl_module_requantize_linear.hpp"
 #include "dl_module_reshape.hpp"
@@ -154,6 +164,16 @@ public:
             this->register_module("ReverseSequence", ReverseSequence::deserialize);
             this->register_module("Identity", Identity::deserialize);
             this->register_module("Swish", Swish::deserialize);
+            this->register_module("ReduceL1", ReduceL1::deserialize);
+            this->register_module("ReduceL2", ReduceL2::deserialize);
+            this->register_module("ReduceMin", ReduceMin::deserialize);
+            this->register_module("ReduceMax", ReduceMax::deserialize);
+            this->register_module("ReduceSum", ReduceSum::deserialize);
+            this->register_module("ReduceProd", ReduceProd::deserialize);
+            this->register_module("ReduceMean", ReduceMean::deserialize);
+            this->register_module("ReduceSumSquare", ReduceSumSquare::deserialize);
+            this->register_module("ReduceLogSum", ReduceLogSum::deserialize);
+            this->register_module("ReduceLogSumExp", ReduceLogSumExp::deserialize);
         }
     }
 

@@ -868,6 +868,219 @@ class SWISH_TEST(nn.Module):
         return self.op(input)
 
 
+class REDUCEL1_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.axes_trans_test = self.config.get("axes_trans_test", False)
+        if self.axes_trans_test:
+            self.conv = nn.Conv2d(
+                in_channels=self.config["in_channels"],
+                out_channels=self.config["out_channels"],
+                kernel_size=[1, 1],
+                stride=[1, 1],
+                padding=[0, 0],
+                dilation=[1, 1],
+                groups=1,
+                bias=True,
+            )
+
+    def forward(self, input):
+        if self.axes_trans_test:
+            input = self.conv(input)
+        else:
+            input = input.squeeze(0)
+        return torch.linalg.vector_norm(
+            input, ord=1, dim=self.config["dim"], keepdim=self.config["keepdim"]
+        )
+
+
+class REDUCEL2_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.axes_trans_test = self.config.get("axes_trans_test", False)
+        if self.axes_trans_test:
+            self.conv = nn.Conv2d(
+                in_channels=self.config["in_channels"],
+                out_channels=self.config["out_channels"],
+                kernel_size=[1, 1],
+                stride=[1, 1],
+                padding=[0, 0],
+                dilation=[1, 1],
+                groups=1,
+                bias=True,
+            )
+
+    def forward(self, input):
+        if self.axes_trans_test:
+            input = self.conv(input)
+        else:
+            input = input.squeeze(0)
+        return torch.linalg.vector_norm(
+            input, ord=2, dim=self.config["dim"], keepdim=self.config["keepdim"]
+        )
+
+
+class REDUCEMAX_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.axes_trans_test = self.config.get("axes_trans_test", False)
+        if self.axes_trans_test:
+            self.conv = nn.Conv2d(
+                in_channels=self.config["in_channels"],
+                out_channels=self.config["out_channels"],
+                kernel_size=[1, 1],
+                stride=[1, 1],
+                padding=[0, 0],
+                dilation=[1, 1],
+                groups=1,
+                bias=True,
+            )
+
+    def forward(self, input):
+        if self.axes_trans_test:
+            input = self.conv(input)
+        else:
+            input = input.squeeze(0)
+        return torch.amax(input, dim=self.config["dim"], keepdim=self.config["keepdim"])
+
+
+class REDUCEMIN_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.axes_trans_test = self.config.get("axes_trans_test", False)
+        if self.axes_trans_test:
+            self.conv = nn.Conv2d(
+                in_channels=self.config["in_channels"],
+                out_channels=self.config["out_channels"],
+                kernel_size=[1, 1],
+                stride=[1, 1],
+                padding=[0, 0],
+                dilation=[1, 1],
+                groups=1,
+                bias=True,
+            )
+
+    def forward(self, input):
+        if self.axes_trans_test:
+            input = self.conv(input)
+        else:
+            input = input.squeeze(0)
+        return torch.amin(input, dim=self.config["dim"], keepdim=self.config["keepdim"])
+
+
+class REDUCEPROD_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.reduceall = self.config.get("reduceall", False)
+        self.axes_trans_test = self.config.get("axes_trans_test", False)
+        if self.axes_trans_test:
+            self.conv = nn.Conv2d(
+                in_channels=self.config["in_channels"],
+                out_channels=self.config["out_channels"],
+                kernel_size=[1, 1],
+                stride=[1, 1],
+                padding=[0, 0],
+                dilation=[1, 1],
+                groups=1,
+                bias=True,
+            )
+
+    def forward(self, input):
+        if self.axes_trans_test:
+            input = self.conv(input)
+        else:
+            input = input.squeeze(0)
+
+        if self.reduceall:
+            return torch.prod(input)
+        else:
+            return torch.prod(
+                input, dim=self.config["dim"], keepdim=self.config["keepdim"]
+            )
+
+
+class REDUCESUM_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.axes_trans_test = self.config.get("axes_trans_test", False)
+        if self.axes_trans_test:
+            self.conv = nn.Conv2d(
+                in_channels=self.config["in_channels"],
+                out_channels=self.config["out_channels"],
+                kernel_size=[1, 1],
+                stride=[1, 1],
+                padding=[0, 0],
+                dilation=[1, 1],
+                groups=1,
+                bias=True,
+            )
+
+    def forward(self, input):
+        if self.axes_trans_test:
+            input = self.conv(input)
+        else:
+            input = input.squeeze(0)
+        return torch.sum(input, dim=self.config["dim"], keepdim=self.config["keepdim"])
+
+
+class REDUCEMEAN_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.axes_trans_test = self.config.get("axes_trans_test", False)
+        if self.axes_trans_test:
+            self.conv = nn.Conv2d(
+                in_channels=self.config["in_channels"],
+                out_channels=self.config["out_channels"],
+                kernel_size=[1, 1],
+                stride=[1, 1],
+                padding=[0, 0],
+                dilation=[1, 1],
+                groups=1,
+                bias=True,
+            )
+
+    def forward(self, input):
+        if self.axes_trans_test:
+            input = self.conv(input)
+        else:
+            input = input.squeeze(0)
+        return torch.mean(input, dim=self.config["dim"], keepdim=self.config["keepdim"])
+
+
+class REDUCELOGSUMEXP_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+        self.axes_trans_test = self.config.get("axes_trans_test", False)
+        if self.axes_trans_test:
+            self.conv = nn.Conv2d(
+                in_channels=self.config["in_channels"],
+                out_channels=self.config["out_channels"],
+                kernel_size=[1, 1],
+                stride=[1, 1],
+                padding=[0, 0],
+                dilation=[1, 1],
+                groups=1,
+                bias=True,
+            )
+
+    def forward(self, input):
+        if self.axes_trans_test:
+            input = self.conv(input)
+        else:
+            input = input.squeeze(0)
+        return torch.logsumexp(
+            input, dim=self.config["dim"], keepdim=self.config["keepdim"]
+        )
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 
