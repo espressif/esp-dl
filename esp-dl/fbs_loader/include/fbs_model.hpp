@@ -160,6 +160,17 @@ public:
     esp_err_t get_operation_attribute(std::string node_name, std::string attribute_name, dl::TensorBase *&ret_value);
 
     /**
+     * @brief Get operation input shape
+     *
+     * @param node_name         The name of operation.
+     * @param index             The index of inputs
+     * @param ret_value         Return shape value.
+     *
+     * @return esp_err_t        Return ESP_OK if get successfully. Otherwise return ESP_FAIL.
+     */
+    esp_err_t get_operation_input_shape(std::string node_name, int index, std::vector<int> &ret_value);
+
+    /**
      * @brief Get operation output shape
      *
      * @param node_name         The name of operation.
