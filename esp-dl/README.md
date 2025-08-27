@@ -1,6 +1,6 @@
 # ESP-DL
 
-ESP-DL is designed to maintain optimal performance while significantly reducing the workload in model deployment. Our project has achieved the following key features:
+ESP-DL is a lightweight and efficient neural network inference framework specifically designed for ESP series chips (ESP32, ESP32-S3, ESP32-P4). It is built to maintain optimal performance while significantly reducing the workload in model deployment. Our project has achieved the following key features:
 
 ### ESP-DL Standard Model Format
 
@@ -28,5 +28,69 @@ The automatic dual-core scheduling enables computationally intensive operators t
 |dual core| 6.2 ms|
 
 ---
+
+## Project Structure
+
+The ESP-DL project is organized to provide a clear separation of concerns for different functionalities. Here's a breakdown of the main directories and their purposes to help beginners get started quickly:
+
+```
+esp-dl/
+├── dl/                  # Core deep learning library
+│   ├── base/            # Fundamental data types and utilities
+│   ├── tensor/          # TensorBase class for data handling
+│   ├── model/           # Model class for loading, building, and running neural networks
+│   ├── module/          # Base Module class for operators/layers
+│   ├── math/            # Mathematical functions and operations
+│   ├── tool/            # Utility tools for the framework
+│   ├── dl_define.hpp    # Global definitions, quantization and activation types
+│   └── dl_define_private.hpp # Private definitions
+├── fbs_loader/          # FlatBuffers model loading functionality
+│   ├── include/         # Header files for the loader
+│   ├── src/             # Source files for the loader
+│   ├── lib/             # Pre-compiled FlatBuffers model library
+│   └── pack_espdl_models.py # Script to pack multiple models
+├── audio/               # Audio processing module
+│   ├── common/          # Common audio processing utilities (WAV decoding, etc.)
+│   ├── speech_features/ # Speech feature extraction (Fbank, MFCC, Spectrogram)
+│   └── README.md        # Detailed documentation for audio processing
+├── vision/              # Vision processing module
+│   ├── image/           # Image processing utilities (JPEG, BMP, drawing, preprocessing)
+│   ├── detect/          # Object detection post-processors (YOLO, etc.)
+│   ├── classification/  # Image classification post-processors (ImageNet, etc.)
+│   └── recognition/     # Face recognition components
+├── CMakeLists.txt       # CMake build configuration for the ESP-IDF component
+├── idf_component.yml    # ESP-IDF component manifest
+├── LICENSE              # Project license information
+└── README.md            # This file
+```
+
+### Core Components (`dl/`)
+
+This is the heart of the ESP-DL framework. It contains the fundamental classes and functions required for neural network inference.
+
+- `base/`: Contains basic utilities and low-level operations.
+- `tensor/`: Defines the `TensorBase` class, which is used throughout the framework to represent data.
+- `model/`: Contains the `Model` class, which handles loading `.espdl` files, building an execution plan, and running inference.
+- `module/`: Defines the `Module` base class, from which all neural network operators (like Conv2D, Pool2D) are derived.
+- `math/`: Provides optimized mathematical functions used by operators.
+- `tool/`: Offers various utility functions for the framework.
+- `dl_define.hpp`: Central place for global definitions like quantization and activation types.
+
+### FlatBuffers Loader (`fbs_loader/`)
+
+This component is responsible for loading models stored in the `.espdl` format, which is based on FlatBuffers.
+
+### Audio Processing (`audio/`)
+
+This module provides functionalities for audio signal processing, particularly focused on speech feature extraction. It includes utilities for WAV decoding and extracting features like Fbank, MFCC, and Spectrogram, optimized for ESP platforms.
+
+### Vision Processing (`vision/`)
+
+This module provides functionalities for computer vision tasks.
+
+- `image/`: Utilities for image loading (JPEG, BMP), preprocessing, color space conversion, and drawing.
+- `detect/`: Post-processors for object detection models (e.g., YOLO variants).
+- `classification/`: Post-processors for image classification models (e.g., ImageNet classifiers).
+- `recognition/`: Components for face recognition tasks.
 
 Explore ESP-DL to streamline your AI model deployment and achieve optimal performance with minimal resource usage.

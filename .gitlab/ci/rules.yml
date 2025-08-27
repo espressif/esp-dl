@@ -101,6 +101,8 @@
 .patterns-test_dl_fft: &patterns-test_dl_fft
   - "tools/dl_fft/**/*"
 
+.patterns-test_dl_audio: &patterns-test_dl_audio
+  - "esp-dl/dl_audio/**/*"
 
 ##############
 # if anchors #
@@ -299,6 +301,17 @@
     - <<: *if-label-build
     - <<: *if-dev-push
       changes: *patterns-test_dl_fft
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:test_dl_audio:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-test_dl_fft
+    - <<: *if-dev-push
+      changes: *patterns-test_dl_audio
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 
