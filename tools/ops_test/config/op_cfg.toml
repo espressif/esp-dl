@@ -1694,6 +1694,22 @@
         input_shape = [1, 355]
         export_name_prefix = "sqrt_ishap_1_355"
 
+    [ops_test.Neg]
+    test_func = "NEG_TEST"
+    quant_bits = ["int8", "int16"]
+    package = "torch_ops_test"
+        [[ops_test.Neg.cfg]]
+        input_shape = [1, 96, 20, 20]
+        export_name_prefix = "neg_ishap_1_96_20_20"
+
+        [[ops_test.Neg.cfg]]
+        input_shape = [1, 30, 40]
+        export_name_prefix = "neg_ishap_1_30_40"
+
+        [[ops_test.Neg.cfg]]
+        input_shape = [1, 355]
+        export_name_prefix = "neg_ishap_1_355"
+
     [ops_test.Concat]
     test_func = "CONCAT_TEST"
     quant_bits = ["int8", "int16"]
