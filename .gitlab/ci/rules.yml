@@ -55,6 +55,9 @@
 .patterns-model_cat_detect: &patterns-model_cat_detect
   - "models/cat_detect/**/*"
 
+.patterns-model_color_detect: &patterns-model_color_detect
+  - "models/color_detect/**/*"
+
 # examples folder, in the alphabetic order
 .patterns-example_human_face_recognition: &patterns-example_human_face_recognition
   - "examples/human_face_recognition/**/*"
@@ -76,6 +79,9 @@
 
 .patterns-example_cat_detect: &patterns-example_cat_detect
 - "examples/cat_detect/**/*"
+
+.patterns-example_color_detect: &patterns-example_color_detect
+- "examples/color_detect/**/*"
 
 .patterns-example_how_to_run_model: &patterns-example_how_to_run_model
 - "examples/tutorial/how_to_run_model/**/*"
@@ -247,6 +253,19 @@
       changes: *patterns-model_cat_detect
     - <<: *if-dev-push
       changes: *patterns-example_cat_detect
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_color_detect:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_color_detect
+    - <<: *if-dev-push
+      changes: *patterns-example_color_detect
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 

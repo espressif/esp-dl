@@ -23,8 +23,10 @@ void yolo11PostProcessor::parse_stage(TensorBase *score, TensorBase *box, const 
     float score_exp = DL_SCALE(score->exponent);
     float box_exp = DL_SCALE(box->exponent);
     T score_thr_quant = quantize<T>(dl::math::inverse_sigmoid(m_score_thr), 1.f / score_exp);
-    float inv_resize_scale_x = 1.f / m_resize_scale_x;
-    float inv_resize_scale_y = 1.f / m_resize_scale_y;
+    float inv_resize_scale_x = m_image_preprocessor->get_resize_scale_x(true);
+    float inv_resize_scale_y = m_image_preprocessor->get_resize_scale_y(true);
+    int border_left = m_image_preprocessor->get_border_left();
+    int border_top = m_image_preprocessor->get_border_top();
 
     int reg_max = 16;
 
@@ -43,13 +45,16 @@ void yolo11PostProcessor::parse_stage(TensorBase *score, TensorBase *box, const 
                     result_t new_box = {
                         (int)c,
                         dl::math::sigmoid(dequantize(*score_ptr, score_exp)),
-                        {(int)((center_x - dl::math::dfl_integral(box_data, reg_max - 1) * stride_x) *
+                        {(int)(((center_x - dl::math::dfl_integral(box_data, reg_max - 1) * stride_x) - border_left) *
                                inv_resize_scale_x),
-                         (int)((center_y - dl::math::dfl_integral(box_data + reg_max, reg_max - 1) * stride_y) *
+                         (int)(((center_y - dl::math::dfl_integral(box_data + reg_max, reg_max - 1) * stride_y) -
+                                border_top) *
                                inv_resize_scale_y),
-                         (int)((center_x + dl::math::dfl_integral(box_data + 2 * reg_max, reg_max - 1) * stride_x) *
+                         (int)(((center_x + dl::math::dfl_integral(box_data + 2 * reg_max, reg_max - 1) * stride_x) -
+                                border_left) *
                                inv_resize_scale_x),
-                         (int)((center_y + dl::math::dfl_integral(box_data + 3 * reg_max, reg_max - 1) * stride_y) *
+                         (int)(((center_y + dl::math::dfl_integral(box_data + 3 * reg_max, reg_max - 1) * stride_y) -
+                                border_top) *
                                inv_resize_scale_y)},
                         {}};
 

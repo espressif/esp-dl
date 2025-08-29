@@ -1,4 +1,5 @@
 #include "dl_image_bmp.hpp"
+#include "dl_image_process.hpp"
 
 static const char *TAG = "dl_image_bmp";
 namespace dl {
@@ -43,7 +44,7 @@ esp_err_t write_bmp_base(const img_t &img, const char *file_name)
 
     int channel = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? 1 : 3;
     int row_stride = img.width * channel;
-    int row_stride_padded = DL_IMAGE_ALIGN_UP(row_stride, 4); // every row 4 byte align
+    int row_stride_padded = align_up(row_stride, 4); // every row 4 byte align
 
     if (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) {
         uint8_t color_table[256 * 4];
@@ -97,6 +98,7 @@ esp_err_t write_bmp_base(const img_t &img, const char *file_name)
         }
     } else {
         ESP_LOGE(TAG, "Unsupported image pix type for bmp.");
+        fclose(f);
         return ESP_FAIL;
     }
 
@@ -141,20 +143,19 @@ esp_err_t write_bmp(const img_t &img, const char *file_name, uint32_t caps)
         ESP_LOGE(TAG, "Unsupported img type.");
         return ESP_FAIL;
     }
-    img_t img2write = img;
-    bool free = false;
     if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 ||
         (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP))) {
-        img2write.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
-        img2write.data = heap_caps_malloc(get_img_byte_size(img2write), MALLOC_CAP_DEFAULT);
-        convert_img(img, img2write, caps);
-        free = true;
-    };
-    esp_err_t ret = write_bmp_base(img2write, file_name);
-    if (free) {
-        heap_caps_free(img2write.data);
+        img_t img_cvt = img;
+        img_cvt.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
+        img_cvt.data = heap_caps_malloc(get_img_byte_size(img_cvt), MALLOC_CAP_DEFAULT);
+        ImageTransformer image_transformer;
+        image_transformer.set_src_img(img).set_dst_img(img_cvt).set_caps(caps).transform();
+        esp_err_t ret = write_bmp_base(img_cvt, file_name);
+        heap_caps_free(img_cvt.data);
+        return ret;
+    } else {
+        return write_bmp_base(img, file_name);
     }
-    return ret;
 }
 
 img_t read_bmp(const char *file_name)
@@ -193,7 +194,7 @@ img_t read_bmp(const char *file_name)
         return {};
     }
     int row_stride = img.width * channel;
-    int row_stride_padded = DL_IMAGE_ALIGN_UP(row_stride, 4); // every row 4 byte align
+    int row_stride_padded = align_up(row_stride, 4); // every row 4 byte align
 
     if (fseek(f, 0, SEEK_END) != 0) {
         ESP_LOGE(TAG, "Failed to seek bmp file.");

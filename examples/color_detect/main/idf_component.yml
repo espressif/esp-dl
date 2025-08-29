@@ -1,0 +1,5 @@
+## IDF Component Manager Manifest File
+dependencies:
+  espressif/color_detect:
+    version: "^0.1.0"
+    override_path: "../../../models/color_detect"

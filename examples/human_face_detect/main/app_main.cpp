@@ -1,3 +1,4 @@
+#include "dl_image_jpeg.hpp"
 #include "esp_log.h"
 #include "human_face_detect.hpp"
 #include "bsp/esp-bsp.h"
@@ -14,7 +15,7 @@ extern "C" void app_main(void)
 
     dl::image::jpeg_img_t jpeg_img = {.data = (void *)human_face_jpg_start,
                                       .data_len = (size_t)(human_face_jpg_end - human_face_jpg_start)};
-    auto img = sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
+    auto img = dl::image::sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     HumanFaceDetect *detect = new HumanFaceDetect();
 

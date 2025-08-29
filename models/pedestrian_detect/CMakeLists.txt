@@ -26,7 +26,7 @@ if (NOT CONFIG_PEDESTRIAN_DETECT_MODEL_IN_SDCARD)
 
     file(MAKE_DIRECTORY ${BUILD_DIR}/espdl_models)
     set(models)
-    if(CONFIG_PEDESTRIAN_DETECT_PICO_S8_V1)
+    if(CONFIG_FLASH_PEDESTRIAN_DETECT_PICO_S8_V1)
         list(APPEND models ${models_dir}/pedestrian_detect_pico_s8_v1.espdl)
     endif()
 

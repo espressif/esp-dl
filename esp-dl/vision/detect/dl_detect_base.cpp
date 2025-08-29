@@ -23,8 +23,6 @@ std::list<dl::detect::result_t> &DetectImpl::run(const dl::image::img_t &img)
 
     DL_LOG_INFER_LATENCY_START();
     m_postprocessor->clear_result();
-    m_postprocessor->set_resize_scale_x(m_image_preprocessor->get_resize_scale_x());
-    m_postprocessor->set_resize_scale_y(m_image_preprocessor->get_resize_scale_y());
     m_postprocessor->postprocess();
     std::list<dl::detect::result_t> &result = m_postprocessor->get_result(img.width, img.height);
     DL_LOG_INFER_LATENCY_END_PRINT("detect", "post");

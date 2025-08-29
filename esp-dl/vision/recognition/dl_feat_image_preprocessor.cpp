@@ -14,8 +14,9 @@ void FeatImagePreprocessor::preprocess(const dl::image::img_t &img, const std::v
 {
     assert(landmarks.size() == 10);
     // align face
-    float h_scale = (float)m_image_preprocessor->m_model_input->shape[1] / 112.0;
-    float w_scale = (float)m_image_preprocessor->m_model_input->shape[2] / 112.0;
+    auto model_input = m_image_preprocessor->get_model_input();
+    float h_scale = (float)model_input->shape[1] / 112.0;
+    float w_scale = (float)model_input->shape[2] / 112.0;
     dl::math::Matrix<float> source_coord(5, 2);
     dl::math::Matrix<float> dest_coord(5, 2);
     dest_coord.set_value(landmarks);
@@ -24,7 +25,7 @@ void FeatImagePreprocessor::preprocess(const dl::image::img_t &img, const std::v
         source_coord.array[i][1] = h_scale * s_std_ldks_112[2 * i + 1];
     }
     dl::math::Matrix<float> M_inv = dl::math::get_similarity_transform(source_coord, dest_coord);
-    m_image_preprocessor->preprocess(img, &M_inv);
+    m_image_preprocessor->preprocess(img, M_inv, true);
 }
 } // namespace image
 } // namespace dl

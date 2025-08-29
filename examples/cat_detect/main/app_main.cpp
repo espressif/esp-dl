@@ -1,4 +1,5 @@
 #include "cat_detect.hpp"
+#include "dl_image_jpeg.hpp"
 #include "esp_log.h"
 #include "bsp/esp-bsp.h"
 
@@ -13,7 +14,7 @@ extern "C" void app_main(void)
 #endif
 
     dl::image::jpeg_img_t jpeg_img = {.data = (void *)cat_jpg_start, .data_len = (size_t)(cat_jpg_end - cat_jpg_start)};
-    auto img = sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
+    auto img = dl::image::sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     CatDetect *detect = new CatDetect();
     auto &detect_results = detect->run(img);

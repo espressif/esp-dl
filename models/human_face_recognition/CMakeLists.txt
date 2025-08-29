@@ -27,10 +27,10 @@ if (NOT CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD)
 
     file(MAKE_DIRECTORY ${BUILD_DIR}/espdl_models)
     set(models)
-    if(CONFIG_HUMAN_FACE_FEAT_MFN_S8_V1)
+    if(CONFIG_FLASH_HUMAN_FACE_FEAT_MFN_S8_V1)
         list(APPEND models ${models_dir}/human_face_feat_mfn_s8_v1.espdl)
     endif()
-    if(CONFIG_HUMAN_FACE_FEAT_MBF_S8_V1)
+    if(CONFIG_FLASH_HUMAN_FACE_FEAT_MBF_S8_V1)
         list(APPEND models ${models_dir}/human_face_feat_mbf_s8_v1.espdl)
     endif()
 
