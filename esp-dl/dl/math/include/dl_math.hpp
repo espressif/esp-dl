@@ -3,9 +3,20 @@
 #include "dl_define.hpp"
 #include "dl_tool.hpp"
 #include <cmath>
+#include <functional>
 
 namespace dl {
+
+/**
+ * @brief Abstract activation function interface.
+ *
+ * @param x Input value
+ * @return Output value after applying the activation function
+ */
+using ActivationFunction = std::function<float(float)>;
+
 namespace math {
+
 /**
  * @brief x^a.
  *
@@ -193,6 +204,24 @@ inline float tanh(float x)
 inline float inverse_sigmoid(float x)
 {
     return -logf(1.0 / x - 1);
+}
+
+// Example usage of the interface for existing activation functions
+inline ActivationFunction get_activation_function(const std::string &name)
+{
+    if (name == "sigmoid") {
+        return dl::math::sigmoid;
+    } else if (name == "tanh") {
+        return dl::math::tanh;
+    } else if (name == "relu") {
+        return [](float x) { return x > 0.0f ? x : 0.0f; }; // relu is not defined as a function
+    } else if (name == "leaky_relu") {
+        return [](float x) { return x > 0.0f ? x : 0.01f * x; }; // leaky_relu is not defined as a function
+    } else if (name == "inverse_sigmoid") {
+        return dl::math::inverse_sigmoid;
+    } else {
+        return [](float x) { return x; }; // identity function
+    }
 }
 
 inline void softmax(float *x, int num)

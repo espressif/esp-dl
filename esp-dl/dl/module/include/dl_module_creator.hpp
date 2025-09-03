@@ -14,6 +14,7 @@
 #include "dl_module_global_average_pool.hpp"
 #include "dl_module_greater.hpp"
 #include "dl_module_greater_or_equal.hpp"
+#include "dl_module_gru.hpp"
 #include "dl_module_hard_sigmoid.hpp"
 #include "dl_module_hard_swish.hpp"
 #include "dl_module_identity.hpp"
@@ -174,6 +175,7 @@ public:
             this->register_module("ReduceSumSquare", ReduceSumSquare::deserialize);
             this->register_module("ReduceLogSum", ReduceLogSum::deserialize);
             this->register_module("ReduceLogSumExp", ReduceLogSumExp::deserialize);
+            this->register_module("GRU", GRU::deserialize);
         }
     }
 
