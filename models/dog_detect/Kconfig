@@ -1,0 +1,55 @@
+menu "models: dog_detect"
+    config FLASH_ESPDET_PICO_224_224_DOG
+        bool "flash espdet_pico_224_224_dog"
+        depends on !DOG_DETECT_MODEL_IN_SDCARD
+        default y
+    config FLASH_ESPDET_PICO_416_416_DOG
+        bool "flash espdet_pico_416_416_dog"
+        depends on !DOG_DETECT_MODEL_IN_SDCARD
+        default n
+
+    choice
+        prompt "default model"
+        default ESPDET_PICO_224_224_DOG
+        help
+            default dog_detect model
+        config ESPDET_PICO_224_224_DOG
+            bool "espdet_pico_224_224_dog"
+            depends on DOG_DETECT_MODEL_IN_SDCARD || FLASH_ESPDET_PICO_224_224_DOG
+        config ESPDET_PICO_416_416_DOG
+            bool "espdet_pico_416_416_dog"
+            depends on DOG_DETECT_MODEL_IN_SDCARD || FLASH_ESPDET_PICO_416_416_DOG
+    endchoice
+
+    config DEFAULT_DOG_DETECT_MODEL
+        int
+        default 0 if ESPDET_PICO_224_224_DOG
+        default 1 if ESPDET_PICO_416_416_DOG
+
+    choice
+        prompt "model location"
+        default DOG_DETECT_MODEL_IN_FLASH_RODATA
+        help
+            dog_detect model location
+        config DOG_DETECT_MODEL_IN_FLASH_RODATA
+            bool "flash_rodata"
+        config DOG_DETECT_MODEL_IN_FLASH_PARTITION
+            bool "flash_partition"
+        config DOG_DETECT_MODEL_IN_SDCARD
+            bool "sdcard"
+    endchoice
+
+    config DOG_DETECT_MODEL_LOCATION
+        int
+        default 0 if DOG_DETECT_MODEL_IN_FLASH_RODATA
+        default 1 if DOG_DETECT_MODEL_IN_FLASH_PARTITION
+        default 2 if DOG_DETECT_MODEL_IN_SDCARD
+
+    config DOG_DETECT_MODEL_SDCARD_DIR
+        string "dog_detect model sdcard dir"
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
+        depends on DOG_DETECT_MODEL_IN_SDCARD
+        help
+            Directory of models relative to sdcard mount point.
+endmenu

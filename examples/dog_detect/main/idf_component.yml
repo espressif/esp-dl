@@ -1,8 +1,8 @@
 ## IDF Component Manager Manifest File
 dependencies:
-  espressif/cat_detect:
-    version: "^0.1.1"
-    override_path: "../../../models/cat_detect"
+  espressif/dog_detect:
+    version: "^0.1.0"
+    override_path: "../../../models/dog_detect"
   espressif/esp32_p4_function_ev_board_noglib:
     version: "^4.0.1"
     rules:
