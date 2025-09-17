@@ -1,4 +1,5 @@
 #include "dl_image_process.hpp"
+#include "dl_image_pixel_cvt_dispatch.hpp"
 #include "esp_log.h"
 
 static const char *TAG = "ImageTransformer";
@@ -315,11 +316,8 @@ esp_err_t ImageTransformer::transform()
         gen_xy_map();
         m_gen_xy_map = false;
     }
-    return pixel_cvt_dispatch([this](const auto &pixel_cvt) { transform_nn<decltype(pixel_cvt), SIMD>(pixel_cvt); },
-                              m_src_img.pix_type,
-                              m_dst_img.pix_type,
-                              m_caps,
-                              m_norm_quant_wrapper.m_norm_quant);
+    TransformNNFunctor<SIMD> fn{this};
+    return pixel_cvt_dispatch(fn, m_src_img.pix_type, m_dst_img.pix_type, m_caps, m_norm_quant_wrapper.m_norm_quant);
 }
 
 #if CONFIG_IDF_TARGET_ESP32P4

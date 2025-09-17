@@ -54,6 +54,15 @@ public:
 #endif
     template <bool SIMD = simd>
     esp_err_t transform();
+    template <bool SIMD>
+    struct TransformNNFunctor {
+        ImageTransformer *self;
+        template <typename PixelCvt>
+        void operator()(const PixelCvt &pixel_cvt) const
+        {
+            self->template transform_nn<PixelCvt, SIMD>(pixel_cvt);
+        }
+    };
 
 private:
     void gen_xy_map();

@@ -1,6 +1,7 @@
 #include "dl_image_preprocessor.hpp"
 #include "dl_image_bmp.hpp"
 #include "dl_image_color.hpp"
+#include "dl_image_pixel_cvt_dispatch.hpp"
 
 namespace dl {
 namespace image {
