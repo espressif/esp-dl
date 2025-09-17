@@ -55,6 +55,9 @@
 .patterns-model_cat_detect: &patterns-model_cat_detect
   - "models/cat_detect/**/*"
 
+.patterns-model_dog_detect: &patterns-model_dog_detect
+  - "models/dog_detect/**/*"
+
 .patterns-model_color_detect: &patterns-model_color_detect
   - "models/color_detect/**/*"
 
@@ -79,6 +82,9 @@
 
 .patterns-example_cat_detect: &patterns-example_cat_detect
 - "examples/cat_detect/**/*"
+
+.patterns-example_dog_detect: &patterns-example_dog_detect
+- "examples/dog_detect/**/*"
 
 .patterns-example_color_detect: &patterns-example_color_detect
 - "examples/color_detect/**/*"
@@ -253,6 +259,19 @@
       changes: *patterns-model_cat_detect
     - <<: *if-dev-push
       changes: *patterns-example_cat_detect
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_dog_detect:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_dog_detect
+    - <<: *if-dev-push
+      changes: *patterns-example_dog_detect
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 

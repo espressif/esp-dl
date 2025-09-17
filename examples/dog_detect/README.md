@@ -5,24 +5,23 @@
 | ESP32-S3 | ![alt text][supported] | ![alt text][supported] |
 | ESP32-P4 | ![alt text][supported] | ![alt text][supported] |
 
-# Cat Detect Example
+# Dog Detect Example
 
-A simple image inference example. In this example, we use ``cat.jpg`` for test. With default setting(iou=0.7, conf=0.6), the detection result before quantization is shown below:
+A simple image inference example. In this example, we use ``dog.jpg`` for test. With default setting(iou=0.7, conf=0.6), the detection result before quantization is shown below:
 
-![](./img/cat_224_224_fp32.jpg)
+![](./img/dog_224_224_fp32.jpg)
 
-And the detection result of espdet_pico_224_224_cat after int8 quantization on ESP32-P4 is as follows:
+And the detection result of espdet_pico_224_224_dog after int8 quantization on ESP32-P4 is as follows:
 
-![](./img/cat_224_224_int8_p4.jpg)
+![](./img/dog_224_224_int8_p4.jpg)
 
 ## Quick start
 
 Follow the [quick start](https://docs.espressif.com/projects/esp-dl/en/latest/getting_started/readme.html#quick-start) to flash the example, you will see the output in idf monitor:
 
 ```
-I (1555) cat_detect: [category: 0, score: 0.880797, x1: 0, y1: 171, x2: 428, y2: 479]
-I (1555) cat_detect: [category: 0, score: 0.851953, x1: 280, y1: 85, x2: 639, y2: 479]
-I (1565) main_task: Returned from app_main()
+I (1637) dog_detect: [category: 0, score: 0.880797, x1: 265, y1: 110, x2: 471, y2: 388]
+I (1647) main_task: Returned from app_main()
 ```
 
 ## Configurable Options in Menuconfig

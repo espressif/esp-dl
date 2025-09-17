@@ -172,6 +172,17 @@ build_example_cat_detect:
   variables:
     EXAMPLE_DIR: examples/cat_detect
 
+build_example_dog_detect:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_dog_detect
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+        TARGET: [esp32p4, esp32s3]
+  variables:
+    EXAMPLE_DIR: examples/dog_detect
+
 build_example_color_detect:
   extends:
     - .build_examples_template
