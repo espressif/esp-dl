@@ -1,5 +1,7 @@
 #pragma once
+#include "dl_image_color_isa.hpp"
 #include "dl_image_define.hpp"
+#include "dl_tensor_base.hpp"
 #include "esp_err.h"
 #include "esp_heap_caps.h"
 #include <algorithm> // std::min/std::max
@@ -9,37 +11,37 @@
 
 namespace dl {
 namespace image {
-inline constexpr uint8_t extract_channel1_from_rgb565le(uint16_t x)
+inline uint8_t extract_channel1_from_rgb565le(uint16_t x)
 {
     return static_cast<uint8_t>((x & 0xF800) >> 8);
 }
 
-inline constexpr uint8_t extract_channel2_from_rgb565le(uint16_t x)
+inline uint8_t extract_channel2_from_rgb565le(uint16_t x)
 {
     return static_cast<uint8_t>((x & 0x7E0) >> 3);
 }
 
-inline constexpr uint8_t extract_channel3_from_rgb565le(uint16_t x)
+inline uint8_t extract_channel3_from_rgb565le(uint16_t x)
 {
     return static_cast<uint8_t>((x & 0x1F) << 3);
 }
 
-inline constexpr uint8_t extract_channel1_from_rgb565be(uint16_t x)
+inline uint8_t extract_channel1_from_rgb565be(uint16_t x)
 {
     return static_cast<uint8_t>(x & 0xF8);
 }
 
-inline constexpr uint8_t extract_channel2_from_rgb565be(uint16_t x)
+inline uint8_t extract_channel2_from_rgb565be(uint16_t x)
 {
     return static_cast<uint8_t>(((x & 0x7) << 5) | ((x & 0xE000) >> 11));
 }
 
-inline constexpr uint8_t extract_channel3_from_rgb565be(uint16_t x)
+inline uint8_t extract_channel3_from_rgb565be(uint16_t x)
 {
     return static_cast<uint8_t>((x & 0x1F00) >> 5);
 }
 
-inline constexpr uint8_t rgb8882gray(uint8_t r, uint8_t g, uint8_t b)
+inline uint8_t rgb8882gray(uint8_t r, uint8_t g, uint8_t b)
 {
     constexpr int coeff_r = 9798;
     constexpr int coeff_g = 19235;
@@ -49,105 +51,227 @@ inline constexpr uint8_t rgb8882gray(uint8_t r, uint8_t g, uint8_t b)
     return static_cast<uint8_t>((coeff_r * r + coeff_g * g + coeff_b * b + round_delta) >> shift);
 }
 
-inline constexpr uint16_t rgb8882rgb565(uint8_t r, uint8_t g, uint8_t b)
+inline uint16_t rgb8882rgb565(uint8_t r, uint8_t g, uint8_t b)
 {
     return static_cast<uint16_t>(((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3));
 }
 
-template <typename T>
-concept IsQuantType = std::same_as<T, std::int8_t> || std::same_as<T, std::int16_t>;
-
 template <typename QuantType, int>
-struct LUT;
+struct NormQuant;
 
 template <typename QuantType>
-struct LUT<QuantType, 3> {
-    LUT(void *lut)
+    requires std::same_as<QuantType, int8_t> || std::same_as<QuantType, std::int16_t>
+struct NormQuant<QuantType, 3> {
+    using QT = QuantType;
+    NormQuant(const std::vector<float> &mean, const std::vector<float> &std, int exp)
     {
-        QuantType *lut_data = static_cast<QuantType *>(lut);
-        m_lut1 = lut_data;
-        m_lut2 = lut_data + 256;
-        m_lut3 = lut_data + 512;
+        assert(mean.size() == 3 && std.size() == 3);
+        m_lut1 = (QuantType *)heap_caps_malloc(mean.size() * 256 * sizeof(QuantType), MALLOC_CAP_DEFAULT);
+        m_lut2 = m_lut1 + 256;
+        m_lut3 = m_lut2 + 256;
+        m_lut_32 = (int *)heap_caps_aligned_alloc(4, mean.size() * 256 * sizeof(int), MALLOC_CAP_DEFAULT);
+        float inv_scale = exp > 0 ? 1.f / (1 << exp) : (1 << -exp);
+        int idx = 0;
+        for (int i = 0; i < mean.size(); i++) {
+            float inv_std = 1.f / std[i];
+            for (int j = 0; j < 256; j++) {
+                QuantType v = quantize<QuantType>((j - mean[i]) * inv_std, inv_scale);
+                m_lut1[idx] = v;
+                m_lut_32[idx++] = (int)v;
+            }
+        }
     }
+
+    ~NormQuant()
+    {
+        heap_caps_free(m_lut1);
+        heap_caps_free(m_lut_32);
+    }
+
+    QuantType norm_quant_chn1(uint8_t value) const { return m_lut1[value]; }
+
+    QuantType norm_quant_chn2(uint8_t value) const { return m_lut2[value]; }
+
+    QuantType norm_quant_chn3(uint8_t value) const { return m_lut3[value]; }
 
     QuantType *m_lut1;
     QuantType *m_lut2;
     QuantType *m_lut3;
+    int *m_lut_32;
 };
 
 template <typename QuantType>
-struct LUT<QuantType, 1> {
-    LUT(void *lut) { m_lut = static_cast<QuantType *>(lut); }
+    requires std::same_as<QuantType, int8_t> || std::same_as<QuantType, std::int16_t>
+struct NormQuant<QuantType, 1> {
+    using QT = QuantType;
+    NormQuant(const std::vector<float> &mean, const std::vector<float> &std, int exp)
+    {
+        assert(mean.size() == 1 && std.size() == 1);
+        m_lut1 = (QuantType *)heap_caps_malloc(256 * sizeof(QuantType), MALLOC_CAP_DEFAULT);
+        m_lut_32 = (int *)heap_caps_aligned_alloc(4, 256 * sizeof(int), MALLOC_CAP_DEFAULT);
+        float inv_scale = exp > 0 ? 1.f / (1 << exp) : (1 << -exp);
+        float inv_std = 1.f / std[0];
+        for (int i = 0; i < 256; i++) {
+            QuantType v = quantize<QuantType>((i - mean[0]) * inv_std, inv_scale);
+            m_lut1[i] = v;
+            m_lut_32[i] = (int)v;
+        }
+    }
 
-    QuantType *m_lut;
+    ~NormQuant()
+    {
+        heap_caps_free(m_lut1);
+        heap_caps_free(m_lut_32);
+    }
+
+    QuantType norm_quant_chn1(uint8_t value) const { return m_lut1[value]; }
+
+    QuantType *m_lut1;
+    int *m_lut_32;
 };
 
-template <bool RGB565BE, bool RGBSwap, typename QuantType = void>
+template <bool RGB565BE, bool RGBSwap, typename ExtraProcess = void>
 struct RGB5652RGB888;
 
 template <bool RGB565BE, bool RGBSwap>
 struct RGB5652RGB888<RGB565BE, RGBSwap, void> {
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint16_t src_data = *(reinterpret_cast<const uint16_t *>(src));
         if constexpr (RGB565BE && RGBSwap) {
-            dst[2] = extract_channel1_from_rgb565be(src_data);
-            dst[1] = extract_channel2_from_rgb565be(src_data);
             dst[0] = extract_channel3_from_rgb565be(src_data);
+            dst[1] = extract_channel2_from_rgb565be(src_data);
+            dst[2] = extract_channel1_from_rgb565be(src_data);
         } else if constexpr (RGB565BE && !RGBSwap) {
             dst[0] = extract_channel1_from_rgb565be(src_data);
             dst[1] = extract_channel2_from_rgb565be(src_data);
             dst[2] = extract_channel3_from_rgb565be(src_data);
         } else if constexpr (!RGB565BE && RGBSwap) {
-            dst[2] = extract_channel1_from_rgb565le(src_data);
-            dst[1] = extract_channel2_from_rgb565le(src_data);
             dst[0] = extract_channel3_from_rgb565le(src_data);
+            dst[1] = extract_channel2_from_rgb565le(src_data);
+            dst[2] = extract_channel1_from_rgb565le(src_data);
         } else {
             dst[0] = extract_channel1_from_rgb565le(src_data);
             dst[1] = extract_channel2_from_rgb565le(src_data);
             dst[2] = extract_channel3_from_rgb565le(src_data);
         }
     }
-};
 
-template <bool RGB565BE, bool RGBSwap, typename QuantType>
-    requires IsQuantType<QuantType>
-struct RGB5652RGB888<RGB565BE, RGBSwap, QuantType> : public LUT<QuantType, 3> {
-    using LUT<QuantType, 3>::m_lut1;
-    using LUT<QuantType, 3>::m_lut2;
-    using LUT<QuantType, 3>::m_lut3;
-
-    RGB5652RGB888(void *lut) : LUT<QuantType, 3>(lut) {}
-
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
     {
-        uint16_t src_data = *(reinterpret_cast<const uint16_t *>(src));
         if constexpr (RGB565BE && RGBSwap) {
-            dst[2] = m_lut1[extract_channel1_from_rgb565be(src_data)];
-            dst[1] = m_lut2[extract_channel2_from_rgb565be(src_data)];
-            dst[0] = m_lut3[extract_channel3_from_rgb565be(src_data)];
+            cvt_color_simd_helper_rgb565be2bgr888(src, dst, n);
         } else if constexpr (RGB565BE && !RGBSwap) {
-            dst[0] = m_lut1[extract_channel1_from_rgb565be(src_data)];
-            dst[1] = m_lut2[extract_channel2_from_rgb565be(src_data)];
-            dst[2] = m_lut3[extract_channel3_from_rgb565be(src_data)];
+            cvt_color_simd_helper_rgb565be2rgb888(src, dst, n);
         } else if constexpr (!RGB565BE && RGBSwap) {
-            dst[2] = m_lut1[extract_channel1_from_rgb565le(src_data)];
-            dst[1] = m_lut2[extract_channel2_from_rgb565le(src_data)];
-            dst[0] = m_lut3[extract_channel3_from_rgb565le(src_data)];
+            cvt_color_simd_helper_rgb565le2bgr888(src, dst, n);
         } else {
-            dst[0] = m_lut1[extract_channel1_from_rgb565le(src_data)];
-            dst[1] = m_lut2[extract_channel2_from_rgb565le(src_data)];
-            dst[2] = m_lut3[extract_channel3_from_rgb565le(src_data)];
+            cvt_color_simd_helper_rgb565le2rgb888(src, dst, n);
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (RGB565BE && RGBSwap) {
+            resize_nn_simd_helper_rgb565be2bgr888(&src, offsets, dst, n);
+        } else if constexpr (RGB565BE && !RGBSwap) {
+            resize_nn_simd_helper_rgb565be2rgb888(&src, offsets, dst, n);
+        } else if constexpr (!RGB565BE && RGBSwap) {
+            resize_nn_simd_helper_rgb565le2bgr888(&src, offsets, dst, n);
+        } else {
+            resize_nn_simd_helper_rgb565le2rgb888(&src, offsets, dst, n);
         }
     }
 };
 
-template <bool RGB565BE, bool RGBSwap, typename QuantType = void>
+template <bool RGB565BE, bool RGBSwap, typename ExtraProcess>
+    requires std::same_as<ExtraProcess, NormQuant<int8_t, 3>> || std::same_as<ExtraProcess, NormQuant<int16_t, 3>>
+struct RGB5652RGB888<RGB565BE, RGBSwap, ExtraProcess> {
+    using QuantType = ExtraProcess::QT;
+    ExtraProcess *m_extra_process;
+
+    RGB5652RGB888(void *extra_process) : m_extra_process((ExtraProcess *)extra_process) {}
+
+    void operator()(const uint8_t *src, uint8_t *dst) const
+    {
+        uint16_t src_data = *(reinterpret_cast<const uint16_t *>(src));
+        QuantType *dst_data = reinterpret_cast<QuantType *>(dst);
+        if constexpr (RGB565BE && RGBSwap) {
+            dst_data[0] = m_extra_process->norm_quant_chn1(extract_channel3_from_rgb565be(src_data));
+            dst_data[1] = m_extra_process->norm_quant_chn2(extract_channel2_from_rgb565be(src_data));
+            dst_data[2] = m_extra_process->norm_quant_chn3(extract_channel1_from_rgb565be(src_data));
+        } else if constexpr (RGB565BE && !RGBSwap) {
+            dst_data[0] = m_extra_process->norm_quant_chn1(extract_channel1_from_rgb565be(src_data));
+            dst_data[1] = m_extra_process->norm_quant_chn2(extract_channel2_from_rgb565be(src_data));
+            dst_data[2] = m_extra_process->norm_quant_chn3(extract_channel3_from_rgb565be(src_data));
+        } else if constexpr (!RGB565BE && RGBSwap) {
+            dst_data[0] = m_extra_process->norm_quant_chn1(extract_channel3_from_rgb565le(src_data));
+            dst_data[1] = m_extra_process->norm_quant_chn2(extract_channel2_from_rgb565le(src_data));
+            dst_data[2] = m_extra_process->norm_quant_chn3(extract_channel1_from_rgb565le(src_data));
+        } else {
+            dst_data[0] = m_extra_process->norm_quant_chn1(extract_channel1_from_rgb565le(src_data));
+            dst_data[1] = m_extra_process->norm_quant_chn2(extract_channel2_from_rgb565le(src_data));
+            dst_data[2] = m_extra_process->norm_quant_chn3(extract_channel3_from_rgb565le(src_data));
+        }
+    }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (std::is_same_v<QuantType, int8_t>) {
+            if constexpr (RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_rgb565be2bgr888_qint8(src, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                cvt_color_simd_helper_rgb565be2rgb888_qint8(src, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_rgb565le2bgr888_qint8(src, dst, n, m_extra_process->m_lut_32);
+            } else {
+                cvt_color_simd_helper_rgb565le2rgb888_qint8(src, dst, n, m_extra_process->m_lut_32);
+            }
+        } else {
+            if constexpr (RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_rgb565be2bgr888_qint16(src, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                cvt_color_simd_helper_rgb565be2rgb888_qint16(src, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_rgb565le2bgr888_qint16(src, dst, n, m_extra_process->m_lut_32);
+            } else {
+                cvt_color_simd_helper_rgb565le2rgb888_qint16(src, dst, n, m_extra_process->m_lut_32);
+            }
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (std::is_same_v<QuantType, int8_t>) {
+            if constexpr (RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_rgb565be2bgr888_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                resize_nn_simd_helper_rgb565be2rgb888_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_rgb565le2bgr888_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else {
+                resize_nn_simd_helper_rgb565le2rgb888_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            }
+        } else {
+            if constexpr (RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_rgb565be2bgr888_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                resize_nn_simd_helper_rgb565be2rgb888_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_rgb565le2bgr888_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else {
+                resize_nn_simd_helper_rgb565le2rgb888_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            }
+        }
+    }
+};
+
+template <bool RGB565BE, bool RGBSwap, typename ExtraProcess = void>
 struct RGB5652Gray;
 
 template <bool RGB565BE, bool RGBSwap>
 struct RGB5652Gray<RGB565BE, RGBSwap, void> {
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint16_t src_data = *(reinterpret_cast<const uint16_t *>(src));
         if constexpr (RGB565BE && RGBSwap) {
@@ -168,41 +292,118 @@ struct RGB5652Gray<RGB565BE, RGBSwap, void> {
                                extract_channel3_from_rgb565le(src_data));
         }
     }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (RGB565BE && RGBSwap) {
+            cvt_color_simd_helper_bgr565be2gray(src, dst, n);
+        } else if constexpr (RGB565BE && !RGBSwap) {
+            cvt_color_simd_helper_rgb565be2gray(src, dst, n);
+        } else if constexpr (!RGB565BE && RGBSwap) {
+            cvt_color_simd_helper_bgr565le2gray(src, dst, n);
+        } else {
+            cvt_color_simd_helper_rgb565le2gray(src, dst, n);
+        }
+    }
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (RGB565BE && RGBSwap) {
+            resize_nn_simd_helper_bgr565be2gray(&src, offsets, dst, n);
+        } else if constexpr (RGB565BE && !RGBSwap) {
+            resize_nn_simd_helper_rgb565be2gray(&src, offsets, dst, n);
+        } else if constexpr (!RGB565BE && RGBSwap) {
+            resize_nn_simd_helper_bgr565le2gray(&src, offsets, dst, n);
+        } else {
+            resize_nn_simd_helper_rgb565le2gray(&src, offsets, dst, n);
+        }
+    }
 };
 
-template <bool RGB565BE, bool RGBSwap, typename QuantType>
-    requires IsQuantType<QuantType>
-struct RGB5652Gray<RGB565BE, RGBSwap, QuantType> : public LUT<QuantType, 1> {
-    using LUT<QuantType, 1>::m_lut;
+template <bool RGB565BE, bool RGBSwap, typename ExtraProcess>
+    requires std::same_as<ExtraProcess, NormQuant<int8_t, 1>> || std::same_as<ExtraProcess, NormQuant<int16_t, 1>>
+struct RGB5652Gray<RGB565BE, RGBSwap, ExtraProcess> {
+    using QuantType = ExtraProcess::QT;
+    ExtraProcess *m_extra_process;
 
-    RGB5652Gray(void *lut) : LUT<QuantType, 1>(lut) {}
+    RGB5652Gray(void *extra_process) : m_extra_process((ExtraProcess *)(extra_process)) {}
 
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint16_t src_data = *(reinterpret_cast<const uint16_t *>(src));
+        QuantType *dst_data = reinterpret_cast<QuantType *>(dst);
         if constexpr (RGB565BE && RGBSwap) {
-            *dst = m_lut[rgb8882gray(extract_channel3_from_rgb565be(src_data),
-                                     extract_channel2_from_rgb565be(src_data),
-                                     extract_channel1_from_rgb565be(src_data))];
+            *dst_data = m_extra_process->norm_quant_chn1(rgb8882gray(extract_channel3_from_rgb565be(src_data),
+                                                                     extract_channel2_from_rgb565be(src_data),
+                                                                     extract_channel1_from_rgb565be(src_data)));
         } else if constexpr (RGB565BE && !RGBSwap) {
-            *dst = m_lut[rgb8882gray(extract_channel1_from_rgb565be(src_data),
-                                     extract_channel2_from_rgb565be(src_data),
-                                     extract_channel3_from_rgb565be(src_data))];
+            *dst_data = m_extra_process->norm_quant_chn1(rgb8882gray(extract_channel1_from_rgb565be(src_data),
+                                                                     extract_channel2_from_rgb565be(src_data),
+                                                                     extract_channel3_from_rgb565be(src_data)));
         } else if constexpr (!RGB565BE && RGBSwap) {
-            *dst = m_lut[rgb8882gray(extract_channel3_from_rgb565le(src_data),
-                                     extract_channel2_from_rgb565le(src_data),
-                                     extract_channel1_from_rgb565le(src_data))];
+            *dst_data = m_extra_process->norm_quant_chn1(rgb8882gray(extract_channel3_from_rgb565le(src_data),
+                                                                     extract_channel2_from_rgb565le(src_data),
+                                                                     extract_channel1_from_rgb565le(src_data)));
         } else {
-            *dst = m_lut[rgb8882gray(extract_channel1_from_rgb565le(src_data),
-                                     extract_channel2_from_rgb565le(src_data),
-                                     extract_channel3_from_rgb565le(src_data))];
+            *dst_data = m_extra_process->norm_quant_chn1(rgb8882gray(extract_channel1_from_rgb565le(src_data),
+                                                                     extract_channel2_from_rgb565le(src_data),
+                                                                     extract_channel3_from_rgb565le(src_data)));
+        }
+    }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (std::is_same_v<QuantType, int8_t>) {
+            if constexpr (RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_bgr565be2gray_qint8(src, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                cvt_color_simd_helper_rgb565be2gray_qint8(src, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_bgr565le2gray_qint8(src, dst, n, m_extra_process->m_lut_32);
+            } else {
+                cvt_color_simd_helper_rgb565le2gray_qint8(src, dst, n, m_extra_process->m_lut_32);
+            }
+        } else {
+            if constexpr (RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_bgr565be2gray_qint16(src, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                cvt_color_simd_helper_rgb565be2gray_qint16(src, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_bgr565le2gray_qint16(src, dst, n, m_extra_process->m_lut_32);
+            } else {
+                cvt_color_simd_helper_rgb565le2gray_qint16(src, dst, n, m_extra_process->m_lut_32);
+            }
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (std::is_same_v<QuantType, int8_t>) {
+            if constexpr (RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_bgr565be2gray_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                resize_nn_simd_helper_rgb565be2gray_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_bgr565le2gray_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else {
+                resize_nn_simd_helper_rgb565le2gray_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            }
+        } else {
+            if constexpr (RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_bgr565be2gray_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                resize_nn_simd_helper_rgb565be2gray_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_bgr565le2gray_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else {
+                resize_nn_simd_helper_rgb565le2gray_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            }
         }
     }
 };
 
 template <bool RGB565BE, bool RGBSwap>
 struct RGB8882RGB565 {
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint16_t *dst_data = reinterpret_cast<uint16_t *>(dst);
         if constexpr (RGB565BE && RGBSwap) {
@@ -215,14 +416,40 @@ struct RGB8882RGB565 {
             *dst_data = rgb8882rgb565(src[0], src[1], src[2]);
         }
     }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (RGB565BE && RGBSwap) {
+            cvt_color_simd_helper_bgr8882rgb565be(src, dst, n);
+        } else if constexpr (RGB565BE && !RGBSwap) {
+            cvt_color_simd_helper_rgb8882rgb565be(src, dst, n);
+        } else if constexpr (!RGB565BE && RGBSwap) {
+            cvt_color_simd_helper_bgr8882rgb565le(src, dst, n);
+        } else {
+            cvt_color_simd_helper_rgb8882rgb565le(src, dst, n);
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (RGB565BE && RGBSwap) {
+            resize_nn_simd_helper_bgr8882rgb565be(&src, offsets, dst, n);
+        } else if constexpr (RGB565BE && !RGBSwap) {
+            resize_nn_simd_helper_rgb8882rgb565be(&src, offsets, dst, n);
+        } else if constexpr (!RGB565BE && RGBSwap) {
+            resize_nn_simd_helper_bgr8882rgb565le(&src, offsets, dst, n);
+        } else {
+            resize_nn_simd_helper_rgb8882rgb565le(&src, offsets, dst, n);
+        }
+    }
 };
 
-template <bool RGBSwap, typename QuantType = void>
+template <bool RGBSwap, typename ExtraProcess = void>
 struct RGB8882RGB888;
 
 template <bool RGBSwap>
 struct RGB8882RGB888<RGBSwap, void> {
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         if constexpr (RGBSwap) {
             dst[2] = src[0];
@@ -232,65 +459,171 @@ struct RGB8882RGB888<RGBSwap, void> {
             memcpy(dst, src, 3);
         }
     }
-};
 
-template <bool RGBSwap, typename QuantType>
-    requires IsQuantType<QuantType>
-struct RGB8882RGB888<RGBSwap, QuantType> : public LUT<QuantType, 3> {
-    using LUT<QuantType, 3>::m_lut1;
-    using LUT<QuantType, 3>::m_lut2;
-    using LUT<QuantType, 3>::m_lut3;
-
-    RGB8882RGB888(void *lut) : LUT<QuantType, 3>(lut) {}
-
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
     {
         if constexpr (RGBSwap) {
-            dst[2] = m_lut1[src[0]];
-            dst[1] = m_lut2[src[1]];
-            dst[0] = m_lut3[src[2]];
+            cvt_color_simd_helper_rgb8882bgr888(src, dst, n);
         } else {
-            dst[0] = m_lut1[src[0]];
-            dst[1] = m_lut2[src[1]];
-            dst[2] = m_lut3[src[2]];
+            cvt_color_simd_helper_rgb8882rgb888(src, dst, n);
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (RGBSwap) {
+            resize_nn_simd_helper_rgb8882bgr888(&src, offsets, dst, n);
+        } else {
+            resize_nn_simd_helper_rgb8882rgb888(&src, offsets, dst, n);
         }
     }
 };
 
-template <bool RGBSwap, typename QuantType = void>
+template <bool RGBSwap, typename ExtraProcess>
+    requires std::same_as<ExtraProcess, NormQuant<int8_t, 3>> || std::same_as<ExtraProcess, NormQuant<int16_t, 3>>
+struct RGB8882RGB888<RGBSwap, ExtraProcess> {
+    using QuantType = ExtraProcess::QT;
+    ExtraProcess *m_extra_process;
+
+    RGB8882RGB888(void *extra_process) : m_extra_process((ExtraProcess *)(extra_process)) {}
+
+    void operator()(const uint8_t *src, uint8_t *dst) const
+    {
+        QuantType *dst_data = reinterpret_cast<QuantType *>(dst);
+        if constexpr (RGBSwap) {
+            dst_data[0] = m_extra_process->norm_quant_chn1(src[2]);
+            dst_data[1] = m_extra_process->norm_quant_chn2(src[1]);
+            dst_data[2] = m_extra_process->norm_quant_chn3(src[0]);
+        } else {
+            dst_data[0] = m_extra_process->norm_quant_chn1(src[0]);
+            dst_data[1] = m_extra_process->norm_quant_chn2(src[1]);
+            dst_data[2] = m_extra_process->norm_quant_chn3(src[2]);
+        }
+    }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (std::is_same_v<QuantType, int8_t>) {
+            if constexpr (RGBSwap) {
+                cvt_color_simd_helper_rgb8882bgr888_qint8(src, dst, n, m_extra_process->m_lut_32);
+            } else {
+                cvt_color_simd_helper_rgb8882rgb888_qint8(src, dst, n, m_extra_process->m_lut_32);
+            }
+        } else {
+            if constexpr (RGBSwap) {
+                cvt_color_simd_helper_rgb8882bgr888_qint16(src, dst, n, m_extra_process->m_lut_32);
+            } else {
+                cvt_color_simd_helper_rgb8882rgb888_qint16(src, dst, n, m_extra_process->m_lut_32);
+            }
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (std::is_same_v<QuantType, int8_t>) {
+            if constexpr (RGBSwap) {
+                resize_nn_simd_helper_rgb8882bgr888_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else {
+                resize_nn_simd_helper_rgb8882rgb888_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            }
+        } else {
+            if constexpr (RGBSwap) {
+                resize_nn_simd_helper_rgb8882bgr888_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else {
+                resize_nn_simd_helper_rgb8882rgb888_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            }
+        }
+    }
+};
+
+template <bool RGBSwap, typename ExtraProcess = void>
 struct RGB8882Gray;
 
 template <bool RGBSwap>
 struct RGB8882Gray<RGBSwap, void> {
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         if constexpr (RGBSwap) {
-            *dst = rgb8882gray(src[0], src[1], src[2]);
-        } else {
             *dst = rgb8882gray(src[2], src[1], src[0]);
+        } else {
+            *dst = rgb8882gray(src[0], src[1], src[2]);
+        }
+    }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (RGBSwap) {
+            cvt_color_simd_helper_bgr8882gray(src, dst, n);
+        } else {
+            cvt_color_simd_helper_rgb8882gray(src, dst, n);
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (RGBSwap) {
+            resize_nn_simd_helper_bgr8882gray(&src, offsets, dst, n);
+        } else {
+            resize_nn_simd_helper_rgb8882gray(&src, offsets, dst, n);
         }
     }
 };
-template <bool RGBSwap, typename QuantType>
-    requires IsQuantType<QuantType>
-struct RGB8882Gray<RGBSwap, QuantType> : public LUT<QuantType, 1> {
-    using LUT<QuantType, 1>::m_lut;
+template <bool RGBSwap, typename ExtraProcess>
+    requires std::same_as<ExtraProcess, NormQuant<int8_t, 1>> || std::same_as<ExtraProcess, NormQuant<int16_t, 1>>
+struct RGB8882Gray<RGBSwap, ExtraProcess> {
+    using QuantType = ExtraProcess::QT;
+    ExtraProcess *m_extra_process;
 
-    RGB8882Gray(void *lut) : LUT<QuantType, 1>(lut) {}
+    RGB8882Gray(void *extra_process) : m_extra_process((ExtraProcess *)(extra_process)) {}
 
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
+        QuantType *dst_data = reinterpret_cast<QuantType *>(dst);
         if constexpr (RGBSwap) {
-            *dst = m_lut[rgb8882gray(src[0], src[1], src[2])];
+            *dst_data = m_extra_process->norm_quant_chn1(rgb8882gray(src[2], src[1], src[0]));
         } else {
-            *dst = m_lut[rgb8882gray(src[2], src[1], src[0])];
+            *dst_data = m_extra_process->norm_quant_chn1(rgb8882gray(src[0], src[1], src[2]));
+        }
+    }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (std::is_same_v<QuantType, int8_t>) {
+            if constexpr (RGBSwap) {
+                cvt_color_simd_helper_bgr8882gray_qint8(src, dst, n, m_extra_process->m_lut_32);
+            } else {
+                cvt_color_simd_helper_rgb8882gray_qint8(src, dst, n, m_extra_process->m_lut_32);
+            }
+        } else {
+            if constexpr (RGBSwap) {
+                cvt_color_simd_helper_bgr8882gray_qint16(src, dst, n, m_extra_process->m_lut_32);
+            } else {
+                cvt_color_simd_helper_rgb8882gray_qint16(src, dst, n, m_extra_process->m_lut_32);
+            }
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (std::is_same_v<QuantType, int8_t>) {
+            if constexpr (RGBSwap) {
+                resize_nn_simd_helper_bgr8882gray_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else {
+                resize_nn_simd_helper_rgb8882gray_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            }
+        } else {
+            if constexpr (RGBSwap) {
+                resize_nn_simd_helper_bgr8882gray_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            } else {
+                resize_nn_simd_helper_rgb8882gray_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+            }
         }
     }
 };
 
 template <bool RGB565BE, bool RGBSwap, bool ByteSwap>
 struct RGB5652RGB565 {
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         const uint16_t *src_data = reinterpret_cast<const uint16_t *>(src);
         uint16_t *dst_data = reinterpret_cast<uint16_t *>(dst);
@@ -298,29 +631,105 @@ struct RGB5652RGB565 {
             *dst_data = __builtin_bswap16(*src_data);
         } else if constexpr (!RGBSwap && !ByteSwap) {
             *dst_data = *src_data;
-        } else if constexpr (RGBSwap && ByteSwap && RGB565BE) {
+        } else if constexpr (RGB565BE && RGBSwap && ByteSwap) {
             *dst_data = static_cast<uint16_t>(((*src_data & 0xf8) >> 3) | ((*src_data & 0xe000) >> 8) |
                                               ((*src_data & 0x7) << 8) | ((*src_data & 0x1f00) << 3));
-        } else if constexpr (RGBSwap && ByteSwap && !RGB565BE) {
+        } else if constexpr (!RGB565BE && RGBSwap && ByteSwap) {
             *dst_data = static_cast<uint16_t>(((*src_data & 0xf800) >> 3) | ((*src_data & 0x700) >> 8) |
                                               ((*src_data & 0xe0) << 8) | ((*src_data & 0x1f) << 3));
-        } else if constexpr (RGBSwap && !ByteSwap && RGB565BE) {
+        } else if constexpr (RGB565BE && RGBSwap && !ByteSwap) {
             *dst_data =
                 static_cast<uint16_t>(((*src_data & 0xf8) << 5) | (*src_data & 0xe007) | ((*src_data & 0x1f00) >> 5));
-        } else if constexpr (RGBSwap && !ByteSwap && !RGB565BE) {
+        } else if constexpr (!RGB565BE && RGBSwap && !ByteSwap) {
             *dst_data =
                 static_cast<uint16_t>(((*src_data & 0xf800) >> 11) | (*src_data & 0x7e0) | ((*src_data & 0x1f) << 11));
         }
     }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (!RGBSwap && ByteSwap) {
+            cvt_color_simd_helper_rgb565le2rgb565be(src, dst, n);
+        } else if constexpr (!RGBSwap && !ByteSwap) {
+            cvt_color_simd_helper_rgb5652rgb565(src, dst, n);
+        } else if constexpr (RGB565BE && RGBSwap && ByteSwap) {
+            cvt_color_simd_helper_rgb565be2bgr565le(src, dst, n);
+        } else if constexpr (!RGB565BE && RGBSwap && ByteSwap) {
+            cvt_color_simd_helper_rgb565le2bgr565le(src, dst, n);
+        } else if constexpr (RGB565BE && RGBSwap && !ByteSwap) {
+            cvt_color_simd_helper_rgb565be2bgr565be(src, dst, n);
+        } else if constexpr (!RGB565BE && RGBSwap && !ByteSwap) {
+            cvt_color_simd_helper_rgb565le2bgr565le(src, dst, n);
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (!RGBSwap && ByteSwap) {
+            resize_nn_simd_helper_rgb565le2rgb565be(&src, offsets, dst, n);
+        } else if constexpr (!RGBSwap && !ByteSwap) {
+            resize_nn_simd_helper_rgb5652rgb565(&src, offsets, dst, n);
+        } else if constexpr (RGB565BE && RGBSwap && ByteSwap) {
+            resize_nn_simd_helper_rgb565be2bgr565le(&src, offsets, dst, n);
+        } else if constexpr (!RGB565BE && RGBSwap && ByteSwap) {
+            resize_nn_simd_helper_rgb565le2bgr565le(&src, offsets, dst, n);
+        } else if constexpr (RGB565BE && RGBSwap && !ByteSwap) {
+            resize_nn_simd_helper_rgb565be2bgr565be(&src, offsets, dst, n);
+        } else if constexpr (!RGB565BE && RGBSwap && !ByteSwap) {
+            resize_nn_simd_helper_rgb565le2bgr565le(&src, offsets, dst, n);
+        }
+    }
 };
 
-template <typename QuantType>
-struct Gray2Gray : public LUT<QuantType, 1> {
-    using LUT<QuantType, 1>::m_lut;
+template <typename ExtraProcess = void>
+struct Gray2Gray;
 
-    Gray2Gray(void *lut) : LUT<QuantType, 1>(lut) {}
+template <>
+struct Gray2Gray<void> {
+    void operator()(const uint8_t *src, uint8_t *dst) const { *dst = *src; }
 
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept { *dst = m_lut[*src]; }
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        cvt_color_simd_helper_gray2gray(src, dst, n);
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        resize_nn_simd_helper_gray2gray(&src, offsets, dst, n);
+    }
+};
+
+template <typename ExtraProcess>
+    requires std::same_as<ExtraProcess, NormQuant<int8_t, 1>> || std::same_as<ExtraProcess, NormQuant<int16_t, 1>>
+struct Gray2Gray<ExtraProcess> {
+    using QuantType = ExtraProcess::QT;
+    ExtraProcess *m_extra_process;
+
+    Gray2Gray(void *extra_process) : m_extra_process((ExtraProcess *)(extra_process)) {}
+
+    void operator()(const uint8_t *src, uint8_t *dst) const
+    {
+        QuantType *dst_data = reinterpret_cast<QuantType *>(dst);
+        *dst_data = m_extra_process->norm_quant_chn1(*src);
+    }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (std::is_same_v<QuantType, int8_t>) {
+            cvt_color_simd_helper_gray2gray_qint8(src, dst, n, m_extra_process->m_lut_32);
+        } else {
+            cvt_color_simd_helper_gray2gray_qint16(src, dst, n, m_extra_process->m_lut_32);
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (std::is_same_v<QuantType, int8_t>) {
+            resize_nn_simd_helper_gray2gray_qint8(&src, offsets, dst, n, m_extra_process->m_lut_32);
+        } else {
+            resize_nn_simd_helper_gray2gray_qint16(&src, offsets, dst, n, m_extra_process->m_lut_32);
+        }
+    }
 };
 
 struct HSVTablesSingleton {
@@ -331,8 +740,8 @@ struct HSVTablesSingleton {
 protected:
     HSVTablesSingleton()
     {
-        m_sdiv_table = (int *)heap_caps_malloc(256 * sizeof(int), MALLOC_CAP_DEFAULT);
-        m_hdiv_table = (int *)heap_caps_malloc(256 * sizeof(int), MALLOC_CAP_DEFAULT);
+        m_sdiv_table = (int *)heap_caps_aligned_alloc(4, 256 * sizeof(int), MALLOC_CAP_DEFAULT);
+        m_hdiv_table = (int *)heap_caps_aligned_alloc(4, 256 * sizeof(int), MALLOC_CAP_DEFAULT);
         m_sdiv_table[0] = m_hdiv_table[0] = 0;
         for (int i = 1; i < 256; i++) {
             m_sdiv_table[i] = static_cast<int>((255 << hsv_shift) / (1. * i));
@@ -357,7 +766,7 @@ struct RGB8882HSV {
         m_sdiv_table = global_tables.m_sdiv_table;
     }
 
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         constexpr int hsv_shift = HSVTablesSingleton::hsv_shift;
         constexpr int round_delta = 1 << (hsv_shift - 1);
@@ -388,8 +797,25 @@ struct RGB8882HSV {
         dst[2] = (uint8_t)v;
     }
 
-    const int *m_hdiv_table;
-    const int *m_sdiv_table;
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (RGBSwap) {
+            cvt_color_simd_helper_bgr8882hsv(src, dst, n, m_sdiv_table, m_hdiv_table);
+        } else {
+            cvt_color_simd_helper_rgb8882hsv(src, dst, n, m_sdiv_table, m_hdiv_table);
+        }
+    }
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (RGBSwap) {
+            resize_nn_simd_helper_bgr8882hsv(&src, offsets, dst, n, m_sdiv_table, m_hdiv_table);
+        } else {
+            resize_nn_simd_helper_rgb8882hsv(&src, offsets, dst, n, m_sdiv_table, m_hdiv_table);
+        }
+    }
+
+    int *m_hdiv_table;
+    int *m_sdiv_table;
 };
 
 template <bool RGB565BE, bool RGBSwap>
@@ -397,11 +823,40 @@ struct RGB5652HSV {
     RGB5652RGB888<RGB565BE, RGBSwap> m_rgb5652rgb888;
     RGB8882HSV<false> m_rgb8882hsv;
 
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint8_t rgb888[3];
         m_rgb5652rgb888(src, rgb888);
         m_rgb8882hsv(rgb888, dst);
+    }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (RGB565BE && RGBSwap) {
+            cvt_color_simd_helper_bgr565be2hsv(src, dst, n, m_rgb8882hsv.m_sdiv_table, m_rgb8882hsv.m_hdiv_table);
+        } else if constexpr (RGB565BE && !RGBSwap) {
+            cvt_color_simd_helper_rgb565be2hsv(src, dst, n, m_rgb8882hsv.m_sdiv_table, m_rgb8882hsv.m_hdiv_table);
+        } else if constexpr (!RGB565BE && RGBSwap) {
+            cvt_color_simd_helper_bgr565le2hsv(src, dst, n, m_rgb8882hsv.m_sdiv_table, m_rgb8882hsv.m_hdiv_table);
+        } else {
+            cvt_color_simd_helper_rgb565le2hsv(src, dst, n, m_rgb8882hsv.m_sdiv_table, m_rgb8882hsv.m_hdiv_table);
+        }
+    }
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (RGB565BE && RGBSwap) {
+            resize_nn_simd_helper_bgr565be2hsv(
+                &src, offsets, dst, n, m_rgb8882hsv.m_sdiv_table, m_rgb8882hsv.m_hdiv_table);
+        } else if constexpr (RGB565BE && !RGBSwap) {
+            resize_nn_simd_helper_rgb565be2hsv(
+                &src, offsets, dst, n, m_rgb8882hsv.m_sdiv_table, m_rgb8882hsv.m_hdiv_table);
+        } else if constexpr (!RGB565BE && RGBSwap) {
+            resize_nn_simd_helper_bgr565le2hsv(
+                &src, offsets, dst, n, m_rgb8882hsv.m_sdiv_table, m_rgb8882hsv.m_hdiv_table);
+        } else {
+            resize_nn_simd_helper_rgb565le2hsv(
+                &src, offsets, dst, n, m_rgb8882hsv.m_sdiv_table, m_rgb8882hsv.m_hdiv_table);
+        }
     }
 };
 
@@ -417,7 +872,7 @@ struct HSV2HSVMask {
         m_v_max = hsv_max[2];
     }
 
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint8_t h = src[0], s = src[1], v = src[2];
         if constexpr (HAcrossZero) {
@@ -452,7 +907,7 @@ struct RGB8882HSVMask {
     RGB8882HSV<RGBSwap> m_rgb8882hsv;
     HSV2HSVMask<HAcrossZero> m_hsv2hsv_mask;
 
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint8_t hsv[3];
         m_rgb8882hsv(src, hsv);
@@ -469,7 +924,7 @@ struct RGB8882HSVAndHSVMask {
     RGB8882HSV<RGBSwap> m_rgb8882hsv;
     HSV2HSVMask<HAcrossZero> m_hsv2hsv_mask;
 
-    constexpr void operator()(const uint8_t *src, uint8_t *dst_hsv, uint8_t *dst_hsv_mask) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst_hsv, uint8_t *dst_hsv_mask) const
     {
         m_rgb8882hsv(src, dst_hsv);
         m_hsv2hsv_mask(dst_hsv, dst_hsv_mask);
@@ -485,7 +940,7 @@ struct RGB5652HSVMask {
     RGB5652HSV<RGB565BE, RGBSwap> m_rgb5652hsv;
     HSV2HSVMask<HAcrossZero> m_hsv2hsv_mask;
 
-    constexpr void operator()(const uint8_t *src, uint8_t *dst) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint8_t hsv[3];
         m_rgb5652hsv(src, hsv);
@@ -502,7 +957,7 @@ struct RGB5652HSVAndHSVMask {
     RGB5652HSV<RGB565BE, RGBSwap> m_rgb5652hsv;
     HSV2HSVMask<HAcrossZero> m_hsv2hsv_mask;
 
-    constexpr void operator()(const uint8_t *src, uint8_t *dst_hsv, uint8_t *dst_hsv_mask) const noexcept
+    void operator()(const uint8_t *src, uint8_t *dst_hsv, uint8_t *dst_hsv_mask) const
     {
         m_rgb5652hsv(src, dst_hsv);
         m_hsv2hsv_mask(dst_hsv, dst_hsv_mask);
@@ -511,7 +966,7 @@ struct RGB5652HSVAndHSVMask {
 
 template <typename Func>
 esp_err_t pixel_cvt_dispatch(
-    const Func &func, pix_type_t src_pix_type, pix_type_t dst_pix_type, uint32_t caps, void *norm_quant_lut)
+    const Func &func, pix_type_t src_pix_type, pix_type_t dst_pix_type, uint32_t caps, void *norm_quant)
 {
     bool rgb565be = caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN;
     bool rgb_swap = caps & DL_IMAGE_CAP_RGB_SWAP;
@@ -530,23 +985,23 @@ esp_err_t pixel_cvt_dispatch(
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_RGB888_QINT8) {
             if (rgb565be && rgb_swap) {
-                func(RGB5652RGB888<true, true, int8_t>(norm_quant_lut));
+                func(RGB5652RGB888<true, true, NormQuant<int8_t, 3>>(norm_quant));
             } else if (rgb565be && !rgb_swap) {
-                func(RGB5652RGB888<true, false, int8_t>(norm_quant_lut));
+                func(RGB5652RGB888<true, false, NormQuant<int8_t, 3>>(norm_quant));
             } else if (!rgb565be && rgb_swap) {
-                func(RGB5652RGB888<false, true, int8_t>(norm_quant_lut));
+                func(RGB5652RGB888<false, true, NormQuant<int8_t, 3>>(norm_quant));
             } else {
-                func(RGB5652RGB888<false, false, int8_t>(norm_quant_lut));
+                func(RGB5652RGB888<false, false, NormQuant<int8_t, 3>>(norm_quant));
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_RGB888_QINT16) {
             if (rgb565be && rgb_swap) {
-                func(RGB5652RGB888<true, true, int16_t>(norm_quant_lut));
+                func(RGB5652RGB888<true, true, NormQuant<int16_t, 3>>(norm_quant));
             } else if (rgb565be && !rgb_swap) {
-                func(RGB5652RGB888<true, false, int16_t>(norm_quant_lut));
+                func(RGB5652RGB888<true, false, NormQuant<int16_t, 3>>(norm_quant));
             } else if (!rgb565be && rgb_swap) {
-                func(RGB5652RGB888<false, true, int16_t>(norm_quant_lut));
+                func(RGB5652RGB888<false, true, NormQuant<int16_t, 3>>(norm_quant));
             } else {
-                func(RGB5652RGB888<false, false, int16_t>(norm_quant_lut));
+                func(RGB5652RGB888<false, false, NormQuant<int16_t, 3>>(norm_quant));
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_GRAY) {
             if (rgb565be && rgb_swap) {
@@ -560,37 +1015,37 @@ esp_err_t pixel_cvt_dispatch(
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT8) {
             if (rgb565be && rgb_swap) {
-                func(RGB5652Gray<true, true, int8_t>(norm_quant_lut));
+                func(RGB5652Gray<true, true, NormQuant<int8_t, 1>>(norm_quant));
             } else if (rgb565be && !rgb_swap) {
-                func(RGB5652Gray<true, false, int8_t>(norm_quant_lut));
+                func(RGB5652Gray<true, false, NormQuant<int8_t, 1>>(norm_quant));
             } else if (!rgb565be && rgb_swap) {
-                func(RGB5652Gray<false, true, int8_t>(norm_quant_lut));
+                func(RGB5652Gray<false, true, NormQuant<int8_t, 1>>(norm_quant));
             } else {
-                func(RGB5652Gray<false, false, int8_t>(norm_quant_lut));
+                func(RGB5652Gray<false, false, NormQuant<int8_t, 1>>(norm_quant));
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT16) {
             if (rgb565be && rgb_swap) {
-                func(RGB5652Gray<true, true, int16_t>(norm_quant_lut));
+                func(RGB5652Gray<true, true, NormQuant<int16_t, 1>>(norm_quant));
             } else if (rgb565be && !rgb_swap) {
-                func(RGB5652Gray<true, false, int16_t>(norm_quant_lut));
+                func(RGB5652Gray<true, false, NormQuant<int16_t, 1>>(norm_quant));
             } else if (!rgb565be && rgb_swap) {
-                func(RGB5652Gray<false, true, int16_t>(norm_quant_lut));
+                func(RGB5652Gray<false, true, NormQuant<int16_t, 1>>(norm_quant));
             } else {
-                func(RGB5652Gray<false, false, int16_t>(norm_quant_lut));
+                func(RGB5652Gray<false, false, NormQuant<int16_t, 1>>(norm_quant));
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_RGB565) {
             if (!rgb_swap && rgb565_swap) {
                 func(RGB5652RGB565<false, false, true>());
             } else if (!rgb_swap && !rgb565_swap) {
                 func(RGB5652RGB565<false, false, false>());
-            } else if (rgb_swap && rgb565_swap && rgb565be) {
+            } else if (rgb565be && rgb_swap && rgb565_swap) {
                 func(RGB5652RGB565<true, true, true>());
-            } else if (rgb_swap && rgb565_swap && !rgb565be) {
+            } else if (!rgb565be && rgb_swap && rgb565_swap) {
+                func(RGB5652RGB565<false, true, true>());
+            } else if (rgb565be && rgb_swap && !rgb565_swap) {
                 func(RGB5652RGB565<true, true, false>());
-            } else if (rgb_swap && !rgb565_swap && rgb565be) {
-                func(RGB5652RGB565<true, false, true>());
-            } else if (rgb_swap && !rgb565_swap && !rgb565be) {
-                func(RGB5652RGB565<true, false, false>());
+            } else if (!rgb565be && rgb_swap && !rgb565_swap) {
+                func(RGB5652RGB565<false, true, false>());
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_HSV) {
             if (rgb565be && rgb_swap) {
@@ -614,15 +1069,15 @@ esp_err_t pixel_cvt_dispatch(
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_RGB888_QINT8) {
             if (rgb_swap) {
-                func(RGB8882RGB888<true, int8_t>(norm_quant_lut));
+                func(RGB8882RGB888<true, NormQuant<int8_t, 3>>(norm_quant));
             } else {
-                func(RGB8882RGB888<false, int8_t>(norm_quant_lut));
+                func(RGB8882RGB888<false, NormQuant<int8_t, 3>>(norm_quant));
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_RGB888_QINT16) {
             if (rgb_swap) {
-                func(RGB8882RGB888<true, int16_t>(norm_quant_lut));
+                func(RGB8882RGB888<true, NormQuant<int16_t, 3>>(norm_quant));
             } else {
-                func(RGB8882RGB888<false, int16_t>(norm_quant_lut));
+                func(RGB8882RGB888<false, NormQuant<int16_t, 3>>(norm_quant));
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_GRAY) {
             if (rgb_swap) {
@@ -632,15 +1087,15 @@ esp_err_t pixel_cvt_dispatch(
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT8) {
             if (rgb_swap) {
-                func(RGB8882Gray<true, int8_t>(norm_quant_lut));
+                func(RGB8882Gray<true, NormQuant<int8_t, 1>>(norm_quant));
             } else {
-                func(RGB8882Gray<false, int8_t>(norm_quant_lut));
+                func(RGB8882Gray<false, NormQuant<int8_t, 1>>(norm_quant));
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT16) {
             if (rgb_swap) {
-                func(RGB8882Gray<true, int16_t>(norm_quant_lut));
+                func(RGB8882Gray<true, NormQuant<int16_t, 1>>(norm_quant));
             } else {
-                func(RGB8882Gray<false, int16_t>(norm_quant_lut));
+                func(RGB8882Gray<false, NormQuant<int16_t, 1>>(norm_quant));
             }
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_RGB565) {
             if (rgb565be && rgb_swap) {
@@ -662,10 +1117,12 @@ esp_err_t pixel_cvt_dispatch(
             has_impl = false;
         }
     } else if (src_pix_type == DL_IMAGE_PIX_TYPE_GRAY) {
-        if (dst_pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT8) {
-            func(Gray2Gray<int8_t>(norm_quant_lut));
+        if (dst_pix_type == DL_IMAGE_PIX_TYPE_GRAY) {
+            func(Gray2Gray<>());
+        } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT8) {
+            func(Gray2Gray<NormQuant<int8_t, 1>>(norm_quant));
         } else if (dst_pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT16) {
-            func(Gray2Gray<int16_t>(norm_quant_lut));
+            func(Gray2Gray<NormQuant<int16_t, 1>>(norm_quant));
         } else {
             has_impl = false;
         }
@@ -684,10 +1141,10 @@ inline esp_err_t cvt_pix(const uint8_t *src,
                          pix_type_t src_pix_type,
                          pix_type_t dst_pix_type,
                          uint32_t caps = 0,
-                         void *norm_quant_lut = nullptr)
+                         void *norm_quant = nullptr)
 {
     return pixel_cvt_dispatch(
-        [&src, &dst](const auto &pixel_cvt) { pixel_cvt(src, dst); }, src_pix_type, dst_pix_type, caps, norm_quant_lut);
+        [&src, &dst](const auto &pixel_cvt) { pixel_cvt(src, dst); }, src_pix_type, dst_pix_type, caps, norm_quant);
 }
 
 } // namespace image

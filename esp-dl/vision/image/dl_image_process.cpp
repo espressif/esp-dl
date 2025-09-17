@@ -1,11 +1,67 @@
 #include "dl_image_process.hpp"
-#include "dl_image_color.hpp"
 #include "esp_log.h"
 
 static const char *TAG = "ImageTransformer";
 
 namespace dl {
 namespace image {
+NormQuantWrapper::NormQuantWrapper() : m_quant_type(UNK), m_chn(0), m_norm_quant(nullptr)
+{
+}
+
+NormQuantWrapper::NormQuantWrapper(
+    const std::vector<float> &mean, const std::vector<float> &std, int exp, quant_type_t quant_type, int chn) :
+    m_quant_type(quant_type), m_chn(chn)
+{
+    if (m_quant_type == INT8_QUANT && m_chn == 3) {
+        m_norm_quant = (void *)(new NormQuant<int8_t, 3>(mean, std, exp));
+    } else if (m_quant_type == INT8_QUANT && m_chn == 1) {
+        m_norm_quant = (void *)(new NormQuant<int8_t, 1>(mean, std, exp));
+    } else if (m_quant_type == INT16_QUANT && m_chn == 3) {
+        m_norm_quant = (void *)(new NormQuant<int16_t, 3>(mean, std, exp));
+    } else if (m_quant_type == INT16_QUANT && m_chn == 1) {
+        m_norm_quant = (void *)(new NormQuant<int16_t, 1>(mean, std, exp));
+    }
+}
+
+NormQuantWrapper::~NormQuantWrapper()
+{
+    clear();
+}
+
+void NormQuantWrapper::clear()
+{
+    if (m_quant_type == INT8_QUANT && m_chn == 3) {
+        delete ((NormQuant<int8_t, 3> *)m_norm_quant);
+    } else if (m_quant_type == INT8_QUANT && m_chn == 1) {
+        delete ((NormQuant<int8_t, 1> *)m_norm_quant);
+    } else if (m_quant_type == INT16_QUANT && m_chn == 3) {
+        delete ((NormQuant<int16_t, 3> *)m_norm_quant);
+    } else if (m_quant_type == INT16_QUANT && m_chn == 1) {
+        delete ((NormQuant<int16_t, 1> *)m_norm_quant);
+    }
+}
+
+NormQuantWrapper::NormQuantWrapper(NormQuantWrapper &&rhs) noexcept :
+    m_quant_type(rhs.m_quant_type), m_chn(rhs.m_chn), m_norm_quant(rhs.m_norm_quant)
+{
+    rhs.m_chn = 0;
+    rhs.m_quant_type = UNK;
+    rhs.m_norm_quant = nullptr;
+}
+
+NormQuantWrapper &NormQuantWrapper::operator=(NormQuantWrapper &&rhs) noexcept
+{
+    clear();
+    m_chn = rhs.m_chn;
+    m_quant_type = rhs.m_quant_type;
+    m_norm_quant = rhs.m_norm_quant;
+    rhs.m_chn = 0;
+    rhs.m_quant_type = UNK;
+    rhs.m_norm_quant = nullptr;
+    return *this;
+}
+
 ImageTransformer::ImageTransformer() :
     m_src_img(),
     m_dst_img(),
@@ -20,31 +76,30 @@ ImageTransformer::ImageTransformer() :
     m_x2(nullptr),
     m_y1(nullptr),
     m_y2(nullptr),
-    m_norm_quant_lut(nullptr),
     m_gen_xy_map(false),
     m_new_bg_value(false),
+    m_bg_src_color_space(false),
     m_bg_value_same(false)
 {
 }
 
 ImageTransformer::~ImageTransformer()
 {
-    auto check_and_free = [](void *ptr) {
-        if (ptr) {
-            heap_caps_free(ptr);
-        }
-    };
-    check_and_free(m_x);
-    check_and_free(m_y);
-    check_and_free(m_x1);
-    check_and_free(m_x2);
-    check_and_free(m_y1);
-    check_and_free(m_y2);
+    heap_caps_free(m_x);
+    heap_caps_free(m_y);
+    heap_caps_free(m_x1);
+    heap_caps_free(m_x2);
+    heap_caps_free(m_y1);
+    heap_caps_free(m_y2);
 }
 
-ImageTransformer &ImageTransformer::set_norm_quant_lut(void *lut)
+ImageTransformer &ImageTransformer::set_norm_quant_param(const std::vector<float> &mean,
+                                                         const std::vector<float> &std,
+                                                         int exp,
+                                                         NormQuantWrapper::quant_type_t quant_type)
 {
-    m_norm_quant_lut = lut;
+    assert(mean.size() == std.size() && (mean.size() == 3 || mean.size() == 1));
+    m_norm_quant_wrapper = NormQuantWrapper(mean, std, exp, quant_type, mean.size());
     return *this;
 }
 
@@ -71,9 +126,10 @@ ImageTransformer &ImageTransformer::set_dst_img_border(const std::vector<int> &b
     return *this;
 }
 
-ImageTransformer &ImageTransformer::set_bg_value(const std::vector<uint8_t> &bg_value)
+ImageTransformer &ImageTransformer::set_bg_value(const std::vector<uint8_t> &bg_value, bool src_color_space)
 {
-    if (bg_value != m_bg_value) {
+    if (src_color_space != m_bg_src_color_space || bg_value != m_bg_value) {
+        m_bg_src_color_space = src_color_space;
         m_bg_value = bg_value;
         m_new_bg_value = true;
     }
@@ -159,6 +215,11 @@ std::vector<int> &ImageTransformer::get_dst_img_border()
     return m_border;
 }
 
+NormQuantWrapper &ImageTransformer::get_norm_quant_wrapper()
+{
+    return m_norm_quant_wrapper;
+}
+
 const img_t &ImageTransformer::get_src_img()
 {
     return m_src_img;
@@ -181,16 +242,17 @@ float ImageTransformer::get_scale_y(bool inv)
 
 void ImageTransformer::reset()
 {
-    set_norm_quant_lut(nullptr)
-        .set_src_img_crop_area({})
+    set_src_img_crop_area({})
         .set_dst_img_border({})
-        .set_bg_value({})
+        .set_bg_value({}, false)
         .set_src_img({})
         .set_dst_img({})
         .set_caps(0)
         .set_warp_affine_matrix({});
+    m_norm_quant_wrapper = {};
 }
 
+template <bool SIMD>
 esp_err_t ImageTransformer::transform()
 {
     if (!m_src_img.data || !m_src_img.height || !m_src_img.width) {
@@ -206,15 +268,41 @@ esp_err_t ImageTransformer::transform()
         ESP_LOGE(TAG, "Invalid dst img, call set_dst_img().");
         return ESP_FAIL;
     }
-    if (is_pix_type_quant(m_dst_img.pix_type) && !m_norm_quant_lut) {
-        ESP_LOGE(TAG, "Invalid norm quant lut, call set_norm_quant_lut().");
-        return ESP_FAIL;
+    if (is_pix_type_quant(m_dst_img.pix_type)) {
+        bool flag = false;
+        if (!m_norm_quant_wrapper.m_norm_quant ||
+            get_pix_channel_num(m_dst_img.pix_type) != m_norm_quant_wrapper.m_chn) {
+            flag = true;
+        }
+        if ((m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT8 ||
+             m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_RGB888_QINT8) &&
+            m_norm_quant_wrapper.m_quant_type != NormQuantWrapper::INT8_QUANT) {
+            flag = true;
+        }
+        if ((m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT16 ||
+             m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_RGB888_QINT16) &&
+            m_norm_quant_wrapper.m_quant_type != NormQuantWrapper::INT16_QUANT) {
+            flag = true;
+        }
+        if (flag) {
+            ESP_LOGE(TAG, "Invalid norm quant param.");
+            return ESP_FAIL;
+        }
     }
-    if (m_new_bg_value && !m_bg_value.empty() && get_pix_byte_size(m_src_img.pix_type) != m_bg_value.size()) {
-        ESP_LOGE(TAG, "Const value byte size does not match src img pixel byte size.");
-        return ESP_FAIL;
+    if (m_new_bg_value && !m_bg_value.empty()) {
+        if (m_bg_src_color_space) {
+            if (get_pix_byte_size(m_src_img.pix_type) != m_bg_value.size()) {
+                ESP_LOGE(TAG, "Const value byte size does not match src img pixel byte size.");
+                return ESP_FAIL;
+            }
+        } else {
+            if (get_pix_byte_size(m_dst_img.pix_type) != m_bg_value.size()) {
+                ESP_LOGE(TAG, "Const value byte size does not match dst img pixel byte size.");
+                return ESP_FAIL;
+            }
+        }
     }
-    if (!m_crop_area.empty() && (m_crop_area[2] > m_src_img.width - 1 || m_crop_area[3] > m_src_img.height - 1)) {
+    if (!m_crop_area.empty() && (m_crop_area[2] > m_src_img.width || m_crop_area[3] > m_src_img.height)) {
         ESP_LOGE(TAG, "Invalid crop area.");
         return ESP_FAIL;
     }
@@ -227,12 +315,17 @@ esp_err_t ImageTransformer::transform()
         gen_xy_map();
         m_gen_xy_map = false;
     }
-    return pixel_cvt_dispatch([this](const auto &pixel_cvt) { transform_nn(pixel_cvt); },
+    return pixel_cvt_dispatch([this](const auto &pixel_cvt) { transform_nn<decltype(pixel_cvt), SIMD>(pixel_cvt); },
                               m_src_img.pix_type,
                               m_dst_img.pix_type,
                               m_caps,
-                              m_norm_quant_lut);
+                              m_norm_quant_wrapper.m_norm_quant);
 }
+
+#if CONFIG_IDF_TARGET_ESP32P4
+template esp_err_t ImageTransformer::transform<true>();
+#endif
+template esp_err_t ImageTransformer::transform<false>();
 
 void ImageTransformer::gen_xy_map()
 {
@@ -242,23 +335,28 @@ void ImageTransformer::gen_xy_map()
     int col_step = get_pix_byte_size(m_src_img.pix_type);
     int row_step = m_src_img.width * get_pix_byte_size(m_src_img.pix_type);
 
-    auto check_and_free = [](void *ptr) {
-        if (ptr) {
-            heap_caps_free(ptr);
-        }
-    };
-    check_and_free(m_x);
-    check_and_free(m_y);
-    check_and_free(m_x1);
-    check_and_free(m_x2);
-    check_and_free(m_y1);
-    check_and_free(m_y2);
+    heap_caps_free(m_x);
+    heap_caps_free(m_y);
+    heap_caps_free(m_x1);
+    heap_caps_free(m_x2);
+    heap_caps_free(m_y1);
+    heap_caps_free(m_y2);
+    m_x = nullptr;
+    m_y = nullptr;
+    m_x1 = nullptr;
+    m_x2 = nullptr;
+    m_y1 = nullptr;
+    m_y2 = nullptr;
 
     if (!m_M.array) {
         int src_width = m_crop_area.empty() ? m_src_img.width : (m_crop_area[2] - m_crop_area[0]);
         int src_height = m_crop_area.empty() ? m_src_img.height : (m_crop_area[3] - m_crop_area[1]);
-        m_x = (int *)heap_caps_malloc(dst_width * sizeof(int), MALLOC_CAP_DEFAULT);
-        m_y = (int *)heap_caps_malloc(dst_height * sizeof(int), MALLOC_CAP_DEFAULT);
+        if (src_width == dst_width && src_height == dst_height) {
+            m_scale_x = m_scale_y = m_inv_scale_x = m_inv_scale_y = 1;
+            return;
+        }
+        m_x = (int *)heap_caps_malloc(dst_width * sizeof(int), MALLOC_CAP_DEFAULT | MALLOC_CAP_SIMD);
+        m_y = (int *)heap_caps_malloc(dst_height * sizeof(int), MALLOC_CAP_DEFAULT | MALLOC_CAP_SIMD);
         m_inv_scale_x = static_cast<float>(src_width) / dst_width;
         m_inv_scale_y = static_cast<float>(src_height) / dst_height;
         m_scale_x = 1.f / m_inv_scale_x;

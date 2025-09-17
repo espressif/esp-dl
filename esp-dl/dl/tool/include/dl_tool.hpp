@@ -43,7 +43,9 @@ typedef enum {
 } round_mode_t;
 
 void dl_esp32p4_cfg_round(round_mode_t round_mode);
-int dl_esp32p4_round_half_even(float value);
+typedef enum { FORCE_ALIGN, HW_MISALIGN } misalign_mode_t;
+void dl_esp32p4_cfg_misalign(misalign_mode_t store, misalign_mode_t load);
+uint32_t dl_esp32p4_get_cfg();
 #endif
 }
 

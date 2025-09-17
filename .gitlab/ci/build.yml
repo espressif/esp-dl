@@ -189,7 +189,7 @@ build_example_color_detect:
     - .rules:build:example_color_detect
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:latest]
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/color_detect
