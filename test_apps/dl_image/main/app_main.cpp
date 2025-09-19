@@ -1,3 +1,4 @@
+#include "dl_image_color.hpp"
 #include "esp_heap_caps.h"
 #include "unity.h"
 #include "unity_test_runner.h"
@@ -34,6 +35,7 @@ void setUp(void)
 {
     auto ret = bsp_sdcard_mount();
     mount = (ret == ESP_OK);
+    dl::image::HSVTablesSingleton::getInstance();
     before_free_internal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     before_free_spiram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 }

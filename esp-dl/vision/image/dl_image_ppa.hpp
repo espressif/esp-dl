@@ -12,7 +12,7 @@
 
 namespace dl {
 namespace image {
-constexpr inline float get_ppa_scale(uint16_t src, uint16_t dst)
+inline float get_ppa_scale(uint16_t src, uint16_t dst)
 {
     if (src == dst) {
         return 1;
@@ -33,7 +33,7 @@ constexpr inline float get_ppa_scale(uint16_t src, uint16_t dst)
     return scale_int + scale_frac;
 }
 
-constexpr inline esp_err_t convert_pix_type_to_ppa_srm_fmt(pix_type_t type, ppa_srm_color_mode_t *srm_fmt)
+inline esp_err_t convert_pix_type_to_ppa_srm_fmt(pix_type_t type, ppa_srm_color_mode_t *srm_fmt)
 {
     if (type == DL_IMAGE_PIX_TYPE_RGB888) {
         *srm_fmt = PPA_SRM_COLOR_MODE_RGB888;

@@ -1,6 +1,7 @@
 #include "dl_image_preprocessor.hpp"
 #include "dl_image_bmp.hpp"
 #include "dl_image_color.hpp"
+#include "dl_image_pixel_cvt_dispatch.hpp"
 
 namespace dl {
 namespace image {
@@ -15,42 +16,58 @@ ImagePreprocessor::ImagePreprocessor(Model *model,
     m_model_input = model->get_input(input_name);
     assert(m_model_input->dtype == DATA_TYPE_INT8 || m_model_input->dtype == DATA_TYPE_INT16);
     assert(m_model_input->shape[3] == mean.size() && mean.size() == std.size());
-    if (m_model_input->dtype == DATA_TYPE_INT8) {
-        create_norm_lut<int8_t>(mean, std);
-    } else {
-        create_norm_lut<int16_t>(mean, std);
-    }
     img_t dst = {.data = m_model_input->data,
                  .width = (uint16_t)m_model_input->shape[2],
                  .height = (uint16_t)m_model_input->shape[1],
                  .pix_type = (m_model_input->dtype == DATA_TYPE_INT8) ? DL_IMAGE_PIX_TYPE_RGB888_QINT8
                                                                       : DL_IMAGE_PIX_TYPE_RGB888_QINT16};
-    m_image_transformer.set_dst_img(dst).set_caps(caps).set_norm_quant_lut(m_norm_lut);
-}
-
-ImagePreprocessor::~ImagePreprocessor()
-{
-    heap_caps_free(m_norm_lut);
+    NormQuantWrapper::quant_type_t quant_type =
+        (m_model_input->dtype == DATA_TYPE_INT8) ? NormQuantWrapper::INT8_QUANT : NormQuantWrapper::INT16_QUANT;
+    m_image_transformer.set_dst_img(dst).set_caps(caps).set_norm_quant_param(
+        mean, std, m_model_input->exponent, quant_type);
 }
 
 void ImagePreprocessor::enable_letterbox(const std::vector<uint8_t> &bg_value)
 {
-    assert(bg_value.size() == 3);
-    m_rgb888_bg_value = bg_value;
-    m_rgb565_bg_value.resize(2);
-#if CONFIG_IDF_TARGET_ESP32P4
-    uint32_t caps = 0;
-#else
-    uint32_t caps = dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN;
-#endif
-    cvt_pix(
-        m_rgb888_bg_value.data(), m_rgb565_bg_value.data(), DL_IMAGE_PIX_TYPE_RGB888, DL_IMAGE_PIX_TYPE_RGB565, caps);
-    m_letter_box = true;
-}
-
-void ImagePreprocessor::enable_letterbox(uint8_t bg_value)
-{
-    m_gray_bg_value = {bg_value};
+    auto &norm_quant_wrapper = m_image_transformer.get_norm_quant_wrapper();
+    auto quant_type = norm_quant_wrapper.m_quant_type;
+    int chn = norm_quant_wrapper.m_chn;
+    void *norm_quant = norm_quant_wrapper.m_norm_quant;
+    assert(bg_value.size() == chn);
+    m_bg_value.resize(chn);
+    if (chn == 1) {
+        if (quant_type == NormQuantWrapper::INT8_QUANT) {
+            cvt_pix(bg_value.data(),
+                    m_bg_value.data(),
+                    DL_IMAGE_PIX_TYPE_GRAY,
+                    DL_IMAGE_PIX_TYPE_GRAY_QINT8,
+                    0,
+                    norm_quant);
+        } else if (quant_type == NormQuantWrapper::INT16_QUANT) {
+            cvt_pix(bg_value.data(),
+                    m_bg_value.data(),
+                    DL_IMAGE_PIX_TYPE_GRAY,
+                    DL_IMAGE_PIX_TYPE_GRAY_QINT16,
+                    0,
+                    norm_quant);
+        }
+    } else if (chn == 3) {
+        if (quant_type == NormQuantWrapper::INT8_QUANT) {
+            cvt_pix(bg_value.data(),
+                    m_bg_value.data(),
+                    DL_IMAGE_PIX_TYPE_RGB888,
+                    DL_IMAGE_PIX_TYPE_RGB888_QINT8,
+                    0,
+                    norm_quant);
+        } else if (quant_type == NormQuantWrapper::INT16_QUANT) {
+            cvt_pix(bg_value.data(),
+                    m_bg_value.data(),
+                    DL_IMAGE_PIX_TYPE_RGB888,
+                    DL_IMAGE_PIX_TYPE_RGB888_QINT16,
+                    0,
+                    norm_quant);
+        }
+    }
     m_letter_box = true;
 }
 
@@ -93,32 +110,13 @@ TensorBase *ImagePreprocessor::get_model_input()
     return m_model_input;
 }
 
-template <typename T>
-void ImagePreprocessor::create_norm_lut(const std::vector<float> &mean, const std::vector<float> &std)
-{
-    m_norm_lut = heap_caps_malloc(mean.size() * 256 * sizeof(T), MALLOC_CAP_DEFAULT);
-    float inv_scale = 1.f / DL_SCALE(m_model_input->exponent);
-    std::vector<float> inv_std(std.size());
-    T *norm_lut_ptr = (T *)m_norm_lut;
-    for (int i = 0; i < mean.size(); i++) {
-        inv_std[i] = 1.f / std[i];
-        for (int j = 0; j < 256; j++) {
-            norm_lut_ptr[i * 256 + j] = quantize<T>(((float)j - mean[i]) * inv_std[i], inv_scale);
-        }
-    }
-}
-
-template void ImagePreprocessor::create_norm_lut<int8_t>(const std::vector<float> &mean, const std::vector<float> &std);
-template void ImagePreprocessor::create_norm_lut<int16_t>(const std::vector<float> &mean,
-                                                          const std::vector<float> &std);
-
 void ImagePreprocessor::preprocess(const img_t &img, const std::vector<int> &crop_area)
 {
     if (m_letter_box) {
         auto &last_src_img = m_image_transformer.get_src_img();
-        auto &dst_img = m_image_transformer.get_dst_img();
         if (img.height != last_src_img.height || img.width != last_src_img.width ||
             crop_area != m_image_transformer.get_src_img_crop_area()) {
+            auto &dst_img = m_image_transformer.get_dst_img();
             int src_width = crop_area.empty() ? img.width : (crop_area[2] - crop_area[0]);
             int src_height = crop_area.empty() ? img.height : (crop_area[3] - crop_area[1]);
             float scale_x = (float)dst_img.width / (float)src_width;
@@ -136,21 +134,7 @@ void ImagePreprocessor::preprocess(const img_t &img, const std::vector<int> &cro
             }
             m_image_transformer.set_dst_img_border({border_top, border_bottom, border_left, border_right});
         }
-        if (!last_src_img.data || img.pix_type != last_src_img.pix_type) {
-            switch (img.pix_type) {
-            case DL_IMAGE_PIX_TYPE_RGB888:
-                m_image_transformer.set_bg_value(m_rgb888_bg_value);
-                break;
-            case DL_IMAGE_PIX_TYPE_RGB565:
-                m_image_transformer.set_bg_value(m_rgb565_bg_value);
-                break;
-            case DL_IMAGE_PIX_TYPE_GRAY:
-                m_image_transformer.set_bg_value(m_gray_bg_value);
-                break;
-            default:
-                ESP_LOGE("ImagePreprocessor", "Unsupported input image pixel type.");
-            }
-        }
+        m_image_transformer.set_bg_value(m_bg_value, false);
     }
     ESP_ERROR_CHECK(m_image_transformer.set_src_img(img).set_src_img_crop_area(crop_area).transform());
 }

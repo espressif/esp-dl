@@ -12,9 +12,7 @@ public:
                       const std::vector<float> &std,
                       uint32_t caps = 0,
                       const std::string &input_name = "");
-    ~ImagePreprocessor();
-    void enable_letterbox(const std::vector<uint8_t> &bg_value = {0, 0, 0});
-    void enable_letterbox(uint8_t bg_value = 0);
+    void enable_letterbox(const std::vector<uint8_t> &bg_value);
     float get_resize_scale_x(bool inv = false);
     float get_resize_scale_y(bool inv = false);
     int get_crop_area_top_left_x();
@@ -26,18 +24,12 @@ public:
     void preprocess(const img_t &img, const dl::math::Matrix<float> &M, bool inv = false);
 
 private:
-    template <typename T>
-    void create_norm_lut(const std::vector<float> &mean, const std::vector<float> &std);
-
     ImageTransformer m_image_transformer;
     TensorBase *m_model_input;
-    void *m_norm_lut;
 
     // for letter box
     bool m_letter_box;
-    std::vector<uint8_t> m_rgb888_bg_value;
-    std::vector<uint8_t> m_rgb565_bg_value;
-    std::vector<uint8_t> m_gray_bg_value;
+    std::vector<uint8_t> m_bg_value;
 };
 
 } // namespace image

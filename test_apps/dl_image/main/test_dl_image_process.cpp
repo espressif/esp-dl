@@ -12,6 +12,90 @@ extern const uint8_t gray_320x240_jpg_end[] asm("_binary_gray_320x240_jpg_end");
 using namespace dl::image;
 extern bool mount;
 
+TEST_CASE("Test crop+cvt_color", "[dl_image]")
+{
+    jpeg_img_t jpeg_img = {.data = (void *)color_405x540_jpg_start,
+                           .data_len = (size_t)(color_405x540_jpg_end - color_405x540_jpg_start)};
+    img_t src_img = sw_decode_jpeg(jpeg_img, DL_IMAGE_PIX_TYPE_RGB565);
+    img_t dst_img = {.data = heap_caps_malloc(224 * 224 * 3, MALLOC_CAP_DEFAULT),
+                     .width = 224,
+                     .height = 224,
+                     .pix_type = DL_IMAGE_PIX_TYPE_RGB888};
+
+    ImageTransformer transformer;
+    transformer.set_src_img(src_img)
+        .set_dst_img(dst_img)
+        .set_caps(DL_IMAGE_CAP_RGB_SWAP)
+        .set_src_img_crop_area({30, 60, 254, 284});
+    int64_t start = esp_timer_get_time();
+    transformer.transform();
+    int64_t end = esp_timer_get_time();
+    printf("%lld\n", end - start);
+
+    if (mount) {
+        write_bmp_base(dst_img, "/sdcard/crop_cvt_color.bmp");
+    }
+    heap_caps_free(src_img.data);
+    heap_caps_free(dst_img.data);
+}
+
+TEST_CASE("Test crop+cvt_color+make_color_border", "[dl_image]")
+{
+    jpeg_img_t jpeg_img = {.data = (void *)color_405x540_jpg_start,
+                           .data_len = (size_t)(color_405x540_jpg_end - color_405x540_jpg_start)};
+    img_t src_img = sw_decode_jpeg(jpeg_img, DL_IMAGE_PIX_TYPE_RGB565);
+    img_t dst_img = {.data = heap_caps_malloc(224 * 224 * 3, MALLOC_CAP_DEFAULT),
+                     .width = 224,
+                     .height = 224,
+                     .pix_type = DL_IMAGE_PIX_TYPE_RGB888};
+
+    ImageTransformer transformer;
+    transformer.set_src_img(src_img)
+        .set_dst_img(dst_img)
+        .set_caps(DL_IMAGE_CAP_RGB_SWAP)
+        .set_src_img_crop_area({30, 60, 30 + 200, 60 + 200})
+        .set_dst_img_border({5, 19, 14, 10})
+        .set_bg_value({0, 0, 255}, false);
+    int64_t start = esp_timer_get_time();
+    transformer.transform();
+    int64_t end = esp_timer_get_time();
+    printf("%lld\n", end - start);
+
+    if (mount) {
+        write_bmp_base(dst_img, "/sdcard/crop_cvt_color_make_color_border.bmp");
+    }
+    heap_caps_free(src_img.data);
+    heap_caps_free(dst_img.data);
+}
+
+TEST_CASE("Test crop+cvt_color+make_border", "[dl_image]")
+{
+    jpeg_img_t jpeg_img = {.data = (void *)color_405x540_jpg_start,
+                           .data_len = (size_t)(color_405x540_jpg_end - color_405x540_jpg_start)};
+    img_t src_img = sw_decode_jpeg(jpeg_img, DL_IMAGE_PIX_TYPE_RGB565);
+    img_t dst_img = {.data = heap_caps_malloc(224 * 224 * 3, MALLOC_CAP_DEFAULT),
+                     .width = 224,
+                     .height = 224,
+                     .pix_type = DL_IMAGE_PIX_TYPE_RGB888};
+
+    ImageTransformer transformer;
+    transformer.set_src_img(src_img)
+        .set_dst_img(dst_img)
+        .set_caps(DL_IMAGE_CAP_RGB_SWAP)
+        .set_src_img_crop_area({30, 60, 30 + 200, 60 + 200})
+        .set_dst_img_border({5, 19, 14, 10});
+    int64_t start = esp_timer_get_time();
+    transformer.transform();
+    int64_t end = esp_timer_get_time();
+    printf("%lld\n", end - start);
+
+    if (mount) {
+        write_bmp_base(dst_img, "/sdcard/crop_cvt_color_make_border.bmp");
+    }
+    heap_caps_free(src_img.data);
+    heap_caps_free(dst_img.data);
+}
+
 TEST_CASE("Test resize", "[dl_image]")
 {
     jpeg_img_t jpeg_img = {.data = (void *)color_405x540_jpg_start,
@@ -108,7 +192,7 @@ TEST_CASE("Test resize padding bg same", "[dl_image]")
         .set_dst_img(dst_img)
         .set_caps(DL_IMAGE_CAP_RGB_SWAP)
         .set_dst_img_border({30, 70, 30, 70})
-        .set_bg_value(color);
+        .set_bg_value(color, true);
     int64_t start = esp_timer_get_time();
     transformer.transform();
     int64_t end = esp_timer_get_time();
@@ -131,15 +215,12 @@ TEST_CASE("Test resize padding bg diff", "[dl_image]")
                      .height = 324,
                      .pix_type = DL_IMAGE_PIX_TYPE_RGB888};
 
-    // rgb 248, 0, 0
-    std::vector<uint8_t> color{0x00, 0xf8};
-
     ImageTransformer transformer;
     transformer.set_src_img(src_img)
         .set_dst_img(dst_img)
         .set_caps(DL_IMAGE_CAP_RGB_SWAP)
         .set_dst_img_border({30, 70, 30, 70})
-        .set_bg_value(color);
+        .set_bg_value({255, 0, 0}, false);
     int64_t start = esp_timer_get_time();
     transformer.transform();
     int64_t end = esp_timer_get_time();
@@ -283,7 +364,7 @@ TEST_CASE("Test warp affine padding bg same", "[dl_image]")
         .set_caps(DL_IMAGE_CAP_RGB_SWAP)
         .set_warp_affine_matrix(M)
         .set_dst_img_border({30, 70, 30, 70})
-        .set_bg_value(color);
+        .set_bg_value(color, true);
     int64_t start = esp_timer_get_time();
     transformer.transform();
     int64_t end = esp_timer_get_time();
@@ -314,16 +395,13 @@ TEST_CASE("Test warp affine padding bg diff", "[dl_image]")
     M.array[1][1] = 0.866;
     M.array[1][2] = 0;
 
-    // rgb 248, 0, 0
-    std::vector<uint8_t> color{0x00, 0xf8};
-
     ImageTransformer transformer;
     transformer.set_src_img(src_img)
         .set_dst_img(dst_img)
         .set_caps(DL_IMAGE_CAP_RGB_SWAP)
         .set_warp_affine_matrix(M)
         .set_dst_img_border({30, 70, 30, 70})
-        .set_bg_value(color);
+        .set_bg_value({255, 0, 0}, false);
     int64_t start = esp_timer_get_time();
     transformer.transform();
     int64_t end = esp_timer_get_time();
