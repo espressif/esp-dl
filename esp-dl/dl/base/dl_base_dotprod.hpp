@@ -11,43 +11,15 @@ namespace base {
  * @param input1_ptr Pointer to the second input array.
  * @param output_ptr Pointer to the output array to store the computed result.
  * @param length Length of the input arrays (number of elements).
- * @param bias Optional bias to add to the result.
  * @param shift Number of bits to right-shift the result for precision or range adjustment.
  *
  * @note This function assumes the input arrays have the same length and the output array has sufficient allocated
  * space.
  */
-void dotprod(int8_t *input0_ptr, int8_t *input1_ptr, int16_t *output_ptr, int length, int bias = 0, int shift = 0);
-
-/**
- * @brief Computes the dot product of two int16_t arrays and stores the result in the output array.
- *
- * @param input0_ptr Pointer to the first input array.
- * @param input1_ptr Pointer to the second input array.
- * @param output_ptr Pointer to the output array to store the computed result.
- * @param length Length of the input arrays (number of elements).
- * @param bias Optional bias to add to the result.
- * @param shift Number of bits to right-shift the result for precision or range adjustment.
- *
- * @note This function assumes the input arrays have the same length and the output array has sufficient allocated
- * space.
- */
-void dotprod(int16_t *input0_ptr, int16_t *input1_ptr, int16_t *output_ptr, int length, int bias = 0, int shift = 0);
-
-/**
- * @brief Computes the dot product of two float arrays and stores the result in the output array.
- *
- * @param input0_ptr Pointer to the first input array.
- * @param input1_ptr Pointer to the second input array.
- * @param output_ptr Pointer to the output array to store the computed result.
- * @param length Length of the input arrays (number of elements).
- * @param bias Optional bias to add to the result.
- * @param shift Does not use this parameter, just for compatibility.
- *
- * @note This function assumes the input arrays have the same length and the output array has sufficient allocated
- * space.
- */
-void dotprod(float *input0_ptr, float *input1_ptr, float *output_ptr, int length, float bias = 0.0, int shift = 0);
+void dotprod(int8_t *input0_ptr, int8_t *input1_ptr, int16_t *output_ptr, int length, int shift = 0);
+void dotprod(int8_t *input0_ptr, int16_t *input1_ptr, int16_t *output_ptr, int length, int shift = 0);
+void dotprod(int16_t *input0_ptr, int16_t *input1_ptr, int16_t *output_ptr, int length, int shift = 0);
+void dotprod(float *input0_ptr, float *input1_ptr, float *output_ptr, int length, int shift = 0);
 
 /**
  * @brief Performs matrix-vector dot product operation.
@@ -58,31 +30,20 @@ void dotprod(float *input0_ptr, float *input1_ptr, float *output_ptr, int length
  * @param result Pointer to the output vector where the result will be stored.
  * @param rows The number of rows in the matrix.
  * @param cols The number of columns in the matrix.
- * @param bias Pointer to the bias array to add to the result.
  * @param shift Optional parameter to apply a shift to the result (default is 0).
  */
 
-template <typename TI, typename TO, typename TB>
-void mat_vec_dotprod(TI *matrix, TI *vector, TO *result, int rows, int cols, TB *bias, int shift = 0)
+template <typename TM, typename TV, typename TO>
+void mat_vec_dotprod(TM *matrix, TV *vector, TO *result, int rows, int cols, int shift = 0)
 {
-    if (bias) {
-        for (int i = 0; i < rows; i++) {
-            TI *matrix_row = matrix + i * cols;
-            dotprod(matrix_row, vector, result + i, cols, bias[i], shift);
-        }
-    } else {
-        TB bias_item = 0.0;
-        for (int i = 0; i < rows; i++) {
-            TI *matrix_row = matrix + i * cols;
-            dotprod(matrix_row, vector, result + i, cols, bias_item, shift);
-        }
+    for (int i = 0; i < rows; i++) {
+        TM *matrix_row = matrix + i * cols;
+        dotprod(matrix_row, vector, result + i, cols, shift);
     }
 }
-
-template void mat_vec_dotprod(
-    int8_t *matrix, int8_t *vector, int16_t *result, int rows, int cols, int *bias, int shift);
-template void mat_vec_dotprod(
-    int16_t *matrix, int16_t *vector, int16_t *result, int rows, int cols, int *bias, int shift);
-template void mat_vec_dotprod(float *matrix, float *vector, float *result, int rows, int cols, float *bias, int shift);
+template void mat_vec_dotprod(int8_t *matrix, int8_t *vector, int16_t *result, int rows, int cols, int shift);
+template void mat_vec_dotprod(int8_t *matrix, int16_t *vector, int16_t *result, int rows, int cols, int shift);
+template void mat_vec_dotprod(int16_t *matrix, int16_t *vector, int16_t *result, int rows, int cols, int shift);
+template void mat_vec_dotprod(float *matrix, float *vector, float *result, int rows, int cols, int shift);
 } // namespace base
 } // namespace dl
