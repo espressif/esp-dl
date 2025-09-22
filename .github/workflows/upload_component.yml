@@ -22,6 +22,7 @@ jobs:
             models/pedestrian_detect;
             models/imagenet_cls;
             models/cat_detect;
+            models/dog_detect;
             tools/dl_fft;
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
