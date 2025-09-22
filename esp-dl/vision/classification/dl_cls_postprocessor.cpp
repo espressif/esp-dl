@@ -4,7 +4,7 @@ namespace dl {
 namespace cls {
 ClsPostprocessor::ClsPostprocessor(
     Model *model, const int top_k, const float score_thr, bool need_softmax, const std::string &output_name) :
-    m_top_k(top_k), m_score_thr(score_thr), m_need_softmax(need_softmax), m_softmax_module(nullptr)
+    m_topk(top_k), m_score_thr(score_thr), m_need_softmax(need_softmax), m_softmax_module(nullptr)
 {
     m_model_output = model->get_output(output_name);
     m_output = new dl::TensorBase(m_model_output->shape, nullptr, 0, dl::DATA_TYPE_FLOAT);
@@ -37,11 +37,20 @@ std::vector<dl::cls::result_t> &ClsPostprocessor::postprocess()
     }
     std::sort(
         m_cls_result.begin(), m_cls_result.end(), [](result_t &a, result_t &b) -> bool { return a.score > b.score; });
-    if (m_cls_result.size() > m_top_k) {
-        m_cls_result.resize(m_top_k);
+    if (m_cls_result.size() > m_topk) {
+        m_cls_result.resize(m_topk);
     }
     return m_cls_result;
 }
 
+void ClsPostprocessor::set_topk(int topk)
+{
+    m_topk = topk;
+}
+
+void ClsPostprocessor::set_score_thr(float score_thr)
+{
+    m_score_thr = score_thr;
+}
 } // namespace cls
 } // namespace dl

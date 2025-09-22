@@ -2,6 +2,34 @@
 
 namespace dl {
 namespace feat {
+FeatWrapper::~FeatWrapper()
+{
+    delete m_model;
+}
+
+TensorBase *FeatWrapper::run(const dl::image::img_t &img, const std::vector<int> &landmarks)
+{
+    if (!m_model) {
+        load_model();
+    }
+    return m_model->run(img, landmarks);
+}
+
+int FeatWrapper::get_feat_len()
+{
+    if (!m_model) {
+        load_model();
+    }
+    return m_model->get_feat_len();
+}
+
+dl::Model *FeatWrapper::get_raw_model()
+{
+    if (!m_model) {
+        load_model();
+    }
+    return m_model->get_raw_model();
+}
 
 FeatImpl::~FeatImpl()
 {
@@ -28,5 +56,15 @@ TensorBase *FeatImpl::run(const dl::image::img_t &img, const std::vector<int> &l
     return feat;
 }
 
+int FeatImpl::get_feat_len()
+{
+    return m_model->get_output()->get_size();
+    ;
+}
+
+dl::Model *FeatImpl::get_raw_model()
+{
+    return m_model;
+}
 } // namespace feat
 } // namespace dl

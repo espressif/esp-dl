@@ -21,6 +21,9 @@ public:
     void enable_morphology(int kernel_size = 5);
     std::string get_color_name(int idx);
     std::list<dl::detect::result_t> &run(const dl::image::img_t &img) override;
+    Detect &set_score_thr(float score_thr, int idx) override { return *this; }
+    Detect &set_nms_thr(float nms_thr, int idx) override { return *this; }
+    dl::Model *get_raw_model(int idx) override { return nullptr; }
 
 private:
     void gen_xy_map();

@@ -1,5 +1,6 @@
 #include "coco_detect.hpp"
 #include "esp_log.h"
+#include <filesystem>
 
 #if CONFIG_COCO_DETECT_MODEL_IN_FLASH_RODATA
 extern const uint8_t coco_detect_espdl[] asm("_binary_coco_detect_espdl_start");
@@ -12,7 +13,7 @@ static const char *path = "coco_det";
 #endif
 #endif
 namespace coco_detect {
-Yolo11n::Yolo11n(const char *model_name)
+Yolo11n::Yolo11n(const char *model_name, float score_thr, float nms_thr)
 {
 #if !CONFIG_COCO_DETECT_MODEL_IN_SDCARD
     bool param_copy = true;
@@ -27,14 +28,8 @@ Yolo11n::Yolo11n(const char *model_name)
                             nullptr,
                             param_copy);
 #else
-    char sd_path[256];
-    snprintf(sd_path,
-             sizeof(sd_path),
-             "%s/%s/%s",
-             CONFIG_BSP_SD_MOUNT_POINT,
-             CONFIG_COCO_DETECT_MODEL_SDCARD_DIR,
-             model_name);
-    m_model = new dl::Model(sd_path, static_cast<fbs::model_location_type_t>(CONFIG_COCO_DETECT_MODEL_LOCATION));
+    auto sd_path = std::filesystem::path(CONFIG_BSP_SD_MOUNT_POINT) / CONFIG_COCO_DETECT_MODEL_SDCARD_DIR / model_name;
+    m_model = new dl::Model(sd_path.c_str(), fbs::MODEL_LOCATION_IN_SDCARD);
 #endif
     m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
@@ -50,33 +45,51 @@ Yolo11n::Yolo11n(const char *model_name)
 
 } // namespace coco_detect
 
-COCODetect::COCODetect(model_type_t model_type)
+COCODetect::COCODetect(model_type_t model_type, bool lazy_load) : m_model_type(model_type)
 {
     switch (model_type) {
     case model_type_t::YOLO11N_S8_V1:
+    case model_type_t::YOLO11N_S8_V2:
+    case model_type_t::YOLO11N_S8_V3:
+    case model_type_t::YOLO11N_320_S8_V3:
+        m_score_thr[0] = coco_detect::Yolo11n::default_score_thr;
+        m_nms_thr[0] = coco_detect::Yolo11n::default_nms_thr;
+        break;
+    }
+    if (lazy_load) {
+        m_model = nullptr;
+    } else {
+        load_model();
+    }
+}
+
+void COCODetect::load_model()
+{
+    switch (m_model_type) {
+    case model_type_t::YOLO11N_S8_V1:
 #if CONFIG_FLASH_COCO_DETECT_YOLO11N_S8_V1 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
-        m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_s8_v1.espdl");
+        m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_s8_v1.espdl", m_score_thr[0], m_nms_thr[0]);
 #else
         ESP_LOGE("coco_detect", "coco_detect_yolo11n_s8_v1 is not selected in menuconfig.");
 #endif
         break;
     case model_type_t::YOLO11N_S8_V2:
 #if CONFIG_FLASH_COCO_DETECT_YOLO11N_S8_V2 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
-        m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_s8_v2.espdl");
+        m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_s8_v2.espdl", m_score_thr[0], m_nms_thr[0]);
 #else
         ESP_LOGE("coco_detect", "coco_detect_yolo11n_s8_v2 is not selected in menuconfig.");
 #endif
         break;
     case model_type_t::YOLO11N_S8_V3:
 #if CONFIG_FLASH_COCO_DETECT_YOLO11N_S8_V3 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
-        m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_s8_v3.espdl");
+        m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_s8_v3.espdl", m_score_thr[0], m_nms_thr[0]);
 #else
         ESP_LOGE("coco_detect", "coco_detect_yolo11n_s8_v3 is not selected in menuconfig.");
 #endif
         break;
     case model_type_t::YOLO11N_320_S8_V3:
 #if CONFIG_FLASH_COCO_DETECT_YOLO11N_320_S8_V3 || CONFIG_COCO_DETECT_MODEL_IN_SDCARD
-        m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_320_s8_v3.espdl");
+        m_model = new coco_detect::Yolo11n("coco_detect_yolo11n_320_s8_v3.espdl", m_score_thr[0], m_nms_thr[0]);
 #else
         ESP_LOGE("coco_detect", "coco_detect_yolo11n_320_s8_v3 is not selected in menuconfig.");
 #endif

@@ -10,19 +10,21 @@ class Feat {
 public:
     virtual ~Feat() {};
     virtual TensorBase *run(const dl::image::img_t &img, const std::vector<int> &landmarks) = 0;
-    int m_feat_len;
+    virtual int get_feat_len() = 0;
+    virtual dl::Model *get_raw_model() = 0;
 };
 
 class FeatWrapper : public Feat {
 protected:
     Feat *m_model;
 
+    virtual void load_model() = 0;
+
 public:
-    ~FeatWrapper() { delete m_model; }
-    TensorBase *run(const dl::image::img_t &img, const std::vector<int> &landmarks)
-    {
-        return m_model->run(img, landmarks);
-    }
+    ~FeatWrapper();
+    TensorBase *run(const dl::image::img_t &img, const std::vector<int> &landmarks) override;
+    int get_feat_len() override;
+    dl::Model *get_raw_model() override;
 };
 
 class FeatImpl : public Feat {
@@ -34,6 +36,8 @@ protected:
 public:
     ~FeatImpl();
     TensorBase *run(const dl::image::img_t &img, const std::vector<int> &landmarks) override;
+    int get_feat_len() override;
+    dl::Model *get_raw_model() override;
 };
 } // namespace feat
 } // namespace dl

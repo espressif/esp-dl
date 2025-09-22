@@ -12,9 +12,9 @@ class DetectPostprocessor {
 protected:
     Model *m_model;
     image::ImagePreprocessor *m_image_preprocessor;
-    const float m_score_thr;        /*!< Candidate box with lower score than score_thr will be filtered */
-    const float m_nms_thr;          /*!< Candidate box with higher IoU than nms_thr will be filtered */
-    const int m_top_k;              /*!< Keep top_k number of candidate boxes */
+    float m_score_thr;              /*!< Candidate box with lower score than score_thr will be filtered */
+    float m_nms_thr;                /*!< Candidate box with higher IoU than nms_thr will be filtered */
+    int m_top_k;                    /*!< Keep top_k number of candidate boxes */
     std::list<result_t> m_box_list; /*!< Detected box list */
 
 public:
@@ -32,6 +32,8 @@ public:
     virtual void postprocess() = 0;
     void nms();
     void clear_result() { m_box_list.clear(); };
+    void set_score_thr(float score_thr) { m_score_thr = score_thr; }
+    void set_nms_thr(float nms_thr) { m_nms_thr = nms_thr; }
     std::list<result_t> &get_result(int width, int height);
 };
 

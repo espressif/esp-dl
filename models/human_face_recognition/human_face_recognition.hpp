@@ -19,22 +19,30 @@ public:
         MFN_S8_V1,
         MBF_S8_V1,
     } model_type_t;
-    HumanFaceFeat(model_type_t model_type = static_cast<model_type_t>(CONFIG_DEFAULT_HUMAN_FACE_FEAT_MODEL));
+
+    HumanFaceFeat(model_type_t model_type = static_cast<model_type_t>(CONFIG_DEFAULT_HUMAN_FACE_FEAT_MODEL),
+                  bool lazy_load = true);
+
+private:
+    void load_model() override;
+
+    model_type_t m_model_type;
 };
 
 class HumanFaceRecognizer {
 private:
     HumanFaceFeat m_feat;
-    dl::recognition::DataBase m_db;
+    dl::recognition::DataBase *m_db;
+    std::string m_db_path;
     float m_thr;
     int m_top_k;
 
 public:
-    HumanFaceRecognizer(char *db_path,
+    HumanFaceRecognizer(const std::string &db_path,
                         HumanFaceFeat::model_type_t model_type =
                             static_cast<HumanFaceFeat::model_type_t>(CONFIG_DEFAULT_HUMAN_FACE_FEAT_MODEL),
-                        float thr = 0.5,
-                        int top_k = 1);
+                        bool lazy_load = true);
+    ~HumanFaceRecognizer();
 
     std::vector<dl::recognition::result_t> recognize(const dl::image::img_t &img,
                                                      const std::list<dl::detect::result_t> &detect_res);
@@ -43,4 +51,5 @@ public:
     esp_err_t delete_feat(uint16_t id);
     esp_err_t delete_last_feat();
     int get_num_feats();
+    HumanFaceFeat *get_feat_model();
 };
