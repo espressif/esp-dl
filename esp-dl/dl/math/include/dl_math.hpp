@@ -342,7 +342,11 @@ public:
         }
     }
 
-    ~SigmoidLUT() { delete[] m_table; }
+    ~SigmoidLUT()
+    {
+        if (m_table)
+            free(m_table);
+    }
 
     float get(int index) const
     {
@@ -391,7 +395,11 @@ public:
         }
     }
 
-    ~TanhLUT() { delete[] m_table; }
+    ~TanhLUT()
+    {
+        if (m_table)
+            free(m_table);
+    }
 
     float get(int index) const
     {

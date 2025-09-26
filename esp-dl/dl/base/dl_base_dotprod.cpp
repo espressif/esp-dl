@@ -44,12 +44,19 @@ void dotprod_c(int16_t *input0_ptr, int16_t *input1_ptr, int16_t *output_ptr, in
 
 void dotprod(int8_t *input0_ptr, int8_t *input1_ptr, int16_t *output_ptr, int length, int shift)
 {
-    if (length % 16 == 0) {
+    if (length % 16 == 0 && shift >= 0) {
 #if CONFIG_ESP32P4_BOOST
         dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
         dl_esp32p4_dotprod_i8k8o16(output_ptr, input0_ptr, input1_ptr, shift, length);
 #elif CONFIG_TIE728_BOOST
-
+        __attribute__((aligned(16))) int64_t rounding_offset[1];
+        rounding_offset[0] = 0;
+        if (shift == 0) {
+            rounding_offset[0] = 0;
+        } else {
+            rounding_offset[0] = (1 << (shift - 1));
+        }
+        dl_tie728_dotprod_i8k8o16(output_ptr, input0_ptr, input1_ptr, shift, length, rounding_offset);
 #else
         dotprod_c(input0_ptr, input1_ptr, output_ptr, length, shift);
 #endif
@@ -60,12 +67,10 @@ void dotprod(int8_t *input0_ptr, int8_t *input1_ptr, int16_t *output_ptr, int le
 
 void dotprod(int8_t *input0_ptr, int16_t *input1_ptr, int16_t *output_ptr, int length, int shift)
 {
-    if (length % 8 == 0) {
+    if (length % 8 == 0 && shift >= 0) {
 #if CONFIG_ESP32P4_BOOST
         dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
         dl_esp32p4_dotprod_i16k8o16(output_ptr, input0_ptr, input1_ptr, shift, length);
-#elif CONFIG_TIE728_BOOST
-
 #else
         dotprod_c(input0_ptr, input1_ptr, output_ptr, length, shift);
 #endif
@@ -76,12 +81,18 @@ void dotprod(int8_t *input0_ptr, int16_t *input1_ptr, int16_t *output_ptr, int l
 
 void dotprod(int16_t *input0_ptr, int16_t *input1_ptr, int16_t *output_ptr, int length, int shift)
 {
-    if (length % 8 == 0) {
+    if (length % 8 == 0 && shift >= 0) {
 #if CONFIG_ESP32P4_BOOST
         dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
         dl_esp32p4_dotprod_i16k16o16(output_ptr, input0_ptr, input1_ptr, shift, length);
 #elif CONFIG_TIE728_BOOST
-
+        __attribute__((aligned(16))) int64_t rounding_offset[1];
+        if (shift == 0) {
+            rounding_offset[0] = 0;
+        } else {
+            rounding_offset[0] = (1 << (shift - 1));
+        }
+        dl_tie728_dotprod_i16k16o16(output_ptr, input0_ptr, input1_ptr, shift, length, rounding_offset);
 #else
         dotprod_c(input0_ptr, input1_ptr, output_ptr, length, shift);
 #endif

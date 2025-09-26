@@ -9,6 +9,7 @@ namespace module {
 class Reshape : public Module {
 private:
     TensorBase *m_shape; /*!< Specified shape for output */
+    int m_allowzero;
 
 public:
     /**
@@ -18,10 +19,11 @@ public:
      * @param inplace         inplace type.
      */
     Reshape(TensorBase *shape,
+            int allowzero = 0,
             const char *name = NULL,
             module_inplace_t inplace = MODULE_NON_INPLACE,
             quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, inplace, quant_type), m_shape(shape)
+        Module(name, inplace, quant_type), m_shape(shape), m_allowzero(allowzero)
     {
     }
 
@@ -47,7 +49,14 @@ public:
             } else if (shape_param[i] > 0) {
                 shape_param_size *= shape_param[i];
             } else {
-                assert(false);
+                if (m_allowzero == 0 && shape_param[i] == 0) {
+                    shape_param[i] = input_shapes[0][i];
+                    shape_param_size *= shape_param[i];
+                } else if (m_allowzero == 1 && shape_param[i] == 0) {
+                    shape_param_size *= shape_param[i];
+                } else {
+                    assert(false);
+                }
             }
         }
 
@@ -90,11 +99,13 @@ public:
     {
         Module *op = nullptr;
         quant_type_t quant_type;
+        int allowzero;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
+        fbs_model->get_operation_attribute(node_name, "allowzero", allowzero);
         TensorBase *shape = fbs_model->get_operation_parameter(node_name, 1);
 
         // Create module
-        op = new Reshape(shape, node_name.c_str(), MODULE_INPLACE_UNCHANGED_BUFFER, quant_type);
+        op = new Reshape(shape, allowzero, node_name.c_str(), MODULE_INPLACE_UNCHANGED_BUFFER, quant_type);
         return op;
     }
 

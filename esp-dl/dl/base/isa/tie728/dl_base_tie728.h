@@ -445,4 +445,13 @@ void dl_tie728_s16_lessorequal_w1_1_w2_8_unaligned(bool *output_ptr,
                                                    int16_t *input0_ptr,
                                                    int16_t *input1_ptr,
                                                    void *args_ptr);
+
+void dl_tie728_dotprod_i8k8o16(
+    int16_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, int shift, int n, int64_t *rounding_offset);
+void dl_tie728_dotprod_i16k16o16(
+    int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int shift, int n, int64_t *rounding_offset);
+
+void dl_tie728_vsmul_s16f32(int16_t *input, float *scale, int n);
+
+void dl_tie728_vsmul_s8f32(int8_t *input, float *scale, int n);
 }

@@ -7,6 +7,7 @@ extern "C" {
 
 #if CONFIG_TIE728_BOOST
 #include "dl_base_tie728.h"
+#include "dl_base_xtensa.h"
 #endif
 
 #if CONFIG_IDF_TARGET_ESP32P4
