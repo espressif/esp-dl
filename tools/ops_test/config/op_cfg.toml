@@ -1,7 +1,7 @@
 [meta]
     seed = 0
     batch_size = 1
-    calib_steps = 8         # The minimum value for calib_steps is 8.
+    calib_steps = 2         # The minimum value for calib_steps is 8.
     model_version = 1
     opset = 13
 
@@ -3219,6 +3219,75 @@
         in_channels = 16
         out_channels = 16
 
+
+    [ops_test.GRU]
+    test_func = "GRU_TEST"
+    quant_bits = ["int8", "int16", "flaot32"]
+    package = "torch_ops_test"
+    restrictions = "GRU operator supports forward direction only, layout=0 (seq_length, batch_size, input_size)"
+        [[ops_test.GRU.cfg]]
+        # Basic GRU forward direction
+        input_shape = [1, 1, 11]  # [seq_length, batch_size, input_size]
+        hidden_size = 24
+        num_layers = 1
+        bidirectional = false
+        bias = true
+        batch_first = false
+        export_name_prefix = "gru_seq1_input11_hidden24"
+        export_path = ""
+
+        [[ops_test.GRU.cfg]]
+        input_shape = [2, 1, 8]  # [seq_length, batch_size, input_size]
+        hidden_size = 27
+        num_layers = 1
+        bidirectional = false
+        bias = false
+        batch_first = false
+        export_name_prefix = "gru_seq2_input8_hidden27_nobias"
+        export_path = ""
+
+        [[ops_test.GRU.cfg]]
+        # Basic GRU forward direction
+        input_shape = [4, 1, 32]  # [seq_length, batch_size, input_size]
+        hidden_size = 32
+        num_layers = 1
+        bidirectional = false
+        bias = true
+        batch_first = false
+        export_name_prefix = "gru_seq4_input32_hidden32"
+        export_path = ""
+
+        [[ops_test.GRU.cfg]]
+        # Basic GRU forward direction
+        input_shape = [2, 1, 96]  # [seq_length, batch_size, input_size]
+        hidden_size = 128
+        num_layers = 1
+        bidirectional = false
+        bias = true
+        batch_first = false
+        export_name_prefix = "gru_seq2_input96_hidden128"
+        export_path = ""
+
+        [[ops_test.GRU.cfg]]
+        # Basic GRU forward direction
+        input_shape = [1, 4, 32]  # [seq_length, batch_size, input_size]
+        hidden_size = 32
+        num_layers = 1
+        bidirectional = false
+        bias = true
+        batch_first = true
+        export_name_prefix = "gru_seq4_input32_hidden32_batchfirst"
+        export_path = ""
+
+        [[ops_test.GRU.cfg]]
+        input_shape = [3, 1, 16]  # [seq_length, batch_size, input_size]
+        hidden_size = 24
+        num_layers = 1
+        bidirectional = true
+        bias = true
+        batch_first = false
+        export_name_prefix = "gru_seq3_input16_hidden24_bidirectional"
+        export_path = ""
 
 [models_test]
     [models_test.picodet]
