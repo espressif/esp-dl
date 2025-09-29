@@ -554,6 +554,15 @@ class SQRT_TEST(nn.Module):
         return torch.sqrt(input)
 
 
+class NEG_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        return torch.neg(input)
+
+
 class SLICE_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()

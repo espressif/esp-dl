@@ -27,6 +27,7 @@
 #include "dl_module_matmul.hpp"
 #include "dl_module_max_pool.hpp"
 #include "dl_module_mul.hpp"
+#include "dl_module_neg.hpp"
 #include "dl_module_pad.hpp"
 #include "dl_module_prelu.hpp"
 #include "dl_module_reduce_l1.hpp"
@@ -155,6 +156,7 @@ public:
             this->register_module("Slice", Slice::deserialize);
             this->register_module("Pad", Pad::deserialize);
             this->register_module("MatMul", MatMul::deserialize);
+            this->register_module("Neg", Neg::deserialize);
             this->register_module("Split", Split::deserialize);
             this->register_module("Gather", Gather::deserialize);
             this->register_module("Elu", Elu::deserialize);
