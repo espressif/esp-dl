@@ -22,6 +22,7 @@
 #include "dl_module_less.hpp"
 #include "dl_module_less_or_equal.hpp"
 #include "dl_module_log.hpp"
+#include "dl_module_lstm.hpp"
 #include "dl_module_lut.hpp"
 #include "dl_module_matmul.hpp"
 #include "dl_module_max_pool.hpp"
@@ -176,6 +177,7 @@ public:
             this->register_module("ReduceLogSum", ReduceLogSum::deserialize);
             this->register_module("ReduceLogSumExp", ReduceLogSumExp::deserialize);
             this->register_module("GRU", GRU::deserialize);
+            this->register_module("LSTM", LSTM::deserialize);
         }
     }
 
