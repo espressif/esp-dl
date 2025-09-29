@@ -3238,9 +3238,8 @@
 
     [ops_test.GRU]
     test_func = "GRU_TEST"
-    quant_bits = ["int8", "int16", "flaot32"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
-    restrictions = "GRU operator supports forward direction only, layout=0 (seq_length, batch_size, input_size)"
         [[ops_test.GRU.cfg]]
         # Basic GRU forward direction
         input_shape = [1, 1, 11]  # [seq_length, batch_size, input_size]
@@ -3307,9 +3306,8 @@
 
     [ops_test.LSTM]
     test_func = "LSTM_TEST"
-    quant_bits = ["int8", "int16", "flaot32"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
-    restrictions = "LSTM operator supports forward direction only, layout=0 (seq_length, batch_size, input_size)"
         [[ops_test.LSTM.cfg]]
         # Basic LSTM forward direction
         input_shape = [1, 1, 11]  # [seq_length, batch_size, input_size]
