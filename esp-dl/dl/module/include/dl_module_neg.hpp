@@ -49,7 +49,11 @@ public:
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_int16(input, output);
         } else {
+<<<<<<< HEAD
             forward_float(input, output);
+=======
+            forward_float<float>(input, output);
+>>>>>>> 3812bcc... fix: fix Neg op
         }
     }
 
@@ -89,6 +93,18 @@ public:
     {
         float *input_ptr = input->get_element_ptr<float>();
         float *output_ptr = output->get_element_ptr<float>();
+        size_t size = input->get_size();
+
+        for (size_t i = 0; i < size; i++) {
+            tool::truncate<T>(output_ptr[i], -input_ptr[i]);
+        }
+    }
+
+    template <typename T>
+    void forward_float(TensorBase *input, TensorBase *output)
+    {
+        T *input_ptr = input->get_element_ptr<T>();
+        T *output_ptr = output->get_element_ptr<T>();
         size_t size = input->get_size();
 
         for (size_t i = 0; i < size; i++) {
