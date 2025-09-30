@@ -25,8 +25,8 @@ void MSRPostprocessor::parse_stage(TensorBase *score, TensorBase *box, const int
     float score_exp = DL_SCALE(score->exponent);
     float box_exp = DL_SCALE(box->exponent);
     T score_thr_quant = quantize<T>(dl::math::inverse_sigmoid(m_score_thr), 1.f / score_exp);
-    float inv_resize_scale_x = 1.f / m_resize_scale_x;
-    float inv_resize_scale_y = 1.f / m_resize_scale_y;
+    float inv_resize_scale_x = m_image_preprocessor->get_resize_scale_x(true);
+    float inv_resize_scale_y = m_image_preprocessor->get_resize_scale_y(true);
 
     for (size_t y = 0; y < H; y++) // height
     {

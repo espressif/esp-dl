@@ -23,7 +23,9 @@ namespace tool {
 int round_half_even(float value)
 {
 #if CONFIG_ESP32P4_BOOST
-    return dl_esp32p4_round_half_even(value);
+    int ret;
+    __asm__ volatile("fcvt.w.s %0, %1, rne" : "=r"(ret) : "f"(value));
+    return ret;
 #else
     float rounded;
     if (value < 0) {

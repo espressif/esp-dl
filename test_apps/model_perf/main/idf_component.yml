@@ -1,0 +1,26 @@
+## IDF Component Manager Manifest File
+dependencies:
+  espressif/cat_detect:
+    override_path: "../../../models/cat_detect"
+  espressif/coco_detect:
+    override_path: "../../../models/coco_detect"
+  espressif/coco_pose:
+    override_path: "../../../models/coco_pose"
+  espressif/dog_detect:
+    override_path: "../../../models/dog_detect"
+  espressif/human_face_detect:
+    override_path: "../../../models/human_face_detect"
+  espressif/human_face_recognition:
+    override_path: "../../../models/human_face_recognition"
+  espressif/imagenet_cls:
+    override_path: "../../../models/imagenet_cls"
+  espressif/pedestrian_detect:
+    override_path: "../../../models/pedestrian_detect"
+  espressif/esp32_p4_function_ev_board_noglib:
+    version: "^4.0.1"
+    rules:
+     - if: "target == esp32p4"
+  espressif/esp32_s3_eye_noglib:
+    version: "^3.1.0~1"
+    rules:
+     - if: "target == esp32s3"

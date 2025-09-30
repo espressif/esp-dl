@@ -202,7 +202,7 @@ Matrix<float> get_similarity_transform(Matrix<float> &source_coord, Matrix<float
     double src_mean_y = 0.0;
     double dst_mean_x = 0.0;
     double dst_mean_y = 0.0;
-    Matrix<float> T(3, 3);
+    Matrix<float> T(2, 3);
 
     for (int i = 0; i < num; i++) {
         src_mean_x += source_coord.array[i][0];
@@ -372,9 +372,6 @@ Matrix<float> get_similarity_transform(Matrix<float> &source_coord, Matrix<float
     T.array[0][1] *= scale;
     T.array[1][0] *= scale;
     T.array[1][1] *= scale;
-    T.array[2][0] = 0;
-    T.array[2][1] = 0;
-    T.array[2][2] = 1;
 
     return T;
 }

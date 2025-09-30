@@ -1,8 +1,11 @@
 #include "dl_image_jpeg.hpp"
-#include "dl_image_color.hpp"
+#include "dl_image_process.hpp"
+#include "esp_check.h"
+#include "esp_heap_caps.h"
 #include "esp_jpeg_common.h"
 #include "esp_jpeg_dec.h"
 #include "esp_jpeg_enc.h"
+#include "esp_log.h"
 #include "hal/cache_hal.h"
 #include "hal/cache_ll.h"
 
@@ -127,20 +130,19 @@ jpeg_img_t sw_encode_jpeg_base(const img_t &img, uint8_t quality)
 
 jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
 {
-    img_t img2encode = img;
-    bool free = false;
     if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 ||
         (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP))) {
-        img2encode.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
-        img2encode.data = heap_caps_malloc(get_img_byte_size(img2encode), MALLOC_CAP_DEFAULT);
-        convert_img(img, img2encode, caps);
-        free = true;
-    };
-    jpeg_img_t ret = sw_encode_jpeg_base(img2encode, quality);
-    if (free) {
-        heap_caps_free(img2encode.data);
+        img_t img_cvt = img;
+        img_cvt.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
+        img_cvt.data = heap_caps_malloc(get_img_byte_size(img_cvt), MALLOC_CAP_DEFAULT);
+        ImageTransformer image_transformer;
+        image_transformer.set_src_img(img).set_dst_img(img_cvt).set_caps(caps).transform();
+        jpeg_img_t ret = sw_encode_jpeg_base(img_cvt, quality);
+        heap_caps_free(img_cvt.data);
+        return ret;
+    } else {
+        return sw_encode_jpeg_base(img, quality);
     }
-    return ret;
 }
 
 #if CONFIG_SOC_JPEG_CODEC_SUPPORTED
@@ -183,11 +185,11 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img,
     }
 
     if (header_info.sample_method == JPEG_DOWN_SAMPLING_YUV420) {
-        img.height = DL_IMAGE_ALIGN_UP(header_info.height, 16);
-        img.width = DL_IMAGE_ALIGN_UP(header_info.width, 16);
+        img.height = align_up(header_info.height, 16);
+        img.width = align_up(header_info.width, 16);
     } else if (header_info.sample_method == JPEG_DOWN_SAMPLING_YUV422) {
-        img.height = DL_IMAGE_ALIGN_UP(header_info.height, 8);
-        img.width = DL_IMAGE_ALIGN_UP(header_info.width, 16);
+        img.height = align_up(header_info.height, 8);
+        img.width = align_up(header_info.width, 16);
     } else {
         img.height = header_info.height;
         img.width = header_info.width;
@@ -212,7 +214,7 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img,
     uint32_t cache_level = CACHE_LL_LEVEL_INT_MEM;
 #endif
     size_t alignment = cache_hal_get_cache_line_size(cache_level, CACHE_TYPE_DATA);
-    out_buf_len = DL_IMAGE_ALIGN_UP(out_buf_len, alignment);
+    out_buf_len = align_up(out_buf_len, alignment);
     img.data = heap_caps_aligned_calloc(alignment, 1, out_buf_len, MALLOC_CAP_DEFAULT);
     if (!img.data) {
         ESP_LOGE(TAG, "Failed to alloc output buffer.");
@@ -284,7 +286,7 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img,
     uint32_t cache_level = CACHE_LL_LEVEL_INT_MEM;
 #endif
     size_t alignment = cache_hal_get_cache_line_size(cache_level, CACHE_TYPE_DATA);
-    out_buf_len = DL_IMAGE_ALIGN_UP(out_buf_len, alignment);
+    out_buf_len = align_up(out_buf_len, alignment);
     jpeg_img.data = heap_caps_aligned_calloc(alignment, 1, out_buf_len, MALLOC_CAP_DEFAULT);
     if (!jpeg_img.data) {
         ESP_LOGE(TAG, "Failed to alloc output buffer.");
@@ -320,28 +322,28 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img,
 jpeg_img_t hw_encode_jpeg(
     const img_t &img, uint32_t caps, uint8_t quality, int timeout_ms, jpeg_down_sampling_type_t rgb_sub_sample_method)
 {
-    img_t img2encode = img;
-    bool free = false;
+    bool need_cvt = false;
     if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 &&
         ((caps & DL_IMAGE_CAP_RGB_SWAP) || (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN))) {
         if (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) {
             caps |= DL_IMAGE_CAP_RGB565_BYTE_SWAP;
         }
-        img2encode.data = heap_caps_malloc(get_img_byte_size(img2encode), MALLOC_CAP_DEFAULT);
-        convert_img(img, img2encode, caps);
-        free = true;
-    };
-    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && !(caps & DL_IMAGE_CAP_RGB_SWAP)) {
+        need_cvt = true;
+    } else if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && !(caps & DL_IMAGE_CAP_RGB_SWAP)) {
         caps |= DL_IMAGE_CAP_RGB_SWAP;
-        img2encode.data = heap_caps_malloc(get_img_byte_size(img2encode), MALLOC_CAP_DEFAULT);
-        convert_img(img, img2encode, caps);
-        free = true;
+        need_cvt = true;
     }
-    jpeg_img_t ret = hw_encode_jpeg_base(img2encode, quality, timeout_ms, rgb_sub_sample_method);
-    if (free) {
-        heap_caps_free(img2encode.data);
+    if (need_cvt) {
+        img_t img_cvt = img;
+        img_cvt.data = heap_caps_malloc(get_img_byte_size(img_cvt), MALLOC_CAP_DEFAULT);
+        ImageTransformer image_transformer;
+        image_transformer.set_src_img(img).set_dst_img(img_cvt).set_caps(caps).transform();
+        jpeg_img_t ret = hw_encode_jpeg_base(img_cvt, quality, timeout_ms, rgb_sub_sample_method);
+        heap_caps_free(img_cvt.data);
+        return ret;
+    } else {
+        return hw_encode_jpeg_base(img, quality, timeout_ms, rgb_sub_sample_method);
     }
-    return ret;
 }
 #endif
 
@@ -360,6 +362,25 @@ esp_err_t write_jpeg(const jpeg_img_t &img, const char *file_name)
     }
     fclose(f);
     return ESP_OK;
+}
+
+jpeg_img_t read_jpeg(const char *file_name)
+{
+    jpeg_img_t img = {};
+    FILE *f = fopen(file_name, "rb");
+    if (!f) {
+        ESP_LOGE(TAG, "Failed to open %s.", file_name);
+        return img;
+    }
+
+    fseek(f, 0, SEEK_END);
+    img.data_len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    img.data = heap_caps_malloc(img.data_len, MALLOC_CAP_DEFAULT);
+    assert(img.data);
+    fread(img.data, img.data_len, 1, f);
+    fclose(f);
+    return img;
 }
 } // namespace image
 } // namespace dl

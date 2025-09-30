@@ -20,8 +20,10 @@ void MNPPostprocessor::parse_stage(TensorBase *score, TensorBase *box, TensorBas
     float score_exp = DL_SCALE(score->exponent);
     float box_exp = DL_SCALE(box->exponent);
     float landmark_exp = DL_SCALE(landmark->exponent);
-    float inv_resize_scale_x = 1.f / m_resize_scale_x;
-    float inv_resize_scale_y = 1.f / m_resize_scale_y;
+    float inv_resize_scale_x = m_image_preprocessor->get_resize_scale_x(true);
+    float inv_resize_scale_y = m_image_preprocessor->get_resize_scale_y(true);
+    int top_left_x = m_image_preprocessor->get_crop_area_top_left_x();
+    int top_left_y = m_image_preprocessor->get_crop_area_top_left_y();
 
     for (size_t y = 0; y < H; y++) // height
     {
@@ -51,33 +53,33 @@ void MNPPostprocessor::parse_stage(TensorBase *score, TensorBase *box, TensorBas
                     result_t new_box = {
                         0,
                         max_score,
-                        {(int)(anchor_w * dequantize(box_ptr[0], box_exp) * inv_resize_scale_x + m_top_left_x),
-                         (int)(anchor_h * dequantize(box_ptr[1], box_exp) * inv_resize_scale_y + m_top_left_y),
+                        {(int)(anchor_w * dequantize(box_ptr[0], box_exp) * inv_resize_scale_x + top_left_x),
+                         (int)(anchor_h * dequantize(box_ptr[1], box_exp) * inv_resize_scale_y + top_left_y),
                          (int)((anchor_w * dequantize(box_ptr[2], box_exp) + anchor_w) * inv_resize_scale_x +
-                               m_top_left_x),
+                               top_left_x),
                          (int)((anchor_h * dequantize(box_ptr[3], box_exp) + anchor_h) * inv_resize_scale_y +
-                               m_top_left_y)},
+                               top_left_y)},
                         {
                             (int)(anchor_w * dequantize(landmark_ptr[0], landmark_exp) * inv_resize_scale_x +
-                                  m_top_left_x),
+                                  top_left_x),
                             (int)(anchor_h * dequantize(landmark_ptr[1], landmark_exp) * inv_resize_scale_y +
-                                  m_top_left_y),
+                                  top_left_y),
                             (int)(anchor_w * dequantize(landmark_ptr[2], landmark_exp) * inv_resize_scale_x +
-                                  m_top_left_x),
+                                  top_left_x),
                             (int)(anchor_h * dequantize(landmark_ptr[3], landmark_exp) * inv_resize_scale_y +
-                                  m_top_left_y),
+                                  top_left_y),
                             (int)(anchor_w * dequantize(landmark_ptr[4], landmark_exp) * inv_resize_scale_x +
-                                  m_top_left_x),
+                                  top_left_x),
                             (int)(anchor_h * dequantize(landmark_ptr[5], landmark_exp) * inv_resize_scale_y +
-                                  m_top_left_y),
+                                  top_left_y),
                             (int)(anchor_w * dequantize(landmark_ptr[6], landmark_exp) * inv_resize_scale_x +
-                                  m_top_left_x),
+                                  top_left_x),
                             (int)(anchor_h * dequantize(landmark_ptr[7], landmark_exp) * inv_resize_scale_y +
-                                  m_top_left_y),
+                                  top_left_y),
                             (int)(anchor_w * dequantize(landmark_ptr[8], landmark_exp) * inv_resize_scale_x +
-                                  m_top_left_x),
+                                  top_left_x),
                             (int)(anchor_h * dequantize(landmark_ptr[9], landmark_exp) * inv_resize_scale_y +
-                                  m_top_left_y),
+                                  top_left_y),
                         }};
 
                     m_box_list.insert(std::upper_bound(m_box_list.begin(), m_box_list.end(), new_box, greater_box),

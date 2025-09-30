@@ -1,4 +1,7 @@
 #include "dl_image_preprocessor.hpp"
+#include "dl_image_bmp.hpp"
+#include "dl_image_color.hpp"
+#include "dl_image_pixel_cvt_dispatch.hpp"
 
 namespace dl {
 namespace image {
@@ -8,108 +11,137 @@ ImagePreprocessor::ImagePreprocessor(Model *model,
                                      const std::vector<float> &std,
                                      uint32_t caps,
                                      const std::string &input_name) :
-    m_mean(mean), m_std(std), m_caps(caps)
+    m_letter_box(false)
 {
     m_model_input = model->get_input(input_name);
     assert(m_model_input->dtype == DATA_TYPE_INT8 || m_model_input->dtype == DATA_TYPE_INT16);
-    assert(m_model_input->shape[3] == m_mean.size() && m_mean.size() == m_std.size());
-    m_output = {.data = m_model_input->data,
-                .width = (uint16_t)m_model_input->shape[2],
-                .height = (uint16_t)m_model_input->shape[1],
-                .pix_type = (m_model_input->dtype == DATA_TYPE_INT8) ? DL_IMAGE_PIX_TYPE_RGB888_QINT8
-                                                                     : DL_IMAGE_PIX_TYPE_RGB888_QINT16};
-    if (m_model_input->dtype == DATA_TYPE_INT8) {
-        create_norm_lut<int8_t>();
-    } else {
-        create_norm_lut<int16_t>();
-    }
-#if CONFIG_IDF_TARGET_ESP32P4
-    if (m_caps & DL_IMAGE_CAP_PPA) {
-        ppa_client_config_t ppa_client_config;
-        memset(&ppa_client_config, 0, sizeof(ppa_client_config_t));
-        ppa_client_config.oper_type = PPA_OPERATION_SRM;
-        ESP_ERROR_CHECK(ppa_register_client(&ppa_client_config, &m_ppa_srm_handle));
-        size_t cache_line_size;
-        ESP_ERROR_CHECK(esp_cache_get_alignment(MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA, &cache_line_size));
-        m_ppa_buffer_size = DL_IMAGE_ALIGN_UP(
-            m_model_input->shape[1] * m_model_input->shape[2] * m_model_input->shape[3], cache_line_size);
-        m_ppa_buffer =
-            heap_caps_aligned_calloc(cache_line_size, m_ppa_buffer_size, 1, MALLOC_CAP_SPIRAM | MALLOC_CAP_DMA);
-    }
-#endif
+    assert(m_model_input->shape[3] == mean.size() && mean.size() == std.size());
+    img_t dst = {.data = m_model_input->data,
+                 .width = (uint16_t)m_model_input->shape[2],
+                 .height = (uint16_t)m_model_input->shape[1],
+                 .pix_type = (m_model_input->dtype == DATA_TYPE_INT8) ? DL_IMAGE_PIX_TYPE_RGB888_QINT8
+                                                                      : DL_IMAGE_PIX_TYPE_RGB888_QINT16};
+    NormQuantWrapper::quant_type_t quant_type =
+        (m_model_input->dtype == DATA_TYPE_INT8) ? NormQuantWrapper::INT8_QUANT : NormQuantWrapper::INT16_QUANT;
+    m_image_transformer.set_dst_img(dst).set_caps(caps).set_norm_quant_param(
+        mean, std, m_model_input->exponent, quant_type);
 }
 
-ImagePreprocessor::~ImagePreprocessor()
+void ImagePreprocessor::enable_letterbox(const std::vector<uint8_t> &bg_value)
 {
-    heap_caps_free(m_norm_lut);
-#if CONFIG_IDF_TARGET_ESP32P4
-    if (m_caps & DL_IMAGE_CAP_PPA) {
-        heap_caps_free(m_ppa_buffer);
-        ESP_ERROR_CHECK(ppa_unregister_client(m_ppa_srm_handle));
-    }
-#endif
-}
-
-template <typename T>
-void ImagePreprocessor::create_norm_lut()
-{
-    m_norm_lut = heap_caps_malloc(m_mean.size() * 256 * sizeof(T), MALLOC_CAP_DEFAULT);
-    float inv_scale = 1.f / DL_SCALE(m_model_input->exponent);
-    std::vector<float> inv_std(m_std.size());
-    T *norm_lut_ptr = (T *)m_norm_lut;
-    for (int i = 0; i < m_mean.size(); i++) {
-        inv_std[i] = 1.f / m_std[i];
-        for (int j = 0; j < 256; j++) {
-            norm_lut_ptr[i * 256 + j] = quantize<T>(((float)j - m_mean[i]) * inv_std[i], inv_scale);
+    auto &norm_quant_wrapper = m_image_transformer.get_norm_quant_wrapper();
+    auto quant_type = norm_quant_wrapper.m_quant_type;
+    int chn = norm_quant_wrapper.m_chn;
+    void *norm_quant = norm_quant_wrapper.m_norm_quant;
+    assert(bg_value.size() == chn);
+    m_bg_value.resize(chn);
+    if (chn == 1) {
+        if (quant_type == NormQuantWrapper::INT8_QUANT) {
+            cvt_pix(bg_value.data(),
+                    m_bg_value.data(),
+                    DL_IMAGE_PIX_TYPE_GRAY,
+                    DL_IMAGE_PIX_TYPE_GRAY_QINT8,
+                    0,
+                    norm_quant);
+        } else if (quant_type == NormQuantWrapper::INT16_QUANT) {
+            cvt_pix(bg_value.data(),
+                    m_bg_value.data(),
+                    DL_IMAGE_PIX_TYPE_GRAY,
+                    DL_IMAGE_PIX_TYPE_GRAY_QINT16,
+                    0,
+                    norm_quant);
+        }
+    } else if (chn == 3) {
+        if (quant_type == NormQuantWrapper::INT8_QUANT) {
+            cvt_pix(bg_value.data(),
+                    m_bg_value.data(),
+                    DL_IMAGE_PIX_TYPE_RGB888,
+                    DL_IMAGE_PIX_TYPE_RGB888_QINT8,
+                    0,
+                    norm_quant);
+        } else if (quant_type == NormQuantWrapper::INT16_QUANT) {
+            cvt_pix(bg_value.data(),
+                    m_bg_value.data(),
+                    DL_IMAGE_PIX_TYPE_RGB888,
+                    DL_IMAGE_PIX_TYPE_RGB888_QINT16,
+                    0,
+                    norm_quant);
         }
     }
+    m_letter_box = true;
 }
 
-template void ImagePreprocessor::create_norm_lut<int8_t>();
-template void ImagePreprocessor::create_norm_lut<int16_t>();
+float ImagePreprocessor::get_resize_scale_x(bool inv)
+{
+    return m_image_transformer.get_scale_x(inv);
+}
+
+float ImagePreprocessor::get_resize_scale_y(bool inv)
+{
+    return m_image_transformer.get_scale_y(inv);
+}
+
+int ImagePreprocessor::get_crop_area_top_left_x()
+{
+    auto crop_area = m_image_transformer.get_src_img_crop_area();
+    return crop_area.empty() ? 0 : crop_area[0];
+}
+
+int ImagePreprocessor::get_crop_area_top_left_y()
+{
+    auto crop_area = m_image_transformer.get_src_img_crop_area();
+    return crop_area.empty() ? 0 : crop_area[1];
+}
+
+int ImagePreprocessor::get_border_top()
+{
+    auto border = m_image_transformer.get_dst_img_border();
+    return border.empty() ? 0 : border[0];
+}
+
+int ImagePreprocessor::get_border_left()
+{
+    auto border = m_image_transformer.get_dst_img_border();
+    return border.empty() ? 0 : border[2];
+}
+
+TensorBase *ImagePreprocessor::get_model_input()
+{
+    return m_model_input;
+}
 
 void ImagePreprocessor::preprocess(const img_t &img, const std::vector<int> &crop_area)
 {
-    assert(get_img_channel(img) == m_mean.size());
-    m_crop_area = crop_area;
-#if CONFIG_IDF_TARGET_ESP32P4
-    if (resize_ppa(img,
-                   m_output,
-                   m_ppa_srm_handle,
-                   m_ppa_buffer,
-                   m_ppa_buffer_size,
-                   PPA_TRANS_MODE_BLOCKING,
-                   nullptr,
-                   m_caps,
-                   m_norm_lut,
-                   crop_area,
-                   &m_resize_scale_x,
-                   &m_resize_scale_y) == ESP_FAIL) {
-        resize(img,
-               m_output,
-               DL_IMAGE_INTERPOLATE_NEAREST,
-               m_caps,
-               m_norm_lut,
-               crop_area,
-               &m_resize_scale_x,
-               &m_resize_scale_y);
+    if (m_letter_box) {
+        auto &last_src_img = m_image_transformer.get_src_img();
+        if (img.height != last_src_img.height || img.width != last_src_img.width ||
+            crop_area != m_image_transformer.get_src_img_crop_area()) {
+            auto &dst_img = m_image_transformer.get_dst_img();
+            int src_width = crop_area.empty() ? img.width : (crop_area[2] - crop_area[0]);
+            int src_height = crop_area.empty() ? img.height : (crop_area[3] - crop_area[1]);
+            float scale_x = (float)dst_img.width / (float)src_width;
+            float scale_y = (float)dst_img.height / (float)src_height;
+            float scale = std::min(scale_x, scale_y);
+            int border_top = 0, border_bottom = 0, border_left = 0, border_right = 0;
+            if (scale_x < scale_y) {
+                int pad_h = dst_img.height - (int)(scale * src_height);
+                border_top = pad_h / 2;
+                border_bottom = pad_h - border_top;
+            } else {
+                int pad_w = dst_img.width - (int)(scale * src_width);
+                border_left = pad_w / 2;
+                border_right = pad_w - border_left;
+            }
+            m_image_transformer.set_dst_img_border({border_top, border_bottom, border_left, border_right});
+        }
+        m_image_transformer.set_bg_value(m_bg_value, false);
     }
-#else
-    resize(img,
-           m_output,
-           DL_IMAGE_INTERPOLATE_NEAREST,
-           m_caps,
-           m_norm_lut,
-           crop_area,
-           &m_resize_scale_x,
-           &m_resize_scale_y);
-#endif
+    ESP_ERROR_CHECK(m_image_transformer.set_src_img(img).set_src_img_crop_area(crop_area).transform());
 }
 
-void ImagePreprocessor::preprocess(const img_t &img, dl::math::Matrix<float> *M_inv)
+void ImagePreprocessor::preprocess(const img_t &img, const dl::math::Matrix<float> &M, bool inv)
 {
-    assert(get_img_channel(img) == m_mean.size());
-    warp_affine(img, m_output, DL_IMAGE_INTERPOLATE_NEAREST, M_inv, m_caps, m_norm_lut);
+    ESP_ERROR_CHECK(m_image_transformer.set_src_img(img).set_warp_affine_matrix(M, inv).transform());
 }
 } // namespace image
 } // namespace dl
