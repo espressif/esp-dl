@@ -45,9 +45,9 @@ public:
         TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            forward_template<int8_t>(input, output);
+            forward_int8(input, output);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            forward_template<int16_t>(input, output);
+            forward_int16<int16_t>(input, output);
         } else {
             forward_float<float>(input, output);
         }
@@ -55,15 +55,33 @@ public:
 
     void forward_args(void *args) {}
 
-    template <typename T>
-    void forward_template(TensorBase *input, TensorBase *output)
+    void forward_int8(TensorBase *input, TensorBase *output)
     {
         T *input_ptr = input->get_element_ptr<T>();
         T *output_ptr = output->get_element_ptr<T>();
         size_t size = input->get_size();
 
         for (size_t i = 0; i < size; i++) {
-            tool::truncate<T>(output_ptr[i], -input_ptr[i]);
+            if (input_ptr[i] == INT8_MIN) {
+                output_ptr[i] = INT8_MAX;
+            } else {
+                output_ptr[i] = -input_ptr[i];
+            }
+        }
+    }
+
+    void forward_int16(TensorBase *input, TensorBase *output)
+    {
+        T *input_ptr = input->get_element_ptr<T>();
+        T *output_ptr = output->get_element_ptr<T>();
+        size_t size = input->get_size();
+
+        for (size_t i = 0; i < size; i++) {
+            if (input_ptr[i] == INT16_MIN) {
+                output_ptr[i] = INT16_MAX;
+            } else {
+                output_ptr[i] = -input_ptr[i];
+            }
         }
     }
 

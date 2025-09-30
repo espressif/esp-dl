@@ -45,6 +45,17 @@ public:
             forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(context, mode);
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
+            TensorBase *input = context->get_tensor(m_inputs_index[0]);
+            TensorBase *output = context->get_tensor(m_outputs_index[0]);
+            float *input_ptr = (float *)input->get_element_ptr();
+            float *output_ptr = (float *)output->get_element_ptr();
+
+            for (size_t i = 0; i < input->size; i++) {
+                float temp = input_ptr[i];
+                temp = DL_MAX(0, DL_MIN(1, 0.166667 * temp + 0.5)) * temp;
+                output_ptr[i] = temp;
+            }
         }
     }
 

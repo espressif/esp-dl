@@ -184,6 +184,10 @@ template std::vector<elemwiseArgsType<int16_t>> get_elemwise_operation_args(Tens
                                                                             TensorBase *input0,
                                                                             TensorBase *input1,
                                                                             const runtime_mode_t runtime_mode);
+template std::vector<elemwiseArgsType<float>> get_elemwise_operation_args(TensorBase *output,
+                                                                          TensorBase *input0,
+                                                                          TensorBase *input1,
+                                                                          const runtime_mode_t runtime_mode);
 template std::vector<elemwiseArgsType<int8_t, bool>> get_elemwise_operation_args(TensorBase *output,
                                                                                  TensorBase *input0,
                                                                                  TensorBase *input1,
@@ -226,6 +230,7 @@ void elemwise_loop_4d(elemwiseArgsType<in_feature_t, out_feature_t> *args,
 }
 template void elemwise_loop_4d(elemwiseArgsType<int8_t> *args, ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func);
 template void elemwise_loop_4d(elemwiseArgsType<int16_t> *args, ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func);
+template void elemwise_loop_4d(elemwiseArgsType<float> *args, ImplFunc_t<float, float, float> elemwise_func);
 template void elemwise_loop_4d(elemwiseArgsType<int8_t, bool> *args, ImplFunc_t<bool, int8_t, int8_t> elemwise_func);
 template void elemwise_loop_4d(elemwiseArgsType<int16_t, bool> *args, ImplFunc_t<bool, int16_t, int16_t> elemwise_func);
 
@@ -259,6 +264,7 @@ void elemwise_loop_3d(elemwiseArgsType<in_feature_t, out_feature_t> *args,
 }
 template void elemwise_loop_3d(elemwiseArgsType<int8_t> *args, ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func);
 template void elemwise_loop_3d(elemwiseArgsType<int16_t> *args, ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func);
+template void elemwise_loop_3d(elemwiseArgsType<float> *args, ImplFunc_t<float, float, float> elemwise_func);
 template void elemwise_loop_3d(elemwiseArgsType<int8_t, bool> *args, ImplFunc_t<bool, int8_t, int8_t> elemwise_func);
 template void elemwise_loop_3d(elemwiseArgsType<int16_t, bool> *args, ImplFunc_t<bool, int16_t, int16_t> elemwise_func);
 
@@ -286,6 +292,7 @@ void elemwise_loop_2d(elemwiseArgsType<in_feature_t, out_feature_t> *args,
 }
 template void elemwise_loop_2d(elemwiseArgsType<int8_t> *args, ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func);
 template void elemwise_loop_2d(elemwiseArgsType<int16_t> *args, ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func);
+template void elemwise_loop_2d(elemwiseArgsType<float> *args, ImplFunc_t<float, float, float> elemwise_func);
 template void elemwise_loop_2d(elemwiseArgsType<int8_t, bool> *args, ImplFunc_t<bool, int8_t, int8_t> elemwise_func);
 template void elemwise_loop_2d(elemwiseArgsType<int16_t, bool> *args, ImplFunc_t<bool, int16_t, int16_t> elemwise_func);
 
@@ -301,6 +308,7 @@ void elemwise_loop_1d(elemwiseArgsType<in_feature_t, out_feature_t> *args,
 }
 template void elemwise_loop_1d(elemwiseArgsType<int8_t> *args, ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func);
 template void elemwise_loop_1d(elemwiseArgsType<int16_t> *args, ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func);
+template void elemwise_loop_1d(elemwiseArgsType<float> *args, ImplFunc_t<float, float, float> elemwise_func);
 template void elemwise_loop_1d(elemwiseArgsType<int8_t, bool> *args, ImplFunc_t<bool, int8_t, int8_t> elemwise_func);
 template void elemwise_loop_1d(elemwiseArgsType<int16_t, bool> *args, ImplFunc_t<bool, int16_t, int16_t> elemwise_func);
 

@@ -435,7 +435,7 @@
 
     [ops_test.Add]
     test_func = "ADD_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         [[ops_test.Add.cfg]]
@@ -641,7 +641,7 @@
 
     [ops_test.Sub]
     test_func = "SUB_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         [[ops_test.Sub.cfg]]
@@ -854,7 +854,7 @@
 
     [ops_test.Mul]
     test_func = "MUL_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         [[ops_test.Mul.cfg]]
@@ -1067,7 +1067,7 @@
 
     [ops_test.Div]
     test_func = "DIV_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         [[ops_test.Div.cfg]]
@@ -1520,7 +1520,7 @@
 
     [ops_test.Sigmoid]
     test_func = "SIGMOID_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Sigmoid.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1536,7 +1536,7 @@
 
     [ops_test.Tanh]
     test_func = "TANH_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Tanh.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1552,7 +1552,7 @@
 
     [ops_test.Relu]
     test_func = "RELU_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Relu.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1568,7 +1568,7 @@
 
     [ops_test.LeakyRelu]
     test_func = "LEAKYRELU_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.LeakyRelu.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1587,7 +1587,7 @@
 
     [ops_test.HardSigmoid]
     test_func = "HARDSIGMOID_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.HardSigmoid.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1603,7 +1603,7 @@
 
     [ops_test.HardSwish]
     test_func = "HARDSWISH_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.HardSwish.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1611,7 +1611,7 @@
 
     [ops_test.PRelu]
     test_func = "PRELU_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.PRelu.cfg]]
         input_shape = [1, 20, 20, 20]
@@ -1625,7 +1625,7 @@
 
     [ops_test.Softmax]
     test_func = "SOFTMAX_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Dtype of output is float32"
         [[ops_test.Softmax.cfg]]
@@ -1648,7 +1648,7 @@
 
     [ops_test.Exp]
     test_func = "EXP_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Exp.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1664,7 +1664,7 @@
 
     [ops_test.Log]
     test_func = "LOG_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Log.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1680,7 +1680,7 @@
 
     [ops_test.Sqrt]
     test_func = "SQRT_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Sqrt.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1696,7 +1696,7 @@
 
     [ops_test.Neg]
     test_func = "NEG_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Neg.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1712,7 +1712,7 @@
 
     [ops_test.Concat]
     test_func = "CONCAT_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Concat.cfg]]
         input_shape = [[1, 80, 20, 20], [1, 48, 20, 20]]
@@ -1732,7 +1732,7 @@
 
     [ops_test.Clip]
     test_func = "CLIP_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Clip.cfg]]
         input_shape = [1, 10, 5, 5]
@@ -1749,7 +1749,7 @@
 
     [ops_test.Flatten]
     test_func = "FLATTEN_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Flatten.cfg]]
         input_shape = [1, 10, 32, 5, 5]
@@ -1774,7 +1774,7 @@
 
     [ops_test.Reshape]
     test_func = "RESHAPE_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Reshape.cfg]]
         input_shape = [1, 10, 32, 5, 5]
@@ -1796,7 +1796,7 @@
 
     [ops_test.Transpose]
     test_func = "TRANSPOSE_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Transpose.cfg]]
         input_shape = [1, 10, 20, 40]
@@ -1819,7 +1819,7 @@
 
     [ops_test.Squeeze]
     test_func = "SQUEEZE_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Squeeze.cfg]]
         input_shape = [1, 10, 1, 2, 5]
@@ -1838,7 +1838,7 @@
 
     [ops_test.Unsqueeze]
     test_func = "UNSQUEEZE_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Unsqueeze.cfg]]
         input_shape = [1, 10, 2, 5]
@@ -1863,7 +1863,7 @@
 
     [ops_test.Slice]
     test_func = "SLICE_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Slice.cfg]]
         input_shape = [1, 96, 20, 20]
@@ -1927,7 +1927,7 @@
 
     [ops_test.Pad]
     test_func = "PAD_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Do not support wrap mode"
         [[ops_test.Pad.cfg]]
@@ -2148,7 +2148,7 @@
 
     [ops_test.Split]
     test_func = "SPLIT_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Split.cfg]]
         input_shape = [1, 10, 2, 5]
@@ -2165,7 +2165,7 @@
 
     [ops_test.Gather]
     test_func = "GATHER_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Gather.cfg]]
         input_shape = [1, 3, 2]
@@ -2188,7 +2188,7 @@
 
     [ops_test.Requantize]
     test_func = "REQUANTIZE_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Requantize.cfg]]
         input_shape = [1, 16, 50, 50]
@@ -2231,7 +2231,7 @@
 
     [ops_test.Elu]
     test_func = "ELU_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Elu.cfg]]
         input_shape = [1, 10, 2, 5]
@@ -2445,7 +2445,7 @@
 
     [ops_test.ReverseSequence]
     test_func = "REVERSESEQUENCE_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "onnx_ops_test"
         [[ops_test.ReverseSequence.cfg]]
         input_shape = [1, 100]
@@ -2463,10 +2463,14 @@
 
     [ops_test.Swish]
     test_func = "SWISH_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Swish.cfg]]
-        input_shape = [1, 96, 20, 20]
+        input_shape = [1, 32, 20, 20]
+        export_name_prefix = "Swish_ishap_1_96_20_20"
+
+        [[ops_test.Swish.cfg]]
+        input_shape = [1, 44, 32]
         export_name_prefix = "Swish_ishap_1_96_20_20"
 
     [ops_test.ReduceL1]
