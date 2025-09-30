@@ -27,5 +27,12 @@ void elemwise_div(elemwiseArgsType<int8_t> *args);
  */
 void elemwise_div(elemwiseArgsType<int16_t> *args);
 
+/**
+ * @brief float element-wise div, support multidirectional broadcasting from 1D to 4D
+ *
+ * @param args elemwiseArgsType
+ */
+void elemwise_div(elemwiseArgsType<float> *args);
+
 } // namespace base
 } // namespace dl

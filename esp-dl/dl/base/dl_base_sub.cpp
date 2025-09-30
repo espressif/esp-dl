@@ -41,6 +41,40 @@ void c_impl_sub_n_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
         tool::truncate<int32_t>(output_ptr[i], input0_ptr[i] - temp);
     }
 }
+// input0_ptr:vector, input1_ptr:scalar
+template <>
+void c_impl_sub_n_1<float>(float *output_ptr, float *input0_ptr, float *input1_ptr, void *args)
+{
+    elemwiseArgsType<float> *elem_args = static_cast<elemwiseArgsType<float> *>(args);
+    int32_t length = elem_args->output_d0;
+    float temp = input1_ptr[0];
+    for (int i = 0; i < length; i++) {
+        output_ptr[i] = input0_ptr[i] - temp;
+    }
+}
+
+// input0_ptr:scalar, input1_ptr:vector
+template <>
+void c_impl_sub_1_n<float>(float *output_ptr, float *input0_ptr, float *input1_ptr, void *args)
+{
+    elemwiseArgsType<float> *elem_args = static_cast<elemwiseArgsType<float> *>(args);
+    int32_t length = elem_args->output_d0;
+    float temp = input0_ptr[0];
+    for (int i = 0; i < length; i++) {
+        output_ptr[i] = temp - input1_ptr[i];
+    }
+}
+
+// input0_ptr:vector, input1_ptr:vector
+template <>
+void c_impl_sub_n_n<float>(float *output_ptr, float *input0_ptr, float *input1_ptr, void *args)
+{
+    elemwiseArgsType<float> *elem_args = static_cast<elemwiseArgsType<float> *>(args);
+    int32_t length = elem_args->output_d0;
+    for (int i = 0; i < length; i++) {
+        output_ptr[i] = input0_ptr[i] - input1_ptr[i];
+    }
+}
 
 void elemwise_sub(elemwiseArgsType<int8_t> *args)
 {
@@ -172,6 +206,34 @@ void elemwise_sub(elemwiseArgsType<int16_t> *args)
         } else if (args->input0_d0 == 1) {
             elemwise_func = c_impl_sub_1_n<int16_t>;
         }
+    }
+
+    switch (args->dims) {
+    case 1:
+        elemwise_loop_1d(args, elemwise_func);
+        break;
+    case 2:
+        elemwise_loop_2d(args, elemwise_func);
+        break;
+    case 3:
+        elemwise_loop_3d(args, elemwise_func);
+        break;
+    case 4:
+        elemwise_loop_4d(args, elemwise_func);
+        break;
+    default:
+        break;
+    }
+}
+
+void elemwise_sub(elemwiseArgsType<float> *args)
+{
+    ImplFunc_t<float, float, float> elemwise_func = c_impl_sub_n_n<float>;
+
+    if (args->input1_d0 == 1) {
+        elemwise_func = c_impl_sub_n_1<float>;
+    } else if (args->input0_d0 == 1) {
+        elemwise_func = c_impl_sub_1_n<float>;
     }
 
     switch (args->dims) {

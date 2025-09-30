@@ -42,6 +42,8 @@ gen_espdl_ops_cases:
     matrix:
       - TARGET: [esp32p4, esp32s3, c]
         BITS: [8, 16]
+      - TARGET: [esp32p4]
+        BITS: [32]
   variables:
     IMAGE: "python:3.11"
     TORCH: "torch==2.5.0"

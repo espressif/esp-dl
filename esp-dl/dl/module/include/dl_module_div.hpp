@@ -67,6 +67,8 @@ public:
             forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(context, mode);
+        } else if (quant_type == QUANT_TYPE_NONE) {
+            forward_template<float>(context, mode);
         }
     }
 
@@ -76,6 +78,8 @@ public:
             base::elemwise_div((base::elemwiseArgsType<int8_t> *)args);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             base::elemwise_div((base::elemwiseArgsType<int16_t> *)args);
+        } else if (quant_type == QUANT_TYPE_NONE) {
+            base::elemwise_div((base::elemwiseArgsType<float> *)args);
         }
     }
 
@@ -104,10 +108,7 @@ public:
         quant_type_t quant_type;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
 
-        //
-        if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            op = new Div(node_name.c_str(), MODULE_NON_INPLACE, quant_type);
-        }
+        op = new Div(node_name.c_str(), MODULE_NON_INPLACE, quant_type);
         return op;
     }
 

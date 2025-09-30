@@ -49,11 +49,7 @@ public:
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_int16(input, output);
         } else {
-<<<<<<< HEAD
             forward_float(input, output);
-=======
-            forward_float<float>(input, output);
->>>>>>> 3812bcc... fix: fix Neg op
         }
     }
 
@@ -96,7 +92,11 @@ public:
         size_t size = input->get_size();
 
         for (size_t i = 0; i < size; i++) {
-            tool::truncate<T>(output_ptr[i], -input_ptr[i]);
+            if (input_ptr[i] == INT16_MIN) {
+                output_ptr[i] = INT16_MAX;
+            } else {
+                output_ptr[i] = -input_ptr[i];
+            }
         }
     }
 
