@@ -2,6 +2,7 @@
 
 #include "dl_memory_manager_greedy.hpp"
 #include "esp_log.h"
+#include <algorithm>
 
 static const char *TAG = "MemoryManagerGreedy";
 

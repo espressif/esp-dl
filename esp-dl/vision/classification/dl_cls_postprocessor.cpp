@@ -1,4 +1,5 @@
 #include "dl_cls_postprocessor.hpp"
+#include <algorithm>
 
 namespace dl {
 namespace cls {
