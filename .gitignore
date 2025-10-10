@@ -5,6 +5,7 @@ sdkconfig
 bin/
 .idea/
 __pycache__/
+.clangd
 
 # unit test
 test_apps/*/*/build_*

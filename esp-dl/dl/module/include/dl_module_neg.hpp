@@ -47,9 +47,9 @@ public:
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             forward_int8(input, output);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            forward_int16<int16_t>(input, output);
+            forward_int16(input, output);
         } else {
-            forward_float<float>(input, output);
+            forward_float(input, output);
         }
     }
 
@@ -57,8 +57,8 @@ public:
 
     void forward_int8(TensorBase *input, TensorBase *output)
     {
-        T *input_ptr = input->get_element_ptr<T>();
-        T *output_ptr = output->get_element_ptr<T>();
+        int8_t *input_ptr = input->get_element_ptr<int8_t>();
+        int8_t *output_ptr = output->get_element_ptr<int8_t>();
         size_t size = input->get_size();
 
         for (size_t i = 0; i < size; i++) {
@@ -72,8 +72,8 @@ public:
 
     void forward_int16(TensorBase *input, TensorBase *output)
     {
-        T *input_ptr = input->get_element_ptr<T>();
-        T *output_ptr = output->get_element_ptr<T>();
+        int16_t *input_ptr = input->get_element_ptr<int16_t>();
+        int16_t *output_ptr = output->get_element_ptr<int16_t>();
         size_t size = input->get_size();
 
         for (size_t i = 0; i < size; i++) {
@@ -85,11 +85,10 @@ public:
         }
     }
 
-    template <typename T>
     void forward_float(TensorBase *input, TensorBase *output)
     {
-        T *input_ptr = input->get_element_ptr<T>();
-        T *output_ptr = output->get_element_ptr<T>();
+        float *input_ptr = input->get_element_ptr<float>();
+        float *output_ptr = output->get_element_ptr<float>();
         size_t size = input->get_size();
 
         for (size_t i = 0; i < size; i++) {

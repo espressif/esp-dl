@@ -1,13 +1,10 @@
 #pragma once
 #include "dl_image_define.hpp"
-#include "esp_check.h"
-#include "esp_heap_caps.h"
-#include "esp_log.h"
-#include "sdkconfig.h"
 #if CONFIG_SOC_JPEG_CODEC_SUPPORTED
 #include "driver/jpeg_decode.h"
 #include "driver/jpeg_encode.h"
 #endif
+#include "esp_err.h"
 
 namespace dl {
 namespace image {
@@ -68,8 +65,8 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img,
 
 /**
  * @brief Hardware jpeg encode
- * @note  Support encoding GRAY/RGB888/RGB565. If The image to encode is RGB565, it should be RGB in big endian. If it
- * is RGB888, it should be BGR.
+ * @note  Support encoding GRAY/RGB888/RGB565. If The image to encode is RGB565, it should be RGB in little endian. If
+ * it is RGB888, it should be BGR.
  *
  * @param img The image to encode.
  * @param quality Compression quality.
@@ -84,8 +81,7 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img,
                                jpeg_down_sampling_type_t rgb_sub_sample_method = JPEG_DOWN_SAMPLING_YUV420);
 
 /**
- * @brief Extend hw_encode_jpeg_base, add support to encode RGB565 in little endian/ RGB565 in little endian BGR/ RGB888
- * in BGR with additional convert.
+ * @brief Extend hw_encode_jpeg_base, add support to encode RGB565 big endian/ RGB888 in RGB with additional convert.
  *
  * @param img The image to encode.
  * @param caps Default to 0, encode RGB565 in little endian RGB/ RGB888 in RGB. Set caps to
@@ -105,5 +101,6 @@ jpeg_img_t hw_encode_jpeg(const img_t &img,
                           jpeg_down_sampling_type_t rgb_sub_sample_method = JPEG_DOWN_SAMPLING_YUV420);
 #endif
 esp_err_t write_jpeg(const jpeg_img_t &img, const char *file_name);
+jpeg_img_t read_jpeg(const char *file_name);
 } // namespace image
 } // namespace dl

@@ -26,6 +26,7 @@ set(include_dirs    ./dl
                     ./fbs_loader/include
                     ./vision/detect
                     ./vision/image
+                    ./vision/image/isa
                     ./vision/recognition
                     ./vision/classification
                     ./audio/common
@@ -53,6 +54,7 @@ elseif(CONFIG_IDF_TARGET_ESP32P4)
     list(APPEND src_dirs        dl/tool/isa/esp32p4)
     list(APPEND src_dirs        dl/base/isa/esp32p4)
     list(APPEND include_dirs    dl/base/isa/esp32p4)
+    list(APPEND src_dirs        ./vision/image/isa/esp32p4)
 endif()
 
 set(requires        dl_fft

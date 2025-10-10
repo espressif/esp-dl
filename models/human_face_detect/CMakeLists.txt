@@ -26,7 +26,7 @@ if (NOT CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD)
 
     file(MAKE_DIRECTORY ${BUILD_DIR}/espdl_models)
     set(models)
-    if(CONFIG_HUMAN_FACE_DETECT_MSRMNP_S8_V1)
+    if(CONFIG_FLASH_HUMAN_FACE_DETECT_MSRMNP_S8_V1)
         list(APPEND models ${models_dir}/human_face_detect_msr_s8_v1.espdl
                         ${models_dir}/human_face_detect_mnp_s8_v1.espdl)
     endif()

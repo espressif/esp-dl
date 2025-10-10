@@ -34,13 +34,14 @@ Yolo11nPose::Yolo11nPose(const char *model_name)
 #endif
     m_model->minimize();
 #if CONFIG_IDF_TARGET_ESP32P4
-    m_image_preprocessor =
-        new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
+    m_image_preprocessor = new dl::image::ImagePreprocessor(
+        m_model, {0, 0, 0}, {255, 255, 255}, dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
 #else
     m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255});
 #endif
+    m_image_preprocessor->enable_letterbox({114, 114, 114});
     m_postprocessor = new dl::detect::yolo11posePostProcessor(
-        m_model, 0.25, 0.7, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}});
+        m_model, m_image_preprocessor, 0.25, 0.7, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}});
 }
 
 } // namespace coco_pose
@@ -49,14 +50,14 @@ COCOPose::COCOPose(model_type_t model_type)
 {
     switch (model_type) {
     case model_type_t::YOLO11N_POSE_S8_V1:
-#if CONFIG_COCO_POSE_YOLO11N_POSE_S8_V1 || CONFIG_COCO_POSE_MODEL_IN_SDCARD
+#if CONFIG_FLASH_COCO_POSE_YOLO11N_POSE_S8_V1 || CONFIG_COCO_POSE_MODEL_IN_SDCARD
         m_model = new coco_pose::Yolo11nPose("coco_pose_yolo11n_pose_s8_v1.espdl");
 #else
         ESP_LOGE("coco_pose", "coco_pose_yolo11n_pose_s8_v1 is not selected in menuconfig.");
 #endif
         break;
     case model_type_t::YOLO11N_POSE_S8_V2:
-#if CONFIG_COCO_POSE_YOLO11N_POSE_S8_V2 || CONFIG_COCO_POSE_MODEL_IN_SDCARD
+#if CONFIG_FLASH_COCO_POSE_YOLO11N_POSE_S8_V2 || CONFIG_COCO_POSE_MODEL_IN_SDCARD
         m_model = new coco_pose::Yolo11nPose("coco_pose_yolo11n_pose_s8_v2.espdl");
 #else
         ESP_LOGE("coco_pose", "coco_pose_yolo11n_pose_s8_v2 is not selected in menuconfig.");

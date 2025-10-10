@@ -26,7 +26,7 @@ if (NOT CONFIG_IMAGENET_CLS_MODEL_IN_SDCARD)
 
     file(MAKE_DIRECTORY ${BUILD_DIR}/espdl_models)
     set(models)
-    if(CONFIG_IMAGENET_CLS_MOBILENETV2_S8_V1)
+    if(CONFIG_FLASH_IMAGENET_CLS_MOBILENETV2_S8_V1)
         list(APPEND models ${models_dir}/imagenet_cls_mobilenetv2_s8_v1.espdl)
     endif()
 

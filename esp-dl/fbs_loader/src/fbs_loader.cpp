@@ -257,6 +257,7 @@ FbsModel *create_fbs_model(const char *fbs_buf,
             fseek(f, 4, SEEK_CUR);
         }
         fread(model_buf, size, 1, f);
+        fclose(f);
     }
 
     assert(mode == 0 || mode == 1);

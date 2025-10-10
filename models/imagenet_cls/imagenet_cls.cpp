@@ -33,7 +33,7 @@ MobileNetV2::MobileNetV2(const char *model_name, const int top_k)
         new dl::image::ImagePreprocessor(m_model, {123.675, 116.28, 103.53}, {58.395, 57.12, 57.375});
 #else
     m_image_preprocessor = new dl::image::ImagePreprocessor(
-        m_model, {123.675, 116.28, 103.53}, {58.395, 57.12, 57.375}, DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
+        m_model, {123.675, 116.28, 103.53}, {58.395, 57.12, 57.375}, dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
 #endif
     m_postprocessor = new dl::cls::ImageNetClsPostprocessor(m_model, top_k, std::numeric_limits<float>::lowest(), true);
 }
@@ -44,7 +44,7 @@ ImageNetCls::ImageNetCls(model_type_t model_type, const int top_k)
 {
     switch (model_type) {
     case model_type_t::MOBILENETV2_S8_V1:
-#if CONFIG_IMAGENET_CLS_MOBILENETV2_S8_V1 || CONFIG_IMAGENET_CLS_MODEL_IN_SDCARD
+#if CONFIG_FLASH_IMAGENET_CLS_MOBILENETV2_S8_V1 || CONFIG_IMAGENET_CLS_MODEL_IN_SDCARD
         m_model = new imagenet_cls::MobileNetV2("imagenet_cls_mobilenetv2_s8_v1.espdl", top_k);
 #else
         ESP_LOGE("imagenet_cls", "imagenet_cls_mobilenetv2_s8_v1 is not selected in menuconfig.");

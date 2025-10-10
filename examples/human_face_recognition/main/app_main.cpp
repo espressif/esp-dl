@@ -1,3 +1,4 @@
+#include "dl_image_jpeg.hpp"
 #include "human_face_detect.hpp"
 #include "human_face_recognition.hpp"
 #include "spiflash_fatfs.hpp"
@@ -27,19 +28,19 @@ extern "C" void app_main(void)
 
     dl::image::jpeg_img_t bill1_jpeg = {.data = (void *)bill1_jpg_start,
                                         .data_len = (size_t)(bill1_jpg_end - bill1_jpg_start)};
-    auto bill1 = sw_decode_jpeg(bill1_jpeg, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
+    auto bill1 = dl::image::sw_decode_jpeg(bill1_jpeg, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     dl::image::jpeg_img_t bill2_jpeg = {.data = (void *)bill2_jpg_start,
                                         .data_len = (size_t)(bill2_jpg_end - bill2_jpg_start)};
-    auto bill2 = sw_decode_jpeg(bill2_jpeg, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
+    auto bill2 = dl::image::sw_decode_jpeg(bill2_jpeg, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     dl::image::jpeg_img_t musk1_jpeg = {.data = (void *)musk1_jpg_start,
                                         .data_len = (size_t)(musk1_jpg_end - musk1_jpg_start)};
-    auto musk1 = sw_decode_jpeg(musk1_jpeg, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
+    auto musk1 = dl::image::sw_decode_jpeg(musk1_jpeg, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     dl::image::jpeg_img_t musk2_jpeg = {.data = (void *)musk2_jpg_start,
                                         .data_len = (size_t)(musk2_jpg_end - musk2_jpg_start)};
-    auto musk2 = sw_decode_jpeg(musk2_jpeg, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
+    auto musk2 = dl::image::sw_decode_jpeg(musk2_jpeg, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 
     HumanFaceDetect *human_face_detect = new HumanFaceDetect();
 

@@ -26,10 +26,10 @@ if (NOT CONFIG_COCO_POSE_MODEL_IN_SDCARD)
 
     file(MAKE_DIRECTORY ${BUILD_DIR}/espdl_models)
     set(models)
-    if(CONFIG_COCO_POSE_YOLO11N_POSE_S8_V1)
+    if(CONFIG_FLASH_COCO_POSE_YOLO11N_POSE_S8_V1)
         list(APPEND models ${models_dir}/coco_pose_yolo11n_pose_s8_v1.espdl)
     endif()
-    if(CONFIG_COCO_POSE_YOLO11N_POSE_S8_V2)
+    if(CONFIG_FLASH_COCO_POSE_YOLO11N_POSE_S8_V2)
         list(APPEND models ${models_dir}/coco_pose_yolo11n_pose_s8_v2.espdl)
     endif()
 

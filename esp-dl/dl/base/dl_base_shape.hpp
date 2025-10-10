@@ -40,10 +40,10 @@ std::vector<int> get_unidirectional_broadcasting_shape(const std::vector<int> &s
  * @return Shape after slice
  */
 std::vector<int> get_slice_shape(const std::vector<int> &shape,
-                                 std::vector<int> &start,
-                                 std::vector<int> &end,
-                                 std::vector<int> axes = {},
-                                 std::vector<int> step = {});
+                                 const std::vector<int> &start,
+                                 const std::vector<int> &end,
+                                 const std::vector<int> &axes = {},
+                                 const std::vector<int> &step = {});
 
 } // namespace base
 } // namespace dl
