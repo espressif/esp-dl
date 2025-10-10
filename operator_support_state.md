@@ -16,8 +16,8 @@ The rounding for ``ESP32-P4`` is [rounding half to even](https://simple.wikipedi
 
 ## Support Operators
 
-The ESP-DL operator interface is aligned with ONNX. The opset 13 is recommended to export ONNX.
-Currently, the following 51 operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases](./tools/ops_test/config/op_cfg.toml) for details.
+The ESP-DL operator interface is aligned with ONNX. The opset 18 is recommended to export ONNX.
+Currently, the following 54 operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases](./tools/ops_test/config/op_cfg.toml) for details.
 
 Most operators maintain the same input/output data layout as ONNX or PyTorch. However, to fully leverage instruction-level acceleration, certain operators such as Conv, GlobalAveragePool, AveragePool, MaxPool, and Resize adopt NHWC or NWC data layouts for their inputs/outputs.
 | Operator                                                                                                                                                     | int8     | int16    | Restrictions                                                           |
@@ -37,15 +37,18 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | GlobalAveragePool[(ESP-DL)](esp-dl/dl/module/include/dl_module_global_average_pool.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__GlobalAveragePool.html) | &#10004; | &#10004; | Support 1d/2d                                                          |
 | Greater[(ESP-DL)](esp-dl/dl/module/include/dl_module_greater.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Greater.html)                                 | &#10004; | &#10004; |                                                                        |
 | GreaterOrEqual[(ESP-DL)](esp-dl/dl/module/include/dl_module_greater_or_equal.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__GreaterOrEqual.html)          | &#10004; | &#10004; |                                                                        |
+| GRU[(ESP-DL)](esp-dl/dl/module/include/dl_module_gru.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__GRU.html)                                             | &#10004; | &#10004; |                                                                        |
 | HardSigmoid[(ESP-DL)](esp-dl/dl/module/include/dl_module_hard_sigmoid.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__HardSigmoid.html)                    | &#10004; | &#10004; |                                                                        |
 | HardSwish[(ESP-DL)](esp-dl/dl/module/include/dl_module_hard_swish.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__HardSwish.html)                          | &#10004; | &#10004; |                                                                        |
 | LeakyRelu[(ESP-DL)](esp-dl/dl/module/include/dl_module_leaky_relu.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__LeakyRelu.html)                          | &#10004; | &#10004; |                                                                        |
 | Less[(ESP-DL)](esp-dl/dl/module/include/dl_module_less.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Less.html)                                          | &#10004; | &#10004; |                                                                        |
 | LessOrEqual[(ESP-DL)](esp-dl/dl/module/include/dl_module_less_or_equal.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__LessOrEqual.html)                   | &#10004; | &#10004; |                                                                        |
 | Log[(ESP-DL)](esp-dl/dl/module/include/dl_module_log.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Log.html)                                             | &#10004; | &#10004; |                                                                        |
+| LSTM[(ESP-DL)](esp-dl/dl/module/include/dl_module_lstm.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__LSTM.html)                                          | &#10004; | &#10004; |                                                                        |
 | MatMul[(ESP-DL)](esp-dl/dl/module/include/dl_module_matmul.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__MatMul.html)                                    | &#10004; | &#10004; | Support up to 4D                                                       |
 | MaxPool[(ESP-DL)](esp-dl/dl/module/include/dl_module_max_pool.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__MaxPool.html)                                | &#10004; | &#10004; | Support 1d/2d, don't support dilation                                  |
 | Mul[(ESP-DL)](esp-dl/dl/module/include/dl_module_mul.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Mul.html)                                             | &#10004; | &#10004; | Support up to 4D                                                       |
+| Neg[(ESP-DL)](esp-dl/dl/module/include/dl_module_neg.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Neg.html)                                             | &#10004; | &#10004; |                                                                        |
 | Pad[(ESP-DL)](esp-dl/dl/module/include/dl_module_pad.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Pad.html)                                             | &#10004; | &#10004; | Do not support wrap mode                                               |
 | PRelu[(ESP-DL)](esp-dl/dl/module/include/dl_module_prelu.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__PRelu.html)                                       | &#10004; | &#10004; |                                                                        |
 | ReduceL1[(ESP-DL)](esp-dl/dl/module/include/dl_module_reduce_l1.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__ReduceL1.html)                             | &#10004; | &#10004; | Support up to 4D                                                       |
@@ -74,4 +77,4 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Transpose[(ESP-DL)](esp-dl/dl/module/include/dl_module_transpose.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Transpose.html)                           | &#10004; | &#10004; |                                                                        |
 | Unsqueeze[(ESP-DL)](esp-dl/dl/module/include/dl_module_unsqueeze.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Unsqueeze.html)                           | &#10004; | &#10004; |                                                                        |
 
-Generation Time: 2025-08-19 10:11:18
+Generation Time: 2025-09-29 20:09:30

@@ -36,6 +36,7 @@ set(include_dirs    ./dl
 if(CONFIG_IDF_TARGET_ESP32)
     list(APPEND src_dirs        dl/tool/isa/xtensa)
     list(APPEND src_dirs        dl/base/isa/xtensa)
+    list(APPEND include_dirs    dl/base/isa/xtensa)
 
 elseif(CONFIG_IDF_TARGET_ESP32S2)
 
@@ -44,12 +45,15 @@ elseif(CONFIG_IDF_TARGET_ESP32S3)
     list(APPEND src_dirs        dl/tool/isa/tie728)
     list(APPEND src_dirs        dl/base/isa/xtensa)
     list(APPEND src_dirs        dl/base/isa/tie728)
+    list(APPEND include_dirs    dl/base/isa/tie728)
+    list(APPEND include_dirs    dl/base/isa/xtensa)
 
 elseif(CONFIG_IDF_TARGET_ESP32C3)
 
 elseif(CONFIG_IDF_TARGET_ESP32P4)
     list(APPEND src_dirs        dl/tool/isa/esp32p4)
     list(APPEND src_dirs        dl/base/isa/esp32p4)
+    list(APPEND include_dirs    dl/base/isa/esp32p4)
     list(APPEND src_dirs        ./vision/image/isa/esp32p4)
 endif()
 

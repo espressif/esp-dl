@@ -32,6 +32,7 @@ class BaseInferencer:
         num_of_bits=8,
         model_version="1.0",
         meta_cfg=None,
+        use_float=False,
     ):
         if not os.path.exists(export_path):
             os.makedirs(export_path)
@@ -40,6 +41,7 @@ class BaseInferencer:
         self.model = model
         self.model_cfg = model_cfg
         self.onnx_file = None
+        self.use_float = use_float
 
         if isinstance(model, onnx.ModelProto):
             self.model_cfg = model_cfg
@@ -76,9 +78,12 @@ class BaseInferencer:
 
     def __call__(self):
         # get the export files path
-        name_prefix = (
-            self.model_cfg["export_name_prefix"] + "_s" + str(self.num_of_bits)
-        )
+        if self.use_float:
+            name_prefix = self.model_cfg["export_name_prefix"] + "_f32"
+        else:
+            name_prefix = (
+                self.model_cfg["export_name_prefix"] + "_s" + str(self.num_of_bits)
+            )
         espdl_export_file = os.path.join(self.export_path, name_prefix + ".espdl")
 
         collate_fn = (
@@ -116,6 +121,7 @@ class BaseInferencer:
                 verbose=1,
                 int16_lut_step=1,
                 metadata_props={"target": self.target},
+                float=self.use_float,
             )
 
         else:
@@ -215,6 +221,12 @@ if __name__ == "__main__":
         default="v1.0",
         help="the version of the test case, (defaults: v1.0)",
     )
+    parser.add_argument(
+        "-f",
+        "--float",
+        action="store_true",
+        help="export float model.",
+    )
     parser.add_argument("--ops", nargs="+", type=str, help="An array of ops")
     parser.add_argument(
         "--models", type=str, default=None, help="Specify the model to test."
@@ -236,8 +248,10 @@ if __name__ == "__main__":
             op_test_func = op_test_config[op_type]["test_func"]
             quant_bits = op_test_config[op_type].get("quant_bits", [])
 
-            if (args.bits == 8 and "int8" in quant_bits) or (
-                args.bits == 16 and "int16" in quant_bits
+            if (
+                (args.bits == 8 and "int8" in quant_bits)
+                or (args.bits == 16 and "int16" in quant_bits)
+                or (args.float and "float" in quant_bits)
             ):
                 export_path = os.path.join(args.output_path, op_type)
                 for cfg in op_configs:
@@ -250,6 +264,8 @@ if __name__ == "__main__":
                         pkg.__name__,
                         "Output Path: ",
                         export_path,
+                        "float: ",
+                        args.float,
                     )
                     op = getattr(pkg, op_test_func)(cfg)
                     BaseInferencer(
@@ -260,6 +276,7 @@ if __name__ == "__main__":
                         num_of_bits=args.bits,
                         model_version=args.version,
                         meta_cfg=config["meta"],
+                        use_float=args.float,
                     )()
             else:
                 print(

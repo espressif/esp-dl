@@ -14,6 +14,7 @@
 #include "dl_module_global_average_pool.hpp"
 #include "dl_module_greater.hpp"
 #include "dl_module_greater_or_equal.hpp"
+#include "dl_module_gru.hpp"
 #include "dl_module_hard_sigmoid.hpp"
 #include "dl_module_hard_swish.hpp"
 #include "dl_module_identity.hpp"
@@ -21,10 +22,12 @@
 #include "dl_module_less.hpp"
 #include "dl_module_less_or_equal.hpp"
 #include "dl_module_log.hpp"
+#include "dl_module_lstm.hpp"
 #include "dl_module_lut.hpp"
 #include "dl_module_matmul.hpp"
 #include "dl_module_max_pool.hpp"
 #include "dl_module_mul.hpp"
+#include "dl_module_neg.hpp"
 #include "dl_module_pad.hpp"
 #include "dl_module_prelu.hpp"
 #include "dl_module_reduce_l1.hpp"
@@ -153,6 +156,7 @@ public:
             this->register_module("Slice", Slice::deserialize);
             this->register_module("Pad", Pad::deserialize);
             this->register_module("MatMul", MatMul::deserialize);
+            this->register_module("Neg", Neg::deserialize);
             this->register_module("Split", Split::deserialize);
             this->register_module("Gather", Gather::deserialize);
             this->register_module("Elu", Elu::deserialize);
@@ -174,6 +178,8 @@ public:
             this->register_module("ReduceSumSquare", ReduceSumSquare::deserialize);
             this->register_module("ReduceLogSum", ReduceLogSum::deserialize);
             this->register_module("ReduceLogSumExp", ReduceLogSumExp::deserialize);
+            this->register_module("GRU", GRU::deserialize);
+            this->register_module("LSTM", LSTM::deserialize);
         }
     }
 

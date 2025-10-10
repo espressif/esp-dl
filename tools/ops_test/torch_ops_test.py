@@ -554,6 +554,15 @@ class SQRT_TEST(nn.Module):
         return torch.sqrt(input)
 
 
+class NEG_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        return torch.neg(input)
+
+
 class SLICE_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -1079,6 +1088,88 @@ class REDUCELOGSUMEXP_TEST(nn.Module):
         return torch.logsumexp(
             input, dim=self.config["dim"], keepdim=self.config["keepdim"]
         )
+
+
+class GRU_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+        # Extract GRU parameters
+        input_size = config["input_shape"][-1]
+        hidden_size = config["hidden_size"]
+        num_layers = config.get("num_layers", 1)
+        bidirectional = config.get("bidirectional", False)
+        bias = config.get("bias", True)
+        batch_first = config.get("batch_first", False)
+
+        # Create GRU layer
+        self.gru = nn.GRU(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            bidirectional=bidirectional,
+            bias=bias,
+            batch_first=batch_first,
+        )
+
+    def forward(self, *args):
+        # Handle different input combinations
+        input_tensor = args[0]
+        h_0 = None
+
+        if len(args) > 1:
+            h_0 = args[1]
+
+        # Ensure input is 3D: (seq_len, batch, input_size) if batch_first=False
+        # or (batch, seq_len, input_size) if batch_first=True
+        if len(input_tensor.shape) == 2:
+            # Add batch dimension
+            input_tensor = input_tensor.unsqueeze(1)
+
+        output, hidden = self.gru(input_tensor, h_0)
+        return output, hidden
+
+
+class LSTM_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+        # Extract GRU parameters
+        input_size = config["input_shape"][-1]
+        hidden_size = config["hidden_size"]
+        num_layers = config.get("num_layers", 1)
+        bidirectional = config.get("bidirectional", False)
+        bias = config.get("bias", True)
+        batch_first = config.get("batch_first", False)
+
+        # Create GRU layer
+        self.lstm = nn.LSTM(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            bidirectional=bidirectional,
+            bias=bias,
+            batch_first=batch_first,
+        )
+
+    def forward(self, *args):
+        # Handle different input combinations
+        input_tensor = args[0]
+        initial_h = None
+
+        if len(args) > 1:
+            initial_h = args[1]
+
+        # Ensure input is 3D: (seq_len, batch, input_size) if batch_first=False
+        # or (batch, seq_len, input_size) if batch_first=True
+        if len(input_tensor.shape) == 2:
+            # Add batch dimension
+            input_tensor = input_tensor.unsqueeze(1)
+
+        output, (h_n, c_n) = self.lstm(input_tensor, initial_h)
+        return output, h_n, c_n
 
 
 if __name__ == "__main__":

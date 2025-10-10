@@ -40,8 +40,6 @@ public:
         return std::vector<std::vector<int>>(1, output_shape);
     }
 
-    void forward(std::vector<dl::TensorBase *> &tensors, runtime_mode_t mode) {}
-
     void forward(ModelContext *context, runtime_mode_t mode)
     {
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {

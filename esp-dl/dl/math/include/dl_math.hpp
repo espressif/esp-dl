@@ -3,9 +3,20 @@
 #include "dl_define.hpp"
 #include "dl_tool.hpp"
 #include <cmath>
+#include <functional>
 
 namespace dl {
+
+/**
+ * @brief Abstract activation function interface.
+ *
+ * @param x Input value
+ * @return Output value after applying the activation function
+ */
+using ActivationFunction = std::function<float(float)>;
+
 namespace math {
+
 /**
  * @brief x^a.
  *
@@ -195,6 +206,24 @@ inline float inverse_sigmoid(float x)
     return -logf(1.0 / x - 1);
 }
 
+// Example usage of the interface for existing activation functions
+inline ActivationFunction get_activation_function(const std::string &name)
+{
+    if (name == "sigmoid") {
+        return dl::math::sigmoid;
+    } else if (name == "tanh") {
+        return dl::math::tanh;
+    } else if (name == "relu") {
+        return [](float x) { return x > 0.0f ? x : 0.0f; }; // relu is not defined as a function
+    } else if (name == "leaky_relu") {
+        return [](float x) { return x > 0.0f ? x : 0.01f * x; }; // leaky_relu is not defined as a function
+    } else if (name == "inverse_sigmoid") {
+        return dl::math::inverse_sigmoid;
+    } else {
+        return [](float x) { return x; }; // identity function
+    }
+}
+
 inline void softmax(float *x, int num)
 {
     float max_input = x[0];
@@ -218,5 +247,177 @@ inline float dfl_integral(float *data, int reg_max = 7)
     }
     return sum;
 }
+
+/**
+ * @class ActivationLUT
+ * @brief A class representing a 16-bit lookup table (LUT) for efficient computation of activation functions.
+ *
+ * This class precomputes the values of an activation function over a specified quantization range
+ * and stores them in a lookup table for fast access during inference.
+ *
+ * @details
+ * - The lookup table is initialized with values computed using the provided activation function.
+ * - The table is indexed based on the quantized input values.
+ * - Out-of-range indices are clamped to the nearest valid value in the table.
+ *
+ * @note The memory for the lookup table is aligned and allocated dynamically.
+ *
+ * @param func The activation function to be precomputed and stored in the lookup table.
+ * @param in_exponent The exponent used to scale the input values.
+ * @param in_quant_min The minimum quantized input value.
+ * @param in_quant_max The maximum quantized input value.
+ * @param out_exponent The exponent used to scale the output values.
+ * @param caps Memory allocation capabilities (default is MALLOC_CAP_DEFAULT).
+ */
+class ActivationLUT {
+private:
+    float *m_table;
+    int m_quant_min;
+    int m_quant_max;
+
+public:
+    ActivationLUT(ActivationFunction func,
+                  int in_exponent,
+                  float in_quant_min,
+                  float in_quant_max,
+                  int caps = MALLOC_CAP_DEFAULT) :
+        m_table(nullptr)
+    {
+        if (in_quant_min > in_quant_max) {
+            ESP_LOGE("ActivationLUT_16BIT", "Invalid quantization range");
+            assert(false);
+        }
+
+        float input_scale = DL_SCALE(in_exponent);
+        m_quant_min = static_cast<int>(in_quant_min / input_scale) - 1;
+        m_quant_max = static_cast<int>(in_quant_max / input_scale) + 1;
+        m_table = (float *)heap_caps_malloc((m_quant_max - m_quant_min + 1) * sizeof(float), caps);
+
+        for (int i = m_quant_min; i <= m_quant_max; i++) {
+            m_table[i - m_quant_min] = func(i * input_scale);
+        }
+    }
+
+    ~ActivationLUT() { delete[] m_table; }
+
+    float get(int index) const
+    {
+        if (index < m_quant_min) {
+            return m_table[0];
+        } else if (index > m_quant_max) {
+            return m_table[m_quant_max - m_quant_min - 1];
+        } else {
+            return m_table[index - m_quant_min];
+        }
+    }
+};
+
+class SigmoidLUT {
+private:
+    float *m_table;
+    int m_quant_min;
+    int m_quant_max;
+
+public:
+    SigmoidLUT(int in_exponent, float in_quant_min, float in_quant_max, int caps = MALLOC_CAP_DEFAULT) :
+        m_table(nullptr)
+    {
+        if (in_quant_min > in_quant_max) {
+            ESP_LOGE("SigmoidLUT", "Invalid quantization range");
+            assert(false);
+        }
+
+        float input_scale = DL_SCALE(in_exponent);
+        m_quant_min = static_cast<int>(in_quant_min / input_scale) - 1;
+        m_quant_max = static_cast<int>(in_quant_max / input_scale) + 1;
+        if (-m_quant_min > m_quant_max) {
+            m_quant_max = -m_quant_min;
+        } else {
+            m_quant_min = -m_quant_max;
+        }
+        m_table = (float *)heap_caps_malloc((m_quant_max + 1) * sizeof(float), caps);
+
+        for (int i = 0; i <= m_quant_max; i++) {
+            m_table[i] = sigmoid(i * input_scale);
+        }
+    }
+
+    ~SigmoidLUT()
+    {
+        if (m_table)
+            free(m_table);
+    }
+
+    float get(int index) const
+    {
+        if (index >= 0) {
+            if (index < m_quant_max) {
+                return m_table[index];
+            } else {
+                return m_table[m_quant_max];
+            }
+        } else {
+            if (index > m_quant_min) {
+                return 1 - m_table[-index];
+            } else {
+                return 1 - m_table[m_quant_max];
+            }
+        }
+    }
+};
+
+class TanhLUT {
+private:
+    float *m_table;
+    int m_quant_min;
+    int m_quant_max;
+
+public:
+    TanhLUT(int in_exponent, float in_quant_min, float in_quant_max, int caps = MALLOC_CAP_DEFAULT) : m_table(nullptr)
+    {
+        if (in_quant_min > in_quant_max) {
+            ESP_LOGE("TanhLUT", "Invalid quantization range");
+            assert(false);
+        }
+
+        float input_scale = DL_SCALE(in_exponent);
+        m_quant_min = static_cast<int>(in_quant_min / input_scale) - 1;
+        m_quant_max = static_cast<int>(in_quant_max / input_scale) + 1;
+        if (-m_quant_min > m_quant_max) {
+            m_quant_max = -m_quant_min;
+        } else {
+            m_quant_min = -m_quant_max;
+        }
+        m_table = (float *)heap_caps_malloc((m_quant_max + 1) * sizeof(float), caps);
+
+        for (int i = 0; i <= m_quant_max; i++) {
+            m_table[i] = tanh(i * input_scale);
+        }
+    }
+
+    ~TanhLUT()
+    {
+        if (m_table)
+            free(m_table);
+    }
+
+    float get(int index) const
+    {
+        if (index >= 0) {
+            if (index < m_quant_max) {
+                return m_table[index];
+            } else {
+                return m_table[m_quant_max];
+            }
+        } else {
+            if (index > m_quant_min) {
+                return -m_table[-index];
+            } else {
+                return -m_table[m_quant_max];
+            }
+        }
+    }
+};
+
 } // namespace math
 } // namespace dl
