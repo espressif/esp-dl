@@ -50,6 +50,9 @@ public:
                     free(args->table);
                 }
                 free(args);
+            } else if (quant_type == QUANT_TYPE_FLOAT32) {
+                base::elemwiseArgsType<float> *args = (base::elemwiseArgsType<float> *)m_args;
+                free(args);
             }
         }
     }
@@ -67,7 +70,7 @@ public:
             forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(context, mode);
-        } else if (quant_type == QUANT_TYPE_NONE) {
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
             forward_template<float>(context, mode);
         }
     }
@@ -78,7 +81,7 @@ public:
             base::elemwise_div((base::elemwiseArgsType<int8_t> *)args);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             base::elemwise_div((base::elemwiseArgsType<int16_t> *)args);
-        } else if (quant_type == QUANT_TYPE_NONE) {
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
             base::elemwise_div((base::elemwiseArgsType<float> *)args);
         }
     }

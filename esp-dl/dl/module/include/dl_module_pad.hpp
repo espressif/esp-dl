@@ -47,8 +47,6 @@ public:
         TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
         output->pad(input, m_pads, m_mode, m_constant_value);
-
-        // output->Pad(input, m_start, m_end, m_axes, m_step);
     }
 
     void forward_args(void *args) {}
@@ -95,7 +93,10 @@ public:
         return op;
     }
 
-    void print() { ESP_LOGI("Pad", "quant_type: %s", quant_type_to_string(quant_type)); }
+    void print()
+    {
+        ESP_LOGI("Pad", "quant_type: %s, pads: %s", quant_type_to_string(quant_type), vector_to_string(m_pads).c_str());
+    }
 };
 } // namespace module
 } // namespace dl

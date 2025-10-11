@@ -48,7 +48,7 @@ public:
             forward_int8(input, output);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_int16(input, output);
-        } else {
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
             forward_float(input, output);
         }
     }
@@ -59,9 +59,9 @@ public:
     {
         int8_t *input_ptr = input->get_element_ptr<int8_t>();
         int8_t *output_ptr = output->get_element_ptr<int8_t>();
-        size_t size = input->get_size();
+        int size = input->get_size();
 
-        for (size_t i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             if (input_ptr[i] == INT8_MIN) {
                 output_ptr[i] = INT8_MAX;
             } else {
@@ -74,9 +74,9 @@ public:
     {
         int16_t *input_ptr = input->get_element_ptr<int16_t>();
         int16_t *output_ptr = output->get_element_ptr<int16_t>();
-        size_t size = input->get_size();
+        int size = input->get_size();
 
-        for (size_t i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             if (input_ptr[i] == INT16_MIN) {
                 output_ptr[i] = INT16_MAX;
             } else {
@@ -89,25 +89,9 @@ public:
     {
         float *input_ptr = input->get_element_ptr<float>();
         float *output_ptr = output->get_element_ptr<float>();
-        size_t size = input->get_size();
+        int size = input->get_size();
 
-        for (size_t i = 0; i < size; i++) {
-            if (input_ptr[i] == INT16_MIN) {
-                output_ptr[i] = INT16_MAX;
-            } else {
-                output_ptr[i] = -input_ptr[i];
-            }
-        }
-    }
-
-    template <typename T>
-    void forward_float(TensorBase *input, TensorBase *output)
-    {
-        T *input_ptr = input->get_element_ptr<T>();
-        T *output_ptr = output->get_element_ptr<T>();
-        size_t size = input->get_size();
-
-        for (size_t i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             output_ptr[i] = -input_ptr[i];
         }
     }

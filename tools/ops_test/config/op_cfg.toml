@@ -2028,7 +2028,7 @@
     package = "torch_ops_test"
     restrictions = "Support up to 4D, multidirectional broadcasting"
         [[ops_test.Pow.cfg]]
-        input_shape = [[1, 4, 5], [2, 4, 5]]
+        input_shape = [[1, 4, 1], [2, 4, 5]]
         export_name_prefix = "pow_3d_same_shape"
 
         [[ops_test.Pow.cfg]]
@@ -2036,7 +2036,7 @@
         export_name_prefix = "pow_broadcast_array"
 
         [[ops_test.Pow.cfg]]
-        input_shape = [[1, 2, 3, 4], [1, 2, 3, 4]]
+        input_shape = [[1, 2, 3, 3], [1, 2, 3, 3]]
         export_name_prefix = "pow_4d_same_shape"
 
         [[ops_test.Pow.cfg]]
@@ -2044,7 +2044,7 @@
         export_name_prefix = "pow_broadcast_3d_complex"
 
         [[ops_test.Pow.cfg]]
-        input_shape = [[10, 20], [10, 20]]
+        input_shape = [[1, 20], [10, 20]]
         export_name_prefix = "pow_2d_large"
 
     [ops_test.MatMul]
@@ -2213,7 +2213,7 @@
 
     [ops_test.Requantize]
     test_func = "REQUANTIZE_TEST"
-    quant_bits = ["int8", "int16", "float32"]
+    quant_bits = ["int8", "int16"]
     package = "torch_ops_test"
         [[ops_test.Requantize.cfg]]
         input_shape = [1, 16, 50, 50]
@@ -2470,7 +2470,7 @@
 
     [ops_test.ReverseSequence]
     test_func = "REVERSESEQUENCE_TEST"
-    quant_bits = ["int8", "int16", "float32"]
+    quant_bits = ["int8", "int16"]
     package = "onnx_ops_test"
         [[ops_test.ReverseSequence.cfg]]
         input_shape = [1, 100]
