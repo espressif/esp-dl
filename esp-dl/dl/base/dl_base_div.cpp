@@ -60,13 +60,12 @@ elemwiseArgsType<feature_t> *get_elemwise_div_args(TensorBase *output,
     elemwiseArgsType<feature_t> *args =
         (elemwiseArgsType<feature_t> *)heap_caps_malloc(sizeof(elemwiseArgsType<feature_t>), MALLOC_CAP_DEFAULT);
     memcpy(args, m_args.data(), sizeof(elemwiseArgsType<feature_t>));
+    args->table = nullptr;
 
     if constexpr (!std::is_floating_point_v<feature_t>) {
         args->output_rescale = args->output_rescale * args->input0_scale / args->input1_scale;
         if ((input1->get_size() == 1 || input0->get_size() == 1) && sizeof(feature_t) == 1) {
             args->table = create_div_lut(args);
-        } else {
-            args->table = nullptr;
         }
     }
 
@@ -112,19 +111,9 @@ void c_impl_div_n_1<float>(float *output_ptr, float *input0_ptr, float *input1_p
 {
     elemwiseArgsType<float> *elem_args = static_cast<elemwiseArgsType<float> *>(args);
     int32_t length = elem_args->output_d0;
-    float rescale = elem_args->output_rescale / input1_ptr[0];
+    float rescale = 1.0 / input1_ptr[0];
     for (int32_t i = 0; i < length; i++) {
-        if (input0_ptr[i] == 0) {
-            output_ptr[i] = 0.0f;
-        } else if (input1_ptr[0] == 0) {
-            if (input0_ptr[i] > 0) {
-                output_ptr[i] = std::numeric_limits<float>::infinity();
-            } else {
-                output_ptr[i] = -std::numeric_limits<float>::infinity();
-            }
-        } else {
-            output_ptr[i] = input0_ptr[i] * rescale;
-        }
+        output_ptr[i] = input0_ptr[i] * rescale;
     }
 }
 void c_impl_div_lut_n_1(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args)

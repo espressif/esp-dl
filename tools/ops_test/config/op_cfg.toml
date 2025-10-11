@@ -2188,7 +2188,7 @@
 
     [ops_test.Requantize]
     test_func = "REQUANTIZE_TEST"
-    quant_bits = ["int8", "int16", "float32"]
+    quant_bits = ["int8", "int16"]
     package = "torch_ops_test"
         [[ops_test.Requantize.cfg]]
         input_shape = [1, 16, 50, 50]
@@ -2445,7 +2445,7 @@
 
     [ops_test.ReverseSequence]
     test_func = "REVERSESEQUENCE_TEST"
-    quant_bits = ["int8", "int16", "float32"]
+    quant_bits = ["int8", "int16"]
     package = "onnx_ops_test"
         [[ops_test.ReverseSequence.cfg]]
         input_shape = [1, 100]

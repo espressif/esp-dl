@@ -63,7 +63,13 @@ public:
             float max_value = max == nullptr ? std::numeric_limits<float>::max() : max->get_element<float>(0);
 
             for (size_t i = 0; i < input->size; i++) {
-                output_ptr[i] = DL_CLIP(input_ptr[i], min_value, max_value);
+                if (input_ptr[i] < min_value) {
+                    output_ptr[i] = min_value;
+                } else if (input_ptr[i] > max_value) {
+                    output_ptr[i] = max_value;
+                } else {
+                    output_ptr[i] = input_ptr[i];
+                }
             }
         }
     }
