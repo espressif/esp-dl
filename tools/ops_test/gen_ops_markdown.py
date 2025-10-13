@@ -50,11 +50,18 @@ def create_md(config_file, output_path):
         else:
             item.append(no_icon)
 
+        if "float32" in quant_bits:
+            item.append(yes_icon)
+        else:
+            item.append(no_icon)
+
         item.append(restrictions)
         data.append(item)
 
     sorted_op_list = sorted(data, key=lambda x: x[0].lower())
-    sorted_op_list = [["Operator", "int8", "int16", "Restrictions"]] + sorted_op_list
+    sorted_op_list = [
+        ["Operator", "int8", "int16", "float32", "Restrictions"]
+    ] + sorted_op_list
     markdown_table = tabulate(sorted_op_list, headers="firstrow", tablefmt="github")
 
     content = """# Operator Support State

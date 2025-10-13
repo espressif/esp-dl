@@ -41,9 +41,10 @@ public:
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
         if (m_alpha->shape[0] != input_shapes[0][3]) {
-            TensorBase *new_alpha = new TensorBase(
-                {input_shapes[0][3], 1, 1}, nullptr, m_alpha->exponent, m_alpha->dtype, true, m_alpha->caps);
             if (m_alpha->get_dtype() == DATA_TYPE_INT16) {
+                TensorBase *new_alpha = new TensorBase(
+                    {input_shapes[0][3], 1, 1}, nullptr, m_alpha->exponent, m_alpha->dtype, true, m_alpha->caps);
+
                 int16_t alpha_value = m_alpha->get_element<int16_t>(0);
                 int16_t *alpha_ptr = new_alpha->get_element_ptr<int16_t>();
                 for (int i = 0; i < input_shapes[0][3]; i++) {
@@ -63,6 +64,35 @@ public:
             forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(context, mode);
+        } else {
+            TensorBase *input = context->get_tensor(m_inputs_index[0]);
+            TensorBase *output = context->get_tensor(m_outputs_index[0]);
+            float *input_data = input->get_element_ptr<float>();
+            float *output_data = output->get_element_ptr<float>();
+            float *alpha_data = m_alpha->get_element_ptr<float>();
+
+            int num_elements = input->get_size();
+            int channels = input->shape[3];
+
+            if (m_alpha->shape[0] == 1) {
+                float alpha = alpha_data[0];
+                for (int i = 0; i < num_elements; i++) {
+                    output_data[i] = input_data[i] >= 0 ? input_data[i] : input_data[i] * alpha;
+                }
+            } else if (m_alpha->shape[0] == channels) {
+                // per channel
+                for (int i = 0; i < num_elements / channels; i++) {
+                    for (int c = 0; c < channels; c++) {
+                        float alpha = alpha_data[c];
+                        output_data[c] = input_data[c] >= 0 ? input_data[c] : input_data[c] * alpha;
+                    }
+                    input_data += channels;
+                    output_data += channels;
+                }
+            } else {
+                ESP_LOGE("PRelu", "Do not support alpha shape: %s \n", vector_to_string(m_alpha->get_shape()).c_str());
+                assert(false);
+            }
         }
     }
 

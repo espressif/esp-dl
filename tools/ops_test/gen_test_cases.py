@@ -143,6 +143,7 @@ class BaseInferencer:
                 verbose=1,
                 int16_lut_step=1,
                 metadata_props={"target": self.target},
+                float=self.use_float,
             )
 
     def load_calibration_dataset(self) -> Iterable:
@@ -236,6 +237,8 @@ if __name__ == "__main__":
     # load config
     config = toml.load(args.config)
 
+    use_float = args.float or args.bits > 16
+
     if not args.models:
         op_test_config = config["ops_test"]
 
@@ -251,7 +254,7 @@ if __name__ == "__main__":
             if (
                 (args.bits == 8 and "int8" in quant_bits)
                 or (args.bits == 16 and "int16" in quant_bits)
-                or (args.float and "float" in quant_bits)
+                or (use_float and "float32" in quant_bits)
             ):
                 export_path = os.path.join(args.output_path, op_type)
                 for cfg in op_configs:
@@ -265,7 +268,7 @@ if __name__ == "__main__":
                         "Output Path: ",
                         export_path,
                         "float: ",
-                        args.float,
+                        use_float,
                     )
                     op = getattr(pkg, op_test_func)(cfg)
                     BaseInferencer(
@@ -276,7 +279,7 @@ if __name__ == "__main__":
                         num_of_bits=args.bits,
                         model_version=args.version,
                         meta_cfg=config["meta"],
-                        use_float=args.float,
+                        use_float=use_float,
                     )()
             else:
                 print(
@@ -294,6 +297,7 @@ if __name__ == "__main__":
                 num_of_bits=args.bits,
                 model_version=args.version,
                 meta_cfg=config["meta"],
+                use_float=use_float,
             )()
         else:
             print(f"Do not support quantization with {args.bits} bits.")
