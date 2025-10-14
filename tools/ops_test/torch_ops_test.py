@@ -554,6 +554,16 @@ class SQRT_TEST(nn.Module):
         return torch.sqrt(input)
 
 
+class POW_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input1, input2):
+        output = torch.pow(input1, input2)
+        return output
+
+
 class NEG_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()

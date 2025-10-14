@@ -29,6 +29,7 @@
 #include "dl_module_mul.hpp"
 #include "dl_module_neg.hpp"
 #include "dl_module_pad.hpp"
+#include "dl_module_pow.hpp"
 #include "dl_module_prelu.hpp"
 #include "dl_module_reduce_l1.hpp"
 #include "dl_module_reduce_l2.hpp"
@@ -125,6 +126,7 @@ public:
             this->register_module("Sub", Sub::deserialize);
             this->register_module("Mul", Mul::deserialize);
             this->register_module("Div", Div::deserialize);
+            this->register_module("Pow", Pow::deserialize);
             this->register_module("Resize", Resize::deserialize);
             this->register_module("GlobalAveragePool", GlobalAveragePool::deserialize);
             this->register_module("AveragePool", AveragePool::deserialize);
