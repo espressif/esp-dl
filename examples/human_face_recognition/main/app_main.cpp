@@ -2,6 +2,7 @@
 #include "human_face_detect.hpp"
 #include "human_face_recognition.hpp"
 #include "spiflash_fatfs.hpp"
+#include <filesystem>
 #include "bsp/esp-bsp.h"
 
 extern const uint8_t bill1_jpg_start[] asm("_binary_bill1_jpg_start");
@@ -44,15 +45,14 @@ extern "C" void app_main(void)
 
     HumanFaceDetect *human_face_detect = new HumanFaceDetect();
 
-    char db_path[64];
 #if CONFIG_DB_FATFS_FLASH
-    snprintf(db_path, sizeof(db_path), "%s/face.db", CONFIG_SPIFLASH_MOUNT_POINT);
+    auto db_path = std::filesystem::path(CONFIG_SPIFLASH_MOUNT_POINT) / "face.db";
 #elif CONFIG_DB_SPIFFS
-    snprintf(db_path, sizeof(db_path), "%s/face.db", CONFIG_BSP_SPIFFS_MOUNT_POINT);
+    auto db_path = std::filesystem::path(CONFIG_BSP_SPIFFS_MOUNT_POINT) / "face.db";
 #else
-    snprintf(db_path, sizeof(db_path), "%s/face.db", CONFIG_BSP_SD_MOUNT_POINT);
+    auto db_path = std::filesystem::path(CONFIG_BSP_SD_MOUNT_POINT) / "face.db";
 #endif
-    auto human_face_recognizer = new HumanFaceRecognizer(db_path);
+    auto human_face_recognizer = new HumanFaceRecognizer(db_path.string());
 
     human_face_recognizer->enroll(bill1, human_face_detect->run(bill1));
     human_face_recognizer->enroll(bill2, human_face_detect->run(bill2));

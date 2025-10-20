@@ -10,15 +10,25 @@ class Cls {
 public:
     virtual ~Cls() {};
     virtual std::vector<dl::cls::result_t> &run(const dl::image::img_t &img) = 0;
+    virtual Cls &set_topk(int topk) = 0;
+    virtual Cls &set_score_thr(float score_thr) = 0;
+    virtual dl::Model *get_raw_model() = 0;
 };
 
 class ClsWrapper : public Cls {
 protected:
     Cls *m_model;
+    int m_topk;
+    float m_score_thr;
+
+    virtual void load_model() = 0;
 
 public:
-    ~ClsWrapper() { delete m_model; }
-    std::vector<dl::cls::result_t> &run(const dl::image::img_t &img) { return m_model->run(img); }
+    ~ClsWrapper();
+    std::vector<dl::cls::result_t> &run(const dl::image::img_t &img);
+    Cls &set_topk(int topk) override;
+    Cls &set_score_thr(float score_thr) override;
+    dl::Model *get_raw_model() override;
 };
 
 class ClsImpl : public Cls {
@@ -30,6 +40,9 @@ protected:
 public:
     ~ClsImpl();
     std::vector<dl::cls::result_t> &run(const dl::image::img_t &img) override;
+    Cls &set_topk(int topk) override;
+    Cls &set_score_thr(float score_thr) override;
+    dl::Model *get_raw_model() override;
 };
 } // namespace cls
 } // namespace dl

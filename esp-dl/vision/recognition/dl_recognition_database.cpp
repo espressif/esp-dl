@@ -5,14 +5,10 @@ static const char *TAG = "dl::recognition::DataBase";
 
 namespace dl {
 namespace recognition {
-DataBase::DataBase(const char *db_path, int feat_len)
+DataBase::DataBase(const std::string &db_path, int feat_len) : m_db_path(db_path)
 {
-    assert(db_path);
-    int length = strlen(db_path) + 1;
-    m_db_path = (char *)malloc(sizeof(char) * length);
-    memcpy(m_db_path, db_path, length);
     struct stat st;
-    if (stat(db_path, &st) == 0) {
+    if (stat(db_path.c_str(), &st) == 0) {
         load_database_from_storage(feat_len);
     } else {
         create_empty_database_in_storage(feat_len);
@@ -22,12 +18,11 @@ DataBase::DataBase(const char *db_path, int feat_len)
 DataBase::~DataBase()
 {
     clear_all_feats_in_memory();
-    free(m_db_path);
 }
 
 esp_err_t DataBase::create_empty_database_in_storage(int feat_len)
 {
-    FILE *f = fopen(m_db_path, "wb");
+    FILE *f = fopen(m_db_path.c_str(), "wb");
     size_t size = 0;
     if (!f) {
         ESP_LOGE(TAG, "Failed to open db.");
@@ -48,7 +43,7 @@ esp_err_t DataBase::create_empty_database_in_storage(int feat_len)
 
 esp_err_t DataBase::clear_all_feats()
 {
-    if (remove(m_db_path) == -1) {
+    if (remove(m_db_path.c_str()) == -1) {
         ESP_LOGE(TAG, "Failed to remove db.");
         return ESP_FAIL;
     }
@@ -71,7 +66,7 @@ void DataBase::clear_all_feats_in_memory()
 esp_err_t DataBase::load_database_from_storage(int feat_len)
 {
     clear_all_feats_in_memory();
-    FILE *f = fopen(m_db_path, "rb");
+    FILE *f = fopen(m_db_path.c_str(), "rb");
     size_t size = 0;
     if (!f) {
         ESP_LOGE(TAG, "Failed to open db.");
@@ -140,7 +135,7 @@ esp_err_t DataBase::enroll_feat(TensorBase *feat)
     m_meta.num_feats_valid++;
 
     size_t size = 0;
-    FILE *f = fopen(m_db_path, "rb+");
+    FILE *f = fopen(m_db_path.c_str(), "rb+");
     if (!f) {
         ESP_LOGE(TAG, "Failed to open db.");
         return ESP_FAIL;
@@ -191,7 +186,7 @@ esp_err_t DataBase::delete_feat(uint16_t id)
         return ESP_FAIL;
     }
     size_t size = 0;
-    FILE *f = fopen(m_db_path, "rb+");
+    FILE *f = fopen(m_db_path.c_str(), "rb+");
     if (!f) {
         ESP_LOGE(TAG, "Failed to open db.");
         return ESP_FAIL;
