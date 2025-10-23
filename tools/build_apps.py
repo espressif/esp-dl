@@ -184,11 +184,10 @@ def build_single_op(apps_to_build, op_path):
             shutil.copytree(build_path, op_build_path)
         else:
             shutil.copytree(build_path, op_build_path)
-        shutil.rmtree(build_path)
-
         print(build_path, op_build_path, op_path)
-        bin_path = op_build_path / "espdl_models"
-        pack_models([str(op_path)], bin_path / "models.espdl")
+        bin_path = op_build_path / "espdl_models" / "models.espdl"
+        pack_models([str(op_path)], bin_path)
+
 
 def main(args):  # type: (argparse.Namespace) -> None
     default_build_targets = (
@@ -230,8 +229,8 @@ def main(args):  # type: (argparse.Namespace) -> None
     )
     if args.model_path and os.path.exists(args.model_path):
         build_and_copy(apps_to_build, args.model_path)
-    elif args.op_type:
-        op_path = PROJECT_ROOT / "test_apps/esp-dl/models" / args.target / args.op_type
+    elif args.operation:
+        op_path = PROJECT_ROOT / "test_apps/esp-dl/models" / args.target / args.operation
         print(op_path)
         if os.path.exists(op_path):
             build_single_op(apps_to_build, op_path)
@@ -294,9 +293,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-op",
-        "--op_type",
+        "--operation",
         default=None,
-        help="NN Operation type used in test",
+        help="NN Operation name used in test",
     )
     parser.add_argument(
         "-v",

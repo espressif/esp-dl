@@ -1,0 +1,9 @@
+# Requirements for ESP-DL Agent Tool
+# Basic requirements for the espdl_agent functionality
+
+# Standard libraries used by the tool (no external packages required for core functionality)
+# The tool uses argparse, pathlib, re, os which are part of Python standard library
+
+# Additional packages that may be useful for ONNX-related operations
+onnx>=1.12.0
+numpy>=1.21.0
