@@ -1,0 +1,30 @@
+idf_build_get_property(component_targets __COMPONENT_TARGETS)
+if ("___idf_espressif__esp-dl" IN_LIST component_targets)
+    idf_component_get_property(espdl_dir espressif__esp-dl COMPONENT_DIR)
+elseif("___idf_esp-dl" IN_LIST component_targets)
+    idf_component_get_property(espdl_dir esp-dl COMPONENT_DIR)
+endif()
+set(cmake_dir ${espdl_dir}/fbs_loader/cmake)
+include(${cmake_dir}/utilities.cmake)
+
+set(src_dirs        .)
+set(include_dirs    .)
+set(requires        esp-dl)
+
+idf_component_register(SRC_DIRS ${src_dirs} INCLUDE_DIRS ${include_dirs} REQUIRES ${requires})
+
+set(models_dir ${COMPONENT_DIR}/models/p4)
+
+if (NOT CONFIG_SPEAKER_VERIFICATION_MODEL_IN_SDCARD)
+    if(CONFIG_SPEAKER_VERIFICATION_MODEL_IN_FLASH_RODATA)
+        set(model_file ${models_dir}/sv_model.espdl)
+        target_add_aligned_binary_data(${COMPONENT_LIB} ${model_file} BINARY)
+    endif()
+    if(CONFIG_SPEAKER_VERIFICATION_MODEL_IN_FLASH_PARTITION)
+        set(model_file ${models_dir}/sv_model.espdl)
+        add_custom_target(SPEAKER_VERIFICATION_MODEL ALL DEPENDS ${model_file})
+        add_dependencies(flash SPEAKER_VERIFICATION_MODEL)
+        esptool_py_flash_to_partition(flash "sv_model" ${model_file})
+    endif()
+
+endif()
