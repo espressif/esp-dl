@@ -10,9 +10,15 @@
 
 ## Model Latency
 
-| name     | preprocess(us) | model(us) | postprocess(us) |
-|----------|----------------|-----------|-----------------|
-| sv_model | 122951         | 461084    | 68              |
+| name         | preprocess(us) | model(us) | postprocess(us) |
+|--------------|----------------|-----------|-----------------|
+| sv_tdnn_tiny | 122951         | 461084    | 68              |
+
+## Model Metrics (after quantization)
+
+| name         | dataset      | EER   |
+|--------------|--------------|-------|
+| sv_tdnn_tiny | vox1-O-clean | 2.36% |
 
 ## Model Usage
 

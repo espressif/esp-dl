@@ -2,7 +2,7 @@
 #include "esp_log.h"
 
 #if CONFIG_SPEAKER_VERIFICATION_MODEL_IN_FLASH_RODATA
-extern const uint8_t sv_model_espdl[] asm("_binary_sv_model_espdl_start");
+extern const uint8_t sv_model_espdl[] asm("_binary_sv_tdnn_tiny_espdl_start");
 static const char *path = (const char *)sv_model_espdl;
 #elif CONFIG_SPEAKER_VERIFICATION_MODEL_IN_FLASH_PARTITION
 static const char *path = "sv_model";
@@ -23,7 +23,7 @@ SpeakerVerification::SpeakerVerification(int target_sec) : target_seconds(target
              "%s/%s/%s",
              CONFIG_BSP_SD_MOUNT_POINT,
              CONFIG_SPEAKER_VERIFICATION_MODEL_SDCARD_DIR,
-             "sv_model.espdl");
+             "sv_tdnn_tiny.espdl");
     model = new dl::Model(sd_path, static_cast<fbs::model_location_type_t>(CONFIG_SPEAKER_VERIFICATION_MODEL_LOCATION));
 #endif
 
