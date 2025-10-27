@@ -1,0 +1,46 @@
+menu "models: speaker_verification"
+    config FLASH_SPEAKER_VERIFICATION
+        bool "flash speaker_verification_model"
+        depends on !SPEAKER_VERIFICATION_MODEL_IN_SDCARD
+        default y
+
+    choice
+        prompt "default model"
+        default SPEAKER_VERIFICATION_MODEL_IN_FLASH
+        help
+            default speaker_verification model
+        config SPEAKER_VERIFICATION_MODEL_IN_FLASH
+            bool "speaker_verification_flash"
+            depends on SPEAKER_VERIFICATION_MODEL_IN_SDCARD || FLASH_SPEAKER_VERIFICATION
+    endchoice
+
+    config DEFAULT_SPEAKER_VERIFICATION_MODEL
+        int
+        default 0 if SPEAKER_VERIFICATION_MODEL
+
+    choice
+        prompt "model location"
+        default SPEAKER_VERIFICATION_MODEL_IN_FLASH_RODATA
+        help
+            speaker_verification model location
+        config SPEAKER_VERIFICATION_MODEL_IN_FLASH_RODATA
+            bool "flash_rodata"
+        config SPEAKER_VERIFICATION_MODEL_IN_FLASH_PARTITION
+            bool "flash_partition"
+        config SPEAKER_VERIFICATION_MODEL_IN_SDCARD
+            bool "sdcard"
+    endchoice
+
+    config SPEAKER_VERIFICATION_MODEL_LOCATION
+        int
+        default 0 if SPEAKER_VERIFICATION_MODEL_IN_FLASH_RODATA
+        default 1 if SPEAKER_VERIFICATION_MODEL_IN_FLASH_PARTITION
+        default 2 if SPEAKER_VERIFICATION_MODEL_IN_SDCARD
+
+    config SPEAKER_VERIFICATION_MODEL_SDCARD_DIR
+        string "speaker_verification model sdcard dir"
+        default "models/p4" if IDF_TARGET_ESP32P4
+        depends on SPEAKER_VERIFICATION_MODEL_IN_SDCARD
+        help
+            Directory of models relative to sdcard mount point.
+endmenu

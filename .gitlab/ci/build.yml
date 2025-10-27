@@ -194,6 +194,17 @@ build_example_color_detect:
   variables:
     EXAMPLE_DIR: examples/color_detect
 
+build_example_speaker_verification:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_speaker_verification
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+        TARGET: [esp32p4]
+  variables:
+    EXAMPLE_DIR: examples/speaker_verification
+
 build_example_how_to_run_model:
   extends:
     - .build_examples_template
