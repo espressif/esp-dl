@@ -29,14 +29,14 @@ private:
         for (int b = 0; b < batch_size; ++b) {
             int b_offset = b * height * width * channels;
             for (int h = 0; h < height; ++h) {
-                int new_h = h * block_size;
+                int h_idx = h * block_size;
                 for (int w = 0; w < width; ++w) {
-                    int new_w = w * block_size;
+                    int w_idx = w * block_size;
                     for (int c = 0; c < channels; ++c) {
-                        int c_idx = c / block_2d;
-                        int h_idx = new_h + (c % block_2d) / block_size;
-                        int w_idx = new_w + c % block_size;
-                        int idx = b_offset + h_idx * h_offset + w_idx * output_channels + c_idx;
+                        int out_c = c / block_2d;
+                        int out_h = h_idx + (c % block_2d) / block_size;
+                        int out_w = w_idx + c % block_size;
+                        int idx = b_offset + out_h * h_offset + out_w * output_channels + out_c;
                         output[idx] = *input++;
                     }
                 }
@@ -57,10 +57,10 @@ private:
                 for (int w = 0; w < width; ++w) {
                     int new_w = w * block_size;
                     for (int c = 0; c < channels; ++c) {
-                        int c_idx = c % block_size ;
+                        int out_c = c % block_size ;
                         int h_idx = new_h + c / block_2d;
                         int w_idx = new_w + (c % block_2d) / block_size;
-                        int idx = b_offset + h_idx * h_offset + w_idx * output_channels + c_idx;
+                        int idx = b_offset + h_idx * h_offset + w_idx * output_channels + out_c;
                         output[idx] = *input++;
                     }
                 }

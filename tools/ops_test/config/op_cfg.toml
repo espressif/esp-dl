@@ -3360,6 +3360,31 @@
         mode = "CRD"
         export_name_prefix = "depth_to_space_blocksize_3_dcr"
 
+    [ops_test.SpaceToDepth]
+    test_func = "SPACETODEPTH_TEST"
+    quant_bits = ["int8", "int16", "float32"]
+    package = "onnx_ops_test"
+
+        [[ops_test.SpaceToDepth.cfg]]
+        input_shape = [1, 4, 6, 2]
+        blocksize = 2
+        export_name_prefix = "space_to_depth_simple"
+
+        [[ops_test.SpaceToDepth.cfg]]
+        input_shape = [1, 9, 12, 3]
+        blocksize = 3
+        export_name_prefix = "space_to_depth_blocksize_3"
+
+        [[ops_test.SpaceToDepth.cfg]]
+        input_shape = [2, 8, 8, 4]
+        blocksize = 4
+        export_name_prefix = "space_to_depth_batch_2"
+
+        [[ops_test.SpaceToDepth.cfg]]
+        input_shape = [1, 10, 15, 5]
+        blocksize = 5
+        export_name_prefix = "space_to_depth_rectangular"
+
     [ops_test.LSTM]
     test_func = "LSTM_TEST"
     quant_bits = ["int8", "int16", "float32"]

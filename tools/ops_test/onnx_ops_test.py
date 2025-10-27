@@ -52,6 +52,74 @@ def IDENTITY_TEST(config) -> ModelProto:
     return model_def
 
 
+def SPACETODEPTH_TEST(config) -> ModelProto:
+    """
+    ONNX Operator: SpaceToDepth
+    
+    SpaceToDepth rearranges blocks of spatial data into depth. More specifically,
+    this op outputs a copy of the input tensor where values from the height and width dimensions
+    are moved to the depth dimension. This is the inverse transformation of DepthToSpace.
+    
+    Inputs
+    input (differentiable) - T
+        Input tensor of [N,C,H,W], where N is the batch axis, C is the channel or depth, H is the height and W is the width.
+    
+    Outputs
+    output (differentiable) - T
+        Output tensor of [N, C * blocksize * blocksize, H/blocksize, W/blocksize].
+    
+    Attributes
+    blocksize - INT (default is 1)
+        Blocks along spatial dimension. 
+    """
+
+    input_shape = config["input_shape"]
+    blocksize = config.get("blocksize", 2)
+    export_name_prefix = config.get("export_name_prefix", "onnx-model-spacetodepth")
+
+    # Create ValueInfoProto
+    input_tensor = helper.make_tensor_value_info(
+        "input", TensorProto.FLOAT, input_shape
+    )
+    
+    # Calculate output shape
+    output_shape = [
+        input_shape[0],  # batch
+        input_shape[1] // blocksize,  # height
+        input_shape[2] // blocksize,  # width  
+        input_shape[3] * (blocksize * blocksize)  # channels
+    ]
+    
+    output_tensor = helper.make_tensor_value_info(
+        "output", TensorProto.FLOAT, output_shape
+    )
+
+    # Create SpaceToDepth Node
+    node_def = helper.make_node(
+        "SpaceToDepth",
+        inputs=["input"],
+        outputs=["output"],
+        blocksize=blocksize
+    )
+
+    # Create GraphProto
+    graph_def = helper.make_graph(
+        [node_def],
+        "space_to_depth_model",
+        [input_tensor],
+        [output_tensor],
+    )
+
+    # Create ModelProto
+    model_def = helper.make_model(graph_def, producer_name=export_name_prefix)
+
+    # Check model
+    onnx.checker.check_model(model_def)
+    print("The model is checked!")
+
+    return model_def
+
+
 def REVERSESEQUENCE_TEST(config) -> ModelProto:
     """
     Attributes
