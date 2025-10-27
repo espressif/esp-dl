@@ -4,6 +4,7 @@
 #include "dl_module_clip.hpp"
 #include "dl_module_concat.hpp"
 #include "dl_module_conv.hpp"
+#include "dl_module_depth_to_space.hpp"
 #include "dl_module_div.hpp"
 #include "dl_module_elu.hpp"
 #include "dl_module_equal.hpp"
@@ -182,6 +183,7 @@ public:
             this->register_module("ReduceLogSumExp", ReduceLogSumExp::deserialize);
             this->register_module("GRU", GRU::deserialize);
             this->register_module("LSTM", LSTM::deserialize);
+            this->register_module("DepthToSpace", DepthToSpace::deserialize);
         }
     }
 

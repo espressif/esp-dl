@@ -601,6 +601,16 @@ class SLICE_TEST(nn.Module):
         return output
 
 
+class DEPTHTOSPACE_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+    def forward(self, input):
+        input = nn.PixelShuffle(self.config["blocksize"])(input)
+        return input
+
+
 class PAD_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
