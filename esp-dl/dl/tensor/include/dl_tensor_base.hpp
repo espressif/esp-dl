@@ -147,10 +147,11 @@ public:
      * @brief Assign tensor to this tensor
      *
      * @param tensor
+     * @param start_position The starting index in src_data from which to begin copying data.
      *
      * @return ture if assign successfully, otherwise false.
      */
-    bool assign(TensorBase *tensor);
+    bool assign(TensorBase *tensor, int start_position = 0);
 
     /**
      * @brief Assign data to this tensor
