@@ -51,7 +51,7 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Mul[(ESP-DL)](esp-dl/dl/module/include/dl_module_mul.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Mul.html)                                             | &#10004; | &#10004; | &#10004;  | Support up to 4D                                                       |
 | Neg[(ESP-DL)](esp-dl/dl/module/include/dl_module_neg.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Neg.html)                                             | &#10004; | &#10004; | &#10004;  |                                                                        |
 | Pad[(ESP-DL)](esp-dl/dl/module/include/dl_module_pad.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Pad.html)                                             | &#10004; | &#10004; | &#10004;  | Do not support wrap mode                                               |
-| Pow[(ESP-DL)](esp-dl/dl/module/include/dl_module_pow.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Pow.html)                                             | &#10004; | &#10004; | &#10004;  | Support up to 4D, multidirectional broadcasting                        |
+| Pow[(ESP-DL)](esp-dl/dl/module/include/dl_module_pow.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Pow.html)                                             | &#10006; | &#10006; | &#10004;  | Support up to 4D, multidirectional broadcasting                        |
 | PRelu[(ESP-DL)](esp-dl/dl/module/include/dl_module_prelu.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__PRelu.html)                                       | &#10004; | &#10004; | &#10004;  |                                                                        |
 | ReduceL1[(ESP-DL)](esp-dl/dl/module/include/dl_module_reduce_l1.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__ReduceL1.html)                             | &#10004; | &#10004; | &#10006;  | Support up to 4D                                                       |
 | ReduceL2[(ESP-DL)](esp-dl/dl/module/include/dl_module_reduce_l2.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__ReduceL2.html)                             | &#10004; | &#10004; | &#10006;  | Support up to 4D                                                       |
@@ -80,4 +80,4 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Transpose[(ESP-DL)](esp-dl/dl/module/include/dl_module_transpose.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Transpose.html)                           | &#10004; | &#10004; | &#10004;  |                                                                        |
 | Unsqueeze[(ESP-DL)](esp-dl/dl/module/include/dl_module_unsqueeze.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Unsqueeze.html)                           | &#10004; | &#10004; | &#10004;  |                                                                        |
 
-Generation Time: 2025-10-29 14:41:07
+Generation Time: 2025-10-29 20:21:03
