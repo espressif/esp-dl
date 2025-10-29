@@ -1,9 +1,9 @@
 #pragma once
 
 #include "dl_base.hpp"
+#include "dl_define.hpp"
 #include "dl_module_base.hpp"
 #include "dl_tensor_base.hpp"
-#include "dl_define.hpp"
 #include "dl_tool.hpp"
 
 namespace dl {
@@ -20,26 +20,26 @@ private:
     int m_blocksize;
 
     template <typename T>
-    void space_to_depth(T* input, T* output, int batch_size, int height, int width, int channels, int block_size) {
+    void space_to_depth(T *input, T *output, int batch_size, int height, int width, int channels, int block_size)
+    {
         int output_width = width / block_size;
         int block_squared = block_size * block_size;
         int output_channels = channels * block_squared;
         int h_offset = output_width * output_channels;
-        
+
         for (int n = 0; n < batch_size; ++n) {
             int batch_offset_out = n * height * width * channels;
-            
+
             for (int h = 0; h < height; ++h) {
                 for (int w = 0; w < width; ++w) {
                     for (int c = 0; c < channels; ++c) {
-
                         // Calculate output indices using the core SpaceToDepth formula
                         int out_c = c * block_squared + ((h % block_size) * block_size + (w % block_size));
                         int out_h = h / block_size;
                         int out_w = w / block_size;
-                        
+
                         // Calculate linear indices (NHWC layout)
-                        int output_idx = batch_offset_out +  out_h * h_offset + out_w * output_channels + out_c;
+                        int output_idx = batch_offset_out + out_h * h_offset + out_w * output_channels + out_c;
                         output[output_idx] = *input++;
                     }
                 }
@@ -60,8 +60,7 @@ public:
                  const char *name = NULL,
                  module_inplace_t inplace = MODULE_NON_INPLACE,
                  quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, inplace, quant_type),
-        m_blocksize(blocksize)
+        Module(name, inplace, quant_type), m_blocksize(blocksize)
     {
     }
 
@@ -78,19 +77,22 @@ public:
         // The input tensor is expected to be 4D: [N, H, W, C].
         if (input_shape.size() < 4) {
             ESP_LOGE("SpaceToDepth", "Input tensor must be 4D [N, H, W, C]");
-            return std::vector<std::vector<int>>(1, input_shape);  // return original shape on error
+            return std::vector<std::vector<int>>(1, input_shape); // return original shape on error
         }
 
         // Validate that height and width are divisible by blocksize
         if (input_shape[1] % m_blocksize != 0 || input_shape[2] % m_blocksize != 0) {
-            ESP_LOGE("SpaceToDepth", "Height (%d) and width (%d) must be divisible by blocksize (%d)", 
-                     input_shape[1], input_shape[2], m_blocksize);
-            return std::vector<std::vector<int>>(1, input_shape);  // return original shape on error
+            ESP_LOGE("SpaceToDepth",
+                     "Height (%d) and width (%d) must be divisible by blocksize (%d)",
+                     input_shape[1],
+                     input_shape[2],
+                     m_blocksize);
+            return std::vector<std::vector<int>>(1, input_shape); // return original shape on error
         }
 
-        output_shape[1] = input_shape[1] / m_blocksize;                  // height
-        output_shape[2] = input_shape[2] / m_blocksize;                  // width
-        output_shape[3] = input_shape[3] * (m_blocksize * m_blocksize);  // channels
+        output_shape[1] = input_shape[1] / m_blocksize;                 // height
+        output_shape[2] = input_shape[2] / m_blocksize;                 // width
+        output_shape[3] = input_shape[3] * (m_blocksize * m_blocksize); // channels
 
         return std::vector<std::vector<int>>(1, output_shape);
     }
@@ -115,12 +117,12 @@ public:
 
         // Perform space-to-depth transformation
         space_to_depth<T>(input->get_element_ptr<T>(),
-                         output->get_element_ptr<T>(),
-                         input_shape[0],
-                         input_shape[1],
-                         input_shape[2],
-                         input_shape[3],
-                         m_blocksize);
+                          output->get_element_ptr<T>(),
+                          input_shape[0],
+                          input_shape[1],
+                          input_shape[2],
+                          input_shape[3],
+                          m_blocksize);
     }
 
     void forward_args(void *args) {}
@@ -144,10 +146,7 @@ public:
 
     void print()
     {
-        ESP_LOGI("SpaceToDepth",
-                 "blocksize: %d, quant_type: %s",
-                 m_blocksize,
-                quant_type_to_string(quant_type));
+        ESP_LOGI("SpaceToDepth", "blocksize: %d, quant_type: %s", m_blocksize, quant_type_to_string(quant_type));
     }
 };
 

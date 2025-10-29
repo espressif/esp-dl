@@ -170,6 +170,7 @@ def build_and_copy(apps_to_build, model_path):
             bin_path = op_build_path / "espdl_models" / "models.espdl"
             pack_models([str(op_path)], bin_path)
 
+
 def build_single_op(apps_to_build, op_path):
     target_apps = {}
     for app in apps_to_build:
@@ -189,6 +190,7 @@ def build_single_op(apps_to_build, op_path):
         print(build_path, op_build_path, op_path)
         bin_path = op_build_path / "espdl_models"
         pack_models([str(op_path)], bin_path / "models.espdl")
+
 
 def main(args):  # type: (argparse.Namespace) -> None
     default_build_targets = (
