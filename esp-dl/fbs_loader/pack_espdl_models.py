@@ -164,6 +164,8 @@ def pack_models(model_path_or_dir, out_file="models.espdl"):
         header_bin += struct.pack("I", name_offset)
         header_bin += struct.pack("I", len(name))
     out_bin = header_bin + name_bin + padding_bin + data_bin
+    output_path = Path(out_file).parent
+    output_path.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
         f.write(out_bin)
 

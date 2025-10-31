@@ -52,6 +52,71 @@ def IDENTITY_TEST(config) -> ModelProto:
     return model_def
 
 
+def SPACETODEPTH_TEST(config) -> ModelProto:
+    """
+    ONNX Operator: SpaceToDepth
+
+    SpaceToDepth rearranges blocks of spatial data into depth. More specifically,
+    this op outputs a copy of the input tensor where values from the height and width dimensions
+    are moved to the depth dimension. This is the inverse transformation of DepthToSpace.
+
+    Inputs
+    input (differentiable) - T
+        Input tensor of [N,C,H,W], where N is the batch axis, C is the channel or depth, H is the height and W is the width.
+
+    Outputs
+    output (differentiable) - T
+        Output tensor of [N, C * blocksize * blocksize, H/blocksize, W/blocksize].
+
+    Attributes
+    blocksize - INT (default is 1)
+        Blocks along spatial dimension.
+    """
+
+    input_shape = config["input_shape"]
+    blocksize = config.get("blocksize", 2)
+    export_name_prefix = config.get("export_name_prefix", "onnx-model-spacetodepth")
+
+    # Create ValueInfoProto
+    input_tensor = helper.make_tensor_value_info(
+        "input", TensorProto.FLOAT, input_shape
+    )
+
+    # Calculate output shape
+    output_shape = [
+        input_shape[0],  # batch
+        input_shape[1] // blocksize,  # height
+        input_shape[2] // blocksize,  # width
+        input_shape[3] * (blocksize * blocksize),  # channels
+    ]
+
+    output_tensor = helper.make_tensor_value_info(
+        "output", TensorProto.FLOAT, output_shape
+    )
+
+    # Create SpaceToDepth Node
+    node_def = helper.make_node(
+        "SpaceToDepth", inputs=["input"], outputs=["output"], blocksize=blocksize
+    )
+
+    # Create GraphProto
+    graph_def = helper.make_graph(
+        [node_def],
+        "space_to_depth_model",
+        [input_tensor],
+        [output_tensor],
+    )
+
+    # Create ModelProto
+    model_def = helper.make_model(graph_def, producer_name=export_name_prefix)
+
+    # Check model
+    onnx.checker.check_model(model_def)
+    print("The model is checked!")
+
+    return model_def
+
+
 def REVERSESEQUENCE_TEST(config) -> ModelProto:
     """
     Attributes
@@ -339,6 +404,78 @@ def REDUCELOGSUM_TEST(config) -> ModelProto:
     model_def = helper.make_model(
         graph_def, opset_imports=[opset], producer_name="espdl ops test"
     )
+
+    # Check model
+    onnx.checker.check_model(model_def)
+    print("The model is checked!")
+
+    return model_def
+
+
+def DEPTHTOSPACE_TEST(config) -> ModelProto:
+    """
+    ONNX Operator: DepthToSpace
+
+    DepthToSpace rearranges (permutes) data from depth into blocks of spatial data.
+    This is the reverse transformation of SpaceToDepth. More specifically, this op outputs a copy of
+    the input tensor where values from the depth dimension are moved in spatial blocks to the height
+    and width dimensions. By default, mode = DCR.
+
+    Inputs
+    input (differentiable) - T
+        Input tensor of [N,C,H,W], where N is the batch axis, C is the channel or depth, H is the height and W is the width.
+
+    Outputs
+    output (differentiable) - T
+        Output tensor of [N, C/(blocksize * blocksize), H * blocksize, W * blocksize].
+
+    Attributes
+    blocksize - INT (default is 1)
+        Blocks along spatial dimension.
+    mode - STRING (default is 'DCR')
+        DCR (depth-column-row) or CRD (column-row-depth) mode (both modes are identical for blocksize=2)
+    """
+
+    input_shape = config["input_shape"]
+    blocksize = config.get("blocksize", 2)
+    mode = config.get("mode", "DCR")
+    export_name_prefix = config.get("export_name_prefix", "onnx-model-depthtospace")
+
+    # Create ValueInfoProto
+    input_tensor = helper.make_tensor_value_info(
+        "input", TensorProto.FLOAT, input_shape
+    )
+
+    # Calculate output shape
+    N, C, H, W = input_shape
+    C_out = C // (blocksize * blocksize)
+    H_out = H * blocksize
+    W_out = W * blocksize
+    output_shape = [N, C_out, H_out, W_out]
+
+    output_tensor = helper.make_tensor_value_info(
+        "output", TensorProto.FLOAT, output_shape
+    )
+
+    # Create DepthToSpace Node
+    node_def = helper.make_node(
+        "DepthToSpace",
+        inputs=["input"],
+        outputs=["output"],
+        blocksize=blocksize,
+        mode=mode,
+    )
+
+    # Create GraphProto
+    graph_def = helper.make_graph(
+        [node_def],
+        "depth_to_space_model",
+        [input_tensor],
+        [output_tensor],
+    )
+
+    # Create ModelProto
+    model_def = helper.make_model(graph_def, producer_name=export_name_prefix)
 
     # Check model
     onnx.checker.check_model(model_def)

@@ -20,8 +20,8 @@ ESP-DL 提供了加载、调试和运行 AI 模型的 API。该框架易于使�
 
 
 ## 更新 
-
-- [2025/07/22] 将 ESP-PPQ 的包名从 ppq 改为 esp-ppq，以避免与 ppq 冲突，同时将 ESP-PPQ 依赖包全部升级到最新版。**注意: 量化脚本中需注意修改包名**。
+- [2025/10/20] 发布 ESP-DL v3.2.0, 进一步增强了模型量化和部署的能力。   
+- [2025/07/22] 将 ESP-PPQ 的包名从 ppq 改为 esp-ppq，以避免与 ppq 冲突，同时将 ESP-PPQ 依赖包全部升级到最新版。**注意: 量化脚本中需注意修改包名为esp-ppq**。
 - [2025/04/30] 我们发布了全新的 [esp-detection](https://github.com/espressif/esp-detection) 项目和 `ESPDet-Pico` 模型，可轻松训练并部署目标检测模型。[espdet_pico_224_224_cat 模型](./models/cat_detect/) 和 [示例](./examples/cat_detect/) 是基于 esp-detection 训练的猫咪检测模型，欢迎试用并反馈意见！    
 - [2025/02/18] 新增支持 YOLO11n 模型，提供 [espdl 模型](https://github.com/espressif/esp-dl/tree/master/models/coco_detect) 及 [示例](https://github.com/espressif/esp-dl/tree/master/examples/yolo11_detect)。    
 - [2025/01/09] 更新了 espdl 模型架构，发布 ESP-DL v3.1.0。注意：旧版模型可被新架构加载，但新版模型不兼容旧版本。   
@@ -76,7 +76,9 @@ ESP-DL 提供了一系列 API 来快速加载和运行模型。更多详细信�
 [Imagenet 分类](./models/imagenet_cls/)    
 [COCO 检测](./models/coco_detect/)    
 [猫检测](./models/cat_detect/)  
+[狗检测](./models/cat_detect/)  
 [姿态估计](./models/coco_pose/)
+[声纹检测](./models/speaker_verification/)
 
 ## Suport Operators
 

@@ -4,6 +4,7 @@
 #include "dl_module_clip.hpp"
 #include "dl_module_concat.hpp"
 #include "dl_module_conv.hpp"
+#include "dl_module_depth_to_space.hpp"
 #include "dl_module_div.hpp"
 #include "dl_module_elu.hpp"
 #include "dl_module_equal.hpp"
@@ -49,6 +50,7 @@
 #include "dl_module_sigmoid.hpp"
 #include "dl_module_slice.hpp"
 #include "dl_module_softmax.hpp"
+#include "dl_module_space_to_depth.hpp"
 #include "dl_module_split.hpp"
 #include "dl_module_sqrt.hpp"
 #include "dl_module_squeeze.hpp"
@@ -159,6 +161,7 @@ public:
             this->register_module("Pad", Pad::deserialize);
             this->register_module("MatMul", MatMul::deserialize);
             this->register_module("Neg", Neg::deserialize);
+            this->register_module("SpaceToDepth", SpaceToDepth::deserialize);
             this->register_module("Split", Split::deserialize);
             this->register_module("Gather", Gather::deserialize);
             this->register_module("Elu", Elu::deserialize);
@@ -182,6 +185,7 @@ public:
             this->register_module("ReduceLogSumExp", ReduceLogSumExp::deserialize);
             this->register_module("GRU", GRU::deserialize);
             this->register_module("LSTM", LSTM::deserialize);
+            this->register_module("DepthToSpace", DepthToSpace::deserialize);
         }
     }
 

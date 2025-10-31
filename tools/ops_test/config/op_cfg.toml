@@ -2022,30 +2022,7 @@
         export_name_prefix = "pad_ishap_2_2_5_10_50_pads_2_1_1_1_1_1_1_1_1_1_constant_1"
 
 
-    [ops_test.Pow]
-    test_func = "POW_TEST"
-    quant_bits = ["int8", "int16", "float32"]
-    package = "torch_ops_test"
-    restrictions = "Support up to 4D, multidirectional broadcasting"
-        [[ops_test.Pow.cfg]]
-        input_shape = [[1, 4, 1], [2, 4, 5]]
-        export_name_prefix = "pow_3d_same_shape"
 
-        [[ops_test.Pow.cfg]]
-        input_shape = [[2, 3], [3]]
-        export_name_prefix = "pow_broadcast_array"
-
-        [[ops_test.Pow.cfg]]
-        input_shape = [[1, 2, 3, 3], [1, 2, 3, 3]]
-        export_name_prefix = "pow_4d_same_shape"
-
-        [[ops_test.Pow.cfg]]
-        input_shape = [[2, 1, 4], [1, 3, 1]]
-        export_name_prefix = "pow_broadcast_3d_complex"
-
-        [[ops_test.Pow.cfg]]
-        input_shape = [[1, 20], [10, 20]]
-        export_name_prefix = "pow_2d_large"
 
     [ops_test.MatMul]
     test_func = "MATMUL_TEST"
@@ -3332,6 +3309,60 @@
         batch_first = false
         export_name_prefix = "gru_seq3_input16_hidden24_bidirectional"
         export_path = ""
+
+    [ops_test.DepthToSpace]
+    test_func = "DEPTHTOSPACE_TEST"
+    quant_bits = ["int8", "int16", "float32"]
+    package = "onnx_ops_test"
+
+        [[ops_test.DepthToSpace.cfg]]
+        input_shape = [1, 4, 3, 3]
+        blocksize = 2
+        mode = "CRD"
+        export_name_prefix = "depth_to_space_simple"
+
+        [[ops_test.DepthToSpace.cfg]]
+        input_shape = [1, 8, 2, 3]
+        blocksize = 2
+        mode = "CRD"
+        export_name_prefix = "depth_to_space_crd_mode_example"
+
+        [[ops_test.DepthToSpace.cfg]]
+        input_shape = [1, 8, 2, 3]
+        blocksize = 2
+        mode = "DCR"
+        export_name_prefix = "depth_to_space_dcr_mode_example"
+
+        [[ops_test.DepthToSpace.cfg]]
+        input_shape = [1, 18, 4, 4]
+        blocksize = 3
+        mode = "CRD"
+        export_name_prefix = "depth_to_space_blocksize_3_dcr"
+
+    [ops_test.SpaceToDepth]
+    test_func = "SPACETODEPTH_TEST"
+    quant_bits = ["int8", "int16", "float32"]
+    package = "onnx_ops_test"
+
+        [[ops_test.SpaceToDepth.cfg]]
+        input_shape = [1, 4, 6, 2]
+        blocksize = 2
+        export_name_prefix = "space_to_depth_simple"
+
+        [[ops_test.SpaceToDepth.cfg]]
+        input_shape = [1, 9, 12, 3]
+        blocksize = 3
+        export_name_prefix = "space_to_depth_blocksize_3"
+
+        [[ops_test.SpaceToDepth.cfg]]
+        input_shape = [2, 8, 8, 4]
+        blocksize = 4
+        export_name_prefix = "space_to_depth_batch_2"
+
+        [[ops_test.SpaceToDepth.cfg]]
+        input_shape = [1, 10, 15, 5]
+        blocksize = 5
+        export_name_prefix = "space_to_depth_rectangular"
 
     [ops_test.LSTM]
     test_func = "LSTM_TEST"

@@ -171,6 +171,27 @@ def build_and_copy(apps_to_build, model_path):
             pack_models([str(op_path)], bin_path)
 
 
+def build_single_op(apps_to_build, op_path):
+    target_apps = {}
+    for app in apps_to_build:
+        if app.target not in target_apps:
+            target_apps[app.target] = Path(app.build_path)
+
+    for target, build_path in target_apps.items():
+        basedir = build_path.parent
+        op_build_path = basedir / f"build_{target}_{op_path.name}"
+        if op_build_path.exists():
+            shutil.rmtree(op_build_path)
+            shutil.copytree(build_path, op_build_path)
+        else:
+            shutil.copytree(build_path, op_build_path)
+        shutil.rmtree(build_path)
+
+        print(build_path, op_build_path, op_path)
+        bin_path = op_build_path / "espdl_models"
+        pack_models([str(op_path)], bin_path / "models.espdl")
+
+
 def main(args):  # type: (argparse.Namespace) -> None
     default_build_targets = (
         args.default_build_targets.split(",") if args.default_build_targets else None
@@ -211,6 +232,11 @@ def main(args):  # type: (argparse.Namespace) -> None
     )
     if args.model_path and os.path.exists(args.model_path):
         build_and_copy(apps_to_build, args.model_path)
+    elif args.op_type:
+        op_path = PROJECT_ROOT / "test_apps/esp-dl/models" / args.target / args.op_type
+        print(op_path)
+        if os.path.exists(op_path):
+            build_single_op(apps_to_build, op_path)
 
     sys.exit(ret_code)
 
@@ -267,6 +293,12 @@ if __name__ == "__main__":
         "--model-path",
         default=None,
         help="model path used in test",
+    )
+    parser.add_argument(
+        "-op",
+        "--op_type",
+        default=None,
+        help="NN Operation type used in test",
     )
     parser.add_argument(
         "-v",
