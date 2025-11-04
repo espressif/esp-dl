@@ -73,10 +73,28 @@ def gen_pytest_script_by_config(
         print(f"No model found in {config_file}")
 
 
+def gen_pytest_script_by_type(op_type, pytest_file, target="esp32p4", env="esp32p4"):
+    # models = get_model_names(model_path)
+    models = [op_type]
+    if len(models) > 0:
+        print(models)
+        pytest_content = PYTEST_TEMPLATE.format(
+            target=target, env=env, models=str(models)
+        )
+        print(pytest_content)
+        with open(pytest_file, "w") as f:
+            f.write(pytest_content)
+    else:
+        print(f"No model found in {model_path}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate script for operator test",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "-op", "--op_type", default=None, help="Type of operator to test."
     )
     parser.add_argument(
         "-m", "--model_path", default=None, help="Paths of models to test."
@@ -85,6 +103,7 @@ if __name__ == "__main__":
         "-c", "--config", default=None, help="Test case config file path."
     )
     parser.add_argument(
+        "-o",
         "--pytest_file",
         default="pytest_op_test.py",
         help="Path of pytest file to generate",
@@ -109,5 +128,7 @@ if __name__ == "__main__":
         gen_pytest_script_by_config(
             args.config, args.pytest_file, args.target, args.env
         )
+    elif args.op_type:
+        gen_pytest_script_by_type(args.op_type, args.pytest_file, args.target, args.env)
     else:
         print("Please specify either model_path or config")

@@ -1,0 +1,14 @@
+--index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
+
+torch<2.9.0
+torchvision
+torchaudio
+esp-ppq
+toml
+idf_build_apps
+pytest
+pytest-embedded-idf
+pytest-embedded-serial-esp
+pytest-rerunfailures
+pytest-timeout
