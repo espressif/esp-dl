@@ -8,7 +8,7 @@
 
 # Pedestrian Detect Example
 
-A simple image inference example. See full example in [esp-who](https://github.com/espressif/esp-who/tree/master/examples/pedestrian_detect).
+A simple image inference example. See full example in [esp-who](https://github.com/espressif/esp-who/tree/master/examples/object_detect).
 
 ## Quick start
 

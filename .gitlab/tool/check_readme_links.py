@@ -16,7 +16,7 @@ import urllib.request
 from collections import defaultdict, namedtuple
 from pathlib import Path
 
-EXCLUDE_DOCS_LIST = []
+EXCLUDE_DOCS_LIST = ["espdl_agent/Operators.md"]
 
 # The apple apps links are not accessible from the company network for some reason
 EXCLUDE_URL_LIST = [

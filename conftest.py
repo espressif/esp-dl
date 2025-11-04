@@ -255,9 +255,7 @@ class IdfPytestEmbedded:
                     items[:] = items[start:end]
             elif self.model_name[0] != "all":
                 items[:] = [
-                    item
-                    for item in items
-                    if _get_param_config(item) not in self.model_name
+                    item for item in items if _get_param_config(item) in self.model_name
                 ]
 
         print(items)

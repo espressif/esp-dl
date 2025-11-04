@@ -7,7 +7,7 @@
 
 # Human Face Detect Example
 
-A simple image inference example. See full example in [esp-who](https://github.com/espressif/esp-who/tree/master/examples/human_face_detect).
+A simple image inference example. See full example in [esp-who](https://github.com/espressif/esp-who/tree/master/examples/object_detect).
 
 ## Quick start
 
