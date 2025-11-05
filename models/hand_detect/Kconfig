@@ -1,0 +1,47 @@
+menu "models: hand_detect"
+    config FLASH_ESPDET_PICO_224_224_HAND
+        bool "flash espdet_pico_224_224_hand"
+        depends on !HAND_DETECT_MODEL_IN_SDCARD
+        default y
+
+    choice
+        prompt "default model"
+        default ESPDET_PICO_224_224_HAND
+        help
+            default hand_detect model
+        config ESPDET_PICO_224_224_HAND
+            bool "espdet_pico_224_224_hand"
+            depends on HAND_DETECT_MODEL_IN_SDCARD || FLASH_ESPDET_PICO_224_224_HAND
+    endchoice
+
+    config DEFAULT_HAND_DETECT_MODEL
+        int
+        default 0 if ESPDET_PICO_224_224_HAND
+
+    choice
+        prompt "model location"
+        default HAND_DETECT_MODEL_IN_FLASH_RODATA
+        help
+            hand_detect model location
+        config HAND_DETECT_MODEL_IN_FLASH_RODATA
+            bool "flash_rodata"
+        config HAND_DETECT_MODEL_IN_FLASH_PARTITION
+            bool "flash_partition"
+        config HAND_DETECT_MODEL_IN_SDCARD
+            bool "sdcard"
+    endchoice
+
+    config HAND_DETECT_MODEL_LOCATION
+        int
+        default 0 if HAND_DETECT_MODEL_IN_FLASH_RODATA
+        default 1 if HAND_DETECT_MODEL_IN_FLASH_PARTITION
+        default 2 if HAND_DETECT_MODEL_IN_SDCARD
+
+    config HAND_DETECT_MODEL_SDCARD_DIR
+        string "hand_detect model sdcard dir"
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
+        depends on HAND_DETECT_MODEL_IN_SDCARD
+        help
+            Directory of models relative to sdcard mount point.
+endmenu

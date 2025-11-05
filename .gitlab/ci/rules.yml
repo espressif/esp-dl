@@ -55,6 +55,12 @@
 .patterns-model_cat_detect: &patterns-model_cat_detect
   - "models/cat_detect/**/*"
 
+.patterns-model_hand_detect: &patterns-model_hand_detect
+  - "models/hand_detect/**/*"
+
+.patterns-model_hand_gesture_recognition: &patterns-model_hand_gesture_recognition
+  - "models/hand_gesture_recognition/**/*"
+
 .patterns-model_dog_detect: &patterns-model_dog_detect
   - "models/dog_detect/**/*"
 
@@ -85,6 +91,12 @@
 
 .patterns-example_cat_detect: &patterns-example_cat_detect
 - "examples/cat_detect/**/*"
+
+.patterns-example_hand_detect: &patterns-example_hand_detect
+- "examples/hand_detect/**/*"
+
+.patterns-example_hand_gesture_recognition: &patterns-example_hand_gesture_recognition
+- "examples/hand_gesture_recognition/**/*"
 
 .patterns-example_dog_detect: &patterns-example_dog_detect
 - "examples/dog_detect/**/*"
@@ -265,6 +277,32 @@
       changes: *patterns-model_cat_detect
     - <<: *if-dev-push
       changes: *patterns-example_cat_detect
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_hand_detect:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_hand_detect
+    - <<: *if-dev-push
+      changes: *patterns-example_hand_detect
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_hand_gesture_recognition:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_hand_gesture_recognition
+    - <<: *if-dev-push
+      changes: *patterns-example_hand_gesture_recognition
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 

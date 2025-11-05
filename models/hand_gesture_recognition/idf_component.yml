@@ -1,0 +1,8 @@
+version: "0.1.0"
+license: "MIT"
+description: hand gesture recognition model.
+url: https://github.com/espressif/esp-dl/tree/master/models/hand_gesture_recognition
+dependencies: 
+  espressif/hand_detect:
+    version: "^0.1.0"
+    override_path: "../hand_detect"

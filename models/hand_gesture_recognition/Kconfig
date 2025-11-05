@@ -1,0 +1,48 @@
+menu "models: hand_gesture_cls"
+    config FLASH_HAND_GESTURE_CLS_MOBILENETV2_0_5_S8_V1
+        bool "flash hand_gesture_cls_mobilenetv2_0_5_s8_v1"
+        depends on !HAND_GESTURE_CLS_MODEL_IN_SDCARD
+        default y
+
+    choice
+        prompt "default model"
+        default HAND_GESTURE_CLS_MOBILENETV2_0_5_S8_V1
+        help
+            default hand_gesture_cls model
+        config HAND_GESTURE_CLS_MOBILENETV2_0_5_S8_V1
+            bool "hand_gesture_cls_mobilenetv2_0_5_s8_v1"
+            depends on HAND_GESTURE_CLS_MODEL_IN_SDCARD || FLASH_HAND_GESTURE_CLS_MOBILENETV2_0_5_S8_V1
+
+    endchoice
+
+    config DEFAULT_HAND_GESTURE_CLS_MODEL
+        int
+        default 0 if HAND_GESTURE_CLS_MOBILENETV2_0_5_S8_V1
+
+    choice
+        prompt "model location"
+        default HAND_GESTURE_CLS_MODEL_IN_FLASH_RODATA
+        help
+            hand_gesture_cls model location
+        config HAND_GESTURE_CLS_MODEL_IN_FLASH_RODATA
+            bool "flash_rodata"
+        config HAND_GESTURE_CLS_MODEL_IN_FLASH_PARTITION
+            bool "flash_partition"
+        config HAND_GESTURE_CLS_MODEL_IN_SDCARD
+            bool "sdcard"
+    endchoice
+
+    config HAND_GESTURE_CLS_MODEL_LOCATION
+        int
+        default 0 if HAND_GESTURE_CLS_MODEL_IN_FLASH_RODATA
+        default 1 if HAND_GESTURE_CLS_MODEL_IN_FLASH_PARTITION
+        default 2 if HAND_GESTURE_CLS_MODEL_IN_SDCARD
+
+    config HAND_GESTURE_CLS_MODEL_SDCARD_DIR
+        string "hand_gesture_cls model sdcard dir"
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
+        depends on HAND_GESTURE_CLS_MODEL_IN_SDCARD
+        help
+            Directory of models relative to sdcard mount point.
+endmenu

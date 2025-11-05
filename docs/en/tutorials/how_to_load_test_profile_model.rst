@@ -51,7 +51,7 @@ Load model from ``rodata``
 .. note::
 
    1. When using `Load model from rodata`_, since the ``.rodata`` section belongs to the app partition, the model file will be flashed every time the code is modified. If the model file is large, you may need to adjust the size of the app partition. Using `Load model from partition`_ or `Load model from sdcard`_ can avoid repeatedly flashing the model, which helps to reduce the flashing time.
-   2. When using `Load model from rodata`_ or `Load model from partition`_, turning off the param_copy option in the Model constructor can avoid copying the model weights in PSRAM or internal RAM to FLASH. This can reduce the use of PSRAM or internal RAM. However, since the frequency of PSRAM or internal RAM is higher than FLASH, the inference performance of the model will decrease.
+   2. When using `Load model from rodata`_ or `Load model from partition`_, turning off the param_copy option in the Model constructor can avoid copying the model weights in FLASH to PSRAM or internal RAM. This can reduce the use of PSRAM or internal RAM. However, since the frequency of PSRAM or internal RAM is higher than FLASH, the inference performance of the model will decrease.
 
 
 Load model from ``partition``
