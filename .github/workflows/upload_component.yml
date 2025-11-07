@@ -23,6 +23,8 @@ jobs:
             models/imagenet_cls;
             models/cat_detect;
             models/dog_detect;
+            models/hand_gesture_recognition
+            models/hand_detect
             tools/dl_fft;
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
