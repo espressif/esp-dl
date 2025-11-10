@@ -47,6 +47,7 @@
 #include "dl_module_reshape.hpp"
 #include "dl_module_resize.hpp"
 #include "dl_module_reverse_sequence.hpp"
+#include "dl_module_scatter_nd.hpp"
 #include "dl_module_sigmoid.hpp"
 #include "dl_module_slice.hpp"
 #include "dl_module_softmax.hpp"
@@ -171,6 +172,7 @@ public:
             this->register_module("Less", Less::deserialize);
             this->register_module("LessOrEqual", LessOrEqual::deserialize);
             this->register_module("ReverseSequence", ReverseSequence::deserialize);
+            this->register_module("ScatterND", ScatterND::deserialize);
             this->register_module("Identity", Identity::deserialize);
             this->register_module("Swish", Swish::deserialize);
             this->register_module("ReduceL1", ReduceL1::deserialize);

@@ -16,7 +16,7 @@
         # Conv, pointwise, aligned
         input_shape = [1, 3, 100, 50]
         export_name_prefix = "conv2d_ishap_1_3_100_50_kshap_16_3_3_3_relu"
-        export_path = ""
+
         in_channels = 3
         out_channels = 16
         kernel_size = [3, 3]
@@ -31,7 +31,7 @@
         # Conv, pointwise, aligned
         input_shape = [1, 16, 20, 20]
         export_name_prefix = "conv2d_ishap_1_16_20_20_kshap_32_16_1_1"
-        export_path = ""
+
         in_channels = 16
         out_channels = 32
         kernel_size = [1, 1]
@@ -46,7 +46,7 @@
         # Conv, pointwise, aligned, two task
         input_shape = [1, 16, 100, 50]
         export_name_prefix = "conv2d_ishap_1_16_100_50_kshap_32_16_1_1"
-        export_path = ""
+
         in_channels = 16
         out_channels = 32
         kernel_size = [1, 1]
@@ -61,7 +61,7 @@
         # Conv, pointwise, aligned, two task
         input_shape = [1, 16, 22, 22]
         export_name_prefix = "conv2d_ishap_1_16_22_22_kshap_32_16_5_5_relu"
-        export_path = ""
+
         in_channels = 16
         out_channels = 32
         kernel_size = [5, 5]
@@ -76,7 +76,7 @@
         # Conv, pointwise, aligned, two task
         input_shape = [1, 32, 19, 23]
         export_name_prefix = "conv2d_ishap_1_32_19_23_kshap_16_32_3_3"
-        export_path = ""
+
         in_channels = 32
         out_channels = 16
         kernel_size = [3, 3]
@@ -91,7 +91,7 @@
         # Conv, pointwise, aligned, two task
         input_shape = [1, 22, 19, 23]
         export_name_prefix = "conv2d_ishap_1_22_19_23_kshap_33_22_3_3"
-        export_path = ""
+
         in_channels = 22
         out_channels = 33
         kernel_size = [3, 3]
@@ -106,7 +106,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 3, 3]
         export_name_prefix = "conv2d_ishap_1_16_3_3_kshap_16_16_3_3"
-        export_path = ""
+
         in_channels = 16
         out_channels = 16
         kernel_size = [3, 3]
@@ -121,7 +121,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 27, 3, 3]
         export_name_prefix = "conv2d_ishap_1_27_3_3_kshap_27_27_5_5"
-        export_path = ""
+
         in_channels = 27
         out_channels = 27
         kernel_size = [5, 5]
@@ -136,7 +136,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 3, 3]
         export_name_prefix = "depthwise_conv2d_ishap_1_16_3_3_kshap_16_1_3_3_relu"
-        export_path = ""
+
         in_channels = 16
         out_channels = 16
         kernel_size = [3, 3]
@@ -151,7 +151,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 20, 20]
         export_name_prefix = "depthwise_conv2d_ishap_1_16_20_20_kshap_16_1_5_5_relu"
-        export_path = ""
+
         in_channels = 16
         out_channels = 16
         kernel_size = [5, 5]
@@ -166,7 +166,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 25, 20, 20]
         export_name_prefix = "depthwise_conv2d_ishap_1_25_20_20_kshap_25_1_7_7_relu"
-        export_path = ""
+
         in_channels = 25
         out_channels = 25
         kernel_size = [7, 7]
@@ -181,7 +181,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 32, 100, 50]
         export_name_prefix = "depthwise_conv2d_ishap_1_32_100_50_kshap_32_1_3_3_relu"
-        export_path = ""
+
         in_channels = 32
         out_channels = 32
         kernel_size = [3, 3]
@@ -196,7 +196,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 3, 3]
         export_name_prefix = "depthwise_conv2d_ishap_1_16_3_3_kshap_16_1_5_5"
-        export_path = ""
+
         in_channels = 16
         out_channels = 16
         kernel_size = [5, 5]
@@ -211,7 +211,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 9, 9]
         export_name_prefix = "depthwise_conv2d_ishap_1_16_9_9_kshap_16_1_5_5"
-        export_path = ""
+
         in_channels = 16
         out_channels = 16
         kernel_size = [5, 5]
@@ -226,7 +226,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 27, 3, 3]
         export_name_prefix = "depthwise_conv2d_ishap_1_27_3_3_kshap_27_1_5_5"
-        export_path = ""
+
         in_channels = 27
         out_channels = 27
         kernel_size = [5, 5]
@@ -241,7 +241,7 @@
         # Conv, pointwise, aligned
         input_shape = [1, 3, 50]
         export_name_prefix = "conv1d_ishap_1_3_50_kshap_16_3_3_relu"
-        export_path = ""
+
         in_channels = 3
         out_channels = 16
         kernel_size = 3
@@ -256,7 +256,7 @@
         # Conv, pointwise, aligned
         input_shape = [1, 16, 32]
         export_name_prefix = "conv1d_ishap_1_16_32_kshap_32_16_1"
-        export_path = ""
+
         in_channels = 16
         out_channels = 32
         kernel_size = 1
@@ -271,7 +271,7 @@
         # Conv, pointwise, aligned, two task
         input_shape = [1, 16, 50]
         export_name_prefix = "conv1d_ishap_1_16_50_kshap_32_16_1"
-        export_path = ""
+
         in_channels = 16
         out_channels = 32
         kernel_size = 1
@@ -286,7 +286,7 @@
         # Conv, pointwise, aligned, two task
         input_shape = [1, 16, 32]
         export_name_prefix = "conv1d_ishap_1_16_32_kshap_32_16_5_relu"
-        export_path = ""
+
         in_channels = 16
         out_channels = 32
         kernel_size = 5
@@ -301,7 +301,7 @@
         # Conv, pointwise, aligned, two task
         input_shape = [1, 32, 19]
         export_name_prefix = "conv1d_ishap_1_32_19_kshap_16_32_3"
-        export_path = ""
+
         in_channels = 32
         out_channels = 16
         kernel_size = 3
@@ -316,7 +316,7 @@
         # Conv, pointwise, aligned, two task
         input_shape = [1, 22, 29]
         export_name_prefix = "conv1d_ishap_1_22_29_kshap_33_22_3"
-        export_path = ""
+
         in_channels = 22
         out_channels = 33
         kernel_size = 3
@@ -331,7 +331,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 3]
         export_name_prefix = "depthwise_conv1d_ishap_1_16_3_kshap_16_1_3_relu"
-        export_path = ""
+
         in_channels = 16
         out_channels = 16
         kernel_size = 3
@@ -346,7 +346,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 20]
         export_name_prefix = "depthwise_conv1d_ishap_1_16_20_kshap_16_1_5_relu"
-        export_path = ""
+
         in_channels = 16
         out_channels = 16
         kernel_size = 5
@@ -361,7 +361,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 16, 20]
         export_name_prefix = "depthwise_conv1d_ishap_1_16_20_kshap_16_1_7_relu"
-        export_path = ""
+
         in_channels = 16
         out_channels = 16
         kernel_size = 7
@@ -376,7 +376,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 30, 20]
         export_name_prefix = "depthwise_conv1d_ishap_1_30_20_kshap_30_1_7_relu"
-        export_path = ""
+
         in_channels = 30
         out_channels = 30
         kernel_size = 7
@@ -391,7 +391,7 @@
         # Can be configured as 1-d or 2-d arrays
         input_shape = [1, 32, 50]
         export_name_prefix = "depthwise_conv1d_ishap_1_32_50_kshap_32_1_3_relu"
-        export_path = ""
+
         in_channels = 32
         out_channels = 32
         kernel_size = 3
@@ -409,7 +409,7 @@
         [[ops_test.Gemm.cfg]]
         input_shape = [1, 16]
         export_name_prefix = "linear_ishap_1_16_kshap_16_16_relu"
-        export_path = ""
+
         in_features = 16
         out_features = 16
         bias = true
@@ -418,7 +418,7 @@
         [[ops_test.Gemm.cfg]]
         input_shape = [1, 31]
         export_name_prefix = "linear_ishap_1_31_kshap_32_31_relu"
-        export_path = ""
+
         in_features = 31
         out_features = 32
         bias = true
@@ -427,7 +427,7 @@
         [[ops_test.Gemm.cfg]]
         input_shape = [1, 64]
         export_name_prefix = "linear_ishap_1_64_kshap_32_64_relu"
-        export_path = ""
+
         in_features = 64
         out_features = 32
         bias = true
@@ -1739,13 +1739,13 @@
         export_name_prefix = "clip_ishape_1_10_5_5_min_0_max_6"
         min = 0
         max = 6
-        export_path = ""
+
         [[ops_test.Clip.cfg]]
         input_shape = [1, 100, 16]
         export_name_prefix = "clip_ishape_1_100_16_min_-5_max_7"
         min = -5
         max = 7
-        export_path = ""
+
 
     [ops_test.Flatten]
     test_func = "FLATTEN_TEST"
@@ -1756,21 +1756,21 @@
         export_name_prefix = "flatten_ishape_1_10_32_5_5_start_0_end__2"
         start_dim = 0
         end_dim = -2
-        export_path = ""
+
 
         [[ops_test.Flatten.cfg]]
         input_shape = [1, 10, 5, 5]
         export_name_prefix = "flatten_ishape_1_10_5_5_start_0_end__1"
         start_dim = 0
         end_dim = -1
-        export_path = ""
+
 
         [[ops_test.Flatten.cfg]]
         input_shape = [1, 5, 16]
         export_name_prefix = "flatten_ishape_1_5_16_start_0_end_2"
         start_dim = 0
         end_dim = 2
-        export_path = ""
+
 
     [ops_test.Reshape]
     test_func = "RESHAPE_TEST"
@@ -1780,19 +1780,19 @@
         input_shape = [1, 10, 32, 5, 5]
         export_name_prefix = "reshape_ishape_1_10_32_5_5_shape_320_5_5"
         shape = [320, 5, 5]
-        export_path = ""
+
 
         [[ops_test.Reshape.cfg]]
         input_shape = [1, 10, 32, 5, 5]
         export_name_prefix = "reshape_ishape_1_10_32_5_5_shape_1600_5"
         shape = [1600, 5]
-        export_path = ""
+
 
         [[ops_test.Reshape.cfg]]
         input_shape = [1, 10, 1, 5]
         export_name_prefix = "reshape_ishape_1_10_1_5_shape_1_50"
         shape = [1, 50]
-        export_path = ""
+
 
     [ops_test.Transpose]
     test_func = "TRANSPOSE_TEST"
@@ -1801,19 +1801,19 @@
         [[ops_test.Transpose.cfg]]
         input_shape = [1, 10, 20, 40]
         export_name_prefix = "transpose_ishape_1_10_20_40_perm_0_2_1_3"
-        export_path = ""
+
         perm = [0, 2, 1, 3]
 
         [[ops_test.Transpose.cfg]]
         input_shape = [1, 25, 35]
         export_name_prefix = "transpose_ishape_1_25_35_perm_2_0_1"
-        export_path = ""
+
         perm = [2, 0, 1]
 
         [[ops_test.Transpose.cfg]]
         input_shape = [1, 33]
         export_name_prefix = "transpose_ishape_1_33_perm_1_0"
-        export_path = ""
+
         perm = [1, 0]
 
 
@@ -3255,7 +3255,7 @@
         bias = true
         batch_first = false
         export_name_prefix = "gru_seq1_input11_hidden24"
-        export_path = ""
+
 
         [[ops_test.GRU.cfg]]
         input_shape = [2, 1, 8]  # [seq_length, batch_size, input_size]
@@ -3265,7 +3265,7 @@
         bias = false
         batch_first = false
         export_name_prefix = "gru_seq2_input8_hidden27_nobias"
-        export_path = ""
+
 
         [[ops_test.GRU.cfg]]
         # Basic GRU forward direction
@@ -3276,7 +3276,7 @@
         bias = true
         batch_first = false
         export_name_prefix = "gru_seq4_input32_hidden32"
-        export_path = ""
+
 
         [[ops_test.GRU.cfg]]
         # Basic GRU forward direction
@@ -3287,7 +3287,7 @@
         bias = true
         batch_first = false
         export_name_prefix = "gru_seq2_input96_hidden128"
-        export_path = ""
+
 
         [[ops_test.GRU.cfg]]
         # Basic GRU forward direction
@@ -3298,7 +3298,7 @@
         bias = true
         batch_first = true
         export_name_prefix = "gru_seq4_input32_hidden32_batchfirst"
-        export_path = ""
+
 
         [[ops_test.GRU.cfg]]
         input_shape = [3, 1, 16]  # [seq_length, batch_size, input_size]
@@ -3308,7 +3308,7 @@
         bias = true
         batch_first = false
         export_name_prefix = "gru_seq3_input16_hidden24_bidirectional"
-        export_path = ""
+
 
     [ops_test.DepthToSpace]
     test_func = "DEPTHTOSPACE_TEST"
@@ -3377,7 +3377,7 @@
         bias = true
         batch_first = false
         export_name_prefix = "gru_seq1_input11_hidden24"
-        export_path = ""
+
 
         [[ops_test.LSTM.cfg]]
         input_shape = [2, 1, 8]  # [seq_length, batch_size, input_size]
@@ -3387,7 +3387,7 @@
         bias = false
         batch_first = false
         export_name_prefix = "gru_seq2_input8_hidden27_nobias"
-        export_path = ""
+
 
         [[ops_test.LSTM.cfg]]
         # Basic LSTM forward direction
@@ -3398,7 +3398,7 @@
         bias = true
         batch_first = false
         export_name_prefix = "gru_seq4_input32_hidden32"
-        export_path = ""
+
 
         [[ops_test.LSTM.cfg]]
         # Basic LSTM forward direction
@@ -3409,7 +3409,7 @@
         bias = true
         batch_first = false
         export_name_prefix = "gru_seq2_input96_hidden128"
-        export_path = ""
+
 
         [[ops_test.LSTM.cfg]]
         # Basic LSTM forward direction
@@ -3420,7 +3420,7 @@
         bias = true
         batch_first = true
         export_name_prefix = "gru_seq4_input32_hidden32_batchfirst"
-        export_path = ""
+
 
         [[ops_test.LSTM.cfg]]
         input_shape = [3, 1, 16]  # [seq_length, batch_size, input_size]
@@ -3430,17 +3430,60 @@
         bias = true
         batch_first = false
         export_name_prefix = "gru_seq3_input16_hidden24_bidirectional"
-        export_path = ""
+
+
+    [ops_test.ScatterND]
+    test_func = "SCATTER_ND_TEST"
+    quant_bits = ["int8", "int16", "float32"]
+    package = "onnx_ops_test"
+    restrictions = "Supports reduction operations: none, add, mul, max, min"
+        [[ops_test.ScatterND.cfg]]
+        # ScatterND - 1D case
+        input_shape = [[1,8], [1,4]]
+        indices_shape = [[1], [2], [3], [4]]
+        reduction = "none"
+        export_name_prefix = "scatternd_1d_8"
+
+        [[ops_test.ScatterND.cfg]]
+        input_shape = [[1,8], [1,4]]
+        indices_shape = [[1], [2], [3], [4]]
+        reduction = "min"
+        export_name_prefix = "scatternd_1d_8_min"
+
+        [[ops_test.ScatterND.cfg]]
+        input_shape = [[1,8], [1,4]]
+        indices_shape = [[1], [2], [3], [4]]
+        reduction = "max"
+        export_name_prefix = "scatternd_1d_8_max"
+
+        [[ops_test.ScatterND.cfg]]
+        input_shape = [[1,8], [1,4]]
+        indices_shape = [[1], [2], [3], [4]]
+        reduction = "add"
+        export_name_prefix = "scatternd_1d_8_add"
+
+        [[ops_test.ScatterND.cfg]]
+        # ScatterND - 2D case with 2D indices
+        input_shape = [[1, 3, 4], [1, 2]]
+        indices_shape = [[0,1], [1,0]]
+        reduction = "none"
+        export_name_prefix = "scatternd_2d_3x4"
+
+        [[ops_test.ScatterND.cfg]]
+        # ScatterND - 3D case with 3D indices
+        input_shape = [[1, 4, 4, 4], [1, 2,4,4]]
+        indices_shape = [[0], [2]]
+        reduction = "none"
+        export_name_prefix = "scatternd_3d_4x4x4"
+
 
 [models_test]
     [models_test.picodet]
         input_shape = [1, 3, 224, 224]
         onnx_model_path = "picodet_xs_224_mod_chns_relu_rep_sim.onnx"
-        export_path = ""
         export_name_prefix = "picodet_xs_224_mod_chns_relu_rep_sim"
 
     [models_test.mobilenet_v2]
         input_shape = [1, 3, 224, 224]
         onnx_model_path = "mobilenet_v2.onnx"
-        export_path = ""
         export_name_prefix = "mobilenet_v2"
