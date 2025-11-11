@@ -21,7 +21,10 @@ I (1952) main_task: Returned from app_main()
 ## Configurable Options in Menuconfig
 
 ### Component configuration
-We provide the models as components, each of them has some configurable options. This example includes two models, one for hand detection and another for hand gesture classification. 
+We provide the models as components, each of them has some configurable options. This example includes two models, one for hand detection and another for hand gesture classification. See
+
+- [Hand Detect Model](https://github.com/espressif/esp-dl/blob/master/models/hand_detect/README.md)
+- [Hand Gesture Classification Model](https://github.com/espressif/esp-dl/blob/master/models/hand_gesture_recognition/README.md)
 
 ### Project configuration
 

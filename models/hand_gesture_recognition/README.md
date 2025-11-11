@@ -68,7 +68,7 @@ When using default value, just copy [models](models) folder to sdcard root direc
 
 # Hand Gesture Recognizer
 
-This component also contains `HandGestureRecognizer`. If you want to recognize a hand gesture, in addition to `HandGestureRecognizer`, you also need `HandDetect`. 
+This component also contains `HandGestureRecognizer`. If you want to recognize a hand gesture, in addition to `HandGestureRecognizer`, you also need `HandDetect`. See [How to New HandDetect](https://github.com/espressif/esp-dl/blob/master/models/hand_detect/README.md#how-to-new-handdetect).
 
 ## How to New Hand Gesture Recognizer
 
