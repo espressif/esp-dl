@@ -76,7 +76,9 @@ ESP-DL 提供了一系列 API 来快速加载和运行模型。更多详细信�
 [Imagenet 分类](./models/imagenet_cls/)    
 [COCO 检测](./models/coco_detect/)    
 [猫检测](./models/cat_detect/)  
-[狗检测](./models/dog_detect/)  
+[狗检测](./models/dog_detect/)
+[手检测](./models/hand_detect/)
+[手势识别](./models/hand_gesture_recognition/)  
 [姿态估计](./models/coco_pose/)
 [声纹检测](./models/speaker_verification/)
 

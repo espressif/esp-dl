@@ -17,7 +17,7 @@ The rounding for ``ESP32-P4`` is [rounding half to even](https://simple.wikipedi
 ## Support Operators
 
 The ESP-DL operator interface is aligned with ONNX. The opset 18 is recommended to export ONNX.
-Currently, the following 57 operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases](./tools/ops_test/config/op_cfg.toml) for details.
+Currently, the following 58 operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases](./tools/ops_test/config/op_cfg.toml) for details.
 
 Most operators maintain the same input/output data layout as ONNX or PyTorch. However, to fully leverage instruction-level acceleration, certain operators such as Conv, GlobalAveragePool, AveragePool, MaxPool, and Resize adopt NHWC or NWC data layouts for their inputs/outputs.
 | Operator                                                                                                                                                     | int8     | int16    | float32   | Restrictions                                                           |
@@ -51,7 +51,7 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Mul[(ESP-DL)](esp-dl/dl/module/include/dl_module_mul.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Mul.html)                                             | &#10004; | &#10004; | &#10004;  | Support up to 4D                                                       |
 | Neg[(ESP-DL)](esp-dl/dl/module/include/dl_module_neg.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Neg.html)                                             | &#10004; | &#10004; | &#10004;  |                                                                        |
 | Pad[(ESP-DL)](esp-dl/dl/module/include/dl_module_pad.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Pad.html)                                             | &#10004; | &#10004; | &#10004;  | Do not support wrap mode                                               |
-| Pow[(ESP-DL)](esp-dl/dl/module/include/dl_module_pow.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Pow.html)                                             | &#10006; | &#10006; | &#10004;  | Support up to 4D, multidirectional broadcasting                        |
+| Pow[(ESP-DL)](esp-dl/dl/module/include/dl_module_pow.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Pow.html)                                             | &#10004; | &#10004; | &#10004;  | Support up to 4D, multidirectional broadcasting                        |
 | PRelu[(ESP-DL)](esp-dl/dl/module/include/dl_module_prelu.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__PRelu.html)                                       | &#10004; | &#10004; | &#10004;  |                                                                        |
 | ReduceL1[(ESP-DL)](esp-dl/dl/module/include/dl_module_reduce_l1.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__ReduceL1.html)                             | &#10004; | &#10004; | &#10006;  | Support up to 4D                                                       |
 | ReduceL2[(ESP-DL)](esp-dl/dl/module/include/dl_module_reduce_l2.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__ReduceL2.html)                             | &#10004; | &#10004; | &#10006;  | Support up to 4D                                                       |
@@ -67,6 +67,7 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Reshape[(ESP-DL)](esp-dl/dl/module/include/dl_module_reshape.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Reshape.html)                                 | &#10004; | &#10004; | &#10004;  |                                                                        |
 | Resize[(ESP-DL)](esp-dl/dl/module/include/dl_module_resize.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Resize.html)                                    | &#10004; | &#10006; | &#10006;  | support 1d/2d nearest/linear/bilinear, don't support roi and antialias |
 | ReverseSequence[(ESP-DL)](esp-dl/dl/module/include/dl_module_reverse_sequence.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__ReverseSequence.html)        | &#10004; | &#10004; | &#10006;  |                                                                        |
+| ScatterND[(ESP-DL)](esp-dl/dl/module/include/dl_module_scatter_nd.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__ScatterND.html)                          | &#10004; | &#10004; | &#10004;  | Supports reduction operations: none, add, mul, max, min                |
 | Sigmoid[(ESP-DL)](esp-dl/dl/module/include/dl_module_sigmoid.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Sigmoid.html)                                 | &#10004; | &#10004; | &#10004;  |                                                                        |
 | Slice[(ESP-DL)](esp-dl/dl/module/include/dl_module_slice.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Slice.html)                                       | &#10004; | &#10004; | &#10004;  |                                                                        |
 | Softmax[(ESP-DL)](esp-dl/dl/module/include/dl_module_softmax.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Softmax.html)                                 | &#10004; | &#10004; | &#10004;  | Dtype of output is float32                                             |
@@ -80,4 +81,4 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Transpose[(ESP-DL)](esp-dl/dl/module/include/dl_module_transpose.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Transpose.html)                           | &#10004; | &#10004; | &#10004;  |                                                                        |
 | Unsqueeze[(ESP-DL)](esp-dl/dl/module/include/dl_module_unsqueeze.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Unsqueeze.html)                           | &#10004; | &#10004; | &#10004;  |                                                                        |
 
-Generation Time: 2025-10-29 20:21:03
+Generation Time: 2025-11-11 16:50:08
