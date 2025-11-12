@@ -560,6 +560,7 @@ class POW_TEST(nn.Module):
         self.config = config
 
     def forward(self, input1, input2):
+        input1 = torch.exp(input1)
         output = torch.pow(input1, input2)
         return output
 

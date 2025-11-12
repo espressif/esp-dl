@@ -117,6 +117,131 @@ def SPACETODEPTH_TEST(config) -> ModelProto:
     return model_def
 
 
+def SCATTER_ND_TEST(config) -> ModelProto:
+    """
+    ONNX Operator: ScatterND
+
+    ScatterND takes three inputs: data tensor, indices tensor, and updates tensor.
+    The output is produced by creating a copy of the input data, and then updating
+    its values to values specified by updates at specific index positions specified by indices.
+    Supports reduction operations: none (default), add, mul, max, min.
+
+    Inputs
+    data (differentiable) - T:
+        Tensor of rank r >= 1.
+    indices (non-differentiable) - tensor(int64):
+        Tensor of rank q >= 1.
+    updates (differentiable) - T:
+        Tensor of rank q + r - indices.shape[-1] - 1.
+
+    Outputs
+    output (differentiable) - T:
+        Tensor of rank r >= 1.
+
+    Attributes
+    reduction - STRING (default is 'none'):
+        Type of reduction to apply: none, add, mul, max, min.
+    """
+
+    data_shape = config["input_shape"][0]
+    indices_shape = list(np.array(config["indices_shape"]).shape)
+    indices = np.array(config["indices_shape"]).flatten().tolist()
+    updates_shape = config["input_shape"][1]
+    print("data_shape:", data_shape)
+    print("indices_shape:", indices_shape, config["indices_shape"])
+    print("updates_shape:", updates_shape)
+    reduction = config.get("reduction", "none")
+    export_name_prefix = config.get("export_name_prefix", "onnx-model-scatternd")
+
+    # Create ValueInfoProto
+    data_tensor = helper.make_tensor_value_info("data", TensorProto.FLOAT, data_shape)
+
+    indices_tensor = helper.make_tensor(
+        name="indices",
+        data_type=TensorProto.INT64,
+        dims=indices_shape,
+        vals=indices,
+    )
+
+    squeezed_axis = helper.make_tensor(
+        name="squeezed_axis",
+        data_type=TensorProto.INT64,
+        dims=[1],
+        vals=[0],
+    )
+
+    updates_tensor = helper.make_tensor_value_info(
+        "updates", TensorProto.FLOAT, updates_shape
+    )
+    # Create intermediate tensors after squeeze
+    data_squeezed_tensor = helper.make_tensor_value_info(
+        "data_squeezed", TensorProto.FLOAT, data_shape[1:]
+    )
+
+    updates_squeezed_tensor = helper.make_tensor_value_info(
+        "updates_squeezed", TensorProto.FLOAT, updates_shape[1:]
+    )
+
+    output_tensor = helper.make_tensor_value_info(
+        "output", TensorProto.FLOAT, data_shape
+    )
+    # Create Squeeze nodes
+    squeeze_nodes = []
+
+    data_squeeze_node = helper.make_node(
+        "Squeeze",
+        inputs=["data", "squeezed_axis"],
+        outputs=["data_squeezed"],
+    )
+    squeeze_nodes.append(data_squeeze_node)
+    scatter_data_input = "data_squeezed"
+
+    updates_squeeze_node = helper.make_node(
+        "Squeeze",
+        inputs=["updates", "squeezed_axis"],
+        outputs=["updates_squeezed"],
+    )
+    squeeze_nodes.append(updates_squeeze_node)
+    scatter_updates_input = "updates_squeezed"
+
+    # Create ScatterND Node
+    if reduction == "none":
+        scatter_node = helper.make_node(
+            "ScatterND",
+            inputs=[scatter_data_input, "indices", scatter_updates_input],
+            outputs=["output"],
+        )
+    else:
+        scatter_node = helper.make_node(
+            "ScatterND",
+            inputs=[scatter_data_input, "indices", scatter_updates_input],
+            outputs=["output"],
+            reduction=reduction,
+        )
+
+    # Create GraphProto with all nodes
+    all_nodes = squeeze_nodes + [scatter_node]
+
+    # Create GraphProto
+    graph_def = helper.make_graph(
+        all_nodes,
+        "scatter_nd_model",
+        [data_tensor, updates_tensor],
+        [output_tensor],
+        initializer=[indices_tensor, squeezed_axis],
+    )
+
+    # Create ModelProto
+    model_def = helper.make_model(graph_def, producer_name=export_name_prefix)
+    model_def.ir_version = 10  # Set IR version to 7 to support ScatterND with reduction
+
+    # Check model
+    onnx.checker.check_model(model_def)
+    print("The model is checked!")
+
+    return model_def
+
+
 def REVERSESEQUENCE_TEST(config) -> ModelProto:
     """
     Attributes
