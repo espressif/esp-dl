@@ -33,7 +33,7 @@
 COCOPose *pose = new COCOPose();
 ```
 
-#### Mutiple Models
+#### Multiple Models
 
 ```cpp
 // use YOLO11N_POSE_S8_V1
@@ -42,7 +42,7 @@ COCOPose *pose = new COCOPose(COCOPose::YOLO11N_POSE_S8_V1);
 // COCOPose *pose = new COCOPose(COCOPose::YOLO11N_POSE_S8_V2);
 ```
 > [!NOTE] 
-> If mutiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``COCOPose`` to use one of them.
+> If multiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``COCOPose`` to use one of them.
 
 ### How to Detect
 

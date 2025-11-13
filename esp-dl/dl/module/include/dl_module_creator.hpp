@@ -78,7 +78,7 @@ public:
 
     /**
      * @brief Get instance of ModuleCreator by this function. It is only safe method to get instance of ModuleCreator
-     * becase ModuleCreator is a singleton class.
+     * because ModuleCreator is a singleton class.
      *
      * @return ModuleCreator instance pointer
      */

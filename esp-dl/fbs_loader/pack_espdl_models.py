@@ -100,7 +100,7 @@ def pack_models(model_path_or_dir, out_file="models.espdl"):
     }
 
     model_path: the path of models
-    out_file: the ouput binary filename
+    out_file: the output binary filename
     """
 
     if len(model_path_or_dir) == 1:

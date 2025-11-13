@@ -1,0 +1,4 @@
+[codespell]
+skip = build,*.drawio,*.svg,*.pdf,*.S,tools/espdl_agent/Operators.md
+ignore-words-list = laf,OT
+write-changes = true

@@ -46,3 +46,9 @@ repos:
       - id: clang-format
         types_or: [c++, c, cuda]
         args: ['--style=file']
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1 #latest release version
+    hooks:
+      - id: codespell
+        args: [--config=.codespellrc]

@@ -4956,7 +4956,7 @@ for count_include_pad in (0, 1):
   Y = (X - input_mean) / sqrt(input_var + epsilon) * scale + B
   ```
 
-  For previous (depreciated) non-spatial cases, implementors are suggested
+  For previous (depreciated) non-spatial cases, implementers are suggested
   to flatten the input shape to (N x C * D1 * D2 * ... * Dn) before a BatchNormalization Op.
   This operator has **optional** inputs/outputs. See [the doc](IR.md) for more details about the representation of optional arguments. An empty string may be used in the place of an actual argument's name to indicate a missing argument. Trailing optional arguments (those not followed by an argument that is present) may also be simply omitted.
 

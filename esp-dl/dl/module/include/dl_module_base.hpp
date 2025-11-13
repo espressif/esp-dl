@@ -69,7 +69,7 @@ public:
     virtual std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes) = 0;
 
     /**
-     * @brief Build the module, high-level inferface for Module layer
+     * @brief Build the module, high-level interface for Module layer
      *
      * @param context   Model context including  all inputs and outputs and other runtime information
      * @param mode    Runtime mode, default is RUNTIME_MODE_AUTO

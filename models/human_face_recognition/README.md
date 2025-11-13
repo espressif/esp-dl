@@ -36,7 +36,7 @@
 HumanFaceFeat *feat = new HumanFaceFeat();
 ```
 
-#### Mutiple Models
+#### Multiple Models
 
 ```cpp
 // use MFN_S8_V1
@@ -45,7 +45,7 @@ HumanFaceFeat *feat = new HumanFaceFeat(HumanFaceFeat::MFN_S8_V1);
 // HumanFaceFeat *feat = new HumanFaceFeat(HumanFaceFeat::MBF_S8_V1);
 ```
 > [!NOTE] 
-> If mutiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``HumanFaceFeat`` to use one of them.
+> If multiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``HumanFaceFeat`` to use one of them.
 
 # Configurable Options in Menuconfig
 
@@ -116,7 +116,7 @@ std::vector<dl::recognition::result_t> res = human_face_recognizer->recognize(im
 
 More details, see [`dl::image::img_t`](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/image/dl_image_define.hpp) and [`dl::recognition::result_t`](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/recognition/dl_recognition_define.hpp).
 
-## How to Delete Featrue in Database
+## How to Delete Feature in Database
 ### Delete all Features
 
 ```cpp

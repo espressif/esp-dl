@@ -30,7 +30,7 @@
 CatDetect *detect = new CatDetect();
 ```
 
-#### Mutiple Models
+#### Multiple Models
 
 ```cpp
 // use ESPDET_PICO_224_224_CAT
@@ -39,7 +39,7 @@ CatDetect *detect = new CatDetect(CatDetect::ESPDET_PICO_224_224_CAT);
 // CatDetect *detect = new CatDetect(CatDetect::ESPDET_PICO_416_416_CAT);
 ```
 > [!NOTE] 
-> If mutiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``CatDetect`` to use one of them.
+> If multiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``CatDetect`` to use one of them.
 
 ### How to Detect
 

@@ -27,11 +27,11 @@ You can download pre-trained yolo11n model from `Ultralytics release <https://gi
 
 Currently, ESP-PPQ supports ONNX, PyTorch, and TensorFlow models. During the quantization process, PyTorch and TensorFlow models are first converted to ONNX models, so the pre-trained yolo11n model needs to be converted to an ONNX model.
 
-Specificially, refer to the script :project_file:`export_onnx.py <models/coco_detect/models/export_onnx.py>` to convert the pre-trained yolo11n model to an ONNX model.
+Specifically, refer to the script :project_file:`export_onnx.py <models/coco_detect/models/export_onnx.py>` to convert the pre-trained yolo11n model to an ONNX model.
 
-In the srcipt, we have overridden the forward method of the Detect class, which offers following advantages:
+In the script, we have overridden the forward method of the Detect class, which offers following advantages:
 
-- Faster inference. Compared to the original yolo11n model, operations related to decoding bounding boxes in Detect head are moved from the inference pass to the post-processing phase, resulting in a significant reduction in inference latency. On one hand, operations like ``Conv``, ``Transpose``, ``Slice``, ``Split`` and ``Concat`` are time-consuming when applied during inference pass. On the other hand, the inference outputs are first filtered using a score threshold before decoding the boxes in the post-processing pass, which significantly reduces the number of calculations, thereby acclerating the overall inference speed.
+- Faster inference. Compared to the original yolo11n model, operations related to decoding bounding boxes in Detect head are moved from the inference pass to the post-processing phase, resulting in a significant reduction in inference latency. On one hand, operations like ``Conv``, ``Transpose``, ``Slice``, ``Split`` and ``Concat`` are time-consuming when applied during inference pass. On the other hand, the inference outputs are first filtered using a score threshold before decoding the boxes in the post-processing pass, which significantly reduces the number of calculations, thereby accelerating the overall inference speed.
 
 - Lower quantization Error. The ``Concat`` and ``Add`` operators adopt joint quantization in ESP-PPQ. To reduce quantization errors, the box and score are output by separate branches, rather than being concatenated, due to the significant difference in their ranges. Similarly, since the ranges of the two inputs of ``Add`` and ``Sub`` differ significantly, the calculations are performed in the post-processing phase to avoid quantization errors.
 
@@ -257,7 +257,7 @@ We noticed that although the layer-wise errors for all layers are small, the cum
 
 Mixed-Precision + Horizontal Layer Split Quantization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Spliting convolution layers or GEMM layers can reduce quantization error for better performance.
+Splitting convolution layers or GEMM layers can reduce quantization error for better performance.
 
 **Quantization settings**
 

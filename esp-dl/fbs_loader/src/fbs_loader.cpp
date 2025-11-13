@@ -270,7 +270,7 @@ FbsModel *create_fbs_model(const char *fbs_buf,
     if (model_location == MODEL_LOCATION_IN_FLASH_RODATA &&
         dl::tool::memory_addr_type(model_buf) == dl::MEMORY_ADDR_PSRAM) {
         ESP_LOGW(TAG,
-                 "CONFIG_SPIRAM_RODATA or CONFIG_SPIRAM_XIP_FROM_PSRAM option is on, fbs model is copyed to PSRAM.");
+                 "CONFIG_SPIRAM_RODATA or CONFIG_SPIRAM_XIP_FROM_PSRAM option is on, fbs model is copied to PSRAM.");
         rodata_move = true;
     }
 

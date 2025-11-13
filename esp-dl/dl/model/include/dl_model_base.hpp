@@ -269,9 +269,9 @@ public:
      *
      * @param user_inputs   The model inputs.
      * @param mode          Runtime mode.
-     * @param user_outputs  It's for debug to pecify the output of the intermediate layer; Under normal use, there is no
-     *                      need to pass a value to this parameter. If no parameter is passed, the default is the
-     * graphical output, which can be obtained through Model::get_outputs().
+     * @param user_outputs  It's for debug to specify the output of the intermediate layer; Under normal use, there is
+     * no need to pass a value to this parameter. If no parameter is passed, the default is the graphical output, which
+     * can be obtained through Model::get_outputs().
      */
     virtual void run(std::map<std::string, TensorBase *> &user_inputs,
                      runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE,

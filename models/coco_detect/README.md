@@ -40,7 +40,7 @@ Please note that the yolo11n_s8_v2_s3 model requires more than 8MB of PSRAM on E
 COCODetect *detect = new COCODetect();
 ```
 
-#### Mutiple Models
+#### Multiple Models
 
 ```cpp
 // use YOLO11N_S8_V1
@@ -53,7 +53,7 @@ COCODetect *detect = new COCODetect(COCODetect::YOLO11N_S8_V1);
 // COCODetect *detect = new COCODetect(COCODetect::YOLO11N_320_S8_V3);
 ```
 > [!NOTE] 
-> If mutiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``COCODetect`` to use one of them.
+> If multiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``COCODetect`` to use one of them.
 
 ### How to Detect
 

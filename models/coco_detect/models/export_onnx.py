@@ -58,7 +58,7 @@ class ESP_Detect_Exporter(Exporter):
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """YOLO ONNX export."""
-        requirements = ["onnx>=1.14.0"]  # from esp-ppq requirments.txt
+        requirements = ["onnx>=1.14.0"]  # from esp-ppq requirements.txt
         # since onnxslim will cause NCHW -> 1(N*C)HW in yolo11, we replace onnxslim with onnxsim
         if self.args.simplify:
             requirements += [

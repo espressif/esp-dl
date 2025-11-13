@@ -57,7 +57,7 @@ size_t dtype_sizeof(dtype_t dtype);
 const char *dtype_to_string(dtype_t dtype);
 
 /**
- * @brief Return acivation type string
+ * @brief Return activation type string
  */
 const char *activation_type_to_string(activation_type_t type);
 
@@ -148,7 +148,7 @@ public:
      *
      * @param tensor
      *
-     * @return ture if assign successfully, otherwise false.
+     * @return true if assign successfully, otherwise false.
      */
     bool assign(TensorBase *tensor);
 
@@ -160,7 +160,7 @@ public:
      * @param exponent
      * @param dtype
      *
-     * @return ture if assign successfully, otherwise false.
+     * @return true if assign successfully, otherwise false.
      */
     bool assign(std::vector<int> shape, const void *element, int exponent, dtype_t dtype);
 
@@ -305,7 +305,7 @@ public:
      * @brief Reverse or permute the axes of the input Tensor
      *
      * @param input the input Tensor
-     * @param perm the new arangement of the dims. if perm == {}, the dims arangement will be reversed.
+     * @param perm the new arrangement of the dims. if perm == {}, the dims arrangement will be reversed.
      * @return TensorBase *self
      */
     TensorBase *transpose(TensorBase *input, std::vector<int> perm = {});
@@ -316,7 +316,7 @@ public:
      * @param input_element the input data pointer
      * @param input_shape   the input data shape
      * @param input_axis_offset the input data axis offset
-     * @param perm the new arangement of the dims. if perm == {}, the dims arangement will be reversed.
+     * @param perm the new arrangement of the dims. if perm == {}, the dims arrangement will be reversed.
      *
      * @return TensorBase *self
      */

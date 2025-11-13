@@ -957,7 +957,7 @@ void _slice(TensorBase *input,
     std::vector<int> loop_start(dims, 0);
     std::vector<int> loop_end = input_shape;
     std::vector<int> loop_step(dims, 1);
-    std::vector<int> fliped;
+    std::vector<int> flipped;
 
     int last_axis = start.size() - 1;
     for (int i = 0; i < start.size(); i++) {
@@ -975,7 +975,7 @@ void _slice(TensorBase *input,
             step_i = step[i];
         }
         if (step_i < 0) {
-            fliped.push_back(axis);
+            flipped.push_back(axis);
             start_i = -start_i - 1;
             end_i = -end_i - 1;
             step_i = -step_i;
@@ -1057,8 +1057,8 @@ void _slice(TensorBase *input,
         }
     }
 
-    if (!fliped.empty()) {
-        _flip<T>(output, fliped);
+    if (!flipped.empty()) {
+        _flip<T>(output, flipped);
     }
 }
 
