@@ -11,8 +11,6 @@ float *MFCC::gen_dct_matrix(int num_rows, int num_cols, uint32_t caps)
     // this function is copied from
     // https://github.com/kaldi-asr/kaldi/blob/master/src/matrix/matrix-functions.cc#L592
 
-    std::vector<float> ans(num_rows * num_cols);
-
     float *p = (float *)heap_caps_aligned_alloc(16, sizeof(float) * num_rows * num_cols, caps);
     if (p == nullptr) {
         return p;

@@ -278,7 +278,7 @@ public:
  */
 class MemoryChunk {
 public:
-    size_t size;        /*!< Memeory chunk size */
+    size_t size;        /*!< Memory chunk size */
     bool is_free;       /*!< Whether memory chunk is free or not */
     int offset;         /*!< Offset relative to root pointer */
     int alignment;      /*!< Memory address alignment */
@@ -341,7 +341,7 @@ public:
     }
 
     /**
-     * @brief get aligned size, which is 16/alignemt bytes aligned
+     * @brief get aligned size, which is 16/alignment bytes aligned
      *
      * @param size
      * @return size_t

@@ -8,7 +8,7 @@ static int degree = 90;
 // shows how to use model->run() api.
 void run1()
 {
-    // Once the model is created, the input and output memeory is allocated.
+    // Once the model is created, the input and output memory is allocated.
     dl::Model *model = new dl::Model((const char *)model_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA);
 
     std::map<std::string, dl::TensorBase *> model_inputs = model->get_inputs();
@@ -42,7 +42,7 @@ void run1()
 // same as run1, different way to quantize input & dequantize output
 void run2()
 {
-    // Once the model is created, the input and output memeory is allocated.
+    // Once the model is created, the input and output memory is allocated.
     dl::Model *model = new dl::Model((const char *)model_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA);
 
     std::map<std::string, dl::TensorBase *> model_inputs = model->get_inputs();

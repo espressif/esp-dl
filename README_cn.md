@@ -82,7 +82,7 @@ ESP-DL 提供了一系列 API 来快速加载和运行模型。更多详细信�
 [姿态估计](./models/coco_pose/)
 [声纹检测](./models/speaker_verification/)
 
-## Suport Operators
+## Support Operators
 
 如果你有遇到不支持的算子，请将问题在[issues](https://github.com/espressif/esp-dl/issues)中反馈给我们，我们会尽快支持。  
 也欢迎大家贡献新的算子, 具体方法请参考[创建新模块（算子）](https://docs.espressif.com/projects/esp-dl/zh_CN/latest/tutorials/how_to_add_a_new_module%28operator%29.html)。

@@ -525,7 +525,7 @@ public:
      * @brief Log latency info.
      *
      * @param prefix TAG of ESP_LOGI
-     * @param key    fomat str of ESP_LOGI
+     * @param key    format str of ESP_LOGI
      */
     void print(const char *prefix, const char *key)
     {

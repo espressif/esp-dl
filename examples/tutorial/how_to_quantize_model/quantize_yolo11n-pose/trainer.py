@@ -56,7 +56,7 @@ class Trainer:
         to edit its code to add new feature on graph.
 
     Optimizer controls the learning process and determine the parameters values ends up learning,
-        you can rewrite the defination of optimizer and learning scheduler in __init__ function.
+        you can rewrite the definition of optimizer and learning scheduler in __init__ function.
         Tuning them carefully, as hyperparameters will greatly affects training result.
     """
 

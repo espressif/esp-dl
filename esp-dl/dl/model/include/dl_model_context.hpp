@@ -32,10 +32,10 @@ private:
     inline int ti2pi(int index) { return index - CONTEXT_PARAMETER_OFFSET; }
 
     /**
-     * @brief Gets grobal tensor index by parameter tensor index.
+     * @brief Gets global tensor index by parameter tensor index.
      *
-     * @param index The index of grobal tensor.
-     * @return int Returns grobal index for name2index.
+     * @param index The index of global tensor.
+     * @return int Returns global index for name2index.
      */
     inline int pi2ti(int index) { return index + CONTEXT_PARAMETER_OFFSET; }
 

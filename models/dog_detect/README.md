@@ -30,7 +30,7 @@
 DogDetect *detect = new DogDetect();
 ```
 
-#### Mutiple Models
+#### Multiple Models
 
 ```cpp
 // use ESPDET_PICO_224_224_DOG
@@ -39,7 +39,7 @@ DogDetect *detect = new DogDetect(DogDetect::ESPDET_PICO_224_224_DOG);
 // DogDetect *detect = new DogDetect(DogDetect::ESPDET_PICO_416_416_DOG);
 ```
 > [!NOTE] 
-> If mutiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``DogDetect`` to use one of them.
+> If multiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``DogDetect`` to use one of them.
 
 ### How to Detect
 

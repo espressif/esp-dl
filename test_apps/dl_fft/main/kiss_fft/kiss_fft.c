@@ -8,7 +8,7 @@
 
 #include "_kiss_fft_guts.h"
 /* The guts header contains all the multiplication and addition macros that are defined for
- fixed or floating point complex numbers.  It also delares the kf_ internal functions.
+ fixed or floating point complex numbers.  It also declares the kf_ internal functions.
  */
 
 static void kf_bfly2(kiss_fft_cpx *Fout, const size_t fstride, const kiss_fft_cfg st, int m)

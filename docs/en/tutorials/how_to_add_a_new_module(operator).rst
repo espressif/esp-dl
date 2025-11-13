@@ -82,7 +82,7 @@ For more examples, please refer to :project:`esp-dl/dl/module<esp-dl/dl/module/i
         // Deserialize module instance by serialization information
         static Module *deserialize(fbs::FbsModel *fbs_model, std::string node_name){
             // Implement the logic to deserialize the module instance
-            // The interface shoud be align with ONNX
+            // The interface should be align with ONNX
         }
 
         // Override the print method

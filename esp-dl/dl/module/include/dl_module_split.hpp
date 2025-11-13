@@ -128,7 +128,7 @@ public:
                                  input->get_shape()[m_axis],
                                  output->get_shape()[m_axis]);
             } else {
-                ESP_LOGE("Split", "Unsupport data type.");
+                ESP_LOGE("Split", "Unsupported data type.");
             }
 
             slice_index += output->get_shape()[m_axis];
