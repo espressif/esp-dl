@@ -73,8 +73,8 @@ ESP-DL provides a series of API to quickly load and run models.  A typical examp
 [COCO Detection (YOLO11n)](./models/coco_detect/)    
 [Cat Detection (​​ESPDet-Pico)](./models/cat_detect/)  
 [Dog Detection (​​ESPDet-Pico)](./models/dog_detect/)  
-[Hand Detection (​​ESPDet-Pico)](./models/hand_detect/)
-[Hand Gesture Recognition](./models/hand_gesture_recognition/)
+[Hand Detection (​​ESPDet-Pico)](./models/hand_detect/)   
+[Hand Gesture Recognition](./models/hand_gesture_recognition/)   
 [Pose Estimation (YOLO11n-Pose)](./models/coco_pose/)    
 [Speaker Verification (x-vector)](./models/speaker_verification/)   
 
