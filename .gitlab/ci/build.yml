@@ -54,6 +54,10 @@
       - "**/build*/partition_table/*.bin"
       - "**/build*/espdl_models/*.espdl"
     expire_in: 1 week
+  needs:
+    - job: "check_pre_commit"
+      artifacts: false
+      optional: true
   variables:
     IDF_CI_BUILD: "1"
       # By configuring this macro, you can append the compiled configuration file.
