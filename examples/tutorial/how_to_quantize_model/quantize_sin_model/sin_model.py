@@ -11,9 +11,9 @@ import onnxsim
 class SinPredictor(nn.Module):
     def __init__(self):
         super(SinPredictor, self).__init__()
-        self.fc1 = nn.Linear(1, 64)  # 输入层，1 个特征（x）
-        self.fc2 = nn.Linear(64, 64)  # 隐藏层
-        self.fc3 = nn.Linear(64, 1)  # 输出层，1 个特征（y）
+        self.fc1 = nn.Linear(1, 64)  # Input layer, 1 feature (x)
+        self.fc2 = nn.Linear(64, 64)  # Hidden layer
+        self.fc3 = nn.Linear(64, 1)  # Output layer, 1 feature (y)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
@@ -24,7 +24,7 @@ class SinPredictor(nn.Module):
 
 def generate_data(num_samples=1000, noise=0.05):
     x = torch.linspace(0, 2 * np.pi, num_samples)
-    y = torch.sin(x) + noise * torch.randn(num_samples)  # 加噪声的正弦函数
+    y = torch.sin(x) + noise * torch.randn(num_samples)  # Sine function with noise
     return x.unsqueeze(1), y.unsqueeze(1)
 
 
@@ -43,22 +43,22 @@ if __name__ == "__main__":
         model.train()
 
         for batch_x, batch_y in dataloader:
-            # 前向传播
+            # Forward pass
             y_pred = model(batch_x)
 
-            # 计算损失
+            # Compute loss
             loss = criterion(y_pred, batch_y)
 
-            # 反向传播和优化
+            # Backward pass and optimization
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-        # 打印训练进度
+        # Print training progress
         if (epoch + 1) % 50 == 0:
             print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")
 
-    # 切换到评估模式
+    # Switch to evaluation mode
     model.eval()
     x_test, y_test = generate_data()
     with torch.no_grad():
@@ -67,13 +67,13 @@ if __name__ == "__main__":
     plt.figure(figsize=(10, 6))
     plt.plot(
         x_test.flatten().numpy(), y_test.flatten().numpy(), label="Noisy sine wave"
-    )  # 原始带噪声正弦波
+    )  # Original noisy sine wave
     plt.plot(
         x_test.flatten().numpy(),
         y_pred.flatten().numpy(),
         label="Predicted sine wave",
         color="r",
-    )  # 模型预测结果
+    )  # Model prediction
     plt.xlabel("x")
     plt.ylabel("y")
     plt.title("Original vs Predicted Sine Wave")
@@ -81,11 +81,11 @@ if __name__ == "__main__":
     plt.grid(True)
     plt.show()
 
-    # 保存pytorch模型权重
+    # Save pytorch model weights
     torch.save(model.state_dict(), "sin_model.pth")
 
-    # 导出onnx模型
-    # esp-dl当前只支持 batch size=1
+    # Export onnx model
+    # esp-dl currently only supports batch size=1
     dummy_input = torch.randn([1, 1], dtype=torch.float32)
     torch.onnx.export(
         model,
@@ -100,3 +100,4 @@ if __name__ == "__main__":
     onnx_model, check = onnxsim.simplify(onnx_model)
     assert check, "Simplified ONNX model could not be validated"
     onnx.save(onnx_model, "sin_model.onnx")
+

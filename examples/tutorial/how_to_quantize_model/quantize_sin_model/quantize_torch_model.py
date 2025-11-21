@@ -6,7 +6,7 @@ from esp_ppq.executor.torch import TorchExecutor
 
 
 def collate_fn(batch):
-    # TensorDataset 迭代的时候返回的是 Tuple(x, y), 量化的时候只需要x, 不需要label y。
+    # When iterating over TensorDataset, it returns Tuple(x, y). For quantization, only x is needed, not label y.
     batch = batch[0].to(DEVICE)
     return batch
 
@@ -14,14 +14,14 @@ def collate_fn(batch):
 if __name__ == "__main__":
 
     ESPDL_MODEL_PATH = "sin_model.espdl"
-    INPUT_SHAPE = [1, 1]  # 1 个输入特征
-    TARGET = "esp32s3"  # 量化目标类型，可选 'c', 'esp32s3' or 'esp32p4'
-    NUM_OF_BITS = 8  # 量化位数
+    INPUT_SHAPE = [1, 1]  # 1 input feature
+    TARGET = "esp32s3"  # Quantization target type, options: 'c', 'esp32s3', or 'esp32p4'
+    NUM_OF_BITS = 8  # Number of quantization bits
     DEVICE = "cpu"  # 'cuda' or 'cpu', if you use cuda, please make sure that cuda is available
 
     x_test, y_test = generate_data()
-    # dataloader shuffle必须设置为False。
-    # 因为计算量化误差的时候会多次遍历数据集，如果shuffle是True的话，会得到错误的量化误差。
+    # Dataloader shuffle must be set to False.
+    # Because when calculating quantization error, the dataset will be traversed multiple times. If shuffle is True, the quantization error will be incorrect.
     dataset = TensorDataset(x_test, y_test)
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
     model = SinPredictor()
@@ -32,22 +32,22 @@ if __name__ == "__main__":
         model=model,
         espdl_export_file=ESPDL_MODEL_PATH,
         calib_dataloader=dataloader,
-        calib_steps=32,  # 校准的步数
-        input_shape=INPUT_SHAPE,  # 输入形状，批次为 1
+        calib_steps=32,  # Number of calibration steps
+        input_shape=INPUT_SHAPE,  # Input shape, batch size is 1
         inputs=None,
-        target=TARGET,  # 量化目标类型
-        num_of_bits=NUM_OF_BITS,  # 量化位数
+        target=TARGET,  # Quantization target type
+        num_of_bits=NUM_OF_BITS,  # Number of quantization bits
         collate_fn=collate_fn,
         dispatching_override=None,
         device=DEVICE,
         error_report=True,
         skip_export=False,
         export_test_values=True,
-        verbose=1,  # 输出详细日志信息
+        verbose=1,  # Output detailed log information
     )
 
     criterion = torch.nn.MSELoss()
-    # 原始模型测试集精度
+    # Test accuracy of the original model on the test set
     loss = 0
     for batch_x, batch_y in dataloader:
         y_pred = model(batch_x)
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     loss /= len(dataloader)
     print(f"origin model loss: {loss.item():.5f}")
 
-    # 量化模型测试集精度
+    # Test accuracy of the quantized model on the test set
     executor = TorchExecutor(graph=quant_ppq_graph, device=DEVICE)
     loss = 0
     for batch_x, batch_y in dataloader:
@@ -63,3 +63,4 @@ if __name__ == "__main__":
         loss += criterion(y_pred[0], batch_y)
     loss /= len(dataloader)
     print(f"quant model loss: {loss.item():.5f}")
+
