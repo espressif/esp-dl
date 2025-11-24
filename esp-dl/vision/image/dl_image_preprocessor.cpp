@@ -15,12 +15,16 @@ ImagePreprocessor::ImagePreprocessor(Model *model,
 {
     m_model_input = model->get_input(input_name);
     assert(m_model_input->dtype == DATA_TYPE_INT8 || m_model_input->dtype == DATA_TYPE_INT16);
-    assert(m_model_input->shape[3] == mean.size() && mean.size() == std.size());
+    int ch = (int)m_model_input->shape[3];
+    assert(ch == mean.size() && mean.size() == std.size());
     img_t dst = {.data = m_model_input->data,
                  .width = (uint16_t)m_model_input->shape[2],
                  .height = (uint16_t)m_model_input->shape[1],
-                 .pix_type = (m_model_input->dtype == DATA_TYPE_INT8) ? DL_IMAGE_PIX_TYPE_RGB888_QINT8
-                                                                      : DL_IMAGE_PIX_TYPE_RGB888_QINT16};
+                 .pix_type = (ch == 1)
+                                 ? ((m_model_input->dtype == DATA_TYPE_INT8) ? DL_IMAGE_PIX_TYPE_GRAY_QINT8
+                                                                             : DL_IMAGE_PIX_TYPE_GRAY_QINT16)
+                                 : ((m_model_input->dtype == DATA_TYPE_INT8) ? DL_IMAGE_PIX_TYPE_RGB888_QINT8
+                                                                             : DL_IMAGE_PIX_TYPE_RGB888_QINT16)};
     NormQuantWrapper::quant_type_t quant_type =
         (m_model_input->dtype == DATA_TYPE_INT8) ? NormQuantWrapper::INT8_QUANT : NormQuantWrapper::INT16_QUANT;
     m_image_transformer.set_dst_img(dst).set_caps(caps).set_norm_quant_param(
