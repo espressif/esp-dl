@@ -4,7 +4,7 @@
 extern const uint8_t model_espdl[] asm("_binary_model_espdl_start");
 static const char *TAG = "streaming_model_example";
 
-dl::TensorBase *streaming_tcn_model(dl::Model *model, dl::TensorBase *test_input)
+dl::TensorBase *run_streaming_model(dl::Model *model, dl::TensorBase *test_input)
 {
     std::map<std::string, dl::TensorBase *> model_inputs = model->get_inputs();
     dl::TensorBase *model_input = model_inputs.begin()->second;
@@ -47,7 +47,7 @@ extern "C" void app_main(void)
     // Run streaming model with the same input
     dl::Model *streaming_model =
         new dl::Model((const char *)model_espdl, "streaming_model.espdl", fbs::MODEL_LOCATION_IN_FLASH_RODATA);
-    dl::TensorBase *streaming_output = streaming_tcn_model(streaming_model, test_input);
+    dl::TensorBase *streaming_output = run_streaming_model(streaming_model, test_input);
     streaming_model->print();
 
     // Compare the last step outputs

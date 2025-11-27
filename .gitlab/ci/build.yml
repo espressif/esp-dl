@@ -275,16 +275,16 @@ build_example_model_in_sdcard:
   variables:
     EXAMPLE_DIR: examples/tutorial/how_to_load_test_profile_model/model_in_sdcard
 
-build_example_how_to_run_streaming_model:
+build_example_how_to_deploy_streaming_model:
   extends:
     - .build_examples_template
-    - .rules:build:example_how_to_run_streaming_model
+    - .rules:build:example_how_to_deploy_streaming_model
   parallel:
     matrix:
       - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
-    EXAMPLE_DIR: examples/tutorial/how_to_run_streaming_model
+    EXAMPLE_DIR: examples/tutorial/how_to_deploy_streaming_model/test_streaming_model
 
 build_esp_dl_html:
   extends:
