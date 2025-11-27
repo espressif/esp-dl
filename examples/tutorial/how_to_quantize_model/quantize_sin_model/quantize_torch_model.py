@@ -15,7 +15,9 @@ if __name__ == "__main__":
 
     ESPDL_MODEL_PATH = "sin_model.espdl"
     INPUT_SHAPE = [1, 1]  # 1 input feature
-    TARGET = "esp32s3"  # Quantization target type, options: 'c', 'esp32s3', or 'esp32p4'
+    TARGET = (
+        "esp32s3"  # Quantization target type, options: 'c', 'esp32s3', or 'esp32p4'
+    )
     NUM_OF_BITS = 8  # Number of quantization bits
     DEVICE = "cpu"  # 'cuda' or 'cpu', if you use cuda, please make sure that cuda is available
 
@@ -63,4 +65,3 @@ if __name__ == "__main__":
         loss += criterion(y_pred[0], batch_y)
     loss /= len(dataloader)
     print(f"quant model loss: {loss.item():.5f}")
-

@@ -100,4 +100,3 @@ if __name__ == "__main__":
     onnx_model, check = onnxsim.simplify(onnx_model)
     assert check, "Simplified ONNX model could not be validated"
     onnx.save(onnx_model, "sin_model.onnx")
-

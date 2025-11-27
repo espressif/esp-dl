@@ -6,17 +6,16 @@ namespace dl {
 namespace module {
 /**
  * @brief: Performs StreamingCachetraction operation.
- * memcpy(output, cache, cache_size) 
+ * memcpy(output, cache, cache_size)
  * memcpy(output+cache_size, input, input_size)
  * memcpy(cache, output+input_size, cache_size)
  */
 class StreamingCache : public Module {
-
 private:
     int m_window_size;
     int m_frame_axis;
     int m_cache_bytes;
-    TensorBase* m_cache;
+    TensorBase *m_cache;
 
 public:
     /**
@@ -27,10 +26,10 @@ public:
      * @param quant_type        quantize type.
      */
     StreamingCache(const char *name = NULL,
-        int window_size = 1,
-        int frame_axis = 1,
-        module_inplace_t inplace = MODULE_NON_INPLACE,
-        quant_type_t quant_type = QUANT_TYPE_NONE) :
+                   int window_size = 1,
+                   int frame_axis = 1,
+                   module_inplace_t inplace = MODULE_NON_INPLACE,
+                   quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, inplace, quant_type), m_window_size(window_size), m_frame_axis(frame_axis)
     {
         m_cache = nullptr;
@@ -39,7 +38,8 @@ public:
     /**
      * @brief Destroy the StreamingCache object.
      */
-    ~StreamingCache() {
+    ~StreamingCache()
+    {
         if (m_cache) {
             delete m_cache;
             m_cache = nullptr;
@@ -75,19 +75,13 @@ public:
         }
 
         // Copy cache to output
-        tool::copy_memory(output->get_element_ptr(),
-               m_cache->get_element_ptr(),
-               m_cache_bytes);
+        tool::copy_memory(output->get_element_ptr(), m_cache->get_element_ptr(), m_cache_bytes);
 
         // Copy input to output
-        tool::copy_memory(output->get_element_ptr<uint8_t>() + m_cache_bytes,
-               input->get_element_ptr(),
-               input_bytes);
+        tool::copy_memory(output->get_element_ptr<uint8_t>() + m_cache_bytes, input->get_element_ptr(), input_bytes);
 
         // Update cache
-        tool::copy_memory(m_cache->get_element_ptr(),
-               output->get_element_ptr<uint8_t>() + input_bytes,
-               m_cache_bytes);
+        tool::copy_memory(m_cache->get_element_ptr(), output->get_element_ptr<uint8_t>() + input_bytes, m_cache_bytes);
     }
 
     /**
@@ -97,8 +91,8 @@ public:
     {
         Module *op = nullptr;
         quant_type_t quant_type;
-        int window_size=1;
-        int frame_axis=1;
+        int window_size = 1;
+        int frame_axis = 1;
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
         fbs_model->get_operation_attribute(node_name, "window_size", window_size);
         fbs_model->get_operation_attribute(node_name, "frame_axis", frame_axis);
@@ -112,7 +106,7 @@ public:
         ESP_LOGI("StreamingCache",
                  "quant_type: %s, window_size: %d, frame_axis: %d",
                  quant_type_to_string(quant_type),
-                 m_window_size, 
+                 m_window_size,
                  m_frame_axis);
     }
 };
