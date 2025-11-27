@@ -60,6 +60,7 @@
 #include "dl_module_tanh.hpp"
 #include "dl_module_transpose.hpp"
 #include "dl_module_unsqueeze.hpp"
+#include "dl_module_streaming_cache.hpp"
 #include "fbs_loader.hpp"
 #include <functional>
 #include <iostream>
@@ -188,6 +189,7 @@ public:
             this->register_module("GRU", GRU::deserialize);
             this->register_module("LSTM", LSTM::deserialize);
             this->register_module("DepthToSpace", DepthToSpace::deserialize);
+            this->register_module("StreamingCache", StreamingCache::deserialize);
         }
     }
 

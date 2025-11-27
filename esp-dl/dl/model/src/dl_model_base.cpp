@@ -235,9 +235,11 @@ void Model::run(TensorBase *input, runtime_mode_t mode)
     }
 
     TensorBase *model_input = m_inputs.begin()->second;
-    if (!model_input->assign(input)) {
-        ESP_LOGE(TAG, "Assign input failed");
-        return;
+    if (input != model_input) {
+        if (!model_input->assign(input)) {
+            ESP_LOGE(TAG, "Assign input failed");
+            return;
+        }
     }
 
     // execute each module.
