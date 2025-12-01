@@ -55,6 +55,7 @@
 #include "dl_module_split.hpp"
 #include "dl_module_sqrt.hpp"
 #include "dl_module_squeeze.hpp"
+#include "dl_module_streaming_cache.hpp"
 #include "dl_module_sub.hpp"
 #include "dl_module_swish.hpp"
 #include "dl_module_tanh.hpp"
@@ -188,6 +189,7 @@ public:
             this->register_module("GRU", GRU::deserialize);
             this->register_module("LSTM", LSTM::deserialize);
             this->register_module("DepthToSpace", DepthToSpace::deserialize);
+            this->register_module("StreamingCache", StreamingCache::deserialize);
         }
     }
 

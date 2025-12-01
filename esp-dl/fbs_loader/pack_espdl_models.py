@@ -114,7 +114,7 @@ def pack_models(model_path_or_dir, out_file="models.espdl"):
         model_files = []
         for model_path in sorted(model_path_or_dir):
             model_path = Path(model_path)
-            assert model_path.is_file(), "invalid model_path."
+            assert model_path.is_file(), f"invalid model_path.{str(model_path)}"
             model_files.append(model_path)
 
     model_formats = [get_model_format(file) for file in model_files]
