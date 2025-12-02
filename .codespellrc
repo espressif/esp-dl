@@ -1,4 +1,4 @@
 [codespell]
-skip = build,*.drawio,*.svg,*.pdf,*.S,tools/espdl_agent/Operators.md,test_apps/dl_fft/main/kiss_fft/kiss_fftndr.c
+skip = build,*.drawio,*.svg,*.pdf,*.S,tools/espdl_agent/Operators.md,test_apps/dl_fft/main/kiss_fft/kiss_fftndr.c,esp-dl/fbs_loader/espdl.fbs
 ignore-words-list = laf,OT
 write-changes = true

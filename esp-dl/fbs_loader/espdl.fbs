@@ -1,0 +1,215 @@
+namespace espdl;
+
+enum Version : int32 {
+  _START_VERSION = 0,
+  IR_VERSION_2023_12_22= 1,
+}
+
+enum AttributeType : int32 {
+  UNDEFINED = 0,
+  FLOAT = 1,
+  INT = 2,
+  STRING = 3,
+  TENSOR = 4,
+  GRAPH = 5,
+  FLOATS = 6,
+  INTS = 7,
+  STRINGS = 8,
+  TENSORS = 9,
+  GRAPHS = 10,
+  TYPE_FBS = 11,
+  TYPE_FBSS = 12,
+}
+
+enum TensorDataType : int32 {
+  UNDEFINED = 0,
+  FLOAT = 1,
+  UINT8 = 2,
+  INT8 = 3,
+  UINT16 = 4,
+  INT16 = 5,
+  INT32 = 6,
+  INT64 = 7,
+  STRING = 8,
+  BOOL = 9,
+  FLOAT16 = 10,
+  DOUBLE = 11,
+  UINT32 = 12,
+  UINT64 = 13,
+}
+
+enum DataLocation : int32 {
+  DEFAULT = 0,
+  EXTERNAL = 1,
+}
+
+struct AttributeF {
+  f:float;
+}
+
+struct AttributeI {
+  i:int64;
+}
+
+table Attribute {
+  name:string;
+  ref_attr_name:string;
+  doc_string:string;
+  attr_type:AttributeType;
+  f:AttributeF;
+  i:AttributeI;
+  s:[uint8];
+  t:Tensor;
+  g:Graph;
+  tp:TypeInfo;
+  floats:[float];
+  ints:[int64];
+  strings:[string];
+  tensors:[Tensor];
+  graphs:[Graph];
+  type_protos:[TypeInfo];
+}
+
+table ValueInfo {
+  name:string;
+  value_info_type:TypeInfo;
+  doc_string:string;
+  exponents:[int64];
+}
+
+table Node {
+  input:[string];
+  output:[string];
+  name:string;
+  op_type:string;
+  domain:string;
+  attribute:[Attribute];
+  doc_string:string;
+}
+
+table Model {
+  ir_version:int32;
+  opset_import:[OperatorSetId];
+  producer_name:string;
+  producer_version:string;
+  domain:string;
+  model_version:int64;
+  doc_string:string;
+  graph:Graph;
+  metadata_props:[StringStringEntry];
+  functions:[Function];
+}
+
+table StringStringEntry {
+  key:string;
+  value:string;
+}
+
+table TensorAnnotation {
+  tensor_name:string;
+  quant_parameter_tensor_names:[StringStringEntry];
+}
+
+table Graph {
+  node:[Node];
+  name:string;
+  initializer:[Tensor];
+  doc_string:string;
+  input:[ValueInfo];
+  output:[ValueInfo];
+  value_info:[ValueInfo];
+  quantization_annotation:[TensorAnnotation];
+  test_inputs_value:[Tensor];
+  test_outputs_value:[Tensor];
+}
+
+struct AlignedBytes (force_align: 16) {
+    bytes: [uint8:16];
+}
+
+table Tensor {
+  dims:[int64];
+  data_type:TensorDataType;
+  float_data:[float];
+  int32_data:[int32];
+  string_data:[string];
+  int64_data:[int64];
+  name:string;
+  doc_string:string;
+  raw_data:[AlignedBytes];
+  external_data:[StringStringEntry];
+  data_location:DataLocation;
+  double_data:[double];
+  uint64_data:[uint64];
+  exponents:[int64];
+}
+
+table TensorShape {
+  dim:[Dimension];
+}
+
+table Dimension {
+  value:DimensionValue;
+  denotation:string;
+}
+
+enum DimensionValueType : int8 {
+  UNKNOWN = 0,
+  VALUE = 1,
+  PARAM = 2,
+}
+
+table DimensionValue {
+  dim_type:DimensionValueType;
+  dim_value:int64;
+  dim_param:string;
+}
+
+table TensorTypeAndShape {
+  elem_type:TensorDataType;
+  shape:TensorShape;
+}
+
+table SequenceType {
+  elem_type:TypeInfo;
+}
+
+table MapType {
+  key_type:TensorDataType;
+  value_type:TypeInfo;
+}
+
+table OptionalType {
+  elem_type:TypeInfo;
+}
+
+union TypeInfoValue {
+  tensor_type:TensorTypeAndShape,
+  sequence_type:SequenceType,
+  map_type:MapType,
+  optional_type:OptionalType,
+}
+
+table TypeInfo {
+  value:TypeInfoValue;
+  denotation:string;
+}
+
+table OperatorSetId {
+  domain:string;
+  version:int64;
+}
+
+table Function {
+  name:string;
+  input:[string];
+  output:[string];
+  attribute:[string];
+  attribute_proto:[Attribute];
+  node:[Node];
+  doc_string:string;
+  opset_import:[OperatorSetId];
+  domain:string;
+}
+
+root_type Model;
