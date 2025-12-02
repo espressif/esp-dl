@@ -112,7 +112,7 @@ public:
      * @brief Process entire float audio data
      *
      * @param input Input audio data
-     * @param input_len Length of input data
+     * @param input_len Number of input samples
      * @param output Output features
      * @return esp_err_t ESP_OK on success, error code otherwise
      */
@@ -122,7 +122,7 @@ public:
      * @brief Process entire int16 audio data
      *
      * @param input Input audio data
-     * @param input_len Length of input data
+     * @param input_len Number of input samples
      * @param output Output features
      * @return esp_err_t ESP_OK on success, error code otherwise
      */
@@ -131,7 +131,7 @@ public:
     /**
      * @brief Get the output shape for given input length
      *
-     * @param input_len Length of input data
+     * @param input_len Number of input samples
      * @return std::vector<int> Output shape as [num_frames, feature_dim]
      */
     std::vector<int> get_output_shape(int input_len);
