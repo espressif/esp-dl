@@ -89,8 +89,9 @@ dl::TensorBase *SpeakerVerification::preprocess(const uint8_t *wav_start, size_t
     }
 
     int in_dim = input_tensor->size;
-    int16_t* quantized_input = (int16_t*)input_tensor->data;
-    for (int i = 0; i < in_dim; i++) quantized_input[i] = dl::quantize<int16_t>(features_buffer[i], DL_RESCALE(input_tensor->exponent));
+    int16_t *quantized_input = (int16_t *)input_tensor->data;
+    for (int i = 0; i < in_dim; i++)
+        quantized_input[i] = dl::quantize<int16_t>(features_buffer[i], DL_RESCALE(input_tensor->exponent));
 
     return input_tensor;
 }
