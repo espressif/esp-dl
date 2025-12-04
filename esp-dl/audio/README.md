@@ -70,7 +70,7 @@ Extracts filter bank features from audio signals.
 
 dl::audio::Fbank fbank(config);
 // Process audio data
-std::vector<int> shape = fbank.get_output_shape(audio_length);
+std::vector<int> shape = fbank.get_output_shape(audio_length); //audio_length: number of input audio samples 
 float *output_features = (float*) malloc(shape[0] * shape[1]);
 fbank.process(audio_data, audio_length, output_features);
 ```

@@ -1,4 +1,5 @@
 #include "dl_model_base.hpp"
+#include "esp_timer.h"
 #include <cmath>
 
 extern const uint8_t model_espdl[] asm("_binary_model_espdl_start");
@@ -23,11 +24,15 @@ dl::TensorBase *run_streaming_model(dl::Model *model, dl::TensorBase *test_input
     int model_input_size = model_input->get_bytes();
     uint8_t *model_input_ptr = (uint8_t *)model_input->data;
     int chunks = test_input_size / model_input_size;
+
+    int64_t start_time = esp_timer_get_time();
     for (int i = 0; i < chunks; i++) {
         // assign chunk data to model input
         memcpy(model_input_ptr, test_input_ptr + i * model_input_size, model_input_size);
         model->run(model_input);
     }
+    int64_t end_time = esp_timer_get_time();
+    ESP_LOGI(TAG, "Streaming model for-loop time: %lld us", end_time - start_time);
 
     return model_output;
 }
@@ -42,6 +47,10 @@ extern "C" void app_main(void)
     std::string input_name = model->get_inputs().begin()->first;
     dl::TensorBase *test_input = fbs_model->get_test_input_tensor(input_name);
     model->test();
+    int64_t start_time = esp_timer_get_time();
+    model->run(test_input);
+    int64_t end_time = esp_timer_get_time();
+    ESP_LOGI(TAG, "Non-streaming model test time: %lld us", end_time - start_time);
     model->print();
 
     // Run streaming model with the same input

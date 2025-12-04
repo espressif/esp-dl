@@ -94,7 +94,7 @@ public:
      * @brief Process a single frame of float audio data
      *
      * @param input Input audio data
-     * @param win_len Window length
+     * @param win_len Number of input samples
      * @param output Output MFCC features
      * @param prev Previous sample for pre-emphasis
      * @return esp_err_t ESP_OK on success, error code otherwise
@@ -105,7 +105,7 @@ public:
      * @brief Process a single frame of int16 audio data
      *
      * @param input Input audio data
-     * @param win_len Window length
+     * @param win_len Number of input samples
      * @param output Output MFCC features
      * @param prev Previous sample for pre-emphasis
      * @return esp_err_t ESP_OK on success, error code otherwise
