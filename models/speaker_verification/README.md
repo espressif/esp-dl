@@ -12,7 +12,7 @@
 
 | name         | preprocess(us) | model(us) | postprocess(us) |
 |--------------|----------------|-----------|-----------------|
-| sv_tdnn_tiny | 122951         | 461084    | 68              |
+| sv_tdnn_tiny | 122951         | 438933    | 68              |
 
 ## Model Metrics (after quantization)
 

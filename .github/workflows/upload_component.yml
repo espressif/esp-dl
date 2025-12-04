@@ -25,6 +25,7 @@ jobs:
             models/dog_detect;
             models/hand_detect;
             models/hand_gesture_recognition;
+            models/speaker_verification;
             tools/dl_fft;
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
