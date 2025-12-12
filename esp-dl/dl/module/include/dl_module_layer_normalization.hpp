@@ -308,7 +308,7 @@ public:
         }
 
         std::vector<int> normalized_shape(shape.size(), 1);
-        for (int i = 0, ; i < axis; i++) {
+        for (int i = 0; i < axis; i++) {
             normalized_shape[i] = shape[i];
         }
 

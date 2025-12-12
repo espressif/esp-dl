@@ -12,6 +12,8 @@ def camel_to_snake(name):
         return "prelu"
     if name == "MatMul":
         return "matmul"
+    if name == "ConvTranspose":
+        return "insert_zeros"
 
     s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
@@ -33,10 +35,7 @@ def create_md(config_file, output_path):
         quant_bits = op_test_config[op_type].get("quant_bits", [])
         restrictions = op_test_config[op_type].get("restrictions", "")
 
-        if op_type.lower() in ["swish"]:
-            onnx_op_link = ""
-        else:
-            onnx_op_link = onnx_link.replace("##", op_type)
+        onnx_op_link = onnx_link.replace("##", op_type)
         espdl_op_link = espdl_link.replace("##", camel_to_snake(op_type))
 
         item = [op_type + espdl_op_link + onnx_op_link]

@@ -70,7 +70,6 @@ public:
             int input_dim = input_shape[1 + i];
             int s = m_stride[i];
             int op = m_output_padding[i];
-            // new_dim = dim + (stride - 1) * (dim - 1) + output_padding
             int new_dim = input_dim + (s - 1) * (input_dim - 1) + op;
             output_shape[1 + i] = new_dim;
         }
@@ -117,6 +116,14 @@ public:
         int batch_size = input_shape[0];
         int channels = input_shape[input_shape.size() - 1]; // Last dimension is channels in NHWC
         int num_spatial_dims = input_shape.size() - 2;
+
+        // Normalize stride and output_padding
+        if (m_stride.size() == 1 && num_spatial_dims > 1) {
+            m_stride = std::vector<int>(num_spatial_dims, m_stride[0]);
+        }
+        if (m_output_padding.size() == 1 && num_spatial_dims > 1) {
+            m_output_padding = std::vector<int>(num_spatial_dims, m_output_padding[0]);
+        }
 
         // Calculate spatial dimensions (skip batch and channel dimensions)
         std::vector<int> input_spatial_dims(input_shape.begin() + 1, input_shape.end() - 1);
