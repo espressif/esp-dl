@@ -38,6 +38,39 @@ class CONV_TEST(nn.Module):
         return output
 
 
+class CONVTRANSPOSE_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+
+        conv_class = (
+            nn.ConvTranspose1d
+            if len(config["input_shape"]) == 3
+            else nn.ConvTranspose2d
+        )
+
+        op_list = [
+            conv_class(
+                in_channels=config["in_channels"],
+                out_channels=config["out_channels"],
+                kernel_size=config["kernel_size"],
+                stride=config["stride"],
+                padding=config["padding"],
+                output_padding=config["output_padding"],
+                dilation=config["dilation"],
+                groups=config["groups"],
+                bias=config["bias"],
+            )
+        ]
+        if config["activation_func"] == "ReLU":
+            op_list.append(nn.ReLU())
+        self.ops = nn.Sequential(*op_list)
+        self.config = config
+
+    def forward(self, inputs):
+        output = self.ops(inputs)
+        return output
+
+
 class LINEAR_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
