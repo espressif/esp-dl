@@ -3619,6 +3619,35 @@
         bias = false
         activation_func = ""    # "", "ReLU"
 
+    [ops_test.LayerNormalization]
+    test_func = "LAYERNORMALIZATION_TEST"
+    quant_bits = ["int8", "int16", "float32"]
+    package = "torch_ops_test"
+    targets = ["esp32s3", "esp32p4"]
+    restrictions = "Supports normalization over specified axis with scale and bias"
+        [[ops_test.LayerNormalization.cfg]]
+        # LayerNormalization - 2D input, axis=-1 (default)
+        input_shape = [3, 4]
+        axis = -1
+        epsilon = 1e-5
+        stash_type = 0
+        export_name_prefix = "layernorm_2d_axis_neg1"
+
+        [[ops_test.LayerNormalization.cfg]]
+        # LayerNormalization - 3D input, axis=-1 with custom epsilon
+        input_shape = [2, 3, 5]
+        axis = -1
+        epsilon = 1e-1
+        stash_type = 0
+        export_name_prefix = "layernorm_3d_axis_neg1_epsilon"
+
+        [[ops_test.LayerNormalization.cfg]]
+        # LayerNormalization - 4D input, default axis
+        input_shape = [2, 3, 4, 5]
+        axis = -1
+        epsilon = 1e-5
+        stash_type = 0
+        export_name_prefix = "layernorm_4d_default_axis"
 
 
 [models_test]

@@ -407,6 +407,39 @@ class SIGMOID_TEST(nn.Module):
         return self.sigmoid(input)
 
 
+class LAYERNORMALIZATION_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+        input_shape = config["input_shape"]
+        axis = config.get("axis", -1)
+        epsilon = config.get("epsilon", 1e-5)
+
+        # For simplicity, we only support axis=-1 (normalize last dimension)
+        # which is the most common case for LayerNorm
+        if axis < 0:
+            axis = len(input_shape) + axis
+
+        # PyTorch's LayerNorm normalizes over the last len(normalized_shape) dimensions
+        # So we normalize from the specified axis to the end
+        normalized_shape = input_shape[axis:]
+
+        self.layer_norm = nn.LayerNorm(
+            normalized_shape=normalized_shape,
+            eps=epsilon,
+            elementwise_affine=True,  # Has learnable scale and bias
+        )
+
+        torch.nn.init.normal_(
+            self.layer_norm.weight, mean=1.0, std=0.02
+        )  # scale 随机初始化
+        torch.nn.init.uniform_(self.layer_norm.bias, a=-0.1, b=0.1)
+
+    def forward(self, input):
+        return self.layer_norm(input)
+
+
 class TANH_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()

@@ -20,6 +20,7 @@
 #include "dl_module_hard_swish.hpp"
 #include "dl_module_identity.hpp"
 #include "dl_module_insert_zeros.hpp"
+#include "dl_module_layer_normalization.hpp"
 #include "dl_module_leaky_relu.hpp"
 #include "dl_module_less.hpp"
 #include "dl_module_less_or_equal.hpp"
@@ -192,6 +193,7 @@ public:
             this->register_module("DepthToSpace", DepthToSpace::deserialize);
             this->register_module("StreamingCache", StreamingCache::deserialize);
             this->register_module("InsertZeros", InsertZeros::deserialize);
+            this->register_module("LayerNormalization", LayerNormalization::deserialize);
         }
     }
 

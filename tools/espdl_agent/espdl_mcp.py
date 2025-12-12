@@ -113,7 +113,7 @@ def generate_espdl_op_test_cases(
     ]
     try:
         completed = docker_run(cmd)
-        return f"✅ Test case generation ucceeded\n\n{completed.stdout[-1500:]}"  # Only show the last 1500 characters to avoid excessive output
+        return f"{completed.stdout[-1500:]}"  # Only show the last 1500 characters to avoid excessive output
     except subprocess.CalledProcessError as e:
         return f"❌ Test case generation failed returncode={e.returncode}\n\nSTDOUT:\n{e.stdout}\n\nSTDERR:\n{e.stderr}"
 
@@ -146,7 +146,7 @@ def build_espdl_op(
     ]
     try:
         completed = docker_run(cmd)  # 10分钟超时
-        return f"✅ Compilation succeeded\n\n{completed.stdout[-1500:]}"  # Only show the last 1500 characters to avoid excessive output
+        return f"{completed.stdout[-1500:]}"  # Only show the last 1500 characters to avoid excessive output
     except subprocess.CalledProcessError as e:
         return f"❌ Compilation failed returncode={e.returncode}\n\nSTDOUT:\n{e.stdout}\n\nSTDERR:\n{e.stderr}"
 
@@ -206,7 +206,7 @@ def test_espdl_op(
     ]
     try:
         completed = docker_run(cmd, ports=ports)
-        return f"✅ All tests passed\n\n{completed.stdout[-1500:]}"
+        return f"{completed.stdout[-1500:]}"
     except subprocess.CalledProcessError as e:
         return f"❌ Test failed returncode={e.returncode}\n\nSTDOUT:\n{e.stdout}\n\nSTDERR:\n{e.stderr}"
 
