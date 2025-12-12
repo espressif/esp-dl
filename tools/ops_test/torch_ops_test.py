@@ -38,6 +38,39 @@ class CONV_TEST(nn.Module):
         return output
 
 
+class CONVTRANSPOSE_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+
+        conv_class = (
+            nn.ConvTranspose1d
+            if len(config["input_shape"]) == 3
+            else nn.ConvTranspose2d
+        )
+
+        op_list = [
+            conv_class(
+                in_channels=config["in_channels"],
+                out_channels=config["out_channels"],
+                kernel_size=config["kernel_size"],
+                stride=config["stride"],
+                padding=config["padding"],
+                output_padding=config["output_padding"],
+                dilation=config["dilation"],
+                groups=config["groups"],
+                bias=config["bias"],
+            )
+        ]
+        if config["activation_func"] == "ReLU":
+            op_list.append(nn.ReLU())
+        self.ops = nn.Sequential(*op_list)
+        self.config = config
+
+    def forward(self, inputs):
+        output = self.ops(inputs)
+        return output
+
+
 class LINEAR_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -372,6 +405,39 @@ class SIGMOID_TEST(nn.Module):
 
     def forward(self, input):
         return self.sigmoid(input)
+
+
+class LAYERNORMALIZATION_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+        input_shape = config["input_shape"]
+        axis = config.get("axis", -1)
+        epsilon = config.get("epsilon", 1e-5)
+
+        # For simplicity, we only support axis=-1 (normalize last dimension)
+        # which is the most common case for LayerNorm
+        if axis < 0:
+            axis = len(input_shape) + axis
+
+        # PyTorch's LayerNorm normalizes over the last len(normalized_shape) dimensions
+        # So we normalize from the specified axis to the end
+        normalized_shape = input_shape[axis:]
+
+        self.layer_norm = nn.LayerNorm(
+            normalized_shape=normalized_shape,
+            eps=epsilon,
+            elementwise_affine=True,  # Has learnable scale and bias
+        )
+
+        torch.nn.init.normal_(
+            self.layer_norm.weight, mean=1.0, std=0.02
+        )  # scale 随机初始化
+        torch.nn.init.uniform_(self.layer_norm.bias, a=-0.1, b=0.1)
+
+    def forward(self, input):
+        return self.layer_norm(input)
 
 
 class TANH_TEST(nn.Module):

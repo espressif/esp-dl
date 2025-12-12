@@ -37,6 +37,8 @@ inline float power(float x, int a)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#pragma GCC diagnostic ignored "-Wuninitialized"
+
 /**
  * @brief sqrt(x).
  *
@@ -55,7 +57,7 @@ inline float sqrt_quick(float x)
  * @param x as a base
  * @return 1/sqrt(x)
  */
-inline float sqrt_reciprocal_quick(float x)
+inline float fast_inv_sqrt(float x)
 {
     float xhalf = 0.5f * x;
     int i = *(int *)&x;             // get bits for floating value
