@@ -2,6 +2,7 @@
 
 #include "dl_module_reduce_base.hpp"
 #include <climits>
+#include <cmath>
 
 namespace dl {
 namespace module {
@@ -44,6 +45,9 @@ public:
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             int16_t v0 = INT16_MAX;
             forward_template<int16_t, int16_t>(context, mode, v0, reduce<int16_t, int16_t>, nullptr);
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
+            float v0 = INFINITY;
+            forward_template<float, float>(context, mode, v0, reduce<float, float>, nullptr);
         }
     }
 

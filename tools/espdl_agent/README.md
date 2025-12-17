@@ -69,7 +69,7 @@ The JSON snippet below is an example of how you might configure this espdl-mcp s
         "/your-esp-dl-project-path/tools/espdl_agent/espdl_mcp.py"
       ],
       "env": {
-        "ESP_DL_TOOR": "your-esp-dl-project-path",
+        "ESP_DL_ROOT": "your-esp-dl-project-path",
         "ESP_DL_IMAGE": "espdl/idf-ppq:latest"
       },
       "timeout": 500000
@@ -100,7 +100,7 @@ Open `~/.qwen/settings.json` and add the following content to it.
         "/your-esp-dl-project-path/tools/espdl_agent/espdl_mcp.py"
       ],
       "env": {
-        "ESP_DL_TOOR": "your-esp-dl-project-path",
+        "ESP_DL_ROOT": "your-esp-dl-project-path",
         "ESP_DL_IMAGE": "espdl/idf-ppq:latest"
       },
       "timeout": 500000
