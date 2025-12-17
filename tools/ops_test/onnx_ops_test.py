@@ -348,7 +348,7 @@ def REDUCESUMSQUARE_TEST(config) -> ModelProto:
     """
 
     # Get Attributes from Config
-    keepdims = int(config.get("keepdims", False))
+    keepdims = int(config.get("keepdim", False))
     noop_with_empty_axes = config.get("noop_with_empty_axes", 0)
     input_shape = config["input_shape"]
     dims = config["dim"]  # 获取常量数据

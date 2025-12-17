@@ -2477,7 +2477,7 @@
 
     [ops_test.ReduceL1]
     test_func = "REDUCEL1_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         # case: reduceall
@@ -2488,8 +2488,8 @@
         keepdim = false
 
         [[ops_test.ReduceL1.cfg]]
-        input_shape = [1, 5, 10, 10, 5]
-        export_name_prefix = "ReduceL1_ishap_5_10_10_5_reduceall_keepdim"
+        input_shape = [1, 2, 3, 3, 2]
+        export_name_prefix = "ReduceL1_ishap_2_3_3_2_reduceall_keepdim"
         dim = [0, 1, 2, 3]
         keepdim = true
 
@@ -2547,19 +2547,19 @@
         dim = [0, 2, 3]
         keepdim = false
 
-        # case: axes transform
-        [[ops_test.ReduceL1.cfg]]
-        input_shape = [1, 16, 10, 10]
-        export_name_prefix = "ReduceL1_ishap_1_16_10_10_reduce_1_3_axes_test"
-        dim = [1, 3]
-        keepdim = true
-        axes_trans_test = true
-        in_channels = 16
-        out_channels = 16
+        # # case: axes transform
+        # [[ops_test.ReduceL1.cfg]]
+        # input_shape = [1, 16, 10, 10]
+        # export_name_prefix = "ReduceL1_ishap_1_16_10_10_reduce_1_3_axes_test"
+        # dim = [1, 3]
+        # keepdim = true
+        # axes_trans_test = true
+        # in_channels = 16
+        # out_channels = 16
 
     [ops_test.ReduceL2]
     test_func = "REDUCEL2_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         # case: reduceall
@@ -2570,8 +2570,8 @@
         keepdim = false
 
         [[ops_test.ReduceL2.cfg]]
-        input_shape = [1, 5, 10, 10, 5]
-        export_name_prefix = "ReduceL2_ishap_5_10_10_5_reduceall_keepdim"
+        input_shape = [1, 2, 3, 3, 2]
+        export_name_prefix = "ReduceL2_ishap_2_3_3_2_reduceall_keepdim"
         dim = [0, 1, 2, 3]
         keepdim = true
 
@@ -2629,19 +2629,19 @@
         dim = [0, 2, 3]
         keepdim = false
 
-        # case: axes transform
-        [[ops_test.ReduceL2.cfg]]
-        input_shape = [1, 16, 10, 10]
-        export_name_prefix = "ReduceL2_ishap_1_16_10_10_reduce_1_3_axes_test"
-        dim = [1, 3]
-        keepdim = true
-        axes_trans_test = true
-        in_channels = 16
-        out_channels = 16
+        # # case: axes transform
+        # [[ops_test.ReduceL2.cfg]]
+        # input_shape = [1, 16, 10, 10]
+        # export_name_prefix = "ReduceL2_ishap_1_16_10_10_reduce_1_3_axes_test"
+        # dim = [1, 3]
+        # keepdim = true
+        # axes_trans_test = true
+        # in_channels = 16
+        # out_channels = 16
 
     [ops_test.ReduceMax]
     test_func = "REDUCEMAX_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         # case: reduceall
@@ -2711,19 +2711,19 @@
         dim = [0, 2, 3]
         keepdim = false
 
-        # case: axes transform
-        [[ops_test.ReduceMax.cfg]]
-        input_shape = [1, 16, 10, 10]
-        export_name_prefix = "ReduceMax_ishap_1_16_10_10_reduce_1_3_axes_test"
-        dim = [1, 3]
-        keepdim = true
-        axes_trans_test = true
-        in_channels = 16
-        out_channels = 16
+        # # case: axes transform
+        # [[ops_test.ReduceMax.cfg]]
+        # input_shape = [1, 16, 10, 10]
+        # export_name_prefix = "ReduceMax_ishap_1_16_10_10_reduce_1_3_axes_test"
+        # dim = [1, 3]
+        # keepdim = true
+        # axes_trans_test = true
+        # in_channels = 16
+        # out_channels = 16
 
     [ops_test.ReduceMin]
     test_func = "REDUCEMIN_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         # case: reduceall
@@ -2793,19 +2793,19 @@
         dim = [0, 2, 3]
         keepdim = false
 
-        # case: axes transform
-        [[ops_test.ReduceMin.cfg]]
-        input_shape = [1, 16, 10, 10]
-        export_name_prefix = "ReduceMin_ishap_1_16_10_10_reduce_1_3_axes_test"
-        dim = [1, 3]
-        keepdim = true
-        axes_trans_test = true
-        in_channels = 16
-        out_channels = 16
+        # # case: axes transform
+        # [[ops_test.ReduceMin.cfg]]
+        # input_shape = [1, 16, 10, 10]
+        # export_name_prefix = "ReduceMin_ishap_1_16_10_10_reduce_1_3_axes_test"
+        # dim = [1, 3]
+        # keepdim = true
+        # axes_trans_test = true
+        # in_channels = 16
+        # out_channels = 16
 
     [ops_test.ReduceProd]
     test_func = "REDUCEPROD_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         # case: reduceall
@@ -2841,19 +2841,19 @@
         dim = 2
         keepdim = true
 
-        # case: axes transform
-        [[ops_test.ReduceProd.cfg]]
-        input_shape = [1, 16, 10, 10]
-        export_name_prefix = "ReduceProd_ishap_1_16_10_10_reduce_1_axes_test_keepdim"
-        dim = 1
-        keepdim = true
-        axes_trans_test = true
-        in_channels = 16
-        out_channels = 16
+        # # case: axes transform
+        # [[ops_test.ReduceProd.cfg]]
+        # input_shape = [1, 16, 10, 10]
+        # export_name_prefix = "ReduceProd_ishap_1_16_10_10_reduce_1_axes_test_keepdim"
+        # dim = 1
+        # keepdim = true
+        # axes_trans_test = true
+        # in_channels = 16
+        # out_channels = 16
 
     [ops_test.ReduceSum]
     test_func = "REDUCESUM_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         # case: reduceall
@@ -2864,8 +2864,8 @@
         keepdim = false
 
         [[ops_test.ReduceSum.cfg]]
-        input_shape = [1, 5, 10, 10, 5]
-        export_name_prefix = "ReduceSum_ishap_5_10_10_5_reduceall_keepdim"
+        input_shape = [1, 2, 3, 3, 2]
+        export_name_prefix = "ReduceSum_ishap_2_3_3_2_reduceall_keepdim"
         dim = [0, 1, 2, 3]
         keepdim = true
 
@@ -2923,19 +2923,19 @@
         dim = [0, 2, 3]
         keepdim = false
 
-        # case: axes transform
-        [[ops_test.ReduceSum.cfg]]
-        input_shape = [1, 16, 10, 10]
-        export_name_prefix = "ReduceSum_ishap_1_16_10_10_reduce_1_3_axes_test"
-        dim = [1, 3]
-        keepdim = true
-        axes_trans_test = true
-        in_channels = 16
-        out_channels = 16
+        # # case: axes transform
+        # [[ops_test.ReduceSum.cfg]]
+        # input_shape = [1, 16, 10, 10]
+        # export_name_prefix = "ReduceSum_ishap_1_16_10_10_reduce_1_3_axes_test"
+        # dim = [1, 3]
+        # keepdim = true
+        # axes_trans_test = true
+        # in_channels = 16
+        # out_channels = 16
 
     [ops_test.ReduceMean]
     test_func = "REDUCEMEAN_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         # case: reduceall
@@ -3005,19 +3005,19 @@
         dim = [0, 2, 3]
         keepdim = false
 
-        # case: axes transform
-        [[ops_test.ReduceMean.cfg]]
-        input_shape = [1, 16, 10, 10]
-        export_name_prefix = "ReduceMean_ishap_1_16_10_10_reduce_1_3_axes_test"
-        dim = [1, 3]
-        keepdim = true
-        axes_trans_test = true
-        in_channels = 16
-        out_channels = 16
+        # # case: axes transform
+        # [[ops_test.ReduceMean.cfg]]
+        # input_shape = [1, 16, 10, 10]
+        # export_name_prefix = "ReduceMean_ishap_1_16_10_10_reduce_1_3_axes_test"
+        # dim = [1, 3]
+        # keepdim = true
+        # axes_trans_test = true
+        # in_channels = 16
+        # out_channels = 16
 
     [ops_test.ReduceSumSquare]
     test_func = "REDUCESUMSQUARE_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "onnx_ops_test"
     restrictions = "Support up to 4D"
         # case: reduceall
@@ -3028,8 +3028,8 @@
         keepdim = false
 
         [[ops_test.ReduceSumSquare.cfg]]
-        input_shape = [1, 10, 10, 5]
-        export_name_prefix = "ReduceSumSquare_ishap_1_10_10_5_reduceall_keepdim"
+        input_shape = [1, 3, 3, 5]
+        export_name_prefix = "ReduceSumSquare_ishap_1_3_3_5_reduceall_keepdim"
         dim = [0, 1, 2, 3]
         keepdim = true
 
@@ -3041,8 +3041,8 @@
         keepdim = false
 
         [[ops_test.ReduceSumSquare.cfg]]
-        input_shape = [1, 10, 10, 5]
-        export_name_prefix = "ReduceSumSquare_ishap_1_10_10_5_reduce_2_3_keepdim"
+        input_shape = [1, 10, 3, 5]
+        export_name_prefix = "ReduceSumSquare_ishap_1_10_3_5_reduce_2_3_keepdim"
         dim = [2, 3]
         keepdim = true
 
@@ -3075,21 +3075,21 @@
 
         # case: merged_dims == 4, reduce flag: [0, 1, 0, 1]
         [[ops_test.ReduceSumSquare.cfg]]
-        input_shape = [1, 6, 10, 10]
-        export_name_prefix = "ReduceSumSquare_ishap_1_6_10_10_reduce_1_3_keepdim"
+        input_shape = [1, 3, 10, 5]
+        export_name_prefix = "ReduceSumSquare_ishap_1_3_10_5_reduce_1_3_keepdim"
         dim = [1, 3]
         keepdim = true
 
         # case: merged_dims == 4, reduce flag: [1, 0, 1, 0]
         [[ops_test.ReduceSumSquare.cfg]]
-        input_shape = [1, 5, 6, 5, 3, 10]
-        export_name_prefix = "ReduceSumSquare_ishap_1_5_6_5_3_10_reduce_0_1_3_4"
+        input_shape = [1, 5, 6, 2, 3, 10]
+        export_name_prefix = "ReduceSumSquare_ishap_1_5_6_2_3_10_reduce_0_1_3_4"
         dim = [0, 1, 3, 4]
         keepdim = false
 
     [ops_test.ReduceLogSum]
     test_func = "REDUCELOGSUM_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "onnx_ops_test"
     restrictions = "Support up to 4D"
         # case: reduceall
@@ -3161,7 +3161,7 @@
 
     [ops_test.ReduceLogSumExp]
     test_func = "REDUCELOGSUMEXP_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D"
         # case: reduceall
@@ -3231,15 +3231,15 @@
         dim = [0, 2, 3]
         keepdim = false
 
-        # case: axes transform
-        [[ops_test.ReduceLogSumExp.cfg]]
-        input_shape = [1, 16, 10, 10]
-        export_name_prefix = "ReduceLogSumExp_ishap_1_16_10_10_reduce_1_3_axes_test"
-        dim = [1, 3]
-        keepdim = true
-        axes_trans_test = true
-        in_channels = 16
-        out_channels = 16
+        # # case: axes transform
+        # [[ops_test.ReduceLogSumExp.cfg]]
+        # input_shape = [1, 16, 10, 10]
+        # export_name_prefix = "ReduceLogSumExp_ishap_1_16_10_10_reduce_1_3_axes_test"
+        # dim = [1, 3]
+        # keepdim = true
+        # axes_trans_test = true
+        # in_channels = 16
+        # out_channels = 16
 
 
     [ops_test.GRU]

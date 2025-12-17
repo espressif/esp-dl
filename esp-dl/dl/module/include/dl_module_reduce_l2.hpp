@@ -2,6 +2,7 @@
 
 #include "dl_math.hpp"
 #include "dl_module_reduce_base.hpp"
+#include <type_traits>
 
 namespace dl {
 namespace module {
@@ -27,14 +28,22 @@ public:
                     int stride1,
                     void *arg)
     {
-        T ret = 0;
-        V_T tmp = ReduceBase::reduce<reduce_op_square_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
-        float input_scale = DL_SCALE(input_exponent * 2);
-        float output_scale = DL_RESCALE(output_exponent);
-        float output_tmp = math::sqrt_newton(tmp * input_scale);
-        tool::truncate(ret, tool::round(output_tmp * output_scale));
+        // For float types, skip quantization operations
+        if constexpr (std::is_same<T, float>::value && std::is_same<V_T, float>::value) {
+            // Directly return the square root of sum of squares for float32
+            V_T tmp = ReduceBase::reduce<reduce_op_square_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+            return math::sqrt_newton(tmp);
+        } else {
+            // For quantized types, perform scaling and truncation
+            T ret = 0;
+            V_T tmp = ReduceBase::reduce<reduce_op_square_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+            float input_scale = DL_SCALE(input_exponent * 2);
+            float output_scale = DL_RESCALE(output_exponent);
+            float output_tmp = math::sqrt_newton(tmp * input_scale);
+            tool::truncate(ret, tool::round(output_tmp * output_scale));
 
-        return ret;
+            return ret;
+        }
     }
 
     void forward(ModelContext *context, runtime_mode_t mode)
@@ -45,6 +54,9 @@ public:
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             int64_t v0 = 0;
             forward_template<int64_t, int16_t>(context, mode, v0, reduce<int64_t, int16_t>, nullptr);
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
+            float v0 = 0.0f;
+            forward_template<float, float>(context, mode, v0, reduce<float, float>, nullptr);
         }
     }
 
