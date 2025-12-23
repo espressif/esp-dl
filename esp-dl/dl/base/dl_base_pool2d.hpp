@@ -170,8 +170,8 @@ std::vector<PoolArgsType<feature_t>> get_pool_args(TensorBase *output,
     return m_args;
 }
 
-typedef void (*avg_pool_c_impl_func_s16_t)(float *, int16_t *, int16_t *, PoolArgsType<int16_t> &);
-typedef void (*avg_pool_c_impl_func_s8_t)(float *, int8_t *, int8_t *, PoolArgsType<int8_t> &);
+typedef void (*avg_pool_c_impl_func_s16_t)(int32_t *, int16_t *, int16_t *, PoolArgsType<int16_t> &);
+typedef void (*avg_pool_c_impl_func_s8_t)(int32_t *, int8_t *, int8_t *, PoolArgsType<int8_t> &);
 
 typedef void (*max_pool_c_impl_func_s16_t)(int16_t *, int16_t *, PoolArgsType<int16_t> &);
 typedef void (*max_pool_c_impl_func_s8_t)(int8_t *, int8_t *, PoolArgsType<int8_t> &);
