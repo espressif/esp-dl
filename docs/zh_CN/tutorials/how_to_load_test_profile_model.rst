@@ -1,9 +1,9 @@
-如何加载和测试模型
-====================
+如何加载、测试和性能分析模型
+==============================
 
 :link_to_translation:`en:[English]`
 
-在本教程中，我们将介绍如何加载和测试一个 espdl 模型。:project:`参考例程 <examples/tutorial/how_to_load_test_profile_model>`
+在本教程中，我们将介绍如何加载、测试和分析一个 espdl 模型。:project:`参考例程 <examples/tutorial/how_to_load_test_profile_model>`
 
 .. contents::
   :local:
@@ -18,9 +18,11 @@
 从 ``rodata`` 中加载模型
 -------------------------
 
+此方法将模型文件直接嵌入到应用程序 FLASH 的 ``.rodata`` 段中。这是最简单的方法，但缺点是每次应用程序代码更改时模型都会被重新烧录。
+
 1. **在** ``CMakeLists.txt`` **中添加模型文件**
 
-   如果要将 ``.espdl`` 模型文件放到 FLASH 芯片的 ``.rodata`` 段，需要在 ``CMakeLists.txt`` 中添加以下代码。前几行应放在 ``idf_component_register()`` 之前，最后一行应放在 ``idf_component_register()`` 之后。
+   要将 ``.espdl`` 模型文件嵌入到 ``.rodata`` 段，请在 ``CMakeLists.txt`` 中添加以下代码。前几行应放在 ``idf_component_register()`` 之前，最后一行放在 ``idf_component_register()`` 之后。
 
    .. code-block:: cmake
 
@@ -40,104 +42,154 @@
 
 2. **在程序中加载模型**
 
+   包含头文件：
+
    .. code-block:: cpp
 
-      // "_binary_model_espdl_start" is composed of three parts: the prefix "binary", the filename "model_espdl", and the suffix "_start".
+      #include "dl_model_base.hpp"
+
+   声明模型符号并创建模型：
+
+   .. code-block:: cpp
+
+      // 符号名由三部分组成：前缀 "_binary_"，文件名 "model_espdl"，后缀 "_start"
       extern const uint8_t model_espdl[] asm("_binary_model_espdl_start");
 
+      // 基本用法 - 使用默认参数加载模型
       dl::Model *model = new dl::Model((const char *)model_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA);
-      
-      // Keep parameter in FLASH, saves PSRAM/internal RAM, lower performance.
-      // dl::Model *model = new dl::Model((const char *)model_espdl, fbs::MODEL_LOCATION_IN_FLASH_RODATA, 0, dl::MEMORY_MANAGER_GREEDY, nullptr, false);
-      
+
+      // 高级用法 - 自定义参数：
+      // - 将参数保留在 FLASH 中（节省 PSRAM/内部 RAM，但性能较低）
+      // - 限制内部 RAM 使用为 0 字节（优先使用 PSRAM）
+      // - 使用贪婪内存管理器
+      // - 无加密密钥
+      // - param_copy = false（将参数保留在 FLASH 中）
+      // dl::Model *model = new dl::Model((const char *)model_espdl,
+      //                                  fbs::MODEL_LOCATION_IN_FLASH_RODATA,
+      //                                  0,  // max_internal_size
+      //                                  dl::MEMORY_MANAGER_GREEDY,
+      //                                  nullptr,  // key
+      //                                  false);   // param_copy
+
 .. note::
 
-   1. 使用 `从 rodata 中加载模型`_ 时，由于 ``.rodata`` 段属于 app 分区，每次修改代码，模型文件都会被烧录。如果模型文件较大，可能需要调整 app 分区的大小。使用 `从 partition 中加载模型`_ 或者 `从 sdcard 中加载模型`_ 可以不重复烧录模型，有助于减少烧录的时间。
-   2. 使用 `从 rodata 中加载模型`_ 或者 `从 partition 中加载模型`_ 时, 关闭 Model 构造函数中的 param_copy 选项可以防止 FLASH 中模型权重的复制到 PSRAM 或者 internal RAM。这样可以减少 PSRAM 或者 internal RAM 空间的使用。但是由于 PSRAM 或者 internal RAM 的频率高于 FLASH， 模型的推理性能会下降。
+   **性能与内存权衡：**
+
+   - **烧录时间：** 使用 `从 rodata 中加载模型`_ 时，模型文件嵌入在应用程序二进制文件中，每次修改代码时都会重新烧录。对于大型模型，这会增加烧录时间。考虑使用 `从 partition 中加载模型`_ 或 `从 sdcard 中加载模型`_ 来避免此问题。
+
+   - **内存 vs 性能：** ``param_copy`` 参数控制模型参数是否从 FLASH 复制到更快的内存（PSRAM/内部 RAM）。设置 ``param_copy=false`` 可以节省 RAM，但由于 FLASH 访问速度较慢，会降低推理性能。仅在 RAM 极其紧张时才禁用参数复制。
+
+   - **应用程序分区大小：** 嵌入在 ``.rodata`` 中的大型模型可能需要增加 ``partition.csv`` 中的应用程序分区大小。
 
 
 从 ``partition`` 中加载模型
 ----------------------------
 
+此方法将模型存储在单独的 FLASH 分区中，允许您独立于应用程序代码更新模型。
+
 1. **在** ``partition.csv`` **中添加模型信息**
 
-   关于 ``partition.csv`` ， 请查阅 `分区表文档 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/partition-tables.html>`_。
+   创建或修改您的 ``partition.csv`` 文件以包含模型分区。有关分区表的详细信息，请参阅 `ESP-IDF 分区表文档 <https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32/api-guides/partition-tables.html>`_。
 
-   ::
+   .. code-block::
 
       # Name,   Type, SubType, Offset,  Size, Flags
       factory,  app,  factory,  0x010000,  4000K,
       model,   data,  spiffs,        ,  4000K,
 
-   模型的 ``Name`` 字段可以是任何有意义的名称，但不能超过 16 个字节，其中包括一个空字节（之后的内容将被截断）。``SubType`` 字段必须是 spiffs。``Offset`` 在别的分区之后可以不填，会自动计算。``Size`` 必须大于模型文件的大小。
+   - **Name:** 任何有意义的名称（包括空终止符最多 16 个字符）
+   - **Type:** ``data``
+   - **SubType:** ``spiffs`` （模型存储必需）
+   - **Offset:** 留空以自动计算
+   - **Size:** 必须大于模型文件大小
 
 2. **在** ``CMakeLists.txt`` **中添加模型烧录信息**
 
    .. code-block:: cmake
 
       idf_component_register(...)
-      set(image_file your_model_path)
+      set(image_file your_model_path/model_name.espdl)
       esptool_py_flash_to_partition(flash "model" "${image_file}")
-   
-   ``esptool_py_flash_to_partition`` 中的第二个参数必须和 ``partition.csv`` 中的 ``Name`` 字段一致。
+
+   ``esptool_py_flash_to_partition`` 中的第二个参数必须与 ``partition.csv`` 中的 ``Name`` 字段匹配。
 
 3. **在程序中加载模型**
 
+   包含头文件：
+
    .. code-block:: cpp
 
+      #include "dl_model_base.hpp"
+
+   创建模型实例：
+
+   .. code-block:: cpp
+
+      // 基本用法 - 使用默认参数加载模型
       dl::Model *model = new dl::Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
 
-      // Keep parameter in FLASH, saves PSRAM/internal RAM, lower performance.
-      // dl::Model *model = new dl::Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION, 0, dl::MEMORY_MANAGER_GREEDY,
-      // nullptr, false);
-  
-   构造函数的第一个参数必须和 ``partition.csv`` 中的 ``Name`` 字段一致。
+      // 高级用法 - 将参数保留在 FLASH 中以节省 RAM
+      // dl::Model *model = new dl::Model("model",
+      //                                  fbs::MODEL_LOCATION_IN_FLASH_PARTITION,
+      //                                  0,  // max_internal_size
+      //                                  dl::MEMORY_MANAGER_GREEDY,
+      //                                  nullptr,  // key
+      //                                  false);   // param_copy
+
+   第一个参数（分区标签）必须与 ``partition.csv`` 中的 ``Name`` 字段匹配。
 
 .. note::
 
-   使用 ``idf.py app-flash`` 代替 ``idf.py flash`` ，可以只烧录 app 分区，不烧录模型分区，减少烧录时间。
+   **烧录优化：** 使用 ``idf.py app-flash`` 代替 ``idf.py flash``，可以仅烧录应用程序分区而不重新烧录模型分区。这显著减少了开发期间的烧录时间。
 
 从 ``sdcard`` 中加载模型
 --------------------------
 
-1. **检查 sdcard 是否是正确格式**
+此方法从 SD 卡加载模型，当 FLASH 空间有限或需要频繁更新模型而无需重新烧录时非常有用。
 
-   首先备份数据，然后尝试在板端挂载。如果 sdcard 格式不正确，它会被自动格式化成正确的格式。
+1. **准备 SD 卡**
 
-- 如果使用 `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__
+   - **格式：** SD 卡应格式化为 FAT32。如果未格式化，挂载时将自动格式化（数据会丢失）。
+   - **备份：** 在使用 ESP-DL 之前，请始终备份 SD 卡数据。
 
-  在 menuconfig 中打开 ``CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL`` 选项。
-  
-  .. code-block:: cpp
-  
-     ESP_ERROR_CHECK(bsp_sdcard_mount());
+2. **挂载 SD 卡**
 
-- 如果不使用 `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__
+   - **使用 BSP（板级支持包）：**
 
-  将 esp_vfs_fat_sdmmc_mount_config_t 结构体中的 format_if_mount_failed 设置为 true。
-  
-  .. code-block:: cpp
-  
-     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-           .format_if_mount_failed = true,
-           .max_files = 5,
-           .allocation_unit_size = 16 * 1024
-     };
-     // 挂载sdcard.
+     在 menuconfig 中启用 ``CONFIG_BSP_SD_FORMAT_ON_MOUNT_FAIL`` 以允许自动格式化。
 
-2. **将模型复制到 sdcard**
-   
-   将 .espdl 模型复制到 sdcard。
+     .. code-block:: cpp
 
-3. **在程序中加载模型**
+        #include "bsp/esp-bsp.h"
+        ESP_ERROR_CHECK(bsp_sdcard_mount());
 
-- 如果使用 `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__  
+   - **不使用 BSP：**
 
-  .. code-block:: cpp
-  
-     ESP_ERROR_CHECK(bsp_sdcard_mount());
-     const char *model_path = "/your_sdcard_mount_point/your_model_path/model_name.espdl";
-     Model *model = new Model(model_path, fbs::MODEL_LOCATION_IN_SDCARD);
+     配置挂载选项，设置 ``format_if_mount_failed = true``。
+
+     .. code-block:: cpp
+
+        #include "esp_vfs_fat.h"
+        #include "sdmmc_cmd.h"
+
+        esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+            .format_if_mount_failed = true,
+            .max_files = 5,
+            .allocation_unit_size = 16 * 1024
+        };
+        // 挂载 SD 卡（具体实现取决于您的硬件）
+
+3. **复制模型到 SD 卡**
+
+   将您的 ``.espdl`` 模型文件复制到 SD 卡（例如，复制到根目录作为 ``model.espdl``）。
+
+4. **在程序中加载模型**
+
+   包含头文件：  
+
+   .. code-block:: cpp
+
+      #include "dl_model_base.hpp"
    
 - 如果不使用 `BSP(Board Support Package)  <https://github.com/espressif/esp-bsp/tree/master/bsp>`__  
 
@@ -154,18 +206,60 @@
 测试模型板端推理是否正确
 -------------------------
 
-为了在板端测试推理是否正确，``.espdl`` 模型在导出的时候需要 :ref:`添加测试输入/输出 <add_test_input_output>`。实际部署的时候可以再导出一个没有测试输入输出的版本，以减少模型文件的大小。
+``test()`` 方法通过将推理结果与模型文件中嵌入的基准真值进行比较，验证模型是否产生正确的推理结果。
+
+**前提条件：**
+
+- ``.espdl`` 模型必须在 ESP-PPQ 中导出时启用**测试输入和输出**（使用 ``export_test_values`` 选项）。
+- 对于部署，您可以导出一个没有测试数据的版本以减小模型大小。
+
+**API：** ``esp_err_t dl::Model::test()``
+
+**返回值：** 如果所有测试通过则返回 ``ESP_OK``，否则返回 ``ESP_FAIL``。
+
+**用法：**
 
 .. code-block:: cpp
 
+   #include "dl_model_base.hpp"
+
+   // 创建模型后...
+   esp_err_t ret = model->test();
+   if (ret == ESP_OK) {
+       ESP_LOGI(TAG, "模型测试通过！");
+   } else {
+       ESP_LOGE(TAG, "模型测试失败！");
+   }
+
+   // 或使用便捷宏：
    ESP_ERROR_CHECK(model->test());
 
-测试模型内存占用
--------------------
+**工作原理：**
+
+1. 加载模型中嵌入的测试输入张量，所以test()不需要外部输入
+2. 通过所有模型层运行推理
+3. 将每个输出与基准真值进行比较（考虑量化误差的容差）
+4. 报告每个输出的成功或失败
+
+**INT16 模型注意事项：** 由于量化舍入误差，INT16 模型允许比较时有 ±1 的差异。
+
+分析模型内存使用情况
+-----------------------------
+
+``profile_memory()`` 方法打印跨不同内存类型（内部 RAM、PSRAM、FLASH）的内存使用详细明细。
+
+**API：** ``void dl::Model::profile_memory()``
+
+**用法：**
 
 .. code-block:: cpp
 
+   #include "dl_model_base.hpp"
+
+   // 创建并测试模型后...
    model->profile_memory();
+
+**输出包括：**
 
 +---------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------+
 | 名称                | 解释                                                                                                                                                |
@@ -180,15 +274,54 @@
 | ``others``          | 类成员变量所需要的空间, ``heap_caps_aligned_alloc`` / ``heap_caps_aligned_calloc`` 申请过程中对齐的额外部分（很小）。                               |
 +---------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------+
 
-测试模型推理耗时
--------------------
+**显示的内存类型：** 每个类别的内部 RAM、PSRAM 和 FLASH 使用情况。
+
+分析模型推理延迟
+-----------------------------
+
+``profile_module()`` 方法打印模型中每个模块（层）的详细延迟信息。
+
+**API：** ``void dl::Model::profile_module(bool sort_module_by_latency = false)``
+
+**参数：**
+- ``sort_module_by_latency`` ：如果为 ``true`` ，模块按延迟排序（最高优先）。如果为 ``false`` （默认），模块按拓扑顺序显示。
+
+**用法：**
 
 .. code-block:: cpp
 
+   // 默认：拓扑顺序
    model->profile_module();
 
-默认按照 ONNX 拓扑排序打印模型各层。如果想按照各层的耗时来排序，可以将 ``profile_module`` 的入参设为 ``True``。
+   // 按延迟排序（最高优先）
+   model->profile_module(true);
+
+**输出包括：**
+- 模块名称
+- 模块类型（操作类型）
+- 推理延迟（微秒，如果启用 ``DL_LOG_LATENCY_UNIT`` 则为周期数）
+- 末尾的总推理延迟
+
+**相关 API：**
+
+- ``std::map<std::string, module_info> get_module_info()`` - 以编程方式返回模块信息
+- ``void print_module_info(const std::map<std::string, module_info> &info, bool sort_module_by_latency = false)`` - 从映射打印模块信息
+
+组合性能分析：profile() 方法
+--------------------------------------------
+
+``profile()`` 方法结合了 ``profile_memory()`` 和 ``profile_module()``，进行综合分析。
+
+**API：** ``void dl::Model::profile(bool sort_module_by_latency = false)``
+
+**用法：**
 
 .. code-block:: cpp
 
-   model->profile_module(true);
+   // 拓扑顺序的综合性能分析
+   model->profile();
+
+   // 按延迟排序的综合性能分析
+   model->profile(true);
+
+这是获取内存和性能分析的最便捷方式。
