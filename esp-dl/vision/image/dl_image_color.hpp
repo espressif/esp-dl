@@ -655,7 +655,7 @@ struct RGB5652RGB565 {
         } else if constexpr (RGB565BE && RGBSwap && ByteSwap) {
             cvt_color_simd_helper_rgb565be2bgr565le(src, dst, n);
         } else if constexpr (!RGB565BE && RGBSwap && ByteSwap) {
-            cvt_color_simd_helper_rgb565le2bgr565le(src, dst, n);
+            cvt_color_simd_helper_rgb565le2bgr565be(src, dst, n);
         } else if constexpr (RGB565BE && RGBSwap && !ByteSwap) {
             cvt_color_simd_helper_rgb565be2bgr565be(src, dst, n);
         } else if constexpr (!RGB565BE && RGBSwap && !ByteSwap) {
@@ -672,7 +672,7 @@ struct RGB5652RGB565 {
         } else if constexpr (RGB565BE && RGBSwap && ByteSwap) {
             resize_nn_simd_helper_rgb565be2bgr565le(&src, offsets, dst, n);
         } else if constexpr (!RGB565BE && RGBSwap && ByteSwap) {
-            resize_nn_simd_helper_rgb565le2bgr565le(&src, offsets, dst, n);
+            resize_nn_simd_helper_rgb565le2bgr565be(&src, offsets, dst, n);
         } else if constexpr (RGB565BE && RGBSwap && !ByteSwap) {
             resize_nn_simd_helper_rgb565be2bgr565be(&src, offsets, dst, n);
         } else if constexpr (!RGB565BE && RGBSwap && !ByteSwap) {
