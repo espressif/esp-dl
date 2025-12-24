@@ -140,7 +140,7 @@ ImageTransformer &ImageTransformer::set_bg_value(const std::vector<uint8_t> &bg_
 ImageTransformer &ImageTransformer::set_src_img(const img_t &src_img)
 {
     if ((src_img.width != m_src_img.width) || (src_img.height != m_src_img.height) ||
-        get_pix_byte_size(src_img.pix_type) != get_pix_byte_size(m_src_img.pix_type)) {
+        src_img.col_step() != m_src_img.col_step()) {
         m_gen_xy_map = true;
     }
     m_src_img = src_img;
@@ -150,16 +150,10 @@ ImageTransformer &ImageTransformer::set_src_img(const img_t &src_img)
 ImageTransformer &ImageTransformer::set_dst_img(const img_t &dst_img)
 {
     if ((dst_img.width != m_dst_img.width) || (dst_img.height != m_dst_img.height) ||
-        get_pix_byte_size(dst_img.pix_type) != get_pix_byte_size(m_dst_img.pix_type)) {
+        dst_img.col_step() != m_dst_img.col_step()) {
         m_gen_xy_map = true;
     }
     m_dst_img = dst_img;
-    return *this;
-}
-
-ImageTransformer &ImageTransformer::set_caps(uint32_t caps)
-{
-    m_caps = caps;
     return *this;
 }
 
@@ -248,7 +242,6 @@ void ImageTransformer::reset()
         .set_bg_value({}, false)
         .set_src_img({})
         .set_dst_img({})
-        .set_caps(0)
         .set_warp_affine_matrix({});
     m_norm_quant_wrapper = {};
 }
@@ -260,8 +253,16 @@ esp_err_t ImageTransformer::transform()
         ESP_LOGE(TAG, "Invalid src img, call set_src_img().");
         return ESP_FAIL;
     }
-    if (m_src_img.pix_type != DL_IMAGE_PIX_TYPE_RGB888 && m_src_img.pix_type != DL_IMAGE_PIX_TYPE_RGB565 &&
-        m_src_img.pix_type != DL_IMAGE_PIX_TYPE_GRAY) {
+    switch (m_src_img.pix_type) {
+    case DL_IMAGE_PIX_TYPE_RGB888:
+    case DL_IMAGE_PIX_TYPE_BGR888:
+    case DL_IMAGE_PIX_TYPE_GRAY:
+    case DL_IMAGE_PIX_TYPE_RGB565LE:
+    case DL_IMAGE_PIX_TYPE_RGB565BE:
+    case DL_IMAGE_PIX_TYPE_BGR565LE:
+    case DL_IMAGE_PIX_TYPE_BGR565BE:
+        break;
+    default:
         ESP_LOGE(TAG, "Unsupported src img pix_type.");
         return ESP_FAIL;
     }
@@ -269,19 +270,20 @@ esp_err_t ImageTransformer::transform()
         ESP_LOGE(TAG, "Invalid dst img, call set_dst_img().");
         return ESP_FAIL;
     }
-    if (is_pix_type_quant(m_dst_img.pix_type)) {
+    if (m_dst_img.pix_quant()) {
         bool flag = false;
-        if (!m_norm_quant_wrapper.m_norm_quant ||
-            get_pix_channel_num(m_dst_img.pix_type) != m_norm_quant_wrapper.m_chn) {
+        if (!m_norm_quant_wrapper.m_norm_quant || m_dst_img.channel() != m_norm_quant_wrapper.m_chn) {
             flag = true;
         }
         if ((m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT8 ||
-             m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_RGB888_QINT8) &&
+             m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_RGB888_QINT8 ||
+             m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_BGR888_QINT8) &&
             m_norm_quant_wrapper.m_quant_type != NormQuantWrapper::INT8_QUANT) {
             flag = true;
         }
         if ((m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_GRAY_QINT16 ||
-             m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_RGB888_QINT16) &&
+             m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_RGB888_QINT16 ||
+             m_dst_img.pix_type == DL_IMAGE_PIX_TYPE_BGR888_QINT16) &&
             m_norm_quant_wrapper.m_quant_type != NormQuantWrapper::INT16_QUANT) {
             flag = true;
         }
@@ -292,12 +294,12 @@ esp_err_t ImageTransformer::transform()
     }
     if (m_new_bg_value && !m_bg_value.empty()) {
         if (m_bg_src_color_space) {
-            if (get_pix_byte_size(m_src_img.pix_type) != m_bg_value.size()) {
+            if (m_src_img.col_step() != m_bg_value.size()) {
                 ESP_LOGE(TAG, "Const value byte size does not match src img pixel byte size.");
                 return ESP_FAIL;
             }
         } else {
-            if (get_pix_byte_size(m_dst_img.pix_type) != m_bg_value.size()) {
+            if (m_dst_img.col_step() != m_bg_value.size()) {
                 ESP_LOGE(TAG, "Const value byte size does not match dst img pixel byte size.");
                 return ESP_FAIL;
             }
@@ -317,7 +319,7 @@ esp_err_t ImageTransformer::transform()
         m_gen_xy_map = false;
     }
     TransformNNFunctor<SIMD> fn{this};
-    return pixel_cvt_dispatch(fn, m_src_img.pix_type, m_dst_img.pix_type, m_caps, m_norm_quant_wrapper.m_norm_quant);
+    return pixel_cvt_dispatch(fn, m_src_img.pix_type, m_dst_img.pix_type, m_norm_quant_wrapper.m_norm_quant);
 }
 
 #if CONFIG_IDF_TARGET_ESP32P4
@@ -330,8 +332,8 @@ void ImageTransformer::gen_xy_map()
     int dst_width = m_border.empty() ? m_dst_img.width : (m_dst_img.width - m_border[2] - m_border[3]);
     int dst_height = m_border.empty() ? m_dst_img.height : (m_dst_img.height - m_border[0] - m_border[1]);
 
-    int col_step = get_pix_byte_size(m_src_img.pix_type);
-    int row_step = m_src_img.width * get_pix_byte_size(m_src_img.pix_type);
+    int col_step = m_src_img.col_step();
+    int row_step = m_src_img.row_step();
 
     heap_caps_free(m_x);
     heap_caps_free(m_y);

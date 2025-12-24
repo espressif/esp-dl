@@ -9,9 +9,9 @@ public:
     FeatImagePreprocessor(Model *model,
                           const std::vector<float> &mean,
                           const std::vector<float> &std,
-                          uint32_t caps = 0,
+                          bool rgb_swap = false,
                           const std::string &input_name = "") :
-        m_image_preprocessor(new dl::image::ImagePreprocessor(model, mean, std, caps, input_name)) {};
+        m_image_preprocessor(new dl::image::ImagePreprocessor(model, mean, std, rgb_swap, input_name)) {};
 
     ~FeatImagePreprocessor();
 

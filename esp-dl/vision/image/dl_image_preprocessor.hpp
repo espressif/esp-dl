@@ -7,10 +7,21 @@ namespace dl {
 namespace image {
 class ImagePreprocessor {
 public:
+    /**
+     * @brief Construct a new Image Preprocessor object
+     * @note Normalization parameters mean and std here is not in range [0, 1], but [0, 255].
+     *
+     * @param model Model object ptr.
+     * @param mean Normalization mean in range [0, 255], usually 1 channel for gray image, 3 channel for color image.
+     * @param std Normalization std in range [0, 255], usually 1 channel for gray image, 3 channel for color image.
+     * @param rgb_swap Model accepts color image data in rgb(rgb_swap=false) or bgr(rgb_swap=true), only take affects
+     * for color image.
+     * @param input_name If there's other inputs besides the image, input_name of the image must be specified.
+     */
     ImagePreprocessor(Model *model,
                       const std::vector<float> &mean,
                       const std::vector<float> &std,
-                      uint32_t caps = 0,
+                      bool rgb_swap = false,
                       const std::string &input_name = "");
     void enable_letterbox(const std::vector<uint8_t> &bg_value);
     float get_resize_scale_x(bool inv = false);

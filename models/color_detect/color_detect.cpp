@@ -119,7 +119,9 @@ std::list<dl::detect::result_t> &ColorDetect::run(const dl::image::img_t &img)
         return m_result;
     }
     if (!img.data || !img.height || !img.width ||
-        !(img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_RGB888 || img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_RGB565)) {
+        !(img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_RGB888 || img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_BGR888 ||
+          img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_RGB565LE ||
+          img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_RGB565BE)) {
         ESP_LOGE(TAG, "Invalid src img.");
         return m_result;
     }
@@ -132,11 +134,6 @@ std::list<dl::detect::result_t> &ColorDetect::run(const dl::image::img_t &img)
         gen_xy_map();
         m_gen_xy_map = false;
     }
-#if CONFIG_IDF_TARGET_ESP32P4
-    constexpr bool big_endian = false;
-#else
-    constexpr bool big_endian = true;
-#endif
     bool h_across_zero = m_hsv_min[0][0] > m_hsv_max[0][0];
     if (img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_RGB888) {
         if (m_hsv_min.size() == 1) {
@@ -152,20 +149,46 @@ std::list<dl::detect::result_t> &ColorDetect::run(const dl::image::img_t &img)
                 rgb2hsv_and_hsv_mask(dl::image::RGB8882HSVAndHSVMask<false, false>(m_hsv_min[0], m_hsv_max[0]));
             }
         }
-    } else if (img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_RGB565) {
+    } else if (img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_BGR888) {
         if (m_hsv_min.size() == 1) {
             if (h_across_zero) {
-                rgb2hsv_mask(dl::image::RGB5652HSVMask<big_endian, false, true>(m_hsv_min[0], m_hsv_max[0]));
+                rgb2hsv_mask(dl::image::RGB8882HSVMask<true, true>(m_hsv_min[0], m_hsv_max[0]));
             } else {
-                rgb2hsv_mask(dl::image::RGB5652HSVMask<big_endian, false, false>(m_hsv_min[0], m_hsv_max[0]));
+                rgb2hsv_mask(dl::image::RGB8882HSVMask<true, false>(m_hsv_min[0], m_hsv_max[0]));
             }
         } else {
             if (h_across_zero) {
-                rgb2hsv_and_hsv_mask(
-                    dl::image::RGB5652HSVAndHSVMask<big_endian, false, true>(m_hsv_min[0], m_hsv_max[0]));
+                rgb2hsv_and_hsv_mask(dl::image::RGB8882HSVAndHSVMask<true, true>(m_hsv_min[0], m_hsv_max[0]));
             } else {
-                rgb2hsv_and_hsv_mask(
-                    dl::image::RGB5652HSVAndHSVMask<big_endian, false, false>(m_hsv_min[0], m_hsv_max[0]));
+                rgb2hsv_and_hsv_mask(dl::image::RGB8882HSVAndHSVMask<true, false>(m_hsv_min[0], m_hsv_max[0]));
+            }
+        }
+    } else if (img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_RGB565LE) {
+        if (m_hsv_min.size() == 1) {
+            if (h_across_zero) {
+                rgb2hsv_mask(dl::image::RGB5652HSVMask<false, false, true>(m_hsv_min[0], m_hsv_max[0]));
+            } else {
+                rgb2hsv_mask(dl::image::RGB5652HSVMask<false, false, false>(m_hsv_min[0], m_hsv_max[0]));
+            }
+        } else {
+            if (h_across_zero) {
+                rgb2hsv_and_hsv_mask(dl::image::RGB5652HSVAndHSVMask<false, false, true>(m_hsv_min[0], m_hsv_max[0]));
+            } else {
+                rgb2hsv_and_hsv_mask(dl::image::RGB5652HSVAndHSVMask<false, false, false>(m_hsv_min[0], m_hsv_max[0]));
+            }
+        }
+    } else if (img.pix_type == dl::image::DL_IMAGE_PIX_TYPE_RGB565BE) {
+        if (m_hsv_min.size() == 1) {
+            if (h_across_zero) {
+                rgb2hsv_mask(dl::image::RGB5652HSVMask<true, false, true>(m_hsv_min[0], m_hsv_max[0]));
+            } else {
+                rgb2hsv_mask(dl::image::RGB5652HSVMask<true, false, false>(m_hsv_min[0], m_hsv_max[0]));
+            }
+        } else {
+            if (h_across_zero) {
+                rgb2hsv_and_hsv_mask(dl::image::RGB5652HSVAndHSVMask<true, false, true>(m_hsv_min[0], m_hsv_max[0]));
+            } else {
+                rgb2hsv_and_hsv_mask(dl::image::RGB5652HSVAndHSVMask<true, false, false>(m_hsv_min[0], m_hsv_max[0]));
             }
         }
     } else {

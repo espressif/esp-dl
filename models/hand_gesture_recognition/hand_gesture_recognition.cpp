@@ -25,13 +25,8 @@ MobileNetV2::MobileNetV2(const char *model_name, int topk, float score_thr)
     m_model = new dl::Model(sd_path, fbs::MODEL_LOCATION_IN_SDCARD);
 #endif
     m_model->minimize();
-#if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor =
         new dl::image::ImagePreprocessor(m_model, {123.675, 116.28, 103.53}, {58.395, 57.12, 57.375});
-#else
-    m_image_preprocessor = new dl::image::ImagePreprocessor(
-        m_model, {123.675, 116.28, 103.53}, {58.395, 57.12, 57.375}, dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
-#endif
     m_postprocessor =
         new dl::cls::HandGestureClsPostprocessor(m_model, topk, std::numeric_limits<float>::lowest(), true);
 }

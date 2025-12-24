@@ -37,7 +37,6 @@ public:
     ImageTransformer &set_bg_value(const std::vector<uint8_t> &bg_value, bool src_color_space);
     ImageTransformer &set_src_img(const img_t &src_img);
     ImageTransformer &set_dst_img(const img_t &dst_img);
-    ImageTransformer &set_caps(uint32_t caps);
     ImageTransformer &set_warp_affine_matrix(const math::Matrix<float> &M, bool inv = false);
     std::vector<int> &get_src_img_crop_area();
     std::vector<int> &get_dst_img_border();
@@ -70,8 +69,8 @@ private:
     template <typename PixelCvt, bool SrcCrop, bool SIMD>
     void cvt_color(const PixelCvt &pixel_cvt)
     {
-        int src_step = get_pix_byte_size(m_src_img.pix_type);
-        int dst_step = get_pix_byte_size(m_dst_img.pix_type);
+        int src_step = m_src_img.col_step();
+        int dst_step = m_dst_img.col_step();
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
         if constexpr (std::is_same_v<PixelCvt, RGB5652RGB565<false, false, false>> ||
@@ -121,15 +120,14 @@ private:
     template <typename PixelCvt, bool SrcCrop, bool SIMD>
     void cvt_color_same_value_border(const PixelCvt &pixel_cvt)
     {
-        int src_step = get_pix_byte_size(m_src_img.pix_type);
-        int dst_step = get_pix_byte_size(m_dst_img.pix_type);
+        int src_step = m_src_img.col_step();
+        int dst_step = m_dst_img.col_step();
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
         int dst_width = m_dst_img.width - m_border[2] - m_border[3];
         int dst_height = m_dst_img.height - m_border[0] - m_border[1];
-        int dst_row_step = dst_step * m_dst_img.width;
-        int border_step_top = m_border[0] * dst_row_step;
-        int border_step_bottom = m_border[1] * dst_row_step;
+        int border_step_top = m_border[0] * m_dst_img.row_step();
+        int border_step_bottom = m_border[1] * m_dst_img.row_step();
         int border_step_left = dst_step * m_border[2];
         int border_step_right = dst_step * m_border[3];
         uint8_t v = m_bg_value[0];
@@ -183,13 +181,13 @@ private:
     template <typename PixelCvt, bool SrcCrop, bool SIMD>
     void cvt_color_diff_value_border(const PixelCvt &pixel_cvt)
     {
-        int src_step = get_pix_byte_size(m_src_img.pix_type);
-        int dst_step = get_pix_byte_size(m_dst_img.pix_type);
+        int src_step = m_src_img.col_step();
+        int dst_step = m_dst_img.col_step();
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
         int dst_width = m_dst_img.width - m_border[2] - m_border[3];
         int dst_height = m_dst_img.height - m_border[0] - m_border[1];
-        int dst_row_step = dst_step * m_dst_img.width;
+        int dst_row_step = m_dst_img.row_step();
         int border_step_left = dst_step * m_border[2];
         int border_step_right = dst_step * m_border[3];
         uint8_t *row_border_value = (uint8_t *)heap_caps_malloc(dst_row_step, MALLOC_CAP_DEFAULT);
@@ -254,7 +252,7 @@ private:
     {
         int dst_width = m_dst_img.width;
         int dst_height = m_dst_img.height;
-        int dst_step = get_pix_byte_size(m_dst_img.pix_type);
+        int dst_step = m_dst_img.col_step();
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
         int n_simd_loop = dst_width >> 4;
@@ -279,10 +277,9 @@ private:
     {
         int dst_width = m_dst_img.width - m_border[2] - m_border[3];
         int dst_height = m_dst_img.height - m_border[0] - m_border[1];
-        int dst_step = get_pix_byte_size(m_dst_img.pix_type);
-        int dst_row_step = dst_step * m_dst_img.width;
-        int border_step_top = m_border[0] * dst_row_step;
-        int border_step_bottom = m_border[1] * dst_row_step;
+        int dst_step = m_dst_img.col_step();
+        int border_step_top = m_border[0] * m_dst_img.row_step();
+        int border_step_bottom = m_border[1] * m_dst_img.row_step();
         int border_step_left = dst_step * m_border[2];
         int border_step_right = dst_step * m_border[3];
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
@@ -317,8 +314,8 @@ private:
     {
         int dst_width = m_dst_img.width - m_border[2] - m_border[3];
         int dst_height = m_dst_img.height - m_border[0] - m_border[1];
-        int dst_step = get_pix_byte_size(m_dst_img.pix_type);
-        int dst_row_step = dst_step * m_dst_img.width;
+        int dst_step = m_dst_img.col_step();
+        int dst_row_step = m_dst_img.row_step();
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
         int border_step_left = dst_step * m_border[2];
@@ -362,9 +359,9 @@ private:
     {
         int dst_width = m_dst_img.width;
         int dst_height = m_dst_img.height;
-        int dst_step = get_pix_byte_size(m_dst_img.pix_type);
-        int src_col_step = get_pix_byte_size(m_src_img.pix_type);
-        int src_row_step = m_src_img.width * get_pix_byte_size(m_src_img.pix_type);
+        int dst_step = m_dst_img.col_step();
+        int src_col_step = m_src_img.col_step();
+        int src_row_step = m_src_img.row_step();
         int src_x_max = m_src_img.width;
         int src_y_max = m_src_img.height;
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
@@ -404,18 +401,18 @@ private:
     {
         int dst_width = m_dst_img.width - m_border[2] - m_border[3];
         int dst_height = m_dst_img.height - m_border[0] - m_border[1];
-        int dst_step = get_pix_byte_size(m_dst_img.pix_type);
-        int dst_row_step = dst_step * m_dst_img.width;
-        int src_col_step = get_pix_byte_size(m_src_img.pix_type);
-        int src_row_step = m_src_img.width * get_pix_byte_size(m_src_img.pix_type);
+        int dst_col_step = m_dst_img.col_step();
+        int dst_row_step = m_dst_img.row_step();
+        int src_col_step = m_src_img.col_step();
+        int src_row_step = m_src_img.row_step();
         int src_x_max = m_src_img.width;
         int src_y_max = m_src_img.height;
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
         int border_step_top = m_border[0] * dst_row_step;
         int border_step_bottom = m_border[1] * dst_row_step;
-        int border_step_left = dst_step * m_border[2];
-        int border_step_right = dst_step * m_border[3];
+        int border_step_left = dst_col_step * m_border[2];
+        int border_step_right = dst_col_step * m_border[3];
         constexpr int round_delta = 1 << (warp_affine_shift - 1);
         uint8_t v = m_bg_value[0];
         memset(dst, v, border_step_top);
@@ -423,13 +420,13 @@ private:
         for (int i = 0; i < dst_height; i++) {
             memset(dst, v, border_step_left);
             dst += border_step_left;
-            for (int j = 0; j < dst_width; j++, dst += dst_step) {
+            for (int j = 0; j < dst_width; j++, dst += dst_col_step) {
                 int x = (m_x1[j] + m_x2[i] + round_delta) >> warp_affine_shift;
                 int y = (m_y1[j] + m_y2[i] + round_delta) >> warp_affine_shift;
                 if (static_cast<uint32_t>(x) < src_x_max && static_cast<uint32_t>(y) < src_y_max) {
                     pixel_cvt(y * src_row_step + x * src_col_step + src, dst);
                 } else {
-                    memset(dst, v, dst_step);
+                    memset(dst, v, dst_col_step);
                 }
             }
             memset(dst, v, border_step_right);
@@ -443,22 +440,22 @@ private:
     {
         int dst_width = m_dst_img.width - m_border[2] - m_border[3];
         int dst_height = m_dst_img.height - m_border[0] - m_border[1];
-        int dst_step = get_pix_byte_size(m_dst_img.pix_type);
-        int dst_row_step = dst_step * m_dst_img.width;
-        int src_col_step = get_pix_byte_size(m_src_img.pix_type);
-        int src_row_step = m_src_img.width * get_pix_byte_size(m_src_img.pix_type);
+        int dst_col_step = m_dst_img.col_step();
+        int dst_row_step = m_dst_img.row_step();
+        int src_col_step = m_src_img.col_step();
+        int src_row_step = m_src_img.row_step();
         int src_x_max = m_src_img.width;
         int src_y_max = m_src_img.height;
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
-        int border_step_left = dst_step * m_border[2];
-        int border_step_right = dst_step * m_border[3];
+        int border_step_left = dst_col_step * m_border[2];
+        int border_step_right = dst_col_step * m_border[3];
         uint8_t *row_border_value = (uint8_t *)heap_caps_malloc(dst_row_step, MALLOC_CAP_DEFAULT);
         uint8_t *p_row_border_value = row_border_value;
         constexpr int round_delta = 1 << (warp_affine_shift - 1);
         uint8_t *v = m_bg_value.data();
-        for (int i = 0; i < m_dst_img.width; i++, p_row_border_value += dst_step) {
-            memcpy(p_row_border_value, v, dst_step);
+        for (int i = 0; i < m_dst_img.width; i++, p_row_border_value += dst_col_step) {
+            memcpy(p_row_border_value, v, dst_col_step);
         }
         for (int i = 0; i < m_border[0]; i++, dst += dst_row_step) {
             memcpy(dst, row_border_value, dst_row_step);
@@ -466,13 +463,13 @@ private:
         for (int i = 0; i < dst_height; i++) {
             memcpy(dst, row_border_value, border_step_left);
             dst += border_step_left;
-            for (int j = 0; j < dst_width; j++, dst += dst_step) {
+            for (int j = 0; j < dst_width; j++, dst += dst_col_step) {
                 int x = (m_x1[j] + m_x2[i] + round_delta) >> warp_affine_shift;
                 int y = (m_y1[j] + m_y2[i] + round_delta) >> warp_affine_shift;
                 if (static_cast<uint32_t>(x) < src_x_max && static_cast<uint32_t>(y) < src_y_max) {
                     pixel_cvt(y * src_row_step + x * src_col_step + src, dst);
                 } else {
-                    memcpy(dst, v, dst_step);
+                    memcpy(dst, v, dst_col_step);
                 }
             }
             memcpy(dst, row_border_value, border_step_right);
@@ -488,13 +485,13 @@ private:
     void transform_nn(const PixelCvt &pixel_cvt)
     {
         if (m_bg_value.empty() && (m_M.array || !m_border.empty())) {
-            m_bg_value.assign(get_pix_byte_size(m_dst_img.pix_type), 0);
+            m_bg_value.assign(m_dst_img.col_step(), 0);
             m_bg_src_color_space = false;
             m_new_bg_value = true;
         }
         if (m_new_bg_value) {
             if (m_bg_src_color_space) {
-                std::vector<uint8_t> dst_bg_value(get_pix_byte_size(m_dst_img.pix_type));
+                std::vector<uint8_t> dst_bg_value(m_dst_img.col_step());
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-overflow"
                 pixel_cvt(m_bg_value.data(), dst_bg_value.data());

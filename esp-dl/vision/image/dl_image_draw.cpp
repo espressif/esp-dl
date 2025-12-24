@@ -8,8 +8,8 @@ namespace image {
 void draw_point(const img_t &img, int x, int y, const std::vector<uint8_t> &color, uint8_t radius)
 {
     assert(x >= 0 && x < img.width && y >= 0 && y < img.height);
-    int col_step = get_pix_byte_size(img.pix_type);
-    int row_step = col_step * img.width;
+    int col_step = img.col_step();
+    int row_step = img.row_step();
     assert(color.size() == col_step);
 
     uint8_t *p_img = static_cast<uint8_t *>(img.data);
@@ -39,15 +39,15 @@ void draw_point(const img_t &img, int x, int y, const std::vector<uint8_t> &colo
 void draw_hollow_rectangle(
     const img_t &img, int x1, int y1, int x2, int y2, const std::vector<uint8_t> &color, uint8_t line_width)
 {
-    if (is_pix_type_quant(img.pix_type)) {
+    if (img.pix_quant()) {
         ESP_LOGE("dl_image_draw", "Can not draw on a quant img.");
         return;
     }
     assert(x2 > x1 && y2 > y1);
     assert(x1 >= 0 && y1 >= 0);
     assert(x2 < img.width && y2 < img.height);
-    int col_step = get_pix_byte_size(img.pix_type);
-    int row_step = col_step * img.width;
+    int col_step = img.col_step();
+    int row_step = img.row_step();
     assert(color.size() == col_step);
 
     int line_w1 = line_width / 2;

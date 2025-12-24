@@ -12,9 +12,8 @@
 static const char *TAG = "dl_image_jpeg";
 namespace dl {
 namespace image {
-img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t caps)
+img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type)
 {
-    assert(caps == 0 || caps == DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
     img_t img;
     img.pix_type = pix_type;
     jpeg_pixel_format_t output_type;
@@ -22,9 +21,11 @@ img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t c
     case DL_IMAGE_PIX_TYPE_RGB888:
         output_type = JPEG_PIXEL_FORMAT_RGB888;
         break;
-    case DL_IMAGE_PIX_TYPE_RGB565:
-        output_type =
-            (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) ? JPEG_PIXEL_FORMAT_RGB565_BE : JPEG_PIXEL_FORMAT_RGB565_LE;
+    case DL_IMAGE_PIX_TYPE_RGB565LE:
+        output_type = JPEG_PIXEL_FORMAT_RGB565_LE;
+        break;
+    case DL_IMAGE_PIX_TYPE_RGB565BE:
+        output_type = JPEG_PIXEL_FORMAT_RGB565_BE;
         break;
     default:
         ESP_LOGE(TAG, "Unsupported img pix format.");
@@ -54,8 +55,7 @@ img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type, uint32_t c
 
     img.width = out_info.width;
     img.height = out_info.height;
-    size_t out_buf_len = get_img_byte_size(img);
-    img.data = heap_caps_aligned_alloc(16, out_buf_len, MALLOC_CAP_DEFAULT);
+    img.data = heap_caps_aligned_alloc(16, img.bytes(), MALLOC_CAP_DEFAULT);
     if (!img.data) {
         ESP_LOGE(TAG, "Failed to alloc output buffer.");
         jpeg_dec_close(jpeg_dec);
@@ -105,7 +105,7 @@ jpeg_img_t sw_encode_jpeg_base(const img_t &img, uint8_t quality)
         return {};
     }
 
-    int img_size = get_img_byte_size(img);
+    int img_size = img.bytes();
     // yuv420 use 1.5B to represent a pixel.
     size_t out_buf_len = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? img_size : img_size / 2 + 1;
     jpeg_img.data = heap_caps_malloc(out_buf_len, MALLOC_CAP_DEFAULT);
@@ -128,17 +128,19 @@ jpeg_img_t sw_encode_jpeg_base(const img_t &img, uint8_t quality)
     return jpeg_img;
 }
 
-jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
+jpeg_img_t sw_encode_jpeg(const img_t &img, uint8_t quality)
 {
-    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 ||
-        (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP))) {
-        img_t img_cvt = img;
-        img_cvt.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
-        img_cvt.data = heap_caps_malloc(get_img_byte_size(img_cvt), MALLOC_CAP_DEFAULT);
+    if (img.pix_type != DL_IMAGE_PIX_TYPE_RGB888 && img.pix_type != DL_IMAGE_PIX_TYPE_GRAY) {
+        void *data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
+        if (!data) {
+            ESP_LOGE(TAG, "Failed to malloc cvt img memory.");
+            return {};
+        }
+        img_t img_cvt(data, img.width, img.height, DL_IMAGE_PIX_TYPE_RGB888);
         ImageTransformer image_transformer;
-        image_transformer.set_src_img(img).set_dst_img(img_cvt).set_caps(caps).transform();
+        image_transformer.set_src_img(img).set_dst_img(img_cvt).transform();
         jpeg_img_t ret = sw_encode_jpeg_base(img_cvt, quality);
-        heap_caps_free(img_cvt.data);
+        heap_caps_free(data);
         return ret;
     } else {
         return sw_encode_jpeg_base(img, quality);
@@ -148,11 +150,9 @@ jpeg_img_t sw_encode_jpeg(const img_t &img, uint32_t caps, uint8_t quality)
 #if CONFIG_SOC_JPEG_CODEC_SUPPORTED
 img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img,
                      pix_type_t pix_type,
-                     uint32_t caps,
                      int timeout_ms,
                      jpeg_yuv_rgb_conv_std_t yuv_rgb_conv_std)
 {
-    assert(caps == 0 || caps == DL_IMAGE_CAP_RGB_SWAP || caps == DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
     img_t img;
     img.pix_type = pix_type;
     jpeg_decode_picture_info_t header_info;
@@ -161,22 +161,32 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img,
         return {};
     }
 
-    jpeg_dec_rgb_element_order_t rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_BGR;
+    jpeg_dec_rgb_element_order_t rgb_order;
     jpeg_dec_output_format_t output_type;
     switch (pix_type) {
     case DL_IMAGE_PIX_TYPE_RGB888:
         output_type = JPEG_DECODE_OUT_FORMAT_RGB888;
-        rgb_order = (caps & DL_IMAGE_CAP_RGB_SWAP) ? JPEG_DEC_RGB_ELEMENT_ORDER_BGR : JPEG_DEC_RGB_ELEMENT_ORDER_RGB;
+        rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_RGB;
         assert(header_info.sample_method != JPEG_DOWN_SAMPLING_GRAY);
         break;
-    case DL_IMAGE_PIX_TYPE_RGB565:
+    case DL_IMAGE_PIX_TYPE_BGR888:
+        output_type = JPEG_DECODE_OUT_FORMAT_RGB888;
+        rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_BGR;
+        assert(header_info.sample_method != JPEG_DOWN_SAMPLING_GRAY);
+        break;
+    case DL_IMAGE_PIX_TYPE_RGB565LE:
         output_type = JPEG_DECODE_OUT_FORMAT_RGB565;
-        rgb_order =
-            (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) ? JPEG_DEC_RGB_ELEMENT_ORDER_RGB : JPEG_DEC_RGB_ELEMENT_ORDER_BGR;
+        rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_BGR;
+        assert(header_info.sample_method != JPEG_DOWN_SAMPLING_GRAY);
+        break;
+    case DL_IMAGE_PIX_TYPE_RGB565BE:
+        output_type = JPEG_DECODE_OUT_FORMAT_RGB565;
+        rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_RGB;
         assert(header_info.sample_method != JPEG_DOWN_SAMPLING_GRAY);
         break;
     case DL_IMAGE_PIX_TYPE_GRAY:
         output_type = JPEG_DECODE_OUT_FORMAT_GRAY;
+        rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_BGR;
         assert(header_info.sample_method == JPEG_DOWN_SAMPLING_GRAY);
         break;
     default:
@@ -207,7 +217,7 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img,
     }
 
     // alloc output buffer
-    size_t out_buf_len = get_img_byte_size(img);
+    size_t out_buf_len = img.bytes();
 #if CONFIG_SPIRAM
     uint32_t cache_level = CACHE_LL_LEVEL_EXT_MEM;
 #else
@@ -251,10 +261,10 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img,
     jpeg_img_t jpeg_img;
     jpeg_enc_input_format_t src_type;
     switch (img.pix_type) {
-    case DL_IMAGE_PIX_TYPE_RGB888:
+    case DL_IMAGE_PIX_TYPE_BGR888:
         src_type = JPEG_ENCODE_IN_FORMAT_RGB888;
         break;
-    case DL_IMAGE_PIX_TYPE_RGB565:
+    case DL_IMAGE_PIX_TYPE_RGB565LE:
         src_type = JPEG_ENCODE_IN_FORMAT_RGB565;
         break;
     case DL_IMAGE_PIX_TYPE_GRAY:
@@ -277,7 +287,7 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img,
     }
 
     // alloc output buffer
-    int img_size = get_img_byte_size(img);
+    int img_size = img.bytes();
     // yuv420 use 1.5B to represent a pixel.
     size_t out_buf_len = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? img_size : img_size / 2 + 1;
 #if CONFIG_SPIRAM
@@ -319,30 +329,47 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img,
     return jpeg_img;
 }
 
-jpeg_img_t hw_encode_jpeg(
-    const img_t &img, uint32_t caps, uint8_t quality, int timeout_ms, jpeg_down_sampling_type_t rgb_sub_sample_method)
+jpeg_img_t hw_encode_jpeg(const img_t &img,
+                          uint8_t quality,
+                          int timeout_ms,
+                          jpeg_down_sampling_type_t rgb_sub_sample_method)
 {
-    bool need_cvt = false;
-    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 &&
-        ((caps & DL_IMAGE_CAP_RGB_SWAP) || (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN))) {
-        if (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN) {
-            caps |= DL_IMAGE_CAP_RGB565_BYTE_SWAP;
+    switch (img.pix_type) {
+    case DL_IMAGE_PIX_TYPE_RGB888: {
+        void *data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
+        if (!data) {
+            ESP_LOGE(TAG, "Failed to malloc cvt img memory.");
+            return {};
         }
-        need_cvt = true;
-    } else if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && !(caps & DL_IMAGE_CAP_RGB_SWAP)) {
-        caps |= DL_IMAGE_CAP_RGB_SWAP;
-        need_cvt = true;
-    }
-    if (need_cvt) {
-        img_t img_cvt = img;
-        img_cvt.data = heap_caps_malloc(get_img_byte_size(img_cvt), MALLOC_CAP_DEFAULT);
+        img_t img_cvt(data, img.width, img.height, DL_IMAGE_PIX_TYPE_BGR888);
         ImageTransformer image_transformer;
-        image_transformer.set_src_img(img).set_dst_img(img_cvt).set_caps(caps).transform();
+        image_transformer.set_src_img(img).set_dst_img(img_cvt).transform();
         jpeg_img_t ret = hw_encode_jpeg_base(img_cvt, quality, timeout_ms, rgb_sub_sample_method);
-        heap_caps_free(img_cvt.data);
+        heap_caps_free(data);
         return ret;
-    } else {
+    }
+    case DL_IMAGE_PIX_TYPE_RGB565BE:
+    case DL_IMAGE_PIX_TYPE_BGR565LE:
+    case DL_IMAGE_PIX_TYPE_BGR565BE: {
+        void *data = heap_caps_malloc(img.height * img.width * 2, MALLOC_CAP_DEFAULT);
+        if (!data) {
+            ESP_LOGE(TAG, "Failed to malloc cvt img memory.");
+            return {};
+        }
+        img_t img_cvt(data, img.width, img.height, DL_IMAGE_PIX_TYPE_RGB565LE);
+        ImageTransformer image_transformer;
+        image_transformer.set_src_img(img).set_dst_img(img_cvt).transform();
+        jpeg_img_t ret = hw_encode_jpeg_base(img_cvt, quality, timeout_ms, rgb_sub_sample_method);
+        heap_caps_free(data);
+        return ret;
+    }
+    case DL_IMAGE_PIX_TYPE_GRAY:
+    case DL_IMAGE_PIX_TYPE_BGR888:
+    case DL_IMAGE_PIX_TYPE_RGB565LE:
         return hw_encode_jpeg_base(img, quality, timeout_ms, rgb_sub_sample_method);
+    default:
+        ESP_LOGE(TAG, "Unsupported img pix format.");
+        return {};
     }
 }
 #endif

@@ -16,14 +16,14 @@ namespace image {
  */
 esp_err_t write_bmp_base(const img_t &img, const char *file_name);
 /**
- * @brief Extend write_bmp_base, add support to save RGB565/RGB888 in RGB to BMP with additional convert.
+ * @brief Extend write_bmp_base, add support to save RGB565LE/RGB565BE/BGR565LE/BGR565BE/RGB888 to BMP with additional
+ * convert.
  *
  * @param img Image to save.
  * @param file_name Save path of the BMP image.
- * @param caps Default to 0, save RGB565 in little endian RGB/ RGB888 in BGR.
  * @return esp_err_t
  */
-esp_err_t write_bmp(const img_t &img, const char *file_name, uint32_t caps = 0);
+esp_err_t write_bmp(const img_t &img, const char *file_name);
 /**
  * @brief Read a BMP.
  *

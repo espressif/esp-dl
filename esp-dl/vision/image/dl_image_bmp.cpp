@@ -78,7 +78,7 @@ esp_err_t write_bmp_base(const img_t &img, const char *file_name)
             fclose(f);
             return ESP_FAIL;
         }
-    } else if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888) {
+    } else if (img.pix_type == DL_IMAGE_PIX_TYPE_BGR888) {
         bmp_info_header.bit_count = 24;
         bmp_info_header.height = img.height;
         bmp_info_header.width = img.width;
@@ -136,22 +136,23 @@ esp_err_t write_bmp_base(const img_t &img, const char *file_name)
     return ESP_OK;
 }
 
-esp_err_t write_bmp(const img_t &img, const char *file_name, uint32_t caps)
+esp_err_t write_bmp(const img_t &img, const char *file_name)
 {
-    if (img.pix_type != DL_IMAGE_PIX_TYPE_RGB565 && img.pix_type != DL_IMAGE_PIX_TYPE_RGB888 &&
-        img.pix_type != DL_IMAGE_PIX_TYPE_GRAY) {
+    if (img.pix_quant()) {
         ESP_LOGE(TAG, "Unsupported img type.");
         return ESP_FAIL;
     }
-    if (img.pix_type == DL_IMAGE_PIX_TYPE_RGB565 ||
-        (img.pix_type == DL_IMAGE_PIX_TYPE_RGB888 && (caps & DL_IMAGE_CAP_RGB_SWAP))) {
-        img_t img_cvt = img;
-        img_cvt.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
-        img_cvt.data = heap_caps_malloc(get_img_byte_size(img_cvt), MALLOC_CAP_DEFAULT);
+    if (img.pix_type != DL_IMAGE_PIX_TYPE_BGR888 && img.pix_type != DL_IMAGE_PIX_TYPE_GRAY) {
+        void *data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
+        if (!data) {
+            ESP_LOGE(TAG, "Failed to malloc cvt img memory.");
+            return ESP_FAIL;
+        }
+        img_t img_cvt(data, img.width, img.height, DL_IMAGE_PIX_TYPE_BGR888);
         ImageTransformer image_transformer;
-        image_transformer.set_src_img(img).set_dst_img(img_cvt).set_caps(caps).transform();
+        image_transformer.set_src_img(img).set_dst_img(img_cvt).transform();
         esp_err_t ret = write_bmp_base(img_cvt, file_name);
-        heap_caps_free(img_cvt.data);
+        heap_caps_free(data);
         return ret;
     } else {
         return write_bmp_base(img, file_name);
@@ -182,7 +183,7 @@ img_t read_bmp(const char *file_name)
     if (bmp_info_header.bit_count == 8) {
         img.pix_type = DL_IMAGE_PIX_TYPE_GRAY;
     } else if (bmp_info_header.bit_count == 24) {
-        img.pix_type = DL_IMAGE_PIX_TYPE_RGB888;
+        img.pix_type = DL_IMAGE_PIX_TYPE_BGR888;
     }
     img.height = bmp_info_header.height;
     img.width = bmp_info_header.width;

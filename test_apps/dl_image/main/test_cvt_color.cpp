@@ -10,7 +10,7 @@
 #include <random>
 #include <vector>
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if 0
 #define FLAG_STR_0b00000 "_src_align_dst_align"
 #define FLAG_STR_0b00010 "_src_align_dst_align_border_diff"
 #define FLAG_STR_0b00011 "_src_align_dst_align_border_same"
@@ -63,10 +63,10 @@
 #define FLAG_STR(x) FLAG_STR_##x
 #define ALIGN_TAG(x) ALIGN_TAG_##x
 
-#define TEST_CVT_COLOR(_name, _src_pix_type, _dst_pix_type, _caps, _flag)                         \
+#define TEST_CVT_COLOR(_name, _pix_cvt, _flag)                                                    \
     TEST_CASE("cvt_color_" _name FLAG_STR(_flag), "[" _name "][cvt_color][" ALIGN_TAG(_flag) "]") \
     {                                                                                             \
-        assert_cvt_color_func(_src_pix_type, _dst_pix_type, _caps, _flag);                        \
+        assert_cvt_color_func(_pix_cvt, _flag);                                                   \
     }
 
 void assert_cvt_color_func(bool src_align,
@@ -75,7 +75,6 @@ void assert_cvt_color_func(bool src_align,
                            uint16_t height,
                            dl::image::pix_type_t src_pix_type,
                            dl::image::pix_type_t dst_pix_type,
-                           uint32_t caps,
                            const std::vector<int> &crop_area = {},
                            const std::vector<int> &border = {},
                            const std::vector<uint8_t> &border_value = {},
@@ -184,11 +183,10 @@ void assert_cvt_color_func(bool src_align,
 
 // flag
 // src_unalign(4) dst_unalign(3) crop(2) border(1) border_same(0)
-void assert_cvt_color_func(dl::image::pix_type_t src_pix_type,
-                           dl::image::pix_type_t dst_pix_type,
-                           uint32_t caps,
-                           uint8_t flag)
+void assert_cvt_color_func(dl::image::pix_cvt_t pix_cvt, uint8_t flag)
 {
+    dl::image::pix_type_t src_pix_type = (dl::image::pix_type_t)(pix_cvt >> 16);
+    dl::image::pix_type_t dst_pix_type = (dl::image::pix_type_t)(pix_cvt & 0xffff);
     bool src_align = !(flag & 0b10000);
     bool dst_align = !(flag & 0b1000);
     uint16_t width = get_random_value<uint16_t>(1, 2000);
@@ -268,4578 +266,1931 @@ void assert_cvt_color_func(dl::image::pix_type_t src_pix_type,
     // dst_align = true;
     // width = 1024;
     // height = 1024;
-    // caps = 0;
     // crop_area = {};
     // border = {};
     // border_value = {};
     assert_cvt_color_func(
-        src_align, dst_align, width, height, src_pix_type, dst_pix_type, caps, crop_area, border, border_value);
+        src_align, dst_align, width, height, src_pix_type, dst_pix_type, crop_area, border, border_value);
 }
 
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00000)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00010)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00011)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00100)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00110)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00111)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01000)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01010)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01011)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01100)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01110)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01111)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10000)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10010)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10011)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10100)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10110)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10111)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11000)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11010)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11011)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11100)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11110)
-TEST_CVT_COLOR("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00010)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00110)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01010)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01110)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10010)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10110)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11010)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11110)
-TEST_CVT_COLOR("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00010)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00110)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01010)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01110)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10010)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10110)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11010)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11110)
-TEST_CVT_COLOR("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00000)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00010)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00011)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00100)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00110)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00111)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01000)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01010)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01011)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01100)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01110)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01111)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10000)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10010)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10011)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10100)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10110)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10111)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11000)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11010)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11011)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11100)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11110)
-TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00010)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00110)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01010)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01110)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10010)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10110)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11010)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11110)
-TEST_CVT_COLOR("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00000)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00011)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00100)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00111)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01000)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01011)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01100)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01111)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10000)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10011)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10100)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10111)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11000)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11011)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11100)
-TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00000)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00010)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00011)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00100)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00110)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b00111)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01000)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01010)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01011)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01100)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01110)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b01111)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10000)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10010)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10011)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10100)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10110)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b10111)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11000)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11010)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11011)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11100)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11110)
-TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00000)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00010)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00011)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00100)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00110)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b00111)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01000)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01010)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01011)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01100)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01110)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b01111)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10000)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10010)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10011)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10100)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10110)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b10111)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11000)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11010)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11011)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11100)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11110)
-TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b11111)
-
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00010)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00110)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01010)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01110)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10010)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10110)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11010)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11110)
-TEST_CVT_COLOR("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00010)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00110)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01010)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01110)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10010)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10110)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11010)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11110)
-TEST_CVT_COLOR("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00000)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00011)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00100)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00111)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01000)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01011)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01100)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01111)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10000)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10011)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10100)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10111)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11000)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11011)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11100)
-TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11111)
-
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00000)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00011)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00100)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b00111)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01000)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01011)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01100)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b01111)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10000)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10011)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10100)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b10111)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11000)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11011)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11100)
-TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b11111)
-
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00000)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00010)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00011)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00100)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00110)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00111)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01000)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01010)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01011)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01100)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01110)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01111)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10000)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10010)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10011)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10100)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10110)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10111)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11000)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11010)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11011)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11100)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11110)
-TEST_CVT_COLOR(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00010)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00110)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01010)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01110)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10010)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10110)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11010)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11110)
-TEST_CVT_COLOR("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00000)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00011)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00100)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00111)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01000)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01011)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01100)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01111)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10000)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10011)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10100)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10111)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11000)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11011)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11100)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00000)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00010)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00011)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00100)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00110)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b00111)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01000)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01010)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01011)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01100)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01110)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b01111)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10000)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10010)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10011)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10100)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10110)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b10111)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11000)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11010)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11011)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11100)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11110)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00000)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00011)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00100)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00111)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01000)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01011)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01100)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01111)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10000)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10011)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10100)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10111)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11000)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11011)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11100)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11111)
-
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00000)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00011)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00100)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b00111)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01000)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01011)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01100)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b01111)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10000)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10011)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10100)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b10111)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11000)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11011)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11100)
-TEST_CVT_COLOR(
-    "gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b00000)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b00010)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b00011)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b00100)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b00110)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b00111)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b01000)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b01010)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b01011)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b01100)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b01110)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b01111)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b10000)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b10010)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b10011)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b10100)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b10110)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b10111)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b11000)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b11010)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b11011)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b11100)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b11110)
-TEST_CVT_COLOR("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00010)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00110)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01010)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01110)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10010)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10110)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11010)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11110)
-TEST_CVT_COLOR("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00000)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00011)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00100)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00111)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01000)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01011)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01100)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01111)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10000)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10011)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10100)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10111)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11000)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11011)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11100)
-TEST_CVT_COLOR(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b00000)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b00010)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b00011)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b00100)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b00110)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b00111)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b01000)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b01010)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b01011)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b01100)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b01110)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b01111)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b10000)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b10010)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b10011)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b10100)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b10110)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b10111)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b11000)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b11010)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b11011)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b11100)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b11110)
-TEST_CVT_COLOR(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00000)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00011)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00100)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00111)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01000)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01011)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01100)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01111)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10000)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10011)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10100)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10111)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11000)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11011)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11100)
-TEST_CVT_COLOR(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11111)
-
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00000)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00011)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00100)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b00111)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01000)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01011)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01100)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b01111)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10000)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10011)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10100)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b10111)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11000)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11011)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11100)
-TEST_CVT_COLOR(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00000)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00010)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00011)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00100)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00110)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00111)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01000)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01010)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01011)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01100)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01110)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01111)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10000)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10010)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10011)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10100)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10110)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10111)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11000)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11010)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11011)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11100)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11110)
-TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11111)
-
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00000)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00010)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00011)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00100)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00110)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b00111)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01000)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01010)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01011)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01100)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01110)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b01111)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10000)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10010)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10011)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10100)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10110)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b10111)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11000)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11010)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11011)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11100)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11110)
-TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b11111)
-
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00000)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00010)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00011)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00100)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00110)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b00111)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01000)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01010)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01011)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01100)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01110)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b01111)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10000)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10010)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10011)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10100)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10110)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b10111)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11000)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11010)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11011)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11100)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11110)
-TEST_CVT_COLOR("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b11111)
-
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
-
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00000)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00010)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00011)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00100)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00110)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b00111)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01000)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01010)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01011)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01100)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01110)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b01111)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10000)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10010)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10011)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10100)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10110)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b10111)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11000)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11010)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11011)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11100)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11110)
-TEST_CVT_COLOR("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b11111)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b00000)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b00010)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b00011)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b00100)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b00110)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b00111)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b01000)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b01010)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b01011)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b01100)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b01110)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b01111)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b10000)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b10010)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b10011)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b10100)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b10110)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b10111)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b11000)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b11010)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b11011)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b11100)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b11110)
+TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888, 0b11111)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b00000)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b00010)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b00011)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b00100)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b00110)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b00111)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b01000)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b01010)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b01011)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b01100)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b01110)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b01111)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b10000)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b10010)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b10011)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b10100)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b10110)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b10111)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b11000)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b11010)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b11011)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b11100)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b11110)
+TEST_CVT_COLOR("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT8, 0b11111)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b00000)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b00010)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b00011)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b00100)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b00110)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b00111)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b01000)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b01010)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b01011)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b01100)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b01110)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b01111)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b10000)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b10010)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b10011)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b10100)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b10110)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b10111)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b11000)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b11010)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b11011)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b11100)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b11110)
+TEST_CVT_COLOR("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB888_QINT16, 0b11111)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b00000)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b00010)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b00011)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b00100)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b00110)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b00111)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b01000)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b01010)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b01011)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b01100)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b01110)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b01111)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b10000)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b10010)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b10011)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b10100)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b10110)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b10111)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b11000)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b11010)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b11011)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b11100)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b11110)
+TEST_CVT_COLOR("rgb8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888, 0b11111)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b00000)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b00010)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b00011)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b00100)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b00110)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b00111)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b01000)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b01010)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b01011)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b01100)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b01110)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b01111)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b10000)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b10010)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b10011)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b10100)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b10110)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b10111)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b11000)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b11010)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b11011)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b11100)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b11110)
+TEST_CVT_COLOR("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT8, 0b11111)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b00000)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b00010)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b00011)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b00100)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b00110)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b00111)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b01000)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b01010)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b01011)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b01100)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b01110)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b01111)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b10000)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b10010)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b10011)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b10100)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b10110)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b10111)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b11000)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b11010)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b11011)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b11100)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b11110)
+TEST_CVT_COLOR("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR888_QINT16, 0b11111)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b00000)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b00011)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b00100)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b00111)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b01000)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b01011)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b01100)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b01111)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b10000)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b10011)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b10100)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b10111)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b11000)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b11011)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b11100)
+TEST_CVT_COLOR("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY, 0b11111)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b00000)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b00011)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b00100)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b00111)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b01000)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b01011)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b01100)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b01111)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b10000)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b10011)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b10100)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b10111)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b11000)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b11011)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b11100)
+TEST_CVT_COLOR("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT8, 0b11111)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b00000)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b00011)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b00100)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b00111)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b01000)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b01011)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b01100)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b01111)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b10000)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b10011)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b10100)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b10111)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b11000)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b11011)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b11100)
+TEST_CVT_COLOR("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB8882GRAY_QINT16, 0b11111)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b00000)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b00010)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b00011)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b00100)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b00110)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b00111)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b01000)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b01010)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b01011)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b01100)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b01110)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b01111)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b10000)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b10010)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b10011)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b10100)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b10110)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b10111)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b11000)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b11010)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b11011)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b11100)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b11110)
+TEST_CVT_COLOR("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565LE, 0b11111)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b00000)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b00010)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b00011)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b00100)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b00110)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b00111)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b01000)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b01010)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b01011)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b01100)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b01110)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b01111)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b10000)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b10010)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b10011)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b10100)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b10110)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b10111)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b11000)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b11010)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b11011)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b11100)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b11110)
+TEST_CVT_COLOR("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882RGB565BE, 0b11111)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b00000)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b00010)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b00011)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b00100)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b00110)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b00111)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b01000)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b01010)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b01011)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b01100)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b01110)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b01111)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b10000)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b10010)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b10011)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b10100)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b10110)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b10111)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b11000)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b11010)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b11011)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b11100)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b11110)
+TEST_CVT_COLOR("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565LE, 0b11111)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b00000)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b00010)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b00011)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b00100)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b00110)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b00111)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b01000)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b01010)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b01011)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b01100)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b01110)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b01111)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b10000)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b10010)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b10011)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b10100)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b10110)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b10111)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b11000)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b11010)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b11011)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b11100)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b11110)
+TEST_CVT_COLOR("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB8882BGR565BE, 0b11111)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b00000)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b00010)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b00011)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b00100)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b00110)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b00111)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b01000)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b01010)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b01011)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b01100)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b01110)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b01111)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b10000)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b10010)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b10011)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b10100)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b10110)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b10111)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b11000)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b11010)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b11011)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b11100)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b11110)
+TEST_CVT_COLOR("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB8882HSV, 0b11111)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b00000)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b00010)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b00011)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b00100)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b00110)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b00111)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b01000)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b01010)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b01011)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b01100)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b01110)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b01111)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b10000)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b10010)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b10011)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b10100)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b10110)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b10111)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b11000)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b11010)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b11011)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b11100)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b11110)
+TEST_CVT_COLOR("bgr8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888, 0b11111)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b00000)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b00010)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b00011)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b00100)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b00110)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b00111)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b01000)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b01010)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b01011)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b01100)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b01110)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b01111)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b10000)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b10010)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b10011)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b10100)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b10110)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b10111)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b11000)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b11010)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b11011)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b11100)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b11110)
+TEST_CVT_COLOR("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT8, 0b11111)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b00000)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b00010)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b00011)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b00100)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b00110)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b00111)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b01000)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b01010)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b01011)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b01100)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b01110)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b01111)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b10000)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b10010)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b10011)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b10100)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b10110)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b10111)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b11000)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b11010)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b11011)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b11100)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b11110)
+TEST_CVT_COLOR("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB888_QINT16, 0b11111)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b00000)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b00010)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b00011)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b00100)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b00110)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b00111)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b01000)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b01010)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b01011)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b01100)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b01110)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b01111)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b10000)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b10010)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b10011)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b10100)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b10110)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b10111)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b11000)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b11010)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b11011)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b11100)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b11110)
+TEST_CVT_COLOR("bgr8882bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888, 0b11111)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b00000)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b00010)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b00011)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b00100)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b00110)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b00111)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b01000)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b01010)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b01011)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b01100)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b01110)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b01111)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b10000)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b10010)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b10011)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b10100)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b10110)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b10111)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b11000)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b11010)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b11011)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b11100)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b11110)
+TEST_CVT_COLOR("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT8, 0b11111)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b00000)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b00010)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b00011)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b00100)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b00110)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b00111)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b01000)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b01010)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b01011)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b01100)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b01110)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b01111)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b10000)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b10010)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b10011)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b10100)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b10110)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b10111)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b11000)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b11010)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b11011)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b11100)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b11110)
+TEST_CVT_COLOR("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR888_QINT16, 0b11111)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b00000)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b00011)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b00100)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b00111)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b01000)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b01011)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b01100)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b01111)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b10000)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b10011)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b10100)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b10111)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b11000)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b11011)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b11100)
+TEST_CVT_COLOR("bgr8882gray", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY, 0b11111)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b00000)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b00011)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b00100)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b00111)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b01000)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b01011)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b01100)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b01111)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b10000)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b10011)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b10100)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b10111)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b11000)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b11011)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b11100)
+TEST_CVT_COLOR("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT8, 0b11111)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b00000)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b00011)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b00100)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b00111)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b01000)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b01011)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b01100)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b01111)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b10000)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b10011)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b10100)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b10111)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b11000)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b11011)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b11100)
+TEST_CVT_COLOR("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR8882GRAY_QINT16, 0b11111)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b00000)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b00010)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b00011)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b00100)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b00110)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b00111)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b01000)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b01010)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b01011)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b01100)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b01110)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b01111)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b10000)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b10010)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b10011)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b10100)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b10110)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b10111)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b11000)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b11010)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b11011)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b11100)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b11110)
+TEST_CVT_COLOR("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565LE, 0b11111)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b00000)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b00010)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b00011)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b00100)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b00110)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b00111)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b01000)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b01010)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b01011)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b01100)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b01110)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b01111)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b10000)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b10010)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b10011)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b10100)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b10110)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b10111)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b11000)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b11010)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b11011)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b11100)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b11110)
+TEST_CVT_COLOR("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882RGB565BE, 0b11111)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b00000)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b00010)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b00011)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b00100)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b00110)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b00111)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b01000)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b01010)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b01011)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b01100)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b01110)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b01111)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b10000)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b10010)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b10011)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b10100)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b10110)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b10111)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b11000)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b11010)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b11011)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b11100)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b11110)
+TEST_CVT_COLOR("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565LE, 0b11111)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b00000)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b00010)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b00011)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b00100)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b00110)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b00111)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b01000)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b01010)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b01011)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b01100)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b01110)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b01111)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b10000)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b10010)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b10011)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b10100)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b10110)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b10111)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b11000)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b11010)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b11011)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b11100)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b11110)
+TEST_CVT_COLOR("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR8882BGR565BE, 0b11111)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b00000)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b00010)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b00011)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b00100)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b00110)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b00111)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b01000)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b01010)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b01011)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b01100)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b01110)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b01111)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b10000)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b10010)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b10011)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b10100)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b10110)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b10111)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b11000)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b11010)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b11011)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b11100)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b11110)
+TEST_CVT_COLOR("bgr8882hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR8882HSV, 0b11111)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b00000)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b00011)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b00100)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b00111)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b01000)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b01011)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b01100)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b01111)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b10000)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b10011)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b10100)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b10111)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b11000)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b11011)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b11100)
+TEST_CVT_COLOR("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY, 0b11111)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b00000)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b00011)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b00100)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b00111)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b01000)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b01011)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b01100)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b01111)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b10000)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b10011)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b10100)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b10111)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b11000)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b11011)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b11100)
+TEST_CVT_COLOR("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT8, 0b11111)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b00000)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b00011)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b00100)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b00111)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b01000)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b01011)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b01100)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b01111)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b10000)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b10011)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b10100)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b10111)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b11000)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b11011)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b11100)
+TEST_CVT_COLOR("gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY2GRAY_QINT16, 0b11111)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b00000)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b00010)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b00011)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b00100)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b00110)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b00111)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b01000)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b01010)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b01011)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b01100)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b01110)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b01111)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b10000)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b10010)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b10011)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b10100)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b10110)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b10111)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b11000)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b11010)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b11011)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b11100)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b11110)
+TEST_CVT_COLOR("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888, 0b11111)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b00000)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b00010)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b00011)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b00100)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b00110)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b00111)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b01000)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b01010)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b01011)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b01100)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b01110)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b01111)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b10000)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b10010)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b10011)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b10100)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b10110)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b10111)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b11000)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b11010)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b11011)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b11100)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b11110)
+TEST_CVT_COLOR("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT8, 0b11111)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b00000)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b00010)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b00011)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b00100)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b00110)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b00111)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b01000)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b01010)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b01011)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b01100)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b01110)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b01111)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b10000)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b10010)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b10011)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b10100)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b10110)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b10111)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b11000)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b11010)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b11011)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b11100)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b11110)
+TEST_CVT_COLOR("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB888_QINT16, 0b11111)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b00000)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b00010)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b00011)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b00100)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b00110)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b00111)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b01000)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b01010)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b01011)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b01100)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b01110)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b01111)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b10000)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b10010)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b10011)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b10100)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b10110)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b10111)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b11000)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b11010)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b11011)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b11100)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b11110)
+TEST_CVT_COLOR("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888, 0b11111)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b00000)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b00010)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b00011)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b00100)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b00110)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b00111)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b01000)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b01010)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b01011)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b01100)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b01110)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b01111)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b10000)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b10010)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b10011)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b10100)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b10110)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b10111)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b11000)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b11010)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b11011)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b11100)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b11110)
+TEST_CVT_COLOR("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT8, 0b11111)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b00000)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b00010)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b00011)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b00100)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b00110)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b00111)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b01000)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b01010)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b01011)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b01100)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b01110)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b01111)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b10000)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b10010)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b10011)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b10100)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b10110)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b10111)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b11000)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b11010)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b11011)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b11100)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b11110)
+TEST_CVT_COLOR("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR888_QINT16, 0b11111)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b00000)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b00011)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b00100)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b00111)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b01000)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b01011)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b01100)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b01111)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b10000)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b10011)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b10100)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b10111)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b11000)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b11011)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b11100)
+TEST_CVT_COLOR("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY, 0b11111)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b00000)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b00011)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b00100)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b00111)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b01000)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b01011)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b01100)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b01111)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b10000)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b10011)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b10100)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b10111)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b11000)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b11011)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b11100)
+TEST_CVT_COLOR("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT8, 0b11111)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b00000)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b00011)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b00100)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b00111)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b01000)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b01011)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b01100)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b01111)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b10000)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b10011)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b10100)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b10111)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b11000)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b11011)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b11100)
+TEST_CVT_COLOR("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2GRAY_QINT16, 0b11111)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b00000)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b00010)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b00011)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b00100)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b00110)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b00111)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b01000)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b01010)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b01011)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b01100)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b01110)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b01111)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b10000)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b10010)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b10011)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b10100)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b10110)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b10111)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b11000)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b11010)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b11011)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b11100)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b11110)
+TEST_CVT_COLOR("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565LE, 0b11111)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b00000)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b00010)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b00011)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b00100)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b00110)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b00111)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b01000)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b01010)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b01011)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b01100)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b01110)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b01111)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b10000)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b10010)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b10011)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b10100)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b10110)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b10111)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b11000)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b11010)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b11011)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b11100)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b11110)
+TEST_CVT_COLOR("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2RGB565BE, 0b11111)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b00000)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b00010)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b00011)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b00100)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b00110)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b00111)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b01000)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b01010)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b01011)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b01100)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b01110)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b01111)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b10000)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b10010)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b10011)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b10100)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b10110)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b10111)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b11000)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b11010)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b11011)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b11100)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b11110)
+TEST_CVT_COLOR("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565LE, 0b11111)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b00000)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b00010)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b00011)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b00100)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b00110)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b00111)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b01000)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b01010)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b01011)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b01100)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b01110)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b01111)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b10000)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b10010)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b10011)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b10100)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b10110)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b10111)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b11000)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b11010)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b11011)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b11100)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b11110)
+TEST_CVT_COLOR("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2BGR565BE, 0b11111)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b00000)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b00010)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b00011)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b00100)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b00110)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b00111)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b01000)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b01010)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b01011)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b01100)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b01110)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b01111)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b10000)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b10010)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b10011)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b10100)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b10110)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b10111)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b11000)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b11010)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b11011)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b11100)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b11110)
+TEST_CVT_COLOR("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565LE2HSV, 0b11111)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b00000)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b00010)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b00011)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b00100)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b00110)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b00111)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b01000)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b01010)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b01011)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b01100)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b01110)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b01111)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b10000)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b10010)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b10011)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b10100)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b10110)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b10111)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b11000)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b11010)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b11011)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b11100)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b11110)
+TEST_CVT_COLOR("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888, 0b11111)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b00000)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b00010)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b00011)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b00100)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b00110)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b00111)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b01000)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b01010)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b01011)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b01100)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b01110)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b01111)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b10000)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b10010)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b10011)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b10100)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b10110)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b10111)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b11000)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b11010)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b11011)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b11100)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b11110)
+TEST_CVT_COLOR("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT8, 0b11111)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b00000)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b00010)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b00011)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b00100)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b00110)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b00111)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b01000)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b01010)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b01011)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b01100)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b01110)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b01111)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b10000)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b10010)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b10011)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b10100)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b10110)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b10111)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b11000)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b11010)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b11011)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b11100)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b11110)
+TEST_CVT_COLOR("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB888_QINT16, 0b11111)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b00000)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b00010)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b00011)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b00100)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b00110)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b00111)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b01000)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b01010)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b01011)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b01100)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b01110)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b01111)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b10000)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b10010)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b10011)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b10100)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b10110)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b10111)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b11000)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b11010)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b11011)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b11100)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b11110)
+TEST_CVT_COLOR("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888, 0b11111)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b00000)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b00010)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b00011)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b00100)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b00110)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b00111)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b01000)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b01010)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b01011)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b01100)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b01110)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b01111)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b10000)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b10010)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b10011)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b10100)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b10110)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b10111)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b11000)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b11010)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b11011)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b11100)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b11110)
+TEST_CVT_COLOR("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT8, 0b11111)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b00000)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b00010)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b00011)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b00100)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b00110)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b00111)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b01000)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b01010)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b01011)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b01100)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b01110)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b01111)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b10000)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b10010)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b10011)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b10100)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b10110)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b10111)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b11000)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b11010)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b11011)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b11100)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b11110)
+TEST_CVT_COLOR("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR888_QINT16, 0b11111)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b00000)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b00011)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b00100)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b00111)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b01000)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b01011)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b01100)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b01111)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b10000)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b10011)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b10100)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b10111)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b11000)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b11011)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b11100)
+TEST_CVT_COLOR("rgb565be2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY, 0b11111)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b00000)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b00011)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b00100)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b00111)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b01000)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b01011)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b01100)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b01111)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b10000)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b10011)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b10100)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b10111)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b11000)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b11011)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b11100)
+TEST_CVT_COLOR("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT8, 0b11111)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b00000)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b00011)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b00100)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b00111)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b01000)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b01011)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b01100)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b01111)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b10000)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b10011)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b10100)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b10111)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b11000)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b11011)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b11100)
+TEST_CVT_COLOR("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2GRAY_QINT16, 0b11111)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b00000)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b00010)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b00011)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b00100)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b00110)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b00111)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b01000)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b01010)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b01011)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b01100)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b01110)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b01111)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b10000)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b10010)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b10011)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b10100)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b10110)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b10111)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b11000)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b11010)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b11011)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b11100)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b11110)
+TEST_CVT_COLOR("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565LE, 0b11111)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b00000)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b00010)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b00011)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b00100)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b00110)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b00111)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b01000)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b01010)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b01011)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b01100)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b01110)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b01111)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b10000)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b10010)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b10011)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b10100)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b10110)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b10111)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b11000)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b11010)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b11011)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b11100)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b11110)
+TEST_CVT_COLOR("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2RGB565BE, 0b11111)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b00000)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b00010)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b00011)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b00100)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b00110)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b00111)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b01000)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b01010)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b01011)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b01100)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b01110)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b01111)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b10000)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b10010)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b10011)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b10100)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b10110)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b10111)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b11000)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b11010)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b11011)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b11100)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b11110)
+TEST_CVT_COLOR("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565LE, 0b11111)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b00000)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b00010)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b00011)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b00100)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b00110)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b00111)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b01000)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b01010)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b01011)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b01100)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b01110)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b01111)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b10000)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b10010)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b10011)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b10100)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b10110)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b10111)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b11000)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b11010)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b11011)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b11100)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b11110)
+TEST_CVT_COLOR("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2BGR565BE, 0b11111)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b00000)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b00010)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b00011)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b00100)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b00110)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b00111)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b01000)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b01010)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b01011)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b01100)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b01110)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b01111)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b10000)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b10010)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b10011)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b10100)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b10110)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b10111)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b11000)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b11010)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b11011)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b11100)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b11110)
+TEST_CVT_COLOR("rgb565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565BE2HSV, 0b11111)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b00000)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b00010)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b00011)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b00100)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b00110)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b00111)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b01000)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b01010)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b01011)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b01100)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b01110)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b01111)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b10000)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b10010)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b10011)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b10100)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b10110)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b10111)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b11000)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b11010)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b11011)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b11100)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b11110)
+TEST_CVT_COLOR("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888, 0b11111)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b00000)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b00010)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b00011)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b00100)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b00110)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b00111)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b01000)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b01010)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b01011)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b01100)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b01110)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b01111)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b10000)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b10010)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b10011)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b10100)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b10110)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b10111)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b11000)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b11010)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b11011)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b11100)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b11110)
+TEST_CVT_COLOR("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT8, 0b11111)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b00000)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b00010)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b00011)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b00100)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b00110)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b00111)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b01000)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b01010)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b01011)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b01100)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b01110)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b01111)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b10000)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b10010)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b10011)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b10100)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b10110)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b10111)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b11000)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b11010)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b11011)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b11100)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b11110)
+TEST_CVT_COLOR("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB888_QINT16, 0b11111)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b00000)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b00010)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b00011)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b00100)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b00110)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b00111)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b01000)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b01010)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b01011)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b01100)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b01110)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b01111)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b10000)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b10010)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b10011)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b10100)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b10110)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b10111)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b11000)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b11010)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b11011)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b11100)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b11110)
+TEST_CVT_COLOR("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888, 0b11111)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b00000)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b00010)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b00011)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b00100)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b00110)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b00111)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b01000)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b01010)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b01011)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b01100)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b01110)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b01111)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b10000)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b10010)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b10011)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b10100)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b10110)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b10111)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b11000)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b11010)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b11011)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b11100)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b11110)
+TEST_CVT_COLOR("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT8, 0b11111)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b00000)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b00010)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b00011)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b00100)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b00110)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b00111)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b01000)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b01010)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b01011)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b01100)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b01110)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b01111)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b10000)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b10010)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b10011)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b10100)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b10110)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b10111)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b11000)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b11010)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b11011)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b11100)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b11110)
+TEST_CVT_COLOR("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR888_QINT16, 0b11111)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b00000)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b00011)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b00100)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b00111)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b01000)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b01011)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b01100)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b01111)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b10000)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b10011)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b10100)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b10111)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b11000)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b11011)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b11100)
+TEST_CVT_COLOR("bgr565le2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY, 0b11111)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b00000)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b00011)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b00100)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b00111)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b01000)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b01011)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b01100)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b01111)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b10000)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b10011)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b10100)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b10111)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b11000)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b11011)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b11100)
+TEST_CVT_COLOR("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT8, 0b11111)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b00000)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b00011)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b00100)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b00111)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b01000)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b01011)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b01100)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b01111)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b10000)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b10011)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b10100)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b10111)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b11000)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b11011)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b11100)
+TEST_CVT_COLOR("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2GRAY_QINT16, 0b11111)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b00000)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b00010)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b00011)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b00100)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b00110)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b00111)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b01000)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b01010)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b01011)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b01100)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b01110)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b01111)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b10000)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b10010)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b10011)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b10100)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b10110)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b10111)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b11000)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b11010)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b11011)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b11100)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b11110)
+TEST_CVT_COLOR("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565LE, 0b11111)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b00000)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b00010)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b00011)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b00100)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b00110)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b00111)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b01000)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b01010)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b01011)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b01100)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b01110)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b01111)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b10000)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b10010)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b10011)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b10100)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b10110)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b10111)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b11000)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b11010)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b11011)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b11100)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b11110)
+TEST_CVT_COLOR("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2RGB565BE, 0b11111)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b00000)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b00010)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b00011)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b00100)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b00110)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b00111)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b01000)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b01010)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b01011)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b01100)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b01110)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b01111)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b10000)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b10010)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b10011)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b10100)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b10110)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b10111)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b11000)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b11010)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b11011)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b11100)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b11110)
+TEST_CVT_COLOR("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565LE, 0b11111)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b00000)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b00010)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b00011)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b00100)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b00110)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b00111)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b01000)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b01010)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b01011)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b01100)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b01110)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b01111)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b10000)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b10010)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b10011)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b10100)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b10110)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b10111)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b11000)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b11010)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b11011)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b11100)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b11110)
+TEST_CVT_COLOR("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2BGR565BE, 0b11111)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b00000)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b00010)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b00011)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b00100)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b00110)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b00111)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b01000)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b01010)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b01011)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b01100)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b01110)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b01111)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b10000)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b10010)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b10011)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b10100)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b10110)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b10111)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b11000)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b11010)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b11011)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b11100)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b11110)
+TEST_CVT_COLOR("bgr565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565LE2HSV, 0b11111)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b00000)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b00010)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b00011)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b00100)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b00110)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b00111)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b01000)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b01010)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b01011)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b01100)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b01110)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b01111)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b10000)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b10010)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b10011)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b10100)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b10110)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b10111)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b11000)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b11010)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b11011)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b11100)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b11110)
+TEST_CVT_COLOR("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888, 0b11111)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b00000)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b00010)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b00011)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b00100)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b00110)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b00111)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b01000)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b01010)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b01011)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b01100)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b01110)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b01111)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b10000)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b10010)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b10011)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b10100)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b10110)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b10111)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b11000)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b11010)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b11011)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b11100)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b11110)
+TEST_CVT_COLOR("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT8, 0b11111)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b00000)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b00010)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b00011)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b00100)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b00110)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b00111)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b01000)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b01010)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b01011)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b01100)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b01110)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b01111)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b10000)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b10010)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b10011)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b10100)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b10110)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b10111)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b11000)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b11010)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b11011)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b11100)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b11110)
+TEST_CVT_COLOR("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB888_QINT16, 0b11111)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b00000)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b00010)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b00011)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b00100)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b00110)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b00111)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b01000)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b01010)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b01011)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b01100)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b01110)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b01111)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b10000)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b10010)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b10011)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b10100)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b10110)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b10111)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b11000)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b11010)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b11011)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b11100)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b11110)
+TEST_CVT_COLOR("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888, 0b11111)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b00000)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b00010)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b00011)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b00100)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b00110)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b00111)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b01000)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b01010)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b01011)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b01100)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b01110)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b01111)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b10000)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b10010)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b10011)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b10100)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b10110)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b10111)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b11000)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b11010)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b11011)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b11100)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b11110)
+TEST_CVT_COLOR("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT8, 0b11111)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b00000)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b00010)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b00011)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b00100)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b00110)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b00111)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b01000)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b01010)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b01011)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b01100)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b01110)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b01111)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b10000)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b10010)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b10011)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b10100)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b10110)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b10111)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b11000)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b11010)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b11011)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b11100)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b11110)
+TEST_CVT_COLOR("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR888_QINT16, 0b11111)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b00000)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b00011)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b00100)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b00111)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b01000)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b01011)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b01100)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b01111)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b10000)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b10011)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b10100)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b10111)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b11000)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b11011)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b11100)
+TEST_CVT_COLOR("bgr565be2gray", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY, 0b11111)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b00000)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b00011)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b00100)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b00111)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b01000)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b01011)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b01100)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b01111)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b10000)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b10011)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b10100)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b10111)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b11000)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b11011)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b11100)
+TEST_CVT_COLOR("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT8, 0b11111)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b00000)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b00011)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b00100)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b00111)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b01000)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b01011)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b01100)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b01111)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b10000)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b10011)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b10100)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b10111)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b11000)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b11011)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b11100)
+TEST_CVT_COLOR("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2GRAY_QINT16, 0b11111)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b00000)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b00010)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b00011)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b00100)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b00110)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b00111)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b01000)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b01010)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b01011)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b01100)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b01110)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b01111)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b10000)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b10010)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b10011)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b10100)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b10110)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b10111)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b11000)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b11010)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b11011)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b11100)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b11110)
+TEST_CVT_COLOR("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565LE, 0b11111)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b00000)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b00010)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b00011)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b00100)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b00110)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b00111)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b01000)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b01010)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b01011)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b01100)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b01110)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b01111)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b10000)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b10010)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b10011)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b10100)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b10110)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b10111)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b11000)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b11010)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b11011)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b11100)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b11110)
+TEST_CVT_COLOR("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2RGB565BE, 0b11111)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b00000)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b00010)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b00011)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b00100)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b00110)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b00111)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b01000)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b01010)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b01011)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b01100)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b01110)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b01111)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b10000)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b10010)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b10011)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b10100)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b10110)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b10111)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b11000)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b11010)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b11011)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b11100)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b11110)
+TEST_CVT_COLOR("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565LE, 0b11111)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b00000)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b00010)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b00011)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b00100)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b00110)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b00111)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b01000)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b01010)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b01011)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b01100)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b01110)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b01111)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b10000)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b10010)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b10011)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b10100)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b10110)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b10111)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b11000)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b11010)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b11011)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b11100)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b11110)
+TEST_CVT_COLOR("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2BGR565BE, 0b11111)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b00000)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b00010)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b00011)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b00100)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b00110)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b00111)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b01000)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b01010)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b01011)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b01100)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b01110)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b01111)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b10000)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b10010)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b10011)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b10100)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b10110)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b10111)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b11000)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b11010)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b11011)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b11100)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b11110)
+TEST_CVT_COLOR("bgr565be2hsv", dl::image::DL_IMAGE_PIX_TYPE_BGR565BE2HSV, 0b11111)
 #endif

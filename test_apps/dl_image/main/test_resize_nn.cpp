@@ -38,10 +38,10 @@
 #define FLAG_STR(x) FLAG_STR_##x
 #define ALIGN_TAG(x) ALIGN_TAG_##x
 
-#define TEST_RESIZE_NN(_name, _src_pix_type, _dst_pix_type, _caps, _flag)                         \
+#define TEST_RESIZE_NN(_name, _pix_cvt, _flag)                                                    \
     TEST_CASE("resize_nn_" _name FLAG_STR(_flag), "[resize_nn][" ALIGN_TAG(_flag) "][" _name "]") \
     {                                                                                             \
-        assert_resize_nn_func(_src_pix_type, _dst_pix_type, _caps, _flag);                        \
+        assert_resize_nn_func(_pix_cvt, _flag);                                                   \
     }
 
 void assert_resize_nn_func(bool dst_align,
@@ -51,7 +51,6 @@ void assert_resize_nn_func(bool dst_align,
                            uint16_t dst_height,
                            dl::image::pix_type_t src_pix_type,
                            dl::image::pix_type_t dst_pix_type,
-                           uint32_t caps,
                            const std::vector<int> &crop_area = {},
                            const std::vector<int> &border = {},
                            const std::vector<uint8_t> &border_value = {},
@@ -146,11 +145,10 @@ void assert_resize_nn_func(bool dst_align,
 
 // flag
 // dst_unalign(3) crop(2) border(1) border_same(0)
-void assert_resize_nn_func(dl::image::pix_type_t src_pix_type,
-                           dl::image::pix_type_t dst_pix_type,
-                           uint32_t caps,
-                           uint8_t flag)
+void assert_resize_nn_func(dl::image::pix_cvt_t pix_cvt, uint8_t flag)
 {
+    dl::image::pix_type_t src_pix_type = (dl::image::pix_type_t)(pix_cvt >> 16);
+    dl::image::pix_type_t dst_pix_type = (dl::image::pix_type_t)(pix_cvt & 0xffff);
     uint16_t src_width = get_random_value<uint16_t>(1, 2000);
     uint16_t src_height = get_random_value<uint16_t>(1, 1000);
     bool dst_align = !(flag & 0b1000);
@@ -237,2312 +235,969 @@ void assert_resize_nn_func(dl::image::pix_type_t src_pix_type,
                           dst_height,
                           src_pix_type,
                           dst_pix_type,
-                          caps,
                           crop_area,
                           border,
                           border_value);
 }
 
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0000)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0010)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0011)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0100)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0110)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0111)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1000)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1010)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1011)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1100)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1110)
-TEST_RESIZE_NN("rgb5652rgb565", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb565le2rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb565le2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0010)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0110)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1010)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1110)
-TEST_RESIZE_NN("rgb565be2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb565le2bgr565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0010)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0110)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1010)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1110)
-TEST_RESIZE_NN("rgb565be2bgr565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BYTE_SWAP |
-                   dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0000)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0010)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0011)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0100)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0110)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0111)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1000)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1010)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1011)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1100)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1110)
-TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0010)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0110)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1010)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1110)
-TEST_RESIZE_NN("rgb565be2rgb888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb565le2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb565be2bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0000)
-TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0011)
-TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0100)
-TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0111)
-TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1000)
-TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1011)
-TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1100)
-TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("bgr565le2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("bgr565be2gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0000)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0010)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0011)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0100)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0110)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b0111)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1000)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1010)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1011)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1100)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1110)
-TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb8882bgr888",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0000)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0010)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0011)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0100)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0110)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b0111)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1000)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1010)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1011)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1100)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1110)
-TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB565, 0, 0b1111)
-
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("bgr8882rgb565le",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0010)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0110)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1010)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1110)
-TEST_RESIZE_NN("rgb8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0010)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0110)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1010)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1110)
-TEST_RESIZE_NN("bgr8882rgb565be",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0000)
-TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0011)
-TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0100)
-TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0111)
-TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1000)
-TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1011)
-TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1100)
-TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1111)
-
-TEST_RESIZE_NN("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("bgr8882gray",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0000)
-TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0011)
-TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0100)
-TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b0111)
-TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1000)
-TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1011)
-TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1100)
-TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY, 0, 0b1111)
-
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0000)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0010)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0011)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0100)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0110)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0111)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1000)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1010)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1011)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1100)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1110)
-TEST_RESIZE_NN(
-    "rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0010)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0110)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1010)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1110)
-TEST_RESIZE_NN("rgb565be2rgb888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb565le2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb565be2bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0000)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0011)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0100)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0111)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1000)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1011)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1100)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("bgr565le2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("bgr565be2gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0000)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0010)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0011)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0100)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0110)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b0111)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1000)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1010)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1011)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1100)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1110)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb8882bgr888_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0000)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0011)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0100)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0111)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1000)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1011)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1100)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1111)
-
-TEST_RESIZE_NN("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("bgr8882gray_qint8",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0000)
-TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0011)
-TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0100)
-TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b0111)
-TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1000)
-TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1011)
-TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1100)
-TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT8, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b0000)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b0010)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b0011)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b0100)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b0110)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b0111)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b1000)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b1010)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b1011)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b1100)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b1110)
-TEST_RESIZE_NN("rgb565le2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               0,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0010)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0110)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1010)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1110)
-TEST_RESIZE_NN("rgb565be2rgb888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb565le2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb565be2bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0000)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0011)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0100)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0111)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1000)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1011)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1100)
-TEST_RESIZE_NN(
-    "rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("bgr565le2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("bgr565be2gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b0000)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b0010)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b0011)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b0100)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b0110)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b0111)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b1000)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b1010)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b1011)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b1100)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b1110)
-TEST_RESIZE_NN(
-    "rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("rgb8882bgr888_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0000)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0011)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0100)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0111)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1000)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1011)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1100)
-TEST_RESIZE_NN(
-    "rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1111)
-
-TEST_RESIZE_NN("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("bgr8882gray_qint16",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0000)
-TEST_RESIZE_NN(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0011)
-TEST_RESIZE_NN(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0100)
-TEST_RESIZE_NN(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b0111)
-TEST_RESIZE_NN(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1000)
-TEST_RESIZE_NN(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1011)
-TEST_RESIZE_NN(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1100)
-TEST_RESIZE_NN(
-    "gray2gray_qint16", dl::image::DL_IMAGE_PIX_TYPE_GRAY, dl::image::DL_IMAGE_PIX_TYPE_GRAY_QINT16, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0000)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0010)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0011)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0100)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0110)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0111)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1000)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1010)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1011)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1100)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1110)
-TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB888, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1111)
-
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("bgr8882hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB888,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0000)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0010)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0011)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0100)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0110)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b0111)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1000)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1010)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1011)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1100)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1110)
-TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_TYPE_RGB565, dl::image::DL_IMAGE_PIX_TYPE_HSV, 0, 0b1111)
-
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0000)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0010)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0011)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0100)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0110)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b0111)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1000)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1010)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1011)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1100)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1110)
-TEST_RESIZE_NN("rgb565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN,
-               0b1111)
-
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("bgr565le2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
-
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0000)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0010)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0011)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0100)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0110)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b0111)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1000)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1010)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1011)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1100)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1110)
-TEST_RESIZE_NN("bgr565be2hsv",
-               dl::image::DL_IMAGE_PIX_TYPE_RGB565,
-               dl::image::DL_IMAGE_PIX_TYPE_HSV,
-               dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN | dl::image::DL_IMAGE_CAP_RGB_SWAP,
-               0b1111)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b0000)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b0010)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b0011)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b0100)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b0110)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b0111)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b1000)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b1010)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b1011)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b1100)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b1110)
+TEST_RESIZE_NN("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b1111)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b0000)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b0010)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b0011)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b0100)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b0110)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b0111)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b1000)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b1010)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b1011)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b1100)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b1110)
+TEST_RESIZE_NN("rgb8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8, 0b1111)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b0000)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b0010)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b0011)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b0100)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b0110)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b0111)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b1000)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b1010)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b1011)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b1100)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b1110)
+TEST_RESIZE_NN("rgb8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16, 0b1111)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b0000)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b0010)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b0011)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b0100)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b0110)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b0111)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b1000)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b1010)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b1011)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b1100)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b1110)
+TEST_RESIZE_NN("rgb8882bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888, 0b1111)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b0000)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b0010)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b0011)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b0100)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b0110)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b0111)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b1000)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b1010)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b1011)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b1100)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b1110)
+TEST_RESIZE_NN("rgb8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT8, 0b1111)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b0000)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b0010)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b0011)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b0100)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b0110)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b0111)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b1000)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b1010)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b1011)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b1100)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b1110)
+TEST_RESIZE_NN("rgb8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR888_QINT16, 0b1111)
+TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY, 0b0000)
+TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY, 0b0011)
+TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY, 0b0100)
+TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY, 0b0111)
+TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY, 0b1000)
+TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY, 0b1011)
+TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY, 0b1100)
+TEST_RESIZE_NN("rgb8882gray", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY, 0b1111)
+TEST_RESIZE_NN("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT8, 0b0000)
+TEST_RESIZE_NN("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT8, 0b0011)
+TEST_RESIZE_NN("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT8, 0b0100)
+TEST_RESIZE_NN("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT8, 0b0111)
+TEST_RESIZE_NN("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT8, 0b1000)
+TEST_RESIZE_NN("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT8, 0b1011)
+TEST_RESIZE_NN("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT8, 0b1100)
+TEST_RESIZE_NN("rgb8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT8, 0b1111)
+TEST_RESIZE_NN("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT16, 0b0000)
+TEST_RESIZE_NN("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT16, 0b0011)
+TEST_RESIZE_NN("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT16, 0b0100)
+TEST_RESIZE_NN("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT16, 0b0111)
+TEST_RESIZE_NN("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT16, 0b1000)
+TEST_RESIZE_NN("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT16, 0b1011)
+TEST_RESIZE_NN("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT16, 0b1100)
+TEST_RESIZE_NN("rgb8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT16, 0b1111)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b0000)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b0010)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b0011)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b0100)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b0110)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b0111)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b1000)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b1010)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b1011)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b1100)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b1110)
+TEST_RESIZE_NN("rgb8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565LE, 0b1111)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b0000)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b0010)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b0011)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b0100)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b0110)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b0111)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b1000)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b1010)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b1011)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b1100)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b1110)
+TEST_RESIZE_NN("rgb8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB565BE, 0b1111)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b0000)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b0010)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b0011)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b0100)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b0110)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b0111)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b1000)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b1010)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b1011)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b1100)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b1110)
+TEST_RESIZE_NN("rgb8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565LE, 0b1111)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b0000)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b0010)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b0011)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b0100)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b0110)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b0111)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b1000)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b1010)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b1011)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b1100)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b1110)
+TEST_RESIZE_NN("rgb8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB8882BGR565BE, 0b1111)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b0000)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b0010)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b0011)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b0100)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b0110)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b0111)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b1000)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b1010)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b1011)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b1100)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b1110)
+TEST_RESIZE_NN("rgb8882hsv", dl::image::DL_IMAGE_PIX_CVT_RGB8882HSV, 0b1111)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b0000)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b0010)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b0011)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b0100)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b0110)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b0111)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b1000)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b1010)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b1011)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b1100)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b1110)
+TEST_RESIZE_NN("bgr8882rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888, 0b1111)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b0000)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b0010)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b0011)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b0100)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b0110)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b0111)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b1000)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b1010)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b1011)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b1100)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b1110)
+TEST_RESIZE_NN("bgr8882rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT8, 0b1111)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b0000)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b0010)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b0011)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b0100)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b0110)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b0111)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b1000)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b1010)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b1011)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b1100)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b1110)
+TEST_RESIZE_NN("bgr8882rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB888_QINT16, 0b1111)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b0000)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b0010)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b0011)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b0100)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b0110)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b0111)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b1000)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b1010)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b1011)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b1100)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b1110)
+TEST_RESIZE_NN("bgr8882bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888, 0b1111)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b0000)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b0010)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b0011)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b0100)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b0110)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b0111)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b1000)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b1010)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b1011)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b1100)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b1110)
+TEST_RESIZE_NN("bgr8882bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT8, 0b1111)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b0000)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b0010)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b0011)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b0100)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b0110)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b0111)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b1000)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b1010)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b1011)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b1100)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b1110)
+TEST_RESIZE_NN("bgr8882bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16, 0b1111)
+TEST_RESIZE_NN("bgr8882gray", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY, 0b0000)
+TEST_RESIZE_NN("bgr8882gray", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY, 0b0011)
+TEST_RESIZE_NN("bgr8882gray", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY, 0b0100)
+TEST_RESIZE_NN("bgr8882gray", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY, 0b0111)
+TEST_RESIZE_NN("bgr8882gray", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY, 0b1000)
+TEST_RESIZE_NN("bgr8882gray", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY, 0b1011)
+TEST_RESIZE_NN("bgr8882gray", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY, 0b1100)
+TEST_RESIZE_NN("bgr8882gray", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY, 0b1111)
+TEST_RESIZE_NN("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT8, 0b0000)
+TEST_RESIZE_NN("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT8, 0b0011)
+TEST_RESIZE_NN("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT8, 0b0100)
+TEST_RESIZE_NN("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT8, 0b0111)
+TEST_RESIZE_NN("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT8, 0b1000)
+TEST_RESIZE_NN("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT8, 0b1011)
+TEST_RESIZE_NN("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT8, 0b1100)
+TEST_RESIZE_NN("bgr8882gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT8, 0b1111)
+TEST_RESIZE_NN("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT16, 0b0000)
+TEST_RESIZE_NN("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT16, 0b0011)
+TEST_RESIZE_NN("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT16, 0b0100)
+TEST_RESIZE_NN("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT16, 0b0111)
+TEST_RESIZE_NN("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT16, 0b1000)
+TEST_RESIZE_NN("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT16, 0b1011)
+TEST_RESIZE_NN("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT16, 0b1100)
+TEST_RESIZE_NN("bgr8882gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT16, 0b1111)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b0000)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b0010)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b0011)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b0100)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b0110)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b0111)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b1000)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b1010)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b1011)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b1100)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b1110)
+TEST_RESIZE_NN("bgr8882rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565LE, 0b1111)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b0000)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b0010)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b0011)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b0100)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b0110)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b0111)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b1000)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b1010)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b1011)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b1100)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b1110)
+TEST_RESIZE_NN("bgr8882rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882RGB565BE, 0b1111)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b0000)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b0010)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b0011)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b0100)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b0110)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b0111)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b1000)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b1010)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b1011)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b1100)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b1110)
+TEST_RESIZE_NN("bgr8882bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565LE, 0b1111)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b0000)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b0010)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b0011)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b0100)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b0110)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b0111)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b1000)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b1010)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b1011)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b1100)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b1110)
+TEST_RESIZE_NN("bgr8882bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR8882BGR565BE, 0b1111)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b0000)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b0010)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b0011)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b0100)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b0110)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b0111)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b1000)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b1010)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b1011)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b1100)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b1110)
+TEST_RESIZE_NN("bgr8882hsv", dl::image::DL_IMAGE_PIX_CVT_BGR8882HSV, 0b1111)
+TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY, 0b0000)
+TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY, 0b0011)
+TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY, 0b0100)
+TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY, 0b0111)
+TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY, 0b1000)
+TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY, 0b1011)
+TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY, 0b1100)
+TEST_RESIZE_NN("gray2gray", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY, 0b1111)
+TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT8, 0b0000)
+TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT8, 0b0011)
+TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT8, 0b0100)
+TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT8, 0b0111)
+TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT8, 0b1000)
+TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT8, 0b1011)
+TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT8, 0b1100)
+TEST_RESIZE_NN("gray2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT8, 0b1111)
+TEST_RESIZE_NN("gray2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT16, 0b0000)
+TEST_RESIZE_NN("gray2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT16, 0b0011)
+TEST_RESIZE_NN("gray2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT16, 0b0100)
+TEST_RESIZE_NN("gray2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT16, 0b0111)
+TEST_RESIZE_NN("gray2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT16, 0b1000)
+TEST_RESIZE_NN("gray2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT16, 0b1011)
+TEST_RESIZE_NN("gray2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT16, 0b1100)
+TEST_RESIZE_NN("gray2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT16, 0b1111)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b0000)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b0010)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b0011)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b0100)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b0110)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b0111)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b1000)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b1010)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b1011)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b1100)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b1110)
+TEST_RESIZE_NN("rgb565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888, 0b1111)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b0000)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b0010)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b0011)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b0100)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b0110)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b0111)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b1000)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b1010)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b1011)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b1100)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b1110)
+TEST_RESIZE_NN("rgb565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8, 0b1111)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b0000)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b0010)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b0011)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b0100)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b0110)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b0111)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b1000)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b1010)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b1011)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b1100)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b1110)
+TEST_RESIZE_NN("rgb565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16, 0b1111)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b0000)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b0010)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b0011)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b0100)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b0110)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b0111)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b1000)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b1010)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b1011)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b1100)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b1110)
+TEST_RESIZE_NN("rgb565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888, 0b1111)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b0000)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b0010)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b0011)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b0100)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b0110)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b0111)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b1000)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b1010)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b1011)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b1100)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b1110)
+TEST_RESIZE_NN("rgb565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8, 0b1111)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b0000)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b0010)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b0011)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b0100)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b0110)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b0111)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b1000)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b1010)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b1011)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b1100)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b1110)
+TEST_RESIZE_NN("rgb565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16, 0b1111)
+TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY, 0b0000)
+TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY, 0b0011)
+TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY, 0b0100)
+TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY, 0b0111)
+TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY, 0b1000)
+TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY, 0b1011)
+TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY, 0b1100)
+TEST_RESIZE_NN("rgb565le2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY, 0b1111)
+TEST_RESIZE_NN("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT8, 0b0000)
+TEST_RESIZE_NN("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT8, 0b0011)
+TEST_RESIZE_NN("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT8, 0b0100)
+TEST_RESIZE_NN("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT8, 0b0111)
+TEST_RESIZE_NN("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT8, 0b1000)
+TEST_RESIZE_NN("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT8, 0b1011)
+TEST_RESIZE_NN("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT8, 0b1100)
+TEST_RESIZE_NN("rgb565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT8, 0b1111)
+TEST_RESIZE_NN("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT16, 0b0000)
+TEST_RESIZE_NN("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT16, 0b0011)
+TEST_RESIZE_NN("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT16, 0b0100)
+TEST_RESIZE_NN("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT16, 0b0111)
+TEST_RESIZE_NN("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT16, 0b1000)
+TEST_RESIZE_NN("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT16, 0b1011)
+TEST_RESIZE_NN("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT16, 0b1100)
+TEST_RESIZE_NN("rgb565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT16, 0b1111)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b0000)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b0010)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b0011)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b0100)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b0110)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b0111)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b1000)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b1010)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b1011)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b1100)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b1110)
+TEST_RESIZE_NN("rgb565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE, 0b1111)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b0000)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b0010)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b0011)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b0100)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b0110)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b0111)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b1000)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b1010)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b1011)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b1100)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b1110)
+TEST_RESIZE_NN("rgb565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE, 0b1111)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b0000)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b0010)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b0011)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b0100)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b0110)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b0111)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b1000)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b1010)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b1011)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b1100)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b1110)
+TEST_RESIZE_NN("rgb565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE, 0b1111)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b0000)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b0010)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b0011)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b0100)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b0110)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b0111)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b1000)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b1010)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b1011)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b1100)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b1110)
+TEST_RESIZE_NN("rgb565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2BGR565BE, 0b1111)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b0000)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b0010)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b0011)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b0100)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b0110)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b0111)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b1000)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b1010)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b1011)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b1100)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b1110)
+TEST_RESIZE_NN("rgb565le2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565LE2HSV, 0b1111)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b0000)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b0010)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b0011)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b0100)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b0110)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b0111)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b1000)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b1010)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b1011)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b1100)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b1110)
+TEST_RESIZE_NN("rgb565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888, 0b1111)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b0000)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b0010)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b0011)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b0100)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b0110)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b0111)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b1000)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b1010)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b1011)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b1100)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b1110)
+TEST_RESIZE_NN("rgb565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8, 0b1111)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b0000)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b0010)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b0011)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b0100)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b0110)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b0111)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b1000)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b1010)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b1011)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b1100)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b1110)
+TEST_RESIZE_NN("rgb565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16, 0b1111)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b0000)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b0010)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b0011)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b0100)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b0110)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b0111)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b1000)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b1010)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b1011)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b1100)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b1110)
+TEST_RESIZE_NN("rgb565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888, 0b1111)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b0000)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b0010)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b0011)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b0100)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b0110)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b0111)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b1000)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b1010)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b1011)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b1100)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b1110)
+TEST_RESIZE_NN("rgb565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8, 0b1111)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b0000)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b0010)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b0011)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b0100)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b0110)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b0111)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b1000)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b1010)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b1011)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b1100)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b1110)
+TEST_RESIZE_NN("rgb565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16, 0b1111)
+TEST_RESIZE_NN("rgb565be2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY, 0b0000)
+TEST_RESIZE_NN("rgb565be2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY, 0b0011)
+TEST_RESIZE_NN("rgb565be2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY, 0b0100)
+TEST_RESIZE_NN("rgb565be2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY, 0b0111)
+TEST_RESIZE_NN("rgb565be2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY, 0b1000)
+TEST_RESIZE_NN("rgb565be2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY, 0b1011)
+TEST_RESIZE_NN("rgb565be2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY, 0b1100)
+TEST_RESIZE_NN("rgb565be2gray", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY, 0b1111)
+TEST_RESIZE_NN("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT8, 0b0000)
+TEST_RESIZE_NN("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT8, 0b0011)
+TEST_RESIZE_NN("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT8, 0b0100)
+TEST_RESIZE_NN("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT8, 0b0111)
+TEST_RESIZE_NN("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT8, 0b1000)
+TEST_RESIZE_NN("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT8, 0b1011)
+TEST_RESIZE_NN("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT8, 0b1100)
+TEST_RESIZE_NN("rgb565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT8, 0b1111)
+TEST_RESIZE_NN("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT16, 0b0000)
+TEST_RESIZE_NN("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT16, 0b0011)
+TEST_RESIZE_NN("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT16, 0b0100)
+TEST_RESIZE_NN("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT16, 0b0111)
+TEST_RESIZE_NN("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT16, 0b1000)
+TEST_RESIZE_NN("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT16, 0b1011)
+TEST_RESIZE_NN("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT16, 0b1100)
+TEST_RESIZE_NN("rgb565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT16, 0b1111)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b0000)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b0010)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b0011)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b0100)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b0110)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b0111)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b1000)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b1010)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b1011)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b1100)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b1110)
+TEST_RESIZE_NN("rgb565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565LE, 0b1111)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b0000)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b0010)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b0011)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b0100)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b0110)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b0111)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b1000)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b1010)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b1011)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b1100)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b1110)
+TEST_RESIZE_NN("rgb565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2RGB565BE, 0b1111)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b0000)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b0010)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b0011)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b0100)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b0110)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b0111)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b1000)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b1010)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b1011)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b1100)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b1110)
+TEST_RESIZE_NN("rgb565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565LE, 0b1111)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b0000)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b0010)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b0011)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b0100)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b0110)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b0111)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b1000)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b1010)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b1011)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b1100)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b1110)
+TEST_RESIZE_NN("rgb565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2BGR565BE, 0b1111)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b0000)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b0010)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b0011)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b0100)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b0110)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b0111)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b1000)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b1010)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b1011)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b1100)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b1110)
+TEST_RESIZE_NN("rgb565be2hsv", dl::image::DL_IMAGE_PIX_CVT_RGB565BE2HSV, 0b1111)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b0000)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b0010)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b0011)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b0100)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b0110)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b0111)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b1000)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b1010)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b1011)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b1100)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b1110)
+TEST_RESIZE_NN("bgr565le2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888, 0b1111)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b0000)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b0010)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b0011)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b0100)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b0110)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b0111)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b1000)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b1010)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b1011)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b1100)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b1110)
+TEST_RESIZE_NN("bgr565le2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8, 0b1111)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b0000)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b0010)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b0011)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b0100)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b0110)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b0111)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b1000)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b1010)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b1011)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b1100)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b1110)
+TEST_RESIZE_NN("bgr565le2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16, 0b1111)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b0000)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b0010)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b0011)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b0100)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b0110)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b0111)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b1000)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b1010)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b1011)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b1100)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b1110)
+TEST_RESIZE_NN("bgr565le2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888, 0b1111)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b0000)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b0010)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b0011)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b0100)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b0110)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b0111)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b1000)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b1010)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b1011)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b1100)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b1110)
+TEST_RESIZE_NN("bgr565le2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8, 0b1111)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b0000)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b0010)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b0011)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b0100)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b0110)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b0111)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b1000)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b1010)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b1011)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b1100)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b1110)
+TEST_RESIZE_NN("bgr565le2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16, 0b1111)
+TEST_RESIZE_NN("bgr565le2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY, 0b0000)
+TEST_RESIZE_NN("bgr565le2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY, 0b0011)
+TEST_RESIZE_NN("bgr565le2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY, 0b0100)
+TEST_RESIZE_NN("bgr565le2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY, 0b0111)
+TEST_RESIZE_NN("bgr565le2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY, 0b1000)
+TEST_RESIZE_NN("bgr565le2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY, 0b1011)
+TEST_RESIZE_NN("bgr565le2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY, 0b1100)
+TEST_RESIZE_NN("bgr565le2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY, 0b1111)
+TEST_RESIZE_NN("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT8, 0b0000)
+TEST_RESIZE_NN("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT8, 0b0011)
+TEST_RESIZE_NN("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT8, 0b0100)
+TEST_RESIZE_NN("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT8, 0b0111)
+TEST_RESIZE_NN("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT8, 0b1000)
+TEST_RESIZE_NN("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT8, 0b1011)
+TEST_RESIZE_NN("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT8, 0b1100)
+TEST_RESIZE_NN("bgr565le2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT8, 0b1111)
+TEST_RESIZE_NN("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT16, 0b0000)
+TEST_RESIZE_NN("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT16, 0b0011)
+TEST_RESIZE_NN("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT16, 0b0100)
+TEST_RESIZE_NN("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT16, 0b0111)
+TEST_RESIZE_NN("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT16, 0b1000)
+TEST_RESIZE_NN("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT16, 0b1011)
+TEST_RESIZE_NN("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT16, 0b1100)
+TEST_RESIZE_NN("bgr565le2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT16, 0b1111)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b0000)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b0010)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b0011)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b0100)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b0110)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b0111)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b1000)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b1010)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b1011)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b1100)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b1110)
+TEST_RESIZE_NN("bgr565le2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565LE, 0b1111)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b0000)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b0010)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b0011)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b0100)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b0110)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b0111)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b1000)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b1010)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b1011)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b1100)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b1110)
+TEST_RESIZE_NN("bgr565le2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2RGB565BE, 0b1111)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b0000)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b0010)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b0011)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b0100)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b0110)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b0111)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b1000)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b1010)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b1011)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b1100)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b1110)
+TEST_RESIZE_NN("bgr565le2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565LE, 0b1111)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b0000)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b0010)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b0011)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b0100)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b0110)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b0111)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b1000)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b1010)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b1011)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b1100)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b1110)
+TEST_RESIZE_NN("bgr565le2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2BGR565BE, 0b1111)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b0000)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b0010)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b0011)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b0100)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b0110)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b0111)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b1000)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b1010)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b1011)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b1100)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b1110)
+TEST_RESIZE_NN("bgr565le2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565LE2HSV, 0b1111)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b0000)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b0010)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b0011)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b0100)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b0110)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b0111)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b1000)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b1010)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b1011)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b1100)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b1110)
+TEST_RESIZE_NN("bgr565be2rgb888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888, 0b1111)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b0000)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b0010)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b0011)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b0100)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b0110)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b0111)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b1000)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b1010)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b1011)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b1100)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b1110)
+TEST_RESIZE_NN("bgr565be2rgb888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8, 0b1111)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b0000)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b0010)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b0011)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b0100)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b0110)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b0111)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b1000)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b1010)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b1011)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b1100)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b1110)
+TEST_RESIZE_NN("bgr565be2rgb888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16, 0b1111)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b0000)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b0010)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b0011)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b0100)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b0110)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b0111)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b1000)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b1010)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b1011)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b1100)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b1110)
+TEST_RESIZE_NN("bgr565be2bgr888", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888, 0b1111)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b0000)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b0010)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b0011)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b0100)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b0110)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b0111)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b1000)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b1010)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b1011)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b1100)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b1110)
+TEST_RESIZE_NN("bgr565be2bgr888_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8, 0b1111)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b0000)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b0010)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b0011)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b0100)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b0110)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b0111)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b1000)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b1010)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b1011)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b1100)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b1110)
+TEST_RESIZE_NN("bgr565be2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16, 0b1111)
+TEST_RESIZE_NN("bgr565be2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY, 0b0000)
+TEST_RESIZE_NN("bgr565be2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY, 0b0011)
+TEST_RESIZE_NN("bgr565be2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY, 0b0100)
+TEST_RESIZE_NN("bgr565be2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY, 0b0111)
+TEST_RESIZE_NN("bgr565be2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY, 0b1000)
+TEST_RESIZE_NN("bgr565be2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY, 0b1011)
+TEST_RESIZE_NN("bgr565be2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY, 0b1100)
+TEST_RESIZE_NN("bgr565be2gray", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY, 0b1111)
+TEST_RESIZE_NN("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT8, 0b0000)
+TEST_RESIZE_NN("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT8, 0b0011)
+TEST_RESIZE_NN("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT8, 0b0100)
+TEST_RESIZE_NN("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT8, 0b0111)
+TEST_RESIZE_NN("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT8, 0b1000)
+TEST_RESIZE_NN("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT8, 0b1011)
+TEST_RESIZE_NN("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT8, 0b1100)
+TEST_RESIZE_NN("bgr565be2gray_qint8", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT8, 0b1111)
+TEST_RESIZE_NN("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT16, 0b0000)
+TEST_RESIZE_NN("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT16, 0b0011)
+TEST_RESIZE_NN("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT16, 0b0100)
+TEST_RESIZE_NN("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT16, 0b0111)
+TEST_RESIZE_NN("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT16, 0b1000)
+TEST_RESIZE_NN("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT16, 0b1011)
+TEST_RESIZE_NN("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT16, 0b1100)
+TEST_RESIZE_NN("bgr565be2gray_qint16", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT16, 0b1111)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b0000)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b0010)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b0011)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b0100)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b0110)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b0111)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b1000)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b1010)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b1011)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b1100)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b1110)
+TEST_RESIZE_NN("bgr565be2rgb565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565LE, 0b1111)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b0000)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b0010)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b0011)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b0100)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b0110)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b0111)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b1000)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b1010)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b1011)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b1100)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b1110)
+TEST_RESIZE_NN("bgr565be2rgb565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2RGB565BE, 0b1111)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b0000)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b0010)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b0011)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b0100)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b0110)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b0111)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b1000)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b1010)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b1011)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b1100)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b1110)
+TEST_RESIZE_NN("bgr565be2bgr565le", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565LE, 0b1111)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b0000)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b0010)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b0011)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b0100)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b0110)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b0111)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b1000)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b1010)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b1011)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b1100)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b1110)
+TEST_RESIZE_NN("bgr565be2bgr565be", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE, 0b1111)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b0000)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b0010)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b0011)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b0100)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b0110)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b0111)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b1000)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b1010)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b1011)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b1100)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b1110)
+TEST_RESIZE_NN("bgr565be2hsv", dl::image::DL_IMAGE_PIX_CVT_BGR565BE2HSV, 0b1111)
 #endif
