@@ -6,15 +6,10 @@
 
 namespace dl {
 namespace base {
-template <typename feature_t, typename buffer_t>
-inline void avgpool2d_hwc1(buffer_t *buffer_ptr,
-                           feature_t *input_ptr,
-                           feature_t *output_ptr,
-                           PoolArgsType<feature_t> &args)
-{
-    float avg_pool_area_inv = 1.f / args.avg_pool_area;
-    float scale = DL_SCALE(args.input_exponent) * avg_pool_area_inv * DL_RESCALE(args.output_exponent);
 
+template <typename feature_t, typename buffer_t>
+inline void avgpool2d_hwc_sum(buffer_t *buffer_ptr, feature_t *input_ptr, PoolArgsType<feature_t> &args)
+{
     for (size_t filter_y = 0; filter_y < args.filter_height; filter_y++) // H
     {                                                                    //
         feature_t *input_yx = input_ptr;
@@ -28,10 +23,59 @@ inline void avgpool2d_hwc1(buffer_t *buffer_ptr,
         }
         input_ptr += args.input_y_offset;
     }
+}
+
+template <typename feature_t, typename buffer_t>
+inline void avgpool2d_hwc1(buffer_t *buffer_ptr,
+                           feature_t *input_ptr,
+                           feature_t *output_ptr,
+                           PoolArgsType<feature_t> &args)
+{
+    float avg_pool_area_inv = 1.f / args.avg_pool_area;
+    float scale = DL_SCALE(args.input_exponent) * avg_pool_area_inv * DL_RESCALE(args.output_exponent);
+
+    if constexpr (std::is_same_v<feature_t, int8_t>) {
+        if (args.input_channel % 16 == 0) {
+            dl_esp32p4_s8_avg_pool2d_hwc_sum(buffer_ptr, input_ptr, &args);
+        } else {
+            avgpool2d_hwc_sum(buffer_ptr, input_ptr, args);
+        }
+    } else if constexpr (std::is_same_v<feature_t, int16_t>) {
+        if (args.input_channel % 8 == 0) {
+            dl_esp32p4_s16_avg_pool2d_hwc_sum(buffer_ptr, input_ptr, &args);
+        } else {
+            avgpool2d_hwc_sum(buffer_ptr, input_ptr, args);
+        }
+    } else {
+        avgpool2d_hwc_sum(buffer_ptr, input_ptr, args);
+    }
 
     for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
         tool::truncate(output_ptr[output_c], tool::round(buffer_ptr[output_c] * scale));
         buffer_ptr[output_c] = 0;
+    }
+}
+
+template <>
+inline void avgpool2d_hwc1(float *buffer_ptr, float *input_ptr, float *output_ptr, PoolArgsType<float> &args)
+{
+    for (size_t filter_y = 0; filter_y < args.filter_height; filter_y++) // H
+    {                                                                    //
+        float *input_yx = input_ptr;
+        for (size_t filter_x = 0; filter_x < args.filter_width; filter_x++)   // W
+        {                                                                     //
+            for (size_t input_c = 0; input_c < args.input_channel; input_c++) // C
+            {
+                output_ptr[input_c] += input_yx[input_c];
+            }
+            input_yx += args.input_x_offset;
+        }
+        input_ptr += args.input_y_offset;
+    }
+
+    int32_t avg_pool_area = args.filter_height * args.filter_width;
+    for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
+        output_ptr[output_c] = output_ptr[output_c] / avg_pool_area;
     }
 }
 
@@ -124,5 +168,13 @@ void avg_pool2d<int8_t>(void *args_ptr)
     load_avg_pool2d_hwc1_s8(i_impl_func, i_impl_func_sp, c_impl_func, args);
     avg_pool_shell<int8_t, int32_t>(args, i_impl_func, i_impl_func_sp, c_impl_func);
 }
+
+template <>
+void avg_pool2d<float>(void *args_ptr)
+{
+    PoolArgsType<float> &args = *((PoolArgsType<float> *)args_ptr);
+    avg_pool_shell<float, float>(args, NULL, NULL, avgpool2d_hwc1<float, float>);
+}
+
 } // namespace base
 } // namespace dl
