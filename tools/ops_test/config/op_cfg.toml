@@ -1230,7 +1230,7 @@
 
     [ops_test.GlobalAveragePool]
     test_func = "GLOBAL_AVERAGE_POOLING_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support 1d/2d"
         [[ops_test.GlobalAveragePool.cfg]]
@@ -1251,7 +1251,7 @@
 
     [ops_test.AveragePool]
     test_func = "AVERAGE_POOLING_TEST"
-    quant_bits = ["int8", "int16"]
+    quant_bits = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     restrictions = "Support 1d/2d, don't support dilation"
         [[ops_test.AveragePool.cfg]]

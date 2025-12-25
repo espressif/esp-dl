@@ -204,3 +204,28 @@
 
     2:
 .endm
+
+
+.macro esp32p4_save_qacc_as_32bit  vector_ptr
+    esp.st.qacc.l.l.128.ip  \vector_ptr, 16
+    esp.st.qacc.l.h.128.ip  \vector_ptr, 16
+    esp.st.qacc.h.l.128.ip  \vector_ptr, 16
+    esp.st.qacc.h.h.128.ip  \vector_ptr, 16
+.endm
+
+.macro esp32p4_save_qacc_as_64bit  vector_ptr, qr1, qr2, qr3, qr4
+    esp.st.qacc.l.l.128.ip  \vector_ptr, 16
+    esp.st.qacc.l.h.128.ip  \vector_ptr, 16
+    esp.st.qacc.h.l.128.ip  \vector_ptr, 16
+    esp.st.qacc.h.h.128.ip  \vector_ptr, 16
+    addi \vector_ptr, \vector_ptr, -64
+    esp.vld.128.ip \qr1, \vector_ptr, 16
+    esp.vld.128.ip \qr2, \vector_ptr, 16
+    esp.vld.128.ip \qr3, \vector_ptr, 16
+    esp.vld.128.ip \qr4, \vector_ptr, 16
+    esp.vunzip.32 \qr1, \qr2
+    esp.vunzip.32 \qr3, \qr4
+    addi \vector_ptr, \vector_ptr, -64
+    esp.vst.128.ip \qr1, \vector_ptr, 16
+    esp.vst.128.ip \qr3, \vector_ptr, 16
+.endm

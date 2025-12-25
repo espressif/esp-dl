@@ -172,6 +172,7 @@ std::vector<PoolArgsType<feature_t>> get_pool_args(TensorBase *output,
 
 typedef void (*avg_pool_c_impl_func_s16_t)(int32_t *, int16_t *, int16_t *, PoolArgsType<int16_t> &);
 typedef void (*avg_pool_c_impl_func_s8_t)(int32_t *, int8_t *, int8_t *, PoolArgsType<int8_t> &);
+typedef void (*avg_pool_c_impl_func_f32_t)(float *, float *, float *, PoolArgsType<float> &);
 
 typedef void (*max_pool_c_impl_func_s16_t)(int16_t *, int16_t *, PoolArgsType<int16_t> &);
 typedef void (*max_pool_c_impl_func_s8_t)(int8_t *, int8_t *, PoolArgsType<int8_t> &);
@@ -427,7 +428,8 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
     } else // run c_impl_func
 #endif
     {
-        buffer_t *buffer = (buffer_t *)heap_caps_calloc(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
+        buffer_t *buffer =
+            (buffer_t *)heap_caps_aligned_calloc(16, args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
         feature_t *input_syx_real = input_ptr_real;
         feature_t *output_yx = output_ptr;
         for (size_t output_y = 0; output_y < n_h_head; output_y++) {

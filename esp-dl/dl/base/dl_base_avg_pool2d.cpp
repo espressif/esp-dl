@@ -26,29 +26,27 @@ inline void avgpool2d_hwc_sum(buffer_t *buffer_ptr, feature_t *input_ptr, PoolAr
 }
 
 template <typename feature_t, typename buffer_t>
-inline void avgpool2d_hwc1(buffer_t *buffer_ptr,
-                           feature_t *input_ptr,
-                           feature_t *output_ptr,
-                           PoolArgsType<feature_t> &args)
+inline void avgpool2d_hwc(buffer_t *buffer_ptr,
+                          feature_t *input_ptr,
+                          feature_t *output_ptr,
+                          PoolArgsType<feature_t> &args)
 {
     float avg_pool_area_inv = 1.f / args.avg_pool_area;
     float scale = DL_SCALE(args.input_exponent) * avg_pool_area_inv * DL_RESCALE(args.output_exponent);
 
+#if CONFIG_ESP32P4_BOOST
     if constexpr (std::is_same_v<feature_t, int8_t>) {
         if (args.input_channel % 16 == 0) {
             dl_esp32p4_s8_avg_pool2d_hwc_sum(buffer_ptr, input_ptr, &args);
         } else {
             avgpool2d_hwc_sum(buffer_ptr, input_ptr, args);
         }
-    } else if constexpr (std::is_same_v<feature_t, int16_t>) {
-        if (args.input_channel % 8 == 0) {
-            dl_esp32p4_s16_avg_pool2d_hwc_sum(buffer_ptr, input_ptr, &args);
-        } else {
-            avgpool2d_hwc_sum(buffer_ptr, input_ptr, args);
-        }
     } else {
         avgpool2d_hwc_sum(buffer_ptr, input_ptr, args);
     }
+#else
+    avgpool2d_hwc_sum(buffer_ptr, input_ptr, args);
+#endif
 
     for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
         tool::truncate(output_ptr[output_c], tool::round(buffer_ptr[output_c] * scale));
@@ -57,7 +55,7 @@ inline void avgpool2d_hwc1(buffer_t *buffer_ptr,
 }
 
 template <>
-inline void avgpool2d_hwc1(float *buffer_ptr, float *input_ptr, float *output_ptr, PoolArgsType<float> &args)
+inline void avgpool2d_hwc(float *buffer_ptr, float *input_ptr, float *output_ptr, PoolArgsType<float> &args)
 {
     for (size_t filter_y = 0; filter_y < args.filter_height; filter_y++) // H
     {                                                                    //
@@ -66,16 +64,17 @@ inline void avgpool2d_hwc1(float *buffer_ptr, float *input_ptr, float *output_pt
         {                                                                     //
             for (size_t input_c = 0; input_c < args.input_channel; input_c++) // C
             {
-                output_ptr[input_c] += input_yx[input_c];
+                buffer_ptr[input_c] += input_yx[input_c];
             }
             input_yx += args.input_x_offset;
         }
         input_ptr += args.input_y_offset;
     }
 
-    int32_t avg_pool_area = args.filter_height * args.filter_width;
+    float inv_avg_pool_area = 1.0 / args.avg_pool_area;
     for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
-        output_ptr[output_c] = output_ptr[output_c] / avg_pool_area;
+        output_ptr[output_c] = buffer_ptr[output_c] * inv_avg_pool_area;
+        buffer_ptr[output_c] = 0.0;
     }
 }
 
@@ -85,7 +84,7 @@ inline void load_avg_pool2d_hwc1_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
                                      PoolArgsType<int16_t> &args)
 {
 #if CONFIG_ACCURATE_INFER
-    c_impl_func = avgpool2d_hwc1<int16_t, int32_t>;
+    c_impl_func = avgpool2d_hwc<int16_t, int32_t>;
 #else
 #if CONFIG_TIE728_BOOST
     if (args.input_x_offset % 8 == 0 && args.output_x_offset % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
@@ -99,7 +98,7 @@ inline void load_avg_pool2d_hwc1_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
                                                                              : dl_tie728_s16_unaligned_avg_pool2d_hwc1;
     }
 #else
-    c_impl_func = avgpool2d_hwc1<int16_t, int32_t>;
+    c_impl_func = avgpool2d_hwc<int16_t, int32_t>;
 #endif
 #endif
 }
@@ -123,7 +122,7 @@ inline void load_avg_pool2d_hwc1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
                                     PoolArgsType<int8_t> &args)
 {
 #if CONFIG_ACCURATE_INFER
-    c_impl_func = avgpool2d_hwc1<int8_t, int32_t>;
+    c_impl_func = avgpool2d_hwc<int8_t, int32_t>;
 #else
 #if CONFIG_ESP32P4_BOOST
     if (args.input_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
@@ -148,7 +147,7 @@ inline void load_avg_pool2d_hwc1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
                                                                              : dl_tie728_s8_unaligned_avg_pool2d_hwc1;
     }
 #else
-    c_impl_func = avgpool2d_hwc1<int8_t, int32_t>;
+    c_impl_func = avgpool2d_hwc<int8_t, int32_t>;
 #endif
 #endif
 }
@@ -173,7 +172,7 @@ template <>
 void avg_pool2d<float>(void *args_ptr)
 {
     PoolArgsType<float> &args = *((PoolArgsType<float> *)args_ptr);
-    avg_pool_shell<float, float>(args, NULL, NULL, avgpool2d_hwc1<float, float>);
+    avg_pool_shell<float, float>(args, NULL, NULL, avgpool2d_hwc<float, float>);
 }
 
 } // namespace base

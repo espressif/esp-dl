@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dl_base_avg_pool2d.hpp"
+#include "dl_base_isa.hpp"
 #include "dl_module_base.hpp"
 
 namespace dl {
@@ -56,6 +57,8 @@ public:
             forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(context, mode);
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
+            forward_template<float>(context, mode);
         }
     }
 
@@ -65,6 +68,8 @@ public:
             base::avg_pool2d<int8_t>(args);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             base::avg_pool2d<int16_t>(args);
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
+            base::avg_pool2d<float>(args);
         }
     }
 
@@ -107,13 +112,11 @@ public:
         }
 
         // Create module
-        if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            if (pads.size() == 4) {
-                pads = {pads[0], pads[2], pads[1], pads[3]};
-            }
-
-            op = new AveragePool(node_name.c_str(), kernel_shape, pads, strides, quant_type);
+        if (pads.size() == 4) {
+            pads = {pads[0], pads[2], pads[1], pads[3]};
         }
+
+        op = new AveragePool(node_name.c_str(), kernel_shape, pads, strides, quant_type);
         return op;
     }
 
