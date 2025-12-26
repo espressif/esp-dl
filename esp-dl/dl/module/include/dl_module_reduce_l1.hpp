@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dl_module_reduce_base.hpp"
+#include <type_traits>
 
 namespace dl {
 namespace module {
@@ -31,12 +32,19 @@ public:
                     int stride1,
                     void *arg)
     {
-        T ret = 0;
-        V_T tmp = ReduceBase::reduce<reduce_op_abs_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
-        tmp = tool::shift_and_round(tmp, output_exponent - input_exponent);
-        tool::truncate(ret, tmp);
+        // For float types, skip quantization operations
+        if constexpr (std::is_same<T, float>::value && std::is_same<V_T, float>::value) {
+            // Directly return the sum of absolute values for float32
+            return ReduceBase::reduce<reduce_op_abs_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+        } else {
+            // For quantized types, perform shift_and_round and truncate
+            T ret = 0;
+            V_T tmp = ReduceBase::reduce<reduce_op_abs_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+            tmp = tool::shift_and_round(tmp, output_exponent - input_exponent);
+            tool::truncate(ret, tmp);
 
-        return ret;
+            return ret;
+        }
     }
 
     void forward(ModelContext *context, runtime_mode_t mode)
@@ -47,6 +55,9 @@ public:
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             int64_t v0 = 0;
             forward_template<int64_t, int16_t>(context, mode, v0, reduce<int64_t, int16_t>, nullptr);
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
+            float v0 = 0.0f;
+            forward_template<float, float>(context, mode, v0, reduce<float, float>, nullptr);
         }
     }
 

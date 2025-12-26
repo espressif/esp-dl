@@ -2,6 +2,7 @@
 
 #include "dl_module_reduce_base.hpp"
 #include <cmath>
+#include <type_traits>
 
 namespace dl {
 namespace module {
@@ -42,7 +43,7 @@ public:
         }
     };
 
-    // 16bit
+    // 16bit and float32
     template <typename V_T, typename T>
     static T reduce(std::string &op_type,
                     int input_exponent,
@@ -55,14 +56,22 @@ public:
                     int stride1,
                     void *arg)
     {
-        T ret = 0;
-        V_T tmp = ReduceBase::reduce<reduce_op_exp_add<V_T, float>>(
-            input_exponent, v0, ptr, size0, stride0, size1, stride1, arg);
-        float output_tmp = std::log(static_cast<float>(tmp));
-        float output_scale = DL_RESCALE(output_exponent);
-        tool::truncate(ret, tool::round(output_tmp * output_scale));
+        // For float types, skip quantization operations
+        if constexpr (std::is_same<T, float>::value && std::is_same<V_T, float>::value) {
+            // Directly return log(sum(exp(x))) for float32
+            V_T tmp = ReduceBase::reduce<reduce_op_exp_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+            return std::log(tmp);
+        } else {
+            // For quantized types, perform scaling and truncation
+            T ret = 0;
+            V_T tmp = ReduceBase::reduce<reduce_op_exp_add<V_T, float>>(
+                input_exponent, v0, ptr, size0, stride0, size1, stride1, arg);
+            float output_tmp = std::log(static_cast<float>(tmp));
+            float output_scale = DL_RESCALE(output_exponent);
+            tool::truncate(ret, tool::round(output_tmp * output_scale));
 
-        return ret;
+            return ret;
+        }
     }
 
     // 8bit
@@ -103,6 +112,9 @@ public:
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             float v0 = 0.f;
             forward_template<float, int16_t>(context, mode, v0, reduce<float, int16_t>, nullptr);
+        } else if (quant_type == QUANT_TYPE_FLOAT32) {
+            float v0 = 0.0f;
+            forward_template<float, float>(context, mode, v0, reduce<float, float>, nullptr);
         }
     }
 
