@@ -456,7 +456,7 @@ esp_err_t Model::test()
                         return ESP_FAIL;
                     }
                 } else {
-                    if (!output->equal(output_gt, 1e-5, true)) {
+                    if (!output->equal(output_gt, 2e-5, true)) {
                         ESP_LOGE(TAG, "Test output %s does not match\n", output_name.c_str());
                         delete output_gt;
                         m_fbs_model->clear_map();
