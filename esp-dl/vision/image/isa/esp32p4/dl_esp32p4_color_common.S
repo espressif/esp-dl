@@ -676,6 +676,107 @@
     rgb8882hsv \qd0, \qd1, \qd2, \a_sdiv_lut, \a_hdiv_lut, \q_tmp2, \q_tmp1, \q_tmp0, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \qs0, \qs1
 .endm
 
+.macro hsv2hsv_mask qd, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, qs2, q_tmp, h_across_zero
+    # h < h_min
+    vldbc_8_ip \q_tmp, \a_hsv_min_addr, 1
+    esp.vcmp.lt.u8 \qd, \qs0, \q_tmp
+    # h > h_max
+    vldbc_8_ip \q_tmp, \a_hsv_max_addr, 1
+    esp.vcmp.gt.u8 \q_tmp, \qs0, \q_tmp
+    .if \h_across_zero == 0
+        esp.orq \qd, \qd, \q_tmp
+    .elseif \h_across_zero == 1
+        esp.andq \qd, \qd, \q_tmp
+    .else
+        .error "h_across_zero can only be 0/1."
+    .endif
+    # s < s_min
+    vldbc_8_ip \q_tmp, \a_hsv_min_addr, 1
+    esp.vcmp.lt.u8 \q_tmp, \qs1, \q_tmp
+    esp.orq \qd, \qd, \q_tmp
+    # s > s_max
+    vldbc_8_ip \q_tmp, \a_hsv_max_addr, 1
+    esp.vcmp.gt.u8 \q_tmp, \qs1, \q_tmp
+    esp.orq \qd, \qd, \q_tmp
+    # v < v_min
+    vldbc_8_ip \q_tmp, \a_hsv_min_addr, -2
+    esp.vcmp.lt.u8 \q_tmp, \qs2, \q_tmp
+    esp.orq \qd, \qd, \q_tmp
+    # v > v_max
+    vldbc_8_ip \q_tmp, \a_hsv_max_addr, -2
+    esp.vcmp.gt.u8 \q_tmp, \qs2, \q_tmp
+    esp.orq \qd, \qd, \q_tmp
+    esp.notq \qd, \qd
+.endm
+
+.macro hsv2hsv_mask0 qd, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, qs2, q_tmp
+    hsv2hsv_mask \qd, \a_hsv_min_addr, \a_hsv_max_addr, \qs0, \qs1, \qs2, \q_tmp, 0
+.endm
+
+.macro hsv2hsv_mask1 qd, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, qs2, q_tmp
+    hsv2hsv_mask \qd, \a_hsv_min_addr, \a_hsv_max_addr, \qs0, \qs1, \qs2, \q_tmp, 1
+.endm
+
+.macro rgb8882hsv_mask0 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, qs2, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3
+    rgb8882hsv \q_tmp0, \q_tmp1, \q_tmp2, \a_sdiv_lut, \a_hdiv_lut, \qs0, \qs1, \qs2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \qd
+    hsv2hsv_mask0 \qd, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.endm
+
+.macro rgb8882hsv_mask1 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, qs2, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3
+    rgb8882hsv \q_tmp0, \q_tmp1, \q_tmp2, \a_sdiv_lut, \a_hdiv_lut, \qs0, \qs1, \qs2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \qd
+    hsv2hsv_mask1 \qd, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.endm
+
+.macro bgr8882hsv_mask0 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, qs2, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3
+    bgr8882hsv \q_tmp0, \q_tmp1, \q_tmp2, \a_sdiv_lut, \a_hdiv_lut, \qs0, \qs1, \qs2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \qd
+    hsv2hsv_mask0 \qd, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.endm
+
+.macro bgr8882hsv_mask1 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, qs2, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3
+    bgr8882hsv \q_tmp0, \q_tmp1, \q_tmp2, \a_sdiv_lut, \a_hdiv_lut, \qs0, \qs1, \qs2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \qd
+    hsv2hsv_mask1 \qd, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.endm
+
+.macro rgb565le2hsv_mask0 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
+    rgb565le2rgb888 \q_tmp0, \q_tmp1, \q_tmp2, \qs0, \qs1, \a_tmp0, \a_tmp1
+    rgb8882hsv_mask0 \qd, \a_sdiv_lut, \a_hdiv_lut, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \q_tmp4, \qs0, \qs1
+.endm
+
+.macro rgb565le2hsv_mask1 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
+    rgb565le2rgb888 \q_tmp0, \q_tmp1, \q_tmp2, \qs0, \qs1, \a_tmp0, \a_tmp1
+    rgb8882hsv_mask1 \qd, \a_sdiv_lut, \a_hdiv_lut, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \q_tmp4, \qs0, \qs1
+.endm
+
+.macro rgb565be2hsv_mask0 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
+    rgb565be2rgb888 \q_tmp0, \q_tmp1, \q_tmp2, \qs0, \qs1, \a_tmp0, \a_tmp1
+    rgb8882hsv_mask0 \qd, \a_sdiv_lut, \a_hdiv_lut, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \q_tmp4, \qs0, \qs1
+.endm
+
+.macro rgb565be2hsv_mask1 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
+    rgb565be2rgb888 \q_tmp0, \q_tmp1, \q_tmp2, \qs0, \qs1, \a_tmp0, \a_tmp1
+    rgb8882hsv_mask1 \qd, \a_sdiv_lut, \a_hdiv_lut, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \q_tmp4, \qs0, \qs1
+.endm
+
+.macro bgr565le2hsv_mask0 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
+    rgb565le2bgr888 \q_tmp0, \q_tmp1, \q_tmp2, \qs0, \qs1, \a_tmp0, \a_tmp1
+    rgb8882hsv_mask0 \qd, \a_sdiv_lut, \a_hdiv_lut, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \q_tmp4, \qs0, \qs1
+.endm
+
+.macro bgr565le2hsv_mask1 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
+    rgb565le2bgr888 \q_tmp0, \q_tmp1, \q_tmp2, \qs0, \qs1, \a_tmp0, \a_tmp1
+    rgb8882hsv_mask1 \qd, \a_sdiv_lut, \a_hdiv_lut, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \q_tmp4, \qs0, \qs1
+.endm
+
+.macro bgr565be2hsv_mask0 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
+    rgb565be2bgr888 \q_tmp0, \q_tmp1, \q_tmp2, \qs0, \qs1, \a_tmp0, \a_tmp1
+    rgb8882hsv_mask0 \qd, \a_sdiv_lut, \a_hdiv_lut, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \q_tmp4, \qs0, \qs1
+.endm
+
+.macro bgr565be2hsv_mask1 qd, a_sdiv_lut, a_hdiv_lut, a_hsv_min_addr, a_hsv_max_addr, qs0, qs1, a_tmp0, a_tmp1, a_tmp2, a_tmp3, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
+    rgb565be2bgr888 \q_tmp0, \q_tmp1, \q_tmp2, \qs0, \qs1, \a_tmp0, \a_tmp1
+    rgb8882hsv_mask1 \qd, \a_sdiv_lut, \a_hdiv_lut, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \q_tmp4, \qs0, \qs1
+.endm
+
 .macro resize_nn_load_1chn_128 qd, base_addr, offsets, q_tmp0, q_tmp1, q_tmp2, a_tmp0, a_tmp1, a_tmp2, a_tmp3
     esp.vldbc.32.ip \q_tmp0, \base_addr, 0
     esp.vld.128.ip \q_tmp1, \offsets, 16

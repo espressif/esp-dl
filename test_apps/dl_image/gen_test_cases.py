@@ -15,6 +15,7 @@ pix_types = [
     "bgr565le",
     "bgr565be",
     "hsv",
+    "hsv_mask",
 ]
 
 pix_type_pairs = [
@@ -32,6 +33,7 @@ pix_type_pairs = [
     ("rgb888", "bgr565le"),
     ("rgb888", "bgr565be"),
     ("rgb888", "hsv"),
+    ("rgb888", "hsv_mask"),
     ("bgr888", "rgb888"),
     ("bgr888", "rgb888_qint8"),
     ("bgr888", "rgb888_qint16"),
@@ -46,6 +48,7 @@ pix_type_pairs = [
     ("bgr888", "bgr565le"),
     ("bgr888", "bgr565be"),
     ("bgr888", "hsv"),
+    ("bgr888", "hsv_mask"),
     ("gray", "gray"),
     ("gray", "gray_qint8"),
     ("gray", "gray_qint16"),
@@ -63,6 +66,7 @@ pix_type_pairs = [
     ("rgb565le", "bgr565le"),
     ("rgb565le", "bgr565be"),
     ("rgb565le", "hsv"),
+    ("rgb565le", "hsv_mask"),
     ("rgb565be", "rgb888"),
     ("rgb565be", "rgb888_qint8"),
     ("rgb565be", "rgb888_qint16"),
@@ -77,6 +81,7 @@ pix_type_pairs = [
     ("rgb565be", "bgr565le"),
     ("rgb565be", "bgr565be"),
     ("rgb565be", "hsv"),
+    ("rgb565be", "hsv_mask"),
     ("bgr565le", "rgb888"),
     ("bgr565le", "rgb888_qint8"),
     ("bgr565le", "rgb888_qint16"),
@@ -91,6 +96,7 @@ pix_type_pairs = [
     ("bgr565le", "bgr565le"),
     ("bgr565le", "bgr565be"),
     ("bgr565le", "hsv"),
+    ("bgr565le", "hsv_mask"),
     ("bgr565be", "rgb888"),
     ("bgr565be", "rgb888_qint8"),
     ("bgr565be", "rgb888_qint16"),
@@ -105,6 +111,8 @@ pix_type_pairs = [
     ("bgr565be", "bgr565le"),
     ("bgr565be", "bgr565be"),
     ("bgr565be", "hsv"),
+    ("bgr565be", "hsv_mask"),
+    ("hsv", "hsv_mask"),
 ]
 
 if __name__ == "__main__":
@@ -114,52 +122,40 @@ if __name__ == "__main__":
     # for pair in list(product(pix_types, pix_types)):
     #     print(pair)
     flags = [
-        "0b00000",
-        "0b00010",
-        "0b00011",
-        "0b00100",
-        "0b00110",
-        "0b00111",
-        "0b01000",
-        "0b01010",
-        "0b01011",
-        "0b01100",
-        "0b01110",
-        "0b01111",
-        "0b10000",
-        "0b10010",
-        "0b10011",
-        "0b10100",
-        "0b10110",
-        "0b10111",
-        "0b11000",
-        "0b11010",
-        "0b11011",
-        "0b11100",
-        "0b11110",
-        "0b11111",
+        "0b0000",
+        "0b0001",
+        "0b0010",
+        "0b0011",
+        "0b0100",
+        "0b0101",
+        "0b0110",
+        "0b0111",
+        "0b1000",
+        "0b1001",
+        "0b1010",
+        "0b1011",
+        "0b1100",
+        "0b1101",
+        "0b1110",
+        "0b1111",
     ]
     with open("cvt_color_test_cases.txt", "w") as f:
         for (src_pix_type, dst_pix_type), flag in product(pix_type_pairs, flags):
             if "gray" in dst_pix_type and flag.endswith("10"):
                 continue
             print(
-                f'TEST_CVT_COLOR("{src_pix_type}2{dst_pix_type}", dl::image::DL_IMAGE_PIX_TYPE_{src_pix_type.upper()}2{dst_pix_type.upper()}, {flag})',
+                f'TEST_CVT_COLOR("{src_pix_type}2{dst_pix_type}", dl::image::DL_IMAGE_PIX_CVT_{src_pix_type.upper()}2{dst_pix_type.upper()}, {flag})',
                 file=f,
             )
     flags = [
-        "0b0000",
-        "0b0010",
-        "0b0011",
-        "0b0100",
-        "0b0110",
-        "0b0111",
-        "0b1000",
-        "0b1010",
-        "0b1011",
-        "0b1100",
-        "0b1110",
-        "0b1111",
+        "0b000",
+        "0b001",
+        "0b010",
+        "0b011",
+        "0b100",
+        "0b101",
+        "0b110",
+        "0b111",
     ]
     # print(len(pix_type_pairs))
     for src_pix_type, dst_pix_type in pix_type_pairs:

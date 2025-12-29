@@ -7,11 +7,14 @@ namespace image {
 class FeatImagePreprocessor {
 public:
     FeatImagePreprocessor(Model *model,
-                          const std::vector<float> &mean,
-                          const std::vector<float> &std,
+                          const std::array<float, 3> &mean,
+                          const std::array<float, 3> &std,
                           bool rgb_swap = false,
                           const std::string &input_name = "") :
         m_image_preprocessor(new dl::image::ImagePreprocessor(model, mean, std, rgb_swap, input_name)) {};
+
+    FeatImagePreprocessor(Model *model, float mean, float std, const std::string &input_name = "") :
+        m_image_preprocessor(new dl::image::ImagePreprocessor(model, mean, std, input_name)) {};
 
     ~FeatImagePreprocessor();
 

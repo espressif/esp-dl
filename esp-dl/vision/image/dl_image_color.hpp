@@ -63,16 +63,15 @@ template <typename QuantType>
     requires std::same_as<QuantType, int8_t> || std::same_as<QuantType, std::int16_t>
 struct NormQuant<QuantType, 3> {
     using QT = QuantType;
-    NormQuant(const std::vector<float> &mean, const std::vector<float> &std, int exp)
+    NormQuant(const std::array<float, 3> &mean, const std::array<float, 3> &std, int exp)
     {
-        assert(mean.size() == 3 && std.size() == 3);
-        m_lut1 = (QuantType *)heap_caps_malloc(mean.size() * 256 * sizeof(QuantType), MALLOC_CAP_DEFAULT);
+        m_lut1 = (QuantType *)heap_caps_malloc(3 * 256 * sizeof(QuantType), MALLOC_CAP_DEFAULT);
         m_lut2 = m_lut1 + 256;
         m_lut3 = m_lut2 + 256;
-        m_lut_32 = (int *)heap_caps_aligned_alloc(4, mean.size() * 256 * sizeof(int), MALLOC_CAP_DEFAULT);
+        m_lut_32 = (int *)heap_caps_aligned_alloc(4, 3 * 256 * sizeof(int), MALLOC_CAP_DEFAULT);
         float inv_scale = exp > 0 ? 1.f / (1 << exp) : (1 << -exp);
         int idx = 0;
-        for (int i = 0; i < mean.size(); i++) {
+        for (int i = 0; i < 3; i++) {
             float inv_std = 1.f / std[i];
             for (int j = 0; j < 256; j++) {
                 QuantType v = quantize<QuantType>((j - mean[i]) * inv_std, inv_scale);
@@ -104,15 +103,14 @@ template <typename QuantType>
     requires std::same_as<QuantType, int8_t> || std::same_as<QuantType, std::int16_t>
 struct NormQuant<QuantType, 1> {
     using QT = QuantType;
-    NormQuant(const std::vector<float> &mean, const std::vector<float> &std, int exp)
+    NormQuant(float mean, float std, int exp)
     {
-        assert(mean.size() == 1 && std.size() == 1);
         m_lut1 = (QuantType *)heap_caps_malloc(256 * sizeof(QuantType), MALLOC_CAP_DEFAULT);
         m_lut_32 = (int *)heap_caps_aligned_alloc(4, 256 * sizeof(int), MALLOC_CAP_DEFAULT);
         float inv_scale = exp > 0 ? 1.f / (1 << exp) : (1 << -exp);
-        float inv_std = 1.f / std[0];
+        float inv_std = 1.f / std;
         for (int i = 0; i < 256; i++) {
-            QuantType v = quantize<QuantType>((i - mean[0]) * inv_std, inv_scale);
+            QuantType v = quantize<QuantType>((i - mean) * inv_std, inv_scale);
             m_lut1[i] = v;
             m_lut_32[i] = (int)v;
         }
@@ -188,9 +186,9 @@ template <bool RGB565BE, bool RGBSwap, typename ExtraProcess>
     requires std::same_as<ExtraProcess, NormQuant<int8_t, 3>> || std::same_as<ExtraProcess, NormQuant<int16_t, 3>>
 struct RGB5652RGB888<RGB565BE, RGBSwap, ExtraProcess> {
     using QuantType = ExtraProcess::QT;
-    ExtraProcess *m_extra_process;
+    const ExtraProcess *m_extra_process;
 
-    RGB5652RGB888(void *extra_process) : m_extra_process((ExtraProcess *)extra_process) {}
+    RGB5652RGB888(const ExtraProcess *extra_process) : m_extra_process(extra_process) {}
 
     void operator()(const uint8_t *src, uint8_t *dst) const
     {
@@ -323,9 +321,9 @@ template <bool RGB565BE, bool RGBSwap, typename ExtraProcess>
     requires std::same_as<ExtraProcess, NormQuant<int8_t, 1>> || std::same_as<ExtraProcess, NormQuant<int16_t, 1>>
 struct RGB5652Gray<RGB565BE, RGBSwap, ExtraProcess> {
     using QuantType = ExtraProcess::QT;
-    ExtraProcess *m_extra_process;
+    const ExtraProcess *m_extra_process;
 
-    RGB5652Gray(void *extra_process) : m_extra_process((ExtraProcess *)(extra_process)) {}
+    RGB5652Gray(const ExtraProcess *extra_process) : m_extra_process(extra_process) {}
 
     void operator()(const uint8_t *src, uint8_t *dst) const
     {
@@ -483,9 +481,9 @@ template <bool RGBSwap, typename ExtraProcess>
     requires std::same_as<ExtraProcess, NormQuant<int8_t, 3>> || std::same_as<ExtraProcess, NormQuant<int16_t, 3>>
 struct RGB8882RGB888<RGBSwap, ExtraProcess> {
     using QuantType = ExtraProcess::QT;
-    ExtraProcess *m_extra_process;
+    const ExtraProcess *m_extra_process;
 
-    RGB8882RGB888(void *extra_process) : m_extra_process((ExtraProcess *)(extra_process)) {}
+    RGB8882RGB888(const ExtraProcess *extra_process) : m_extra_process(extra_process) {}
 
     void operator()(const uint8_t *src, uint8_t *dst) const
     {
@@ -572,9 +570,9 @@ template <bool RGBSwap, typename ExtraProcess>
     requires std::same_as<ExtraProcess, NormQuant<int8_t, 1>> || std::same_as<ExtraProcess, NormQuant<int16_t, 1>>
 struct RGB8882Gray<RGBSwap, ExtraProcess> {
     using QuantType = ExtraProcess::QT;
-    ExtraProcess *m_extra_process;
+    const ExtraProcess *m_extra_process;
 
-    RGB8882Gray(void *extra_process) : m_extra_process((ExtraProcess *)(extra_process)) {}
+    RGB8882Gray(const ExtraProcess *extra_process) : m_extra_process(extra_process) {}
 
     void operator()(const uint8_t *src, uint8_t *dst) const
     {
@@ -703,9 +701,9 @@ template <typename ExtraProcess>
     requires std::same_as<ExtraProcess, NormQuant<int8_t, 1>> || std::same_as<ExtraProcess, NormQuant<int16_t, 1>>
 struct Gray2Gray<ExtraProcess> {
     using QuantType = ExtraProcess::QT;
-    ExtraProcess *m_extra_process;
+    const ExtraProcess *m_extra_process;
 
-    Gray2Gray(void *extra_process) : m_extra_process((ExtraProcess *)(extra_process)) {}
+    Gray2Gray(const ExtraProcess *extra_process) : m_extra_process(extra_process) {}
 
     void operator()(const uint8_t *src, uint8_t *dst) const
     {
@@ -805,6 +803,7 @@ struct RGB8882HSV {
             cvt_color_simd_helper_rgb8882hsv(src, dst, n, m_sdiv_table, m_hdiv_table);
         }
     }
+
     void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
     {
         if constexpr (RGBSwap) {
@@ -842,6 +841,7 @@ struct RGB5652HSV {
             cvt_color_simd_helper_rgb565le2hsv(src, dst, n, m_rgb8882hsv.m_sdiv_table, m_rgb8882hsv.m_hdiv_table);
         }
     }
+
     void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
     {
         if constexpr (RGB565BE && RGBSwap) {
@@ -862,27 +862,34 @@ struct RGB5652HSV {
 
 template <bool HAcrossZero>
 struct HSV2HSVMask {
-    HSV2HSVMask(const std::vector<uint8_t> &hsv_min, const std::vector<uint8_t> &hsv_max)
+    std::array<uint8_t, 3> m_hsv_min;
+    std::array<uint8_t, 3> m_hsv_max;
+
+    HSV2HSVMask(const std::array<uint8_t, 3> &hsv_min, const std::array<uint8_t, 3> &hsv_max) :
+        m_hsv_min(hsv_min), m_hsv_max(hsv_max)
     {
-        m_h_min = hsv_min[0];
-        m_h_max = hsv_max[0];
-        m_s_min = hsv_min[1];
-        m_s_max = hsv_max[1];
-        m_v_min = hsv_min[2];
-        m_v_max = hsv_max[2];
+        if constexpr (HAcrossZero) {
+            assert(hsv_min[0] > hsv_max[0] && hsv_min[0] <= 180);
+        } else {
+            assert(hsv_min[0] < hsv_max[0] && hsv_max[0] <= 180);
+        }
+        assert(hsv_min[1] < hsv_max[1]);
+        assert(hsv_min[2] < hsv_max[2]);
     }
 
     void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint8_t h = src[0], s = src[1], v = src[2];
         if constexpr (HAcrossZero) {
-            if ((h >= m_h_min || h <= m_h_max) && s >= m_s_min && s <= m_s_max && v >= m_v_min && v <= m_v_max) {
+            if ((h >= m_hsv_min[0] || h <= m_hsv_max[0]) && s >= m_hsv_min[1] && s <= m_hsv_max[1] &&
+                v >= m_hsv_min[2] && v <= m_hsv_max[2]) {
                 *dst = 255;
             } else {
                 *dst = 0;
             }
         } else {
-            if (h >= m_h_min && h <= m_h_max && s >= m_s_min && s <= m_s_max && v >= m_v_min && v <= m_v_max) {
+            if (h >= m_hsv_min[0] && h <= m_hsv_max[0] && s >= m_hsv_min[1] && s <= m_hsv_max[1] && v >= m_hsv_min[2] &&
+                v <= m_hsv_max[2]) {
                 *dst = 255;
             } else {
                 *dst = 0;
@@ -890,17 +897,28 @@ struct HSV2HSVMask {
         }
     }
 
-    uint8_t m_h_min;
-    uint8_t m_h_max;
-    uint8_t m_s_min;
-    uint8_t m_s_max;
-    uint8_t m_v_min;
-    uint8_t m_v_max;
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (HAcrossZero) {
+            cvt_color_simd_helper_hsv2hsv_mask1(src, dst, n, m_hsv_min.data(), m_hsv_max.data());
+        } else {
+            cvt_color_simd_helper_hsv2hsv_mask0(src, dst, n, m_hsv_min.data(), m_hsv_max.data());
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (HAcrossZero) {
+            resize_nn_simd_helper_hsv2hsv_mask1(&src, offsets, dst, n, m_hsv_min.data(), m_hsv_max.data());
+        } else {
+            resize_nn_simd_helper_hsv2hsv_mask0(&src, offsets, dst, n, m_hsv_min.data(), m_hsv_max.data());
+        }
+    }
 };
 
 template <bool RGBSwap, bool HAcrossZero>
 struct RGB8882HSVMask {
-    RGB8882HSVMask(const std::vector<uint8_t> &hsv_min, const std::vector<uint8_t> &hsv_max) :
+    RGB8882HSVMask(const std::array<uint8_t, 3> &hsv_min, const std::array<uint8_t, 3> &hsv_max) :
         m_hsv2hsv_mask(hsv_min, hsv_max)
     {
     }
@@ -913,27 +931,97 @@ struct RGB8882HSVMask {
         m_rgb8882hsv(src, hsv);
         m_hsv2hsv_mask(hsv, dst);
     }
-};
 
-template <bool RGBSwap, bool HAcrossZero>
-struct RGB8882HSVAndHSVMask {
-    RGB8882HSVAndHSVMask(const std::vector<uint8_t> &hsv_min, const std::vector<uint8_t> &hsv_max) :
-        m_hsv2hsv_mask(hsv_min, hsv_max)
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
     {
+        if constexpr (HAcrossZero) {
+            if constexpr (RGBSwap) {
+                cvt_color_simd_helper_bgr8882hsv_mask1(src,
+                                                       dst,
+                                                       n,
+                                                       m_rgb8882hsv.m_sdiv_table,
+                                                       m_rgb8882hsv.m_hdiv_table,
+                                                       m_hsv2hsv_mask.m_hsv_min.data(),
+                                                       m_hsv2hsv_mask.m_hsv_max.data());
+            } else {
+                cvt_color_simd_helper_rgb8882hsv_mask1(src,
+                                                       dst,
+                                                       n,
+                                                       m_rgb8882hsv.m_sdiv_table,
+                                                       m_rgb8882hsv.m_hdiv_table,
+                                                       m_hsv2hsv_mask.m_hsv_min.data(),
+                                                       m_hsv2hsv_mask.m_hsv_max.data());
+            }
+        } else {
+            if constexpr (RGBSwap) {
+                cvt_color_simd_helper_bgr8882hsv_mask0(src,
+                                                       dst,
+                                                       n,
+                                                       m_rgb8882hsv.m_sdiv_table,
+                                                       m_rgb8882hsv.m_hdiv_table,
+                                                       m_hsv2hsv_mask.m_hsv_min.data(),
+                                                       m_hsv2hsv_mask.m_hsv_max.data());
+            } else {
+                cvt_color_simd_helper_rgb8882hsv_mask0(src,
+                                                       dst,
+                                                       n,
+                                                       m_rgb8882hsv.m_sdiv_table,
+                                                       m_rgb8882hsv.m_hdiv_table,
+                                                       m_hsv2hsv_mask.m_hsv_min.data(),
+                                                       m_hsv2hsv_mask.m_hsv_max.data());
+            }
+        }
     }
-    RGB8882HSV<RGBSwap> m_rgb8882hsv;
-    HSV2HSVMask<HAcrossZero> m_hsv2hsv_mask;
 
-    void operator()(const uint8_t *src, uint8_t *dst_hsv, uint8_t *dst_hsv_mask) const
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
     {
-        m_rgb8882hsv(src, dst_hsv);
-        m_hsv2hsv_mask(dst_hsv, dst_hsv_mask);
+        if constexpr (HAcrossZero) {
+            if constexpr (RGBSwap) {
+                resize_nn_simd_helper_bgr8882hsv_mask1(&src,
+                                                       offsets,
+                                                       dst,
+                                                       n,
+                                                       m_rgb8882hsv.m_sdiv_table,
+                                                       m_rgb8882hsv.m_hdiv_table,
+                                                       m_hsv2hsv_mask.m_hsv_min.data(),
+                                                       m_hsv2hsv_mask.m_hsv_max.data());
+            } else {
+                resize_nn_simd_helper_rgb8882hsv_mask1(&src,
+                                                       offsets,
+                                                       dst,
+                                                       n,
+                                                       m_rgb8882hsv.m_sdiv_table,
+                                                       m_rgb8882hsv.m_hdiv_table,
+                                                       m_hsv2hsv_mask.m_hsv_min.data(),
+                                                       m_hsv2hsv_mask.m_hsv_max.data());
+            }
+        } else {
+            if constexpr (RGBSwap) {
+                resize_nn_simd_helper_bgr8882hsv_mask0(&src,
+                                                       offsets,
+                                                       dst,
+                                                       n,
+                                                       m_rgb8882hsv.m_sdiv_table,
+                                                       m_rgb8882hsv.m_hdiv_table,
+                                                       m_hsv2hsv_mask.m_hsv_min.data(),
+                                                       m_hsv2hsv_mask.m_hsv_max.data());
+            } else {
+                resize_nn_simd_helper_rgb8882hsv_mask0(&src,
+                                                       offsets,
+                                                       dst,
+                                                       n,
+                                                       m_rgb8882hsv.m_sdiv_table,
+                                                       m_rgb8882hsv.m_hdiv_table,
+                                                       m_hsv2hsv_mask.m_hsv_min.data(),
+                                                       m_hsv2hsv_mask.m_hsv_max.data());
+            }
+        }
     }
 };
 
 template <bool RGB565BE, bool RGBSwap, bool HAcrossZero>
 struct RGB5652HSVMask {
-    RGB5652HSVMask(const std::vector<uint8_t> &hsv_min, const std::vector<uint8_t> &hsv_max) :
+    RGB5652HSVMask(const std::array<uint8_t, 3> &hsv_min, const std::array<uint8_t, 3> &hsv_max) :
         m_hsv2hsv_mask(hsv_min, hsv_max)
     {
     }
@@ -946,22 +1034,176 @@ struct RGB5652HSVMask {
         m_rgb5652hsv(src, hsv);
         m_hsv2hsv_mask(hsv, dst);
     }
+
+    void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
+    {
+        if constexpr (HAcrossZero) {
+            if constexpr (RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_bgr565be2hsv_mask1(src,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                cvt_color_simd_helper_rgb565be2hsv_mask1(src,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_bgr565le2hsv_mask1(src,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else {
+                cvt_color_simd_helper_rgb565le2hsv_mask1(src,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            }
+        } else {
+            if constexpr (RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_bgr565be2hsv_mask0(src,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                cvt_color_simd_helper_rgb565be2hsv_mask0(src,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                cvt_color_simd_helper_bgr565le2hsv_mask0(src,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else {
+                cvt_color_simd_helper_rgb565le2hsv_mask0(src,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            }
+        }
+    }
+
+    void resize_nn_simd_helper(uint8_t *src, int *offsets, uint8_t *dst, int n) const
+    {
+        if constexpr (HAcrossZero) {
+            if constexpr (RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_bgr565be2hsv_mask1(&src,
+                                                         offsets,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                resize_nn_simd_helper_rgb565be2hsv_mask1(&src,
+                                                         offsets,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_bgr565le2hsv_mask1(&src,
+                                                         offsets,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else {
+                resize_nn_simd_helper_rgb565le2hsv_mask1(&src,
+                                                         offsets,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            }
+        } else {
+            if constexpr (RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_bgr565be2hsv_mask0(&src,
+                                                         offsets,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else if constexpr (RGB565BE && !RGBSwap) {
+                resize_nn_simd_helper_rgb565be2hsv_mask0(&src,
+                                                         offsets,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else if constexpr (!RGB565BE && RGBSwap) {
+                resize_nn_simd_helper_bgr565le2hsv_mask0(&src,
+                                                         offsets,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            } else {
+                resize_nn_simd_helper_rgb565le2hsv_mask0(&src,
+                                                         offsets,
+                                                         dst,
+                                                         n,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_sdiv_table,
+                                                         m_rgb5652hsv.m_rgb8882hsv.m_hdiv_table,
+                                                         m_hsv2hsv_mask.m_hsv_min.data(),
+                                                         m_hsv2hsv_mask.m_hsv_max.data());
+            }
+        }
+    }
 };
 
-template <bool RGB565BE, bool RGBSwap, bool HAcrossZero>
-struct RGB5652HSVAndHSVMask {
-    RGB5652HSVAndHSVMask(const std::vector<uint8_t> &hsv_min, const std::vector<uint8_t> &hsv_max) :
-        m_hsv2hsv_mask(hsv_min, hsv_max)
+typedef struct hsv_param_s {
+    std::array<uint8_t, 3> hsv_min;
+    std::array<uint8_t, 3> hsv_max;
+    bool h_across_zero;
+    hsv_param_s(const std::array<uint8_t, 3> &hsv_min, const std::array<uint8_t, 3> &hsv_max) :
+        hsv_min(hsv_min), hsv_max(hsv_max), h_across_zero(hsv_min[0] > hsv_max[0])
     {
     }
-    RGB5652HSV<RGB565BE, RGBSwap> m_rgb5652hsv;
-    HSV2HSVMask<HAcrossZero> m_hsv2hsv_mask;
-
-    void operator()(const uint8_t *src, uint8_t *dst_hsv, uint8_t *dst_hsv_mask) const
-    {
-        m_rgb5652hsv(src, dst_hsv);
-        m_hsv2hsv_mask(dst_hsv, dst_hsv_mask);
-    }
-};
+} hsv_param_t;
+using pix_cvt_param_t = std::variant<std::monostate,
+                                     NormQuant<int8_t, 1>,
+                                     NormQuant<int8_t, 3>,
+                                     NormQuant<int16_t, 1>,
+                                     NormQuant<int16_t, 3>,
+                                     hsv_param_t>;
 } // namespace image
 } // namespace dl

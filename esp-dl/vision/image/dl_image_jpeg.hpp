@@ -29,8 +29,8 @@ img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type);
 jpeg_img_t sw_encode_jpeg_base(const img_t &img, uint8_t quality = 80);
 
 /**
- * @brief Extend sw_encode_jpeg_base, add support to encode RGB565LE/RGB565BE/BGR565LE/BGR565BE/BGR888 with additional
- * convert.
+ * @brief Extend sw_encode_jpeg_base, add support to encode RGB565LE/RGB565BE/BGR565LE/BGR565BE/BGR888/HSV_MASK with
+ * additional convert.
  *
  * @param img The image to encode.
  * @param quality Compression quality.
@@ -71,7 +71,8 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img,
                                jpeg_down_sampling_type_t rgb_sub_sample_method = JPEG_DOWN_SAMPLING_YUV420);
 
 /**
- * @brief Extend hw_encode_jpeg_base, add support to encode RGB565BE/BGR565LE/BGR565BE/RGB888 with additional convert.
+ * @brief Extend hw_encode_jpeg_base, add support to encode RGB565BE/BGR565LE/BGR565BE/RGB888/HSV_MASK with additional
+ * convert.
  *
  * @param img The image to encode.
  * @param quality Compression quality.

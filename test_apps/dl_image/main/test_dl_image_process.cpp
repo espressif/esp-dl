@@ -52,7 +52,7 @@ TEST_CASE("Test crop+cvt_color+make_color_border", "[dl_image]")
         .set_dst_img(dst_img)
         .set_src_img_crop_area({30, 60, 30 + 200, 60 + 200})
         .set_dst_img_border({5, 19, 14, 10})
-        .set_bg_value({0, 0, 255}, false);
+        .set_bg_value({255, 0, 0});
     int64_t start = esp_timer_get_time();
     transformer.transform();
     int64_t end = esp_timer_get_time();
@@ -174,14 +174,11 @@ TEST_CASE("Test resize padding bg same", "[dl_image]")
                      .height = 324,
                      .pix_type = DL_IMAGE_PIX_TYPE_RGB888};
 
-    // rgb 120, 120, 120
-    std::vector<uint8_t> color{0xcf, 0x7b};
-
     ImageTransformer transformer;
     transformer.set_src_img(src_img)
         .set_dst_img(dst_img)
         .set_dst_img_border({30, 70, 30, 70})
-        .set_bg_value(color, true);
+        .set_bg_value({120, 120, 120});
     int64_t start = esp_timer_get_time();
     transformer.transform();
     int64_t end = esp_timer_get_time();
@@ -208,7 +205,7 @@ TEST_CASE("Test resize padding bg diff", "[dl_image]")
     transformer.set_src_img(src_img)
         .set_dst_img(dst_img)
         .set_dst_img_border({30, 70, 30, 70})
-        .set_bg_value({255, 0, 0}, false);
+        .set_bg_value({255, 0, 0});
     int64_t start = esp_timer_get_time();
     transformer.transform();
     int64_t end = esp_timer_get_time();
@@ -337,15 +334,12 @@ TEST_CASE("Test warp affine padding bg same", "[dl_image]")
     M.array[1][1] = 0.866;
     M.array[1][2] = 0;
 
-    // rgb 120, 120, 120
-    std::vector<uint8_t> color{0xcf, 0x7b};
-
     ImageTransformer transformer;
     transformer.set_src_img(src_img)
         .set_dst_img(dst_img)
         .set_warp_affine_matrix(M)
         .set_dst_img_border({30, 70, 30, 70})
-        .set_bg_value(color, true);
+        .set_bg_value({120, 120, 120});
     int64_t start = esp_timer_get_time();
     transformer.transform();
     int64_t end = esp_timer_get_time();
@@ -381,7 +375,7 @@ TEST_CASE("Test warp affine padding bg diff", "[dl_image]")
         .set_dst_img(dst_img)
         .set_warp_affine_matrix(M)
         .set_dst_img_border({30, 70, 30, 70})
-        .set_bg_value({255, 0, 0}, false);
+        .set_bg_value({255, 0, 0});
     int64_t start = esp_timer_get_time();
     transformer.transform();
     int64_t end = esp_timer_get_time();
@@ -491,7 +485,7 @@ TEST_CASE("Test ppa resize", "[dl_image][ignore]")
             heap_caps_free(dst_img.data);
         }
     }
-
+    heap_caps_free(img.data);
     ESP_ERROR_CHECK(ppa_unregister_client(ppa_srm_handle));
 }
 #endif

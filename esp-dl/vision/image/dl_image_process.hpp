@@ -8,44 +8,53 @@
 
 namespace dl {
 namespace image {
-struct NormQuantWrapper {
-    typedef enum { INT8_QUANT, INT16_QUANT, UNK } quant_type_t;
-    NormQuantWrapper();
-    NormQuantWrapper(
-        const std::vector<float> &mean, const std::vector<float> &std, int exp, quant_type_t quant_type, int chn);
-    ~NormQuantWrapper();
-    void clear();
-    NormQuantWrapper(const NormQuantWrapper &rhs) = delete;
-    NormQuantWrapper &operator=(NormQuantWrapper &rhs) = delete;
-    NormQuantWrapper(NormQuantWrapper &&rhs) noexcept;
-    NormQuantWrapper &operator=(NormQuantWrapper &&rhs) noexcept;
-
-    quant_type_t m_quant_type;
-    int m_chn;
-    void *m_norm_quant;
-};
 class ImageTransformer {
 public:
     ImageTransformer();
+    ImageTransformer(const ImageTransformer &) = delete;
+    ImageTransformer &operator=(const ImageTransformer &) = delete;
+    ImageTransformer(ImageTransformer &&rhs) noexcept;
+    ImageTransformer &operator=(ImageTransformer &&rhs) noexcept;
+
     ~ImageTransformer();
-    ImageTransformer &set_norm_quant_param(const std::vector<float> &mean,
-                                           const std::vector<float> &std,
-                                           int exp,
-                                           NormQuantWrapper::quant_type_t quant_type);
-    ImageTransformer &set_src_img_crop_area(const std::vector<int> &crop_area);
-    ImageTransformer &set_dst_img_border(const std::vector<int> &border);
-    ImageTransformer &set_bg_value(const std::vector<uint8_t> &bg_value, bool src_color_space);
     ImageTransformer &set_src_img(const img_t &src_img);
     ImageTransformer &set_dst_img(const img_t &dst_img);
     ImageTransformer &set_warp_affine_matrix(const math::Matrix<float> &M, bool inv = false);
-    std::vector<int> &get_src_img_crop_area();
-    std::vector<int> &get_dst_img_border();
-    NormQuantWrapper &get_norm_quant_wrapper();
+    ImageTransformer &set_src_img_crop_area(const std::vector<int> &crop_area);
+    ImageTransformer &set_dst_img_border(const std::vector<int> &border);
+    /**
+     * @brief Set the background value. If the dst image uses the different color space besides RGB. The value will be
+     * converted automatically.
+     *
+     * @param bg_value RGB or BGR value
+     * @return ImageTransformer&
+     */
+    ImageTransformer &set_bg_value(const std::array<uint8_t, 3> &bg_value);
+    /**
+     * @brief Set the background value. If the dst image uses the different color space besides Gray. The value will be
+     * converted automatically
+     *
+     * @param bg_value GRAY value
+     * @return ImageTransformer&
+     */
+    ImageTransformer &set_bg_value(const uint8_t bg_value);
+    ImageTransformer &set_norm_quant_param(const std::array<float, 3> &mean,
+                                           const std::array<float, 3> &std,
+                                           int exp,
+                                           int quant_bits);
+    ImageTransformer &set_norm_quant_param(float mean, float std, int exp, int quant_bits);
+    ImageTransformer &set_hsv_thr(const std::array<uint8_t, 3> &hsv_min, const std::array<uint8_t, 3> &hsv_max);
+    ImageTransformer &reset();
+
     const img_t &get_src_img();
     const img_t &get_dst_img();
+    math::Matrix<float> &get_warp_affine_matrix();
+    std::vector<int> &get_src_img_crop_area();
+    std::vector<int> &get_dst_img_border();
     float get_scale_x(bool inv = false);
     float get_scale_y(bool inv = false);
-    void reset();
+    pix_cvt_param_t get_pix_cvt_param();
+
 #if CONFIG_IDF_TARGET_ESP32P4
     static inline constexpr bool simd = true;
 #else
@@ -484,23 +493,9 @@ private:
     template <typename PixelCvt, bool SIMD>
     void transform_nn(const PixelCvt &pixel_cvt)
     {
-        if (m_bg_value.empty() && (m_M.array || !m_border.empty())) {
-            m_bg_value.assign(m_dst_img.col_step(), 0);
-            m_bg_src_color_space = false;
-            m_new_bg_value = true;
-        }
-        if (m_new_bg_value) {
-            if (m_bg_src_color_space) {
-                std::vector<uint8_t> dst_bg_value(m_dst_img.col_step());
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-overflow"
-                pixel_cvt(m_bg_value.data(), dst_bg_value.data());
-#pragma GCC diagnostic pop
-                m_bg_value.swap(dst_bg_value);
-            }
-            m_bg_value_same = std::all_of(
-                m_bg_value.begin() + 1, m_bg_value.end(), [this](const auto &v) { return v == m_bg_value[0]; });
-            m_new_bg_value = false;
+        if (m_gen_xy_map) {
+            gen_xy_map();
+            m_gen_xy_map = false;
         }
 
 #if CONFIG_IDF_TARGET_ESP32P4
@@ -574,11 +569,9 @@ private:
     float m_inv_scale_x;
     float m_inv_scale_y;
     math::Matrix<float> m_M;
-    std::vector<int> m_crop_area;    /*!< left_top_x, left_top_y, bottom_right_x, bottom_right_y */
-    std::vector<int> m_border;       /*!< top, bottom, left, right */
-    std::vector<uint8_t> m_bg_value; /*!< the value to fill background */
-    uint32_t m_caps;
-    NormQuantWrapper m_norm_quant_wrapper;
+    std::vector<int> m_crop_area; /*!< left_top_x, left_top_y, bottom_right_x, bottom_right_y */
+    std::vector<int> m_border;    /*!< top, bottom, left, right */
+    pix_cvt_param_t m_pix_cvt_param;
     int *m_x;
     int *m_y;
     int *m_x1;
@@ -586,8 +579,8 @@ private:
     int *m_y1;
     int *m_y2;
     bool m_gen_xy_map;
-    bool m_new_bg_value;
-    bool m_bg_src_color_space;
+    std::variant<std::monostate, std::array<uint8_t, 3>, uint8_t> m_ori_bg_value;
+    std::vector<uint8_t> m_bg_value;
     bool m_bg_value_same;
 };
 } // namespace image

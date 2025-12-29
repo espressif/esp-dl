@@ -4,7 +4,6 @@
 
 extern const uint8_t color_jpg_start[] asm("_binary_color_jpg_start");
 extern const uint8_t color_jpg_end[] asm("_binary_color_jpg_end");
-const char *TAG = "color_detect";
 
 void task(void *args)
 {
@@ -20,7 +19,7 @@ void task(void *args)
 
     auto &detect_results = detect->run(img);
     for (const auto &res : detect_results) {
-        ESP_LOGI(TAG,
+        ESP_LOGI("ColorDetect",
                  "[name: %s, [x1: %d, y1: %d, x2: %d, y2: %d]]",
                  detect->get_color_name(res.category).c_str(),
                  res.box[0],
@@ -29,11 +28,30 @@ void task(void *args)
                  res.box[3]);
     }
     delete detect;
+
+    ColorRotateDetect *rot_detect = new ColorRotateDetect(224, 224);
+    rot_detect->register_color({170, 100, 100}, {10, 255, 255}, "red");
+    rot_detect->register_color({20, 100, 100}, {35, 255, 255}, "yellow");
+    rot_detect->register_color({35, 100, 100}, {85, 255, 255}, "green");
+    rot_detect->register_color({100, 100, 100}, {130, 255, 255}, "blue");
+
+    auto &rot_detect_results = rot_detect->run(img);
+    for (const auto &res : rot_detect_results) {
+        ESP_LOGI("ColorRotateDetect",
+                 "[name: %s, [cx: %.2f, cy: %.2f, width: %.2f, height: %.2f, angle: %.2f]]",
+                 rot_detect->get_color_name(res.category).c_str(),
+                 res.rot_rect.center.x,
+                 res.rot_rect.center.y,
+                 res.rot_rect.size.width,
+                 res.rot_rect.size.height,
+                 res.rot_rect.angle);
+    }
+    delete rot_detect;
     heap_caps_free(img.data);
     vTaskDelete(NULL);
 }
 
 extern "C" void app_main(void)
 {
-    xTaskCreate(task, nullptr, 4096, nullptr, 5, nullptr);
+    xTaskCreate(task, nullptr, 15000, nullptr, 5, nullptr);
 }

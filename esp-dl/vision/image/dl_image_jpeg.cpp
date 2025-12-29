@@ -130,7 +130,19 @@ jpeg_img_t sw_encode_jpeg_base(const img_t &img, uint8_t quality)
 
 jpeg_img_t sw_encode_jpeg(const img_t &img, uint8_t quality)
 {
-    if (img.pix_type != DL_IMAGE_PIX_TYPE_RGB888 && img.pix_type != DL_IMAGE_PIX_TYPE_GRAY) {
+    switch (img.pix_type) {
+    case DL_IMAGE_PIX_TYPE_RGB888:
+    case DL_IMAGE_PIX_TYPE_GRAY:
+        return sw_encode_jpeg_base(img, quality);
+    case DL_IMAGE_PIX_TYPE_HSV_MASK: {
+        img_t img_ = {img.data, img.width, img.height, DL_IMAGE_PIX_TYPE_GRAY};
+        return sw_encode_jpeg_base(img_, quality);
+    }
+    case DL_IMAGE_PIX_TYPE_BGR888:
+    case DL_IMAGE_PIX_TYPE_RGB565LE:
+    case DL_IMAGE_PIX_TYPE_RGB565BE:
+    case DL_IMAGE_PIX_TYPE_BGR565LE:
+    case DL_IMAGE_PIX_TYPE_BGR565BE: {
         void *data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
         if (!data) {
             ESP_LOGE(TAG, "Failed to malloc cvt img memory.");
@@ -142,8 +154,10 @@ jpeg_img_t sw_encode_jpeg(const img_t &img, uint8_t quality)
         jpeg_img_t ret = sw_encode_jpeg_base(img_cvt, quality);
         heap_caps_free(data);
         return ret;
-    } else {
-        return sw_encode_jpeg_base(img, quality);
+    }
+    default:
+        ESP_LOGE(TAG, "Unsupported img type.");
+        return {};
     }
 }
 
@@ -367,6 +381,10 @@ jpeg_img_t hw_encode_jpeg(const img_t &img,
     case DL_IMAGE_PIX_TYPE_BGR888:
     case DL_IMAGE_PIX_TYPE_RGB565LE:
         return hw_encode_jpeg_base(img, quality, timeout_ms, rgb_sub_sample_method);
+    case DL_IMAGE_PIX_TYPE_HSV_MASK: {
+        img_t img_ = {img.data, img.width, img.height, DL_IMAGE_PIX_TYPE_GRAY};
+        return hw_encode_jpeg_base(img_, quality, timeout_ms, rgb_sub_sample_method);
+    }
     default:
         ESP_LOGE(TAG, "Unsupported img pix format.");
         return {};

@@ -138,11 +138,19 @@ esp_err_t write_bmp_base(const img_t &img, const char *file_name)
 
 esp_err_t write_bmp(const img_t &img, const char *file_name)
 {
-    if (img.pix_quant()) {
-        ESP_LOGE(TAG, "Unsupported img type.");
-        return ESP_FAIL;
+    switch (img.pix_type) {
+    case DL_IMAGE_PIX_TYPE_BGR888:
+    case DL_IMAGE_PIX_TYPE_GRAY:
+        return write_bmp_base(img, file_name);
+    case DL_IMAGE_PIX_TYPE_HSV_MASK: {
+        img_t img_ = {img.data, img.width, img.height, DL_IMAGE_PIX_TYPE_GRAY};
+        return write_bmp_base(img_, file_name);
     }
-    if (img.pix_type != DL_IMAGE_PIX_TYPE_BGR888 && img.pix_type != DL_IMAGE_PIX_TYPE_GRAY) {
+    case DL_IMAGE_PIX_TYPE_RGB888:
+    case DL_IMAGE_PIX_TYPE_RGB565LE:
+    case DL_IMAGE_PIX_TYPE_RGB565BE:
+    case DL_IMAGE_PIX_TYPE_BGR565LE:
+    case DL_IMAGE_PIX_TYPE_BGR565BE: {
         void *data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
         if (!data) {
             ESP_LOGE(TAG, "Failed to malloc cvt img memory.");
@@ -154,8 +162,10 @@ esp_err_t write_bmp(const img_t &img, const char *file_name)
         esp_err_t ret = write_bmp_base(img_cvt, file_name);
         heap_caps_free(data);
         return ret;
-    } else {
-        return write_bmp_base(img, file_name);
+    }
+    default:
+        ESP_LOGE(TAG, "Unsupported img type.");
+        return ESP_FAIL;
     }
 }
 

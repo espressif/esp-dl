@@ -7,51 +7,62 @@ namespace dl {
 namespace image {
 
 ImagePreprocessor::ImagePreprocessor(Model *model,
-                                     const std::vector<float> &mean,
-                                     const std::vector<float> &std,
+                                     const std::array<float, 3> &mean,
+                                     const std::array<float, 3> &std,
                                      bool rgb_swap,
                                      const std::string &input_name) :
     m_letter_box(false)
 {
     m_model_input = model->get_input(input_name);
     assert(m_model_input->dtype == DATA_TYPE_INT8 || m_model_input->dtype == DATA_TYPE_INT16);
-    int ch = (int)m_model_input->shape[3];
-    assert(ch == 1 || ch == 3);
-    assert(ch == mean.size() && mean.size() == std.size());
+    assert(m_model_input->shape[3] == 3);
+    int quant_bits = (m_model_input->dtype == DATA_TYPE_INT8) ? 8 : 16;
     pix_type_t pix_type;
-    if (ch == 1) {
+    if (!rgb_swap) {
         if (m_model_input->dtype == DATA_TYPE_INT8) {
-            pix_type = DL_IMAGE_PIX_TYPE_GRAY_QINT8;
+            pix_type = DL_IMAGE_PIX_TYPE_RGB888_QINT8;
         } else {
-            pix_type = DL_IMAGE_PIX_TYPE_GRAY_QINT16;
+            pix_type = DL_IMAGE_PIX_TYPE_RGB888_QINT16;
         }
     } else {
-        if (!rgb_swap) {
-            if (m_model_input->dtype == DATA_TYPE_INT8) {
-                pix_type = DL_IMAGE_PIX_TYPE_RGB888_QINT8;
-            } else {
-                pix_type = DL_IMAGE_PIX_TYPE_RGB888_QINT16;
-            }
+        if (m_model_input->dtype == DATA_TYPE_INT8) {
+            pix_type = DL_IMAGE_PIX_TYPE_BGR888_QINT8;
         } else {
-            if (m_model_input->dtype == DATA_TYPE_INT8) {
-                pix_type = DL_IMAGE_PIX_TYPE_BGR888_QINT8;
-            } else {
-                pix_type = DL_IMAGE_PIX_TYPE_BGR888_QINT16;
-            }
+            pix_type = DL_IMAGE_PIX_TYPE_BGR888_QINT16;
         }
     }
     img_t dst = {.data = m_model_input->data,
                  .width = (uint16_t)m_model_input->shape[2],
                  .height = (uint16_t)m_model_input->shape[1],
                  .pix_type = pix_type};
-    NormQuantWrapper::quant_type_t quant_type =
-        (m_model_input->dtype == DATA_TYPE_INT8) ? NormQuantWrapper::INT8_QUANT : NormQuantWrapper::INT16_QUANT;
-    m_image_transformer.set_dst_img(dst).set_norm_quant_param(mean, std, m_model_input->exponent, quant_type);
+    m_image_transformer.set_dst_img(dst).set_norm_quant_param(mean, std, m_model_input->exponent, quant_bits);
 }
 
-void ImagePreprocessor::enable_letterbox(const std::vector<uint8_t> &bg_value)
+ImagePreprocessor::ImagePreprocessor(Model *model, float mean, float std, const std::string &input_name) :
+    m_letter_box(false)
 {
-    m_image_transformer.set_bg_value(bg_value, true);
+    m_model_input = model->get_input(input_name);
+    assert(m_model_input->dtype == DATA_TYPE_INT8 || m_model_input->dtype == DATA_TYPE_INT16);
+    assert(m_model_input->shape[3] == 1);
+    int quant_bits = (m_model_input->dtype == DATA_TYPE_INT8) ? 8 : 16;
+    pix_type_t pix_type =
+        (m_model_input->dtype == DATA_TYPE_INT8) ? DL_IMAGE_PIX_TYPE_GRAY_QINT8 : DL_IMAGE_PIX_TYPE_GRAY_QINT16;
+    img_t dst = {.data = m_model_input->data,
+                 .width = (uint16_t)m_model_input->shape[2],
+                 .height = (uint16_t)m_model_input->shape[1],
+                 .pix_type = pix_type};
+    m_image_transformer.set_dst_img(dst).set_norm_quant_param(mean, std, m_model_input->exponent, quant_bits);
+}
+
+void ImagePreprocessor::enable_letterbox(const std::array<uint8_t, 3> &bg_value)
+{
+    m_image_transformer.set_bg_value(bg_value);
+    m_letter_box = true;
+}
+
+void ImagePreprocessor::enable_letterbox(uint8_t bg_value)
+{
+    m_image_transformer.set_bg_value(bg_value);
     m_letter_box = true;
 }
 
