@@ -4,35 +4,55 @@
 
 namespace dl {
 namespace image {
+#if CONFIG_PIX_CVT_RGB565_TO_RGB565_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_rgb5652rgb565(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
 
+#if CONFIG_PIX_CVT_RGB565_TO_RGB888_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_rgb5652rgb888(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
 
+#if CONFIG_PIX_CVT_RGB565_TO_GRAY_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_rgb5652gray(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
 
+#if CONFIG_PIX_CVT_RGB565_TO_HSV_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_rgb5652hsv(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
 
+#if CONFIG_PIX_CVT_RGB888_TO_RGB888_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_rgb8882rgb888(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
 
+#if CONFIG_PIX_CVT_RGB888_TO_RGB565_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_rgb8882rgb565(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
 
+#if CONFIG_PIX_CVT_RGB888_TO_GRAY_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_rgb8882gray(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
 
+#if CONFIG_PIX_CVT_RGB888_TO_HSV_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_rgb8882hsv(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
 
+#if CONFIG_PIX_CVT_GRAY_TO_GRAY_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_gray2gray(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
 
+#if CONFIG_PIX_CVT_HSV_TO_HSV_MASK_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_hsv2hsv_mask(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
 
 template <typename Func>
 esp_err_t pixel_cvt_dispatch(const Func &func,
@@ -42,6 +62,7 @@ esp_err_t pixel_cvt_dispatch(const Func &func,
 {
     pix_cvt_t pix_cvt_type = (pix_cvt_t)DL_IMAGE_PIX_CVT_ID(src_pix_type, dst_pix_type);
     switch (pix_cvt_type) {
+#if CONFIG_PIX_CVT_RGB888_TO_RGB888_SUPPORT
     case DL_IMAGE_PIX_CVT_RGB8882RGB888:
     case DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT8:
     case DL_IMAGE_PIX_CVT_RGB8882RGB888_QINT16:
@@ -56,6 +77,8 @@ esp_err_t pixel_cvt_dispatch(const Func &func,
     case DL_IMAGE_PIX_CVT_BGR8882BGR888_QINT16:
         pixel_cvt_dispatch_rgb8882rgb888(func, pix_cvt_type, param);
         break;
+#endif
+#if CONFIG_PIX_CVT_RGB888_TO_GRAY_SUPPORT
     case DL_IMAGE_PIX_CVT_RGB8882GRAY:
     case DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT8:
     case DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT16:
@@ -64,6 +87,8 @@ esp_err_t pixel_cvt_dispatch(const Func &func,
     case DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT16:
         pixel_cvt_dispatch_rgb8882gray(func, pix_cvt_type, param);
         break;
+#endif
+#if CONFIG_PIX_CVT_RGB888_TO_RGB565_SUPPORT
     case DL_IMAGE_PIX_CVT_RGB8882RGB565LE:
     case DL_IMAGE_PIX_CVT_RGB8882RGB565BE:
     case DL_IMAGE_PIX_CVT_RGB8882BGR565LE:
@@ -74,17 +99,23 @@ esp_err_t pixel_cvt_dispatch(const Func &func,
     case DL_IMAGE_PIX_CVT_BGR8882BGR565BE:
         pixel_cvt_dispatch_rgb8882rgb565(func, pix_cvt_type, param);
         break;
+#endif
+#if CONFIG_PIX_CVT_RGB888_TO_HSV_SUPPORT
     case DL_IMAGE_PIX_CVT_RGB8882HSV:
     case DL_IMAGE_PIX_CVT_BGR8882HSV:
     case DL_IMAGE_PIX_CVT_RGB8882HSV_MASK:
     case DL_IMAGE_PIX_CVT_BGR8882HSV_MASK:
         pixel_cvt_dispatch_rgb8882hsv(func, pix_cvt_type, param);
         break;
+#endif
+#if CONFIG_PIX_CVT_GRAY_TO_GRAY_SUPPORT
     case DL_IMAGE_PIX_CVT_GRAY2GRAY:
     case DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT8:
     case DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT16:
         pixel_cvt_dispatch_gray2gray(func, pix_cvt_type, param);
         break;
+#endif
+#if CONFIG_PIX_CVT_RGB565_TO_RGB888_SUPPORT
     case DL_IMAGE_PIX_CVT_RGB565LE2RGB888:
     case DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8:
     case DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16:
@@ -111,6 +142,8 @@ esp_err_t pixel_cvt_dispatch(const Func &func,
     case DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16:
         pixel_cvt_dispatch_rgb5652rgb888(func, pix_cvt_type, param);
         break;
+#endif
+#if CONFIG_PIX_CVT_RGB565_TO_GRAY_SUPPORT
     case DL_IMAGE_PIX_CVT_RGB565LE2GRAY:
     case DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT8:
     case DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT16:
@@ -125,6 +158,8 @@ esp_err_t pixel_cvt_dispatch(const Func &func,
     case DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT16:
         pixel_cvt_dispatch_rgb5652gray(func, pix_cvt_type, param);
         break;
+#endif
+#if CONFIG_PIX_CVT_RGB565_TO_RGB565_SUPPORT
     case DL_IMAGE_PIX_CVT_RGB565LE2RGB565LE:
     case DL_IMAGE_PIX_CVT_RGB565LE2RGB565BE:
     case DL_IMAGE_PIX_CVT_RGB565LE2BGR565LE:
@@ -143,6 +178,8 @@ esp_err_t pixel_cvt_dispatch(const Func &func,
     case DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE:
         pixel_cvt_dispatch_rgb5652rgb565(func, pix_cvt_type, param);
         break;
+#endif
+#if CONFIG_PIX_CVT_RGB565_TO_HSV_SUPPORT
     case DL_IMAGE_PIX_CVT_RGB565LE2HSV:
     case DL_IMAGE_PIX_CVT_RGB565BE2HSV:
     case DL_IMAGE_PIX_CVT_BGR565LE2HSV:
@@ -153,9 +190,12 @@ esp_err_t pixel_cvt_dispatch(const Func &func,
     case DL_IMAGE_PIX_CVT_BGR565BE2HSV_MASK:
         pixel_cvt_dispatch_rgb5652hsv(func, pix_cvt_type, param);
         break;
+#endif
+#if CONFIG_PIX_CVT_HSV_TO_HSV_MASK_SUPPORT
     case DL_IMAGE_PIX_CVT_HSV2HSV_MASK:
         pixel_cvt_dispatch_hsv2hsv_mask(func, pix_cvt_type, param);
         break;
+#endif
     default:
         ESP_LOGE("pix_cvt_dispatch",
                  "Invalid pix cvt from %s to %s.",
