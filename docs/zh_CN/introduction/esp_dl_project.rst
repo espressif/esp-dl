@@ -10,23 +10,23 @@ ESP-DL 项目组织
 
 核心深度学习模块和工具，分为子模块：
 
-* **model**  
+* **model**
   加载、管理和分配深度学习模型的内存。包含 ``dl_model_base`` 和 ``dl_memory_manager``。
 
-* **module**  
-  算子接口（卷积、池化、激活）。文件：``dl_module_conv``，``dl_module_pool``，``dl_module_relu``。
+* **module**
+  60+ 个神经网络算子接口（卷积、池化、激活等）。文件：``dl_module_base.hpp``，``dl_module_conv.hpp``，``dl_module_pool.hpp``，``dl_module_relu.hpp`` 等。
 
-* **base**  
-  具体的算子实现，包括对芯片（esp32s3/esp32p4）的汇编加速。
+* **base**
+  具体的算子实现，包括对芯片（esp32, esp32s3, esp32p4）的 ISA 特定汇编加速。包含算子实现文件如 ``dl_base_conv2d.cpp/hpp``，``dl_base_avg_pool2d.cpp/hpp`` 等，以及 ``isa/`` 子目录中的 ISA 特定代码。
 
-* **math**  
-  数学操作（矩阵函数）。文件：``dl_math.hpp`` 和 ``dl_math.cpp``。
+* **math**
+  数学操作（矩阵函数）。文件：``dl_math.hpp`` 和 ``dl_math_matrix.hpp``。
 
-* **tool**  
-  辅助功能（实用工具）。文件：``dl_tool.hpp`` 和 ``dl_tool.cpp``。
+* **tool**
+  辅助功能（实用工具）。文件：``dl_tool.hpp`` 和 ``dl_tool.cpp``。包含 ``isa/`` 子目录中的 ISA 特定工具。
 
-* **tensor**  
-  张量类。文件：``dl_tensor_base.hpp``。
+* **tensor**
+  张量类和操作。文件：``dl_tensor_base.hpp``。
 
 
 **vision（计算机视觉）**
@@ -34,19 +34,31 @@ ESP-DL 项目组织
 
 计算机视觉模块，分为子模块：
 
-* **classification**  
-  图像分类（模型推理）。推理：``dl_cls_base``。后处理器：``imagenet_cls_postprocessor``，``dl_cls_postprocessor``。
+* **classification**
+  图像分类（模型推理）。推理：``dl_cls_base``。后处理器：``imagenet_cls_postprocessor``，``hand_gesture_cls_postprocessor``，``dl_cls_postprocessor``。
 
-* **recognition**  
+* **recognition**
   特征提取（模型推理）。特征数据库管理（注册、删除、查询）。预处理器：``dl_feat_image_preprocessor``。推理：``dl_feat_base``。后处理器：``dl_feat_postprocessor``。数据库：``dl_recognition_database``
 
-* **image**  
+* **image**
   图像处理（调整大小、裁剪、仿射变换）。颜色转换（像素、图像）。图像预处理器（调整大小、裁剪、颜色转换、规范化、量化的管道）。图像解码/编码（JPEG/BMP）。绘制工具（点、空心矩形）。
 
   图像处理：``dl_image_process``。颜色转换：``dl_image_color``。图像预处理器：``dl_image_preprocessor``。图像解码/编码：``dl_image_jpeg``、``dl_image_bmp``。绘制工具：``dl_image_draw``。
 
-* **detect**  
-  目标检测（模型推理）。推理：``dl_detect_base``。后处理器：``dl_detect_msr_postprocessor``、``dl_detect_mnp_postprocessor``、``dl_detect_pico_postprocessor``。
+* **detect**
+  目标检测（模型推理）。推理：``dl_detect_base``。后处理器：``dl_detect_yolo11_postprocessor``、``dl_detect_espdet_postprocessor``、``dl_detect_msr_postprocessor``、``dl_detect_mnp_postprocessor``、``dl_detect_pico_postprocessor``。姿态估计：``dl_pose_yolo11_postprocessor``。
+
+
+**audio（音频处理）**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+音频处理模块，分为子模块：
+
+* **common**
+  通用音频工具。文件： ``dl_audio_common.cpp/hpp`` ， ``dl_audio_wav.cpp/hpp``。
+
+* **speech_features**
+  语音特征提取。文件： ``dl_speech_features.cpp/hpp`` (base class), ``dl_fbank.cpp/hpp`` (Filter Bank), ``dl_mfcc.cpp/hpp`` (MFCC), ``dl_spectrogram.cpp/hpp`` (Spectrogram)。
 
 
 **fbs_loader（FlatBuffers 加载器）**
@@ -54,24 +66,33 @@ ESP-DL 项目组织
 
 处理 FlatBuffers 模型：
 
-* **include**  
+* **include**
   头文件：``fbs_loader.hpp``，``fbs_model.hpp``。
 
-* **src**  
+* **src**
   实现：``fbs_loader.cpp``。
+
+* **lib/**
+  针对不同目标的预编译库：``esp32/``，``esp32s3/``，``esp32p4/``。
+
+* **espidl.fbs**
+  FlatBuffers 模式文件。
+
+* **pack_espdl_models.py**
+  模型打包脚本。
 
 
 **其他文件**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* **CMakeLists.txt**  
+* **CMakeLists.txt**
   项目构建配置。
 
-* **idf_component.yml**  
+* **idf_component.yml**
   组件元数据（名称、版本、依赖项）。
 
-* **README.md**  
+* **README.md**
   项目文档和使用说明。
 
-* **LICENSE**  
+* **LICENSE**
   许可条款。

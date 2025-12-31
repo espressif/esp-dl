@@ -50,6 +50,40 @@ ESP-PPQ provides an automatic streaming conversion feature via the ``auto_stream
 2. Creating internal state management for maintaining context between chunks
 3. Generating optimized code suitable for streaming scenarios
 
+How Auto Streaming Conversion Works
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The automatic streaming conversion in ESP-PPQ analyzes the model graph and inserts ``StreamingCache`` nodes at strategic locations to enable temporal context preservation. The conversion process follows these principles:
+
+**1. Operation Classification**
+   - **Streaming-enabled operations**: Convolution, pooling, and transpose convolution operations that require temporal context (e.g., ``Conv``, ``AveragePool``, ``MaxPool``, ``ConvTranspose``).
+   - **Bypass operations**: Activation functions, mathematical operations, quantization nodes, and other operations that don't require temporal context (e.g., ``Relu``, ``Add``, ``MatMul``, ``LayerNorm``).
+
+**2. Window Size Calculation**
+   For streaming-enabled operations, ESP-PPQ calculates the required cache window size based on:
+   - Kernel size and dilation rates
+   - Padding configuration
+   - Stride values
+
+   The window size determines how many previous frames need to be cached for proper computation of the current frame.
+
+**3. StreamingCache Node Insertion**
+   ESP-PPQ inserts ``StreamingCache`` nodes before streaming-enabled operations. These nodes:
+   - Maintain a sliding window buffer of historical frames
+   - Adjust tensor shapes to accommodate the cache window
+   - Preserve quantization configurations from the original operation
+   - Manage frame axis alignment for proper temporal processing
+
+**4. Padding Adjustment**
+   For streaming operations, ESP-PPQ adjusts padding configurations:
+   - Removes bottom padding to prevent look-ahead into future frames
+   - Maintains symmetric or top-only padding for causal processing
+
+**Limitations and Considerations**
+   - Automatic conversion supports convolution-based temporal operations out-of-the-box
+   - Custom operations or complex temporal dependencies may require manual streaming table configuration
+   - The conversion assumes the time dimension is along axis 1 (configurable via ``streaming_table``)
+
 Here's an example of how to use the auto streaming feature:
 
 .. code-block:: python
