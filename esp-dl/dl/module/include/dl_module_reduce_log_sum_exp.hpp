@@ -101,11 +101,7 @@ public:
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             float v0 = 0.f;
             if (m_exp_table == nullptr) {
-#if CONFIG_SPIRAM
-                m_exp_table = (float *)heap_caps_malloc(256 * sizeof(float), MALLOC_CAP_SPIRAM);
-#else
-                m_exp_table = (float *)heap_caps_malloc(256 * sizeof(float), MALLOC_CAP_DEFAULT);
-#endif
+                m_exp_table = (float *)tool::malloc_aligned(256 * sizeof(float), MALLOC_CAP_DEFAULT);
                 tool::gen_lut_8bit(m_exp_table, context->get_tensor(m_inputs_index[0])->get_exponent(), expf);
             }
             forward_template<float, int8_t>(context, mode, v0, reduce<float>, this);

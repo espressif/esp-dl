@@ -144,7 +144,7 @@ public:
     void forward_lut(TensorBase *input, TensorBase *output)
     {
         if (this->exp_table == nullptr) {
-            this->exp_table = (float *)heap_caps_malloc(256 * sizeof(float), MALLOC_CAP_DEFAULT);
+            this->exp_table = (float *)tool::malloc_aligned(256 * sizeof(float), MALLOC_CAP_DEFAULT);
             tool::gen_lut_8bit(this->exp_table, input->exponent, expf);
         }
 

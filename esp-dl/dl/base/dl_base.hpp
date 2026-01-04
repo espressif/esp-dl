@@ -305,7 +305,7 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
     }
     args.debug_value = nullptr;
     if (malloc_debug_memory) {
-        args.debug_value = tool::calloc_aligned(16, 16, 1, MALLOC_CAP_DEFAULT);
+        args.debug_value = tool::calloc_aligned(16, 1, MALLOC_CAP_DEFAULT);
     }
     std::vector<ArgsType<feature_t>> m_args(1, args);
     if (args.input_height > 4 * args.dilation_h * args.filter_height) {
@@ -886,7 +886,8 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             }
         } else // run c_impl_func
         {
-            buffer_t *buffer = (buffer_t *)heap_caps_calloc(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
+            buffer_t *buffer =
+                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
             feature_t *input_y_real;
             feature_t *input_x_real;
             feature_t *filter_ptr_y;
@@ -1117,7 +1118,8 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             }
         } else // run c_impl_func
         {
-            buffer_t *buffer = (buffer_t *)heap_caps_calloc(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
+            buffer_t *buffer =
+                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
             for (size_t output_y = 0; output_y < args.output_height; output_y++) {
                 feature_t *input_syx = input_ptr;
                 feature_t *output_yx = output_ptr;
@@ -1794,7 +1796,8 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
             }
         } else // run c_impl_func
         {
-            buffer_t *buffer = (buffer_t *)heap_caps_calloc(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
+            buffer_t *buffer =
+                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
             feature_t *input_y_real;
             feature_t *input_x_real;
             feature_t *filter_ptr_y;
@@ -2024,7 +2027,8 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
         } else // run c_impl_func
         {
             args.filter_y_offset = 0;
-            buffer_t *buffer = (buffer_t *)heap_caps_calloc(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
+            buffer_t *buffer =
+                (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
             for (size_t output_y = 0; output_y < args.output_height; output_y++) {
                 feature_t *input_syx = input_ptr;
                 feature_t *output_yx = output_ptr;

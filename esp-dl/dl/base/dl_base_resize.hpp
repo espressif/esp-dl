@@ -73,7 +73,7 @@ std::vector<resizeArgsType<feature_t>> get_resize_operation_args(TensorBase *out
             // in_x coordinates + in_x ratio + x linear
             len = args.output_width + args.output_width * 2 + args.output_width * args.input_channel * 2;
         }
-        cache = static_cast<float *>(tool::calloc_aligned(16, len, sizeof(float), MALLOC_CAP_DEFAULT));
+        cache = static_cast<float *>(tool::calloc_aligned(len, sizeof(float), MALLOC_CAP_DEFAULT));
     }
     args.cache = cache;
 
