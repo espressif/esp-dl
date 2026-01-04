@@ -60,6 +60,8 @@ WinType win_type_from_string(const char *str)
         return WinType::HANNING;
     if (strcmp(str, "sine") == 0)
         return WinType::SINE;
+    if (strcmp(str, "hann") == 0)
+        return WinType::HANN;
     if (strcmp(str, "hamming") == 0)
         return WinType::HAMMING;
     if (strcmp(str, "povey") == 0)
@@ -68,6 +70,8 @@ WinType win_type_from_string(const char *str)
         return WinType::RECTANGULAR;
     if (strcmp(str, "NONE") == 0)
         return WinType::NONE;
+    if (strcmp(str, "blackman") == 0)
+        return WinType::BLACKMAN;
     return WinType::NONE;
 }
 
@@ -80,10 +84,14 @@ const char *win_type_to_string(WinType win_type)
         return "sine";
     case WinType::HAMMING:
         return "hamming";
+    case WinType::HANN:
+        return "hann";
     case WinType::POVEY:
         return "povey";
     case WinType::RECTANGULAR:
         return "rectangular";
+    case WinType::BLACKMAN:
+        return "blackman";
     default:
         return "none";
     }

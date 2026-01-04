@@ -22,13 +22,13 @@ struct SpeechFeatureConfig {
     float cepstral_lifter = 22.0;                /*！< Constant that controls scaling of MFCCs >*/
     WinType window_type = WinType::HANNING;      /*!< Window type */
     float low_freq = 80.0f;                      /*!< Lower edge of mel filters */
-    float high_freq = 7600.0f;                   /*!< Upper edge of mel filters */
+    float high_freq = 0.0f;                      /*!< Upper edge of mel filters */
     float log_epsilon = 1.1920928955078125e-07f; /*!< log epsilon: torch.finfo(torch.float32).eps */
     int use_log_fbank = 1;   /*!< 0: return fbank, 1: return log(x+log_epsilon), 2: return log(max(x, log_epsilon)) */
     bool raw_energy = true;  /*!< If True, compute energy before preemphasis and windowing (Default: True) */
     bool use_power = true;   /*!< If true, use power, else use magnitude. (Default: True) */
     bool use_energy = false; /*!< Add an extra dimension with energy to the FBANK output. (Default: False) */
-    bool use_int16_fft = false;   /*!< If true, use float fft, else use int16 fft for faster speed. (Default: False) */
+    bool use_int16_fft = false;   /*!< If false, use float fft, else use int16 fft for faster speed. (Default: False) */
     bool remove_dc_offset = true; /*!< Subtract mean from waveform on each frame (Default: True) */
 
     SpeechFeatureConfig() = default;
