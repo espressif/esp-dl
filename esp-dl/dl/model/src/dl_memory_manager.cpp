@@ -17,7 +17,8 @@ TensorInfo::TensorInfo(std::string &name,
     exponent(exponent),
     is_internal(is_internal),
     m_leader_tensor(nullptr),
-    m_follower_dirty_tensor(nullptr)
+    m_follower_dirty_tensor(nullptr),
+    m_follower_clean_tensor(nullptr)
 {
     if (shape.size() > 0) {
         this->shape.push_back(shape[0]);

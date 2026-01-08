@@ -5,6 +5,7 @@
 #include "esp_heap_caps.h"
 #include "fbs_model.hpp"
 #include <list>
+#include <tuple>
 
 namespace dl {
 /**
@@ -60,6 +61,8 @@ private:
     TensorInfo *m_leader_tensor;
     TensorInfo
         *m_follower_dirty_tensor; // Only reference the follower tensor which will modify the data of leader tensor.
+    TensorInfo
+        *m_follower_clean_tensor; // Only reference the follower tensor which don't modify the data of leader tensor.
 
 public:
     /**
@@ -95,18 +98,28 @@ public:
     void set_inplace_leader_tensor(TensorInfo *tensor);
 
     /**
-     * @brief Set the inplace follower tensor object
+     * @brief Set the inplace follower dirty tensor object
      *
-     * @param tensor Inplace follower tensor
+     * @param tensor Inplace follower dirty tensor
      */
-    void set_inplace_follower_tensor(TensorInfo *tensor) { m_follower_dirty_tensor = tensor; }
+    void set_inplace_follower_dirty_tensor(TensorInfo *tensor) { m_follower_dirty_tensor = tensor; }
+
+    /**
+     * @brief Set the inplace follower clean tensor object
+     *
+     * @param tensor Inplace follower clean tensor
+     */
+    void set_inplace_follower_clean_tensor(TensorInfo *tensor) { m_follower_clean_tensor = tensor; }
 
     /**
      * @brief Get the inplace follower tensor object
      *
-     * @return TensorInfo* Inplace follower tensor
+     * @return std::pair<TensorInfo *, TensorInfo *>
      */
-    TensorInfo *get_inplace_follower_tensor() { return m_follower_dirty_tensor; }
+    std::pair<TensorInfo *, TensorInfo *> get_inplace_follower_tensor()
+    {
+        return {m_follower_dirty_tensor, m_follower_clean_tensor};
+    }
 
     /**
      * @brief Update Tensor lifetime
