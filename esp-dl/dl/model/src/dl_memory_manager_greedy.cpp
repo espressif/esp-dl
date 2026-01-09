@@ -120,10 +120,11 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
             index = context->get_variable_index(name);
             if (index >= 0) {
                 // The previously existing tensor will dirty the input. Must disconnect the inplace link.
-                TensorInfo *follower_tensor = tensor_info[index]->get_inplace_follower_tensor();
-                if (follower_tensor) {
-                    tensor_info[index]->set_inplace_follower_tensor(nullptr);
-                    follower_tensor->set_inplace_leader_tensor(nullptr);
+                auto [pre_follower_dirty_tensor, pre_follower_clean_tensor] =
+                    tensor_info[index]->get_inplace_follower_tensor();
+                if (pre_follower_dirty_tensor) {
+                    tensor_info[index]->set_inplace_follower_dirty_tensor(nullptr);
+                    pre_follower_dirty_tensor->set_inplace_leader_tensor(nullptr);
                 }
 
                 auto out_iter = std::find(graph_outputs.begin(), graph_outputs.end(), name);
@@ -176,17 +177,36 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
                 }
             }
             if (inplace_tensor) {
-                TensorInfo *pre_follower_tensor = inplace_tensor->get_inplace_follower_tensor();
+                auto [pre_follower_dirty_tensor, pre_follower_clean_tensor] =
+                    inplace_tensor->get_inplace_follower_tensor();
                 // The previously existing tensor will dirty the input. Must disconnect the inplace link.
-                if (pre_follower_tensor) {
-                    inplace_tensor->set_inplace_follower_tensor(nullptr);
-                    pre_follower_tensor->set_inplace_leader_tensor(nullptr);
+                if (pre_follower_dirty_tensor) {
+                    inplace_tensor->set_inplace_follower_dirty_tensor(nullptr);
+                    pre_follower_dirty_tensor->set_inplace_leader_tensor(nullptr);
                 }
 
                 // Relink the inplace.
+                /*********************
+                 * 1.If the tensor already has a clean follower, setting it to dirty will skip the inplace
+                 *   operation to avoid contaminating the current clean follower tensor.
+                 * 2.If the tensor already has a clean follower, setting it to clean again has no effect
+                 *   and proceeds normally.
+                 * 3.If the tensor already has a dirty follower, the code first disconnects the existing
+                 *   dirty follower, then proceeds normally when setting a new dirty follower.
+                 * 4.If the tensor already has a dirty follower, the code first disconnects the existing
+                 *   dirty follower, then proceeds normally when setting a new clean follower.
+                 *********************/
                 info->set_inplace_leader_tensor(inplace_tensor);
                 if (module->inplace == MODULE_INPLACE_CHANGED_BUFFER) {
-                    inplace_tensor->set_inplace_follower_tensor(info);
+                    if (pre_follower_clean_tensor) {
+                        info->set_inplace_leader_tensor(nullptr);
+                    } else {
+                        inplace_tensor->set_inplace_follower_dirty_tensor(info);
+                    }
+                } else if (module->inplace == MODULE_INPLACE_UNCHANGED_BUFFER) {
+                    inplace_tensor->set_inplace_follower_clean_tensor(info);
+                } else {
+                    // Nothing to do.
                 }
             }
         } else {
@@ -266,7 +286,7 @@ void MemoryManagerGreedy::simulate_with_internal_memory(std::vector<TensorInfo *
     }
 
     for (int i = 0; i < tensor_info.size(); i++) {
-        // If this tensor is inplaced by other tensor, skip it
+        // If this tensor has already been inplaced to another tensor, skip it.
         if (tensor_info[i]->is_inplaced()) {
             continue;
         }

@@ -17,7 +17,8 @@ TensorInfo::TensorInfo(std::string &name,
     exponent(exponent),
     is_internal(is_internal),
     m_leader_tensor(nullptr),
-    m_follower_dirty_tensor(nullptr)
+    m_follower_dirty_tensor(nullptr),
+    m_follower_clean_tensor(nullptr)
 {
     if (shape.size() > 0) {
         this->shape.push_back(shape[0]);
@@ -77,13 +78,13 @@ TensorBase *TensorInfo::create_tensor(void *internal_root, void *psram_root)
     uint8_t *element = nullptr;
 
 #if CONFIG_SPIRAM
-    if (this->is_internal) {
+    if (get_internal_state()) {
         element = (uint8_t *)internal_root + this->get_internal_offset();
     } else {
         element = (uint8_t *)psram_root + this->get_offset();
     }
 #else
-    element = (uint8_t *)internal_root + this->get_offset();
+    element = (uint8_t *)internal_root + this->get_internal_offset();
 #endif
 
     tensor = new TensorBase(shape, element, exponent, dtype, false);
