@@ -186,6 +186,8 @@ public:
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
             if (pads.size() == 4) {
                 pads = {pads[0], pads[2], pads[1], pads[3]};
+            } else if (pads.size() == 0) {
+                pads = {0, 0, 0, 0};
             }
             conv_op = new Conv(activation_type, pads, dilations, strides, node_name.c_str(), group, quant_type);
         }

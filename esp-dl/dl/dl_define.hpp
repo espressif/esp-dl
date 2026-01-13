@@ -3,6 +3,9 @@
 #include "dl_define_private.hpp"
 #include "sdkconfig.h"
 #include <string>
+#include "soc/soc_caps.h"
+
+#define DL_LOG_TAG "esp-dl"
 
 #define DL_LOG_MODULE_NAME 0   /*!< - 1: save the module name */
                                /*!< - 0: empty module name */
@@ -13,13 +16,10 @@
 #define DL_LOG_CACHE_COUNT 0   /*!< - 1: print the cache hit/miss count only for esp32p4 */
                                /*!< - 0: mute */
 
-#if CONFIG_SPIRAM_SUPPORT || CONFIG_ESP32_SPIRAM_SUPPORT || CONFIG_ESP32S2_SPIRAM_SUPPORT || \
-    CONFIG_ESP32S3_SPIRAM_SUPPORT || CONFIG_SPIRAM
+#if CONFIG_SPIRAM_SUPPORT || CONFIG_SPIRAM
 #define DL_SPIRAM_SUPPORT 1
-#define MALLOC_CAP_DL_DEFAULT (MALLOC_CAP_SPIRAM)
 #else
 #define DL_SPIRAM_SUPPORT 0
-#define MALLOC_CAP_DL_DEFAULT (MALLOC_CAP_INTERNAL)
 #endif
 
 #if CONFIG_IDF_TARGET_ESP32

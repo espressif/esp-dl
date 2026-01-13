@@ -243,7 +243,7 @@ FbsModel *create_fbs_model(const char *fbs_buf,
         fseek(f, offset + 4, SEEK_SET);
         fread(&mode, 4, 1, f);
         fread(&size, 4, 1, f);
-        model_buf = (char *)dl::tool::malloc_aligned(16, size, MALLOC_CAP_DEFAULT);
+        model_buf = (char *)dl::tool::malloc_aligned(size, MALLOC_CAP_DEFAULT);
         if (!model_buf) {
             ESP_LOGE(
                 TAG,
@@ -297,7 +297,7 @@ FbsModel *create_fbs_model(const char *fbs_buf,
         if (model_location == MODEL_LOCATION_IN_SDCARD) {
             model_buf_decrypt = (uint8_t *)model_buf;
         } else {
-            model_buf_decrypt = (uint8_t *)dl::tool::malloc_aligned(16, size, MALLOC_CAP_DEFAULT);
+            model_buf_decrypt = (uint8_t *)dl::tool::malloc_aligned(size, MALLOC_CAP_DEFAULT);
             if (!model_buf_decrypt) {
                 ESP_LOGE(TAG,
                          "Failed to alloc %.2fKB RAM, largest available PSRAM block size %.2fKB, internal RAM block "

@@ -47,14 +47,10 @@ public:
         m_tanh_lut = nullptr;
 
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
-            uint32_t caps = MALLOC_CAP_SPIRAM;
-            if (!DL_SPIRAM_SUPPORT) {
-                caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
-            }
-
+            uint32_t caps = MALLOC_CAP_DEFAULT;
             m_sigmoid_lut = new math::SigmoidLUT(m_gate_exponent, -6.3, 6.3, caps); // +-6.3 is the boundary for sigmoid
             m_tanh_lut = new math::TanhLUT(m_gate_exponent, -3.5, 3.5, caps);       // +-3.5 is the boundary for tanh
-            m_gates = (float *)heap_caps_malloc(4 * hidden_size * sizeof(float), caps);
+            m_gates = (float *)tool::malloc_aligned(4 * hidden_size * sizeof(float), caps);
         }
     }
 

@@ -108,6 +108,8 @@ public:
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
             if (pads.size() == 4) {
                 pads = {pads[0], pads[2], pads[1], pads[3]};
+            } else if (pads.size() == 0) {
+                pads = {0, 0, 0, 0};
             }
 
             op = new MaxPool(node_name.c_str(), kernel_shape, pads, strides, quant_type);

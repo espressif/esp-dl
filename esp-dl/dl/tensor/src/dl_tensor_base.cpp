@@ -146,7 +146,7 @@ TensorBase::TensorBase(
     if (element) {
         if (deep) {
             this->auto_free = true;
-            this->data = tool::calloc_aligned(16, aligned_size, dtype_bytes, caps);
+            this->data = tool::calloc_aligned(aligned_size, dtype_bytes, caps);
             tool::copy_memory(this->data, const_cast<void *>(element), this->get_size() * dtype_bytes);
         } else {
             this->auto_free = false;
@@ -154,7 +154,7 @@ TensorBase::TensorBase(
         }
     } else {
         this->auto_free = true;
-        this->data = tool::calloc_aligned(16, aligned_size, dtype_bytes, caps);
+        this->data = tool::calloc_aligned(aligned_size, dtype_bytes, caps);
     }
     if ((!element || deep) && !this->data) {
         ESP_LOGE(
@@ -406,7 +406,7 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         memory_size_needed = memory_size_needed % align == 0 ? memory_size_needed
                                                              : memory_size_needed + align - memory_size_needed % align;
         int32_t *src_ptr = static_cast<int32_t *>(this->data);
-        int8_t *dst_ptr = static_cast<int8_t *>(tool::calloc_aligned(16, memory_size_needed, dtype_bytes, this->caps));
+        int8_t *dst_ptr = static_cast<int8_t *>(tool::calloc_aligned(memory_size_needed, dtype_bytes, this->caps));
         assert(dst_ptr);
         int8_t *dst_ptr_head = dst_ptr;
 
@@ -455,8 +455,7 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         }
 
         int64_t *src_ptr = static_cast<int64_t *>(this->data);
-        int8_t *dst_ptr =
-            static_cast<int8_t *>(tool::calloc_aligned(16, data_num, this->get_dtype_bytes(), this->caps));
+        int8_t *dst_ptr = static_cast<int8_t *>(tool::calloc_aligned(data_num, this->get_dtype_bytes(), this->caps));
         int8_t *dst_ptr_head = dst_ptr;
         // 0x000000AAAAAAAAAA000000BBBBBBBBBB ==> 0xAAAAAAAAAABBBBBBBBBB
         for (int i = 0; i < align_num; i++) {
