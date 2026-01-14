@@ -20,6 +20,7 @@ ESP-DL 提供了加载、调试和运行 AI 模型的 API。该框架易于使�
 
 
 ## 更新 
+- [2026/1/14] 在netron中支持可视化`.espdl`模型，方便模型调试. [开始使用](./esp-dl/netron.md).
 - [2025/10/20] 发布 ESP-DL v3.2.0, 进一步增强了模型量化和部署的能力。   
 - [2025/07/22] 将 ESP-PPQ 的包名从 ppq 改为 esp-ppq，以避免与 ppq 冲突，同时将 ESP-PPQ 依赖包全部升级到最新版。**注意: 量化脚本中需注意修改包名为esp-ppq**。
 - [2025/04/30] 我们发布了全新的 [esp-detection](https://github.com/espressif/esp-detection) 项目和 `ESPDet-Pico` 模型，可轻松训练并部署目标检测模型。[espdet_pico_224_224_cat 模型](./models/cat_detect/) 和 [示例](./examples/cat_detect/) 是基于 esp-detection 训练的猫咪检测模型，欢迎试用并反馈意见！    
