@@ -93,4 +93,16 @@ This module provides functionalities for computer vision tasks.
 - `classification/`: Post-processors for image classification models (e.g., ImageNet classifiers).
 - `recognition/`: Components for face recognition tasks.
 
+## Netron Support
+We’ve added support for `.espdl` models in netron (a visualizer for neural network) and have submitted a [PR](https://github.com/lutzroeder/netron/pull/1519) that is currently awaiting merge.
+Before it is merged, you can install and launch it quickly as follows:
+
+```
+# install netron with espdl support
+pip install  git+https://github.com/sun-xiangyu/netron
+
+#launch web browser
+netron-dl
+```
+
 Explore ESP-DL to streamline your AI model deployment and achieve optimal performance with minimal resource usage.
