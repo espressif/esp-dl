@@ -27,9 +27,6 @@ Model Quantization
 
 :project:`Reference example <examples/tutorial/how_to_deploy_streaming_model>`
 
-How to Convert to a Streaming Model
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 There are numerous types of time series models. Here, we take the Temporal Convolutional Network (TCN) as an example. If you are unfamiliar with TCNs, please refer to relevant resources for details; we won't elaborate further. Other models should be customized based on their specific structures.
 
 The example code constructs a TCN model: :project_file:`models.py <examples/tutorial/how_to_deploy_streaming_model/quantize_streaming_model/models.py>` (the model is incomplete and used only for demonstration).
@@ -127,6 +124,60 @@ Here's an example of how to use the auto streaming feature:
         streaming_table=None,
     )
 
+Manual Streaming Cache Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For operators that are not automatically supported by ESP-PPQ's streaming conversion feature (such as Transpose, Reshape, Slice, etc.), you can manually insert StreamingCache nodes using the ``insert_streaming_cache_on_var`` function. This function allows you to specify cache attributes for variables that cannot have streamingCache inserted automatically.
+
+The ``insert_streaming_cache_on_var`` function has the following signature:
+
+.. code-block:: python
+
+    def insert_streaming_cache_on_var(
+        var_name: str,
+        window_size: int,
+        op_name: str = None,
+        frame_axis: int = 1
+    ) -> Dict[str, Any]
+
+Parameters:
+- ``var_name``: The name of the variable where the streaming cache should be inserted
+- ``window_size``: The size of the cache window (number of frames to cache)
+- ``op_name``: (Optional) The name of the operator associated with the variable
+- ``frame_axis``: (Optional) The axis representing the time dimension, default is 1
+
+The function returns a dictionary containing the streaming cache configuration, which should be added to a ``streaming_table`` list and passed to the ``espdl_quantize_torch`` function.
+
+Example usage:
+
+.. code-block:: python
+
+    streaming_table = []
+    # Manually specify cache attributes for variables that cannot insert streamingCache automatically
+    streaming_table.append(
+        insert_streaming_cache_on_var("/out_conv/Conv_output_0", output_frame_size - 1)
+    )
+    streaming_table.append(insert_streaming_cache_on_var("PPQ_Variable_0", 1, "/Slice"))
+
+    quant_ppq_graph = espdl_quantize_torch(
+        model=model,
+        espdl_export_file=ESPDL_STEAMING_MODEL_PATH,
+        calib_dataloader=dataloader,
+        calib_steps=32,
+        input_shape=INPUT_SHAPE,
+        inputs=None,
+        target=TARGET,
+        num_of_bits=NUM_OF_BITS,
+        dispatching_override=None,
+        device=DEVICE,
+        error_report=True,
+        skip_export=False,
+        export_test_values=False,
+        verbose=1,
+        auto_streaming=True,
+        streaming_input_shape=[1, 16, 3],
+        streaming_table=streaming_table,  # Pass the manually configured streaming table
+    )
 
 .. _how_to_deploy_streaming_model:
 

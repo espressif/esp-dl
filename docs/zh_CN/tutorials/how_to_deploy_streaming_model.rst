@@ -27,9 +27,6 @@
 
 :project:`参考示例 <examples/tutorial/how_to_deploy_streaming_model>`
 
-如何转换为流式模型
-^^^^^^^^^^^^^^^^^^
-
 时间序列模型种类繁多，这里仅以 Temporal Convolutional Network(TCN) 为例，不熟悉的可自行查找资料了解，这里不过多介绍其细节。其它模型需根据自身情况，量体裁衣。
 
 该示例代码中构建了一个 TCN 模型： :project_file:`models.py <examples/tutorial/how_to_deploy_streaming_model/quantize_streaming_model/models.py>` (模型非完整，仅用于演示)。
@@ -127,6 +124,60 @@ ESP-PPQ 中的自动流式转换会分析模型图，并在关键位置插入 ``
         streaming_table=None,
     )
 
+手动流式缓存配置
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+对于 ESP-PPQ 流式转换功能不自动支持的算子（例如 Transpose、Reshape、Slice 等），您可以使用 ``insert_streaming_cache_on_var`` 函数手动插入 StreamingCache 节点。该函数允许您为无法自动插入 streamingCache 的变量指定缓存属性。
+
+``insert_streaming_cache_on_var`` 函数的签名如下：
+
+.. code-block:: python
+
+    def insert_streaming_cache_on_var(
+        var_name: str,
+        window_size: int,
+        op_name: str = None,
+        frame_axis: int = 1
+    ) -> Dict[str, Any]
+
+参数说明：
+- ``var_name``：需要插入流式缓存的变量名称
+- ``window_size``：缓存窗口大小（需要缓存的帧数）
+- ``op_name``：（可选）与变量关联的算子名称
+- ``frame_axis``：（可选）表示时间维度的轴，默认为 1
+
+该函数返回一个包含流式缓存配置的字典，应将其添加到 ``streaming_table`` 列表中并传递给 ``espdl_quantize_torch`` 函数。
+
+使用示例：
+
+.. code-block:: python
+
+    streaming_table = []
+    # 为无法自动插入 streamingCache 的变量手动指定缓存属性
+    streaming_table.append(
+        insert_streaming_cache_on_var("/out_conv/Conv_output_0", output_frame_size - 1)
+    )
+    streaming_table.append(insert_streaming_cache_on_var("PPQ_Variable_0", 1, "/Slice"))
+
+    quant_ppq_graph = espdl_quantize_torch(
+        model=model,
+        espdl_export_file=ESPDL_STEAMING_MODEL_PATH,
+        calib_dataloader=dataloader,
+        calib_steps=32,
+        input_shape=INPUT_SHAPE,
+        inputs=None,
+        target=TARGET,
+        num_of_bits=NUM_OF_BITS,
+        dispatching_override=None,
+        device=DEVICE,
+        error_report=True,
+        skip_export=False,
+        export_test_values=False,
+        verbose=1,
+        auto_streaming=True,
+        streaming_input_shape=[1, 16, 3],
+        streaming_table=streaming_table,  # 传递手动配置的流式表
+    )
 
 .. _how_to_deploy_streaming_model:
 
