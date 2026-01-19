@@ -245,6 +245,7 @@ class TCN(nn.Module):
         kernel_size: int,
         stride: int = 1,
         dilation: int = 1,
+        output_frame_size: int = 5,
     ):
         super().__init__()
 
@@ -276,6 +277,8 @@ class TCN(nn.Module):
 
         # 输出 1×1
         self.out_conv = nn.Conv1d(expand_channels, out_channels, 1)
+        self.output_frame_size = output_frame_size
+        self.linear = nn.Linear(out_channels * output_frame_size, out_channels)
 
     def forward(self, x: Tensor) -> Tensor:
         x = self.prev_conv(x)
@@ -283,20 +286,24 @@ class TCN(nn.Module):
         x = x + x1
         x = self.avgpool(x)
         x = self.out_conv(x)
+        x = x[:, :, -self.output_frame_size :]  # 取最后 output_frame_size 帧
+        x = torch.flatten(x, 1)  # 展平最后5帧
+        x = self.linear(x)
         print("output shape:", x.shape)
         return x
 
 
 # ---------------- 测试 ----------------
 if __name__ == "__main__":
-    B, C, T = 2, 16, 128
+    B, C, T = 2, 128, 32
     model = TCN(
-        in_channels=16,
-        expand_channels=32,
-        out_channels=24,
+        in_channels=C,
+        expand_channels=C,
+        out_channels=C,
         kernel_size=5,
         stride=1,
         dilation=2,
+        output_frame_size=5,
     )
     inp = torch.randn(B, C, T)
     out = model(inp)
