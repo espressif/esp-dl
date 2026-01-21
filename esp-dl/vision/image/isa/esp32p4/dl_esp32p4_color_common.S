@@ -1,4 +1,7 @@
-#if (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__ < 150000)
+#include "sdkconfig.h"
+#include "esp_idf_version.h"
+
+#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 5, 2))
 .macro vldbc_8_ip q, a, n
     esp.vldbc.8.ip \q, \a, \n * 4
 .endm

@@ -31,7 +31,7 @@
   - "esp-dl/vision/**/*"
 
 .patterns-esp-dl_image: &patterns-esp-dl_image
-  - "esp-dl/vision/image/*"
+  - "esp-dl/vision/image/**/*"
 
 # models folder, in the alphabetic order
 .patterns-model_human_face_recognition: &patterns-model_human_face_recognition
