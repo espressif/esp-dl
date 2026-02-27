@@ -20,6 +20,7 @@ ESP-DL 提供了加载、调试和运行 AI 模型的 API。该框架易于使�
 
 
 ## 更新 
+- [2026/2/27] 支持使用TrainedQuantizedThresholdPass量化模型. 参见 [quantize_model_with_TQT_cn.rst](./docs/zh_CN/tutorials/quantize_model_with_TQT_cn.rst).
 - [2026/1/14] 在netron中支持可视化`.espdl`模型，方便模型调试. [开始使用](./esp-dl/netron.md).
 - [2025/10/20] 发布 ESP-DL v3.2.0, 进一步增强了模型量化和部署的能力。   
 - [2025/07/22] 将 ESP-PPQ 的包名从 ppq 改为 esp-ppq，以避免与 ppq 冲突，同时将 ESP-PPQ 依赖包全部升级到最新版。**注意: 量化脚本中需注意修改包名为esp-ppq**。

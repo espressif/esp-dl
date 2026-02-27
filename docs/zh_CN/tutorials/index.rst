@@ -15,3 +15,4 @@ Tutorials
    how_to_deploy_yolo11n
    how_to_deploy_yolo11n-pose
    how_to_deploy_streaming_model
+   quantize_model_with_TQT_cn
