@@ -1,4 +1,5 @@
 #include "dl_image.hpp"
+#include "sdkconfig.h"
 #include "unity.h"
 
 extern const uint8_t color_320x240_jpg_start[] asm("_binary_color_320x240_jpg_start");

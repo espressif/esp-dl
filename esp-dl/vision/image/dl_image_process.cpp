@@ -1,5 +1,4 @@
 #include "dl_image_process.hpp"
-#include "dl_image_pixel_cvt_dispatch.hpp"
 #include "esp_log.h"
 
 static const char *TAG = "ImageTransformer";
@@ -151,7 +150,15 @@ ImageTransformer &ImageTransformer::set_norm_quant_param(float mean, float std, 
 ImageTransformer &ImageTransformer::set_hsv_thr(const std::array<uint8_t, 3> &hsv_min,
                                                 const std::array<uint8_t, 3> &hsv_max)
 {
-    m_pix_cvt_param.emplace<hsv_param_t>(hsv_min, hsv_max);
+    if (is_valid_hsv_thr(hsv_min, hsv_max)) {
+        if (hsv_min[0] > hsv_max[0]) {
+            m_pix_cvt_param.emplace<HSV2HSVMask<true>>(hsv_min, hsv_max);
+        } else {
+            m_pix_cvt_param.emplace<HSV2HSVMask<false>>(hsv_min, hsv_max);
+        }
+    } else {
+        ESP_LOGE(TAG, "Invalid hsv thr.");
+    }
     return *this;
 }
 
@@ -349,33 +356,76 @@ esp_err_t ImageTransformer::transform()
     }
 
     // check pix_cvt_param
-    bool invalid_norm_quant_param = false;
-    switch (m_dst_img.pix_type) {
-    case DL_IMAGE_PIX_TYPE_GRAY_QINT8:
-        invalid_norm_quant_param = !std::holds_alternative<NormQuant<int8_t, 1>>(m_pix_cvt_param);
-        break;
-    case DL_IMAGE_PIX_TYPE_GRAY_QINT16:
-        invalid_norm_quant_param = !std::holds_alternative<NormQuant<int16_t, 1>>(m_pix_cvt_param);
-        break;
-    case DL_IMAGE_PIX_TYPE_RGB888_QINT8:
-    case DL_IMAGE_PIX_TYPE_BGR888_QINT8:
-        invalid_norm_quant_param = !std::holds_alternative<NormQuant<int8_t, 3>>(m_pix_cvt_param);
-        break;
-    case DL_IMAGE_PIX_TYPE_RGB888_QINT16:
-    case DL_IMAGE_PIX_TYPE_BGR888_QINT16:
-        invalid_norm_quant_param = !std::holds_alternative<NormQuant<int16_t, 3>>(m_pix_cvt_param);
-        break;
-    case DL_IMAGE_PIX_TYPE_HSV_MASK:
-        if (!std::holds_alternative<hsv_param_t>(m_pix_cvt_param)) {
-            ESP_LOGE(TAG, "Invalid hsv threshold, call set_hsv_thr().");
-            return ESP_FAIL;
-        }
-        break;
-    default:
-        break;
-    }
-    if (invalid_norm_quant_param) {
-        ESP_LOGE(TAG, "Invalid norm quant param. call set_norm_quant_param().");
+    bool invalid_param = std::visit(
+        [this](const auto &param) -> bool {
+            using T = std::decay_t<decltype(param)>;
+            if constexpr (std::is_same_v<T, std::monostate>) {
+                switch (m_dst_img.pix_type) {
+                case DL_IMAGE_PIX_TYPE_GRAY_QINT8:
+                case DL_IMAGE_PIX_TYPE_GRAY_QINT16:
+                case DL_IMAGE_PIX_TYPE_RGB888_QINT8:
+                case DL_IMAGE_PIX_TYPE_BGR888_QINT8:
+                case DL_IMAGE_PIX_TYPE_RGB888_QINT16:
+                case DL_IMAGE_PIX_TYPE_BGR888_QINT16:
+                    ESP_LOGE(TAG,
+                             "Dst img is quant type, but norm_quant_param is not set. Call set_norm_quant_param().");
+                    return true;
+                case DL_IMAGE_PIX_TYPE_HSV_MASK:
+                    ESP_LOGE(TAG, "Dst img is hsv mask, but hsv_thr is not set. Call set_hsv_thr().");
+                    return true;
+                default:
+                    return false;
+                }
+            } else if constexpr (std::is_same_v<T, NormQuant<int8_t, 1>>) {
+                if (m_dst_img.pix_type != DL_IMAGE_PIX_TYPE_GRAY_QINT8) {
+                    ESP_LOGE(TAG,
+                             "1 channel qint8 norm_quant_param is set, but dst img pix_type is %s.",
+                             pix_type2str(m_dst_img.pix_type).c_str());
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if constexpr (std::is_same_v<T, NormQuant<int8_t, 3>>) {
+                if (m_dst_img.pix_type != DL_IMAGE_PIX_TYPE_RGB888_QINT8 &&
+                    m_dst_img.pix_type != DL_IMAGE_PIX_TYPE_BGR888_QINT8) {
+                    ESP_LOGE(TAG,
+                             "3 channel qint8 norm_quant_param is set, but dst img pix_type is %s.",
+                             pix_type2str(m_dst_img.pix_type).c_str());
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if constexpr (std::is_same_v<T, NormQuant<int16_t, 1>>) {
+                if (m_dst_img.pix_type != DL_IMAGE_PIX_TYPE_GRAY_QINT16) {
+                    ESP_LOGE(TAG,
+                             "1 channel qint16 norm_quant_param is set, but dst img pix_type is %s.",
+                             pix_type2str(m_dst_img.pix_type).c_str());
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if constexpr (std::is_same_v<T, NormQuant<int16_t, 3>>) {
+                if (m_dst_img.pix_type != DL_IMAGE_PIX_TYPE_RGB888_QINT16 &&
+                    m_dst_img.pix_type != DL_IMAGE_PIX_TYPE_BGR888_QINT16) {
+                    ESP_LOGE(TAG,
+                             "3 channel qint16 norm_quant_param is set, but dst img pix_type is %s.",
+                             pix_type2str(m_dst_img.pix_type).c_str());
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if constexpr (std::is_same_v<T, HSV2HSVMask<false>> || std::is_same_v<T, HSV2HSVMask<true>>) {
+                if (m_dst_img.pix_type != DL_IMAGE_PIX_TYPE_HSV_MASK) {
+                    ESP_LOGE(TAG, "hsv_thr is set, but dst img type mismatch.");
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        },
+        m_pix_cvt_param);
+
+    if (invalid_param) {
         return ESP_FAIL;
     }
 

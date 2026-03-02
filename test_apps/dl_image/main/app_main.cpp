@@ -35,7 +35,7 @@ void setUp(void)
 {
     auto ret = bsp_sdcard_mount();
     mount = (ret == ESP_OK);
-    dl::image::HSVTablesSingleton::getInstance();
+    dl::image::HSVTablesSingleton::get_instance();
     before_free_internal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     before_free_spiram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 }

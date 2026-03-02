@@ -1,5 +1,7 @@
 #include "dl_image_bmp.hpp"
 #include "dl_image_process.hpp"
+#include "esp_heap_caps.h"
+#include "esp_log.h"
 
 static const char *TAG = "dl_image_bmp";
 namespace dl {

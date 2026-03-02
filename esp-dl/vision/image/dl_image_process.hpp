@@ -1,9 +1,11 @@
 #pragma once
 #include "dl_image_color.hpp"
 #include "dl_image_define.hpp"
+#include "dl_image_pixel_cvt_dispatch.hpp"
 #include "dl_math_matrix.hpp"
 #include "esp_heap_caps.h"
 #include <algorithm>
+#include <variant>
 #include <vector>
 
 namespace dl {
@@ -56,9 +58,9 @@ public:
     pix_cvt_param_t get_pix_cvt_param();
 
 #if CONFIG_IDF_TARGET_ESP32P4
-    static inline constexpr bool simd = true;
+    static constexpr bool simd = true;
 #else
-    static inline constexpr bool simd = false;
+    static constexpr bool simd = false;
 #endif
     template <bool SIMD = simd>
     esp_err_t transform();
@@ -561,7 +563,7 @@ private:
 #endif
     }
 
-    static inline constexpr int warp_affine_shift = 10;
+    static constexpr int warp_affine_shift = 10;
     img_t m_src_img;
     img_t m_dst_img;
     float m_scale_x;

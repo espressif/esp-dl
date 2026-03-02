@@ -1,7 +1,6 @@
 #include "dl_image_color.hpp"
 #include "dl_image_pixel_cvt_dispatch.hpp"
 #include "dl_image_process.hpp"
-#include <functional>
 
 namespace dl {
 namespace image {

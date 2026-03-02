@@ -1,7 +1,6 @@
 #include "dl_image_color.hpp"
 #include "dl_image_pixel_cvt_dispatch.hpp"
 #include "dl_image_process.hpp"
-#include <functional>
 
 namespace dl {
 namespace image {
@@ -13,10 +12,10 @@ void pixel_cvt_dispatch_gray2gray(const Func &func, pix_cvt_t pix_cvt_type, cons
         func(Gray2Gray<>());
         break;
     case DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT8:
-        func(Gray2Gray<NormQuant<int8_t, 1>>(&std::get<NormQuant<int8_t, 1>>(param)));
+        func(Gray2Gray<NormQuant<int8_t, 1>>(std::get<NormQuant<int8_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_GRAY2GRAY_QINT16:
-        func(Gray2Gray<NormQuant<int16_t, 1>>(&std::get<NormQuant<int16_t, 1>>(param)));
+        func(Gray2Gray<NormQuant<int16_t, 1>>(std::get<NormQuant<int16_t, 1>>(param)));
         break;
     default:
         return;

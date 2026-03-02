@@ -5,8 +5,8 @@
 namespace cat_detect {
 class ESPDet : public dl::detect::DetectImpl {
 public:
-    static inline constexpr float default_score_thr = 0.6;
-    static inline constexpr float default_nms_thr = 0.7;
+    static constexpr float default_score_thr = 0.6;
+    static constexpr float default_nms_thr = 0.7;
     ESPDet(const char *model_name, float score_thr, float nms_thr);
 };
 } // namespace cat_detect

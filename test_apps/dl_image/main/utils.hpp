@@ -1,3 +1,4 @@
+#include "esp_random.h"
 #include <concepts>
 #include <limits>
 #include <random>
@@ -8,7 +9,7 @@ template <typename T>
 T get_random_value(T range_min, T range_max)
 {
     assert(range_min < range_max);
-    static std::mt19937 rng(std::random_device{}());
+    static std::mt19937 rng(esp_random());
     std::uniform_int_distribution<int> dist(range_min, range_max);
     return static_cast<T>(dist(rng));
 }
@@ -18,7 +19,7 @@ template <typename T>
 void fill_random_value(T *buf, std::size_t n, T range_min, T range_max)
 {
     assert(range_min < range_max);
-    static std::mt19937 rng(std::random_device{}());
+    static std::mt19937 rng(esp_random());
     std::uniform_int_distribution<int> dist(range_min, range_max);
     for (int i = 0; i < n; i++) {
         buf[i] = static_cast<T>(dist(rng));

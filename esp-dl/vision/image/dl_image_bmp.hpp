@@ -1,9 +1,6 @@
 #pragma once
-#include "dl_image_color.hpp"
 #include "dl_image_define.hpp"
 #include "esp_err.h"
-#include "esp_heap_caps.h"
-#include "esp_log.h"
 
 namespace dl {
 namespace image {

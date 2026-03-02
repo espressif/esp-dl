@@ -1,7 +1,6 @@
 #include "dl_image_color.hpp"
 #include "dl_image_pixel_cvt_dispatch.hpp"
 #include "dl_image_process.hpp"
-#include <functional>
 
 namespace dl {
 namespace image {
@@ -13,37 +12,37 @@ void pixel_cvt_dispatch_rgb5652gray(const Func &func, pix_cvt_t pix_cvt_type, co
         func(RGB5652Gray<false, false>());
         break;
     case DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT8:
-        func(RGB5652Gray<false, false, NormQuant<int8_t, 1>>(&std::get<NormQuant<int8_t, 1>>(param)));
+        func(RGB5652Gray<false, false, NormQuant<int8_t, 1>>(std::get<NormQuant<int8_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB565LE2GRAY_QINT16:
-        func(RGB5652Gray<false, false, NormQuant<int16_t, 1>>(&std::get<NormQuant<int16_t, 1>>(param)));
+        func(RGB5652Gray<false, false, NormQuant<int16_t, 1>>(std::get<NormQuant<int16_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB565BE2GRAY:
         func(RGB5652Gray<true, false>());
         break;
     case DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT8:
-        func(RGB5652Gray<true, false, NormQuant<int8_t, 1>>(&std::get<NormQuant<int8_t, 1>>(param)));
+        func(RGB5652Gray<true, false, NormQuant<int8_t, 1>>(std::get<NormQuant<int8_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB565BE2GRAY_QINT16:
-        func(RGB5652Gray<true, false, NormQuant<int16_t, 1>>(&std::get<NormQuant<int16_t, 1>>(param)));
+        func(RGB5652Gray<true, false, NormQuant<int16_t, 1>>(std::get<NormQuant<int16_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_BGR565LE2GRAY:
         func(RGB5652Gray<false, true>());
         break;
     case DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT8:
-        func(RGB5652Gray<false, true, NormQuant<int8_t, 1>>(&std::get<NormQuant<int8_t, 1>>(param)));
+        func(RGB5652Gray<false, true, NormQuant<int8_t, 1>>(std::get<NormQuant<int8_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_BGR565LE2GRAY_QINT16:
-        func(RGB5652Gray<false, true, NormQuant<int16_t, 1>>(&std::get<NormQuant<int16_t, 1>>(param)));
+        func(RGB5652Gray<false, true, NormQuant<int16_t, 1>>(std::get<NormQuant<int16_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_BGR565BE2GRAY:
         func(RGB5652Gray<true, true>());
         break;
     case DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT8:
-        func(RGB5652Gray<true, true, NormQuant<int8_t, 1>>(&std::get<NormQuant<int8_t, 1>>(param)));
+        func(RGB5652Gray<true, true, NormQuant<int8_t, 1>>(std::get<NormQuant<int8_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_BGR565BE2GRAY_QINT16:
-        func(RGB5652Gray<true, true, NormQuant<int16_t, 1>>(&std::get<NormQuant<int16_t, 1>>(param)));
+        func(RGB5652Gray<true, true, NormQuant<int16_t, 1>>(std::get<NormQuant<int16_t, 1>>(param)));
         break;
     default:
         return;

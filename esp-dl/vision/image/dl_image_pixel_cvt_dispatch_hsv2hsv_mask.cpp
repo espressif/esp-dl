@@ -1,18 +1,16 @@
 #include "dl_image_color.hpp"
 #include "dl_image_pixel_cvt_dispatch.hpp"
 #include "dl_image_process.hpp"
-#include <functional>
 
 namespace dl {
 namespace image {
 template <typename Func>
 void pixel_cvt_dispatch_hsv2hsv_mask(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param)
 {
-    auto hsv_param = std::get<hsv_param_t>(param);
-    if (hsv_param.h_across_zero) {
-        func(HSV2HSVMask<true>(hsv_param.hsv_min, hsv_param.hsv_max));
+    if (std::holds_alternative<HSV2HSVMask<false>>(param)) {
+        func(std::get<HSV2HSVMask<false>>(param));
     } else {
-        func(HSV2HSVMask<false>(hsv_param.hsv_min, hsv_param.hsv_max));
+        func(std::get<HSV2HSVMask<true>>(param));
     }
 }
 

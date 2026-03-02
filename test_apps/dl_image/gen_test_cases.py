@@ -160,7 +160,7 @@ if __name__ == "__main__":
     # print(len(pix_type_pairs))
     for src_pix_type, dst_pix_type in pix_type_pairs:
         # print(f"DL_IMAGE_PIX_CVT_{src_pix_type.upper()}2{dst_pix_type.upper()}")
-        # print(f"DL_IMAGE_PIX_CVT_{src_pix_type.upper()}2{dst_pix_type.upper()} = DL_IMAGE_PIX_CVT_ID(DL_IMAGE_PIX_TYPE_{src_pix_type.upper()}, DL_IMAGE_PIX_TYPE_{dst_pix_type.upper()}),")
+        # print(f"DL_IMAGE_PIX_CVT_{src_pix_type.upper()}2{dst_pix_type.upper()} = pix_cvt_id(DL_IMAGE_PIX_TYPE_{src_pix_type.upper()}, DL_IMAGE_PIX_TYPE_{dst_pix_type.upper()}),")
         with open("resize_nn_test_cases.txt", "w") as f:
             for (src_pix_type, dst_pix_type), flag in product(pix_type_pairs, flags):
                 if "gray" in dst_pix_type and flag.endswith("10"):

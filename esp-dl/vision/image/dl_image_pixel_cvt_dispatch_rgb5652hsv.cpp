@@ -1,7 +1,6 @@
 #include "dl_image_color.hpp"
 #include "dl_image_pixel_cvt_dispatch.hpp"
 #include "dl_image_process.hpp"
-#include <functional>
 
 namespace dl {
 namespace image {
@@ -21,39 +20,32 @@ void pixel_cvt_dispatch_rgb5652hsv(const Func &func, pix_cvt_t pix_cvt_type, con
     case DL_IMAGE_PIX_CVT_BGR565BE2HSV:
         func(RGB5652HSV<true, true>());
         break;
-    case DL_IMAGE_PIX_CVT_RGB565LE2HSV_MASK: {
-        auto hsv_param = std::get<hsv_param_t>(param);
-        if (hsv_param.h_across_zero) {
-            func(RGB5652HSVMask<false, false, true>(hsv_param.hsv_min, hsv_param.hsv_max));
+    case DL_IMAGE_PIX_CVT_RGB565LE2HSV_MASK:
+        if (std::holds_alternative<HSV2HSVMask<false>>(param)) {
+            func(RGB5652HSV<false, false, HSV2HSVMask<false>>(std::get<HSV2HSVMask<false>>(param)));
         } else {
-            func(RGB5652HSVMask<false, false, false>(hsv_param.hsv_min, hsv_param.hsv_max));
+            func(RGB5652HSV<false, false, HSV2HSVMask<true>>(std::get<HSV2HSVMask<true>>(param)));
         }
         break;
-    }
-    case DL_IMAGE_PIX_CVT_RGB565BE2HSV_MASK: {
-        auto hsv_param = std::get<hsv_param_t>(param);
-        if (hsv_param.h_across_zero) {
-            func(RGB5652HSVMask<true, false, true>(hsv_param.hsv_min, hsv_param.hsv_max));
+    case DL_IMAGE_PIX_CVT_RGB565BE2HSV_MASK:
+        if (std::holds_alternative<HSV2HSVMask<false>>(param)) {
+            func(RGB5652HSV<true, false, HSV2HSVMask<false>>(std::get<HSV2HSVMask<false>>(param)));
         } else {
-            func(RGB5652HSVMask<true, false, false>(hsv_param.hsv_min, hsv_param.hsv_max));
+            func(RGB5652HSV<true, false, HSV2HSVMask<true>>(std::get<HSV2HSVMask<true>>(param)));
         }
         break;
-    }
-    case DL_IMAGE_PIX_CVT_BGR565LE2HSV_MASK: {
-        auto hsv_param = std::get<hsv_param_t>(param);
-        if (hsv_param.h_across_zero) {
-            func(RGB5652HSVMask<false, true, true>(hsv_param.hsv_min, hsv_param.hsv_max));
+    case DL_IMAGE_PIX_CVT_BGR565LE2HSV_MASK:
+        if (std::holds_alternative<HSV2HSVMask<false>>(param)) {
+            func(RGB5652HSV<false, true, HSV2HSVMask<false>>(std::get<HSV2HSVMask<false>>(param)));
         } else {
-            func(RGB5652HSVMask<false, true, false>(hsv_param.hsv_min, hsv_param.hsv_max));
+            func(RGB5652HSV<false, true, HSV2HSVMask<true>>(std::get<HSV2HSVMask<true>>(param)));
         }
         break;
-    }
     case DL_IMAGE_PIX_CVT_BGR565BE2HSV_MASK: {
-        auto hsv_param = std::get<hsv_param_t>(param);
-        if (hsv_param.h_across_zero) {
-            func(RGB5652HSVMask<true, true, true>(hsv_param.hsv_min, hsv_param.hsv_max));
+        if (std::holds_alternative<HSV2HSVMask<false>>(param)) {
+            func(RGB5652HSV<true, true, HSV2HSVMask<false>>(std::get<HSV2HSVMask<false>>(param)));
         } else {
-            func(RGB5652HSVMask<true, true, false>(hsv_param.hsv_min, hsv_param.hsv_max));
+            func(RGB5652HSV<true, true, HSV2HSVMask<true>>(std::get<HSV2HSVMask<true>>(param)));
         }
         break;
     }

@@ -1,8 +1,7 @@
-#include "dl_image_color.hpp"
-#include "dl_image_color_isa.hpp"
 #include "dl_image_process.hpp"
 #include "esp_heap_caps.h"
 #include "esp_timer.h"
+#include "sdkconfig.h"
 #include "unity.h"
 #include "utils.hpp"
 #include <algorithm>

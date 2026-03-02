@@ -1,7 +1,6 @@
 #include "dl_image_color.hpp"
 #include "dl_image_pixel_cvt_dispatch.hpp"
 #include "dl_image_process.hpp"
-#include <functional>
 
 namespace dl {
 namespace image {
@@ -15,11 +14,11 @@ void pixel_cvt_dispatch_rgb5652rgb888(const Func &func, pix_cvt_t pix_cvt_type, 
         break;
     case DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT8:
     case DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT8:
-        func(RGB5652RGB888<false, false, NormQuant<int8_t, 3>>(&std::get<NormQuant<int8_t, 3>>(param)));
+        func(RGB5652RGB888<false, false, NormQuant<int8_t, 3>>(std::get<NormQuant<int8_t, 3>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB565LE2RGB888_QINT16:
     case DL_IMAGE_PIX_CVT_BGR565LE2BGR888_QINT16:
-        func(RGB5652RGB888<false, false, NormQuant<int16_t, 3>>(&std::get<NormQuant<int16_t, 3>>(param)));
+        func(RGB5652RGB888<false, false, NormQuant<int16_t, 3>>(std::get<NormQuant<int16_t, 3>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB565LE2BGR888:
     case DL_IMAGE_PIX_CVT_BGR565LE2RGB888:
@@ -27,11 +26,11 @@ void pixel_cvt_dispatch_rgb5652rgb888(const Func &func, pix_cvt_t pix_cvt_type, 
         break;
     case DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT8:
     case DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT8:
-        func(RGB5652RGB888<false, true, NormQuant<int8_t, 3>>(&std::get<NormQuant<int8_t, 3>>(param)));
+        func(RGB5652RGB888<false, true, NormQuant<int8_t, 3>>(std::get<NormQuant<int8_t, 3>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB565LE2BGR888_QINT16:
     case DL_IMAGE_PIX_CVT_BGR565LE2RGB888_QINT16:
-        func(RGB5652RGB888<false, true, NormQuant<int16_t, 3>>(&std::get<NormQuant<int16_t, 3>>(param)));
+        func(RGB5652RGB888<false, true, NormQuant<int16_t, 3>>(std::get<NormQuant<int16_t, 3>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB565BE2RGB888:
     case DL_IMAGE_PIX_CVT_BGR565BE2BGR888:
@@ -39,11 +38,11 @@ void pixel_cvt_dispatch_rgb5652rgb888(const Func &func, pix_cvt_t pix_cvt_type, 
         break;
     case DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT8:
     case DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT8:
-        func(RGB5652RGB888<true, false, NormQuant<int8_t, 3>>(&std::get<NormQuant<int8_t, 3>>(param)));
+        func(RGB5652RGB888<true, false, NormQuant<int8_t, 3>>(std::get<NormQuant<int8_t, 3>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB565BE2RGB888_QINT16:
     case DL_IMAGE_PIX_CVT_BGR565BE2BGR888_QINT16:
-        func(RGB5652RGB888<true, false, NormQuant<int16_t, 3>>(&std::get<NormQuant<int16_t, 3>>(param)));
+        func(RGB5652RGB888<true, false, NormQuant<int16_t, 3>>(std::get<NormQuant<int16_t, 3>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB565BE2BGR888:
     case DL_IMAGE_PIX_CVT_BGR565BE2RGB888:
@@ -51,11 +50,11 @@ void pixel_cvt_dispatch_rgb5652rgb888(const Func &func, pix_cvt_t pix_cvt_type, 
         break;
     case DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT8:
     case DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT8:
-        func(RGB5652RGB888<true, true, NormQuant<int8_t, 3>>(&std::get<NormQuant<int8_t, 3>>(param)));
+        func(RGB5652RGB888<true, true, NormQuant<int8_t, 3>>(std::get<NormQuant<int8_t, 3>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB565BE2BGR888_QINT16:
     case DL_IMAGE_PIX_CVT_BGR565BE2RGB888_QINT16:
-        func(RGB5652RGB888<true, true, NormQuant<int16_t, 3>>(&std::get<NormQuant<int16_t, 3>>(param)));
+        func(RGB5652RGB888<true, true, NormQuant<int16_t, 3>>(std::get<NormQuant<int16_t, 3>>(param)));
         break;
     default:
         return;

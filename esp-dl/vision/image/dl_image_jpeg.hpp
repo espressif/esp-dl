@@ -1,5 +1,6 @@
 #pragma once
 #include "dl_image_define.hpp"
+#include "sdkconfig.h"
 #if CONFIG_SOC_JPEG_CODEC_SUPPORTED
 #include "driver/jpeg_decode.h"
 #include "driver/jpeg_encode.h"

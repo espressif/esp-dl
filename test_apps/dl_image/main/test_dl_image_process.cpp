@@ -1,4 +1,5 @@
 #include "dl_image.hpp"
+#include "sdkconfig.h"
 #include "unity.h"
 #include <format>
 #include <functional>

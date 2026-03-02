@@ -1,5 +1,4 @@
 #include "color_detect.hpp"
-#include "dl_image_color.hpp"
 
 static const char *TAG = "ColorDetect";
 
@@ -7,7 +6,7 @@ ColorDetectBase::ColorDetectBase(uint16_t width, uint16_t height) :
     m_width(width),
     m_height(height),
     m_hsv(nullptr),
-    m_hsv_mask(heap_caps_malloc(width * height, MALLOC_CAP_DEFAULT)),
+    m_hsv_mask(heap_caps_malloc(width * height, MALLOC_CAP_DEFAULT | MALLOC_CAP_SIMD)),
     m_hsv_mask_cvmat(width, height, CV_8UC1, m_hsv_mask)
 {
 }
@@ -88,7 +87,7 @@ int ColorDetectBase::get_color_num()
 ColorDetect::ColorDetect(uint16_t width, uint16_t height) :
     ColorDetectBase(width, height),
     m_morphology(false),
-    m_hsv_mask_label(heap_caps_malloc(width * height * 2, MALLOC_CAP_DEFAULT)),
+    m_hsv_mask_label(heap_caps_malloc(width * height * 2, MALLOC_CAP_DEFAULT | MALLOC_CAP_SIMD)),
     m_hsv_mask_label_cvmat(width, height, CV_16U, m_hsv_mask_label)
 {
 }

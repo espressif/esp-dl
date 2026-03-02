@@ -1,7 +1,6 @@
 #include "dl_image_color.hpp"
 #include "dl_image_pixel_cvt_dispatch.hpp"
 #include "dl_image_process.hpp"
-#include <functional>
 
 namespace dl {
 namespace image {
@@ -13,19 +12,19 @@ void pixel_cvt_dispatch_rgb8882gray(const Func &func, pix_cvt_t pix_cvt_type, co
         func(RGB8882Gray<false>());
         break;
     case DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT8:
-        func(RGB8882Gray<false, NormQuant<int8_t, 1>>(&std::get<NormQuant<int8_t, 1>>(param)));
+        func(RGB8882Gray<false, NormQuant<int8_t, 1>>(std::get<NormQuant<int8_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_RGB8882GRAY_QINT16:
-        func(RGB8882Gray<false, NormQuant<int16_t, 1>>(&std::get<NormQuant<int16_t, 1>>(param)));
+        func(RGB8882Gray<false, NormQuant<int16_t, 1>>(std::get<NormQuant<int16_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_BGR8882GRAY:
         func(RGB8882Gray<true>());
         break;
     case DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT8:
-        func(RGB8882Gray<true, NormQuant<int8_t, 1>>(&std::get<NormQuant<int8_t, 1>>(param)));
+        func(RGB8882Gray<true, NormQuant<int8_t, 1>>(std::get<NormQuant<int8_t, 1>>(param)));
         break;
     case DL_IMAGE_PIX_CVT_BGR8882GRAY_QINT16:
-        func(RGB8882Gray<true, NormQuant<int16_t, 1>>(&std::get<NormQuant<int16_t, 1>>(param)));
+        func(RGB8882Gray<true, NormQuant<int16_t, 1>>(std::get<NormQuant<int16_t, 1>>(param)));
         break;
     default:
         return;

@@ -2,6 +2,7 @@
 
 #include "dl_image_process.hpp"
 #include "dl_model_base.hpp"
+#include "dl_tensor_base.hpp"
 
 namespace dl {
 namespace image {

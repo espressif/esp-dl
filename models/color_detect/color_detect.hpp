@@ -1,5 +1,6 @@
 #pragma once
 #include "dl_detect_base.hpp"
+#include "dl_image_process.hpp"
 #if CONFIG_IDF_TARGET_ESP32P4
 #include <opencv2/opencv.hpp>
 #else
