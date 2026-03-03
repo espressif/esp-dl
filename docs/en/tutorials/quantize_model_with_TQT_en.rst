@@ -1,27 +1,16 @@
 Quantizing Models with TQT
 ===========================
 
-.. note::
-   This document explains why and how to use Trained Quantization Thresholds (TQT) in ESP-PPQ for quantization to achieve higher quantized accuracy. Make sure your ESP-PPQ installation is updated to at least version 1.2.7.
+:link_to_translation:`zh_CN:[中文]`
 
----
 
-Table of Contents
------------------
+This document explains why and how to use Trained Quantization Thresholds (TQT) in ESP-PPQ for quantization to achieve higher quantized accuracy. Make sure your ESP-PPQ installation is updated to at least version 1.2.7.
 
-- :ref:`Why Use TQT <why-tqt>`
-  - :ref:`Limitations of Post-Training Quantization (PTQ) <ptq-limit>`
-  - :ref:`Complexity of Quantization-Aware Training (QAT) <qat-complex>`
-  - :ref:`What TQT Offers <what-tqt-offers>`
-- :ref:`How to Use TQT <how-tqt>`
-  - :ref:`Quick Start <quick-start>`
-  - :ref:`TQTSetting Parameters <tqt-params>`
-- :ref:`TQT Quantization Examples <tqt-examples>`
-  - :ref:`YOLO26n Quantization <yolo26n-en>`
-  - :ref:`MobileNetV2 Quantization <mobilenetv2-en>`
-- :ref:`FAQ <faq>`
 
----
+
+.. contents::
+  :local:
+  :depth: 2
 
 .. _why-tqt:
 
@@ -69,13 +58,13 @@ TQT, by contrast, **does not need labels**: the loss is MSE between floating-poi
 What TQT Offers
 ~~~~~~~~~~~~~~~
 
-- **Learnable scale (still 2^k)**: Optimize alpha = log2(scale) in the log domain; numerically stable and naturally satisfies POWER_OF_2.
+- **Learnable scale (still 2^k)**: Optimize alpha = log2(scale) in the log domain; numerically stable and naturally satisfies POWER_OF_2. Training will be skipped if the conditions are not met or if disabled.
 - **STE and range–precision tradeoff**: Using STE for threshold gradients and a sensible forward/backward design gives a better tradeoff between **representation range** and **accuracy**; in ESP-PPQ this is done via alpha_ste.
-- **Optional learnable weights**: Block-wise finetuning of weights together with scale to further reduce quantization error.
+- **Learnable weights**: Weights are trainable and can be fine-tuned together with scales on a block-wise basis to further reduce quantization error.
 - **Alignment with ESP-DL**: With the default alpha_ste forward, the forward uses integer exponents; with int_lambda the learned alpha is closer to an integer, which eases export and matches the chip side.
 - **No labels**: Only a calibration set is needed for scale/weight finetuning.
 
----
+
 
 .. _how-tqt:
 
@@ -177,7 +166,7 @@ TQTSetting Parameters
      - cpu
      - Device for caching calibration data; set to cuda if GPU is available
 
----
+
 
 .. _tqt-examples:
 

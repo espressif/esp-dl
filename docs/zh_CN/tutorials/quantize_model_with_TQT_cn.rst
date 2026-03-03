@@ -1,27 +1,15 @@
 使用 TQT 量化模型
 =================
 
-.. note::
-   本文档说明为何以及如何在 ESP-PPQ 中使用 Trained Quantization Thresholds (TQT) 做量化，以获得更高的量化精度。注意ESP-PPQ 必须是 1.2.7 版本或更新版本。
+:link_to_translation:`en:[English]`
 
----
 
-目录
-----
+本文档说明为何以及如何在 ESP-PPQ 中使用 Trained Quantization Thresholds (TQT) 做量化，以获得更高的量化精度。注意ESP-PPQ 必须是 1.2.7 版本或更新版本。
 
-- :ref:`为何使用 TQT <tqt-why>`
-  - :ref:`后量化（PTQ）的局限性 <ptq-limit>`
-  - :ref:`量化感知训练（QAT）的复杂性 <qat-complex>`
-  - :ref:`TQT 能带来什么 <tqt-benefit>`
-- :ref:`如何使用 TQT <tqt-how>`
-  - :ref:`快速开始 <tqt-quick>`
-  - :ref:`TQTSetting常用参数 <tqt-params>`
-- :ref:`TQT 量化示例 <tqt-examples>`
-  - :ref:`YOLO26n 量化 <yolo26n>`
-  - :ref:`MobileNetV2 量化 <mobilenetv2>`
-- :ref:`常见问题 <tqt-faq>`
 
----
+.. contents::
+  :local:
+  :depth: 2
 
 .. _tqt-why:
 
@@ -69,13 +57,13 @@ TQT 则 :strong:`无需标签`：损失为「浮点输出 vs 量化输出」的 
 TQT 能带来什么
 ~~~~~~~~~~~~~~
 
-- :strong:`可学习的 scale (仍为 2 的 k 次方)`：在 log 域优化 ``alpha = log2(scale)`` ，数值稳定且自然满足 POWER_OF_2。
+- :strong:`可学习的 scale (仍为 2 的 k 次方)`：在 log 域优化 ``alpha = log2(scale)`` ，数值稳定且自然满足 POWER_OF_2。 但如果不满足条件或被禁用，则不会训练。
 - :strong:`STE 与 range-precision 折中`：对阈值梯度使用 STE 并合理设计前向/反向行为，可在 :strong:`表示范围` 与 :strong:`精度` 之间取得更好折中；ESP-PPQ 中通过 alpha_ste实现。
-- :strong:`可选的可学习权重`：与 scale 一起做块级微调，进一步减小量化误差。
+- :strong:`可学习权重`：权重可训练，可与 scale 一起做块级微调，进一步减小量化误差。
 - :strong:`与 ESP-DL 对齐`：使用默认的 alpha_ste 前向时，前向用的就是整数 exponent；配合 ``int_lambda`` 可让学到的 alpha 更接近整数，便于导出与芯片端一致。
 - :strong:`无需标签`：只需校准集即可做 scale/权重微调。
 
----
+
 
 .. _tqt-how:
 
@@ -177,7 +165,7 @@ TQTSetting常用参数
      - cpu
      - 缓存校准数据的设备，有 GPU 可设为 cuda
 
----
+
 
 .. _tqt-examples:
 
