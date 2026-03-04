@@ -23,7 +23,8 @@ def ppq_graph_inference(executor, task, inputs, device, model_meta):
     
     if task == "detect":
         # Manually decode raw QAT outputs for Detect._inference
-        raw_x = [t.to(device) for t in graph_outputs[0:3]]
+        # Use One2One Head (Indices 3-6)
+        raw_x = [t.to(device) for t in graph_outputs[3:6]]
         box_list = []
         score_list = []
         
@@ -55,11 +56,17 @@ def ppq_graph_inference(executor, task, inputs, device, model_meta):
         }
 
         # Initialize a Detect head for post-processing with dynamic params
-        detect_model = Detect(nc=nc, reg_max=reg_max, ch=ch)
+        detect_model = Detect(nc=nc, reg_max=reg_max, ch=ch, end2end=True)
         detect_model.stride = stride
         detect_model.to(device)
 
         y = detect_model._inference(preds)
+        
+        # Postprocess (One2One TopK Selection) -> (B, N, 6)
+        # This converts dense anchor outputs to sparse detections
+        y = y.permute(0, 2, 1) # (B, 4+NC, A) -> (B, A, 4+NC)
+        y = detect_model.postprocess(y)
+        
         return y
     else:
         raise NotImplementedError(f"{task} is not supported.")
@@ -88,7 +95,6 @@ class QuantizedModelValidator(BaseValidator):
             model = trainer.model
             # Force FP32 or maintain precision
             self.loss = torch.zeros(3, device=trainer._device) # Mock loss
-            self.args.plots &= (trainer._epoch == QATConfig.EPOCHS - 1)
             model.eval()
         else:
             # Eval mode setup
@@ -109,7 +115,7 @@ class QuantizedModelValidator(BaseValidator):
         dt = (Profile(device=self.device), Profile(device=self.device), Profile(device=self.device))
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(unwrap_model(model))
-        self.end2end = False 
+        self.end2end = True # Enable end2end (NMS-Free) 
         self.jdict = []
 
         # Get meta from trainer if available
@@ -138,7 +144,7 @@ class QuantizedModelValidator(BaseValidator):
                 preds = self.postprocess(preds)
 
             self.update_metrics(preds, batch)
-            if self.args.plots and batch_i < QATConfig.VAL_PLOT_MAX_BATCHES:
+            if self.args.plots and batch_i < getattr(QATConfig, 'VAL_PLOT_MAX_BATCHES', 3):
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 
@@ -146,6 +152,7 @@ class QuantizedModelValidator(BaseValidator):
             
         stats = self.get_stats()
         self.finalize_metrics()
+        print("")  # Fix for overlapping carriage returns in terminal
         self.print_results()
         self.run_callbacks("on_val_end")
         return stats

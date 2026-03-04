@@ -21,26 +21,39 @@ It features direct regression (No NMS), high performance via `esp-dl` optimizati
     ```
 
 ### Expected Output
+
+**ESP32-P4 | 512×512 | COCO model**
 ```text
-I (4250) image: bus.jpg
-I (4256) YOLO26_DETECT: Pre: 4500 us | Inf: 17000 us | Post: 1200 us
-I (4256) YOLO26: [category: bus, score: 0.88, x1: 15, y1: 120, x2: 550, y2: 600]
+I (2160) image:: bus.jpg
+I (4350) yolo26_detect: Pre: 12 ms | Inf: 2067 ms | Post: 13 ms
+I (4350) YOLO26: [category: person, score: 0.86, x1: 87, y1: 187, x2: 176, y2: 428]
+I (4360) YOLO26: [category: bus, score: 0.83, x1: 69, y1: 109, x2: 447, y2: 353]
+I (4360) YOLO26: [category: person, score: 0.81, x1: 169, y1: 194, x2: 229, y2: 406]
+I (4370) YOLO26: [category: person, score: 0.77, x1: 380, y1: 187, x2: 449, y2: 416]
+I (4380) YOLO26: [category: person, score: 0.53, x1: 63, y1: 263, x2: 95, y2: 414]
+I (4380) image:: person.jpg
+I (6600) yolo26_detect: Pre: 11 ms | Inf: 2066 ms | Post: 13 ms
+I (6600) YOLO26: [category: person, score: 0.81, x1: 330, y1: 171, x2: 405, y2: 378]
+I (6600) YOLO26: [category: bicycle, score: 0.71, x1: 188, y1: 307, x2: 388, y2: 409]
+I (6610) YOLO26: [category: bicycle, score: 0.44, x1: 121, y1: 131, x2: 193, y2: 182]
+I (6610) image:: lego.jpg
+I (8810) yolo26_detect: Pre: 15 ms | Inf: 2066 ms | Post: 13 ms
+I (8810) YOLO26: [category: remote, score: 0.34, x1: 293, y1: 158, x2: 421, y2: 401]
 ```
 
-#### Custom Lego Model Output (Example)
+#### Custom Lego Model Output
 
+**ESP32-P4 | 512×512 | Lego custom model (28 classes)**
 ```text
-I (3991) image: bus.jpg
-I (3991) YOLO26_DETECT: Pre: 20 ms | Inf: 1770 ms | Post: 0 ms
-
-I (5921) image: person.jpg
-I (5921) YOLO26_DETECT: Pre: 30 ms | Inf: 1760 ms | Post: 10 ms
-
-I (7821) image: lego.jpg
-I (7821) YOLO26_DETECT: Pre: 30 ms | Inf: 1760 ms | Post: 10 ms
-I (7821) YOLO26: [category: 2x2_green, score: 0.56, x1: 228, y1: 136, x2: 328, y2: 300]
-I (7821) YOLO26: [category: 2x4_green, score: 0.56, x1: 104, y1: 128, x2: 248, y2: 368]
-I (7831) YOLO26: [category: 2x4_green, score: 0.44, x1: 288, y1: 152, x2: 424, y2: 408]
+I (2140) image:: bus.jpg
+I (4280) yolo26_detect: Pre: 12 ms | Inf: 2019 ms | Post: 5 ms
+I (4280) image:: person.jpg
+I (6430) yolo26_detect: Pre: 11 ms | Inf: 2018 ms | Post: 5 ms
+I (6430) image:: lego.jpg
+I (8560) yolo26_detect: Pre: 15 ms | Inf: 2018 ms | Post: 5 ms
+I (8560) YOLO26: [category: backpack, score: 0.97, x1: 107, y1: 129, x2: 250, y2: 374]
+I (8570) YOLO26: [category: backpack, score: 0.95, x1: 293, y1: 150, x2: 423, y2: 411]
+I (8570) YOLO26: [category: bird, score: 0.79, x1: 223, y1: 137, x2: 331, y2: 293]
 ```
 
 ## Visualization
@@ -65,7 +78,7 @@ The script generates the annotated images.
 
 | **Model: `yolo26n_512_s8_p4.espdl` (Stock)** | **Model: `yolo26n_lego_512_s8_p4.espdl` (Custom)** |
 | :---: | :---: |
-| ![Bus Detection](results/result_bus.jpg) | ![Lego Detection](results/result_lego.jpg) |
+| ![Bus Detection](assets/result_bus.jpg) | ![Lego Detection](assets/result_lego.jpg) |
 
 ## Configurable Options
 

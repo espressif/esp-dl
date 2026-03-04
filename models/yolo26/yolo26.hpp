@@ -1,5 +1,6 @@
 #pragma once
 #include "dl_image_process.hpp"
+#include "dl_image_preprocessor.hpp"
 #include "dl_tensor_base.hpp"
 #include "coco_classes.hpp"
 #include <vector>
@@ -23,12 +24,10 @@ private:
     int num_classes; // Calculated in postprocess
     int target_k;
     float conf_thresh;
-    const char** class_names;
     
     // --- Optimization ---
-    // Lookup Table for Quantization
-    // Stores pre-calculated (pixel / 255.0 * 128) values for all 256 inputs.
-    int8_t quantization_lut[256];
+    // Official ESP-DL Image Preprocessor (Handles Resizing, Letterboxing, and SIMD Quantization)
+    dl::image::ImagePreprocessor* m_image_preprocessor;
 
     // Constants
     const int strides[3] = {8, 16, 32};
@@ -40,16 +39,25 @@ private:
     template <typename T>
     float dequantize_val(T val, float scale);
 
+    /**
+     * @brief Templated decoding loop to seamlessly handle both INT8 and INT16 tensors
+     */
+    template <typename T>
+    void decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int stride, int grid_h, int grid_w, std::vector<Detection>& candidates);
+
 public:
+    const char** class_names;
+    
     /**
      * @brief Constructor.
-     * Initializes configuration state and Pre-calculates Quantization LUT.
+     * Initializes configuration state and configures the ESP-DL ImagePreprocessor.
      * 
+     * @param model Pointer to the loaded dl::Model
      * @param k Max detections (Default: 32)
      * @param thresh Confidence threshold (Default: 0.10f)
      * @param classes Class name array (Default: coco_classes)
      */
-    YOLO26(int k = YOLO_TARGET_K, float thresh = YOLO_CONF_THRESH, const char** classes = coco_classes);
+    YOLO26(dl::Model* model, int k = YOLO_TARGET_K, float thresh = YOLO_CONF_THRESH, const char** classes = coco_classes);
     
     ~YOLO26();
 
@@ -59,21 +67,11 @@ public:
     dl::image::img_t decode_jpeg(const uint8_t* jpg_data, size_t jpg_len);
 
     /**
-     * @brief Checks and resizes image to match model input shape if necessary.
-     * 
-     * @param img Input image
-     * @param inputs Model input map
-     * @return dl::image::img_t Resized image (or original if no resize needed)
-     */
-    dl::image::img_t resize(dl::image::img_t& img, const std::map<std::string, dl::TensorBase*>& inputs);
-
-    /**
-     * @brief Preprocesses image and updates internal state (grid_sizes).
+     * @brief Preprocesses image natively using ESP-DL (Letterbox + SIMD Quantization directly into Model RAM).
      * 
      * @param img Input image (RGB888)
-     * @param inputs Model input map (used to get tensor data and shape)
      */
-    void preprocess(const dl::image::img_t& img, const std::map<std::string, dl::TensorBase*>& inputs);
+    void preprocess(const dl::image::img_t& img);
 
     /**
      * @brief Post-processes outputs using stored state.

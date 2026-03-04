@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
+#include "dl_tool.hpp" 
 
 
 
@@ -21,33 +22,37 @@ float YOLO26::dequantize_val(T val, float scale) {
 
 // Explicit instantiation
 template float YOLO26::dequantize_val<int8_t>(int8_t val, float scale);
+template float YOLO26::dequantize_val<int16_t>(int16_t val, float scale);
 
 
 // --- Constructor ---
 
-YOLO26::YOLO26(int k, float thresh, const char** classes) 
+YOLO26::YOLO26(dl::Model* model, int k, float thresh, const char** classes) 
     : target_k(k), conf_thresh(thresh), class_names(classes) {
     
     // Reserve memory for grids
     grid_sizes.resize(3);
+
+    // 1. Initialize the preprocessor with standard YOLO Mean (0) and Std (255)
+    // NOTE: This will pull the exponent scale dynamically from the model
+    m_image_preprocessor = new dl::image::ImagePreprocessor(model, {0, 0, 0}, {255, 255, 255});
     
-    // Calculate Quantization LUT (Lossless)
-    // Formula: round( (pixel / 255.0) * 128 ) -> int8
-    for (int i = 0; i < 256; i++) {
-        float normalized = i / 255.0f;
-        float scaled = normalized * 128.0f; 
-        int val = (int)std::round(scaled);
-        
-        // Clamp to int8 range
-        if (val > 127) val = 127;
-        if (val < -128) val = -128;
-        
-        quantization_lut[i] = (int8_t)val;
+    // 2. Enable Letterboxing using gray padding {114, 114, 114} to prevent stretching!
+    m_image_preprocessor->enable_letterbox({114, 114, 114});
+
+    // 3. Pre-Calculate grid sizes based on Model Input Shape
+    auto inputs = model->get_inputs();
+    if (!inputs.empty()) {
+        dl::TensorBase* input_tensor = inputs.begin()->second;
+        int input_w = input_tensor->shape[2]; 
+        for(int i=0; i<3; i++) {
+            grid_sizes[i] = input_w / strides[i];
+        }
     }
 }
 
 YOLO26::~YOLO26() {
-    // Vectors clean themselves up
+    delete m_image_preprocessor;
 }
 
 
@@ -61,68 +66,67 @@ dl::image::img_t YOLO26::decode_jpeg(const uint8_t* jpg_data, size_t jpg_len) {
     return dl::image::sw_decode_jpeg(jpeg_img, dl::image::DL_IMAGE_PIX_TYPE_RGB888);
 }
 
-dl::image::img_t YOLO26::resize(dl::image::img_t& img, const std::map<std::string, dl::TensorBase*>& inputs) {
-    if (inputs.empty()) return img;
-    dl::TensorBase* input_tensor = inputs.begin()->second;
-    
-    int model_h = input_tensor->shape[1];
-    int model_w = input_tensor->shape[2];
-    
-    if (img.width != model_w || img.height != model_h) {
-        dl::image::img_t resized_img;
-        resized_img.width = model_w;
-        resized_img.height = model_h;
-        resized_img.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
-        resized_img.data = heap_caps_malloc(dl::image::get_img_byte_size(resized_img), MALLOC_CAP_SPIRAM);
-        if (resized_img.data == NULL) {
-            size_t free_psram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
-            printf("[YOLO26] Error: Failed to allocate %d bytes for resized image in SPIRAM. (Free PSRAM: %u bytes)\n", 
-                    (int)dl::image::get_img_byte_size(resized_img), (unsigned int)free_psram);
-            // it will crach in .set_dst_img(resized_img)
-        }
-        
-        dl::image::ImageTransformer transformer;
-        transformer.set_src_img(img)
-                   .set_dst_img(resized_img)
-                   .transform();
-        
-        return resized_img; 
-    }
-    
-    return img;
+void YOLO26::preprocess(const dl::image::img_t& img) {
+    // This single line performs:
+    // 1. Letterbox scaling (no stretching)
+    // 2. SIMD color conversion (RGB888 -> RGB888 / RGB565)
+    // 3. 256-value Hardware LUT mapped Quantization (Matches exact Exponent)
+    // 4. Memory copy directly into the Model's Input Tensor
+    m_image_preprocessor->preprocess(img);
 }
 
-void YOLO26::preprocess(const dl::image::img_t& img, const std::map<std::string, dl::TensorBase*>& inputs) {
-    // 1. Get the first input tensor
-    if (inputs.empty()) return;
-    dl::TensorBase* input_tensor = inputs.begin()->second;
+template <typename T>
+void YOLO26::decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int stride, int grid_h, int grid_w, std::vector<Detection>& candidates) {
+    float box_scale = std::pow(2.0f, p_box->exponent);
+    float cls_scale = std::pow(2.0f, p_cls->exponent);
+    T* raw_box = (T*)p_box->data;
+    T* raw_cls = (T*)p_cls->data;
 
-    // Enforce Int8 Input
-    if (input_tensor->dtype != dl::DATA_TYPE_INT8) {
-        printf("[YOLO26] Error: Input tensor must be INT8 (required for optimizations).\n");
-        return;
-    }
+    // Optimization: Calculate Threshold natively in type T
+    float raw_thresh_float = -std::log(1.0f / conf_thresh - 1.0f);
+    T cls_thresh = (T)std::floor(raw_thresh_float / cls_scale);
 
-    // 2. Validate Exponent for LUT Optimization (Expect -7)
-    int shift_check = 8 + input_tensor->exponent;
-    if (shift_check != 1) {
-            printf("[YOLO26] Warning: Model exponent %d not ideal for fast path (Expected -7)\n", input_tensor->exponent);
-    }
+    for (int h = 0; h < grid_h; h++) {
+        for (int w = 0; w < grid_w; w++) {
+            int pixel_idx = (h * grid_w) + w; // NHWC
+            int cls_offset = pixel_idx * num_classes;
+            
+            float max_score = -1.0f;
+            int best_cls_id = -1;
 
-    // 3. Calculate and Store Grid Sizes
-    int input_w = input_tensor->shape[2]; 
-    for(int i=0; i<3; i++) {
-        grid_sizes[i] = input_w / strides[i];
-    }
+            // Class Score Loop
+            for (int c = 0; c < num_classes; c++) {
+                // 1. Fast Integer Check (Skip Float Math)
+                T raw_val_T = raw_cls[cls_offset + c];
+                if (raw_val_T <= cls_thresh) continue; 
 
-    // 4. Quantize using LUT (Fast & Lossless)
-    uint8_t* rgb_data = (uint8_t*)img.data;
-    int8_t* raw_input = (int8_t*)input_tensor->data;
-    int total_pixels = img.width * img.height * 3;
+                float raw_val = dequantize_val(raw_val_T, cls_scale);
+                
+                float score = sigmoid(raw_val);
+                if (score > max_score) {
+                    max_score = score;
+                    best_cls_id = c;
+                }
+            }
 
-    for (int i = 0; i < total_pixels; i++) {
-        // LUT lookup recovers exact floating point precision without the cost
-        raw_input[i] = quantization_lut[rgb_data[i]];
+            if (max_score < conf_thresh) continue;
+
+            // Decode Box (Int8 or Int16)
+            int box_offset = pixel_idx * 4;
+            float d_l = dequantize_val(raw_box[box_offset + 0], box_scale);
+            float d_t = dequantize_val(raw_box[box_offset + 1], box_scale);
+            float d_r = dequantize_val(raw_box[box_offset + 2], box_scale);
+            float d_b = dequantize_val(raw_box[box_offset + 3], box_scale);
+
+            float cx = w + 0.5f;
+            float cy = h + 0.5f;
+            float x1 = (cx - d_l) * stride;
+            float y1 = (cy - d_t) * stride;
+            float x2 = (cx + d_r) * stride;
+            float y2 = (cy + d_b) * stride;
+
+            candidates.push_back({x1, y1, x2, y2, max_score, best_cls_id});
+        }
     }
 }
 
@@ -149,68 +153,19 @@ std::vector<Detection> YOLO26::postprocess(const std::map<std::string, dl::Tenso
 
     dl::TensorBase* boxes[] = {p3_box, p4_box, p5_box};
     dl::TensorBase* clss[] = {p3_cls, p4_cls, p5_cls};
-    
-    // Enforce Int8 Output
-    if (p3_box->dtype != dl::DATA_TYPE_INT8) {
-        printf("[YOLO26] Error: Output tensor must be INT8 (required for optimizations).\n");
-        return {};
-    }
 
     for (int i = 0; i < 3; i++) {
         int stride = strides[i];
         int grid_h = grid_sizes[i]; // Use stored grid size
         int grid_w = grid_sizes[i];
 
-        float box_scale = std::pow(2.0f, boxes[i]->exponent);
-        float cls_scale = std::pow(2.0f, clss[i]->exponent);
-        int8_t* raw_box = (int8_t*)boxes[i]->data;
-        int8_t* raw_cls = (int8_t*)clss[i]->data;
-
-        // Optimization: Calculate INT8 Threshold
-        float raw_thresh_float = -std::log(1.0f / conf_thresh - 1.0f);
-        int8_t cls_thresh_int8 = (int8_t)std::floor(raw_thresh_float / cls_scale);
-
-        for (int h = 0; h < grid_h; h++) {
-            for (int w = 0; w < grid_w; w++) {
-                int pixel_idx = (h * grid_w) + w; // NHWC
-                int cls_offset = pixel_idx * num_classes;
-                
-                float max_score = -1.0f;
-                int best_cls_id = -1;
-
-                // Class Score Loop
-                for (int c = 0; c < num_classes; c++) {
-                    // 1. Fast Integer Check (Skip Float Math)
-                    int8_t raw_val_int8 = raw_cls[cls_offset + c];
-                    if (raw_val_int8 <= cls_thresh_int8) continue; 
-
-                    float raw_val = dequantize_val(raw_val_int8, cls_scale);
-                    
-                    float score = sigmoid(raw_val);
-                    if (score > max_score) {
-                        max_score = score;
-                        best_cls_id = c;
-                    }
-                }
-
-                if (max_score < conf_thresh) continue;
-
-                // Decode Box (Int8 Only)
-                int box_offset = pixel_idx * 4;
-                float d_l = dequantize_val(raw_box[box_offset + 0], box_scale);
-                float d_t = dequantize_val(raw_box[box_offset + 1], box_scale);
-                float d_r = dequantize_val(raw_box[box_offset + 2], box_scale);
-                float d_b = dequantize_val(raw_box[box_offset + 3], box_scale);
-
-                float cx = w + 0.5f;
-                float cy = h + 0.5f;
-                float x1 = (cx - d_l) * stride;
-                float y1 = (cy - d_t) * stride;
-                float x2 = (cx + d_r) * stride;
-                float y2 = (cy + d_b) * stride;
-
-                candidates.push_back({x1, y1, x2, y2, max_score, best_cls_id});
-            }
+        if (boxes[i]->dtype == dl::DATA_TYPE_INT8 && clss[i]->dtype == dl::DATA_TYPE_INT8) {
+            decode_grid<int8_t>(boxes[i], clss[i], stride, grid_h, grid_w, candidates);
+        } else if (boxes[i]->dtype == dl::DATA_TYPE_INT16 && clss[i]->dtype == dl::DATA_TYPE_INT16) {
+            decode_grid<int16_t>(boxes[i], clss[i], stride, grid_h, grid_w, candidates);
+        } else {
+            printf("[YOLO26] Error: Unsupported tensor dtype for outputs.\n");
+            return {};
         }
     }
 

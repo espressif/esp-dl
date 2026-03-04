@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "nvs_flash.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "dl_model_base.hpp" // Required for dl::Model
 #include "yolo26.hpp" // Use the Official Component
 
@@ -42,28 +43,26 @@ void test_inference(dl::Model *model, YOLO26 &processor, const uint8_t *jpg_data
     // 1. Decode JPEG
     auto img = processor.decode_jpeg(jpg_data, jpg_len);
 
-    // a. Resize (Outside measurement as requested)
-    auto resized_img = processor.resize(img, model->get_inputs());
-
     // 2. Preprocess (Measure Time)
-    TickType_t start_pre = xTaskGetTickCount();
-    processor.preprocess(resized_img, model->get_inputs());
-    TickType_t end_pre = xTaskGetTickCount();
+    // Automatically does letterboxing and fills model inputs natively
+    int64_t start_pre = esp_timer_get_time();
+    processor.preprocess(img);
+    int64_t end_pre = esp_timer_get_time();
 
     // 3. Inference (Measure Time)
-    TickType_t start_inf = xTaskGetTickCount();
+    int64_t start_inf = esp_timer_get_time();
     model->run();
-    TickType_t end_inf = xTaskGetTickCount();
+    int64_t end_inf = esp_timer_get_time();
 
     // 4. Post-Process (Measure Time)
-    TickType_t start_post = xTaskGetTickCount();
+    int64_t start_post = esp_timer_get_time();
     auto results = processor.postprocess(model->get_outputs());
-    TickType_t end_post = xTaskGetTickCount();
+    int64_t end_post = esp_timer_get_time();
 
-    // Calculate Latencies
-    uint32_t lat_pre = (end_pre - start_pre) * portTICK_PERIOD_MS;
-    uint32_t lat_inf = (end_inf - start_inf) * portTICK_PERIOD_MS;
-    uint32_t lat_post = (end_post - start_post) * portTICK_PERIOD_MS;
+    // Calculate Latencies (µs → ms)
+    uint32_t lat_pre  = (uint32_t)((end_pre  - start_pre)  / 1000);
+    uint32_t lat_inf  = (uint32_t)((end_inf  - start_inf)  / 1000);
+    uint32_t lat_post = (uint32_t)((end_post - start_post) / 1000);
 
     ESP_LOGI(TAG, "Pre: %lu ms | Inf: %lu ms | Post: %lu ms", lat_pre, lat_inf, lat_post);
 
@@ -75,7 +74,6 @@ void test_inference(dl::Model *model, YOLO26 &processor, const uint8_t *jpg_data
                     (int)res.x1, (int)res.y1, (int)res.x2, (int)res.y2);
     }
 
-    if (resized_img.data != img.data) heap_caps_free(resized_img.data);
     heap_caps_free(img.data);
 }
 
@@ -91,7 +89,7 @@ extern "C" void app_main(void)
                                      nullptr, true);
 
     // 2. Initialize Processor
-    YOLO26 processor(YOLO_TARGET_K, YOLO_CONF_THRESH, current_classes);
+    YOLO26 processor(model, YOLO_TARGET_K, YOLO_CONF_THRESH, current_classes);
 
     // 3. Run Tests
     test_inference(model, processor, bus_jpg_start, (size_t)(bus_jpg_end - bus_jpg_start), "bus.jpg");
