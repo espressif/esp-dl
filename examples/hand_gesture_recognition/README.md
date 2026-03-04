@@ -7,7 +7,9 @@
 
 # Hand Gesture Recognition Example
 
-A simple image inference example. See full example in [esp-who](https://github.com/espressif/esp-who/tree/master/examples).
+A simple image inference example. See full example in [esp-who](https://github.com/espressif/esp-who/tree/master/examples). We support 10 hand gestures plus a "no_hand" category. The gesture classes are selected from the [HaGRID](https://github.com/hukenovs/hagrid) dataset. The supported gestures are "one", "two", "three", "four", "five", "like", "ok", "no_gesture", "call", and "dislike". The class "no_gesture" represents a natural hand state or any hand gesture that does not belong to the 9 predefined gestures above. The 9 gesture classes are illustrated in the figure below. 
+![](./gestures.png)
+
 
 ## Quick start
 

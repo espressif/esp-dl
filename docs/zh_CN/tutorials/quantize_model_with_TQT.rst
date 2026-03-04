@@ -50,7 +50,7 @@ TQT（Trained Quantization Thresholds）出自论文 `Trained Quantization Thres
 - :strong:`较大算力与调参成本`；
 - 与现有 PTQ/校准工具链的衔接往往需要额外工程。
 
-TQT 则 :strong:`无需标签`：损失为「浮点输出 vs 量化输出」的 MSE，只需校准集即可，操作简单，在保持 Power-of-2 约束下联合微调权重与 log2(scale)，通常用较少步数即可明显提升精度。
+TQT 则 :strong:`无需标签`：损失为浮点输出和量化输出的 MSE，只需校准集即可，操作简单，在保持 Power-of-2 约束下联合微调权重与 log2(scale)，通常用较少步数即可明显提升精度。
 
 .. _tqt-benefit:
 
@@ -349,11 +349,11 @@ Focused Logits Quantization
 
 目标检测模型中，与 backbone/neck 不同，:strong:`检测头 (head) 输出` 对量化误差非常敏感。同时，对于类似YOLO26n这样的检测模型，其 classification 分支的输出 logits 为 :strong:`Sigmoid 的输入`，经过Sigmoid可以得到类别置信度或分数。此时，若将logits与其它层使用同一套校准得到的 scale，容易得到 :strong:`过大的 scale (量化步长过粗)`，导致类别分数失真，mAP 下降。
 
-- :strong:`Sigmoid 的有效输入范围有限`：σ(x) = 1/(1+exp(-x)) 在 x 的绝对值较大时很快饱和——x 很负时输出趋近 0，很正时趋近 1，只有中间一段（大致在 -4 到 4 内）变化明显。也就是说，对输出真正有区分度的 logits 只分布在这段 :strong:`有限范围` 内，超出部分进入饱和区、几乎不再变化。
+- :strong:`Sigmoid 的有效输入范围有限`：σ(x) = 1/(1+exp(-x)) 在 x 的绝对值较大时很快饱和。x 很负时输出趋近 0，很正时趋近 1，只有中间一段（大致在 -4 到 4 内）变化明显。也就是说，对输出真正有区分度的 logits 只分布在这段 :strong:`有限范围` 内，超出部分进入饱和区、几乎不再变化。
 
-- :strong:`两边都有饱和区，检测中更关注正样本`：在目标检测里，我们更关心 :strong:`正样本` (有目标、高置信度)，对应 logits 偏正、Sigmoid 输出接近 1 的一侧。但无论正负两侧，只要 logits 被量化得过粗 (scale 过大、步长太大)，多个不同的 logits 会被舍入到同一量化档位：在饱和区附近会成片地被「压」成 0 或 1，在中间有效区则丢失细粒度区分，导致分数失真，mAP 掉点。
+- :strong:`两边都有饱和区，检测中更关注正样本`：在目标检测里，我们更关心 :strong:`正样本` (有目标、高置信度)，对应 logits 偏正、Sigmoid 输出接近 1 的一侧。但无论正负两侧，只要 logits 被量化得过粗 (scale 过大、步长太大)，多个不同的 logits 会被舍入到同一量化档位：在饱和区附近会成片地被压成 0 或 1，在中间有效区则丢失细粒度区分，导致分数失真，mAP 掉点。
 
-因此，对 :strong:`送入 Sigmoid 的 logits` (即示例中 one2one_cv3.0/1/2.2 这三个 head 分支的最后一层 Conv 输出) 做 :strong:`Focused logits quantization`：为这几层 :strong:`单独指定更细的 scale` (如 0.0625 = 2 的 -4 次方)，在保持 Power-of-2 的前提下减小量化步长，在 Sigmoid 的有效输入范围内保留更多档位，避免过早进入饱和、并保留正样本侧的区分度，从而稳定或提升 mAP。若使用其他检测模型或不同导出结构，可根据「谁作为 Sigmoid 的输入」来定位对应层并调整 custom_config。
+因此，对 :strong:`送入 Sigmoid 的 logits` (即示例中 one2one_cv3.0/1/2.2 这三个 head 分支的最后一层 Conv 输出) 做 :strong:`Focused logits quantization`：为这几层 :strong:`单独指定更细的 scale` (如 0.0625 = 2 的 -4 次方)，在保持 Power-of-2 的前提下减小量化步长，在 Sigmoid 的有效输入范围内保留更多档位，避免过早进入饱和、并保留正样本侧的区分度，从而稳定或提升 mAP。若使用其他检测模型或不同导出结构，可根据 Sigmoid 的输入来定位对应层并调整 custom_config。
 
 
 ESP32-P4上模型量化精度测试结果
@@ -640,3 +640,13 @@ MobileNetV2 量化
 .. code-block:: text
 
    quant_setting.tqt_optimization_setting.is_scale_trainable = False
+
+TQT可以和Weight Equalization一起使用吗？
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+可以。特别是对于espdet_pico这样的模型，二者可以使用可以进一步提升量化效果。
+
+.. code-block:: python
+    
+    quant_setting.tqt_optimization_setting.equalization = True
+    quant_setting.tqt_optimization_setting.tqt_optimization = True
