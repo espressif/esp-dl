@@ -642,3 +642,14 @@ Yes. Set is_scale_trainable to False.
 .. code-block:: python
 
    quant_setting.tqt_optimization_setting.is_scale_trainable = False
+
+Can TQT be used together with Weight Equalization?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes. TQT can be applied in combination with Weight Equalization. 
+For models such as espdet_pico, this combination can further enhance quantization performance.
+
+.. code-block:: python
+    
+    quant_setting.tqt_optimization_setting.equalization = True
+    quant_setting.tqt_optimization_setting.tqt_optimization = True
