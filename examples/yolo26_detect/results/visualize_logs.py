@@ -25,21 +25,20 @@ COLORS = ['#FF3333', '#3399FF', '#33CC66', '#FF9900', '#CC33FF', '#00CCCC']
 # UPDATED LOG DATA 
 # ======================================================================================
 RAW_LOG_DATA = """
-I (2160) image:: bus.jpg
-I (4350) yolo26_detect: Pre: 12 ms | Inf: 2067 ms | Post: 13 ms
-I (4350) YOLO26: [category: person, score: 0.86, x1: 87, y1: 187, x2: 176, y2: 428]
-I (4360) YOLO26: [category: bus, score: 0.83, x1: 69, y1: 109, x2: 447, y2: 353]
-I (4360) YOLO26: [category: person, score: 0.81, x1: 169, y1: 194, x2: 229, y2: 406]
-I (4370) YOLO26: [category: person, score: 0.77, x1: 380, y1: 187, x2: 449, y2: 416]
-I (4380) YOLO26: [category: person, score: 0.53, x1: 63, y1: 263, x2: 95, y2: 414]
-I (4380) image:: person.jpg
-I (6600) yolo26_detect: Pre: 11 ms | Inf: 2066 ms | Post: 13 ms
-I (6600) YOLO26: [category: person, score: 0.81, x1: 330, y1: 171, x2: 405, y2: 378]
-I (6600) YOLO26: [category: bicycle, score: 0.71, x1: 188, y1: 307, x2: 388, y2: 409]
-I (6610) YOLO26: [category: bicycle, score: 0.44, x1: 121, y1: 131, x2: 193, y2: 182]
-I (6610) image:: lego.jpg
-I (8810) yolo26_detect: Pre: 15 ms | Inf: 2066 ms | Post: 13 ms
-I (8810) YOLO26: [category: remote, score: 0.34, x1: 293, y1: 158, x2: 421, y2: 401]
+I (2158) image:: bus.jpg
+I (4348) yolo26_detect: Pre: 12 ms | Inf: 2066 ms | Post: 13 ms
+I (4348) YOLO26: [category: person, score: 0.88, x1: 86, y1: 187, x2: 173, y2: 426]
+I (4358) YOLO26: [category: bus, score: 0.85, x1: 70, y1: 107, x2: 452, y2: 357]
+I (4358) YOLO26: [category: person, score: 0.84, x1: 168, y1: 192, x2: 229, y2: 405]
+I (4368) YOLO26: [category: person, score: 0.73, x1: 379, y1: 186, x2: 448, y2: 415]
+I (4378) YOLO26: [category: person, score: 0.37, x1: 63, y1: 269, x2: 100, y2: 413]
+I (4388) image:: person.jpg
+I (6598) yolo26_detect: Pre: 11 ms | Inf: 2066 ms | Post: 13 ms
+I (6598) YOLO26: [category: person, score: 0.79, x1: 330, y1: 172, x2: 405, y2: 380]
+I (6598) YOLO26: [category: bicycle, score: 0.70, x1: 189, y1: 310, x2: 387, y2: 409]
+I (6608) YOLO26: [category: bicycle, score: 0.30, x1: 121, y1: 131, x2: 193, y2: 183]
+I (6608) image:: lego.jpg
+I (8808) yolo26_detect: Pre: 15 ms | Inf: 2065 ms | Post: 13 ms
 """
 
 # ======================================================================================

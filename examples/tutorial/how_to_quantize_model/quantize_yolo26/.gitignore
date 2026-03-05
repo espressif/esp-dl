@@ -1,5 +1,5 @@
 lego_data/
-output/*/*
+# output/*/*
 runs/
 yolo26n.pt
 yolo26n_lego.pt
