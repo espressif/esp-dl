@@ -537,6 +537,88 @@ def REDUCELOGSUM_TEST(config) -> ModelProto:
     return model_def
 
 
+def MOD_TEST(config) -> ModelProto:
+    """
+    ONNX Operator: Mod
+
+    Performs element-wise binary mod (with Numpy-style broadcasting support).
+    When fmod=1, behaves like C fmod() where the result sign follows the dividend.
+
+    Inputs
+    A (differentiable) - T:
+        Dividend tensor
+    B (differentiable) - T:
+        Divisor tensor
+
+    Outputs
+    C (differentiable) - T:
+        Remainder tensor
+
+    Attributes
+    fmod - INT (default is 0):
+        0: integer mod (Python %), 1: float mod (C fmod)
+    """
+
+    input_shape = config["input_shape"]
+    fmod = config.get("fmod", 1)
+    export_name_prefix = config.get("export_name_prefix", "onnx-model-mod")
+
+    if isinstance(input_shape[0], list):
+        input0_shape = input_shape[0]
+        input1_shape = input_shape[1]
+    else:
+        input0_shape = input_shape
+        input1_shape = input_shape
+
+    input0_tensor = helper.make_tensor_value_info(
+        "input0", TensorProto.FLOAT, input0_shape
+    )
+    input1_tensor = helper.make_tensor_value_info(
+        "input1", TensorProto.FLOAT, input1_shape
+    )
+
+    # Use Exp on input1 to ensure divisor is always positive and non-zero
+    exp_node = helper.make_node(
+        "Exp",
+        inputs=["input1"],
+        outputs=["safe_input1"],
+    )
+
+    # Calculate output shape with broadcasting
+    output_shape = list(np.broadcast_shapes(input0_shape, input1_shape))
+
+    output_tensor = helper.make_tensor_value_info(
+        "output", TensorProto.FLOAT, output_shape
+    )
+
+    mod_node = helper.make_node(
+        "Mod",
+        inputs=["input0", "safe_input1"],
+        outputs=["output"],
+        fmod=fmod,
+    )
+
+    graph_def = helper.make_graph(
+        [exp_node, mod_node],
+        "mod_model",
+        [input0_tensor, input1_tensor],
+        [output_tensor],
+    )
+
+    opset = OperatorSetIdProto()
+    opset.domain = ""
+    opset.version = 13
+
+    model_def = helper.make_model(
+        graph_def, opset_imports=[opset], producer_name=export_name_prefix
+    )
+
+    onnx.checker.check_model(model_def)
+    print("The model is checked!")
+
+    return model_def
+
+
 def DEPTHTOSPACE_TEST(config) -> ModelProto:
     """
     ONNX Operator: DepthToSpace

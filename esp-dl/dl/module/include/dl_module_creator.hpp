@@ -29,6 +29,7 @@
 #include "dl_module_lut.hpp"
 #include "dl_module_matmul.hpp"
 #include "dl_module_max_pool.hpp"
+#include "dl_module_mod.hpp"
 #include "dl_module_mul.hpp"
 #include "dl_module_neg.hpp"
 #include "dl_module_pad.hpp"
@@ -133,6 +134,7 @@ public:
             this->register_module("Mul", Mul::deserialize);
             this->register_module("Div", Div::deserialize);
             this->register_module("Pow", Pow::deserialize);
+            this->register_module("Mod", Mod::deserialize);
             this->register_module("Resize", Resize::deserialize);
             this->register_module("GlobalAveragePool", GlobalAveragePool::deserialize);
             this->register_module("AveragePool", AveragePool::deserialize);
