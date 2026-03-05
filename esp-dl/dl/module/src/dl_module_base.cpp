@@ -28,6 +28,12 @@ Module::~Module()
     }
 }
 
+void Module::reset()
+{
+    m_inputs_index.clear();
+    m_outputs_index.clear();
+}
+
 void Module::run(TensorBase *input, TensorBase *output, runtime_mode_t mode)
 {
     ModelContext context;

@@ -402,6 +402,13 @@ public:
     virtual void print();
 
     /**
+     * @brief Reset the model.
+     *        This function resets the model context and all modules, but does not reload the model or rebuild the
+     * execution plan,
+     */
+    virtual void reset();
+
+    /**
      * @brief Get the fbs model instance.
      *
      * @return fbs::FbsModel *

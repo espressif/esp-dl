@@ -490,6 +490,26 @@ public:
         }
         return op;
     }
+    void reset() override
+    {
+        m_first_step = true;
+        if (m_input_cache != nullptr) {
+            delete m_input_cache;
+            m_input_cache = nullptr;
+        }
+        if (m_hidden_cache != nullptr) {
+            delete m_hidden_cache;
+            m_hidden_cache = nullptr;
+        }
+        if (m_h_prev != nullptr) {
+            delete m_h_prev;
+            m_h_prev = nullptr;
+        }
+        if (m_c_prev != nullptr) {
+            delete m_c_prev;
+            m_c_prev = nullptr;
+        }
+    }
 
     void print() override
     {

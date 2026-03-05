@@ -101,6 +101,16 @@ public:
         return op;
     }
 
+    /**
+     * @brief reset the cache.
+     */
+    void reset()
+    {
+        if (m_cache != nullptr) {
+            memset(m_cache->get_element_ptr(), 0, m_cache_bytes);
+        }
+    }
+
     void print()
     {
         ESP_LOGI("StreamingCache",
