@@ -1232,4 +1232,9 @@ TensorBase *TensorBase::pad(TensorBase *input,
     return this;
 }
 
+void TensorBase::memset(int value)
+{
+    ::memset(this->data, value, this->get_bytes());
+}
+
 } // namespace dl

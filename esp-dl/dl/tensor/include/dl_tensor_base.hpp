@@ -463,6 +463,13 @@ public:
     T get_element(const std::vector<int> &axis_index);
 
     /**
+     * @brief Set a element of Tensor by index
+     *
+     * @param value  The value of element
+     */
+    void memset(int value);
+
+    /**
      * @brief Set preload address of Tensor
      *
      * @param addr  The address of preload data

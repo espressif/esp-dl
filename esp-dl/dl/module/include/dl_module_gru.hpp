@@ -422,18 +422,14 @@ public:
 
     void reset() override
     {
-        m_first_step = true;
         if (m_input_cache != nullptr) {
-            delete m_input_cache;
-            m_input_cache = nullptr;
+            m_input_cache->memset(0);
         }
         if (m_hidden_cache != nullptr) {
-            delete m_hidden_cache;
-            m_hidden_cache = nullptr;
+            m_hidden_cache->memset(0);
         }
         if (m_h_prev != nullptr) {
-            delete m_h_prev;
-            m_h_prev = nullptr;
+            m_h_prev->memset(0);
         }
     }
 

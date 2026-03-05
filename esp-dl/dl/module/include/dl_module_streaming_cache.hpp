@@ -107,7 +107,7 @@ public:
     void reset()
     {
         if (m_cache != nullptr) {
-            memset(m_cache->get_element_ptr(), 0, m_cache_bytes);
+            m_cache->memset(0);
         }
     }
 
