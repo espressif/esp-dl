@@ -64,6 +64,11 @@ endif()
 # FIX: Allow C++ to find the .hpp file
 target_include_directories(${COMPONENT_LIB} PRIVATE "${INCLUDE_DIR}")
 
+# Auto-detect model type from filename and define USE_LEGO_MODEL for C++
+if(MODEL_FILENAME MATCHES "lego")
+    add_definitions(-DUSE_LEGO_MODEL)
+endif()
+
 # Generate the Symbol name (Sanitized)
 string(MAKE_C_IDENTIFIER ${MODEL_FILENAME} SAFE_NAME)
 set(RAW_SYMBOL "_binary_${SAFE_NAME}_start")
@@ -78,7 +83,10 @@ include(${cmake_dir}/utilities.cmake)
 # Embed Binary with 16-byte alignment
 target_add_aligned_binary_data(${COMPONENT_LIB} "${FINAL_PATH}" BINARY)
 
-# Embed test images
-target_add_aligned_binary_data(${COMPONENT_LIB} "images/bus.jpg" BINARY)
-target_add_aligned_binary_data(${COMPONENT_LIB} "images/person.jpg" BINARY)
-target_add_aligned_binary_data(${COMPONENT_LIB} "images/lego.jpg" BINARY)
+# Embed test images (matched to model type)
+if(MODEL_FILENAME MATCHES "lego")
+    target_add_aligned_binary_data(${COMPONENT_LIB} "images/lego.jpg" BINARY)
+else()
+    target_add_aligned_binary_data(${COMPONENT_LIB} "images/bus.jpg" BINARY)
+    target_add_aligned_binary_data(${COMPONENT_LIB} "images/person.jpg" BINARY)
+endif()

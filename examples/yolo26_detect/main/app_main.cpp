@@ -11,15 +11,15 @@
 static const char *TAG = "yolo26_detect";
 
 // =========================================================================
-// 🛠️ USER CONFIGURATION: CLASS LABELS
+// 🛠️ CLASS LABELS (Auto-selected by CMake based on MODEL_FILENAME)
 // =========================================================================
-/* * INSTRUCTIONS:
- * 1. Default: "coco_classes.hpp" (80 classes) is enabled.
- * 2. To use a CUSTOM MODEL (e.g. Lego detection 28 classes):
- * - Uncomment '#include "lego_classes.hpp"'
- */
-//#include "lego_classes.hpp"                  // <--- Uncomment for Lego Model
-const char **current_classes = coco_classes; // <--- Set your active classes  coco_classes/lego_classes here
+#ifdef USE_LEGO_MODEL
+#include "lego_classes.hpp"
+const char **current_classes = lego_classes;
+#else
+#include "coco_classes.hpp"
+const char **current_classes = coco_classes;
+#endif
 // =========================================================================
 
 // --- Model Embedding ---
@@ -28,12 +28,15 @@ const char **current_classes = coco_classes; // <--- Set your active classes  co
 extern const uint8_t model_binary_start[] asm(MODEL_SYMBOL_STR);
 
 // --- Image Embedding ---
+#ifdef USE_LEGO_MODEL
+extern const uint8_t lego_jpg_start[] asm("_binary_lego_jpg_start");
+extern const uint8_t lego_jpg_end[]   asm("_binary_lego_jpg_end");
+#else
 extern const uint8_t bus_jpg_start[] asm("_binary_bus_jpg_start");
 extern const uint8_t bus_jpg_end[]   asm("_binary_bus_jpg_end");
 extern const uint8_t person_jpg_start[] asm("_binary_person_jpg_start");
 extern const uint8_t person_jpg_end[]   asm("_binary_person_jpg_end");
-extern const uint8_t lego_jpg_start[] asm("_binary_lego_jpg_start");
-extern const uint8_t lego_jpg_end[]   asm("_binary_lego_jpg_end");
+#endif
 
 
 void test_inference(dl::Model *model, YOLO26 &processor, const uint8_t *jpg_data, size_t jpg_len, const char *name)
@@ -92,9 +95,12 @@ extern "C" void app_main(void)
     YOLO26 processor(model, YOLO_TARGET_K, YOLO_CONF_THRESH, current_classes);
 
     // 3. Run Tests
+#ifdef USE_LEGO_MODEL
+    test_inference(model, processor, lego_jpg_start, (size_t)(lego_jpg_end - lego_jpg_start), "lego.jpg");
+#else
     test_inference(model, processor, bus_jpg_start, (size_t)(bus_jpg_end - bus_jpg_start), "bus.jpg");
     test_inference(model, processor, person_jpg_start, (size_t)(person_jpg_end - person_jpg_start), "person.jpg");
-    test_inference(model, processor, lego_jpg_start, (size_t)(lego_jpg_end - lego_jpg_start), "lego.jpg");
+#endif
 
     delete model;
 }
