@@ -3,6 +3,14 @@ menu "models: human_face_detect"
         bool "flash human_face_detect_msrmnp_s8_v1"
         depends on !HUMAN_FACE_DETECT_MODEL_IN_SDCARD
         default y
+    config FLASH_ESPDET_PICO_224_224_FACE
+        bool "flash espdet_pico_224_224_face"
+        depends on !HUMAN_FACE_DETECT_MODEL_IN_SDCARD
+        default n
+    config FLASH_ESPDET_PICO_416_416_FACE
+        bool "flash espdet_pico_416_416_face"
+        depends on !HUMAN_FACE_DETECT_MODEL_IN_SDCARD
+        default n
 
     choice
         prompt "default model"
@@ -12,11 +20,20 @@ menu "models: human_face_detect"
         config HUMAN_FACE_DETECT_MSRMNP_S8_V1
             bool "human_face_detect_msrmnp_s8_v1"
             depends on HUMAN_FACE_DETECT_MODEL_IN_SDCARD || FLASH_HUMAN_FACE_DETECT_MSRMNP_S8_V1
+        config ESPDET_PICO_224_224_FACE
+            bool "espdet_pico_224_224_face"
+            depends on HUMAN_FACE_DETECT_MODEL_IN_SDCARD || FLASH_ESPDET_PICO_224_224_FACE
+        config ESPDET_PICO_416_416_FACE
+            bool "espdet_pico_416_416_face"
+            depends on HUMAN_FACE_DETECT_MODEL_IN_SDCARD || FLASH_ESPDET_PICO_416_416_FACE
     endchoice
 
     config DEFAULT_HUMAN_FACE_DETECT_MODEL
         int
         default 0 if HUMAN_FACE_DETECT_MSRMNP_S8_V1
+        default 1 if ESPDET_PICO_224_224_FACE
+        default 2 if ESPDET_PICO_416_416_FACE
+
 
     choice
         prompt "model location"

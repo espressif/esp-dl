@@ -30,6 +30,12 @@ if (NOT CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD)
         list(APPEND models ${models_dir}/human_face_detect_msr_s8_v1.espdl
                         ${models_dir}/human_face_detect_mnp_s8_v1.espdl)
     endif()
+    if(CONFIG_FLASH_ESPDET_PICO_224_224_FACE)
+        list(APPEND models ${models_dir}/espdet_pico_224_224_face.espdl)
+    endif()
+    if(CONFIG_FLASH_ESPDET_PICO_416_416_FACE)
+        list(APPEND models ${models_dir}/espdet_pico_416_416_face.espdl)
+    endif()
 
     set(pack_model_exe ${espdl_dir}/fbs_loader/pack_espdl_models.py)
     add_custom_command(
