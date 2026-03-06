@@ -160,6 +160,28 @@ dl::Model *MSRMNP::get_raw_model(int idx)
     }
 }
 
+ESPDet::ESPDet(const char *model_name, float score_thr, float nms_thr)
+{
+#if !CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
+    m_model = new dl::Model(
+        path, model_name, static_cast<fbs::model_location_type_t>(CONFIG_HUMAN_FACE_DETECT_MODEL_LOCATION));
+#else
+    auto sd_path =
+        std::filesystem::path(CONFIG_BSP_SD_MOUNT_POINT) / CONFIG_HUMAN_FACE_DETECT_MODEL_SDCARD_DIR / model_name;
+    m_model = new dl::Model(sd_path.c_str(), fbs::MODEL_LOCATION_IN_SDCARD);
+#endif
+    m_model->minimize();
+#if CONFIG_IDF_TARGET_ESP32P4
+    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255});
+#else
+    m_image_preprocessor = new dl::image::ImagePreprocessor(
+        m_model, {0, 0, 0}, {255, 255, 255}, dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
+#endif
+    m_image_preprocessor->enable_letterbox({114, 114, 114});
+    m_postprocessor = new dl::detect::ESPDetPostProcessor(
+        m_model, m_image_preprocessor, score_thr, nms_thr, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}});
+}
+
 } // namespace human_face_detect
 
 HumanFaceDetect::HumanFaceDetect(model_type_t model_type, bool lazy_load) : m_model_type(model_type)
@@ -170,6 +192,11 @@ HumanFaceDetect::HumanFaceDetect(model_type_t model_type, bool lazy_load) : m_mo
         m_nms_thr[0] = human_face_detect::MSR::default_nms_thr;
         m_score_thr[1] = human_face_detect::MNP::default_score_thr;
         m_nms_thr[1] = human_face_detect::MNP::default_nms_thr;
+        break;
+    case model_type_t::ESPDET_PICO_224_224_FACE:
+    case model_type_t::ESPDET_PICO_416_416_FACE:
+        m_score_thr[0] = human_face_detect::ESPDet::default_score_thr;
+        m_nms_thr[0] = human_face_detect::ESPDet::default_nms_thr;
         break;
     }
     if (lazy_load) {
@@ -192,6 +219,22 @@ void HumanFaceDetect::load_model()
                                                 m_nms_thr[1]);
 #else
         ESP_LOGE("human_face_detect", "human_face_detect_msrmnp_s8_v1 is not selected in menuconfig.");
+#endif
+        break;
+    }
+    case model_type_t::ESPDET_PICO_224_224_FACE: {
+#if CONFIG_FLASH_ESPDET_PICO_224_224_FACE || CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
+        m_model = new human_face_detect::ESPDet("espdet_pico_224_224_face.espdl", m_score_thr[0], m_nms_thr[0]);
+#else
+        ESP_LOGE("human_face_detect", "espdet_pico_224_224_face is not selected in menuconfig.");
+#endif
+        break;
+    }
+    case model_type_t::ESPDET_PICO_416_416_FACE: {
+#if CONFIG_FLASH_ESPDET_PICO_416_416_FACE || CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
+        m_model = new human_face_detect::ESPDet("espdet_pico_416_416_face.espdl", m_score_thr[0], m_nms_thr[0]);
+#else
+        ESP_LOGE("human_face_detect", "espdet_pico_416_416_face is not selected in menuconfig.");
 #endif
         break;
     }

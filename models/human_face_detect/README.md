@@ -3,21 +3,27 @@
 ## Model list
 [supported]: https://img.shields.io/badge/-supported-green "supported"
 
-| Chip     | MSR_S8_V1 + <br>MNP_S8_V1 |
-|----------|---------------------------|
-| ESP32-S3 | ![alt text][supported]    |
-| ESP32-P4 | ![alt text][supported]    |
+| Chip     | MSR_S8_V1 + <br>MNP_S8_V1 | ESPDET_PICO_224_224_FACE | ESPDET_PICO_416_416_FACE | 
+|----------|---------------------------|--------------------------|--------------------------|
+| ESP32-S3 | ![alt text][supported]    |  ![alt text][supported]  |  ![alt text][supported]  | 
+| ESP32-P4 | ![alt text][supported]    |  ![alt text][supported]  |  ![alt text][supported]  | 
 
 MSR_S8_V1 + MNP_S8_V1 is a two stage model. First stage model MSR_S8_V1 predicts some candidates, then every candidate go through the next stage model MNP_S8_V1.
 
+Both ESPDET_PICO_224_224_FACE and ESPDET_PICO_416_416_FACE are one-stage models.
+
 ## Model Latency
 
-| name         | input(h*w*c)  | preprocess(us) | model(us) | postprocess(us) |
-|--------------|---------------|----------------|-----------|-----------------|
-| msr_s8_v1_s3 | 120 * 160 * 3 | 4023           | 32403     | 222             |
-| msr_s8_v1_p4 | 120 * 160 * 3 | 1559           | 14611     | 150             |
-| mnp_s8_v1_s3 | 48 * 48 * 3   | 1110           | 5551      | 63              |
-| mnp_s8_v1_p4 | 48 * 48 * 3   | 637            | 2659      | 45              |
+| name                           | input(h*w*c)  | preprocess(us) | model(us) | postprocess(us) | mAP50-95 on custom val set  |
+|--------------------------------|---------------|----------------|-----------|-----------------|-----------------------------|
+| msr_s8_v1_s3                   | 120 * 160 * 3 | 4023           | 32403     | 222             | /                           |
+| msr_s8_v1_p4                   | 120 * 160 * 3 | 1559           | 14611     | 150             | /                           |
+| mnp_s8_v1_s3                   | 48 * 48 * 3   | 1110           | 5551      | 63              | 0.367(msr + mnp)            |
+| mnp_s8_v1_p4                   | 48 * 48 * 3   | 637            | 2659      | 45              | 0.366(msr + mnp)            |
+| espdet_pico_224_224_face_s8_s3 | 224 * 224 * 3 | 7227           | 122463    | 782             | 0.495                       |
+| espdet_pico_416_416_face_s8_s3 | 416 * 416 * 3 | 21688          | 436376    | 1246            | 0.598                       |
+| espdet_pico_224_224_face_s8_p4 | 224 * 224 * 3 | 2592           | 50594     | 468             | 0.496                       |
+| espdet_pico_416_416_face_s8_p4 | 416 * 416 * 3 | 7177           | 200227    | 687             | 0.599                       |
 
 ## Model Usage
 
