@@ -1,0 +1,5 @@
+lego_data/
+# output/*/*
+runs/
+yolo26n.pt
+yolo26n_lego.pt

@@ -1,0 +1,8 @@
+version: "1.0.0" 
+license: "MIT"
+description: "Universal YOLO26 Processor for ESP32-P4 (NMS-Free)"
+url: "https://github.com/BoumedineBillal/esp-dl"
+dependencies:
+  espressif/esp-dl:
+    version: "~3.2.0"
+    override_path: "../../esp-dl"
