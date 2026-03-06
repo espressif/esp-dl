@@ -15,7 +15,7 @@
 
 | Model | Input | Training State | Pre (ms) | Inf (ms) | Post (ms) | mAP50-95 (COCO val2017) |
 |---|---|---|---|---|---|---|
-| yolo26n_512_s8_p4 | 512×512×3 | PTQ + TQT + LUT | 12 | 2067 | 13 | 0.366 |
+| yolo26n_512_s8_p4 | 512×512×3 | PTQ + TQT + LUT | 12 | 2067 | 13 | 0.365 |
 | yolo26n_640_s8_p4 | 640×640×3 | PTQ + TQT + LUT | 17 | 3474 | 21 | 0.387 |
 | yolo26n_512_s8_s3 | 512×512×3 | PTQ + TQT + LUT | 34 | 7822 | 23 | 0.363 |
 | yolo26n_640_s8_s3 | 640×640×3 | PTQ + TQT + LUT | 51 | 13107 | 36 | 0.384 |

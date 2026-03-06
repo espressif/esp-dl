@@ -25,19 +25,19 @@ It features direct regression (No NMS), high performance via `esp-dl` optimizati
 **ESP32-P4 | 512×512 | COCO model**
 ```text
 I (2158) image:: bus.jpg
-I (4348) yolo26_detect: Pre: 12 ms | Inf: 2066 ms | Post: 13 ms
-I (4348) YOLO26: [category: person, score: 0.88, x1: 86, y1: 187, x2: 173, y2: 426]
-I (4358) YOLO26: [category: bus, score: 0.85, x1: 70, y1: 107, x2: 452, y2: 357]
-I (4358) YOLO26: [category: person, score: 0.84, x1: 168, y1: 192, x2: 229, y2: 405]
-I (4368) YOLO26: [category: person, score: 0.73, x1: 379, y1: 186, x2: 448, y2: 415]
-I (4378) YOLO26: [category: person, score: 0.37, x1: 63, y1: 269, x2: 100, y2: 413]
+I (4358) yolo26_detect: Pre: 12 ms | Inf: 2070 ms | Post: 13 ms
+I (4358) YOLO26: [category: person, score: 0.83, x1: 86, y1: 187, x2: 177, y2: 428]
+I (4358) YOLO26: [category: bus, score: 0.79, x1: 70, y1: 109, x2: 448, y2: 349]
+I (4368) YOLO26: [category: person, score: 0.76, x1: 169, y1: 194, x2: 229, y2: 406]
+I (4368) YOLO26: [category: person, score: 0.70, x1: 380, y1: 187, x2: 449, y2: 416]
+I (4378) YOLO26: [category: person, score: 0.55, x1: 63, y1: 263, x2: 95, y2: 414]
 I (4388) image:: person.jpg
-I (6598) yolo26_detect: Pre: 11 ms | Inf: 2066 ms | Post: 13 ms
-I (6598) YOLO26: [category: person, score: 0.79, x1: 330, y1: 172, x2: 405, y2: 380]
-I (6598) YOLO26: [category: bicycle, score: 0.70, x1: 189, y1: 310, x2: 387, y2: 409]
-I (6608) YOLO26: [category: bicycle, score: 0.30, x1: 121, y1: 131, x2: 193, y2: 183]
-I (6608) image:: lego.jpg
-I (8808) yolo26_detect: Pre: 15 ms | Inf: 2065 ms | Post: 13 ms
+I (6598) yolo26_detect: Pre: 11 ms | Inf: 2069 ms | Post: 13 ms
+I (6598) YOLO26: [category: person, score: 0.77, x1: 330, y1: 171, x2: 405, y2: 378]
+I (6608) YOLO26: [category: bicycle, score: 0.66, x1: 189, y1: 306, x2: 388, y2: 410]
+I (6608) YOLO26: [category: bicycle, score: 0.42, x1: 121, y1: 132, x2: 194, y2: 182]
+I (6618) image:: lego.jpg
+I (8818) yolo26_detect: Pre: 15 ms | Inf: 2068 ms | Post: 13 ms
 ```
 
 #### Custom Lego Model Output
