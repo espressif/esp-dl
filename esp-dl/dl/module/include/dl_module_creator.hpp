@@ -25,6 +25,7 @@
 #include "dl_module_less.hpp"
 #include "dl_module_less_or_equal.hpp"
 #include "dl_module_log.hpp"
+#include "dl_module_log_softmax.hpp"
 #include "dl_module_lstm.hpp"
 #include "dl_module_lut.hpp"
 #include "dl_module_matmul.hpp"
@@ -162,6 +163,7 @@ public:
             this->register_module("Squeeze", Squeeze::deserialize);
             this->register_module("Unsqueeze", Unsqueeze::deserialize);
             this->register_module("Softmax", Softmax::deserialize);
+            this->register_module("LogSoftmax", LogSoftmax::deserialize);
             this->register_module("MaxPool", MaxPool::deserialize);
             this->register_module("Slice", Slice::deserialize);
             this->register_module("Pad", Pad::deserialize);

@@ -1646,6 +1646,29 @@
         dim = -1
         relu = false
 
+    [ops_test.LogSoftmax]
+    test_func = "LOGSOFTMAX_TEST"
+    quant_bits = ["int8", "int16", "float32"]
+    package = "torch_ops_test"
+    restrictions = "Dtype of output is float32"
+        [[ops_test.LogSoftmax.cfg]]
+        input_shape = [1, 10, 20, 40]
+        export_name_prefix = "logsoftmax_ishape_1_10_20_40_dim_-1"
+        dim = -1
+        relu = true
+
+        [[ops_test.LogSoftmax.cfg]]
+        input_shape = [1, 25, 35]
+        export_name_prefix = "logsoftmax_ishape_1_25_35_dim_1"
+        dim = 1
+        relu = true
+
+        [[ops_test.LogSoftmax.cfg]]
+        input_shape = [1, 33]
+        export_name_prefix = "logsoftmax_ishape_1_33_dim_-1"
+        dim = -1
+        relu = false
+
     [ops_test.Exp]
     test_func = "EXP_TEST"
     quant_bits = ["int8", "int16", "float32"]

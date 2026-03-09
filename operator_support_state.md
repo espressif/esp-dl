@@ -17,7 +17,7 @@ The rounding for ``ESP32-P4`` is [rounding half to even](https://simple.wikipedi
 ## Support Operators
 
 The ESP-DL operator interface is aligned with ONNX. The opset 18 is recommended to export ONNX.
-Currently, the following 61 operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases](./tools/ops_test/config/op_cfg.toml) for details.
+Currently, the following 62 operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases](./tools/ops_test/config/op_cfg.toml) for details.
 
 Most operators maintain the same input/output data layout as ONNX or PyTorch. However, to fully leverage instruction-level acceleration, certain operators such as Conv, GlobalAveragePool, AveragePool, MaxPool, and Resize adopt NHWC or NWC data layouts for their inputs/outputs.
 | Operator                                                                                                                                                       | int8     | int16    | float32   | Restrictions                                                                                             |
@@ -47,6 +47,7 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Less[(ESP-DL)](esp-dl/dl/module/include/dl_module_less.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Less.html)                                            | &#10004; | &#10004; | &#10006;  |                                                                                                          |
 | LessOrEqual[(ESP-DL)](esp-dl/dl/module/include/dl_module_less_or_equal.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__LessOrEqual.html)                     | &#10004; | &#10004; | &#10006;  |                                                                                                          |
 | Log[(ESP-DL)](esp-dl/dl/module/include/dl_module_log.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Log.html)                                               | &#10004; | &#10004; | &#10004;  |                                                                                                          |
+| LogSoftmax[(ESP-DL)](esp-dl/dl/module/include/dl_module_log_softmax.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__LogSoftmax.html)                         | &#10004; | &#10004; | &#10004;  | Dtype of output is float32                                                                               |
 | LSTM[(ESP-DL)](esp-dl/dl/module/include/dl_module_lstm.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__LSTM.html)                                            | &#10004; | &#10004; | &#10004;  |                                                                                                          |
 | MatMul[(ESP-DL)](esp-dl/dl/module/include/dl_module_matmul.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__MatMul.html)                                      | &#10004; | &#10004; | &#10006;  | Support up to 4D                                                                                         |
 | MaxPool[(ESP-DL)](esp-dl/dl/module/include/dl_module_max_pool.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__MaxPool.html)                                  | &#10004; | &#10004; | &#10006;  | Support 1d/2d, don't support dilation                                                                    |
@@ -84,4 +85,4 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Transpose[(ESP-DL)](esp-dl/dl/module/include/dl_module_transpose.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Transpose.html)                             | &#10004; | &#10004; | &#10004;  |                                                                                                          |
 | Unsqueeze[(ESP-DL)](esp-dl/dl/module/include/dl_module_unsqueeze.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Unsqueeze.html)                             | &#10004; | &#10004; | &#10004;  |                                                                                                          |
 
-Generation Time: 2026-03-05 11:58:01
+Generation Time: 2026-03-06 16:33:55
