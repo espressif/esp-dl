@@ -24,29 +24,29 @@ It features direct regression (No NMS), high performance via `esp-dl` optimizati
 
 **ESP32-P4 | 512×512 | COCO model**
 ```text
-I (2159) image:: bus.jpg
-I (4349) yolo26_detect: Pre: 12 ms | Inf: 2067 ms | Post: 13 ms
-I (4349) YOLO26: [category: person, score: 0.83, x1: 86, y1: 187, x2: 177, y2: 428]
-I (4359) YOLO26: [category: bus, score: 0.79, x1: 70, y1: 109, x2: 448, y2: 349]
-I (4359) YOLO26: [category: person, score: 0.76, x1: 169, y1: 194, x2: 229, y2: 406]
-I (4369) YOLO26: [category: person, score: 0.70, x1: 380, y1: 187, x2: 449, y2: 416]
-I (4379) YOLO26: [category: person, score: 0.55, x1: 63, y1: 263, x2: 95, y2: 414]
-I (4379) image:: person.jpg
-I (6599) yolo26_detect: Pre: 11 ms | Inf: 2066 ms | Post: 13 ms
-I (6599) YOLO26: [category: person, score: 0.77, x1: 330, y1: 171, x2: 405, y2: 378]
-I (6599) YOLO26: [category: bicycle, score: 0.66, x1: 189, y1: 306, x2: 388, y2: 410]
-I (6609) YOLO26: [category: bicycle, score: 0.42, x1: 121, y1: 132, x2: 194, y2: 182]
+I (2154) image:: bus.jpg
+I (4354) yolo26_detect: Pre: 12 ms | Inf: 2071 ms | Post: 13 ms
+I (4354) YOLO26: [category: person, score: 0.55, x1: 63, y1: 263, x2: 95, y2: 414]
+I (4354) YOLO26: [category: bus, score: 0.79, x1: 70, y1: 109, x2: 448, y2: 349]
+I (4364) YOLO26: [category: person, score: 0.83, x1: 86, y1: 187, x2: 177, y2: 428]
+I (4364) YOLO26: [category: person, score: 0.76, x1: 169, y1: 194, x2: 229, y2: 406]
+I (4374) YOLO26: [category: person, score: 0.70, x1: 380, y1: 187, x2: 449, y2: 416]
+I (4384) image:: person.jpg
+I (6604) yolo26_detect: Pre: 11 ms | Inf: 2070 ms | Post: 13 ms
+I (6604) YOLO26: [category: bicycle, score: 0.42, x1: 121, y1: 132, x2: 194, y2: 182]
+I (6604) YOLO26: [category: person, score: 0.77, x1: 330, y1: 171, x2: 405, y2: 378]
+I (6614) YOLO26: [category: bicycle, score: 0.66, x1: 189, y1: 306, x2: 388, y2: 410]
 ```
 
 #### Custom Lego Model Output
 
 **ESP32-P4 | 512×512 | Lego custom model (28 classes)**
 ```text
-I (2095) image:: lego.jpg
-I (4235) yolo26_detect: Pre: 15 ms | Inf: 2015 ms | Post: 5 ms
-I (4235) YOLO26: [category: 2x4_green, score: 0.97, x1: 107, y1: 129, x2: 250, y2: 374]
-I (4235) YOLO26: [category: 2x4_green, score: 0.95, x1: 293, y1: 150, x2: 423, y2: 411]
-I (4245) YOLO26: [category: 2x2_green, score: 0.79, x1: 223, y1: 137, x2: 331, y2: 293]
+I (2099) image:: lego.jpg
+I (4239) yolo26_detect: Pre: 15 ms | Inf: 2017 ms | Post: 5 ms
+I (4239) YOLO26: [category: 2x2_green, score: 0.79, x1: 223, y1: 137, x2: 331, y2: 293]
+I (4239) YOLO26: [category: 2x4_green, score: 0.97, x1: 107, y1: 129, x2: 250, y2: 374]
+I (4249) YOLO26: [category: 2x4_green, score: 0.95, x1: 293, y1: 150, x2: 423, y2: 411]
 ```
 
 ## Visualization

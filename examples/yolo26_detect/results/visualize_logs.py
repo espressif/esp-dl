@@ -25,18 +25,18 @@ COLORS = ['#FF3333', '#3399FF', '#33CC66', '#FF9900', '#CC33FF', '#00CCCC']
 # UPDATED LOG DATA 
 # ======================================================================================
 RAW_LOG_DATA = """
-I (2159) image:: bus.jpg
-I (4349) yolo26_detect: Pre: 12 ms | Inf: 2067 ms | Post: 13 ms
-I (4349) YOLO26: [category: person, score: 0.83, x1: 86, y1: 187, x2: 177, y2: 428]
-I (4359) YOLO26: [category: bus, score: 0.79, x1: 70, y1: 109, x2: 448, y2: 349]
-I (4359) YOLO26: [category: person, score: 0.76, x1: 169, y1: 194, x2: 229, y2: 406]
-I (4369) YOLO26: [category: person, score: 0.70, x1: 380, y1: 187, x2: 449, y2: 416]
-I (4379) YOLO26: [category: person, score: 0.55, x1: 63, y1: 263, x2: 95, y2: 414]
-I (4379) image:: person.jpg
-I (6599) yolo26_detect: Pre: 11 ms | Inf: 2066 ms | Post: 13 ms
-I (6599) YOLO26: [category: person, score: 0.77, x1: 330, y1: 171, x2: 405, y2: 378]
-I (6599) YOLO26: [category: bicycle, score: 0.66, x1: 189, y1: 306, x2: 388, y2: 410]
-I (6609) YOLO26: [category: bicycle, score: 0.42, x1: 121, y1: 132, x2: 194, y2: 182]
+I (2154) image:: bus.jpg
+I (4354) yolo26_detect: Pre: 12 ms | Inf: 2071 ms | Post: 13 ms
+I (4354) YOLO26: [category: person, score: 0.55, x1: 63, y1: 263, x2: 95, y2: 414]
+I (4354) YOLO26: [category: bus, score: 0.79, x1: 70, y1: 109, x2: 448, y2: 349]
+I (4364) YOLO26: [category: person, score: 0.83, x1: 86, y1: 187, x2: 177, y2: 428]
+I (4364) YOLO26: [category: person, score: 0.76, x1: 169, y1: 194, x2: 229, y2: 406]
+I (4374) YOLO26: [category: person, score: 0.70, x1: 380, y1: 187, x2: 449, y2: 416]
+I (4384) image:: person.jpg
+I (6604) yolo26_detect: Pre: 11 ms | Inf: 2070 ms | Post: 13 ms
+I (6604) YOLO26: [category: bicycle, score: 0.42, x1: 121, y1: 132, x2: 194, y2: 182]
+I (6604) YOLO26: [category: person, score: 0.77, x1: 330, y1: 171, x2: 405, y2: 378]
+I (6614) YOLO26: [category: bicycle, score: 0.66, x1: 189, y1: 306, x2: 388, y2: 410]
 """
 
 # ======================================================================================
