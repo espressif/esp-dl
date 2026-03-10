@@ -1646,6 +1646,29 @@
         dim = -1
         relu = false
 
+    [ops_test.LogSoftmax]
+    test_func = "LOGSOFTMAX_TEST"
+    quant_bits = ["int8", "int16", "float32"]
+    package = "torch_ops_test"
+    restrictions = "Dtype of output is float32"
+        [[ops_test.LogSoftmax.cfg]]
+        input_shape = [1, 10, 20, 40]
+        export_name_prefix = "logsoftmax_ishape_1_10_20_40_dim_-1"
+        dim = -1
+        relu = true
+
+        [[ops_test.LogSoftmax.cfg]]
+        input_shape = [1, 25, 35]
+        export_name_prefix = "logsoftmax_ishape_1_25_35_dim_1"
+        dim = 1
+        relu = true
+
+        [[ops_test.LogSoftmax.cfg]]
+        input_shape = [1, 33]
+        export_name_prefix = "logsoftmax_ishape_1_33_dim_-1"
+        dim = -1
+        relu = false
+
     [ops_test.Exp]
     test_func = "EXP_TEST"
     quant_bits = ["int8", "int16", "float32"]
@@ -3456,6 +3479,43 @@
         input_shape = [[1, 20], [10, 20]]
         export_name_prefix = "pow_2d_large"
 
+
+    [ops_test.Mod]
+    test_func = "MOD_TEST"
+    quant_bits = ["int8", "int16", "float32"]
+    package = "onnx_ops_test"
+    targets = ["esp32s3", "esp32p4"]
+    restrictions = "Support up to 4D, multidirectional broadcasting, fmod=1 (C-style). Per ONNX spec fmod=0 is integer-only."
+
+        [[ops_test.Mod.cfg]]
+        input_shape = [[1, 96, 5, 5], [1, 96, 5, 5]]
+        fmod = 1
+        export_name_prefix = "mod_4d_same_shape"
+
+        [[ops_test.Mod.cfg]]
+        input_shape = [[2, 3, 4, 5], [1, 1, 1, 1]]
+        fmod = 1
+        export_name_prefix = "mod_4d_scalar_broadcast"
+
+        [[ops_test.Mod.cfg]]
+        input_shape = [[2, 3, 4, 5], [1, 1, 1, 5]]
+        fmod = 1
+        export_name_prefix = "mod_4d_vec_broadcast"
+
+        [[ops_test.Mod.cfg]]
+        input_shape = [[1, 1], [2, 3, 4, 5]]
+        fmod = 1
+        export_name_prefix = "mod_broadcast_small_to_large"
+
+        [[ops_test.Mod.cfg]]
+        input_shape = [[2, 3], [3]]
+        fmod = 1
+        export_name_prefix = "mod_2d_broadcast"
+
+        [[ops_test.Mod.cfg]]
+        input_shape = [[1, 4, 1], [2, 4, 5]]
+        fmod = 1
+        export_name_prefix = "mod_3d_broadcast"
 
     [ops_test.ScatterND]
     test_func = "SCATTER_ND_TEST"

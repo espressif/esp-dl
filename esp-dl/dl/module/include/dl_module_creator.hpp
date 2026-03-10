@@ -25,10 +25,12 @@
 #include "dl_module_less.hpp"
 #include "dl_module_less_or_equal.hpp"
 #include "dl_module_log.hpp"
+#include "dl_module_log_softmax.hpp"
 #include "dl_module_lstm.hpp"
 #include "dl_module_lut.hpp"
 #include "dl_module_matmul.hpp"
 #include "dl_module_max_pool.hpp"
+#include "dl_module_mod.hpp"
 #include "dl_module_mul.hpp"
 #include "dl_module_neg.hpp"
 #include "dl_module_pad.hpp"
@@ -133,6 +135,7 @@ public:
             this->register_module("Mul", Mul::deserialize);
             this->register_module("Div", Div::deserialize);
             this->register_module("Pow", Pow::deserialize);
+            this->register_module("Mod", Mod::deserialize);
             this->register_module("Resize", Resize::deserialize);
             this->register_module("GlobalAveragePool", GlobalAveragePool::deserialize);
             this->register_module("AveragePool", AveragePool::deserialize);
@@ -160,6 +163,7 @@ public:
             this->register_module("Squeeze", Squeeze::deserialize);
             this->register_module("Unsqueeze", Unsqueeze::deserialize);
             this->register_module("Softmax", Softmax::deserialize);
+            this->register_module("LogSoftmax", LogSoftmax::deserialize);
             this->register_module("MaxPool", MaxPool::deserialize);
             this->register_module("Slice", Slice::deserialize);
             this->register_module("Pad", Pad::deserialize);

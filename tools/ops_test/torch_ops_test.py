@@ -570,6 +570,20 @@ class SOFTMAX_TEST(nn.Module):
         return output
 
 
+class LOGSOFTMAX_TEST(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+
+        self.op = nn.LogSoftmax(config["dim"])
+        self.config = config
+
+    def forward(self, inputs):
+        if self.config["relu"]:
+            inputs = nn.ReLU()(inputs)
+        output = self.op(inputs)
+        return output
+
+
 class SQUEEZE_TEST(nn.Module):
     def __init__(self, config):
         super().__init__()
