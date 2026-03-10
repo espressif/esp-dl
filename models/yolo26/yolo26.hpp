@@ -2,8 +2,8 @@
 #include "dl_image_process.hpp"
 #include "dl_image_preprocessor.hpp"
 #include "dl_tensor_base.hpp"
+#include "dl_detect_define.hpp"
 #include "coco_classes.hpp"
-#include <vector>
 #include <map>
 #include <string>
 
@@ -11,11 +11,7 @@
 #define YOLO_TARGET_K 32
 #define YOLO_CONF_THRESH 0.25f
 
-struct Detection {
-    float x1, y1, x2, y2;
-    float score;
-    int class_id;
-};
+// Default Configuration
 
 class YOLO26 {
 private:
@@ -33,17 +29,15 @@ private:
     const int strides[3] = {8, 16, 32};
 
     // --- Helpers ---
-    float sigmoid(float x);
     
-    // Dequantization Helper
-    template <typename T>
-    float dequantize_val(T val, float scale);
+    // Dequantization Helper removed (using native esp-dl)
+
 
     /**
      * @brief Templated decoding loop to seamlessly handle both INT8 and INT16 tensors
      */
     template <typename T>
-    void decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int stride, int grid_h, int grid_w, std::vector<Detection>& candidates);
+    void decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int stride, int grid_h, int grid_w, std::vector<dl::detect::result_t>& candidates);
 
 public:
     const char** class_names;
@@ -79,7 +73,7 @@ public:
      * OPTIMIZATION: Uses Integer Thresholding to skip floating point math.
      * 
      * @param outputs Map of model outputs
-     * @return std::vector<Detection> 
+     * @return std::vector<dl::detect::result_t> 
      */
-    std::vector<Detection> postprocess(const std::map<std::string, dl::TensorBase*>& outputs);
+    std::vector<dl::detect::result_t> postprocess(const std::map<std::string, dl::TensorBase*>& outputs);
 };

@@ -5,24 +5,18 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
-#include "dl_tool.hpp" 
+#include "dl_tool.hpp"
+#include "dl_math.hpp"
+
 
 
 
 // --- Helpers ---
 
-float YOLO26::sigmoid(float x) {
-    return 1.0f / (1.0f + std::exp(-x));
-}
+// --- Helpers ---
 
-template <typename T>
-float YOLO26::dequantize_val(T val, float scale) {
-    return val * scale;
-}
+// External instantiation handled by dl_tensor_base.hpp
 
-// Explicit instantiation
-template float YOLO26::dequantize_val<int8_t>(int8_t val, float scale);
-template float YOLO26::dequantize_val<int16_t>(int16_t val, float scale);
 
 
 // --- Constructor ---
@@ -76,9 +70,9 @@ void YOLO26::preprocess(const dl::image::img_t& img) {
 }
 
 template <typename T>
-void YOLO26::decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int stride, int grid_h, int grid_w, std::vector<Detection>& candidates) {
-    float box_scale = std::pow(2.0f, p_box->exponent);
-    float cls_scale = std::pow(2.0f, p_cls->exponent);
+void YOLO26::decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int stride, int grid_h, int grid_w, std::vector<dl::detect::result_t>& candidates) {
+    float box_scale = DL_SCALE(p_box->exponent);
+    float cls_scale = DL_SCALE(p_cls->exponent);
     T* raw_box = (T*)p_box->data;
     T* raw_cls = (T*)p_cls->data;
 
@@ -100,9 +94,9 @@ void YOLO26::decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int strid
                 T raw_val_T = raw_cls[cls_offset + c];
                 if (raw_val_T <= cls_thresh) continue; 
 
-                float raw_val = dequantize_val(raw_val_T, cls_scale);
+                float raw_val = dl::dequantize(raw_val_T, cls_scale);
                 
-                float score = sigmoid(raw_val);
+                float score = dl::math::sigmoid(raw_val);
                 if (score > max_score) {
                     max_score = score;
                     best_cls_id = c;
@@ -113,10 +107,10 @@ void YOLO26::decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int strid
 
             // Decode Box (Int8 or Int16)
             int box_offset = pixel_idx * 4;
-            float d_l = dequantize_val(raw_box[box_offset + 0], box_scale);
-            float d_t = dequantize_val(raw_box[box_offset + 1], box_scale);
-            float d_r = dequantize_val(raw_box[box_offset + 2], box_scale);
-            float d_b = dequantize_val(raw_box[box_offset + 3], box_scale);
+            float d_l = dl::dequantize(raw_box[box_offset + 0], box_scale);
+            float d_t = dl::dequantize(raw_box[box_offset + 1], box_scale);
+            float d_r = dl::dequantize(raw_box[box_offset + 2], box_scale);
+            float d_b = dl::dequantize(raw_box[box_offset + 3], box_scale);
 
             float cx = w + 0.5f;
             float cy = h + 0.5f;
@@ -125,12 +119,12 @@ void YOLO26::decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int strid
             float x2 = (cx + d_r) * stride;
             float y2 = (cy + d_b) * stride;
 
-            candidates.push_back({x1, y1, x2, y2, max_score, best_cls_id});
+            candidates.push_back({best_cls_id, max_score, {(int)x1, (int)y1, (int)x2, (int)y2}, {}});
         }
     }
 }
 
-std::vector<Detection> YOLO26::postprocess(const std::map<std::string, dl::TensorBase*>& outputs) {
+std::vector<dl::detect::result_t> YOLO26::postprocess(const std::map<std::string, dl::TensorBase*>& outputs) {
     // Ensure grid_sizes are ready
     if (grid_sizes.empty() || grid_sizes[0] == 0) {
             printf("[YOLO26] Error: Grid sizes not initialized. Call preprocess() first.\n");
@@ -148,7 +142,7 @@ std::vector<Detection> YOLO26::postprocess(const std::map<std::string, dl::Tenso
     // Auto-detect the class count
     this->num_classes = p3_cls->shape[3];
 
-    std::vector<Detection> candidates;
+    std::vector<dl::detect::result_t> candidates;
     candidates.reserve(target_k * 2);
 
     dl::TensorBase* boxes[] = {p3_box, p4_box, p5_box};
@@ -169,12 +163,9 @@ std::vector<Detection> YOLO26::postprocess(const std::map<std::string, dl::Tenso
         }
     }
 
-    // Global Sort
-    std::sort(candidates.begin(), candidates.end(), [](const Detection& a, const Detection& b) {
-        return a.score > b.score;
-    });
-
+    // Top-K Extraction (NMS-Free)
     if (candidates.size() > target_k) {
+        std::nth_element(candidates.begin(), candidates.begin() + target_k, candidates.end(), dl::detect::greater_box);
         candidates.resize(target_k);
     }
 

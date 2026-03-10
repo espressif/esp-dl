@@ -72,9 +72,9 @@ void test_inference(dl::Model *model, YOLO26 &processor, const uint8_t *jpg_data
     for (const auto& res : results) {
         // The processor automatically maps class_id to the string array you passed
         ESP_LOGI("YOLO26", "[category: %s, score: %.2f, x1: %d, y1: %d, x2: %d, y2: %d]",
-                    current_classes[res.class_id], 
+                    current_classes[res.category], 
                     res.score,
-                    (int)res.x1, (int)res.y1, (int)res.x2, (int)res.y2);
+                    res.box[0], res.box[1], res.box[2], res.box[3]);
     }
 
     heap_caps_free(img.data);
