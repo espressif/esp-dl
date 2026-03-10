@@ -11,14 +11,6 @@
 
 
 
-// --- Helpers ---
-
-// --- Helpers ---
-
-// External instantiation handled by dl_tensor_base.hpp
-
-
-
 // --- Constructor ---
 
 YOLO26::YOLO26(dl::Model* model, int k, float thresh, const char** classes) 
@@ -27,14 +19,11 @@ YOLO26::YOLO26(dl::Model* model, int k, float thresh, const char** classes)
     // Reserve memory for grids
     grid_sizes.resize(3);
 
-    // 1. Initialize the preprocessor with standard YOLO Mean (0) and Std (255)
-    // NOTE: This will pull the exponent scale dynamically from the model
+    // Initialize the preprocessor with standard YOLO Mean (0) and Std (255)
     m_image_preprocessor = new dl::image::ImagePreprocessor(model, {0, 0, 0}, {255, 255, 255});
-    
-    // 2. Enable Letterboxing using gray padding {114, 114, 114} to prevent stretching!
     m_image_preprocessor->enable_letterbox({114, 114, 114});
 
-    // 3. Pre-Calculate grid sizes based on Model Input Shape
+    // Calculate grid sizes using model inputs
     auto inputs = model->get_inputs();
     if (!inputs.empty()) {
         dl::TensorBase* input_tensor = inputs.begin()->second;
@@ -61,11 +50,6 @@ dl::image::img_t YOLO26::decode_jpeg(const uint8_t* jpg_data, size_t jpg_len) {
 }
 
 void YOLO26::preprocess(const dl::image::img_t& img) {
-    // This single line performs:
-    // 1. Letterbox scaling (no stretching)
-    // 2. SIMD color conversion (RGB888 -> RGB888 / RGB565)
-    // 3. 256-value Hardware LUT mapped Quantization (Matches exact Exponent)
-    // 4. Memory copy directly into the Model's Input Tensor
     m_image_preprocessor->preprocess(img);
 }
 
@@ -88,14 +72,11 @@ void YOLO26::decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int strid
             float max_score = -1.0f;
             int best_cls_id = -1;
 
-            // Class Score Loop
             for (int c = 0; c < num_classes; c++) {
-                // 1. Fast Integer Check (Skip Float Math)
                 T raw_val_T = raw_cls[cls_offset + c];
                 if (raw_val_T <= cls_thresh) continue; 
 
                 float raw_val = dl::dequantize(raw_val_T, cls_scale);
-                
                 float score = dl::math::sigmoid(raw_val);
                 if (score > max_score) {
                     max_score = score;
