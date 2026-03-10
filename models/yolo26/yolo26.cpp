@@ -77,7 +77,7 @@ void YOLO26::decode_grid(dl::TensorBase* p_box, dl::TensorBase* p_cls, int strid
     T* raw_cls = (T*)p_cls->data;
 
     // Optimization: Calculate Threshold natively in type T
-    float raw_thresh_float = -std::log(1.0f / conf_thresh - 1.0f);
+    float raw_thresh_float = dl::math::inverse_sigmoid(conf_thresh);
     T cls_thresh = (T)std::floor(raw_thresh_float / cls_scale);
 
     for (int h = 0; h < grid_h; h++) {
