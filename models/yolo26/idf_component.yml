@@ -1,7 +1,7 @@
 version: "1.0.0" 
 license: "MIT"
 description: "Universal YOLO26 Processor for ESP32-P4 (NMS-Free)"
-url: "https://github.com/BoumedineBillal/esp-dl"
+url: https://github.com/espressif/esp-dl/tree/master/models/yolo26
 dependencies:
   espressif/esp-dl:
     version: "~3.2.0"
