@@ -28,19 +28,21 @@ extern "C" void app_main(void)
                  res.box[1],
                  res.box[2],
                  res.box[3]);
-        ESP_LOGI(
-            TAG,
-            "left_eye: [%d, %d], left_mouth: [%d, %d], nose: [%d, %d], right_eye: [%d, %d], right_mouth: [%d, %d]]",
-            res.keypoint[0],
-            res.keypoint[1],
-            res.keypoint[2],
-            res.keypoint[3],
-            res.keypoint[4],
-            res.keypoint[5],
-            res.keypoint[6],
-            res.keypoint[7],
-            res.keypoint[8],
-            res.keypoint[9]);
+        if (res.keypoint.size() > 0) {
+            ESP_LOGI(
+                TAG,
+                "left_eye: [%d, %d], left_mouth: [%d, %d], nose: [%d, %d], right_eye: [%d, %d], right_mouth: [%d, %d]]",
+                res.keypoint[0],
+                res.keypoint[1],
+                res.keypoint[2],
+                res.keypoint[3],
+                res.keypoint[4],
+                res.keypoint[5],
+                res.keypoint[6],
+                res.keypoint[7],
+                res.keypoint[8],
+                res.keypoint[9]);
+        }
     }
     delete detect;
     heap_caps_free(img.data);
