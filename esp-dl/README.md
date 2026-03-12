@@ -93,4 +93,10 @@ This module provides functionalities for computer vision tasks.
 - `classification/`: Post-processors for image classification models (e.g., ImageNet classifiers).
 - `recognition/`: Components for face recognition tasks.
 
+
+## Netron Support
+
+We have added support for `.espdl` models in [netron](https://netron.app/) (a visualizer for neural network).
+
+
 Explore ESP-DL to streamline your AI model deployment and achieve optimal performance with minimal resource usage.
