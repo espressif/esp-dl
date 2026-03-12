@@ -4,7 +4,7 @@
 torch<2.9.0
 torchvision
 torchaudio
-esp-ppq
+# esp-ppq is installed from source at runtime
 toml
 idf_build_apps
 pytest

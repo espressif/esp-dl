@@ -11,6 +11,7 @@ Tutorials
    how_to_load_test_profile_model
    how_to_run_model
    how_to_add_a_new_module(operator)
+   how_to_implement_operators_with_ai_agent
    how_to_deploy_mobilenetv2
    how_to_deploy_yolo11n
    how_to_deploy_yolo11n-pose
