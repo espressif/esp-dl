@@ -10,10 +10,10 @@
 
 ## Model Latency
 
-| name                 | input(h*w*c)  | preprocess(us) | model(us) | postprocess(us) |
-|----------------------|---------------|----------------|-----------|-----------------|
-| mobilenetv2_s8_v1_s3 | 224 * 224 * 3 | 9175           | 1281016   | 1140            |
-| mobilenetv2_s8_v1_p4 | 224 * 224 * 3 | 3467           | 352592    | 688             |
+| name                 | input(h*w*c)  | preprocess(ms) | model(ms) | postprocess(ms) |
+| ---------------------- | --------------- | ---------------- | ----------- | ----------------- |
+|  mobilenetv2_s8_v1_s3 |  224 * 224 * 3 | 9.2 | 1281.0 | 1.1 |
+|  mobilenetv2_s8_v1_p4 |  224 * 224 * 3 | 3.5 | 352.6 | 0.7 |
 
 ## Model Usage
 
