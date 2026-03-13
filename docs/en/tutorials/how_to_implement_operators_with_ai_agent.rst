@@ -151,7 +151,7 @@ The easiest way to install the skill for OpenCode, Cursor, Claude Code, and othe
 
 .. code-block:: bash
 
-    npx skills add https://github.com/espressif/esp-dl/tree/master/tools/agents/skills/espdl-operator
+    npx skills add espressif/esp-dl --skill espdl-operator
 
 .. note::
 
