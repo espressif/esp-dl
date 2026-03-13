@@ -10,9 +10,9 @@
 
 ## Model Latency
 
-| name         | preprocess(us) | model(us) | postprocess(us) |
-|--------------|----------------|-----------|-----------------|
-| sv_tdnn_tiny | 122951         | 438933    | 68              |
+| name         | preprocess(ms) | model(ms) | postprocess(ms) |
+| -------------- | ---------------- | ----------- | ----------------- |
+|  sv_tdnn_tiny | 123.0 | 438.9 | 0.1 |
 
 ## Model Metrics (after quantization)
 
