@@ -470,6 +470,14 @@ public:
     void memset(int value);
 
     /**
+     * @brief Fill tensor data with random bytes from hardware RNG.
+     *
+     * Uses esp_fill_random() to fill the tensor's internal buffer with random bytes.
+     * Requires ESP-IDF (esp_random.h).
+     */
+    void rand();
+
+    /**
      * @brief Set preload address of Tensor
      *
      * @param addr  The address of preload data

@@ -1,6 +1,7 @@
 #include "dl_tensor_base.hpp"
 #include "dl_base_pad.hpp"
 #include "dl_base_requantize_linear.hpp"
+#include "esp_random.h"
 #include <iostream>
 namespace dl {
 
@@ -1235,6 +1236,13 @@ TensorBase *TensorBase::pad(TensorBase *input,
 void TensorBase::memset(int value)
 {
     ::memset(this->data, value, this->get_bytes());
+}
+
+void TensorBase::rand()
+{
+    if (this->data) {
+        esp_fill_random(this->data, this->get_bytes());
+    }
 }
 
 } // namespace dl

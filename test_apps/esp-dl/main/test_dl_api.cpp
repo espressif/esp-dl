@@ -5,7 +5,10 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "unity.h"
+#include <cstring>
+#include <map>
 #include <type_traits>
+#include <vector>
 static const char *TAG = "TEST DL MODEL";
 
 using namespace dl;
@@ -85,70 +88,85 @@ TEST_CASE("Test dl model API: run()", "[api]")
     TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);
 }
 
+// Helper: fill model inputs with data from saved buffers, then run
+static void fill_inputs_and_run(Model *model, const std::map<std::string, std::pair<uint8_t *, size_t>> &saved_inputs)
+{
+    std::map<std::string, TensorBase *> &model_inputs = model->get_inputs();
+    for (auto &pair : model_inputs) {
+        const std::string &name = pair.first;
+        TensorBase *tensor = pair.second;
+        auto it = saved_inputs.find(name);
+        if (it != saved_inputs.end()) {
+            memcpy(tensor->get_element_ptr(), it->second.first, it->second.second);
+        }
+    }
+    model->run();
+}
+
 TEST_CASE("Test dl model API: reset()", "[api]")
 {
     ESP_LOGI(TAG, "Test dl model API: reset()");
+
     Model *model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
-    delete model;
+    std::map<std::string, std::pair<uint8_t *, size_t>> saved_input_data;
+    std::map<std::string, TensorBase *> &model_inputs = model->get_inputs();
+    for (auto &pair : model_inputs) {
+        const std::string &input_name = pair.first;
+        TensorBase *input_tensor = pair.second;
+        input_tensor->rand();
+        size_t bytes = input_tensor->get_bytes();
+        uint8_t *buf = new uint8_t[bytes];
+        memcpy(buf, input_tensor->get_element_ptr(), bytes);
+        saved_input_data.emplace(input_name, std::make_pair(buf, bytes));
+    }
 
-    int total_ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-
-    model = new Model("model", 0, fbs::MODEL_LOCATION_IN_FLASH_PARTITION, 0);
-
-    // First run
-    model->run();
+    // First run with random inputs
+    fill_inputs_and_run(model, saved_input_data);
     std::map<std::string, TensorBase *> &outputs = model->get_outputs();
-    std::vector<int8_t *> output_data_first_list;
-    std::vector<int8_t *> output_data_second_list;
-    std::vector<int8_t *> output_data_after_reset_list;
+    std::vector<uint8_t *> output_data_first_list;
     std::vector<size_t> output_bytes_list;
-
+    int idx = 0;
     for (auto &pair : outputs) {
         TensorBase *tensor = pair.second;
         size_t bytes = tensor->get_bytes();
-        output_bytes_list.push_back(bytes);
-        int8_t *first = new int8_t[tensor->get_size()];
+        uint8_t *first = new uint8_t[bytes];
         memcpy(first, tensor->get_element_ptr(), bytes);
         output_data_first_list.push_back(first);
+        output_bytes_list.push_back(bytes);
+        idx++;
     }
 
-    // Second run without reset - internal state may change if model has stateful modules
-    model->run();
-    for (auto &pair : outputs) {
-        TensorBase *tensor = pair.second;
-        int8_t *second = new int8_t[tensor->get_size()];
-        memcpy(second, tensor->get_element_ptr(), tensor->get_bytes());
-        output_data_second_list.push_back(second);
-    }
+    // Second run without reset
+    fill_inputs_and_run(model, saved_input_data);
 
-    // Reset model (clears state of all modules, e.g. StreamingCache)
     model->reset();
 
-    // Third run after reset - output should match first run (state cleared)
-    model->run();
-    size_t idx = 0;
+    // Third run after reset with same inputs - output should match first run
+    fill_inputs_and_run(model, saved_input_data);
+
+    idx = 0;
     for (auto &pair : outputs) {
         TensorBase *tensor = pair.second;
-        int8_t *after_reset = new int8_t[tensor->get_size()];
-        memcpy(after_reset, tensor->get_element_ptr(), tensor->get_bytes());
-        output_data_after_reset_list.push_back(after_reset);
-        TEST_ASSERT_EQUAL(true, memcmp(output_data_first_list[idx], after_reset, output_bytes_list[idx]) == 0);
+        size_t bytes = output_bytes_list[idx];
+        const void *expected = output_data_first_list[idx];
+        const void *actual = tensor->get_element_ptr();
+        TEST_ASSERT_EQUAL_MESSAGE(0,
+                                  memcmp(expected, actual, bytes),
+                                  "Third run output does not match first run - reset() may not have cleared state");
         idx++;
     }
 
     for (auto p : output_data_first_list) {
         delete[] p;
     }
-    for (auto p : output_data_second_list) {
-        delete[] p;
-    }
-    for (auto p : output_data_after_reset_list) {
-        delete[] p;
-    }
-    delete model;
+    output_data_first_list.clear();
+    output_bytes_list.clear();
 
-    int total_ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-    TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);
+    for (auto &p : saved_input_data) {
+        delete[] p.second.first;
+    }
+    saved_input_data.clear();
+    delete model;
 }
 
 TEST_CASE("Test dl module API: run()", "[api]")

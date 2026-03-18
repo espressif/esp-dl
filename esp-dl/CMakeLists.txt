@@ -62,6 +62,7 @@ elseif(CONFIG_IDF_TARGET_ESP32P4)
 endif()
 
 set(requires        dl_fft
+                    esp_hw_support
                     esp_mm
                     esp_new_jpeg
                     esp_driver_jpeg
