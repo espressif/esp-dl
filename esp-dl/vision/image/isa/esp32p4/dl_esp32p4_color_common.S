@@ -73,7 +73,11 @@
         .error "unsupported n"
     .endif
     esp.vldbc.8.ip \q_tmp, \a_tmp, 0
+#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 5, 2))
     esp.vsld.8 \qd, \qs, \q_tmp
+#else
+    esp.vsld.8 \qd, \qs, \q_tmp, trunc
+#endif
 .endm
 
 .macro vsl_16 qd, qs, q_tmp, a_tmp, n
