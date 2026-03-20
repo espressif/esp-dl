@@ -10,7 +10,7 @@ extern "C" {
 #include "dl_base_xtensa.h"
 #endif
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
 #include "dl_base_esp32p4.h"
 #endif // CONFIG_IDF_TARGET_ESP32P4
 }

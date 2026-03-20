@@ -54,7 +54,7 @@ void elemwise_max(elemwiseArgsType<int8_t> *args)
     ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func = c_impl_max_n_n<int8_t>; // default impl
 
     if (args->output_d0 >= ilen) {
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
             elemwise_func = dl_esp32p4_s8_max4d_bchw_w1_16_w2_16_simdmax;
         } else if (args->input1_d0 == 1) {
@@ -72,7 +72,7 @@ void elemwise_max(elemwiseArgsType<int8_t> *args)
         } else {
             elemwise_func = dl_esp32p4_s8_max4d_bchw_w1_16_w2_16_simdmax_unaligned;
         }
-// #elif CONFIG_IDF_TARGET_ESP32S3
+// #elif CONFIG_TIE728_BOOST
 //         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
 //             elemwise_func = dl_esp32s3_s8_max4d_bchw_w1_16_w2_16_simdmax;
 //         } else if (args->input1_d0 == 1) {
@@ -129,7 +129,7 @@ void elemwise_max(elemwiseArgsType<int16_t> *args)
     ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func = c_impl_max_n_n<int16_t>;
 
     if (args->output_d0 >= ilen) {
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
             // printf("use simd dl_esp32p4_s16_max4d_bchw_w1_8_w2_8_simdmax\n");
             elemwise_func = dl_esp32p4_s16_max4d_bchw_w1_8_w2_8_simdmax;
@@ -148,7 +148,7 @@ void elemwise_max(elemwiseArgsType<int16_t> *args)
         } else {
             elemwise_func = dl_esp32p4_s16_max4d_bchw_w1_8_w2_8_simdmax_unaligned;
         }
-// #elif CONFIG_IDF_TARGET_ESP32S3
+// #elif CONFIG_TIE728_BOOST
 //         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
 //             elemwise_func = dl_esp32s3_s16_max4d_bchw_w1_8_w2_8_simdmax;
 //         } else if (args->input1_d0 == 1) {
