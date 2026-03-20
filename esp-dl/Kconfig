@@ -30,5 +30,20 @@ menu "ESP-DL Configuration"
         config PIX_CVT_HSV_TO_HSV_MASK_SUPPORT
             bool "Support conversions from hsv to hsv_mask."
             default y
+        config PIX_CVT_YUV_TO_RGB888_SUPPORT
+            bool "Support conversions from yuv to rgb888."
+            default y
+        config PIX_CVT_YUV_TO_RGB565_SUPPORT
+            bool "Support conversions from yuv to rgb565."
+            default y
+        config PIX_CVT_YUV_TO_GRAY_SUPPORT
+            bool "Support conversions from yuv to gray."
+            default y
+        config PIX_CVT_YUV_TO_HSV_SUPPORT
+            bool "Support conversions from yuv to hsv."
+            default y
+        config PIX_CVT_YUV_TO_YUV_SUPPORT
+            bool "Support conversions from yuv to yuv."
+            default y
     endmenu
 endmenu

@@ -343,6 +343,12 @@ esp_err_t ImageTransformer::transform()
         ESP_LOGE(TAG, "Invalid dst img, call set_dst_img().");
         return ESP_FAIL;
     }
+    if (m_src_img.pix_type == DL_IMAGE_PIX_TYPE_YUYV || m_src_img.pix_type == DL_IMAGE_PIX_TYPE_UYVY) {
+        if (m_src_img.width & 1) {
+            ESP_LOGE(TAG, "YUV image width should be an even number.");
+            return ESP_FAIL;
+        }
+    }
 
     // check crop_area & border
     if (!m_crop_area.empty() && (m_crop_area[2] > m_src_img.width || m_crop_area[3] > m_src_img.height)) {

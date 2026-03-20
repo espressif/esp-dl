@@ -27,6 +27,9 @@ img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type)
     case DL_IMAGE_PIX_TYPE_RGB565BE:
         output_type = JPEG_PIXEL_FORMAT_RGB565_BE;
         break;
+    case DL_IMAGE_PIX_TYPE_UYVY:
+        output_type = JPEG_PIXEL_FORMAT_CbYCrY;
+        break;
     default:
         ESP_LOGE(TAG, "Unsupported img pix format.");
         return {};
@@ -84,6 +87,12 @@ jpeg_img_t sw_encode_jpeg_base(const img_t &img, uint8_t quality)
     case DL_IMAGE_PIX_TYPE_GRAY:
         src_type = JPEG_PIXEL_FORMAT_GRAY;
         break;
+    case DL_IMAGE_PIX_TYPE_YUYV:
+        src_type = JPEG_PIXEL_FORMAT_YCbYCr;
+        break;
+    case DL_IMAGE_PIX_TYPE_UYVY:
+        src_type = JPEG_PIXEL_FORMAT_CbYCrY;
+        break;
     default:
         ESP_LOGE(TAG, "Unsupported img pix format.");
         return {};
@@ -133,6 +142,8 @@ jpeg_img_t sw_encode_jpeg(const img_t &img, uint8_t quality)
     switch (img.pix_type) {
     case DL_IMAGE_PIX_TYPE_RGB888:
     case DL_IMAGE_PIX_TYPE_GRAY:
+    case DL_IMAGE_PIX_TYPE_YUYV:
+    case DL_IMAGE_PIX_TYPE_UYVY:
         return sw_encode_jpeg_base(img, quality);
     case DL_IMAGE_PIX_TYPE_HSV_MASK: {
         img_t img_ = {img.data, img.width, img.height, DL_IMAGE_PIX_TYPE_GRAY};

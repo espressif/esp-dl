@@ -28,7 +28,7 @@ public:
      * @brief Set the background value. If the dst image uses the different color space besides RGB. The value will be
      * converted automatically.
      *
-     * @param bg_value RGB or BGR value
+     * @param bg_value RGB value
      * @return ImageTransformer&
      */
     ImageTransformer &set_bg_value(const std::array<uint8_t, 3> &bg_value);
@@ -70,7 +70,8 @@ public:
         template <typename PixelCvt>
         void operator()(const PixelCvt &pixel_cvt) const
         {
-            self->template transform_nn<PixelCvt, SIMD>(pixel_cvt);
+            constexpr bool simd = SIMD && !is_yuv_cvt_v<PixelCvt>;
+            self->template transform_nn<PixelCvt, simd>(pixel_cvt);
         }
     };
 
@@ -86,7 +87,8 @@ private:
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
         if constexpr (std::is_same_v<PixelCvt, RGB5652RGB565<false, false, false>> ||
                       std::is_same_v<PixelCvt, RGB5652RGB565<true, false, false>> ||
-                      std::is_same_v<PixelCvt, RGB8882RGB888<false>> || std::is_same_v<PixelCvt, Gray2Gray<>>) {
+                      std::is_same_v<PixelCvt, RGB8882RGB888<false>> || std::is_same_v<PixelCvt, Gray2Gray<>> ||
+                      std::is_same_v<PixelCvt, YUV2YUV<false>>) {
             if (src == dst) {
                 return;
             }
@@ -124,6 +126,116 @@ private:
                     pixel_cvt(src, dst);
                 }
                 src += src_step_new_row;
+            }
+        }
+    }
+
+    template <typename PixelCvt, bool SrcCrop, bool SIMD>
+        requires is_2pix_yuv_cvt_v<PixelCvt>
+    void cvt_color(const PixelCvt &pixel_cvt)
+    {
+        if (m_src_img.width & 1) {
+            ESP_LOGE("ImageTransformer", "YUV image width should be an even number.");
+            return;
+        }
+        int src_step = m_src_img.col_step();
+        int dst_step = m_dst_img.col_step();
+        int src_step_2x = src_step << 1;
+        int dst_step_2x = dst_step << 1;
+        uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
+        uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
+        if constexpr (!SrcCrop) {
+            int n = m_dst_img.width * m_dst_img.height / 2;
+            int i = 0;
+            if constexpr (SIMD) {
+                pixel_cvt.cvt_color_simd_helper(src, dst, n >> 4);
+                i = n & ~0xf;
+                src += src_step_2x * i;
+                dst += dst_step_2x * i;
+            }
+            for (; i < n; i++, src += src_step_2x, dst += dst_step_2x) {
+                pixel_cvt(src, dst);
+            }
+        } else {
+            int dst_width = m_dst_img.width;
+            int dst_height = m_dst_img.height;
+            bool odd_left = m_crop_area[0] & 1;
+            bool odd_right = (dst_width & 1) ^ odd_left;
+            int n = (dst_width - odd_left - odd_right) / 2;
+            int n_simd_loop = n >> 4;
+            int n_simd = n & ~0xf;
+            int simd_src_step = n_simd * src_step_2x;
+            int simd_dst_step = n_simd * dst_step_2x;
+            src += (m_src_img.width * m_crop_area[1] + m_crop_area[0]) * src_step;
+            int src_step_new_row = (m_crop_area[0] + m_src_img.width - m_crop_area[2]) * src_step;
+            if (!odd_left && !odd_right) {
+                for (int i = 0; i < dst_height; i++) {
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    src += src_step_new_row;
+                }
+            } else if (odd_left & !odd_right) {
+                for (int i = 0; i < dst_height; i++) {
+                    pixel_cvt(src, dst, true);
+                    src += src_step;
+                    dst += dst_step;
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    src += src_step_new_row;
+                }
+            } else if (!odd_left & odd_right) {
+                for (int i = 0; i < dst_height; i++) {
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    pixel_cvt(src, dst, false);
+                    src += src_step;
+                    dst += dst_step;
+                    src += src_step_new_row;
+                }
+            } else {
+                for (int i = 0; i < dst_height; i++) {
+                    pixel_cvt(src, dst, true);
+                    src += src_step;
+                    dst += dst_step;
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    pixel_cvt(src, dst, false);
+                    src += src_step;
+                    dst += dst_step;
+                    src += src_step_new_row;
+                }
             }
         }
     }
@@ -184,6 +296,146 @@ private:
                 memset(dst, v, border_step_right);
                 dst += border_step_right;
                 src += src_step_new_row;
+            }
+        }
+        memset(dst, v, border_step_bottom);
+    }
+
+    template <typename PixelCvt, bool SrcCrop, bool SIMD>
+        requires is_2pix_yuv_cvt_v<PixelCvt>
+    void cvt_color_same_value_border(const PixelCvt &pixel_cvt)
+    {
+        int src_step = m_src_img.col_step();
+        int dst_step = m_dst_img.col_step();
+        int src_step_2x = src_step << 1;
+        int dst_step_2x = dst_step << 1;
+        uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
+        uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
+        int dst_width = m_dst_img.width - m_border[2] - m_border[3];
+        int dst_height = m_dst_img.height - m_border[0] - m_border[1];
+        int border_step_top = m_border[0] * m_dst_img.row_step();
+        int border_step_bottom = m_border[1] * m_dst_img.row_step();
+        int border_step_left = dst_step * m_border[2];
+        int border_step_right = dst_step * m_border[3];
+        uint8_t v = m_bg_value[0];
+        memset(dst, v, border_step_top);
+        dst += border_step_top;
+        if constexpr (!SrcCrop) {
+            int n = dst_width / 2;
+            int n_simd_loop = n >> 4;
+            int n_simd = n & ~0xf;
+            int simd_src_step = n_simd * src_step_2x;
+            int simd_dst_step = n_simd * dst_step_2x;
+            for (int i = 0; i < dst_height; i++) {
+                memset(dst, v, border_step_left);
+                dst += border_step_left;
+                int j = 0;
+                if constexpr (SIMD) {
+                    pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                    src += simd_src_step;
+                    dst += simd_dst_step;
+                    j = n_simd;
+                }
+                for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                    pixel_cvt(src, dst);
+                }
+                memset(dst, v, border_step_right);
+                dst += border_step_right;
+            }
+        } else {
+            bool odd_left = m_crop_area[0] & 1;
+            bool odd_right = (dst_width & 1) ^ odd_left;
+            int n = (dst_width - odd_left - odd_right) / 2;
+            int n_simd_loop = n >> 4;
+            int n_simd = n & ~0xf;
+            int simd_src_step = n_simd * src_step_2x;
+            int simd_dst_step = n_simd * dst_step_2x;
+            src += (m_src_img.width * m_crop_area[1] + m_crop_area[0]) * src_step;
+            int src_step_new_row = (m_crop_area[0] + m_src_img.width - m_crop_area[2]) * src_step;
+            if (!odd_left && !odd_right) {
+                for (int i = 0; i < dst_height; i++) {
+                    memset(dst, v, border_step_left);
+                    dst += border_step_left;
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    memset(dst, v, border_step_right);
+                    dst += border_step_right;
+                    src += src_step_new_row;
+                }
+            } else if (odd_left & !odd_right) {
+                for (int i = 0; i < dst_height; i++) {
+                    memset(dst, v, border_step_left);
+                    dst += border_step_left;
+                    pixel_cvt(src, dst, true);
+                    src += src_step;
+                    dst += dst_step;
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    memset(dst, v, border_step_right);
+                    dst += border_step_right;
+                    src += src_step_new_row;
+                }
+            } else if (!odd_left & odd_right) {
+                for (int i = 0; i < dst_height; i++) {
+                    memset(dst, v, border_step_left);
+                    dst += border_step_left;
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    pixel_cvt(src, dst, false);
+                    src += src_step;
+                    dst += dst_step;
+                    memset(dst, v, border_step_right);
+                    dst += border_step_right;
+                    src += src_step_new_row;
+                }
+            } else {
+                for (int i = 0; i < dst_height; i++) {
+                    memset(dst, v, border_step_left);
+                    dst += border_step_left;
+                    pixel_cvt(src, dst, true);
+                    src += src_step;
+                    dst += dst_step;
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    pixel_cvt(src, dst, false);
+                    src += src_step;
+                    dst += dst_step;
+                    memset(dst, v, border_step_right);
+                    dst += border_step_right;
+                    src += src_step_new_row;
+                }
             }
         }
         memset(dst, v, border_step_bottom);
@@ -258,6 +510,154 @@ private:
         heap_caps_free(row_border_value);
     }
 
+    template <typename PixelCvt, bool SrcCrop, bool SIMD>
+        requires is_2pix_yuv_cvt_v<PixelCvt>
+    void cvt_color_diff_value_border(const PixelCvt &pixel_cvt)
+    {
+        int src_step = m_src_img.col_step();
+        int dst_step = m_dst_img.col_step();
+        int src_step_2x = src_step << 1;
+        int dst_step_2x = dst_step << 1;
+        uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
+        uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
+        int dst_width = m_dst_img.width - m_border[2] - m_border[3];
+        int dst_height = m_dst_img.height - m_border[0] - m_border[1];
+        int dst_row_step = m_dst_img.row_step();
+        int border_step_left = dst_step * m_border[2];
+        int border_step_right = dst_step * m_border[3];
+        uint8_t *row_border_value = (uint8_t *)heap_caps_malloc(dst_row_step, MALLOC_CAP_DEFAULT);
+        uint8_t *p_row_border_value = row_border_value;
+        uint8_t *v = m_bg_value.data();
+        for (int i = 0; i < m_dst_img.width; i++, p_row_border_value += dst_step) {
+            memcpy(p_row_border_value, v, dst_step);
+        }
+        for (int i = 0; i < m_border[0]; i++, dst += dst_row_step) {
+            memcpy(dst, row_border_value, dst_row_step);
+        }
+        if constexpr (!SrcCrop) {
+            int n = dst_width / 2;
+            int n_simd_loop = n >> 4;
+            int n_simd = n & ~0xf;
+            int simd_src_step = n_simd * src_step;
+            int simd_dst_step = n_simd * dst_step;
+            for (int i = 0; i < dst_height; i++) {
+                memcpy(dst, row_border_value, border_step_left);
+                dst += border_step_left;
+                int j = 0;
+                if constexpr (SIMD) {
+                    pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                    src += simd_src_step;
+                    dst += simd_dst_step;
+                    j = n_simd;
+                }
+                for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                    pixel_cvt(src, dst);
+                }
+                memcpy(dst, row_border_value, border_step_right);
+                dst += border_step_right;
+            }
+        } else {
+            bool odd_left = m_crop_area[0] & 1;
+            bool odd_right = (dst_width & 1) ^ odd_left;
+            int n = (dst_width - odd_left - odd_right) / 2;
+            int n_simd_loop = n >> 4;
+            int n_simd = n & ~0xf;
+            int simd_src_step = n_simd * src_step_2x;
+            int simd_dst_step = n_simd * dst_step_2x;
+            src += (m_src_img.width * m_crop_area[1] + m_crop_area[0]) * src_step;
+            int src_step_new_row = (m_crop_area[0] + m_src_img.width - m_crop_area[2]) * src_step;
+            if (!odd_left && !odd_right) {
+                for (int i = 0; i < dst_height; i++) {
+                    memcpy(dst, row_border_value, border_step_left);
+                    dst += border_step_left;
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    memcpy(dst, row_border_value, border_step_right);
+                    dst += border_step_right;
+                    src += src_step_new_row;
+                }
+            } else if (odd_left & !odd_right) {
+                for (int i = 0; i < dst_height; i++) {
+                    memcpy(dst, row_border_value, border_step_left);
+                    dst += border_step_left;
+                    pixel_cvt(src, dst, true);
+                    src += src_step;
+                    dst += dst_step;
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    memcpy(dst, row_border_value, border_step_right);
+                    dst += border_step_right;
+                    src += src_step_new_row;
+                }
+            } else if (!odd_left & odd_right) {
+                for (int i = 0; i < dst_height; i++) {
+                    memcpy(dst, row_border_value, border_step_left);
+                    dst += border_step_left;
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    pixel_cvt(src, dst, false);
+                    src += src_step;
+                    dst += dst_step;
+                    memcpy(dst, row_border_value, border_step_right);
+                    dst += border_step_right;
+                    src += src_step_new_row;
+                }
+            } else {
+                for (int i = 0; i < dst_height; i++) {
+                    memcpy(dst, row_border_value, border_step_left);
+                    dst += border_step_left;
+                    pixel_cvt(src, dst, true);
+                    src += src_step;
+                    dst += dst_step;
+                    int j = 0;
+                    if constexpr (SIMD) {
+                        pixel_cvt.cvt_color_simd_helper(src, dst, n_simd_loop);
+                        src += simd_src_step;
+                        dst += simd_dst_step;
+                        j = n_simd;
+                    }
+                    for (; j < n; j++, src += src_step_2x, dst += dst_step_2x) {
+                        pixel_cvt(src, dst);
+                    }
+                    pixel_cvt(src, dst, false);
+                    src += src_step;
+                    dst += dst_step;
+                    memcpy(dst, row_border_value, border_step_right);
+                    dst += border_step_right;
+                    src += src_step_new_row;
+                }
+            }
+        }
+        for (int i = 0; i < m_border[1]; i++, dst += dst_row_step) {
+            memcpy(dst, row_border_value, dst_row_step);
+        }
+        heap_caps_free(row_border_value);
+    }
+
     template <typename PixelCvt, bool SIMD>
     void resize_nn(const PixelCvt &pixel_cvt)
     {
@@ -278,7 +678,12 @@ private:
                 j = n_simd;
             }
             for (; j < dst_width; j++, dst += dst_step) {
-                pixel_cvt(p_row + m_x[j], dst);
+                if constexpr (is_2pix_yuv_cvt_v<PixelCvt>) {
+                    int x = m_x[j];
+                    pixel_cvt(p_row + x, dst, x & 0b10);
+                } else {
+                    pixel_cvt(p_row + m_x[j], dst);
+                }
             }
         }
     }
@@ -312,7 +717,12 @@ private:
                 j = n_simd;
             }
             for (; j < dst_width; j++, dst += dst_step) {
-                pixel_cvt(p_row + m_x[j], dst);
+                if constexpr (is_2pix_yuv_cvt_v<PixelCvt>) {
+                    int x = m_x[j];
+                    pixel_cvt(p_row + x, dst, x & 0b10);
+                } else {
+                    pixel_cvt(p_row + m_x[j], dst);
+                }
             }
             memset(dst, v, border_step_right);
             dst += border_step_right;
@@ -354,7 +764,12 @@ private:
                 j = n_simd;
             }
             for (; j < dst_width; j++, dst += dst_step) {
-                pixel_cvt(p_row + m_x[j], dst);
+                if constexpr (is_2pix_yuv_cvt_v<PixelCvt>) {
+                    int x = m_x[j];
+                    pixel_cvt(p_row + x, dst, x & 0b10);
+                } else {
+                    pixel_cvt(p_row + m_x[j], dst);
+                }
             }
             memcpy(dst, row_border_value, border_step_right);
             dst += border_step_right;
@@ -365,7 +780,7 @@ private:
         heap_caps_free(row_border_value);
     }
 
-    template <typename PixelCvt, bool SameValueBG>
+    template <typename PixelCvt, bool SrcCrop, bool SameValueBG>
     void warp_affine_nn(const PixelCvt &pixel_cvt)
     {
         int dst_width = m_dst_img.width;
@@ -373,32 +788,43 @@ private:
         int dst_step = m_dst_img.col_step();
         int src_col_step = m_src_img.col_step();
         int src_row_step = m_src_img.row_step();
-        int src_x_max = m_src_img.width;
-        int src_y_max = m_src_img.height;
+        int x1, y1, src_x_max, src_y_max;
+        if constexpr (SrcCrop) {
+            x1 = m_crop_area[0];
+            y1 = m_crop_area[1];
+            src_x_max = m_crop_area[2] - x1;
+            src_y_max = m_crop_area[3] - y1;
+        } else {
+            (void)x1;
+            (void)y1;
+            src_x_max = m_src_img.width;
+            src_y_max = m_src_img.height;
+        }
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
         constexpr int round_delta = 1 << (warp_affine_shift - 1);
-        if constexpr (SameValueBG) {
-            uint8_t v = m_bg_value[0];
-            for (int i = 0; i < dst_height; i++) {
-                for (int j = 0; j < dst_width; j++, dst += dst_step) {
-                    int x = (m_x1[j] + m_x2[i] + round_delta) >> warp_affine_shift;
-                    int y = (m_y1[j] + m_y2[i] + round_delta) >> warp_affine_shift;
-                    if (static_cast<uint32_t>(x) < src_x_max && static_cast<uint32_t>(y) < src_y_max) {
-                        pixel_cvt(y * src_row_step + x * src_col_step + src, dst);
+        uint8_t *v = m_bg_value.data();
+        for (int i = 0; i < dst_height; i++) {
+            for (int j = 0; j < dst_width; j++, dst += dst_step) {
+                int x = (m_x1[j] + m_x2[i] + round_delta) >> warp_affine_shift;
+                int y = (m_y1[j] + m_y2[i] + round_delta) >> warp_affine_shift;
+                if (static_cast<uint32_t>(x) < src_x_max && static_cast<uint32_t>(y) < src_y_max) {
+                    if constexpr (SrcCrop) {
+                        if constexpr (is_2pix_yuv_cvt_v<PixelCvt>) {
+                            pixel_cvt((y + y1) * src_row_step + (x + x1) * src_col_step + src, dst, x & 1);
+                        } else {
+                            pixel_cvt((y + y1) * src_row_step + (x + x1) * src_col_step + src, dst);
+                        }
                     } else {
-                        memset(dst, v, dst_step);
+                        if constexpr (is_2pix_yuv_cvt_v<PixelCvt>) {
+                            pixel_cvt(y * src_row_step + x * src_col_step + src, dst, x & 1);
+                        } else {
+                            pixel_cvt(y * src_row_step + x * src_col_step + src, dst);
+                        }
                     }
-                }
-            }
-        } else {
-            uint8_t *v = m_bg_value.data();
-            for (int i = 0; i < dst_height; i++) {
-                for (int j = 0; j < dst_width; j++, dst += dst_step) {
-                    int x = (m_x1[j] + m_x2[i] + round_delta) >> warp_affine_shift;
-                    int y = (m_y1[j] + m_y2[i] + round_delta) >> warp_affine_shift;
-                    if (static_cast<uint32_t>(x) < src_x_max && static_cast<uint32_t>(y) < src_y_max) {
-                        pixel_cvt(y * src_row_step + x * src_col_step + src, dst);
+                } else {
+                    if constexpr (SameValueBG) {
+                        memset(dst, *v, dst_step);
                     } else {
                         memcpy(dst, v, dst_step);
                     }
@@ -407,7 +833,7 @@ private:
         }
     }
 
-    template <typename PixelCvt>
+    template <typename PixelCvt, bool SrcCrop>
     void warp_affine_nn_same_value_border(const PixelCvt &pixel_cvt)
     {
         int dst_width = m_dst_img.width - m_border[2] - m_border[3];
@@ -416,8 +842,18 @@ private:
         int dst_row_step = m_dst_img.row_step();
         int src_col_step = m_src_img.col_step();
         int src_row_step = m_src_img.row_step();
-        int src_x_max = m_src_img.width;
-        int src_y_max = m_src_img.height;
+        int x1, y1, src_x_max, src_y_max;
+        if constexpr (SrcCrop) {
+            x1 = m_crop_area[0];
+            y1 = m_crop_area[1];
+            src_x_max = m_crop_area[2] - x1;
+            src_y_max = m_crop_area[3] - y1;
+        } else {
+            (void)x1;
+            (void)y1;
+            src_x_max = m_src_img.width;
+            src_y_max = m_src_img.height;
+        }
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
         int border_step_top = m_border[0] * dst_row_step;
@@ -435,7 +871,19 @@ private:
                 int x = (m_x1[j] + m_x2[i] + round_delta) >> warp_affine_shift;
                 int y = (m_y1[j] + m_y2[i] + round_delta) >> warp_affine_shift;
                 if (static_cast<uint32_t>(x) < src_x_max && static_cast<uint32_t>(y) < src_y_max) {
-                    pixel_cvt(y * src_row_step + x * src_col_step + src, dst);
+                    if constexpr (SrcCrop) {
+                        if constexpr (is_2pix_yuv_cvt_v<PixelCvt>) {
+                            pixel_cvt((y + y1) * src_row_step + (x + x1) * src_col_step + src, dst, x & 1);
+                        } else {
+                            pixel_cvt((y + y1) * src_row_step + (x + x1) * src_col_step + src, dst);
+                        }
+                    } else {
+                        if constexpr (is_2pix_yuv_cvt_v<PixelCvt>) {
+                            pixel_cvt(y * src_row_step + x * src_col_step + src, dst, x & 1);
+                        } else {
+                            pixel_cvt(y * src_row_step + x * src_col_step + src, dst);
+                        }
+                    }
                 } else {
                     memset(dst, v, dst_col_step);
                 }
@@ -446,7 +894,7 @@ private:
         memset(dst, v, border_step_bottom);
     }
 
-    template <typename PixelCvt>
+    template <typename PixelCvt, bool SrcCrop>
     void warp_affine_nn_diff_value_border(const PixelCvt &pixel_cvt)
     {
         int dst_width = m_dst_img.width - m_border[2] - m_border[3];
@@ -455,8 +903,18 @@ private:
         int dst_row_step = m_dst_img.row_step();
         int src_col_step = m_src_img.col_step();
         int src_row_step = m_src_img.row_step();
-        int src_x_max = m_src_img.width;
-        int src_y_max = m_src_img.height;
+        int x1, y1, src_x_max, src_y_max;
+        if constexpr (SrcCrop) {
+            x1 = m_crop_area[0];
+            y1 = m_crop_area[1];
+            src_x_max = m_crop_area[2] - x1;
+            src_y_max = m_crop_area[3] - y1;
+        } else {
+            (void)x1;
+            (void)y1;
+            src_x_max = m_src_img.width;
+            src_y_max = m_src_img.height;
+        }
         uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
         uint8_t *dst = static_cast<uint8_t *>(m_dst_img.data);
         int border_step_left = dst_col_step * m_border[2];
@@ -478,7 +936,19 @@ private:
                 int x = (m_x1[j] + m_x2[i] + round_delta) >> warp_affine_shift;
                 int y = (m_y1[j] + m_y2[i] + round_delta) >> warp_affine_shift;
                 if (static_cast<uint32_t>(x) < src_x_max && static_cast<uint32_t>(y) < src_y_max) {
-                    pixel_cvt(y * src_row_step + x * src_col_step + src, dst);
+                    if constexpr (SrcCrop) {
+                        if constexpr (is_2pix_yuv_cvt_v<PixelCvt>) {
+                            pixel_cvt((y + y1) * src_row_step + (x + x1) * src_col_step + src, dst, x & 1);
+                        } else {
+                            pixel_cvt((y + y1) * src_row_step + (x + x1) * src_col_step + src, dst);
+                        }
+                    } else {
+                        if constexpr (is_2pix_yuv_cvt_v<PixelCvt>) {
+                            pixel_cvt(y * src_row_step + x * src_col_step + src, dst, x & 1);
+                        } else {
+                            pixel_cvt(y * src_row_step + x * src_col_step + src, dst);
+                        }
+                    }
                 } else {
                     memcpy(dst, v, dst_col_step);
                 }
@@ -542,16 +1012,32 @@ private:
                 }
             } else {
                 if (m_border.empty()) {
-                    if (m_bg_value_same) {
-                        warp_affine_nn<PixelCvt, true>(pixel_cvt);
+                    if (m_crop_area.empty()) {
+                        if (m_bg_value_same) {
+                            warp_affine_nn<PixelCvt, false, true>(pixel_cvt);
+                        } else {
+                            warp_affine_nn<PixelCvt, false, false>(pixel_cvt);
+                        }
                     } else {
-                        warp_affine_nn<PixelCvt, false>(pixel_cvt);
+                        if (m_bg_value_same) {
+                            warp_affine_nn<PixelCvt, true, true>(pixel_cvt);
+                        } else {
+                            warp_affine_nn<PixelCvt, true, false>(pixel_cvt);
+                        }
                     }
                 } else {
-                    if (m_bg_value_same) {
-                        warp_affine_nn_same_value_border(pixel_cvt);
+                    if (m_crop_area.empty()) {
+                        if (m_bg_value_same) {
+                            warp_affine_nn_same_value_border<PixelCvt, false>(pixel_cvt);
+                        } else {
+                            warp_affine_nn_diff_value_border<PixelCvt, false>(pixel_cvt);
+                        }
                     } else {
-                        warp_affine_nn_diff_value_border(pixel_cvt);
+                        if (m_bg_value_same) {
+                            warp_affine_nn_same_value_border<PixelCvt, true>(pixel_cvt);
+                        } else {
+                            warp_affine_nn_diff_value_border<PixelCvt, true>(pixel_cvt);
+                        }
                     }
                 }
             }

@@ -21,7 +21,9 @@ typedef enum {
     DL_IMAGE_PIX_TYPE_BGR565LE,
     DL_IMAGE_PIX_TYPE_BGR565BE,
     DL_IMAGE_PIX_TYPE_HSV,
-    DL_IMAGE_PIX_TYPE_HSV_MASK
+    DL_IMAGE_PIX_TYPE_HSV_MASK,
+    DL_IMAGE_PIX_TYPE_YUYV,
+    DL_IMAGE_PIX_TYPE_UYVY,
 } pix_type_t;
 
 inline std::string pix_type2str(pix_type_t pix_type)
@@ -57,6 +59,10 @@ inline std::string pix_type2str(pix_type_t pix_type)
         return "DL_IMAGE_PIX_TYPE_HSV";
     case DL_IMAGE_PIX_TYPE_HSV_MASK:
         return "DL_IMAGE_PIX_TYPE_HSV_MASK";
+    case DL_IMAGE_PIX_TYPE_YUYV:
+        return "DL_IMAGE_PIX_TYPE_YUYV";
+    case DL_IMAGE_PIX_TYPE_UYVY:
+        return "DL_IMAGE_PIX_TYPE_UYVY";
     default:
         return "UKN_PIX_TYPE";
     }
@@ -96,6 +102,8 @@ inline size_t get_pix_byte_size(pix_type_t pix_type)
     case DL_IMAGE_PIX_TYPE_BGR565LE:
     case DL_IMAGE_PIX_TYPE_BGR565BE:
     case DL_IMAGE_PIX_TYPE_GRAY_QINT16:
+    case DL_IMAGE_PIX_TYPE_YUYV:
+    case DL_IMAGE_PIX_TYPE_UYVY:
         return 2;
     case DL_IMAGE_PIX_TYPE_GRAY:
     case DL_IMAGE_PIX_TYPE_GRAY_QINT8:
@@ -123,6 +131,8 @@ inline int get_pix_channel_num(pix_type_t pix_type)
     case DL_IMAGE_PIX_TYPE_BGR565LE:
     case DL_IMAGE_PIX_TYPE_BGR565BE:
     case DL_IMAGE_PIX_TYPE_HSV:
+    case DL_IMAGE_PIX_TYPE_YUYV:
+    case DL_IMAGE_PIX_TYPE_UYVY:
         return 3;
     case DL_IMAGE_PIX_TYPE_GRAY:
     case DL_IMAGE_PIX_TYPE_GRAY_QINT8:

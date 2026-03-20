@@ -1,7 +1,6 @@
 #pragma once
-#include "dl_image_color_hsv2hsv_mask.hpp"
+#include "dl_image_color.hpp"
 #include "dl_image_define.hpp"
-#include "dl_image_norm_quant.hpp"
 #include "esp_err.h"
 #include "esp_log.h"
 #include <array>
@@ -107,7 +106,41 @@ typedef enum {
     DL_IMAGE_PIX_CVT_BGR565BE2BGR565BE = pix_cvt_id(DL_IMAGE_PIX_TYPE_BGR565BE, DL_IMAGE_PIX_TYPE_BGR565BE),
     DL_IMAGE_PIX_CVT_BGR565BE2HSV = pix_cvt_id(DL_IMAGE_PIX_TYPE_BGR565BE, DL_IMAGE_PIX_TYPE_HSV),
     DL_IMAGE_PIX_CVT_BGR565BE2HSV_MASK = pix_cvt_id(DL_IMAGE_PIX_TYPE_BGR565BE, DL_IMAGE_PIX_TYPE_HSV_MASK),
-    DL_IMAGE_PIX_CVT_HSV2HSV_MASK = pix_cvt_id(DL_IMAGE_PIX_TYPE_HSV, DL_IMAGE_PIX_TYPE_HSV_MASK)
+    DL_IMAGE_PIX_CVT_HSV2HSV_MASK = pix_cvt_id(DL_IMAGE_PIX_TYPE_HSV, DL_IMAGE_PIX_TYPE_HSV_MASK),
+    DL_IMAGE_PIX_CVT_YUYV2RGB888 = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_RGB888),
+    DL_IMAGE_PIX_CVT_YUYV2RGB888_QINT8 = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_RGB888_QINT8),
+    DL_IMAGE_PIX_CVT_YUYV2RGB888_QINT16 = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_RGB888_QINT16),
+    DL_IMAGE_PIX_CVT_YUYV2BGR888 = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_BGR888),
+    DL_IMAGE_PIX_CVT_YUYV2BGR888_QINT8 = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_BGR888_QINT8),
+    DL_IMAGE_PIX_CVT_YUYV2BGR888_QINT16 = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_BGR888_QINT16),
+    DL_IMAGE_PIX_CVT_YUYV2GRAY = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_GRAY),
+    DL_IMAGE_PIX_CVT_YUYV2GRAY_QINT8 = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_GRAY_QINT8),
+    DL_IMAGE_PIX_CVT_YUYV2GRAY_QINT16 = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_GRAY_QINT16),
+    DL_IMAGE_PIX_CVT_YUYV2RGB565LE = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_RGB565LE),
+    DL_IMAGE_PIX_CVT_YUYV2RGB565BE = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_RGB565BE),
+    DL_IMAGE_PIX_CVT_YUYV2BGR565LE = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_BGR565LE),
+    DL_IMAGE_PIX_CVT_YUYV2BGR565BE = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_BGR565BE),
+    DL_IMAGE_PIX_CVT_YUYV2HSV = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_HSV),
+    DL_IMAGE_PIX_CVT_YUYV2HSV_MASK = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_HSV_MASK),
+    DL_IMAGE_PIX_CVT_YUYV2YUYV = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_YUYV),
+    DL_IMAGE_PIX_CVT_YUYV2UYVY = pix_cvt_id(DL_IMAGE_PIX_TYPE_YUYV, DL_IMAGE_PIX_TYPE_UYVY),
+    DL_IMAGE_PIX_CVT_UYVY2RGB888 = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_RGB888),
+    DL_IMAGE_PIX_CVT_UYVY2RGB888_QINT8 = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_RGB888_QINT8),
+    DL_IMAGE_PIX_CVT_UYVY2RGB888_QINT16 = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_RGB888_QINT16),
+    DL_IMAGE_PIX_CVT_UYVY2BGR888 = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_BGR888),
+    DL_IMAGE_PIX_CVT_UYVY2BGR888_QINT8 = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_BGR888_QINT8),
+    DL_IMAGE_PIX_CVT_UYVY2BGR888_QINT16 = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_BGR888_QINT16),
+    DL_IMAGE_PIX_CVT_UYVY2GRAY = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_GRAY),
+    DL_IMAGE_PIX_CVT_UYVY2GRAY_QINT8 = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_GRAY_QINT8),
+    DL_IMAGE_PIX_CVT_UYVY2GRAY_QINT16 = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_GRAY_QINT16),
+    DL_IMAGE_PIX_CVT_UYVY2RGB565LE = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_RGB565LE),
+    DL_IMAGE_PIX_CVT_UYVY2RGB565BE = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_RGB565BE),
+    DL_IMAGE_PIX_CVT_UYVY2BGR565LE = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_BGR565LE),
+    DL_IMAGE_PIX_CVT_UYVY2BGR565BE = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_BGR565BE),
+    DL_IMAGE_PIX_CVT_UYVY2HSV = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_HSV),
+    DL_IMAGE_PIX_CVT_UYVY2HSV_MASK = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_HSV_MASK),
+    DL_IMAGE_PIX_CVT_UYVY2YUYV = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_YUYV),
+    DL_IMAGE_PIX_CVT_UYVY2UYVY = pix_cvt_id(DL_IMAGE_PIX_TYPE_UYVY, DL_IMAGE_PIX_TYPE_UYVY),
 } pix_cvt_t;
 using pix_cvt_param_t = std::variant<std::monostate,
                                      NormQuant<int8_t, 1>,
@@ -116,6 +149,13 @@ using pix_cvt_param_t = std::variant<std::monostate,
                                      NormQuant<int16_t, 3>,
                                      HSV2HSVMask<false>,
                                      HSV2HSVMask<true>>;
+
+template <typename T>
+inline constexpr bool is_yuv_cvt_v = is_yuv2rgb888_v<T> || is_yuv2rgb565_v<T> || is_yuv2gray_v<T> || is_yuv2hsv_v<T>;
+
+// yuv cvt that needs to get 2pix data in one time.
+template <typename T>
+inline constexpr bool is_2pix_yuv_cvt_v = is_yuv2rgb888_v<T> || is_yuv2rgb565_v<T> || is_yuv2hsv_v<T>;
 
 #if CONFIG_PIX_CVT_RGB565_TO_RGB565_SUPPORT
 template <typename Func>
@@ -165,6 +205,31 @@ void pixel_cvt_dispatch_gray2gray(const Func &func, pix_cvt_t pix_cvt_type, cons
 #if CONFIG_PIX_CVT_HSV_TO_HSV_MASK_SUPPORT
 template <typename Func>
 void pixel_cvt_dispatch_hsv2hsv_mask(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
+
+#if CONFIG_PIX_CVT_YUV_TO_RGB888_SUPPORT
+template <typename Func>
+void pixel_cvt_dispatch_yuv2rgb888(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
+
+#if CONFIG_PIX_CVT_YUV_TO_RGB565_SUPPORT
+template <typename Func>
+void pixel_cvt_dispatch_yuv2rgb565(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
+
+#if CONFIG_PIX_CVT_YUV_TO_GRAY_SUPPORT
+template <typename Func>
+void pixel_cvt_dispatch_yuv2gray(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
+
+#if CONFIG_PIX_CVT_YUV_TO_HSV_SUPPORT
+template <typename Func>
+void pixel_cvt_dispatch_yuv2hsv(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
+#endif
+
+#if CONFIG_PIX_CVT_YUV_TO_YUV_SUPPORT
+template <typename Func>
+void pixel_cvt_dispatch_yuv2yuv(const Func &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
 #endif
 
 template <typename Func>
@@ -307,6 +372,60 @@ esp_err_t pixel_cvt_dispatch(const Func &func,
 #if CONFIG_PIX_CVT_HSV_TO_HSV_MASK_SUPPORT
     case DL_IMAGE_PIX_CVT_HSV2HSV_MASK:
         pixel_cvt_dispatch_hsv2hsv_mask(func, pix_cvt_type, param);
+        break;
+#endif
+#if CONFIG_PIX_CVT_YUV_TO_RGB888_SUPPORT
+    case DL_IMAGE_PIX_CVT_YUYV2RGB888:
+    case DL_IMAGE_PIX_CVT_YUYV2RGB888_QINT8:
+    case DL_IMAGE_PIX_CVT_YUYV2RGB888_QINT16:
+    case DL_IMAGE_PIX_CVT_YUYV2BGR888:
+    case DL_IMAGE_PIX_CVT_YUYV2BGR888_QINT8:
+    case DL_IMAGE_PIX_CVT_YUYV2BGR888_QINT16:
+    case DL_IMAGE_PIX_CVT_UYVY2RGB888:
+    case DL_IMAGE_PIX_CVT_UYVY2RGB888_QINT8:
+    case DL_IMAGE_PIX_CVT_UYVY2RGB888_QINT16:
+    case DL_IMAGE_PIX_CVT_UYVY2BGR888:
+    case DL_IMAGE_PIX_CVT_UYVY2BGR888_QINT8:
+    case DL_IMAGE_PIX_CVT_UYVY2BGR888_QINT16:
+        pixel_cvt_dispatch_yuv2rgb888(func, pix_cvt_type, param);
+        break;
+#endif
+#if CONFIG_PIX_CVT_YUV_TO_RGB565_SUPPORT
+    case DL_IMAGE_PIX_CVT_YUYV2RGB565LE:
+    case DL_IMAGE_PIX_CVT_YUYV2RGB565BE:
+    case DL_IMAGE_PIX_CVT_YUYV2BGR565LE:
+    case DL_IMAGE_PIX_CVT_YUYV2BGR565BE:
+    case DL_IMAGE_PIX_CVT_UYVY2RGB565LE:
+    case DL_IMAGE_PIX_CVT_UYVY2RGB565BE:
+    case DL_IMAGE_PIX_CVT_UYVY2BGR565LE:
+    case DL_IMAGE_PIX_CVT_UYVY2BGR565BE:
+        pixel_cvt_dispatch_yuv2rgb565(func, pix_cvt_type, param);
+        break;
+#endif
+#if CONFIG_PIX_CVT_YUV_TO_GRAY_SUPPORT
+    case DL_IMAGE_PIX_CVT_YUYV2GRAY:
+    case DL_IMAGE_PIX_CVT_YUYV2GRAY_QINT8:
+    case DL_IMAGE_PIX_CVT_YUYV2GRAY_QINT16:
+    case DL_IMAGE_PIX_CVT_UYVY2GRAY:
+    case DL_IMAGE_PIX_CVT_UYVY2GRAY_QINT8:
+    case DL_IMAGE_PIX_CVT_UYVY2GRAY_QINT16:
+        pixel_cvt_dispatch_yuv2gray(func, pix_cvt_type, param);
+        break;
+#endif
+#if CONFIG_PIX_CVT_YUV_TO_HSV_SUPPORT
+    case DL_IMAGE_PIX_CVT_YUYV2HSV:
+    case DL_IMAGE_PIX_CVT_YUYV2HSV_MASK:
+    case DL_IMAGE_PIX_CVT_UYVY2HSV:
+    case DL_IMAGE_PIX_CVT_UYVY2HSV_MASK:
+        pixel_cvt_dispatch_yuv2hsv(func, pix_cvt_type, param);
+        break;
+#endif
+#if CONFIG_PIX_CVT_YUV_TO_YUV_SUPPORT
+    case DL_IMAGE_PIX_CVT_YUYV2YUYV:
+    case DL_IMAGE_PIX_CVT_YUYV2UYVY:
+    case DL_IMAGE_PIX_CVT_UYVY2YUYV:
+    case DL_IMAGE_PIX_CVT_UYVY2UYVY:
+        pixel_cvt_dispatch_yuv2yuv(func, pix_cvt_type, param);
         break;
 #endif
     default:

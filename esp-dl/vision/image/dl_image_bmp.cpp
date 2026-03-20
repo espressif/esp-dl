@@ -152,7 +152,9 @@ esp_err_t write_bmp(const img_t &img, const char *file_name)
     case DL_IMAGE_PIX_TYPE_RGB565LE:
     case DL_IMAGE_PIX_TYPE_RGB565BE:
     case DL_IMAGE_PIX_TYPE_BGR565LE:
-    case DL_IMAGE_PIX_TYPE_BGR565BE: {
+    case DL_IMAGE_PIX_TYPE_BGR565BE:
+    case DL_IMAGE_PIX_TYPE_YUYV:
+    case DL_IMAGE_PIX_TYPE_UYVY: {
         void *data = heap_caps_malloc(img.height * img.width * 3, MALLOC_CAP_DEFAULT);
         if (!data) {
             ESP_LOGE(TAG, "Failed to malloc cvt img memory.");

@@ -116,5 +116,62 @@ inline bool is_valid_hsv_thr(const std::array<uint8_t, 3> &hsv_min, const std::a
         return (hsv_min[0] < hsv_max[0] && hsv_max[0] <= 180) && (hsv_min[1] < hsv_max[1]) && (hsv_min[2] < hsv_max[2]);
     }
 }
+
+inline void yuv2rgb888(uint8_t y, uint8_t u, uint8_t v, uint8_t *r, uint8_t *g, uint8_t *b)
+{
+    constexpr int CB2BI = 29049;
+    constexpr int CB2GI = -5636;
+    constexpr int CR2GI = -11698;
+    constexpr int CR2RI = 22987;
+    constexpr int shift = 14;
+    constexpr int round_delta = 1 << (shift - 1);
+    int u_ = u - 128;
+    int v_ = v - 128;
+    *r = static_cast<uint8_t>(std::clamp(y + ((CR2RI * v_ + round_delta) >> shift), 0, 255));
+    *g = static_cast<uint8_t>(std::clamp(y + ((CB2GI * u_ + CR2GI * v_ + round_delta) >> shift), 0, 255));
+    *b = static_cast<uint8_t>(std::clamp(y + ((CB2BI * u_ + round_delta) >> shift), 0, 255));
+}
+
+template <bool YUYVOrUYVY>
+void get_yuv(const uint8_t *src, uint8_t *y1, uint8_t *u, uint8_t *y2, uint8_t *v)
+{
+    if constexpr (YUYVOrUYVY) {
+        *y1 = src[0];
+        *u = src[1];
+        *y2 = src[2];
+        *v = src[3];
+    } else {
+        *u = src[0];
+        *y1 = src[1];
+        *v = src[2];
+        *y2 = src[3];
+    }
+}
+
+template <bool YUYVOrUYVY>
+void get_yuv(const uint8_t *src, bool odd, uint8_t *y, uint8_t *u, uint8_t *v)
+{
+    if constexpr (YUYVOrUYVY) {
+        if (odd) {
+            *y = src[0];
+            *u = src[-1];
+            *v = src[1];
+        } else {
+            *y = src[0];
+            *u = src[1];
+            *v = src[3];
+        }
+    } else {
+        if (odd) {
+            *y = src[1];
+            *u = src[-2];
+            *v = src[0];
+        } else {
+            *y = src[1];
+            *u = src[0];
+            *v = src[2];
+        }
+    }
+}
 } // namespace image
 } // namespace dl

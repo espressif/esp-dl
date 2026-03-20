@@ -11,7 +11,7 @@ namespace dl {
 namespace image {
 /**
  * @brief Softawre jpeg decode.
- * @note Support decoding color image into RGB888/RGB565LE/RGB565BE. Do not support Gray image.
+ * @note Support decoding color image into RGB888/RGB565LE/RGB565BE/UYVY. Do not support Gray image.
  *
  * @param jpeg_img The jpeg image.
  * @param pix_type The pixel type of the decoded image.
@@ -21,7 +21,7 @@ img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type);
 
 /**
  * @brief Softawre jpeg encode.
- * @note Support encoding RGB888/GRAY image.
+ * @note Support encoding RGB888/GRAY/YUVY/UYVY image.
  *
  * @param img The image to encode.
  * @param quality Compression quality.
@@ -30,8 +30,8 @@ img_t sw_decode_jpeg(const jpeg_img_t &jpeg_img, pix_type_t pix_type);
 jpeg_img_t sw_encode_jpeg_base(const img_t &img, uint8_t quality = 80);
 
 /**
- * @brief Extend sw_encode_jpeg_base, add support to encode RGB565LE/RGB565BE/BGR565LE/BGR565BE/BGR888/HSV_MASK with
- * additional convert.
+ * @brief Extend sw_encode_jpeg_base, add support to encode
+ * RGB565LE/RGB565BE/BGR565LE/BGR565BE/BGR888/HSV_MASK/YUVY/UYVY with additional convert.
  *
  * @param img The image to encode.
  * @param quality Compression quality.
