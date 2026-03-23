@@ -1,4 +1,4 @@
-version: "3.2.4"
+version: "3.3.0"
 license: "MIT"
 targets:
   - esp32
@@ -22,13 +22,22 @@ dependencies:
   espressif/dl_fft: ">=0.3.1"
   espressif/esp-dsp: "==1.7.0"
 examples:
+  - path: ../examples/cat_detect
+  - path: ../examples/color_detect
+  - path: ../examples/dog_detect
+  - path: ../examples/hand_detect
+  - path: ../examples/hand_gesture_recognition
   - path: ../examples/human_face_detect
   - path: ../examples/human_face_recognition
-  - path: ../examples/pedestrian_detect
   - path: ../examples/mobilenetv2_cls
-  - path: ../examples/yolo11_detect
+  - path: ../examples/motion_detect
+  - path: ../examples/pedestrian_detect
+  - path: ../examples/speaker_verification
+  - path: ../examples/tutorial/how_to_deploy_streaming_model
   - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_flash_partition
   - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_flash_rodata
   - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_sdcard
   - path: ../examples/tutorial/how_to_run_model
-  - path: ../examples/tutorial/how_to_deploy_streaming_model
+  - path: ../examples/yolo11_detect
+  - path: ../examples/yolo11_pose
+  - path: ../examples/yolo26_detect
