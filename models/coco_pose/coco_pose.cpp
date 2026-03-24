@@ -29,7 +29,7 @@ Yolo11nPose::Yolo11nPose(const char *model_name, float score_thr, float nms_thr)
                             param_copy);
 #else
     auto sd_path = std::filesystem::path(CONFIG_BSP_SD_MOUNT_POINT) / CONFIG_COCO_POSE_MODEL_SDCARD_DIR / model_name;
-    m_model = new dl::Model(sd_path, fbs::MODEL_LOCATION_IN_SDCARD);
+    m_model = new dl::Model(sd_path.c_str(), fbs::MODEL_LOCATION_IN_SDCARD);
 #endif
     m_model->minimize();
     m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255});

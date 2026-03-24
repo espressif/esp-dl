@@ -19,7 +19,7 @@ MobileNetV2::MobileNetV2(const char *model_name, int topk, float score_thr)
         new dl::Model(path, model_name, static_cast<fbs::model_location_type_t>(CONFIG_IMAGENET_CLS_MODEL_LOCATION));
 #else
     auto sd_path = std::filesystem::path(CONFIG_BSP_SD_MOUNT_POINT) / CONFIG_IMAGENET_CLS_MODEL_SDCARD_DIR / model_name;
-    m_model = new dl::Model(sd_path, fbs::MODEL_LOCATION_IN_SDCARD);
+    m_model = new dl::Model(sd_path.c_str(), fbs::MODEL_LOCATION_IN_SDCARD);
 #endif
     m_model->minimize();
     m_image_preprocessor =
