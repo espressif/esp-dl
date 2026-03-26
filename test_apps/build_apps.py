@@ -25,18 +25,6 @@ print(PROJECT_ROOT / "esp-dl" / "fbs_loader")
 from pack_espdl_models import pack_models  # noqa: E402
 
 APPS_BUILD_PER_JOB = 5
-IGNORE_WARNINGS = [
-    r"Wunused-variable",
-    r"Wstrict-aliasing",
-    r"Wformat=",
-    r"Warray-bounds",
-    r"Wdeprecated-copy",
-    r"Wignored-qualifiers",
-    r"#pragma once in main file",
-    r"Wunused-but-set-variable",
-    r"-fpermissive",
-    r"Wmissing-field-initializers",
-]
 
 
 def list_directories(path):
@@ -88,61 +76,6 @@ def _get_idf_version():
             if m:
                 ver[m.group(1)] = m.group(2)
     return "{}.{}".format(int(ver["MAJOR"]), int(ver["MINOR"]))
-
-
-def get_cmake_apps(
-    paths,
-    target,
-    config_rules_str,
-    default_build_targets,
-    model_path=None,
-):  # type: (List[str], str, List[str]) -> List[App]
-    idf_ver = _get_idf_version()
-    if not model_path or not os.path.exists(model_path):
-        apps = find_apps(
-            paths,
-            recursive=True,
-            target=target,
-            build_dir=f"{idf_ver}/build_@t_@w",
-            config_rules_str=config_rules_str,
-            check_warnings=True,
-            preserve=True,
-            default_build_targets=default_build_targets,
-        )
-    else:
-        if target == "all":
-            target_list = ["esp32s3", "esp32p4"]
-        else:
-            target_list = [target]
-
-        for t in target_list:
-            # model_files = list_directories(model_path)
-            target_model_path = os.path.join(model_path, t)
-            model_files = list_directories(target_model_path)
-            if not model_files or len(model_files) == 0:
-                continue
-            LOGGER.info(f"Read models from {target_model_path}")
-
-            config_file_path = os.path.join(paths[0], f"sdkconfig.defaults.{t}")
-            if not os.path.exists(config_file_path):
-                LOGGER.error(f"Please add {config_file_path}")
-            for model_file in model_files:
-                generate_model_config(t, model_file, config_file_path)
-
-        apps = find_apps(
-            paths,
-            recursive=True,
-            target=target,
-            build_dir=f"{idf_ver}/build_@w",
-            config_rules_str="sdkconfig.model.*=",
-            check_warnings=True,
-            preserve=True,
-            default_build_targets=default_build_targets,
-        )
-
-        # generate all model config
-
-    return apps
 
 
 def build_and_copy(apps_to_build, model_path):
@@ -204,7 +137,6 @@ def main(args):  # type: (argparse.Namespace) -> None
         target=args.target,
         build_dir=f"{idf_ver}/build_@t_@w",
         config_rules_str=args.config,
-        check_warnings=True,
         preserve=True,
         default_build_targets=default_build_targets,
     )
@@ -226,8 +158,6 @@ def main(args):  # type: (argparse.Namespace) -> None
         parallel_index=args.parallel_index,
         dry_run=False,
         collect_size_info=args.collect_size_info,
-        keep_going=True,
-        ignore_warning_strs=IGNORE_WARNINGS,
         copy_sdkconfig=False,
     )
     if args.model_path and os.path.exists(args.model_path):

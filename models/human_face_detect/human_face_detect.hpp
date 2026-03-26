@@ -8,8 +8,8 @@
 namespace human_face_detect {
 class MSR : public dl::detect::DetectImpl {
 public:
-    static inline constexpr float default_score_thr = 0.5;
-    static inline constexpr float default_nms_thr = 0.5;
+    static constexpr float default_score_thr = 0.5;
+    static constexpr float default_nms_thr = 0.5;
     MSR(const char *model_name, float score_thr, float nms_thr);
 };
 
@@ -20,8 +20,8 @@ private:
     dl::detect::MNPPostprocessor *m_postprocessor;
 
 public:
-    static inline constexpr float default_score_thr = 0.5;
-    static inline constexpr float default_nms_thr = 0.5;
+    static constexpr float default_score_thr = 0.5;
+    static constexpr float default_nms_thr = 0.5;
     MNP(const char *model_name, float score_thr, float nms_thr);
     ~MNP();
     MNP &set_score_thr(float score_thr);

@@ -5,8 +5,8 @@
 namespace hand_detect {
 class ESPDet : public dl::detect::DetectImpl {
 public:
-    static inline constexpr float default_score_thr = 0.25;
-    static inline constexpr float default_nms_thr = 0.5;
+    static constexpr float default_score_thr = 0.25;
+    static constexpr float default_nms_thr = 0.5;
     ESPDet(const char *model_name, float score_thr, float nms_thr);
 };
 } // namespace hand_detect

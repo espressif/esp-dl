@@ -83,7 +83,7 @@ void elemwise_add(elemwiseArgsType<int8_t> *args)
     ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func = c_impl_add_n_n<int8_t>;
 
     if (args->output_d0 >= ilen) {
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
             elemwise_func = dl_esp32p4_s8_add2d_11c; // dl_esp32p4_s8_add_w1_16_w2_16;
         } else if (args->input1_d0 == 1) {
@@ -101,7 +101,7 @@ void elemwise_add(elemwiseArgsType<int8_t> *args)
         } else {
             elemwise_func = dl_esp32p4_s8_add_w1_16_w2_16_unaligned;
         }
-#elif CONFIG_IDF_TARGET_ESP32S3
+#elif CONFIG_TIE728_BOOST
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
             elemwise_func = dl_tie728_s8_add2d_11c;
         } else if (args->input1_d0 == 1) {
@@ -158,7 +158,7 @@ void elemwise_add(elemwiseArgsType<int16_t> *args)
     ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func = c_impl_add_n_n<int16_t>;
 
     if (args->output_d0 >= ilen) {
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
             elemwise_func = dl_esp32p4_s16_add2d_11c;
         } else if (args->input1_d0 == 1) {
@@ -176,7 +176,7 @@ void elemwise_add(elemwiseArgsType<int16_t> *args)
         } else {
             elemwise_func = dl_esp32p4_s16_add_w1_8_w2_8_unaligned;
         }
-#elif CONFIG_IDF_TARGET_ESP32S3
+#elif CONFIG_TIE728_BOOST
         if (args->input0_d0 % ilen == 0 && args->input1_d0 % ilen == 0) {
             elemwise_func = dl_tie728_s16_add2d_11c;
         } else if (args->input1_d0 == 1) {

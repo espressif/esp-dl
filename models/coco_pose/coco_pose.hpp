@@ -5,8 +5,8 @@
 namespace coco_pose {
 class Yolo11nPose : public dl::detect::DetectImpl {
 public:
-    static inline constexpr float default_score_thr = 0.25;
-    static inline constexpr float default_nms_thr = 0.7;
+    static constexpr float default_score_thr = 0.25;
+    static constexpr float default_nms_thr = 0.7;
     Yolo11nPose(const char *model_name, float score_thr, float nms_thr);
 };
 } // namespace coco_pose

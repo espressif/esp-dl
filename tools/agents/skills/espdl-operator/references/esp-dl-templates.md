@@ -168,7 +168,7 @@ void elemwise_myop(elemwiseArgsType<int8_t> *args)
     ImplFunc_t<int8_t, int8_t, int8_t> elemwise_func = c_impl_myop_n_n<int8_t>;
 
     // ISA dispatch (SIMD implementations added later in Phase 7)
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
     // if (aligned) { elemwise_func = dl_esp32p4_s8_myop_11c; }
 #elif CONFIG_TIE728_BOOST
     // if (aligned) { elemwise_func = dl_tie728_s8_myop_11c; }
@@ -188,7 +188,7 @@ void elemwise_myop(elemwiseArgsType<int16_t> *args)
     int ilen = 16 / sizeof(int16_t);
     ImplFunc_t<int16_t, int16_t, int16_t> elemwise_func = c_impl_myop_n_n<int16_t>;
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
     // if (aligned) { elemwise_func = dl_esp32p4_s16_myop_11c; }
 #elif CONFIG_TIE728_BOOST
     // if (aligned) { elemwise_func = dl_tie728_s16_myop_11c; }

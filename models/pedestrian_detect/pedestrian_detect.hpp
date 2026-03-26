@@ -6,8 +6,8 @@
 namespace pedestrian_detect {
 class Pico : public dl::detect::DetectImpl {
 public:
-    static inline constexpr float default_score_thr = 0.7;
-    static inline constexpr float default_nms_thr = 0.5;
+    static constexpr float default_score_thr = 0.7;
+    static constexpr float default_nms_thr = 0.5;
     Pico(const char *model_name, float score_thr, float nms_thr);
 };
 } // namespace pedestrian_detect

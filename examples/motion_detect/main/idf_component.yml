@@ -1,0 +1,5 @@
+## IDF Component Manager Manifest File
+dependencies:
+  espressif/motion_detect:
+    version: "*"
+    override_path: "../../../models/motion_detect"

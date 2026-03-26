@@ -15,16 +15,18 @@ jobs:
         with:
           directories: >
             esp-dl;
+            models/cat_detect;
             models/coco_detect;
             models/coco_pose;
-            models/human_face_detect;
-            models/human_face_recognition;
-            models/pedestrian_detect;
-            models/imagenet_cls;
-            models/cat_detect;
+            models/color_detect;
             models/dog_detect;
             models/hand_detect;
             models/hand_gesture_recognition;
+            models/human_face_detect;
+            models/human_face_recognition;
+            models/imagenet_cls;
+            models/motion_detect;
+            models/pedestrian_detect;
             models/speaker_verification;
             tools/dl_fft;
           namespace: "espressif"

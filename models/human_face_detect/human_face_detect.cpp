@@ -24,13 +24,7 @@ MSR::MSR(const char *model_name, float score_thr, float nms_thr)
     m_model = new dl::Model(sd_path.c_str(), fbs::MODEL_LOCATION_IN_SDCARD);
 #endif
     m_model->minimize();
-#if CONFIG_IDF_TARGET_ESP32P4
-    m_image_preprocessor =
-        new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, dl::image::DL_IMAGE_CAP_RGB_SWAP);
-#else
-    m_image_preprocessor = new dl::image::ImagePreprocessor(
-        m_model, {0, 0, 0}, {1, 1, 1}, dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
-#endif
+    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, true);
     m_postprocessor =
         new dl::detect::MSRPostprocessor(m_model,
                                          m_image_preprocessor,
@@ -51,13 +45,7 @@ MNP::MNP(const char *model_name, float score_thr, float nms_thr)
     m_model = new dl::Model(sd_path.c_str(), fbs::MODEL_LOCATION_IN_SDCARD);
 #endif
     m_model->minimize();
-#if CONFIG_IDF_TARGET_ESP32P4
-    m_image_preprocessor =
-        new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, dl::image::DL_IMAGE_CAP_RGB_SWAP);
-#else
-    m_image_preprocessor = new dl::image::ImagePreprocessor(
-        m_model, {0, 0, 0}, {1, 1, 1}, dl::image::DL_IMAGE_CAP_RGB_SWAP | dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
-#endif
+    m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, true);
     m_postprocessor = new dl::detect::MNPPostprocessor(
         m_model, m_image_preprocessor, score_thr, nms_thr, 10, {{1, 1, 0, 0, {{48, 48}}}});
 }
@@ -171,12 +159,7 @@ ESPDet::ESPDet(const char *model_name, float score_thr, float nms_thr)
     m_model = new dl::Model(sd_path.c_str(), fbs::MODEL_LOCATION_IN_SDCARD);
 #endif
     m_model->minimize();
-#if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {255, 255, 255});
-#else
-    m_image_preprocessor = new dl::image::ImagePreprocessor(
-        m_model, {0, 0, 0}, {255, 255, 255}, dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
-#endif
     m_image_preprocessor->enable_letterbox({114, 114, 114});
     m_postprocessor = new dl::detect::ESPDetPostProcessor(
         m_model, m_image_preprocessor, score_thr, nms_thr, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}});

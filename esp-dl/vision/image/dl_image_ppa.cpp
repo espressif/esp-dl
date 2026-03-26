@@ -1,12 +1,12 @@
 #include "dl_image_ppa.hpp"
 
 #if CONFIG_SOC_PPA_SUPPORTED
+static const char *TAG = "PPA";
 namespace dl {
 namespace image {
 esp_err_t resize_ppa(const img_t &src_img,
                      img_t &dst_img,
                      ppa_client_handle_t ppa_handle,
-                     uint32_t caps,
                      const std::vector<int> &crop_area,
                      float *scale_x_ret,
                      float *scale_y_ret)
@@ -18,10 +18,76 @@ esp_err_t resize_ppa(const img_t &src_img,
     assert(dst_img.height > 0 && dst_img.width > 0);
     ppa_srm_color_mode_t input_srm_color_mode;
     ppa_srm_color_mode_t output_srm_color_mode;
-    if (convert_pix_type_to_ppa_srm_fmt(src_img.pix_type, &input_srm_color_mode) == ESP_FAIL) {
-        return ESP_FAIL;
+    bool byte_swap = false;
+    bool rgb_swap = false;
+    bool invalid_pix_cvt = false;
+    switch (src_img.pix_type) {
+    case DL_IMAGE_PIX_TYPE_RGB888:
+    case DL_IMAGE_PIX_TYPE_BGR888:
+        input_srm_color_mode = PPA_SRM_COLOR_MODE_RGB888;
+        switch (dst_img.pix_type) {
+        case DL_IMAGE_PIX_TYPE_RGB888:
+            output_srm_color_mode = PPA_SRM_COLOR_MODE_RGB888;
+            rgb_swap = (src_img.pix_type == DL_IMAGE_PIX_TYPE_BGR888);
+            break;
+        case DL_IMAGE_PIX_TYPE_BGR888:
+            output_srm_color_mode = PPA_SRM_COLOR_MODE_RGB888;
+            rgb_swap = (src_img.pix_type == DL_IMAGE_PIX_TYPE_RGB888);
+            break;
+        case DL_IMAGE_PIX_TYPE_RGB565LE:
+            output_srm_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+            rgb_swap = (src_img.pix_type == DL_IMAGE_PIX_TYPE_RGB888);
+            break;
+        case DL_IMAGE_PIX_TYPE_BGR565LE:
+            output_srm_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+            rgb_swap = (src_img.pix_type == DL_IMAGE_PIX_TYPE_BGR888);
+            break;
+        default:
+            invalid_pix_cvt = true;
+            break;
+        }
+        break;
+    case DL_IMAGE_PIX_TYPE_RGB565LE:
+    case DL_IMAGE_PIX_TYPE_RGB565BE:
+        input_srm_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+        byte_swap = (src_img.pix_type == DL_IMAGE_PIX_TYPE_RGB565BE);
+        switch (dst_img.pix_type) {
+        case DL_IMAGE_PIX_TYPE_BGR888:
+            output_srm_color_mode = PPA_SRM_COLOR_MODE_RGB888;
+            break;
+        case DL_IMAGE_PIX_TYPE_RGB565LE:
+            output_srm_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+            break;
+        default:
+            invalid_pix_cvt = true;
+            break;
+        }
+        break;
+    case DL_IMAGE_PIX_TYPE_BGR565LE:
+    case DL_IMAGE_PIX_TYPE_BGR565BE:
+        input_srm_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+        byte_swap = (src_img.pix_type == DL_IMAGE_PIX_TYPE_BGR565BE);
+        switch (dst_img.pix_type) {
+        case DL_IMAGE_PIX_TYPE_RGB888:
+            output_srm_color_mode = PPA_SRM_COLOR_MODE_RGB888;
+            break;
+        case DL_IMAGE_PIX_TYPE_BGR565LE:
+            output_srm_color_mode = PPA_SRM_COLOR_MODE_RGB565;
+            break;
+        default:
+            invalid_pix_cvt = true;
+            break;
+        }
+        break;
+    default:
+        invalid_pix_cvt = true;
+        break;
     }
-    if (convert_pix_type_to_ppa_srm_fmt(dst_img.pix_type, &output_srm_color_mode) == ESP_FAIL) {
+    if (invalid_pix_cvt) {
+        ESP_LOGE(TAG,
+                 "Can not do PPA resize from %s to %s.",
+                 pix_type2str(src_img.pix_type).c_str(),
+                 pix_type2str(dst_img.pix_type).c_str());
         return ESP_FAIL;
     }
 
@@ -63,13 +129,13 @@ esp_err_t resize_ppa(const img_t &src_img,
     srm_oper_config.in.pic_h = src_img.height;
     srm_oper_config.in.pic_w = src_img.width;
     srm_oper_config.in.srm_cm = input_srm_color_mode;
-    srm_oper_config.rgb_swap = caps & DL_IMAGE_CAP_RGB_SWAP;
-    srm_oper_config.byte_swap =
-        (src_img.pix_type == DL_IMAGE_PIX_TYPE_RGB565) && (caps & DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
+    srm_oper_config.rgb_swap = rgb_swap;
+    srm_oper_config.byte_swap = byte_swap;
 
     srm_oper_config.out.buffer = dst_img.data;
     size_t align = cache_hal_get_cache_line_size(CACHE_LL_LEVEL_EXT_MEM, CACHE_TYPE_DATA);
-    srm_oper_config.out.buffer_size = align_up(get_img_byte_size(dst_img), align);
+    size_t out_buf_size = align_up(dst_img.bytes(), align);
+    srm_oper_config.out.buffer_size = out_buf_size;
     srm_oper_config.out.pic_h = dst_img.height;
     srm_oper_config.out.pic_w = dst_img.width;
     srm_oper_config.out.block_offset_x = 0;

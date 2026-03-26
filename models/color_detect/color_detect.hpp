@@ -1,87 +1,69 @@
 #pragma once
 #include "dl_detect_base.hpp"
-#if CONFIG_IDF_TARGET_ESP32P4
-#include <opencv2/opencv.hpp>
-#else
+#include "dl_image_process.hpp"
+#if CONFIG_IDF_TARGET_ARCH_XTENSA
 #undef EPS
 #include <opencv2/opencv.hpp>
 #define EPS 192
+#else
+#include <opencv2/opencv.hpp>
 #endif
 
-class ColorDetect : public dl::detect::Detect {
+class ColorDetectBase {
 public:
-    ColorDetect(uint16_t width, uint16_t height);
-    ~ColorDetect();
-    void register_color(const std::vector<uint8_t> &hsv_min,
-                        const std::vector<uint8_t> &hsv_max,
+    ColorDetectBase(uint16_t width, uint16_t height);
+    virtual ~ColorDetectBase();
+    void register_color(const std::array<uint8_t, 3> &hsv_min,
+                        const std::array<uint8_t, 3> &hsv_max,
                         const std::string &name,
                         int area_thr = 256);
     void delete_color(int idx);
     void delete_color(const std::string &name);
-    void enable_morphology(int kernel_size = 5);
     std::string get_color_name(int idx);
-    std::list<dl::detect::result_t> &run(const dl::image::img_t &img) override;
-    Detect &set_score_thr(float score_thr, int idx) override { return *this; }
-    Detect &set_nms_thr(float nms_thr, int idx) override { return *this; }
-    dl::Model *get_raw_model(int idx) override { return nullptr; }
+    int get_color_num();
 
-private:
-    void gen_xy_map();
-
-    template <typename PixelCvt>
-    void rgb2hsv_mask(const PixelCvt &pixel_cvt)
-    {
-        uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
-        uint8_t *dst = static_cast<uint8_t *>(m_hsv_mask);
-        for (int i = 0; i < m_height; i++) {
-            uint8_t *p_row = src + m_y[i];
-            for (int j = 0; j < m_width; j++, dst++) {
-                pixel_cvt(p_row + m_x[j], dst);
-            }
-        }
-    }
-
-    template <typename PixelCvt>
-    void rgb2hsv_and_hsv_mask(const PixelCvt &pixel_cvt)
-    {
-        uint8_t *src = static_cast<uint8_t *>(m_src_img.data);
-        uint8_t *dst_hsv = static_cast<uint8_t *>(m_hsv);
-        uint8_t *dst_hsv_mask = static_cast<uint8_t *>(m_hsv_mask);
-        for (int i = 0; i < m_height; i++) {
-            uint8_t *p_row = src + m_y[i];
-            for (int j = 0; j < m_width; j++, dst_hsv += 3, dst_hsv_mask++) {
-                pixel_cvt(p_row + m_x[j], dst_hsv, dst_hsv_mask);
-            }
-        }
-    }
-
-    template <typename PixelCvt>
-    void hsv2hsv_mask(const PixelCvt &pixel_cvt)
-    {
-        uint8_t *src = static_cast<uint8_t *>(m_hsv);
-        uint8_t *dst = static_cast<uint8_t *>(m_hsv_mask);
-        int n = m_height * m_width;
-        for (int i = 0; i < n; i++, src += 3, dst++) {
-            pixel_cvt(src, dst);
-        }
-    }
-
-    dl::image::img_t m_src_img;
+protected:
     uint16_t m_width;
     uint16_t m_height;
     void *m_hsv;
     void *m_hsv_mask;
-    void *m_mask_label;
-    std::vector<std::vector<uint8_t>> m_hsv_min;
-    std::vector<std::vector<uint8_t>> m_hsv_max;
+    cv::Mat m_hsv_mask_cvmat;
+    std::vector<std::array<uint8_t, 3>> m_hsv_min;
+    std::vector<std::array<uint8_t, 3>> m_hsv_max;
     std::vector<int> m_area_thr;
     std::vector<std::string> m_color_names;
-    float m_inv_scale_x;
-    float m_inv_scale_y;
-    int *m_x;
-    int *m_y;
-    bool m_gen_xy_map;
+    dl::image::ImageTransformer m_T;
+};
+
+class ColorDetect : public ColorDetectBase {
+public:
+    ColorDetect(uint16_t width, uint16_t height);
+    ~ColorDetect();
+    void enable_morphology(int kernel_size = 5);
+    std::list<dl::detect::result_t> &run(const dl::image::img_t &img);
+
+private:
+    void hsv_mask_process(
+        int color_id, float inv_scale_x, float inv_scale_y, uint16_t limit_width, uint16_t limit_height);
     bool m_morphology;
+    void *m_hsv_mask_label;
+    cv::Mat m_hsv_mask_label_cvmat;
     cv::Mat m_kernel;
     std::list<dl::detect::result_t> m_result;
+};
+
+class ColorRotateDetect : public ColorDetectBase {
+    typedef struct {
+        int category;
+        cv::RotatedRect rot_rect;
+    } result_t;
+
+public:
+    ColorRotateDetect(uint16_t width, uint16_t height, int kernel_size = 5);
+    std::vector<result_t> &run(const dl::image::img_t &img);
+
+private:
+    void hsv_mask_process(int color_id, float inv_scale_x, float inv_scale_y);
+    cv::Mat m_kernel;
+    std::vector<result_t> m_result;
 };

@@ -7,8 +7,8 @@ namespace hand_gesture_recognition {
 
 class MobileNetV2 : public dl::cls::ClsImpl {
 public:
-    static inline constexpr int default_topk = 1;
-    static inline constexpr float default_score_thr = std::numeric_limits<float>::lowest();
+    static constexpr int default_topk = 1;
+    static constexpr float default_score_thr = std::numeric_limits<float>::lowest();
     MobileNetV2(const char *model_name, int topk, float score_thr);
     std::vector<dl::cls::result_t> run_crop(const dl::image::img_t &img, const std::vector<int> &crop_area);
 };

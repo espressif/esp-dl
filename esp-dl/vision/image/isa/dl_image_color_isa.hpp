@@ -35,6 +35,34 @@ void cvt_color_simd_helper_gray2gray(uint8_t *src, uint8_t *dst, int n);
 void cvt_color_simd_helper_rgb8882hsv(uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut);
 void cvt_color_simd_helper_bgr8882hsv(uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut);
 
+void cvt_color_simd_helper_rgb565le2hsv_mask0(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+void cvt_color_simd_helper_rgb565be2hsv_mask0(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+void cvt_color_simd_helper_bgr565le2hsv_mask0(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+void cvt_color_simd_helper_bgr565be2hsv_mask0(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+
+void cvt_color_simd_helper_rgb8882hsv_mask0(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+void cvt_color_simd_helper_bgr8882hsv_mask0(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+
+void cvt_color_simd_helper_rgb565le2hsv_mask1(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+void cvt_color_simd_helper_rgb565be2hsv_mask1(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+void cvt_color_simd_helper_bgr565le2hsv_mask1(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+void cvt_color_simd_helper_bgr565be2hsv_mask1(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+
+void cvt_color_simd_helper_rgb8882hsv_mask1(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+void cvt_color_simd_helper_bgr8882hsv_mask1(
+    uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut, const uint8_t *hsv_min, const uint8_t *hsv_max);
+
 void cvt_color_simd_helper_rgb565le2hsv(uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut);
 void cvt_color_simd_helper_rgb565be2hsv(uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut);
 void cvt_color_simd_helper_bgr565le2hsv(uint8_t *src, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut);
@@ -70,6 +98,11 @@ void cvt_color_simd_helper_bgr8882gray_qint16(uint8_t *src, uint8_t *dst, int n,
 
 void cvt_color_simd_helper_gray2gray_qint8(uint8_t *src, uint8_t *dst, int n, int *lut);
 void cvt_color_simd_helper_gray2gray_qint16(uint8_t *src, uint8_t *dst, int n, int *lut);
+
+void cvt_color_simd_helper_hsv2hsv_mask0(
+    uint8_t *src, uint8_t *dst, int n, const uint8_t *hsv_min, const uint8_t *hsv_max);
+void cvt_color_simd_helper_hsv2hsv_mask1(
+    uint8_t *src, uint8_t *dst, int n, const uint8_t *hsv_min, const uint8_t *hsv_max);
 
 void resize_nn_simd_helper_rgb5652rgb565(uint8_t **src, int *offsets, uint8_t *dst, int n);
 void resize_nn_simd_helper_rgb565le2rgb565be(uint8_t **src, int *offsets, uint8_t *dst, int n);
@@ -109,6 +142,106 @@ void resize_nn_simd_helper_rgb565be2hsv(uint8_t **src, int *offsets, uint8_t *ds
 void resize_nn_simd_helper_bgr565le2hsv(uint8_t **src, int *offsets, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut);
 void resize_nn_simd_helper_bgr565be2hsv(uint8_t **src, int *offsets, uint8_t *dst, int n, int *sdiv_lut, int *hdiv_lut);
 
+void resize_nn_simd_helper_rgb8882hsv_mask0(uint8_t **src,
+                                            int *offsets,
+                                            uint8_t *dst,
+                                            int n,
+                                            int *sdiv_lut,
+                                            int *hdiv_lut,
+                                            const uint8_t *hsv_min,
+                                            const uint8_t *hsv_max);
+void resize_nn_simd_helper_bgr8882hsv_mask0(uint8_t **src,
+                                            int *offsets,
+                                            uint8_t *dst,
+                                            int n,
+                                            int *sdiv_lut,
+                                            int *hdiv_lut,
+                                            const uint8_t *hsv_min,
+                                            const uint8_t *hsv_max);
+
+void resize_nn_simd_helper_rgb565le2hsv_mask0(uint8_t **src,
+                                              int *offsets,
+                                              uint8_t *dst,
+                                              int n,
+                                              int *sdiv_lut,
+                                              int *hdiv_lut,
+                                              const uint8_t *hsv_min,
+                                              const uint8_t *hsv_max);
+void resize_nn_simd_helper_rgb565be2hsv_mask0(uint8_t **src,
+                                              int *offsets,
+                                              uint8_t *dst,
+                                              int n,
+                                              int *sdiv_lut,
+                                              int *hdiv_lut,
+                                              const uint8_t *hsv_min,
+                                              const uint8_t *hsv_max);
+void resize_nn_simd_helper_bgr565le2hsv_mask0(uint8_t **src,
+                                              int *offsets,
+                                              uint8_t *dst,
+                                              int n,
+                                              int *sdiv_lut,
+                                              int *hdiv_lut,
+                                              const uint8_t *hsv_min,
+                                              const uint8_t *hsv_max);
+void resize_nn_simd_helper_bgr565be2hsv_mask0(uint8_t **src,
+                                              int *offsets,
+                                              uint8_t *dst,
+                                              int n,
+                                              int *sdiv_lut,
+                                              int *hdiv_lut,
+                                              const uint8_t *hsv_min,
+                                              const uint8_t *hsv_max);
+
+void resize_nn_simd_helper_rgb8882hsv_mask1(uint8_t **src,
+                                            int *offsets,
+                                            uint8_t *dst,
+                                            int n,
+                                            int *sdiv_lut,
+                                            int *hdiv_lut,
+                                            const uint8_t *hsv_min,
+                                            const uint8_t *hsv_max);
+void resize_nn_simd_helper_bgr8882hsv_mask1(uint8_t **src,
+                                            int *offsets,
+                                            uint8_t *dst,
+                                            int n,
+                                            int *sdiv_lut,
+                                            int *hdiv_lut,
+                                            const uint8_t *hsv_min,
+                                            const uint8_t *hsv_max);
+
+void resize_nn_simd_helper_rgb565le2hsv_mask1(uint8_t **src,
+                                              int *offsets,
+                                              uint8_t *dst,
+                                              int n,
+                                              int *sdiv_lut,
+                                              int *hdiv_lut,
+                                              const uint8_t *hsv_min,
+                                              const uint8_t *hsv_max);
+void resize_nn_simd_helper_rgb565be2hsv_mask1(uint8_t **src,
+                                              int *offsets,
+                                              uint8_t *dst,
+                                              int n,
+                                              int *sdiv_lut,
+                                              int *hdiv_lut,
+                                              const uint8_t *hsv_min,
+                                              const uint8_t *hsv_max);
+void resize_nn_simd_helper_bgr565le2hsv_mask1(uint8_t **src,
+                                              int *offsets,
+                                              uint8_t *dst,
+                                              int n,
+                                              int *sdiv_lut,
+                                              int *hdiv_lut,
+                                              const uint8_t *hsv_min,
+                                              const uint8_t *hsv_max);
+void resize_nn_simd_helper_bgr565be2hsv_mask1(uint8_t **src,
+                                              int *offsets,
+                                              uint8_t *dst,
+                                              int n,
+                                              int *sdiv_lut,
+                                              int *hdiv_lut,
+                                              const uint8_t *hsv_min,
+                                              const uint8_t *hsv_max);
+
 void resize_nn_simd_helper_rgb565le2rgb888_qint8(uint8_t **src, int *offsets, uint8_t *dst, int n, int *lut);
 void resize_nn_simd_helper_rgb565be2rgb888_qint8(uint8_t **src, int *offsets, uint8_t *dst, int n, int *lut);
 void resize_nn_simd_helper_rgb565le2bgr888_qint8(uint8_t **src, int *offsets, uint8_t *dst, int n, int *lut);
@@ -139,4 +272,9 @@ void resize_nn_simd_helper_bgr8882gray_qint16(uint8_t **src, int *offsets, uint8
 
 void resize_nn_simd_helper_gray2gray_qint8(uint8_t **src, int *offsets, uint8_t *dst, int n, int *lut);
 void resize_nn_simd_helper_gray2gray_qint16(uint8_t **src, int *offsets, uint8_t *dst, int n, int *lut);
+
+void resize_nn_simd_helper_hsv2hsv_mask0(
+    uint8_t **src, int *offsets, uint8_t *dst, int n, const uint8_t *hsv_min, const uint8_t *hsv_max);
+void resize_nn_simd_helper_hsv2hsv_mask1(
+    uint8_t **src, int *offsets, uint8_t *dst, int n, const uint8_t *hsv_min, const uint8_t *hsv_max);
 }

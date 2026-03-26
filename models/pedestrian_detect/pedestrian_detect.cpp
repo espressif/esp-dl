@@ -23,12 +23,7 @@ Pico::Pico(const char *model_name, float score_thr, float nms_thr)
     m_model = new dl::Model(sd_path.c_str(), fbs::MODEL_LOCATION_IN_SDCARD);
 #endif
     m_model->minimize();
-#if CONFIG_IDF_TARGET_ESP32P4
     m_image_preprocessor = new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1});
-#else
-    m_image_preprocessor =
-        new dl::image::ImagePreprocessor(m_model, {0, 0, 0}, {1, 1, 1}, dl::image::DL_IMAGE_CAP_RGB565_BIG_ENDIAN);
-#endif
     m_postprocessor = new dl::detect::PicoPostprocessor(
         m_model, m_image_preprocessor, score_thr, nms_thr, 10, {{8, 8, 4, 4}, {16, 16, 8, 8}, {32, 32, 16, 16}});
 }
