@@ -8,4 +8,3 @@ dependencies:
     override_path: "../../esp-dl"
   100312dog/opencv-mobile:
     version: "*"
-    registry_url: https://components-staging.espressif.com
