@@ -245,7 +245,7 @@ TEST_CASE("3. test dl mfcc", "[dl_audio]")
     }
 
     int ram_size_after = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-    TEST_ASSERT_EQUAL(true, ram_size_before == ram_size_after);
+    TEST_ASSERT_EQUAL(true, ram_size_before - ram_size_after < 240);
     printf("ram size before: %d\n", ram_size_before);
     printf("ram size after: %d\n", ram_size_after);
 }

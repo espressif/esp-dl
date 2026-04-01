@@ -66,7 +66,8 @@ esp_err_t MFCC::process_frame(const float *input, int win_len, float *output, fl
         output += 1;
     }
 
-    apply_preemphasis(m_cache, win_len, m_config.preemphasis, prev);
+    // Use m_cache[0] as prev to match Kaldi's replicate padding: y[0] = x[0] - α·x[0] = (1-α)·x[0]
+    apply_preemphasis(m_cache, win_len, m_config.preemphasis, m_cache[0]);
 
     apply_window(m_cache, win_len, m_win_func);
 
@@ -83,19 +84,26 @@ esp_err_t MFCC::process_frame(const float *input, int win_len, float *output, fl
 
     compute_spectrum(m_cache, m_fft_size, m_config.use_power);
 
-    mel_dotprod(m_cache, m_mel_filter, m_cache);
+    // Store Mel energies in tail of m_cache to avoid overwriting FFT spectrum during mel_dotprod
+    const int feat_width = m_fft_size / 2 + 1;
+    if (feat_width + m_config.num_mel_bins > m_fft_size) {
+        return ESP_ERR_INVALID_SIZE; // m_cache too small
+    }
+    float *mel = m_cache + feat_width;
+
+    mel_dotprod(m_cache, m_mel_filter, mel);
 
     if (m_config.use_log_fbank == 1) {
         float epsilon = m_config.log_epsilon;
-        for (int j = 0; j < m_config.num_mel_bins; j++) m_cache[j] = logf(MAX(m_cache[j], epsilon));
+        for (int j = 0; j < m_config.num_mel_bins; j++) mel[j] = logf(MAX(mel[j], epsilon));
     } else if (m_config.use_log_fbank == 2) {
         float epsilon = m_config.log_epsilon;
-        for (int j = 0; j < m_config.num_mel_bins; j++) m_cache[j] = logf(m_cache[j] + epsilon);
+        for (int j = 0; j < m_config.num_mel_bins; j++) mel[j] = logf(mel[j] + epsilon);
     }
 
     // feature = dct_matrix_ * mel_energies [which now have log]
     for (int32_t i = 0; i != m_config.num_ceps; ++i) {
-        output[i] = dotprod_f32(m_dct_matrix + i * m_config.num_mel_bins, m_cache, m_config.num_mel_bins);
+        output[i] = dotprod_f32(m_dct_matrix + i * m_config.num_mel_bins, mel, m_config.num_mel_bins);
     }
 
     if (m_lifter_coeffs) {

@@ -25,7 +25,8 @@ esp_err_t Fbank::process_frame(const float *input, int win_len, float *output, f
         output += 1;
     }
 
-    apply_preemphasis(m_cache, win_len, m_config.preemphasis, prev);
+    // Use m_cache[0] as prev to match Kaldi's replicate padding: y[0] = x[0] - α·x[0] = (1-α)·x[0]
+    apply_preemphasis(m_cache, win_len, m_config.preemphasis, m_cache[0]);
 
     apply_window(m_cache, win_len, m_win_func);
 

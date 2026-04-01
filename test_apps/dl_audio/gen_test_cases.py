@@ -80,6 +80,19 @@ test_configs = [
         remove_dc_offset=False,
         window_type="rectangular",
     ),
+    dict(
+        frame_shift=24.0,
+        frame_length=32.0,
+        num_mel_bins=80,
+        num_ceps=13,
+        use_power=True,
+        use_log_fbank=True,
+        low_freq=20.0,
+        high_freq=0.0,
+        preemphasis_coefficient=0.97,
+        remove_dc_offset=True,
+        window_type="hamming",
+    ),
 ]
 
 
