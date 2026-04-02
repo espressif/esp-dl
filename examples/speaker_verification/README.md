@@ -13,8 +13,8 @@ A simple audio inference example. Three audio samples are provided: a and b are 
 Follow the [quick start](https://docs.espressif.com/projects/esp-dl/en/latest/getting_started/readme.html#quick-start) to flash the example, you will see the output in idf monitor:
 
 ```
-I (3567) speaker_verification: Cosine similarity between audio a and b: 0.7531
-I (3567) speaker_verification: Cosine similarity between audio b and c: 0.0874
+I (3567) speaker_verification: Cosine similarity between audio a and b: 0.7510
+I (3567) speaker_verification: Cosine similarity between audio b and c: 0.0846
 I (3577) main_task: Returned from app_main()
 ```
 
