@@ -1,7 +1,7 @@
 #include "sdkconfig.h"
 #include "esp_idf_version.h"
 
-#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 5, 2))
+#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 5, 2)) || defined(CONFIG_ESP32P4_SELECTS_REV_LESS_V3)
 .macro vldbc_8_ip q, a, n
     esp.vldbc.8.ip \q, \a, \n * 4
 .endm
@@ -73,7 +73,7 @@
         .error "unsupported n"
     .endif
     esp.vldbc.8.ip \q_tmp, \a_tmp, 0
-#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 5, 2))
+#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 5, 2)) || defined(CONFIG_ESP32P4_SELECTS_REV_LESS_V3)
     esp.vsld.8 \qd, \qs, \q_tmp
 #else
     esp.vsld.8 \qd, \qs, \q_tmp, trunc
