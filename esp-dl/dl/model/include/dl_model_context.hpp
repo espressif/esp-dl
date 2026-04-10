@@ -192,6 +192,21 @@ public:
     }
 
     /**
+     * @brief Resets the context by clearing variables, parameters, and name-to-index map.
+     * This is used to reset the state of the context for a new inference or after an inference.
+     */
+    void root_reset()
+    {
+        if (m_internal_root) {
+            memset(m_internal_root, 0, m_internal_size);
+        }
+
+        if (m_psram_root) {
+            memset(m_psram_root, 0, m_psram_size);
+        }
+    }
+
+    /**
      * @brief Minimizes the context by clearing the name-to-index map.
      * This is used to free unnecessary intermediate variables during the inference.
      */
