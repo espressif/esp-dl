@@ -68,19 +68,10 @@ ESP-DL provides a series of API to quickly load and run models.  A typical examp
 [how to run model](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_run_model.html)  
 
 
-## Support Models
+## ESP-DL Model Zoo
 
-[Pedestrian Detection](./models/pedestrian_detect/)     
-[Human Face Detection](./models/human_face_detect/)     
-[Human Face Recognition](./models/human_face_recognition/)     
-[Imagenet Classification (MobileNetV2)](./models/imagenet_cls/)    
-[COCO Detection (YOLO11n)](./models/coco_detect/)    
-[Cat Detection (​​ESPDet-Pico)](./models/cat_detect/)  
-[Dog Detection (​​ESPDet-Pico)](./models/dog_detect/)  
-[Hand Detection (​​ESPDet-Pico)](./models/hand_detect/)   
-[Hand Gesture Recognition](./models/hand_gesture_recognition/)   
-[Pose Estimation (YOLO11n-Pose)](./models/coco_pose/)    
-[Speaker Verification (x-vector)](./models/speaker_verification/)   
+The directory [models](./models/) contains a collection of pre-trained and quantized models optimized for ESP32 series chips. Each model is provided as an ESP-IDF component for easy integration. For more details, please refer to [ESP-DL Model Zoo](./models/README.md).
+
 
 ## Support Operators
 
