@@ -20,7 +20,7 @@ dependencies:
         version: ">=5.5"
   espressif/esp_new_jpeg: "^0.6.1"
   espressif/dl_fft: ">=0.3.1"
-  espressif/esp-dsp: "==1.7.0"
+  espressif/esp-dsp: "==1.8.0"
 examples:
   - path: ../examples/tutorial/how_to_deploy_streaming_model
   - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_flash_partition
