@@ -1,5 +1,11 @@
 #include "fbs_loader.hpp"
+#include "esp_idf_version.h"
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+#include "psa/crypto.h"
+#else
 #include "mbedtls/aes.h"
+#endif
 
 static const char *TAG = "FbsLoader";
 
@@ -18,15 +24,38 @@ namespace fbs {
  */
 void fbs_aes_crypt_ctr(const uint8_t *ciphertext, uint8_t *plaintext, size_t size, const uint8_t *key)
 {
-    mbedtls_aes_context aes_ctx;
-    size_t offset = 0;
     uint8_t nonce[16] = {
         0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F};
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+    psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_id_t key_id = PSA_KEY_ID_NULL;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+    size_t output_length = 0;
+
+    psa_set_key_usage_flags(&key_attributes, PSA_KEY_USAGE_ENCRYPT);
+    psa_set_key_algorithm(&key_attributes, PSA_ALG_CTR);
+    psa_set_key_type(&key_attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_bits(&key_attributes, 128);
+    psa_import_key(&key_attributes, key, 16, &key_id);
+    psa_reset_key_attributes(&key_attributes);
+
+    psa_cipher_encrypt_setup(&operation, key_id, PSA_ALG_CTR);
+    psa_cipher_set_iv(&operation, nonce, sizeof(nonce));
+    psa_cipher_update(&operation, ciphertext, size, plaintext, size, &output_length);
+
+    uint8_t finish_buf[16];
+    size_t finish_len;
+    psa_cipher_finish(&operation, finish_buf, sizeof(finish_buf), &finish_len);
+    psa_destroy_key(key_id);
+#else
+    mbedtls_aes_context aes_ctx;
+    size_t offset = 0;
     uint8_t stream_block[16];
     mbedtls_aes_init(&aes_ctx);
     mbedtls_aes_setkey_enc(&aes_ctx, key, 128); // 128-bit key
     mbedtls_aes_crypt_ctr(&aes_ctx, size, &offset, nonce, stream_block, ciphertext, plaintext);
     mbedtls_aes_free(&aes_ctx);
+#endif
 }
 
 /**
