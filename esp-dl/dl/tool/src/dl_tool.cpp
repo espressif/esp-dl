@@ -1,5 +1,6 @@
 #include "dl_tool.hpp"
 #include <string.h>
+#include "soc/soc_caps.h"
 
 extern "C" {
 #if CONFIG_XTENSA_BOOST
@@ -169,8 +170,12 @@ void copy_memory(void *dst, void *src, const size_t n)
 
 memory_addr_type_t memory_addr_type(void *address)
 {
-#if CONFIG_IDF_TARGET_ESP32P4
+#if defined(SOC_MEM_TCM_SUPPORTED)
     if (esp_ptr_in_tcm(address)) {
+        return MEMORY_ADDR_TCM;
+    }
+#elif defined(SOC_MEM_SPM_SUPPORTED)
+    if (esp_ptr_in_spm(address)) {
         return MEMORY_ADDR_TCM;
     }
 #endif
