@@ -178,10 +178,12 @@ inline void load_conv2d_11cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_11cn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_11cn_bias
+                                                           : dl_esp32p4_s16_conv2d_11cn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_11cn_bias_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_11cn_bias_relu
+                                                           : dl_esp32p4_s16_conv2d_11cn_bias_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_conv2d_11cn_bias_relu;
@@ -193,10 +195,12 @@ inline void load_conv2d_11cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_11cn;
+                i_impl_func_sp =
+                    args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_11cn : dl_esp32p4_s16_conv2d_11cn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_11cn_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_11cn_relu
+                                                           : dl_esp32p4_s16_conv2d_11cn_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_conv2d_11cn_relu;
@@ -210,10 +214,12 @@ inline void load_conv2d_11cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_11cn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn_bias
+                                                           : dl_esp32p4_s16_unaligned_conv2d_11cn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_11cn_bias_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn_bias_relu
+                                                           : dl_esp32p4_s16_unaligned_conv2d_11cn_bias_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_11cn_bias_leakyrelu;
@@ -225,10 +231,12 @@ inline void load_conv2d_11cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_11cn;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn
+                                                           : dl_esp32p4_s16_unaligned_conv2d_11cn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_11cn_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn_relu
+                                                           : dl_esp32p4_s16_unaligned_conv2d_11cn_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_11cn_leakyrelu;
@@ -403,12 +411,16 @@ inline void load_conv2d_33cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_33cn_bias;
-                i_impl_func = dl_esp32p4_s16_conv2d_hwcn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_33cn_bias
+                                                           : dl_esp32p4_s16_conv2d_33cn_bias;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_hwcn_bias
+                                                        : dl_esp32p4_s16_conv2d_hwcn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_33cn_bias_relu;
-                i_impl_func = dl_esp32p4_s16_conv2d_hwcn_bias_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_33cn_bias_relu
+                                                           : dl_esp32p4_s16_conv2d_33cn_bias_relu;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_hwcn_bias_relu
+                                                        : dl_esp32p4_s16_conv2d_hwcn_bias_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_conv2d_33cn_bias_relu;
@@ -422,12 +434,16 @@ inline void load_conv2d_33cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_33cn;
-                i_impl_func = dl_esp32p4_s16_conv2d_hwcn;
+                i_impl_func_sp =
+                    args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_33cn : dl_esp32p4_s16_conv2d_33cn;
+                i_impl_func =
+                    args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_hwcn : dl_esp32p4_s16_conv2d_hwcn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_33cn_relu;
-                i_impl_func = dl_esp32p4_s16_conv2d_hwcn_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_33cn_relu
+                                                           : dl_esp32p4_s16_conv2d_33cn_relu;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_hwcn_relu
+                                                        : dl_esp32p4_s16_conv2d_hwcn_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_conv2d_33cn_relu;
@@ -443,12 +459,16 @@ inline void load_conv2d_33cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_33cn_bias;
-                i_impl_func = dl_esp32p4_s16_unaligned_conv2d_hwcn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn_bias
+                                                           : dl_esp32p4_s16_unaligned_conv2d_33cn_bias;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias
+                                                        : dl_esp32p4_s16_unaligned_conv2d_hwcn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_33cn_bias_relu;
-                i_impl_func = dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn_bias_relu
+                                                           : dl_esp32p4_s16_unaligned_conv2d_33cn_bias_relu;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias_relu
+                                                        : dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_33cn_bias_leakyrelu;
@@ -462,12 +482,16 @@ inline void load_conv2d_33cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_33cn;
-                i_impl_func = dl_esp32p4_s16_unaligned_conv2d_hwcn;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn
+                                                           : dl_esp32p4_s16_unaligned_conv2d_33cn;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn
+                                                        : dl_esp32p4_s16_unaligned_conv2d_hwcn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_33cn_relu;
-                i_impl_func = dl_esp32p4_s16_unaligned_conv2d_hwcn_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn_relu
+                                                           : dl_esp32p4_s16_unaligned_conv2d_33cn_relu;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_relu
+                                                        : dl_esp32p4_s16_unaligned_conv2d_hwcn_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_33cn_leakyrelu;
@@ -665,10 +689,12 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_hwcn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_hwcn_bias
+                                                           : dl_esp32p4_s16_conv2d_hwcn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_hwcn_bias_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_hwcn_bias_relu
+                                                           : dl_esp32p4_s16_conv2d_hwcn_bias_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_conv2d_hwcn_bias_relu;
@@ -680,10 +706,12 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_hwcn;
+                i_impl_func_sp =
+                    args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_hwcn : dl_esp32p4_s16_conv2d_hwcn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_conv2d_hwcn_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_conv2d_per_channel_hwcn_relu
+                                                           : dl_esp32p4_s16_conv2d_hwcn_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_conv2d_hwcn_relu;
@@ -697,10 +725,12 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_hwcn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias
+                                                           : dl_esp32p4_s16_unaligned_conv2d_hwcn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias_relu
+                                                           : dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_leakyrelu;
@@ -712,10 +742,12 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_hwcn;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn
+                                                           : dl_esp32p4_s16_unaligned_conv2d_hwcn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_hwcn_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_relu
+                                                           : dl_esp32p4_s16_unaligned_conv2d_hwcn_relu;
                 break;
             case LeakyReLU:
                 // i_impl_func_sp = dl_esp32p4_s16_unaligned_conv2d_hwcn_leakyrelu;
@@ -919,10 +951,12 @@ inline void load_conv2d_11cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_11cn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_11cn_bias
+                                                           : dl_esp32p4_s8_conv2d_11cn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_11cn_bias_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_11cn_bias_relu
+                                                           : dl_esp32p4_s8_conv2d_11cn_bias_relu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -934,10 +968,12 @@ inline void load_conv2d_11cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_11cn;
+                i_impl_func_sp =
+                    args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_11cn : dl_esp32p4_s8_conv2d_11cn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_11cn_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_11cn_relu
+                                                           : dl_esp32p4_s8_conv2d_11cn_relu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -951,10 +987,13 @@ inline void load_conv2d_11cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_11cn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias
+                                                           : dl_esp32p4_s8_unaligned_conv2d_11cn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_11cn_bias_leakyrelu;
+                i_impl_func_sp = args.mac_shift == INT_MIN
+                    ? dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu
+                    : dl_esp32p4_s8_unaligned_conv2d_11cn_bias_leakyrelu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -966,10 +1005,12 @@ inline void load_conv2d_11cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_11cn;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn
+                                                           : dl_esp32p4_s8_unaligned_conv2d_11cn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_11cn_leakyrelu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu
+                                                           : dl_esp32p4_s8_unaligned_conv2d_11cn_leakyrelu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -1015,12 +1056,16 @@ inline void load_conv2d_33cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_33cn_bias;
-                i_impl_func = dl_esp32p4_s8_conv2d_hwcn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_33cn_bias
+                                                           : dl_esp32p4_s8_conv2d_33cn_bias;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_hwcn_bias
+                                                        : dl_esp32p4_s8_conv2d_hwcn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_33cn_bias_relu;
-                i_impl_func = dl_esp32p4_s8_conv2d_hwcn_bias_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_33cn_bias_relu
+                                                           : dl_esp32p4_s8_conv2d_33cn_bias_relu;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_hwcn_bias_relu
+                                                        : dl_esp32p4_s8_conv2d_hwcn_bias_relu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -1033,12 +1078,16 @@ inline void load_conv2d_33cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_33cn;
-                i_impl_func = dl_esp32p4_s8_conv2d_hwcn;
+                i_impl_func_sp =
+                    args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_33cn : dl_esp32p4_s8_conv2d_33cn;
+                i_impl_func =
+                    args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_hwcn : dl_esp32p4_s8_conv2d_hwcn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_33cn_relu;
-                i_impl_func = dl_esp32p4_s8_conv2d_hwcn_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_33cn_relu
+                                                           : dl_esp32p4_s8_conv2d_33cn_relu;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_hwcn_relu
+                                                        : dl_esp32p4_s8_conv2d_hwcn_relu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -1053,12 +1102,17 @@ inline void load_conv2d_33cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_33cn_bias;
-                i_impl_func = dl_esp32p4_s8_unaligned_conv2d_hwcn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias
+                                                           : dl_esp32p4_s8_unaligned_conv2d_33cn_bias;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias
+                                                        : dl_esp32p4_s8_unaligned_conv2d_hwcn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_33cn_bias_leakyrelu;
-                i_impl_func = dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu;
+                i_impl_func_sp = args.mac_shift == INT_MIN
+                    ? dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu
+                    : dl_esp32p4_s8_unaligned_conv2d_33cn_bias_leakyrelu;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu
+                                                        : dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -1071,12 +1125,16 @@ inline void load_conv2d_33cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_33cn;
-                i_impl_func = dl_esp32p4_s8_unaligned_conv2d_hwcn;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn
+                                                           : dl_esp32p4_s8_unaligned_conv2d_33cn;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn
+                                                        : dl_esp32p4_s8_unaligned_conv2d_hwcn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_33cn_leakyrelu;
-                i_impl_func = dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu
+                                                           : dl_esp32p4_s8_unaligned_conv2d_33cn_leakyrelu;
+                i_impl_func = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu
+                                                        : dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -1125,10 +1183,12 @@ inline void load_conv2d_hwcn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_hwcn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_hwcn_bias
+                                                           : dl_esp32p4_s8_conv2d_hwcn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_hwcn_bias_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_hwcn_bias_relu
+                                                           : dl_esp32p4_s8_conv2d_hwcn_bias_relu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -1140,10 +1200,12 @@ inline void load_conv2d_hwcn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_hwcn;
+                i_impl_func_sp =
+                    args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_hwcn : dl_esp32p4_s8_conv2d_hwcn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_conv2d_hwcn_relu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_conv2d_per_channel_hwcn_relu
+                                                           : dl_esp32p4_s8_conv2d_hwcn_relu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -1157,10 +1219,13 @@ inline void load_conv2d_hwcn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         if (args.bias_element) {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_hwcn_bias;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias
+                                                           : dl_esp32p4_s8_unaligned_conv2d_hwcn_bias;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu;
+                i_impl_func_sp = args.mac_shift == INT_MIN
+                    ? dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu
+                    : dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.
@@ -1172,10 +1237,12 @@ inline void load_conv2d_hwcn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         } else {
             switch (args.activation_type) {
             case Linear:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_hwcn;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn
+                                                           : dl_esp32p4_s8_unaligned_conv2d_hwcn;
                 break;
             case ReLU:
-                i_impl_func_sp = dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu;
+                i_impl_func_sp = args.mac_shift == INT_MIN ? dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu
+                                                           : dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu;
                 break;
             case LeakyReLU:
                 // Don't be supported now.

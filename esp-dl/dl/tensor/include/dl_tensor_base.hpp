@@ -13,6 +13,121 @@
 namespace dl {
 
 /**
+ * @brief Exponent info for per-tensor / per-channel quantization.
+ *
+ * Per-tensor: m_exponent only, zero heap allocation.
+ * Per-channel: heap-allocated m_exponents array.
+ * Provides operator int() so existing `DL_SCALE(tensor->exponent)` code works unchanged.
+ */
+class ExponentInfo {
+private:
+    int m_exponent;
+    int *m_exponents;
+    int m_size;
+
+public:
+    ExponentInfo(int exponent = 0) : m_exponent(exponent), m_exponents(nullptr), m_size(1) {}
+
+    ExponentInfo(const std::vector<int> &exponents) : m_exponents(nullptr), m_size(1)
+    {
+        if (exponents.size() <= 1) {
+            m_exponent = exponents.empty() ? 0 : exponents[0];
+        } else {
+            m_size = exponents.size();
+            m_exponents = new int[m_size];
+            for (int i = 0; i < m_size; i++) {
+                m_exponents[i] = exponents[i];
+            }
+            m_exponent = 0;
+        }
+    }
+
+    ~ExponentInfo()
+    {
+        delete[] m_exponents;
+        m_exponents = nullptr;
+    }
+
+    ExponentInfo(const ExponentInfo &other) : m_exponent(other.m_exponent), m_exponents(nullptr), m_size(other.m_size)
+    {
+        if (other.m_exponents && m_size > 1) {
+            m_exponents = new int[m_size];
+            for (int i = 0; i < m_size; i++) {
+                m_exponents[i] = other.m_exponents[i];
+            }
+        }
+    }
+
+    ExponentInfo &operator=(const ExponentInfo &other)
+    {
+        if (this != &other) {
+            delete[] m_exponents;
+            m_exponent = other.m_exponent;
+            m_size = other.m_size;
+            if (other.m_exponents && m_size > 1) {
+                m_exponents = new int[m_size];
+                for (int i = 0; i < m_size; i++) {
+                    m_exponents[i] = other.m_exponents[i];
+                }
+            } else {
+                m_exponents = nullptr;
+            }
+        }
+        return *this;
+    }
+
+    ExponentInfo(ExponentInfo &&other) noexcept :
+        m_exponent(other.m_exponent), m_exponents(other.m_exponents), m_size(other.m_size)
+    {
+        other.m_exponents = nullptr;
+        other.m_size = 1;
+    }
+
+    ExponentInfo &operator=(ExponentInfo &&other) noexcept
+    {
+        if (this != &other) {
+            delete[] m_exponents;
+            m_exponent = other.m_exponent;
+            m_exponents = other.m_exponents;
+            m_size = other.m_size;
+            other.m_exponents = nullptr;
+            other.m_size = 1;
+        }
+        return *this;
+    }
+
+    ExponentInfo &operator=(int value)
+    {
+        delete[] m_exponents;
+        m_exponents = nullptr;
+        m_size = 1;
+        m_exponent = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get exponent value.
+     * @param ch  Channel index. -1 (default) returns per-tensor value.
+     *            ch >= 0 returns per-channel value if available, otherwise per-tensor.
+     */
+    int get(int ch = -1) const
+    {
+        if (ch < 0 || !m_exponents) {
+            return m_exponent;
+        }
+        return m_exponents[ch];
+    }
+
+    operator int() const { return m_exponent; }
+
+    bool is_per_channel() const { return m_exponents != nullptr && m_size > 1; }
+
+    int channel_size() const { return m_size; }
+
+    const int *data() const { return m_exponents ? m_exponents : &m_exponent; }
+};
+
+/**
  * @brief The data type of esp-dl is same as flatbuffer's data type.
  */
 typedef enum {
@@ -101,7 +216,7 @@ public:
     int size;                     ///< size of element including padding
     std::vector<int> shape;       ///< shape of Tensor
     dtype_t dtype;                ///< data type of element
-    int exponent;                 ///< exponent of element
+    ExponentInfo exponent;        ///< exponent of element (per-tensor or per-channel)
     bool auto_free;               ///< free element when object destroy
     std::vector<int> axis_offset; ///< element offset of each axis
     void *data;                   ///< data pointer
@@ -122,6 +237,24 @@ public:
     TensorBase(std::vector<int> shape,
                const void *element,
                int exponent = 0,
+               dtype_t dtype = DATA_TYPE_FLOAT,
+               bool deep = true,
+               uint32_t caps = MALLOC_CAP_DEFAULT);
+
+    /**
+     * @brief Construct a TensorBase object with per-channel exponents
+     *
+     * @param shape     Shape of tensor
+     * @param element   Pointer of data
+     * @param exponents Per-channel exponents
+     * @param dtype     Data type of element, default is float
+     * @param deep      True: malloc memory and copy data, false: use the pointer directly
+     * @param caps      Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
+     *
+     */
+    TensorBase(std::vector<int> shape,
+               const void *element,
+               const std::vector<int> &exponents,
                dtype_t dtype = DATA_TYPE_FLOAT,
                bool deep = true,
                uint32_t caps = MALLOC_CAP_DEFAULT);

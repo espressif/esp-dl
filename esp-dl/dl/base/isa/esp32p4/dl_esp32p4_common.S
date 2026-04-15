@@ -101,6 +101,32 @@
 
 
 
+.macro esp32p4_push_24_stacks_6r  value_0, value_1, value_2, value_3, value_4, value_5
+    # The order of register arguments for push and pop must be consistent.
+    addi  sp, sp, -24
+    sw  \value_0, 20(sp)
+    sw  \value_1, 16(sp)
+    sw  \value_2, 12(sp)
+    sw  \value_3, 8(sp)
+    sw  \value_4, 4(sp)
+    sw  \value_5, 0(sp)
+.endm
+
+
+
+.macro esp32p4_pop_24_stacks_6r  value_0, value_1, value_2, value_3, value_4, value_5
+    # The order of register arguments for push and pop must be consistent.
+    lw  \value_0, 20(sp)
+    lw  \value_1, 16(sp)
+    lw  \value_2, 12(sp)
+    lw  \value_3, 8(sp)
+    lw  \value_4, 4(sp)
+    lw  \value_5, 0(sp)
+    addi  sp, sp, 24
+.endm
+
+
+
 .macro esp32p4_push_28_stacks_7r  value_0, value_1, value_2, value_3, value_4, value_5, value_6
     # The order of register arguments for push and pop must be consistent.
     addi  sp, sp, -28
@@ -157,6 +183,66 @@
     lw  \value_7, 4(sp)
     lw  \value_8, 0(sp)
     addi  sp, sp, 36
+.endm
+
+
+
+.macro esp32p4_push_32_stacks_8r  value_0, value_1, value_2, value_3, value_4, value_5, value_6, value_7
+    addi  sp, sp, -32
+    sw  \value_0, 28(sp)
+    sw  \value_1, 24(sp)
+    sw  \value_2, 20(sp)
+    sw  \value_3, 16(sp)
+    sw  \value_4, 12(sp)
+    sw  \value_5, 8(sp)
+    sw  \value_6, 4(sp)
+    sw  \value_7, 0(sp)
+.endm
+
+
+
+.macro esp32p4_pop_32_stacks_8r  value_0, value_1, value_2, value_3, value_4, value_5, value_6, value_7
+    lw  \value_0, 28(sp)
+    lw  \value_1, 24(sp)
+    lw  \value_2, 20(sp)
+    lw  \value_3, 16(sp)
+    lw  \value_4, 12(sp)
+    lw  \value_5, 8(sp)
+    lw  \value_6, 4(sp)
+    lw  \value_7, 0(sp)
+    addi  sp, sp, 32
+.endm
+
+
+
+.macro esp32p4_push_40_stacks_10r  value_0, value_1, value_2, value_3, value_4, value_5, value_6, value_7, value_8, value_9
+    addi  sp, sp, -40
+    sw  \value_0, 36(sp)
+    sw  \value_1, 32(sp)
+    sw  \value_2, 28(sp)
+    sw  \value_3, 24(sp)
+    sw  \value_4, 20(sp)
+    sw  \value_5, 16(sp)
+    sw  \value_6, 12(sp)
+    sw  \value_7, 8(sp)
+    sw  \value_8, 4(sp)
+    sw  \value_9, 0(sp)
+.endm
+
+
+
+.macro esp32p4_pop_40_stacks_10r  value_0, value_1, value_2, value_3, value_4, value_5, value_6, value_7, value_8, value_9
+    lw  \value_0, 36(sp)
+    lw  \value_1, 32(sp)
+    lw  \value_2, 28(sp)
+    lw  \value_3, 24(sp)
+    lw  \value_4, 20(sp)
+    lw  \value_5, 16(sp)
+    lw  \value_6, 12(sp)
+    lw  \value_7, 8(sp)
+    lw  \value_8, 4(sp)
+    lw  \value_9, 0(sp)
+    addi  sp, sp, 40
 .endm
 
 

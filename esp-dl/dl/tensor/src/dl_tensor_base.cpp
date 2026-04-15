@@ -168,6 +168,43 @@ TensorBase::TensorBase(
     this->caps = caps;
 }
 
+TensorBase::TensorBase(std::vector<int> shape,
+                       const void *element,
+                       const std::vector<int> &exponents,
+                       dtype_t dtype,
+                       bool deep,
+                       uint32_t caps)
+{
+    this->set_shape(shape);
+    this->exponent = ExponentInfo(exponents);
+    this->dtype = dtype;
+    this->cache = nullptr;
+    size_t dtype_bytes = this->get_dtype_bytes();
+    size_t aligned_size = this->get_aligned_size();
+    if (element) {
+        if (deep) {
+            this->auto_free = true;
+            this->data = tool::calloc_aligned(aligned_size, dtype_bytes, caps);
+            tool::copy_memory(this->data, const_cast<void *>(element), this->get_size() * dtype_bytes);
+        } else {
+            this->auto_free = false;
+            this->data = const_cast<void *>(element);
+        }
+    } else {
+        this->auto_free = true;
+        this->data = tool::calloc_aligned(aligned_size, dtype_bytes, caps);
+    }
+    if ((!element || deep) && !this->data) {
+        ESP_LOGE(
+            "TensorBase",
+            "Failed to alloc %.2fKB RAM, largest available PSRAM block size %.2fKB, internal RAM block size %.2fKB",
+            size / 1024.f,
+            heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.f,
+            heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
+    }
+    this->caps = caps;
+}
+
 bool TensorBase::assign(TensorBase *tensor)
 {
     if (tensor == nullptr || this->get_size() != tensor->get_size()) {
@@ -559,7 +596,7 @@ void TensorBase::print(bool print_data)
              "shape: %s, dtype: %s, exponent: %d, auto_free: %d, data: %p",
              vector_to_string(get_shape()).c_str(),
              dtype_to_string(get_dtype()),
-             this->exponent,
+             (int)this->exponent,
              this->auto_free,
              this->data);
 
@@ -881,7 +918,7 @@ bool TensorBase::equal(TensorBase *tensor, float epsilon, bool verbose)
     // compare tensor element
     if (this->exponent != tensor->exponent) {
         if (verbose) {
-            ESP_LOGE(__FUNCTION__, "exponent not equal: %d != %d", this->exponent, tensor->exponent);
+            ESP_LOGE(__FUNCTION__, "exponent not equal: %d != %d", (int)this->exponent, (int)tensor->exponent);
         }
         return false;
     }

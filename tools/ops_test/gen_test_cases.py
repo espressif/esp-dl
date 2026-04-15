@@ -251,6 +251,15 @@ if __name__ == "__main__":
             op_test_func = op_test_config[op_type]["test_func"]
             quant_bits = op_test_config[op_type].get("quant_bits", [])
 
+            # Add for per channel testing, only for conv, convtranspose and gemm op on esp32p4 platform.
+            per_channel_enable = False
+            if args.target in ["esp32p4"] and op_type in [
+                "Conv",
+                "ConvTranspose",
+                "Gemm",
+            ]:
+                per_channel_enable = True
+
             if (
                 (args.bits == 8 and "int8" in quant_bits)
                 or (args.bits == 16 and "int16" in quant_bits)
@@ -258,7 +267,10 @@ if __name__ == "__main__":
             ):
                 export_path = os.path.join(args.output_path, op_type)
                 for cfg in op_configs:
+                    cfg["per_channel_enable"] = per_channel_enable
                     print(
+                        "target: ",
+                        args.target,
                         "Op Test Function: ",
                         op_test_func,
                         "Configs: ",
