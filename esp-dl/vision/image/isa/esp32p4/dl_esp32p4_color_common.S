@@ -1,7 +1,7 @@
 #include "sdkconfig.h"
 #include "esp_idf_version.h"
 
-#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 5, 2)) || defined(CONFIG_ESP32P4_SELECTS_REV_LESS_V3)
+#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 5, 2))
 .macro vldbc_8_ip q, a, n
     esp.vldbc.8.ip \q, \a, \n * 4
 .endm
