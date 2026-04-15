@@ -1,8 +1,10 @@
 #pragma once
 
+#include <cstdio>
 #include <stdint.h>
 
 #if CONFIG_IDF_TARGET_ESP32S3
+#include "esp_idf_version.h"
 #include "esp32s3/rom/cache.h"
 #include "soc/extmem_reg.h"
 #endif

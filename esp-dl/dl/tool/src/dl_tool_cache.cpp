@@ -103,6 +103,7 @@ void autoload_func(uint32_t addr1, uint32_t size1, uint32_t addr2, uint32_t size
         Cache_Config_DCache_Region_Autoload(&region1);
     }
 #else
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
     if (autoload_enable && (!preload_enable)) {
         Cache_Disable_DCache_Autoload();
         uint8_t input1_enable = (addr1 < SOC_EXTRAM_DATA_HIGH) ? 1 : 0;
@@ -124,6 +125,7 @@ void autoload_func(uint32_t addr1, uint32_t size1, uint32_t addr2, uint32_t size
     }
 #endif
 #endif
+#endif
 }
 
 void autoload_func(uint32_t addr1, uint32_t size1)
@@ -143,6 +145,7 @@ void autoload_func(uint32_t addr1, uint32_t size1)
         Cache_Config_DCache_Region_Autoload(&region0);
     }
 #else
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
     if (autoload_enable && (!preload_enable)) {
         Cache_Disable_DCache_Autoload();
         uint8_t input1_enable = (addr1 < SOC_EXTRAM_DATA_HIGH) ? 1 : 0;
@@ -161,6 +164,7 @@ void autoload_func(uint32_t addr1, uint32_t size1)
         Cache_Enable_DCache_Autoload();
         // printf("autoload_start!\n");
     }
+#endif
 #endif
 #endif
 }
