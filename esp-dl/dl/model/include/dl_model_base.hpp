@@ -404,7 +404,7 @@ public:
     /**
      * @brief Reset the model.
      *        This function resets the model context and all modules, but does not reload the model or rebuild the
-     * execution plan,
+     * execution plan.
      */
     virtual void reset();
 
