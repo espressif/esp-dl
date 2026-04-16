@@ -1,6 +1,6 @@
 .build_docs_template:
   stage: build
-  image: "$CI_DOCKER_REGISTRY/esp-idf-doc-env-v5.3:1-1"
+  image: "$CI_DOCKER_REGISTRY/esp-idf-doc-env-v6.1:1-1"
   needs:
   - job: "check_pre_commit"
     artifacts: false
@@ -21,7 +21,6 @@ build_esp_dl_html:
   script:
     - cd $DOCS_DIR
     - bash ./check_lang_folder_sync.sh
-    - pip install -r requirements.txt
     - build-docs --skip-reqs-check -l $DOCLANG
     - echo "ESP-DL documentation preview available at $CI_JOB_URL/artifacts/file/docs/_build/$DOCLANG/$DOCTGT/html/index.html"
   parallel:
@@ -40,10 +39,11 @@ build_esp_dl_pdf:
       - $DOCS_DIR/_build/*/*/latex/*
       - $DOCS_DIR/_build/*/*/*.txt
     expire_in: 4 days
+  before_script:
+    - apt-get update && apt-get install -y texlive-xetex texlive-lang-chinese
   script:
     - cd $DOCS_DIR
     - bash ./check_lang_folder_sync.sh
-    - pip install -r requirements.txt
     - build-docs --skip-reqs-check -bs latex -l $DOCLANG
   parallel:
     matrix:
