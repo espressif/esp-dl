@@ -125,6 +125,27 @@ public:
     int channel_size() const { return m_size; }
 
     const int *data() const { return m_exponents ? m_exponents : &m_exponent; }
+
+    bool operator==(const ExponentInfo &other) const
+    {
+        if (!this->is_per_channel() && !other.is_per_channel()) {
+            return this->m_exponent == other.m_exponent;
+        }
+        if (this->is_per_channel() != other.is_per_channel()) {
+            return false;
+        }
+        if (this->m_size != other.m_size) {
+            return false;
+        }
+        for (int i = 0; i < this->m_size; i++) {
+            if (this->m_exponents[i] != other.m_exponents[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool operator!=(const ExponentInfo &other) const { return !(*this == other); }
 };
 
 /**

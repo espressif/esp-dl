@@ -211,6 +211,26 @@ bool TensorBase::assign(TensorBase *tensor)
         return false;
     }
 
+    // Only the weights may use per-channel quantization.
+    bool this_per_channel = this->exponent.is_per_channel();
+    bool tensor_per_channel = tensor->exponent.is_per_channel();
+
+    if (this_per_channel || tensor_per_channel) {
+        if (this->exponent == tensor->exponent && this->dtype == tensor->dtype) {
+            tool::copy_memory(this->data, tensor->data, this->get_bytes());
+            return true;
+        }
+        ESP_LOGE("TensorBase::assign",
+                 "Per-channel tensor assign failed: exponent or dtype mismatch. "
+                 "this->exponent.is_per_channel=%d, tensor->exponent.is_per_channel=%d, "
+                 "this->dtype=%s, tensor->dtype=%s",
+                 this_per_channel,
+                 tensor_per_channel,
+                 dtype_to_string(this->dtype),
+                 dtype_to_string(tensor->dtype));
+        return false;
+    }
+
     if (this->exponent == tensor->exponent && this->dtype == tensor->dtype) {
         tool::copy_memory(this->data, tensor->data, this->get_bytes());
     } else if (tensor->dtype == DATA_TYPE_FLOAT) {
