@@ -1,0 +1,7 @@
+menu "AutoQuant latency model"
+
+config MODEL_FILE_PATH
+	string "Path to .espdl file or directory for pack_espdl_models"
+	default ""
+
+endmenu

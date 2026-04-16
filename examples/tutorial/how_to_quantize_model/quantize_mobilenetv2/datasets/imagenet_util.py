@@ -256,4 +256,7 @@ def _evaluate_any_module_with_imagenet(
     dataframe = pd.DataFrame()
     for column_name in recorder:
         dataframe[column_name] = recorder[column_name]
-    return dataframe
+    # return dataframe
+    top1 = sum(recorder["top1_accuracy"]) / len(recorder["top1_accuracy"])
+    top5 = sum(recorder["top5_accuracy"]) / len(recorder["top5_accuracy"])
+    return dataframe, top1, top5
