@@ -26,8 +26,17 @@ private:
     int m_size;
 
 public:
+    /**
+     * @brief Construct a per-tensor ExponentInfo with a single exponent value.
+     * @param exponent The exponent value for per-tensor quantization. Default is 0.
+     */
     ExponentInfo(int exponent = 0) : m_exponent(exponent), m_exponents(nullptr), m_size(1) {}
 
+    /**
+     * @brief Construct an ExponentInfo from a vector of exponents.
+     * @param exponents Vector of exponent values. If size <= 1, uses per-tensor mode;
+     *                  otherwise uses per-channel mode with heap allocation.
+     */
     ExponentInfo(const std::vector<int> &exponents) : m_exponents(nullptr), m_size(1)
     {
         if (exponents.size() <= 1) {
@@ -42,12 +51,19 @@ public:
         }
     }
 
+    /**
+     * @brief Destroy the ExponentInfo object and free heap-allocated memory.
+     */
     ~ExponentInfo()
     {
         delete[] m_exponents;
         m_exponents = nullptr;
     }
 
+    /**
+     * @brief Copy constructor.
+     * @param other The ExponentInfo object to copy from.
+     */
     ExponentInfo(const ExponentInfo &other) : m_exponent(other.m_exponent), m_exponents(nullptr), m_size(other.m_size)
     {
         if (other.m_exponents && m_size > 1) {
@@ -58,6 +74,11 @@ public:
         }
     }
 
+    /**
+     * @brief Copy assignment operator.
+     * @param other The ExponentInfo object to assign from.
+     * @return Reference to this object.
+     */
     ExponentInfo &operator=(const ExponentInfo &other)
     {
         if (this != &other) {
@@ -76,6 +97,10 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Move constructor.
+     * @param other The ExponentInfo object to move from.
+     */
     ExponentInfo(ExponentInfo &&other) noexcept :
         m_exponent(other.m_exponent), m_exponents(other.m_exponents), m_size(other.m_size)
     {
@@ -83,6 +108,11 @@ public:
         other.m_size = 1;
     }
 
+    /**
+     * @brief Move assignment operator.
+     * @param other The ExponentInfo object to move from.
+     * @return Reference to this object.
+     */
     ExponentInfo &operator=(ExponentInfo &&other) noexcept
     {
         if (this != &other) {
@@ -96,6 +126,11 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Assign a single integer value as per-tensor exponent.
+     * @param value The exponent value to assign.
+     * @return Reference to this object.
+     */
     ExponentInfo &operator=(int value)
     {
         delete[] m_exponents;
@@ -109,6 +144,7 @@ public:
      * @brief Get exponent value.
      * @param ch  Channel index. -1 (default) returns per-tensor value.
      *            ch >= 0 returns per-channel value if available, otherwise per-tensor.
+     * @return The exponent value for the specified channel or per-tensor exponent.
      */
     int get(int ch = -1) const
     {
@@ -118,14 +154,35 @@ public:
         return m_exponents[ch];
     }
 
+    /**
+     * @brief Implicit conversion to int, returns the per-tensor exponent value.
+     * @return The per-tensor exponent value.
+     */
     operator int() const { return m_exponent; }
 
+    /**
+     * @brief Check if using per-channel quantization.
+     * @return true if per-channel exponents are stored, false otherwise.
+     */
     bool is_per_channel() const { return m_exponents != nullptr && m_size > 1; }
 
+    /**
+     * @brief Get the number of channels.
+     * @return Number of channels for per-channel mode, or 1 for per-tensor mode.
+     */
     int channel_size() const { return m_size; }
 
+    /**
+     * @brief Get pointer to exponent data.
+     * @return Pointer to per-channel exponents array if available, otherwise pointer to per-tensor exponent.
+     */
     const int *data() const { return m_exponents ? m_exponents : &m_exponent; }
 
+    /**
+     * @brief Compare two ExponentInfo objects for equality.
+     * @param other The ExponentInfo object to compare with.
+     * @return true if both have the same exponent values, false otherwise.
+     */
     bool operator==(const ExponentInfo &other) const
     {
         if (!this->is_per_channel() && !other.is_per_channel()) {
@@ -145,6 +202,11 @@ public:
         return true;
     }
 
+    /**
+     * @brief Compare two ExponentInfo objects for inequality.
+     * @param other The ExponentInfo object to compare with.
+     * @return true if exponent values differ, false if equal.
+     */
     bool operator!=(const ExponentInfo &other) const { return !(*this == other); }
 };
 
