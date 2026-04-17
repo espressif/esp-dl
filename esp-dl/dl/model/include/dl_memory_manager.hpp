@@ -352,14 +352,6 @@ public:
         this->is_free = true;
         this->tensor = nullptr;
     }
-
-    /**
-     * @brief get aligned size, which is 16/alignment bytes aligned
-     *
-     * @param size
-     * @return size_t
-     */
-    size_t get_aligned_size(size_t size);
 };
 
 /**

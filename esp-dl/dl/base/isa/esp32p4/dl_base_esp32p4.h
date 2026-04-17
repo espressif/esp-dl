@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 extern "C" {
 
 /* Int16 API */
@@ -33,6 +35,42 @@ void dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu(int16_t *output_ptr, int16_t
 void dl_esp32p4_s16_unaligned_conv2d_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_esp32p4_s16_unaligned_conv2d_hwcn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 
+void dl_esp32p4_s16_conv2d_per_channel_11cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_conv2d_per_channel_11cn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_conv2d_per_channel_11cn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_conv2d_per_channel_11cn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn_bias_relu(int16_t *output_ptr,
+                                                                int16_t *input_ptr,
+                                                                void *args_ptr);
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s16_conv2d_per_channel_33cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_conv2d_per_channel_33cn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_conv2d_per_channel_33cn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_conv2d_per_channel_33cn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn_bias_relu(int16_t *output_ptr,
+                                                                int16_t *input_ptr,
+                                                                void *args_ptr);
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s16_conv2d_per_channel_hwcn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_conv2d_per_channel_hwcn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_conv2d_per_channel_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_conv2d_per_channel_hwcn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias_relu(int16_t *output_ptr,
+                                                                int16_t *input_ptr,
+                                                                void *args_ptr);
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
 void dl_esp32p4_s16_depthwise_conv2d_33c1_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_esp32p4_s16_depthwise_conv2d_33c1(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
@@ -52,6 +90,46 @@ void dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias(int16_t *output_ptr, in
 void dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias_relu(int16_t *output_ptr,
+                                                                int16_t *input_ptr,
+                                                                void *args_ptr);
+void dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias(int16_t *output_ptr,
+                                                                     int16_t *input_ptr,
+                                                                     void *args_ptr);
+void dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu(int16_t *output_ptr,
+                                                                          int16_t *input_ptr,
+                                                                          void *args_ptr);
+void dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1(int16_t *output_ptr,
+                                                                int16_t *input_ptr,
+                                                                void *args_ptr);
+void dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu(int16_t *output_ptr,
+                                                                     int16_t *input_ptr,
+                                                                     void *args_ptr);
+
+void dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_relu(int16_t *output_ptr,
+                                                                int16_t *input_ptr,
+                                                                void *args_ptr);
+void dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias(int16_t *output_ptr,
+                                                                     int16_t *input_ptr,
+                                                                     void *args_ptr);
+void dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu(int16_t *output_ptr,
+                                                                          int16_t *input_ptr,
+                                                                          void *args_ptr);
+void dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1(int16_t *output_ptr,
+                                                                int16_t *input_ptr,
+                                                                void *args_ptr);
+void dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu(int16_t *output_ptr,
+                                                                     int16_t *input_ptr,
+                                                                     void *args_ptr);
 
 void dl_esp32p4_s16_add2d_11c(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
 void dl_esp32p4_s16_add2d_11c_relu(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
@@ -154,6 +232,74 @@ void dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias(int8_t *output_ptr, int8
 void dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 void dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 void dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s8_conv2d_per_channel_11cn_bias(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_conv2d_per_channel_11cn_bias_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_conv2d_per_channel_11cn(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_conv2d_per_channel_11cn_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu(int8_t *output_ptr,
+                                                                    int8_t *input_ptr,
+                                                                    void *args_ptr);
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s8_conv2d_per_channel_33cn_bias(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_conv2d_per_channel_33cn_bias_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_conv2d_per_channel_33cn(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_conv2d_per_channel_33cn_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu(int8_t *output_ptr,
+                                                                    int8_t *input_ptr,
+                                                                    void *args_ptr);
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s8_conv2d_per_channel_hwcn_bias(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_conv2d_per_channel_hwcn_bias_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_conv2d_per_channel_hwcn(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_conv2d_per_channel_hwcn_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu(int8_t *output_ptr,
+                                                                    int8_t *input_ptr,
+                                                                    void *args_ptr);
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_bias(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_bias_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_bias(int8_t *output_ptr,
+                                                                    int8_t *input_ptr,
+                                                                    void *args_ptr);
+void dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu(int8_t *output_ptr,
+                                                                         int8_t *input_ptr,
+                                                                         void *args_ptr);
+void dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_relu(int8_t *output_ptr,
+                                                                    int8_t *input_ptr,
+                                                                    void *args_ptr);
+
+void dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_relu(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias(int8_t *output_ptr,
+                                                                    int8_t *input_ptr,
+                                                                    void *args_ptr);
+void dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu(int8_t *output_ptr,
+                                                                         int8_t *input_ptr,
+                                                                         void *args_ptr);
+void dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+void dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_relu(int8_t *output_ptr,
+                                                                    int8_t *input_ptr,
+                                                                    void *args_ptr);
 
 void dl_esp32p4_s8_mul2d_11c(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
 void dl_esp32p4_s8_mul2d_11c_relu(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);

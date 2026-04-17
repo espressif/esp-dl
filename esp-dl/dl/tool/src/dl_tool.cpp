@@ -249,6 +249,12 @@ HEAP_IRAM_ATTR void *calloc_aligned(size_t n, size_t size, uint32_t caps)
     return ret;
 }
 
+size_t get_aligned_size(size_t size, int alignment)
+{
+    assert(alignment > 0 && (alignment & (alignment - 1)) == 0 && "alignment must be a power of 2");
+    return (size + alignment - 1) & ~(alignment - 1);
+}
+
 float *gen_lut_8bit(float *table, int exponent, std::function<float(float)> func)
 {
     if (table == nullptr) {

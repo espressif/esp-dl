@@ -64,6 +64,12 @@
 
 
 
+.macro esp32p4_s16_128b_vector_per_channel_shift_result  output_v, mac_shift_v
+    esp.srcmb.s16.q.qacc  \output_v, \mac_shift_v, 1
+.endm
+
+
+
 .macro esp32p4_s16_128b_aligned_vector_store  output_v, output_ptr
     esp.vst.128.ip  \output_v, \output_ptr, 16
 .endm
