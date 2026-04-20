@@ -51,8 +51,8 @@ def quant_setting_mobilenet_v2(
         elif "LayerwiseEqualization_quantization" in optim_quant_method:
             # layerwise equalization
             quant_setting.equalization = True
-            quant_setting.equalization_setting.iterations = 4
-            quant_setting.equalization_setting.value_threshold = 0.4
+            quant_setting.equalization_setting.iterations = 6
+            quant_setting.equalization_setting.value_threshold = 0.5
             quant_setting.equalization_setting.opt_level = 2
             quant_setting.equalization_setting.interested_layers = None
             # replace ReLU6 with ReLU
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     BATCH_SIZE = 32
     INPUT_SHAPE = [3, 224, 224]
     DEVICE = "cpu"  #  'cuda' or 'cpu', if you use cuda, please make sure that cuda is available
-    TARGET = "esp32p4"  #  'c', 'esp32s3' or 'esp32p4'
+    TARGET = "esp32s3"  #  'c', 'esp32s3' or 'esp32p4'
     NUM_OF_BITS = 8
     ONNX_PATH = "./models/torch/mobilenet_v2.onnx"  #'models/onnx/mobilenet_v2.onnx'
     ESPDL_MODEL_PATH = "models/onnx/mobilenet_v2.espdl"
