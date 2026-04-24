@@ -239,7 +239,7 @@ uint16_t *dl_gen_bitrev2r_table(int N, uint32_t caps, int *bitrev_size)
     return bitrev_table;
 }
 
-float *dl_gen_fftr2_table_f32(int fft_point, uint32_t caps)
+float *dl_gen_fft2r_table_f32(int fft_point, uint32_t caps)
 {
     float *fft_table = (float *)heap_caps_aligned_alloc(16, fft_point * sizeof(float), caps);
 
