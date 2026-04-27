@@ -15,6 +15,7 @@ ESP-DL offers APIs to load, debug, and run AI models. The framework is easy to u
 - **8bit LUT Activation**: All activation functions except for ReLU and PReLU are implemented using an 8-bit LUT (Look Up Table) method in ESP-DL to accelerate inference. You can use any activation function, and their computational complexity remains the same.
 
 ## News
+- [2026/4/23] Support model quantization via AutoQuant tool, which automatically explores optimal quantization strategies and parameters, significantly reducing manual tuning effort. See [how_to_use_AutoQuant.rst](./docs/en/tutorials/how_to_use_AutoQuant.rst).
 - [2026/4/20] Conv and Gemm operators on ESP32-P4 have been upgraded to per-channel quantization, significantly improving model accuracy. **Note**: This requires ESP-PPQ ≥ 1.2.10 and ESP-DL ≥ 3.3.1. The new ESP-DL maintains backward compatibility, and existing per-tensor models are not affected.
 - [2026/3/12] [YOLO26](./models/yolo26/) model has been added, thanks to [BoumedineBillal](https://github.com/BoumedineBillal) for the contribution. [Start training and deploying your own YOLO26 model](./examples/tutorial/how_to_quantize_model/quantize_yolo26).
 - [2026/3/11] The ESP-DL Agent Tool has been evolved into **espdl-operator skill**, making it easier for AI Agents to automatically implement operators. See [how_to_implement_operators_with_ai_agent.rst](./docs/en/tutorials/how_to_implement_operators_with_ai_agent.rst).
