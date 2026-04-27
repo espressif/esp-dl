@@ -178,15 +178,48 @@ esp_err_t dl_rfft_post_proc_sc16_ansi(int16_t *data, int cpx_points, int16_t *wi
 
 int dl_rfft_pre_proc_sc16(int16_t *data, int cpx_points, int16_t *table)
 {
-    int max_q = dl_array_max_q_s16(data, cpx_points * 2);
     int shift = 0;
+#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4
+    int max_q = dl_array_max_q_s16(data, cpx_points * 2);
     if (max_q >= 15) {
         for (int i = 0; i < cpx_points * 2; i++) {
             data[i] = data[i] >> 1;
         }
         shift = 1;
     }
+#endif
     dl_rfft_pre_proc_sc16_asm(data, cpx_points, table);
+    return shift;
+}
+
+/*
+ * Wrapper that protects dl_rfft_post_proc_sc16_asm from int16 overflow.
+ *
+ * The underlying _asm/_ansi implementations compute (sum_r + tw_r) >> 1 in
+ * 16-bit precision (the SIMD AMS hardware truncates the sum to 16 bits before
+ * the built-in `>> 1` store, dropping bit 16). When the input data uses the
+ * full int16 range (e.g. high-precision FFT output), |sum_r + tw_r| can exceed
+ * 32767 and the truncation produces a result that is 32768 off from the
+ * mathematically correct value.
+ *
+ * To avoid this, we pre-shift the data right by 1 whenever the abs-max
+ * indicates the data is in int16 range, so all intermediate (sum_r + tw_r)
+ * values stay within int16. The caller must compensate by adding the returned
+ * shift to the output exponent.
+ */
+int dl_rfft_post_proc_sc16(int16_t *data, int cpx_points, int16_t *table)
+{
+    int shift = 0;
+#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4
+    int max_q = dl_array_max_q_s16(data, cpx_points * 2);
+    if (max_q >= 15) {
+        for (int i = 0; i < cpx_points * 2; i++) {
+            data[i] = data[i] >> 1;
+        }
+        shift = 1;
+    }
+#endif
+    dl_rfft_post_proc_sc16_asm(data, cpx_points, table);
     return shift;
 }
 

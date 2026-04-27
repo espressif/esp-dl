@@ -934,7 +934,16 @@ dl_ifft2r_sc16_dif_hp_aes3_:
     retw
 
 
-/* esp_err_t dl_rfft_post_proc_sc16_aes3_(int16_t *data, int N, int16_t *table); */
+/* esp_err_t dl_rfft_post_proc_sc16_aes3_(int16_t *data, int N, int16_t *table);
+ *
+ * NOTE: The AMS hardware truncates the intermediate (sum_r + tw_r) addition to
+ * 16 bits BEFORE the built-in `>> 1` shift in the store, so when
+ * |sum_r + tw_r| > INT16_MAX bit 16 is dropped and the result differs from
+ * the int32 C reference by 32768. To prevent this, callers must pre-shift the
+ * input data by 1 right shift whenever the data uses (close to) the full int16
+ * range (this is handled by the `dl_rfft_post_proc_sc16` wrapper and the
+ * caller compensates the output exponent by +1).
+ */
     .text
     .align 4
     .global dl_rfft_post_proc_sc16_aes3_

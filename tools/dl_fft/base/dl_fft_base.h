@@ -70,6 +70,12 @@ esp_err_t dl_rfft_post_proc_sc16_ansi(int16_t *data, int N, int16_t *table);
 esp_err_t dl_rfft_pre_proc_sc16_ansi(int16_t *data, int N, int16_t *table);
 esp_err_t dl_cplx2real_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift);
 
+/* Pre-shifts input by 1 if needed (to avoid int16 overflow in
+ * dl_rfft_post_proc_sc16_asm), then runs the post-processing.
+ * Returns the number of right shifts applied (0 or 1) so the caller can
+ * adjust the output exponent. */
+int dl_rfft_post_proc_sc16(int16_t *data, int cpx_points, int16_t *table);
+
 // int16_t *dl_gen_dif_rfft_table(int N, uint32_t caps);
 // int16_t *dl_gen_dif_rfft_table2(int N, uint32_t caps);
 
@@ -102,7 +108,7 @@ esp_err_t dl_cplx2real_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *s
 #define dl_bitrev2r_sc16_asm dl_bitrev2r_sc16_aes3_
 #define dl_ifft2r_sc16_dif_hp dl_ifft2r_sc16_dif_hp_aes3_
 #define dl_ifft2r_sc16_dif dl_ifft2r_sc16_dif_aes3_
-#define dl_rfft_post_proc_sc16 dl_rfft_post_proc_sc16_aes3_
+#define dl_rfft_post_proc_sc16_asm dl_rfft_post_proc_sc16_aes3_
 #define dl_rfft_pre_proc_sc16_asm dl_rfft_pre_proc_sc16_aes3_
 #else
 #define dl_reduce_abs_max dl_reduce_abs_max_ansi
@@ -111,7 +117,7 @@ esp_err_t dl_cplx2real_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *s
 #define dl_bitrev2r_sc16_asm dl_bitrev2r_sc16_ansi
 #define dl_ifft2r_sc16_dif_hp dl_ifft2r_sc16_dif_hp_ansi
 #define dl_ifft2r_sc16_dif dl_ifft2r_sc16_dif_ansi
-#define dl_rfft_post_proc_sc16 dl_rfft_post_proc_sc16_ansi
+#define dl_rfft_post_proc_sc16_asm dl_rfft_post_proc_sc16_ansi
 #define dl_rfft_pre_proc_sc16_asm dl_rfft_pre_proc_sc16_ansi
 #endif
 

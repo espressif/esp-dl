@@ -60,8 +60,8 @@ esp_err_t dl_rfft_s16_run(dl_fft_s16_t *handle, int16_t *data, int in_exponent, 
     int cpx_point = handle->fft_point >> 1;
     dl_fft2r_sc16_dif(data, handle->fft_table, 15, handle->log2n, cpx_point);
     dl_bitrev2r_sc16(data, cpx_point, handle->log2n);
-    dl_rfft_post_proc_sc16(data, cpx_point, handle->rfft_table);
-    out_exponent[0] = in_exponent + handle->log2n;
+    int post_shift = dl_rfft_post_proc_sc16(data, cpx_point, handle->rfft_table);
+    out_exponent[0] = in_exponent + handle->log2n + post_shift;
 
     return ESP_OK;
 }
@@ -76,8 +76,8 @@ esp_err_t dl_rfft_s16_hp_run(dl_fft_s16_t *handle, int16_t *data, int in_exponen
     out_exponent[0] = 0;
     dl_fft2r_sc16_dif_hp(data, handle->fft_table, handle->log2n, cpx_point, out_exponent);
     dl_bitrev2r_sc16(data, cpx_point, handle->log2n);
-    dl_rfft_post_proc_sc16(data, cpx_point, handle->rfft_table);
-    out_exponent[0] = in_exponent + out_exponent[0];
+    int post_shift = dl_rfft_post_proc_sc16(data, cpx_point, handle->rfft_table);
+    out_exponent[0] = in_exponent + out_exponent[0] + post_shift;
 
     return ESP_OK;
 }
