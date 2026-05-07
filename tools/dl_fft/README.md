@@ -96,7 +96,7 @@ Because esp-dsp uses global variables to share FFT tables and other parameters i
 
 1. Provides an unified and simple FFT/IFFT interface. Users no longer need to worry about their FFT results being affected by other programs. All FFT tables are allocated and released within the function scope.  
 2. Reimplements an int16 FFT/IFFT. Dynamic quantization is used during butterfly operations to achieve better precision.  
-3. [TODO] Uses built-in FFT instructions on ESP32-S3 and ESP32-P4 to further accelerate int16 FFT/IFFT.
+3. Uses built-in FFT instructions on ESP32-S3 and ESP32-P4 to further accelerate int16 FFT/IFFT.
 
 
 ## Benchmark

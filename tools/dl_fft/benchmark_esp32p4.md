@@ -64,4 +64,6 @@
 |                       | 2048     | 64.4         | 0.000499   | 138           |
 
 
+*Note: Only ESP32-P4 revisions greater than 3.0 support acceleration using PIE instructions. The above data was measured on the ESP32-P4 at 400 MHz.*
+
 Generation Time: 2026-05-07
