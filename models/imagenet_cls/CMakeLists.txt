@@ -20,7 +20,7 @@ idf_component_register(SRC_DIRS ${src_dirs} INCLUDE_DIRS ${include_dirs} REQUIRE
 if (NOT CONFIG_IMAGENET_CLS_MODEL_IN_SDCARD)
     if (IDF_TARGET STREQUAL "esp32s3")
         set(models_dir ${COMPONENT_DIR}/models/s3)
-    elseif (IDF_TARGET STREQUAL "esp32p4")
+    elseif (IDF_TARGET STREQUAL "esp32p4" OR IDF_TARGET STREQUAL "esp32s31")
         set(models_dir ${COMPONENT_DIR}/models/p4)
     endif()
 

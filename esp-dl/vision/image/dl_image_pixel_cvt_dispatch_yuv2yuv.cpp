@@ -24,7 +24,7 @@ void pixel_cvt_dispatch_yuv2yuv(const Func &func, pix_cvt_t pix_cvt_type, const 
 template void pixel_cvt_dispatch_yuv2yuv<CvtPixelFunctor>(const CvtPixelFunctor &func,
                                                           pix_cvt_t pix_cvt_type,
                                                           const pix_cvt_param_t &param);
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
 template void pixel_cvt_dispatch_yuv2yuv<ImageTransformer::TransformNNFunctor<true>>(
     const ImageTransformer::TransformNNFunctor<true> &func, pix_cvt_t pix_cvt_type, const pix_cvt_param_t &param);
 #endif

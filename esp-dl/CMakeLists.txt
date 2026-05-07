@@ -52,7 +52,7 @@ elseif(CONFIG_IDF_TARGET_ESP32S3)
 
 elseif(CONFIG_IDF_TARGET_ESP32C3)
 
-elseif(CONFIG_IDF_TARGET_ESP32P4)
+elseif(CONFIG_IDF_TARGET_ESP32P4 OR CONFIG_IDF_TARGET_ESP32S31)
     list(APPEND src_dirs        dl/tool/isa/esp32p4)
     list(APPEND src_dirs        dl/base/isa/esp32p4)
     list(APPEND include_dirs    dl/base/isa/esp32p4)
