@@ -32,6 +32,13 @@ void dl_fft2r_fc32_arp4_(float *data, int N, float *table);
 void dl_ifft2r_fc32_arp4_(float *data, int N, float *table);
 void dl_fft4r_fc32_arp4_(float *data, int N, float *table, int table_size);
 void dl_ifft4r_fc32_arp4_(float *data, int N, float *table, int table_size);
+int16_t dl_fft_reduce_max_arp4_(const int16_t *inputs, int len);
+int16_t dl_reduce_abs_max_arp4_(const int16_t *inputs, int len);
+void dl_bitrev2r_sc16_arp4_(int16_t *data, int cpx_points, int log2N);
+void dl_fft2r_sc16_dif_arp4_(int16_t *data, int16_t *table, int shift, int num_stages, int cpx_points);
+void dl_ifft2r_sc16_dif_arp4_(int16_t *data, int16_t *table, int shift, int num_stages, int cpx_points);
+void dl_fft2r_sc16_dif_hp_arp4_(int16_t *data, int16_t *table, int num_stages, int cpx_points, int *out_shift);
+void dl_ifft2r_sc16_dif_hp_arp4_(int16_t *data, int16_t *table, int num_stages, int cpx_points, int *out_shift);
 #endif
 
 #ifdef __cplusplus
