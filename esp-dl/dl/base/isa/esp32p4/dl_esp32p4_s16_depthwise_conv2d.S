@@ -89,7 +89,6 @@
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_33c1_bias
     .type	dl_esp32p4_s16_depthwise_conv2d_33c1_bias, @function
     .balign 4
@@ -155,7 +154,6 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_bias:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu
     .type	dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu, @function
     .balign 4
@@ -228,7 +226,6 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_33c1
     .type	dl_esp32p4_s16_depthwise_conv2d_33c1, @function
     .balign 4
@@ -291,7 +288,6 @@ dl_esp32p4_s16_depthwise_conv2d_33c1:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_33c1_relu
     .type	dl_esp32p4_s16_depthwise_conv2d_33c1_relu, @function
     .balign 4
@@ -357,9 +353,6 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
 
     esp32p4_pop_8_stacks_2r  s0, s1
     ret
-
-
-
 
 
 
@@ -497,7 +490,6 @@ dl_esp32p4_s16_depthwise_conv2d_33c1_relu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_hwc1_bias
     .type	dl_esp32p4_s16_depthwise_conv2d_hwc1_bias, @function
     .balign 4
@@ -555,7 +547,6 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1_bias:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu
     .type	dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu, @function
     .balign 4
@@ -616,7 +607,6 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_hwc1
     .type	dl_esp32p4_s16_depthwise_conv2d_hwc1, @function
     .balign 4
@@ -672,7 +662,6 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_depthwise_conv2d_hwc1_relu
     .type	dl_esp32p4_s16_depthwise_conv2d_hwc1_relu, @function
     .balign 4
@@ -725,5 +714,550 @@ dl_esp32p4_s16_depthwise_conv2d_hwc1_relu:
 
         addi  t1, t1, -1
         bgez  t1, esp32p4_s16_depthwise_conv2d_hwc1_relu_loop
+    esp32p4_pop_12_stacks_3r  s0, s1, s2
+    ret
+
+
+
+############################################################################################################################################################
+####
+#### esp32p4_s16_depthwise_conv2d_per_channel_33c1 series
+####
+############################################################################################################################################################
+
+.macro esp32p4_s16_depthwise_conv2d_per_channel_33c1_load_args  args, filter_ptr, dilation_x_offset, dilation_y_offset, next_hw81, c_div_x_1, tie_filter_channel_factor
+    # dilation_x_offset = input_channel_with_padding * dilation_x * sizeof(t)
+    # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(t)
+    # next_hw81 = (-(filter_width - 1) * dilation_x * input_channel_with_padding - (filter_height - 1) * dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(t) + 16
+
+    lw  \filter_ptr,                        48 (\args)
+    lw  \dilation_x_offset,                 124(\args)
+    lw  \dilation_y_offset,                 128(\args)
+    lw  \next_hw81,                         132(\args)
+    lw  \c_div_x_1,                         100(\args)
+    lw  \tie_filter_channel_factor,         104 (\args)
+.endm
+
+
+
+    .text
+    .global dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias
+    .type	dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: int16_t *filter_ptr
+    # a4: input dilation x offset
+    # a5: input dilation y offset
+    # t3: next_hw81
+    # t4: tie_filter_channel_factor
+    # t5: c_div_x_1
+    # t6: bias_ptr
+
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_s16_depthwise_conv2d_per_channel_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
+    lw  t6, 68(a2)      // bias
+
+    esp.vld.128.xp  q0, a1, a4
+    esp.vld.128.ip  q1, a3, 16
+    esp.vld.128.xp  q2, a1, a4
+
+    beqz  t5, esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias_loop_last
+    // esp.lp.setup  0, t5, 1f
+    1:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_conv2d_128b_vector_bias  t6
+        esp32p4_s16_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q6
+        esp.vst.128.ip  q3, a0, 16
+        addi  t5, t5, -1
+        bgtz  t5, 1b
+
+    esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias_loop_last:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_conv2d_128b_vector_bias  t6
+        esp32p4_s16_depthwise_conv2d_3381_last  q0, q1, q2, q3, a1, a3, a4, a5
+        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q6
+        esp.vst.128.ip  q3, a0, 16
+
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias_relu
+    .type	dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias_relu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias_relu:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: int16_t *filter_ptr
+    # a4: input dilation x offset
+    # a5: input dilation y offset
+    # t3: next_hw81
+    # t4: tie_filter_channel_factor
+    # t5: c_div_x_1
+    # t6: bias_ptr
+
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0: activation_alpha/_address
+    # s1: activation_shift
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_8_stacks_2r  s0, s1
+
+    esp32p4_s16_depthwise_conv2d_per_channel_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
+    lw  t6, 68(a2)      // bias
+    lw  s0, 76(a2)      // activation_alpha
+    lw  s1, 84(a2)      // activation_shift
+
+    esp.vld.128.xp  q0, a1, a4
+    esp.vld.128.ip  q1, a3, 16
+    esp.vld.128.xp  q2, a1, a4
+
+    beqz  t5, esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias_relu_loop_last
+    // esp.lp.setup  0, t5, 1f
+    1:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_conv2d_128b_vector_bias  t6
+        esp32p4_s16_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q6
+        esp32p4_s16_128b_vector_relu  q3, s0, s1
+        esp.vst.128.ip  q3, a0, 16
+        addi  t5, t5, -1
+        bgtz  t5, 1b
+
+    esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias_relu_loop_last:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_conv2d_128b_vector_bias  t6
+        esp32p4_s16_depthwise_conv2d_3381_last  q0, q1, q2, q3, a1, a3, a4, a5
+        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q6
+        esp32p4_s16_128b_vector_relu  q3, s0, s1
+        esp.vst.128.ip  q3, a0, 16
+
+    esp32p4_pop_8_stacks_2r  s0, s1
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1
+    .type	dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: int16_t *filter_ptr
+    # a4: input dilation x offset
+    # a5: input dilation y offset
+    # t3: next_hw81
+    # t4: tie_filter_channel_factor
+    # t5: c_div_x_1
+    # t6:
+
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_s16_depthwise_conv2d_per_channel_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
+
+    esp.vld.128.xp  q0, a1, a4
+    esp.vld.128.ip  q1, a3, 16
+    esp.vld.128.xp  q2, a1, a4
+
+    beqz  t5, esp32p4_s16_depthwise_conv2d_per_channel_33c1_loop_last
+    // esp.lp.setup  0, t5, 1f
+    1:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q6
+        esp.vst.128.ip  q3, a0, 16
+        addi  t5, t5, -1
+        bgtz  t5, 1b
+
+    esp32p4_s16_depthwise_conv2d_per_channel_33c1_loop_last:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_depthwise_conv2d_3381_last  q0, q1, q2, q3, a1, a3, a4, a5
+        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q6
+        esp.vst.128.ip  q3, a0, 16
+
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_relu
+    .type	dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_relu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_relu:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: int16_t *filter_ptr
+    # a4: input dilation x offset
+    # a5: input dilation y offset
+    # t3: next_hw81
+    # t4: tie_filter_channel_factor
+    # t5: c_div_x_1
+    # t6:
+
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions):
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0: activation_alpha/_address
+    # s1: activation_shift
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_8_stacks_2r  s0, s1
+
+    esp32p4_s16_depthwise_conv2d_per_channel_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
+    lw  s0, 76(a2)       // activation_alpha
+    lw  s1, 84(a2)       // activation_shift
+
+    esp.vld.128.xp  q0, a1, a4
+    esp.vld.128.ip  q1, a3, 16
+    esp.vld.128.xp  q2, a1, a4
+
+    beqz  t5, esp32p4_s16_depthwise_conv2d_per_channel_33c1_relu_loop_last
+    // esp.lp.setup  0, t5, 1f
+    1:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q6
+        esp32p4_s16_128b_vector_relu  q3, s0, s1
+        esp.vst.128.ip  q3, a0, 16
+        addi  t5, t5, -1
+        bgtz  t5, 1b
+
+    esp32p4_s16_depthwise_conv2d_per_channel_33c1_relu_loop_last:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_depthwise_conv2d_3381_last  q0, q1, q2, q3, a1, a3, a4, a5
+        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q6
+        esp32p4_s16_128b_vector_relu  q3, s0, s1
+        esp.vst.128.ip  q3, a0, 16
+
+    esp32p4_pop_8_stacks_2r  s0, s1
+    ret
+
+
+
+############################################################################################################################################################
+####
+#### esp32p4_s16_depthwise_conv2d_per_channel_hwc1 series
+####
+############################################################################################################################################################
+
+.macro esp32p4_s16_depthwise_conv2d_per_channel_hwc1_load_args  args, filter_ptr, dilation_x_offset, dilation_y_offset, next_hw81, c_div_x_1, tie_filter_channel_factor, filter_w, filter_w_rs1_1
+    esp32p4_s16_depthwise_conv2d_per_channel_33c1_load_args \args, \filter_ptr, \dilation_x_offset, \dilation_y_offset, \next_hw81, \c_div_x_1, \tie_filter_channel_factor
+    lw \filter_w,         56(\args)
+    lw \filter_w_rs1_1,  148(\args)
+.endm
+
+
+
+    .text
+    .global dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias
+    .type	dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: int16_t *filter_ptr
+    # a4: input dilation x offset
+    # a5: input dilation y offset
+    # t3: next_hw81
+    # t4: tie_filter_channel_factor
+    # t5: filter_y_offset
+    # t6: bias_ptr
+
+    # a6(not for extension instructions): filter_w
+    # a7(not for extension instructions): filter_w_rs1_1
+    # t0(not for extension instructions): filter_n_offset
+    # t1(not for extension instructions): c_div_x_1
+    # t2(not for extension instructions): filter_h
+    # s2(not for extension instructions): tmp value
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_4_stacks_1r  s2
+
+    esp32p4_s16_depthwise_conv2d_per_channel_hwc1_load_args  a2, a3, a4, a5, t3, t1, t4, a6, a7
+    lw  t6, 68(a2)      // bias
+    lw  t5, 60 (a2)     // filter_y_offset
+    lw  t0, 144(a2)     // filter_n_offset
+
+    esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_loop:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_conv2d_128b_vector_bias  t6
+        esp32p4_s16_depthwise_conv2d_hw81  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3, t2, a6, a7, a2, t5, t0, s2
+        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q6
+        esp.vst.128.ip  q0, a0, 16
+
+        addi  t1, t1, -1
+        bgez  t1, esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_loop
+    esp32p4_pop_4_stacks_1r  s2
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_relu
+    .type	dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_relu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_relu:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: int16_t *filter_ptr
+    # a4: input dilation x offset
+    # a5: input dilation y offset
+    # t3: next_hw81
+    # t4: tie_filter_channel_factor
+    # t5: filter_y_offset
+    # t6: bias_ptr
+
+    # a6(not for extension instructions): filter_w
+    # a7(not for extension instructions): filter_w_rs1_1
+    # t0(not for extension instructions): filter_n_offset
+    # t1(not for extension instructions): c_div_x_1
+    # t2(not for extension instructions): filter_h
+    # s2(not for extension instructions): tmp value
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0: activation_alpha
+    # s1: activation_shift
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_12_stacks_3r  s0, s1, s2
+
+    esp32p4_s16_depthwise_conv2d_per_channel_hwc1_load_args  a2, a3, a4, a5, t3, t1, t4, a6, a7
+    lw  t6, 68(a2)      // bias
+    lw  t5, 60 (a2)     // filter_y_offset
+    lw  t0, 144(a2)     // filter_n_offset
+    lw  s0,  76 (a2)    // activation_alpha
+    lw  s1,  84 (a2)    // activation_shift
+
+    esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_relu_loop:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_conv2d_128b_vector_bias  t6
+        esp32p4_s16_depthwise_conv2d_hw81  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3, t2, a6, a7, a2, t5, t0, s2
+        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q6
+        esp32p4_s16_128b_vector_relu  q0, s0, s1
+        esp.vst.128.ip  q0, a0, 16
+
+        addi  t1, t1, -1
+        bgez  t1, esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_relu_loop
+    esp32p4_pop_12_stacks_3r  s0, s1, s2
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1
+    .type	dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: int16_t *filter_ptr
+    # a4: input dilation x offset
+    # a5: input dilation y offset
+    # t3: next_hw81
+    # t4: tie_filter_channel_factor
+    # t5: filter_y_offset
+    # t6:
+
+    # a6(not for extension instructions): filter_w
+    # a7(not for extension instructions): filter_w_rs1_1
+    # t0(not for extension instructions): filter_n_offset
+    # t1(not for extension instructions): c_div_x_1
+    # t2(not for extension instructions): filter_h
+    # s2(not for extension instructions): tmp value
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_4_stacks_1r  s2
+
+    esp32p4_s16_depthwise_conv2d_per_channel_hwc1_load_args  a2, a3, a4, a5, t3, t1, t4, a6, a7
+    lw  t5, 60 (a2)     // filter_y_offset
+    lw  t0, 144(a2)     // filter_n_offset
+
+    esp32p4_s16_depthwise_conv2d_per_channel_hwc1_loop:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_depthwise_conv2d_hw81  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3, t2, a6, a7, a2, t5, t0, s2
+        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q6
+        esp.vst.128.ip  q0, a0, 16
+
+        addi  t1, t1, -1
+        bgez  t1, esp32p4_s16_depthwise_conv2d_per_channel_hwc1_loop
+    esp32p4_pop_4_stacks_1r  s2
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_relu
+    .type	dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_relu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_relu:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: int16_t *filter_ptr
+    # a4: input dilation x offset
+    # a5: input dilation y offset
+    # t3: next_hw81
+    # t4: tie_filter_channel_factor
+    # t5: filter_y_offset
+    # t6:
+
+    # a6(not for extension instructions): filter_w
+    # a7(not for extension instructions): filter_w_rs1_1
+    # t0(not for extension instructions): filter_n_offset
+    # t1(not for extension instructions): c_div_x_1
+    # t2(not for extension instructions): filter_h
+    # s2(not for extension instructions): tmp value
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0: activation_alpha
+    # s1: activation_shift
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_12_stacks_3r  s0, s1, s2
+
+    esp32p4_s16_depthwise_conv2d_per_channel_hwc1_load_args  a2, a3, a4, a5, t3, t1, t4, a6, a7
+    lw  t5, 60 (a2)     // filter_y_offset
+    lw  t0, 144(a2)     // filter_n_offset
+    lw  s0,  76 (a2)    // activation_alpha
+    lw  s1,  84 (a2)    // activation_shift
+
+    esp32p4_s16_depthwise_conv2d_per_channel_hwc1_relu_loop:
+        esp.zero.qacc
+        esp.vld.128.ip  q6, t4, 16
+        esp32p4_s16_depthwise_conv2d_hw81  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3, t2, a6, a7, a2, t5, t0, s2
+        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q6
+        esp32p4_s16_128b_vector_relu  q0, s0, s1
+        esp.vst.128.ip  q0, a0, 16
+
+        addi  t1, t1, -1
+        bgez  t1, esp32p4_s16_depthwise_conv2d_per_channel_hwc1_relu_loop
     esp32p4_pop_12_stacks_3r  s0, s1, s2
     ret

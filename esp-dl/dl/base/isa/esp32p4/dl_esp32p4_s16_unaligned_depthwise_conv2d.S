@@ -138,7 +138,6 @@
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias
     .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias, @function
     .balign 4
@@ -287,7 +286,6 @@ dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_relu
     .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_relu, @function
     .balign 4
@@ -445,7 +443,6 @@ dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_relu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1
     .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1, @function
     .balign 4
@@ -584,7 +581,6 @@ dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_relu
     .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_relu, @function
     .balign 4
@@ -952,7 +948,6 @@ dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_relu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias
     .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias, @function
     .balign 4
@@ -1069,7 +1064,6 @@ dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu
     .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu, @function
     .balign 4
@@ -1192,7 +1186,6 @@ dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1
     .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1, @function
     .balign 4
@@ -1304,7 +1297,6 @@ dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu
     .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu, @function
     .balign 4
@@ -1415,6 +1407,1144 @@ dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu:
             dl_esp32p4_s16_store_remainder  q0, a6, t6, a0
 
         esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu_c_remainder_end:
+
+    esp32p4_pop_12_stacks_3r  s0, s1, s2
+    ret
+
+
+
+############################################################################################################################################################
+####
+#### esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1 series
+####
+############################################################################################################################################################
+
+.macro esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_load_args  args, filter_ptr, dilation_x_offset, dilation_y_offset, next_hwx1, c_div_x_1, tie_filter_channel_factor
+    # dilation_x_offset = input_channel_with_padding * dilation_x * sizeof(T)
+    # dilation_y_offset = (-(filter_width - 1) * dilation_x * input_channel_with_padding + dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T)
+    # next_hwx1 = (-(filter_width - 1) * dilation_x * input_channel_with_padding - (filter_height - 1) * dilation_y * input_width_with_padding * input_channel_with_padding) * sizeof(T) + 16
+
+    lw  \filter_ptr,                        48(\args)
+    lw  \dilation_x_offset,                 124(\args)
+    lw  \dilation_y_offset,                 128(\args)
+    lw  \next_hwx1,                         132(\args)
+    lw  \c_div_x_1,                         100(\args)
+    lw  \tie_filter_channel_factor,         104(\args)
+.endm
+
+
+
+    .text
+    .global dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias
+    .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr
+    # a4: dilation_x_offset - 16 / dilation_x_offset - c_remainder
+    # a5: dilation_y_offset - 16 / dilation_y_offset - c_remainder
+    # t3: next_3381 - 16
+    # t4: tie_filter_channel_factor
+    # t5: c_div_x_1 / c_remainder
+    # t6: output_sar_byte / tmp value
+
+    # a6(not for extension instructions): tmp value / moving c_div_x_1
+    # a7(not for extension instructions):
+    # t0(not for extension instructions): tmp value
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0:
+    # s1:
+    # s8: bias_ptr
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_4_stacks_1r  s8
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
+    lw  s8, 68(a2)       // bias
+
+    addi  a4, a4, -16                           // a4: dilation_x_offset - 16
+    addi  a5, a5, -16                           // a5: dilation_y_offset - 16
+    addi  t3, t3, -16                           // t3: next_3381 - 16
+
+    bltz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_c_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t6                // t6: output_sar_byte
+
+        esp.ld.128.usar.ip  q0, a1, 16
+        esp.ld.128.usar.xp  q3, a1, a4
+        esp.src.q.ld.ip  q4, a3, 16, q0, q3     // q4: filter_v0; q0: input_v0
+
+        esp.ld.128.usar.ip  q1, a1, 16
+        esp.ld.128.usar.xp  q3, a1, a4
+        esp.src.q.ld.ip  q2, a1, 16, q1, q3     // q2: input_v2; q1: input_v1
+
+        beqz  t6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_128b
+            li  a6, 8
+            beq  t6, a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_64b
+                beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_32b_last
+                    // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_32b_loop_end
+                    mv  a6, t5
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_32b_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t4, 16
+                        esp32p4_s16_conv2d_128b_vector_bias  s8
+                        esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                        esp32p4_s16_32b_unaligned_vector_store  q3, a0, t6
+                        addi  a6, a6, -1
+                        bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_32b_loop
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_32b_last:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_conv2d_128b_vector_bias  s8
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_32b_unaligned_vector_store  q3, a0, t6
+
+                j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_c_remainder
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_64b:
+                beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_64b_last
+                    // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_64b_loop_end
+                    mv  a6, t5
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_64b_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t4, 16
+                        esp32p4_s16_conv2d_128b_vector_bias  s8
+                        esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                        esp32p4_s16_64b_unaligned_vector_store  q3, a0
+                        addi  a6, a6, -1
+                        bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_64b_loop
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_64b_last:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_conv2d_128b_vector_bias  s8
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_64b_unaligned_vector_store  q3, a0
+
+                j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_c_remainder
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_128b:
+            beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_128b_last
+                // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_128b_loop_end
+                mv  a6, t5
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_128b_loop:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_conv2d_128b_vector_bias  s8
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_128b_aligned_vector_store  q3, a0
+                    addi  a6, a6, -1
+                    bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_128b_loop
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_128b_last:
+                esp.zero.qacc
+                esp.vld.128.ip  q7, t4, 16
+                esp32p4_s16_conv2d_128b_vector_bias  s8
+                esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                esp32p4_s16_128b_aligned_vector_store  q3, a0
+
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_c_remainder:
+        lw  t5, 136(a2)                         // t5: c_remainder
+        beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_c_remainder_end
+            esp.zero.qacc
+
+            addi  a4, a4, 16
+            addi  a5, a5, 16
+
+            sub  a4, a4, t5     // a4: dilation_x_offset - c_remainder
+            sub  a5, a5, t5     // a5: dilation_y_offset - c_remainder
+
+            srli  t0, t5, 1
+            esp.vld.128.ip  q7, t4, 16
+            esp32p4_s16_conv2d_128b_vector_bias  s8
+            esp32p4_s16_unaligned_depthwise_conv2d_33r1  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t5
+            esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+            dl_esp32p4_s16_store_remainder  q0, t0, t6, a0
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_c_remainder_end:
+
+    esp32p4_pop_4_stacks_1r  s8
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu
+    .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr
+    # a4: dilation_x_offset - 16 / dilation_x_offset - c_remainder
+    # a5: dilation_y_offset - 16 / dilation_y_offset - c_remainder
+    # t3: next_3381 - 16
+    # t4: tie_filter_channel_factor
+    # t5: c_div_x_1 / c_remainder
+    # t6: output_sar_byte / tmp value
+
+    # a6(not for extension instructions): tmp value / moving c_div_x_1
+    # a7(not for extension instructions):
+    # t0(not for extension instructions): tmp value
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0: activation_alpha/_address
+    # s1: activation_shift
+    # s8: bias_ptr
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_12_stacks_3r  s0, s1, s8
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
+    lw  s8, 68(a2)       // bias
+    lw  s0, 76(a2)       // activation_alpha
+    lw  s1, 84(a2)       // activation_shift
+
+    addi  a4, a4, -16                           // a4: dilation_x_offset - 16
+    addi  a5, a5, -16                           // a5: dilation_y_offset - 16
+    addi  t3, t3, -16                           // t3: next_3381 - 16
+
+    bltz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_c_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t6                // t6: output_sar_byte
+
+        esp.ld.128.usar.ip  q0, a1, 16
+        esp.ld.128.usar.xp  q3, a1, a4
+        esp.src.q.ld.ip  q4, a3, 16, q0, q3     // q4: filter_v0; q0: input_v0
+
+        esp.ld.128.usar.ip  q1, a1, 16
+        esp.ld.128.usar.xp  q3, a1, a4
+        esp.src.q.ld.ip  q2, a1, 16, q1, q3     // q2: input_v2; q1: input_v1
+
+        beqz  t6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_128b
+            li  a6, 8
+            beq  t6, a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_64b
+                beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_32b_last
+                    // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_32b_loop_end
+                    mv  a6, t5
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_32b_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t4, 16
+                        esp32p4_s16_conv2d_128b_vector_bias  s8
+                        esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                        esp32p4_s16_128b_vector_relu  q3, s0, s1
+                        esp32p4_s16_32b_unaligned_vector_store  q3, a0, t6
+                        addi  a6, a6, -1
+                        bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_32b_loop
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_32b_last:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_conv2d_128b_vector_bias  s8
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_128b_vector_relu  q3, s0, s1
+                    esp32p4_s16_32b_unaligned_vector_store  q3, a0, t6
+
+                j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_c_remainder
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_64b:
+                beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_64b_last
+                    // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_64b_loop_end
+                    mv  a6, t5
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_64b_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t4, 16
+                        esp32p4_s16_conv2d_128b_vector_bias  s8
+                        esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                        esp32p4_s16_128b_vector_relu  q3, s0, s1
+                        esp32p4_s16_64b_unaligned_vector_store  q3, a0
+                        addi  a6, a6, -1
+                        bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_64b_loop
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_64b_last:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_conv2d_128b_vector_bias  s8
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_128b_vector_relu  q3, s0, s1
+                    esp32p4_s16_64b_unaligned_vector_store  q3, a0
+
+                j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_c_remainder
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_128b:
+            beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_128b_last
+                // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_128b_loop_end
+                mv  a6, t5
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_128b_loop:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_conv2d_128b_vector_bias  s8
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_128b_vector_relu  q3, s0, s1
+                    esp32p4_s16_128b_aligned_vector_store  q3, a0
+                    addi  a6, a6, -1
+                    bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_128b_loop
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_128b_last:
+                esp.zero.qacc
+                esp.vld.128.ip  q7, t4, 16
+                esp32p4_s16_conv2d_128b_vector_bias  s8
+                esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                esp32p4_s16_128b_vector_relu  q3, s0, s1
+                esp32p4_s16_128b_aligned_vector_store  q3, a0
+
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_c_remainder:
+        lw  t5, 136(a2)                         // t5: c_remainder
+        beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_c_remainder_end
+            esp.zero.qacc
+
+            addi  a4, a4, 16
+            addi  a5, a5, 16
+
+            sub  a4, a4, t5     // a4: dilation_x_offset - c_remainder
+            sub  a5, a5, t5     // a5: dilation_y_offset - c_remainder
+
+            srli  t0, t5, 1
+            esp.vld.128.ip  q7, t4, 16
+            esp32p4_s16_conv2d_128b_vector_bias  s8
+            esp32p4_s16_unaligned_depthwise_conv2d_33r1  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t5
+            esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+            esp32p4_s16_128b_vector_relu  q0, s0, s1
+            dl_esp32p4_s16_store_remainder  q0, t0, t6, a0
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu_c_remainder_end:
+
+    esp32p4_pop_12_stacks_3r  s0, s1, s8
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1
+    .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr
+    # a4: dilation_x_offset - 16 / dilation_x_offset - c_remainder
+    # a5: dilation_y_offset - 16 / dilation_y_offset - c_remainder
+    # t3: next_3381 - 16
+    # t4: tie_filter_channel_factor
+    # t5: c_div_x_1 / c_remainder
+    # t6: output_sar_byte / tmp value
+
+    # a6(not for extension instructions): tmp value / moving c_div_x_1
+    # a7(not for extension instructions):
+    # t0(not for extension instructions): tmp value
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
+
+    addi  a4, a4, -16                           // a4: dilation_x_offset - 16
+    addi  a5, a5, -16                           // a5: dilation_y_offset - 16
+    addi  t3, t3, -16                           // t3: next_3381 - 16
+
+    bltz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_c_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t6                // t6: output_sar_byte
+
+        esp.ld.128.usar.ip  q0, a1, 16
+        esp.ld.128.usar.xp  q3, a1, a4
+        esp.src.q.ld.ip  q4, a3, 16, q0, q3     // q4: filter_v0; q0: input_v0
+
+        esp.ld.128.usar.ip  q1, a1, 16
+        esp.ld.128.usar.xp  q3, a1, a4
+        esp.src.q.ld.ip  q2, a1, 16, q1, q3     // q2: input_v2; q1: input_v1
+
+        beqz  t6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_128b
+            li  a6, 8
+            beq  t6, a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_64b
+                # esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_32b:
+                beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_32b_last
+                    // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_32b_loop_end
+                    mv  a6, t5
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_32b_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t4, 16
+                        esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                        esp32p4_s16_32b_unaligned_vector_store  q3, a0, t6
+                        addi  a6, a6, -1
+                        bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_32b_loop
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_32b_last:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_32b_unaligned_vector_store  q3, a0, t6
+
+                j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_c_remainder
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_64b:
+                beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_64b_last
+                    // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_64b_loop_end
+                    mv  a6, t5
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_64b_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t4, 16
+                        esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                        esp32p4_s16_64b_unaligned_vector_store  q3, a0
+                        addi  a6, a6, -1
+                        bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_64b_loop
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_64b_last:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_64b_unaligned_vector_store  q3, a0
+
+                j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_c_remainder
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_128b:
+            beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_128b_last
+                // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_128b_loop_end
+                mv  a6, t5
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_128b_loop:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_128b_aligned_vector_store  q3, a0
+                    addi  a6, a6, -1
+                    bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_128b_loop
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_128b_last:
+                esp.zero.qacc
+                esp.vld.128.ip  q7, t4, 16
+                esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                esp32p4_s16_128b_aligned_vector_store  q3, a0
+
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_c_remainder:
+        lw  t5, 136(a2)                         // t5: c_remainder
+        beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_c_remainder_end
+            esp.zero.qacc
+
+            addi  a4, a4, 16
+            addi  a5, a5, 16
+
+            sub  a4, a4, t5     // a4: dilation_x_offset - c_remainder
+            sub  a5, a5, t5     // a5: dilation_y_offset - c_remainder
+
+            srli  t0, t5, 1
+            esp.vld.128.ip  q7, t4, 16
+            esp32p4_s16_unaligned_depthwise_conv2d_33r1  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t5
+            esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+            dl_esp32p4_s16_store_remainder  q0, t0, t6, a0
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_c_remainder_end:
+
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu
+    .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr
+    # a4: dilation_x_offset - 16 / dilation_x_offset - c_remainder
+    # a5: dilation_y_offset - 16 / dilation_y_offset - c_remainder
+    # t3: next_3381 - 16
+    # t4: tie_filter_channel_factor
+    # t5: c_div_x_1 / c_remainder
+    # t6: output_sar_byte / tmp value
+
+    # a6(not for extension instructions): tmp value / moving c_div_x_1
+    # a7(not for extension instructions):
+    # t0(not for extension instructions): tmp value
+    # t1(not for extension instructions):
+    # t2(not for extension instructions):
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0: activation_alpha/_address
+    # s1: activation_shift
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_8_stacks_2r  s0, s1
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_load_args  a2, a3, a4, a5, t3, t5, t4
+    lw  s0, 76(a2)       // activation_alpha
+    lw  s1, 84(a2)       // activation_shift
+
+    addi  a4, a4, -16                           // a4: dilation_x_offset - 16
+    addi  a5, a5, -16                           // a5: dilation_y_offset - 16
+    addi  t3, t3, -16                           // t3: next_3381 - 16
+
+    bltz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_c_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t6                // t6: output_sar_byte
+
+        esp.ld.128.usar.ip  q0, a1, 16
+        esp.ld.128.usar.xp  q3, a1, a4
+        esp.src.q.ld.ip  q4, a3, 16, q0, q3     // q4: filter_v0; q0: input_v0
+
+        esp.ld.128.usar.ip  q1, a1, 16
+        esp.ld.128.usar.xp  q3, a1, a4
+        esp.src.q.ld.ip  q2, a1, 16, q1, q3     // q2: input_v2; q1: input_v1
+
+        beqz  t6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_128b
+            li  a6, 8
+            beq  t6, a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_64b
+                # esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_32b:
+                beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_32b_last
+                    // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_32b_loop_end
+                    mv  a6, t5
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_32b_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t4, 16
+                        esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                        esp32p4_s16_128b_vector_relu  q3, s0, s1
+                        esp32p4_s16_32b_unaligned_vector_store  q3, a0, t6
+                        addi  a6, a6, -1
+                        bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_32b_loop
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_32b_last:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_128b_vector_relu  q3, s0, s1
+                    esp32p4_s16_32b_unaligned_vector_store  q3, a0, t6
+
+                j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_c_remainder
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_64b:
+                beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_64b_last
+                    // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_64b_loop_end
+                    mv  a6, t5
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_64b_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t4, 16
+                        esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                        esp32p4_s16_128b_vector_relu  q3, s0, s1
+                        esp32p4_s16_64b_unaligned_vector_store  q3, a0
+                        addi  a6, a6, -1
+                        bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_64b_loop
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_64b_last:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_128b_vector_relu  q3, s0, s1
+                    esp32p4_s16_64b_unaligned_vector_store  q3, a0
+
+                j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_c_remainder
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_128b:
+            beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_128b_last
+                // esp.lp.setup  0, t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_128b_loop_end
+                mv  a6, t5
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_128b_loop:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t4, 16
+                    esp32p4_s16_unaligned_depthwise_conv2d_3381  q0, q1, q2, q3, q4, q5, q6, a1, a3, a4, a5, t3
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                    esp32p4_s16_128b_vector_relu  q3, s0, s1
+                    esp32p4_s16_128b_aligned_vector_store  q3, a0
+                    addi  a6, a6, -1
+                    bgtz  a6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_128b_loop
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_128b_last:
+                esp.zero.qacc
+                esp.vld.128.ip  q7, t4, 16
+                esp32p4_s16_unaligned_depthwise_conv2d_3381_last  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t3
+                esp32p4_s16_128b_vector_per_channel_shift_result  q3, q7
+                esp32p4_s16_128b_vector_relu  q3, s0, s1
+                esp32p4_s16_128b_aligned_vector_store  q3, a0
+
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_c_remainder:
+        lw  t5, 136(a2)                         // t5: c_remainder
+        beqz  t5, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_c_remainder_end
+            esp.zero.qacc
+
+            addi  a4, a4, 16
+            addi  a5, a5, 16
+
+            sub  a4, a4, t5     // a4: dilation_x_offset - c_remainder
+            sub  a5, a5, t5     // a5: dilation_y_offset - c_remainder
+
+            srli  t0, t5, 1
+            esp.vld.128.ip  q7, t4, 16
+            esp32p4_s16_unaligned_depthwise_conv2d_33r1  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t5
+            esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+            esp32p4_s16_128b_vector_relu  q0, s0, s1
+            dl_esp32p4_s16_store_remainder  q0, t0, t6, a0
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu_c_remainder_end:
+
+    esp32p4_pop_8_stacks_2r  s0, s1
+    ret
+
+
+
+############################################################################################################################################################
+####
+#### esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1 series
+####
+############################################################################################################################################################
+
+.macro esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_load_args  args, filter_ptr, dilation_x_offset, dilation_y_offset, next_hwx1, c_div_x_1, tie_filter_channel_factor, filter_w, filter_w_rs1_1
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_load_args  \args, \filter_ptr, \dilation_x_offset, \dilation_y_offset, \next_hwx1, \c_div_x_1, \tie_filter_channel_factor
+    lw  \filter_w,         56(\args)
+    lw  \filter_w_rs1_1,   148(\args)
+.endm
+
+
+
+    .text
+    .global dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias
+    .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr / unaligned_filter_ptr
+    # a4: dilation_x_offset - 16 / dilation_x_offset - c_remainder
+    # a5: dilation_y_offset - 16 / dilation_y_offset - c_remainder
+    # t3: next_hw81 - 16 / c_remainder
+    # t4: filter_y_offset / unaligned_filter_y_offset
+    # t5: tie_filter_channel_factor
+    # t6: output_sar_byte / tmp value
+
+    # a6(not for extension instructions): filter_n_offset / c_remainder number
+    # a7(not for extension instructions): c_div_x_1
+    # t0(not for extension instructions): filter_h
+    # t1(not for extension instructions): filter_w
+    # t2(not for extension instructions): filter_w_rs1_1
+    # s2(not for extension instructions): tmp value
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0:
+    # s1:
+    # s8: bias_ptr
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_8_stacks_2r  s2, s8
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_load_args  a2, a3, a4, a5, t3, a7, t5, t1, t2
+    lw  s8, 68(a2)                  // bias
+
+    addi  a4, a4, -16               // a4: dilation_x_offset - 16
+    addi  a5, a5, -16               // a5: dilation_y_offset - 16
+    lw  a6, 144(a2)                 // a6: filter_n_offset
+
+    bltz  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_c_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        addi  t3, t3, -16           // t3: next_hw81 - 16
+        lw  t4, 60(a2)              // t4: filter_y_offset
+        esp.movx.r.sar.bytes  t6    // t6: output_sar_byte
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_c_div_x:
+            beqz  t6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_128b
+                li  s2, 8
+                beq  t6, s2, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_64b
+                    # esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_32b:
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_32b_multiple_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t5, 16
+                        esp32p4_s16_conv2d_128b_vector_bias  s8
+                        esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                        esp32p4_s16_32b_unaligned_vector_store  q0, a0, t6
+
+                        addi  a7, a7, -1
+                        bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_32b_multiple_loop
+                    j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_c_remainder
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_64b:
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_64b_multiple_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t5, 16
+                        esp32p4_s16_conv2d_128b_vector_bias  s8
+                        esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                        esp32p4_s16_64b_unaligned_vector_store  q0, a0
+
+                        addi  a7, a7, -1
+                        bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_64b_multiple_loop
+                    j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_c_remainder
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_128b:
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_128b_multiple_loop:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t5, 16
+                    esp32p4_s16_conv2d_128b_vector_bias  s8
+                    esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                    esp32p4_s16_128b_aligned_vector_store  q0, a0
+
+                    addi  a7, a7, -1
+                    bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_128b_multiple_loop
+
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_c_remainder:
+        lw  t3, 136(a2)         // t3: c_remainder
+        beqz  t3, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_c_remainder_end
+            esp.zero.qacc
+
+            srli  a6, t3, 1
+            lw  a3, 168(a2)     // a3: unaligned_filter_ptr
+            lw  t4, 160(a2)     // t4: unaligned_filter_y_offset
+            addi  a4, a4, 16
+            addi  a5, a5, 16
+            sub  a4, a4, t3     // a4: dilation_x_offset - c_remainder
+            sub  a5, a5, t3     // a5: dilation_y_offset - c_remainder
+
+            esp.vld.128.ip  q7, t5, 16
+            esp32p4_s16_conv2d_128b_vector_bias  s8
+            esp32p4_s16_unaligned_depthwise_conv2d_hwr1  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t0, t1, t2, t3, a2, t4, t6
+            esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+            dl_esp32p4_s16_store_remainder  q0, a6, t6, a0
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_c_remainder_end:
+
+    esp32p4_pop_8_stacks_2r  s2, s8
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu
+    .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr / unaligned_filter_ptr
+    # a4: dilation_x_offset - 16 / dilation_x_offset - c_remainder
+    # a5: dilation_y_offset - 16 / dilation_y_offset - c_remainder
+    # t3: next_hw81 - 16 / c_remainder
+    # t4: filter_y_offset / unaligned_filter_y_offset
+    # t5: tie_filter_channel_factor
+    # t6: output_sar_byte / tmp value
+
+    # a6(not for extension instructions): filter_n_offset / c_remainder number
+    # a7(not for extension instructions): c_div_x_1
+    # t0(not for extension instructions): filter_h
+    # t1(not for extension instructions): filter_w
+    # t2(not for extension instructions): filter_w_rs1_1
+    # s2(not for extension instructions): tmp value
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0: activation_alpha/_address
+    # s1: activation_shift
+    # s8: bias_ptr
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_16_stacks_4r  s0, s1, s2, s8
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_load_args  a2, a3, a4, a5, t3, a7, t5, t1, t2
+    lw  s8, 68(a2)                  // bias
+    lw  s0, 76(a2)                  // activation_alpha
+    lw  s1, 84(a2)                  // activation_shift
+
+    addi  a4, a4, -16               // a4: dilation_x_offset - 16
+    addi  a5, a5, -16               // a5: dilation_y_offset - 16
+    lw  a6, 144(a2)                 // a6: filter_n_offset
+
+    bltz  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_c_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        addi  t3, t3, -16           // t3: next_hw81 - 16
+        lw  t4, 60(a2)              // t4: filter_y_offset
+        esp.movx.r.sar.bytes  t6    // t6: output_sar_byte
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_c_div_x:
+            beqz  t6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_128b
+                li  s2, 8
+                beq  t6, s2, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_64b
+                    # esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_32b:
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_32b_multiple_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t5, 16
+                        esp32p4_s16_conv2d_128b_vector_bias  s8
+                        esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                        esp32p4_s16_128b_vector_relu  q0, s0, s1
+                        esp32p4_s16_32b_unaligned_vector_store  q0, a0, t6
+
+                        addi  a7, a7, -1
+                        bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_32b_multiple_loop
+                    j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_c_remainder
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_64b:
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_64b_multiple_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t5, 16
+                        esp32p4_s16_conv2d_128b_vector_bias  s8
+                        esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                        esp32p4_s16_128b_vector_relu  q0, s0, s1
+                        esp32p4_s16_64b_unaligned_vector_store  q0, a0
+
+                        addi  a7, a7, -1
+                        bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_64b_multiple_loop
+                    j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_c_remainder
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_128b:
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_128b_multiple_loop:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t5, 16
+                    esp32p4_s16_conv2d_128b_vector_bias  s8
+                    esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                    esp32p4_s16_128b_vector_relu  q0, s0, s1
+                    esp32p4_s16_128b_aligned_vector_store  q0, a0
+
+                    addi  a7, a7, -1
+                    bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_128b_multiple_loop
+
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_c_remainder:
+        lw  t3, 136(a2)         // t3: c_remainder
+        beqz  t3, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_c_remainder_end
+            esp.zero.qacc
+
+            srli  a6, t3, 1
+            lw  a3, 168(a2)     // a3: unaligned_filter_ptr
+            lw  t4, 160(a2)     // t4: unaligned_filter_y_offset
+            addi  a4, a4, 16
+            addi  a5, a5, 16
+            sub  a4, a4, t3     // a4: dilation_x_offset - c_remainder
+            sub  a5, a5, t3     // a5: dilation_y_offset - c_remainder
+
+            esp.vld.128.ip  q7, t5, 16
+            esp32p4_s16_conv2d_128b_vector_bias  s8
+            esp32p4_s16_unaligned_depthwise_conv2d_hwr1  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t0, t1, t2, t3, a2, t4, t6
+            esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+            esp32p4_s16_128b_vector_relu  q0, s0, s1
+            dl_esp32p4_s16_store_remainder  q0, a6, t6, a0
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu_c_remainder_end:
+
+    esp32p4_pop_16_stacks_4r  s0, s1, s2, s8
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1
+    .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr / unaligned_filter_ptr
+    # a4: dilation_x_offset - 16 / dilation_x_offset - c_remainder
+    # a5: dilation_y_offset - 16 / dilation_y_offset - c_remainder
+    # t3: next_hw81 - 16 / c_remainder
+    # t4: filter_y_offset / unaligned_filter_y_offset
+    # t5: tie_filter_channel_factor
+    # t6: output_sar_byte / tmp value
+
+    # a6(not for extension instructions): filter_n_offset / c_remainder number
+    # a7(not for extension instructions): c_div_x_1
+    # t0(not for extension instructions): filter_h
+    # t1(not for extension instructions): filter_w
+    # t2(not for extension instructions): filter_w_rs1_1
+    # s2(not for extension instructions): tmp value
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0:
+    # s1:
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_4_stacks_1r  s2
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_load_args  a2, a3, a4, a5, t3, a7, t5, t1, t2
+
+    addi  a4, a4, -16               // a4: dilation_x_offset - 16
+    addi  a5, a5, -16               // a5: dilation_y_offset - 16
+    lw  a6, 144(a2)                 // a6: filter_n_offset
+
+    bltz  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_c_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        addi  t3, t3, -16           // t3: next_hw81 - 16
+        lw  t4, 60(a2)              // t4: filter_y_offset
+        esp.movx.r.sar.bytes  t6    // t6: output_sar_byte
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_c_div_x:
+            beqz  t6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_128b
+                li  s2, 8
+                beq  t6, s2, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_64b
+                    # esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_32b:
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_32b_multiple_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t5, 16
+                        esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                        esp32p4_s16_32b_unaligned_vector_store  q0, a0, t6
+
+                        addi  a7, a7, -1
+                        bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_32b_multiple_loop
+                    j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_c_remainder
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_64b:
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_64b_multiple_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t5, 16
+                        esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                        esp32p4_s16_64b_unaligned_vector_store  q0, a0
+
+                        addi  a7, a7, -1
+                        bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_64b_multiple_loop
+                    j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_c_remainder
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_128b:
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_128b_multiple_loop:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t5, 16
+                    esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                    esp32p4_s16_128b_aligned_vector_store  q0, a0
+
+                    addi  a7, a7, -1
+                    bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_128b_multiple_loop
+
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_c_remainder:
+        lw  t3, 136(a2)         // t3: c_remainder
+        beqz  t3, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_c_remainder_end
+            esp.zero.qacc
+
+            srli  a6, t3, 1
+            lw  a3, 168(a2)     // a3: unaligned_filter_ptr
+            lw  t4, 160(a2)     // t4: unaligned_filter_y_offset
+            addi  a4, a4, 16
+            addi  a5, a5, 16
+            sub  a4, a4, t3     // a4: dilation_x_offset - c_remainder
+            sub  a5, a5, t3     // a5: dilation_y_offset - c_remainder
+
+            esp.vld.128.ip  q7, t5, 16
+            esp32p4_s16_unaligned_depthwise_conv2d_hwr1  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t0, t1, t2, t3, a2, t4, t6
+            esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+            dl_esp32p4_s16_store_remainder  q0, a6, t6, a0
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_c_remainder_end:
+
+    esp32p4_pop_4_stacks_1r  s2
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu
+    .type   dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu:
+
+    # a0: int16_t *output_ptr
+    # a1: int16_t *input_ptr
+    # a2: void *args
+
+    # a3: filter_ptr / unaligned_filter_ptr
+    # a4: dilation_x_offset - 16 / dilation_x_offset - c_remainder
+    # a5: dilation_y_offset - 16 / dilation_y_offset - c_remainder
+    # t3: next_hw81 - 16 / c_remainder
+    # t4: filter_y_offset / unaligned_filter_y_offset
+    # t5: tie_filter_channel_factor
+    # t6: output_sar_byte / tmp value
+
+    # a6(not for extension instructions): filter_n_offset / c_remainder number
+    # a7(not for extension instructions): c_div_x_1
+    # t0(not for extension instructions): filter_h
+    # t1(not for extension instructions): filter_w
+    # t2(not for extension instructions): filter_w_rs1_1
+    # s2(not for extension instructions): tmp value
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0: activation_alpha/_address
+    # s1: activation_shift
+    # s8:
+    # s9:
+    # s10:
+    # s11:
+
+    esp32p4_push_12_stacks_3r  s0, s1, s2
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_load_args  a2, a3, a4, a5, t3, a7, t5, t1, t2
+    lw  s0, 76(a2)                  // activation_alpha
+    lw  s1, 84(a2)                  // activation_shift
+
+    addi  a4, a4, -16               // a4: dilation_x_offset - 16
+    addi  a5, a5, -16               // a5: dilation_y_offset - 16
+    lw  a6, 144(a2)                 // a6: filter_n_offset
+
+    bltz  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_c_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        addi  t3, t3, -16           // t3: next_hw81 - 16
+        lw  t4, 60(a2)              // t4: filter_y_offset
+        esp.movx.r.sar.bytes  t6    // t6: output_sar_byte
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_c_div_x:
+            beqz  t6, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_128b
+                li  s2, 8
+                beq  t6, s2, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_64b
+                    # esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_32b:
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_32b_multiple_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t5, 16
+                        esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                        esp32p4_s16_128b_vector_relu  q0, s0, s1
+                        esp32p4_s16_32b_unaligned_vector_store  q0, a0, t6
+
+                        addi  a7, a7, -1
+                        bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_32b_multiple_loop
+                    j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_c_remainder
+
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_64b:
+                    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_64b_multiple_loop:
+                        esp.zero.qacc
+                        esp.vld.128.ip  q7, t5, 16
+                        esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                        esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                        esp32p4_s16_128b_vector_relu  q0, s0, s1
+                        esp32p4_s16_64b_unaligned_vector_store  q0, a0
+
+                        addi  a7, a7, -1
+                        bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_64b_multiple_loop
+                    j  esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_c_remainder
+
+            esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_128b:
+                esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_128b_multiple_loop:
+                    esp.zero.qacc
+                    esp.vld.128.ip  q7, t5, 16
+                    esp32p4_s16_unaligned_depthwise_conv2d_hw81  q0, q1, q2, q3, a1, a3, a4, a5, t3, t0, t1, t2, a2, t4, a6, t6
+                    esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+                    esp32p4_s16_128b_vector_relu  q0, s0, s1
+                    esp32p4_s16_128b_aligned_vector_store  q0, a0
+
+                    addi  a7, a7, -1
+                    bgez  a7, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_128b_multiple_loop
+
+
+    esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_c_remainder:
+        lw  t3, 136(a2)         // t3: c_remainder
+        beqz  t3, esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_c_remainder_end
+            esp.zero.qacc
+
+            srli  a6, t3, 1
+            lw  a3, 168(a2)     // a3: unaligned_filter_ptr
+            lw  t4, 160(a2)     // t4: unaligned_filter_y_offset
+            addi  a4, a4, 16
+            addi  a5, a5, 16
+            sub  a4, a4, t3     // a4: dilation_x_offset - c_remainder
+            sub  a5, a5, t3     // a5: dilation_y_offset - c_remainder
+
+            esp.vld.128.ip  q7, t5, 16
+            esp32p4_s16_unaligned_depthwise_conv2d_hwr1  q0, q1, q2, q3, q4, q5, a1, a3, a4, a5, t0, t1, t2, t3, a2, t4, t6
+            esp32p4_s16_128b_vector_per_channel_shift_result  q0, q7
+            esp32p4_s16_128b_vector_relu  q0, s0, s1
+            dl_esp32p4_s16_store_remainder  q0, a6, t6, a0
+
+        esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu_c_remainder_end:
 
     esp32p4_pop_12_stacks_3r  s0, s1, s2
     ret

@@ -754,4 +754,17 @@ void Model::profile(bool sort_module_by_latency)
     printf("\n");
 }
 
+void Model::reset()
+{
+    // Reset all modules, but not reload model or rebuild execution plan, which is useful for
+    // streaming model.
+
+    for (int i = 0; i < m_execution_plan.size(); i++) {
+        dl::module::Module *module = m_execution_plan[i];
+        if (module) {
+            module->reset();
+        }
+    }
+}
+
 } // namespace dl

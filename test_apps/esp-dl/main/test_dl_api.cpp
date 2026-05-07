@@ -5,7 +5,10 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "unity.h"
+#include <cstring>
+#include <map>
 #include <type_traits>
+#include <vector>
 static const char *TAG = "TEST DL MODEL";
 
 using namespace dl;
@@ -85,6 +88,87 @@ TEST_CASE("Test dl model API: run()", "[api]")
     TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);
 }
 
+// Helper: fill model inputs with data from saved buffers, then run
+static void fill_inputs_and_run(Model *model, const std::map<std::string, std::pair<uint8_t *, size_t>> &saved_inputs)
+{
+    std::map<std::string, TensorBase *> &model_inputs = model->get_inputs();
+    for (auto &pair : model_inputs) {
+        const std::string &name = pair.first;
+        TensorBase *tensor = pair.second;
+        auto it = saved_inputs.find(name);
+        if (it != saved_inputs.end()) {
+            memcpy(tensor->get_element_ptr(), it->second.first, it->second.second);
+        }
+    }
+    model->run();
+}
+
+TEST_CASE("Test dl model API: reset()", "[api]")
+{
+    ESP_LOGI(TAG, "Test dl model API: reset()");
+
+    Model *model = new Model("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
+    std::map<std::string, std::pair<uint8_t *, size_t>> saved_input_data;
+    std::map<std::string, TensorBase *> &model_inputs = model->get_inputs();
+    for (auto &pair : model_inputs) {
+        const std::string &input_name = pair.first;
+        TensorBase *input_tensor = pair.second;
+        input_tensor->rand();
+        size_t bytes = input_tensor->get_bytes();
+        uint8_t *buf = new uint8_t[bytes];
+        memcpy(buf, input_tensor->get_element_ptr(), bytes);
+        saved_input_data.emplace(input_name, std::make_pair(buf, bytes));
+    }
+
+    // First run with random inputs
+    fill_inputs_and_run(model, saved_input_data);
+    std::map<std::string, TensorBase *> &outputs = model->get_outputs();
+    std::vector<uint8_t *> output_data_first_list;
+    std::vector<size_t> output_bytes_list;
+    int idx = 0;
+    for (auto &pair : outputs) {
+        TensorBase *tensor = pair.second;
+        size_t bytes = tensor->get_bytes();
+        uint8_t *first = new uint8_t[bytes];
+        memcpy(first, tensor->get_element_ptr(), bytes);
+        output_data_first_list.push_back(first);
+        output_bytes_list.push_back(bytes);
+        idx++;
+    }
+
+    // Second run without reset
+    fill_inputs_and_run(model, saved_input_data);
+
+    model->reset();
+
+    // Third run after reset with same inputs - output should match first run
+    fill_inputs_and_run(model, saved_input_data);
+
+    idx = 0;
+    for (auto &pair : outputs) {
+        TensorBase *tensor = pair.second;
+        size_t bytes = output_bytes_list[idx];
+        const void *expected = output_data_first_list[idx];
+        const void *actual = tensor->get_element_ptr();
+        TEST_ASSERT_EQUAL_MESSAGE(0,
+                                  memcmp(expected, actual, bytes),
+                                  "Third run output does not match first run - reset() may not have cleared state");
+        idx++;
+    }
+
+    for (auto p : output_data_first_list) {
+        delete[] p;
+    }
+    output_data_first_list.clear();
+    output_bytes_list.clear();
+
+    for (auto &p : saved_input_data) {
+        delete[] p.second.first;
+    }
+    saved_input_data.clear();
+    delete model;
+}
+
 TEST_CASE("Test dl module API: run()", "[api]")
 {
     ESP_LOGI(TAG, "Test dl module API: run()");
@@ -123,6 +207,62 @@ TEST_CASE("Test dl module API: run()", "[api]")
     delete output;
     delete relu_op;
     delete add_op;
+
+    int total_ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);
+}
+
+TEST_CASE("Test dl module API: StreamingCache reset()", "[api]")
+{
+    ESP_LOGI(TAG, "Test dl module API: StreamingCache reset()");
+    int total_ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+
+    TensorBase *input = new TensorBase({1, 2, 4, 4}, nullptr, 0, DATA_TYPE_INT8);
+    TensorBase *output = new TensorBase({1, 3, 4, 4}, nullptr, 0, DATA_TYPE_INT8);
+
+    module::Module *streaming_cache_op =
+        new module::StreamingCache("streaming_cache", 2, 1, MODULE_NON_INPLACE, QUANT_TYPE_NONE);
+
+    // First run
+    memset(input->get_element_ptr(), 5, input->get_bytes());
+    streaming_cache_op->run(input, output);
+
+    int8_t *output_data_first = new int8_t[output->get_size()];
+    memcpy(output_data_first, output->get_element_ptr(), output->get_bytes());
+
+    // Second run without reset - cache should be updated
+    memset(input->get_element_ptr(), 10, input->get_bytes());
+    streaming_cache_op->run(input, output);
+
+    int8_t *output_data_second = new int8_t[output->get_size()];
+    memcpy(output_data_second, output->get_element_ptr(), output->get_bytes());
+
+    // Verify that outputs are different (cache was updated)
+    TEST_ASSERT_EQUAL(true, memcmp(output_data_first, output_data_second, output->get_bytes()) != 0);
+
+    // Reset cache
+    streaming_cache_op->reset();
+
+    // Third run after reset - output should match first run pattern (cache cleared)
+    memset(input->get_element_ptr(), 5, input->get_bytes());
+    streaming_cache_op->run(input, output);
+
+    int8_t *output_data_after_reset = new int8_t[output->get_size()];
+    memcpy(output_data_after_reset, output->get_element_ptr(), output->get_bytes());
+
+    TEST_ASSERT_EQUAL(true, memcmp(output_data_first, output_data_after_reset, output->get_bytes()) == 0);
+
+    // Verify that first frame has zeros (from reset cache)
+    // for (int i = 0; i < 16; i++) {
+    //     TEST_ASSERT_EQUAL(0, output_data_after_reset[i]);
+    // }
+
+    delete input;
+    delete output;
+    delete streaming_cache_op;
+    delete[] output_data_first;
+    delete[] output_data_second;
+    delete[] output_data_after_reset;
 
     int total_ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);

@@ -369,7 +369,6 @@
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_11cn_bias
     .type   dl_esp32p4_s8_unaligned_conv2d_11cn_bias, @function
     .balign 4
@@ -482,7 +481,6 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_bias:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_11cn_bias_leakyrelu
     .type   dl_esp32p4_s8_unaligned_conv2d_11cn_bias_leakyrelu, @function
     .balign 4
@@ -600,8 +598,8 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_bias_leakyrelu:
     ret
 
 
+
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_11cn_bias_prelu
     .type   dl_esp32p4_s8_unaligned_conv2d_11cn_bias_prelu, @function
     .balign 4
@@ -720,7 +718,6 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_bias_prelu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_11cn
     .type   dl_esp32p4_s8_unaligned_conv2d_11cn, @function
     .balign 4
@@ -827,7 +824,6 @@ dl_esp32p4_s8_unaligned_conv2d_11cn:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_11cn_leakyrelu
     .type   dl_esp32p4_s8_unaligned_conv2d_11cn_leakyrelu, @function
     .balign 4
@@ -941,7 +937,6 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_leakyrelu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_11cn_prelu
     .type   dl_esp32p4_s8_unaligned_conv2d_11cn_prelu, @function
     .balign 4
@@ -1131,7 +1126,6 @@ dl_esp32p4_s8_unaligned_conv2d_11cn_prelu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_33cn_bias
     .type   dl_esp32p4_s8_unaligned_conv2d_33cn_bias, @function
     .balign 4
@@ -1246,7 +1240,6 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_bias:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_33cn_bias_leakyrelu
     .type   dl_esp32p4_s8_unaligned_conv2d_33cn_bias_leakyrelu, @function
     .balign 4
@@ -1365,8 +1358,8 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_bias_leakyrelu:
     ret
 
 
+
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_33cn_bias_prelu
     .type   dl_esp32p4_s8_unaligned_conv2d_33cn_bias_prelu, @function
     .balign 4
@@ -1487,7 +1480,6 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_bias_prelu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_33cn
     .type   dl_esp32p4_s8_unaligned_conv2d_33cn, @function
     .balign 4
@@ -1596,7 +1588,6 @@ dl_esp32p4_s8_unaligned_conv2d_33cn:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_33cn_leakyrelu
     .type   dl_esp32p4_s8_unaligned_conv2d_33cn_leakyrelu, @function
     .balign 4
@@ -1711,7 +1702,6 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_leakyrelu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_33cn_prelu
     .type   dl_esp32p4_s8_unaligned_conv2d_33cn_prelu, @function
     .balign 4
@@ -1884,7 +1874,6 @@ dl_esp32p4_s8_unaligned_conv2d_33cn_prelu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_hwcn_bias
     .type   dl_esp32p4_s8_unaligned_conv2d_hwcn_bias, @function
     .balign 4
@@ -2009,7 +1998,6 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_bias:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu
     .type   dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu, @function
     .balign 4
@@ -2139,7 +2127,6 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_prelu
     .type   dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_prelu, @function
     .balign 4
@@ -2269,7 +2256,6 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_prelu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_hwcn
     .type   dl_esp32p4_s8_unaligned_conv2d_hwcn, @function
     .balign 4
@@ -2388,7 +2374,6 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu
     .type   dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu, @function
     .balign 4
@@ -2513,7 +2498,6 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu:
 
 
     .text
-    .align 2
     .global dl_esp32p4_s8_unaligned_conv2d_hwcn_prelu
     .type   dl_esp32p4_s8_unaligned_conv2d_hwcn_prelu, @function
     .balign 4
@@ -2633,4 +2617,1509 @@ dl_esp32p4_s8_unaligned_conv2d_hwcn_prelu:
         esp32p4_s8_unaligned_conv2d_hwcn_prelu_n_remainder_end:
 
     esp32p4_pop_36_stacks_9r  s2, s3, s4, s5, s0, s1, s8, s9, s10
+    ret
+
+
+
+############################################################################################################################################################
+####
+#### esp32p4_s8_unaligned_conv2d_per_channel_11cn series
+####
+############################################################################################################################################################
+
+.macro esp32p4_s8_unaligned_conv2d_per_channel_11cn_load_args  args, filter_ptr, c_div_x_1, n_div_x, tie_filter_channel_factor, c_remainder
+    lw  \filter_ptr,                    48(\args)       // filter
+    lw  \c_div_x_1,                     100(\args)      // input_channel / x - 1
+    lw  \n_div_x,                       96(\args)       // output_channel / x
+    lw  \tie_filter_channel_factor,     104(\args)      // tie_filter_channel_factor
+    lw  \c_remainder,                   136(\args)      // input_channel % (vector_width / element_width) * sizeof(feature_t)
+.endm
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr / n_remainder bias tmp value
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6: bias_ptr
+
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): temp value
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9:
+    # s10:
+    # s11: mac_shift element
+
+    esp32p4_push_16_stacks_4r  s0, s1, s8, s11    // push stacks
+    li  s1, -128    // clamp min value
+    li  s8, 127    // clamp max value
+    esp32p4_s8_unaligned_conv2d_per_channel_11cn_load_args  a2, a3, t0, t1, a5, a4
+    lw  t6, 68(a2)       // bias
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t3            //  t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_128b
+            li  t2, 8
+            beq  t3, t2, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_64b
+                esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_32b_multiple_loop:     // esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_32b
+                    mv t3, a1     // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_64b_multiple_loop:
+                    mv t3, a1     // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_128b_multiple_loop:
+                mv  t3, a1     // t3: input_ptr
+                esp.zero.qacc
+
+                esp32p4_s8_conv2d_128b_vector_bias  t6
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_128b_multiple_loop
+
+
+    esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_n_remainder:
+        lw t1, 140(a2)       // t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       // t4: 15 - c_remainder
+            li  t5,  0            // t5: activation_shift = zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_n_remainder_loop:
+                // mv t3, a1         // t3: input_ptr
+                esp.zero.xacc
+
+                esp32p4_s8_conv2d_element_bias  t6, t3      // t3: tmp for bias
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                mv  t3, a1         // t3: input_ptr
+                esp32p4_s8_unaligned_conv2d_11c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t4, t5
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_n_remainder_end:
+
+    esp32p4_pop_16_stacks_4r  s0, s1, s8, s11     // restore registers
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr / n_remainder bias tmp value
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6: bias_ptr
+
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): temp value
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9: activation_alpha/_address
+    # s10: activation_shift
+    # s11: mac_shift element
+
+    esp32p4_push_24_stacks_6r  s0, s1, s8, s9, s10, s11
+
+    li  s1, -128        // clamp min value
+    li  s8, 127         // clamp max value
+    lw  s9, 76(a2)      // activation_alpha
+    lw  s10, 84(a2)     // activation_shift
+    esp32p4_s8_unaligned_conv2d_per_channel_11cn_load_args  a2, a3, t0, t1, a5, a4
+    lw  t6, 68(a2)      // bias
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t3            //  t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_128b
+            li  t2, 8
+            beq  t3, t2, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_64b
+                esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_32b_multiple_loop:     // esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_32b
+                    mv t3, a1     // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_64b_multiple_loop:
+                    mv t3, a1     // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_128b_multiple_loop:
+                mv  t3, a1     // t3: input_ptr
+                esp.zero.qacc
+
+                esp32p4_s8_conv2d_128b_vector_bias  t6
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_vector_relu  q0, s9, s10
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_128b_multiple_loop
+
+
+    esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_n_remainder:
+        lw t1, 140(a2)       // t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       // t4: 15 - c_remainder
+            li  t5,  0            // t5: activation_shift = zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_n_remainder_loop:
+                // mv  t3, a1         // t3: input_ptr
+                esp.zero.xacc
+
+                esp32p4_s8_conv2d_element_bias  t6, t3      // t3: tmp for bias
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                mv  t3, a1         // t3: input_ptr
+                esp32p4_s8_unaligned_conv2d_11c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t4, t5
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_leakyrelu  s0, s9, s10
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu_n_remainder_end:
+
+    esp32p4_pop_24_stacks_6r  s0, s1, s8, s9, s10, s11
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6:
+
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): temp value
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9:
+    # s10:
+    # s11: mac_shift element
+
+    esp32p4_push_16_stacks_4r  s0, s1, s8, s11    // push stacks
+    li  s1, -128    // clamp min value
+    li  s8, 127    // clamp max value
+    esp32p4_s8_unaligned_conv2d_per_channel_11cn_load_args  a2, a3, t0, t1, a5, a4
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t3            //  t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_11cn_128b
+            li  t2, 8
+            beq  t3, t2, esp32p4_s8_unaligned_conv2d_per_channel_11cn_64b
+                esp32p4_s8_unaligned_conv2d_per_channel_11cn_32b_multiple_loop:     // esp32p4_s8_unaligned_conv2d_per_channel_11cn_32b
+                    mv t3, a1     // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_11cn_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_11cn_64b_multiple_loop:
+                    mv t3, a1     // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_11cn_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_11cn_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_128b_multiple_loop:
+                mv  t3, a1     // t3: input_ptr
+                esp.zero.qacc
+
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_128b_multiple_loop
+
+
+    esp32p4_s8_unaligned_conv2d_per_channel_11cn_n_remainder:
+        lw t1, 140(a2)       // t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       // t4: 15 - c_remainder
+            li  t5,  0            // t5: activation_shift = zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_n_remainder_loop:
+                mv  t3, a1         // t3: input_ptr
+                esp.zero.xacc
+
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                esp32p4_s8_unaligned_conv2d_11c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t4, t5
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_11cn_n_remainder_end:
+
+    esp32p4_pop_16_stacks_4r  s0, s1, s8, s11     // restore registers
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6:
+
+    # a6(not for extension instructions):
+    # a7(not for extension instructions):
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): temp value
+    # s2(not for extension instructions):
+    # s3(not for extension instructions):
+    # s4(not for extension instructions):
+    # s5(not for extension instructions):
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9: activation_alpha/_address
+    # s10: activation_shift
+    # s11: mac_shift element
+
+    esp32p4_push_24_stacks_6r  s0, s1, s8, s9, s10, s11
+
+    li  s1, -128        // clamp min value
+    li  s8, 127         // clamp max value
+    lw  s9, 76(a2)      // activation_alpha
+    lw  s10, 84(a2)     // activation_shift
+    esp32p4_s8_unaligned_conv2d_per_channel_11cn_load_args  a2, a3, t0, t1, a5, a4
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t3            //  t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_128b
+            li  t2, 8
+            beq  t3, t2, esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_64b
+                esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_32b_multiple_loop:     // esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_32b
+                    mv t3, a1     // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_64b_multiple_loop:
+                    mv t3, a1     // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_128b_multiple_loop:
+                mv  t3, a1     // t3: input_ptr
+                esp.zero.qacc
+
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_11c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_vector_relu  q0, s9, s10
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_128b_multiple_loop
+
+
+    esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_n_remainder:
+        lw t1, 140(a2)       // t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       // t4: 15 - c_remainder
+            li  t5,  0            // t5: activation_shift = zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_n_remainder_loop:
+                mv  t3, a1         // t3: input_ptr
+                esp.zero.xacc
+
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                esp32p4_s8_unaligned_conv2d_11c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t4, t5
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_leakyrelu  s0, s9, s10
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu_n_remainder_end:
+
+    esp32p4_pop_24_stacks_6r  s0, s1, s8, s9, s10, s11
+    ret
+
+
+
+############################################################################################################################################################
+####
+#### esp32p4_s8_unaligned_conv2d_per_channel_33cn series
+####
+############################################################################################################################################################
+.macro esp32p4_s8_unaligned_conv2d_per_channel_hwcn_load_args  args, filter_ptr, c_div_x_1, n_div_x, tie_filter_channel_factor, c_remainder, dilation_x_offset, dilation_y_offset
+    esp32p4_s8_unaligned_conv2d_per_channel_11cn_load_args  \args, \filter_ptr, \c_div_x_1, \n_div_x, \tie_filter_channel_factor, \c_remainder
+    lw  \dilation_x_offset, 108(\args)  // input dilation x offset
+    lw  \dilation_y_offset, 112(\args)  // input dilation y offset
+.endm
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr / n_remainder bias tmp value
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6: bias_ptr
+
+    # a6(not for extension instructions): dilation_y_offset
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s11: mac_shift element
+
+    esp32p4_push_16_stacks_4r  s0, s1, s8, s11
+    li  s1, -128    // clamp min value
+    li  s8, 127     // clamp max value
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+    lw  t6, 68(a2)
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t3               #  t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_128b
+            li  a7, 8
+            beq  t3, a7, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_64b
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_32b:
+                esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_32b_multiple_loop:
+                    mv  t3, a1     # t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_64b_multiple_loop:
+                    mv  t3, a1     # t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_128b_multiple_loop:
+                mv  t3, a1     # t3: input_ptr
+                esp.zero.qacc
+
+                esp32p4_s8_conv2d_128b_vector_bias  t6
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_128b_multiple_loop
+
+
+    esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_n_remainder:
+        lw  t1, 140(a2)       # t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       # t4: 15 - c_remainder
+            li  t5,  0            # t5: activation_shift = zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_n_remainder_loop:
+                esp.zero.xacc
+
+                esp32p4_s8_conv2d_element_bias  t6, t3      // t3: tmp for bias
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                mv  t3, a1         // t3: input_ptr
+                esp32p4_s8_unaligned_conv2d_33c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, t4, t5
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_n_remainder_end:
+
+    esp32p4_pop_16_stacks_4r  s0, s1, s8, s11
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6: bias_ptr
+
+    # a6(not for extension instructions): dilation_y_offset
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9: activation_alpha/_address
+    # s10: activation_shift
+    # s11: mac_shift element
+
+    esp32p4_push_24_stacks_6r  s0, s1, s8, s9, s10, s11
+    li  s1, -128        // clamp min value
+    li  s8, 127         // clamp max value
+    lw  s9, 76(a2)      // activation_alpha
+    lw  s10, 84(a2)     // activation_shift
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+    lw  t6, 68(a2)      // bias
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t3               #  t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_128b
+            li  a7, 8
+            beq  t3, a7, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_64b
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_32b:
+                esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_32b_multiple_loop:
+                    mv  t3, a1     # t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_64b_multiple_loop:
+                    mv  t3, a1     # t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_128b_multiple_loop:
+                mv  t3, a1     # t3: input_ptr
+                esp.zero.qacc
+
+                esp32p4_s8_conv2d_128b_vector_bias  t6
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_vector_relu  q0, s9, s10
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_128b_multiple_loop
+
+
+    esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_n_remainder:
+        lw  t1, 140(a2)       # t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       # t4: 15 - c_remainder
+            li  t5,  0            # t5: activation_shift = zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_n_remainder_loop:
+                esp.zero.xacc
+
+                esp32p4_s8_conv2d_element_bias  t6, t3      // t3: tmp for bias
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                mv  t3, a1         // t3: input_ptr
+                esp32p4_s8_unaligned_conv2d_33c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, t4, t5
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_leakyrelu  s0, s9, s10
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu_n_remainder_end:
+
+    esp32p4_pop_24_stacks_6r  s0, s1, s8, s9, s10, s11
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6:
+
+    # a6(not for extension instructions): dilation_y_offset
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9:
+    # s10:
+    # s11: mac_shift element
+
+    esp32p4_push_16_stacks_4r  s0, s1, s8, s11    // push stacks
+    li  s1, -128    // clamp min value
+    li  s8, 127     // clamp max value
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t3               #  t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_33cn_128b
+            li  a7, 8
+            beq  t3, a7, esp32p4_s8_unaligned_conv2d_per_channel_33cn_64b
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_32b:
+                esp32p4_s8_unaligned_conv2d_per_channel_33cn_32b_multiple_loop:
+                    mv  t3, a1     # t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_33cn_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_33cn_64b_multiple_loop:
+                    mv  t3, a1     # t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_33cn_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_33cn_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_128b_multiple_loop:
+                mv  t3, a1     # t3: input_ptr
+                esp.zero.qacc
+
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_128b_multiple_loop
+
+
+    esp32p4_s8_unaligned_conv2d_per_channel_33cn_n_remainder:
+        lw  t1, 140(a2)       # t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       # t4: 15 - c_remainder
+            li  t5,  0            # t5: activation_shift = zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_n_remainder_loop:
+                mv  t3, a1         # t3: input_ptr
+                esp.zero.xacc
+
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                esp32p4_s8_unaligned_conv2d_33c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, t4, t5
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_33cn_n_remainder_end:
+
+    esp32p4_pop_16_stacks_4r  s0, s1, s8, s11     // restore registers
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6:
+
+    # a6(not for extension instructions): dilation_y_offset
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9: activation_alpha/_address
+    # s10: activation_shift
+    # s11: mac_shift element
+
+    esp32p4_push_24_stacks_6r  s0, s1, s8, s9, s10, s11
+    li  s1, -128        // clamp min value
+    li  s8, 127         // clamp max value
+    lw  s9, 76(a2)      // activation_alpha
+    lw  s10, 84(a2)     // activation_shift
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        esp.movx.r.sar.bytes  t3               #  t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_128b
+            li  a7, 8
+            beq  t3, a7, esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_64b
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_32b:
+                esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_32b_multiple_loop:
+                    mv  t3, a1     # t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_64b_multiple_loop:
+                    mv  t3, a1     # t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_128b_multiple_loop:
+                mv  t3, a1     # t3: input_ptr
+                esp.zero.qacc
+
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_33c16  q0, q1, q2, t3, q3, q4, a3, t0, a4, t2, a6, a7
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_vector_relu  q0, s9, s10
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_128b_multiple_loop
+
+
+    esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_n_remainder:
+        lw  t1, 140(a2)       # t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_n_remainder_end
+            li  t4, 15
+            sub  t4, t4, a4       # t4: 15 - c_remainder
+            li  t5,  0            # t5: activation_shift = zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_n_remainder_loop:
+                mv  t3, a1         # t3: input_ptr
+                esp.zero.xacc
+
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                esp32p4_s8_unaligned_conv2d_33c1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, t4, t5
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_leakyrelu  s0, s9, s10
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu_n_remainder_end:
+
+    esp32p4_pop_24_stacks_6r  s0, s1, s8, s9, s10, s11
+    ret
+
+
+
+############################################################################################################################################################
+####
+#### esp32p4_s8_unaligned_conv2d_per_channel_hwcn series
+####
+############################################################################################################################################################
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr / n_remainder bias tmp value
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6: bias_ptr
+
+    # a6(not for extension instructions): dilation_y_offset
+    # a7(not for extension instructions): filter_h
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+    # s2(not for extension instructions): filter_w
+    # s3(not for extension instructions): filter_y_offset
+    # s4(not for extension instructions): filter_n_offset
+    # s5(not for extension instructions): tmp value
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9:
+    # s10:
+    # s11: mac_shift element
+
+    esp32p4_push_32_stacks_8r  s2, s3, s4, s5, s0, s1, s8, s11
+    li  s1, -128    // clamp min value
+    li  s8, 127     // clamp max value
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+    lw  t6, 68(a2)       // bias
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        lw  s3, 60(a2)              // s3: filter_y_offset
+        lw  s4, 144(a2)             // s4: filter_n_offset
+        esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_128b
+            li  s5, 8
+            beq  t3, s5, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_64b
+                // esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_32b:
+                esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_32b_multiple_loop:
+                    mv  t3, a1      // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_64b_multiple_loop:
+                    mv  t3, a1      // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_128b_multiple_loop:
+                mv  t3, a1          // t3: input_ptr
+                esp.zero.qacc
+
+                esp32p4_s8_conv2d_128b_vector_bias  t6
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_128b_multiple_loop
+
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_n_remainder:
+        lw  t1, 140(a2)         // t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_n_remainder_end
+            lw  s3, 160(a2)     // s3: filter_y_offset_unaligned
+            lw  s4, 164(a2)     // s4: filter_n_offset_unaligned
+            lw  a3, 168(a2)     // a3: filter_ptr_unaligned
+
+            li  t4, 15
+            sub  t4, t4, a4     // t4: 15 - c_remainder
+            li  t5,  0          // t5: zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_n_remainder_loop:
+                // mv  t3, a1      // t3: input_ptr
+                esp.zero.xacc
+
+                esp32p4_s8_conv2d_element_bias  t6, t3      // t3: tmp for bias
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                mv  t3, a1      // t3: input_ptr
+                esp32p4_s8_unaligned_conv2d_hwc1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, a7, s2, a2, t4, t5, s3, s4
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_n_remainder_end:
+
+    esp32p4_pop_32_stacks_8r  s2, s3, s4, s5, s0, s1, s8, s11
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr / n_remainder bias tmp value
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6: bias_ptr
+
+    # a6(not for extension instructions): dilation_y_offset
+    # a7(not for extension instructions): filter_h
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+    # s2(not for extension instructions): filter_w
+    # s3(not for extension instructions): filter_y_offset
+    # s4(not for extension instructions): filter_n_offset
+    # s5(not for extension instructions): tmp value
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9: activation_alpha/_address
+    # s10: activation_shift
+    # s11: mac_shift element
+
+    esp32p4_push_40_stacks_10r  s2, s3, s4, s5, s0, s1, s8, s9, s10, s11
+    li  s1, -128    // clamp min value
+    li  s8, 127     // clamp max value
+    lw  s9, 76(a2)      // activation_alpha
+    lw  s10, 84(a2)     // activation_shift
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+    lw  t6, 68(a2)       // bias
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        lw  s3, 60(a2)              // s3: filter_y_offset
+        lw  s4, 144(a2)             // s4: filter_n_offset
+        esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_128b
+            li  s5, 8
+            beq  t3, s5, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_64b
+                // esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_32b:
+                esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_32b_multiple_loop:
+                    mv  t3, a1      // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_64b_multiple_loop:
+                    mv  t3, a1      // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp32p4_s8_conv2d_128b_vector_bias  t6
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_128b_multiple_loop:
+                mv  t3, a1          // t3: input_ptr
+                esp.zero.qacc
+
+                esp32p4_s8_conv2d_128b_vector_bias  t6
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_vector_relu  q0, s9, s10
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_128b_multiple_loop
+
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_n_remainder:
+        lw  t1, 140(a2)         // t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_n_remainder_end
+            lw  s3, 160(a2)     // s3: filter_y_offset_unaligned
+            lw  s4, 164(a2)     // s4: filter_n_offset_unaligned
+            lw  a3, 168(a2)     // a3: filter_ptr_unaligned
+
+            li  t4, 15
+            sub  t4, t4, a4     // t4: 15 - c_remainder
+            li  t5,  0          // t5: zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_n_remainder_loop:
+                // mv  t3, a1      // t3: input_ptr
+                esp.zero.xacc
+
+                esp32p4_s8_conv2d_element_bias  t6, t3      // t3: tmp for bias
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                mv  t3, a1      // t3: input_ptr
+                esp32p4_s8_unaligned_conv2d_hwc1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, a7, s2, a2, t4, t5, s3, s4
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_leakyrelu  s0, s9, s10
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu_n_remainder_end:
+
+    esp32p4_pop_40_stacks_10r  s2, s3, s4, s5, s0, s1, s8, s9, s10, s11
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6:
+
+    # a6(not for extension instructions): dilation_y_offset
+    # a7(not for extension instructions): filter_h
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+    # s2(not for extension instructions): filter_w
+    # s3(not for extension instructions): filter_y_offset
+    # s4(not for extension instructions): filter_n_offset
+    # s5(not for extension instructions): tmp value
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9:
+    # s10:
+    # s11: mac_shift element
+
+    esp32p4_push_32_stacks_8r  s2, s3, s4, s5, s0, s1, s8, s11
+    li  s1, -128    // clamp min value
+    li  s8, 127     // clamp max value
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        lw  s3, 60(a2)              // s3: filter_y_offset
+        lw  s4, 144(a2)             // s4: filter_n_offset
+        esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_128b
+            li  s5, 8
+            beq  t3, s5, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_64b
+                // esp32p4_s8_unaligned_conv2d_per_channel_hwcn_32b:
+                esp32p4_s8_unaligned_conv2d_per_channel_hwcn_32b_multiple_loop:
+                    mv  t3, a1      // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_hwcn_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_hwcn_64b_multiple_loop:
+                    mv  t3, a1      // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_hwcn_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_hwcn_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_128b_multiple_loop:
+                mv  t3, a1          // t3: input_ptr
+                esp.zero.qacc
+
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_128b_multiple_loop
+
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_n_remainder:
+        lw  t1, 140(a2)         // t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_n_remainder_end
+            lw  s3, 160(a2)     // s3: filter_y_offset_unaligned
+            lw  s4, 164(a2)     // s4: filter_n_offset_unaligned
+            lw  a3, 168(a2)     // a3: filter_ptr_unaligned
+
+            li  t4, 15
+            sub  t4, t4, a4     // t4: 15 - c_remainder
+            li  t5,  0          // t5: zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_n_remainder_loop:
+                mv  t3, a1      // t3: input_ptr
+                esp.zero.xacc
+
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                esp32p4_s8_unaligned_conv2d_hwc1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, a7, s2, a2, t4, t5, s3, s4
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_hwcn_n_remainder_end:
+
+    esp32p4_pop_32_stacks_8r  s2, s3, s4, s5, s0, s1, s8, s11
+    ret
+
+
+
+    .text
+    .global dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu
+    .type   dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu, @function
+    .balign 4
+    .option norvc
+dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu:
+
+    # a0: int8_t *output_ptr
+    # a1: int8_t *input_ptr
+    # a2: void *args
+
+    # a3: int8_t *filter_ptr
+    # a4: c_remainder
+    # a5: tie_filter_channel_factor
+    # t3: output_sar_byte / moving_input_ptr
+    # t4: c_remainder_shift
+    # t5: zero
+    # t6:
+
+    # a6(not for extension instructions): dilation_y_offset
+    # a7(not for extension instructions): filter_h
+    # t0(not for extension instructions): c_div_x_1
+    # t1(not for extension instructions): n_div_x / n_remainder
+    # t2(not for extension instructions): dilation_x_offset
+    # s2(not for extension instructions): filter_w
+    # s3(not for extension instructions): filter_y_offset
+    # s4(not for extension instructions): filter_n_offset
+    # s5(not for extension instructions): tmp value
+
+    # s0: output
+    # s1: clamp min value
+    # s8: clamp max value
+    # s9: activation_alpha/_address
+    # s10: activation_shift
+    # s11: mac_shift element
+
+    esp32p4_push_40_stacks_10r  s2, s3, s4, s5, s0, s1, s8, s9, s10, s11
+    li  s1, -128    // clamp min value
+    li  s8, 127     // clamp max value
+    lw  s9, 76(a2)      // activation_alpha
+    lw  s10, 84(a2)     // activation_shift
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_load_args  a2, a3, t0, t1, a5, a4, t2, a6
+
+    beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_n_remainder
+        esp.ld.128.usar.ip  q0, a0, 0
+        lw  s3, 60(a2)              // s3: filter_y_offset
+        lw  s4, 144(a2)             // s4: filter_n_offset
+        esp.movx.r.sar.bytes  t3    // t3: output_sar_byte
+
+        beqz  t3, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_128b
+            li  s5, 8
+            beq  t3, s5, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_64b
+                // esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_32b:
+                esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_32b_multiple_loop:
+                    mv  t3, a1      // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_32b_unaligned_vector_store  q0, a0, t3
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_32b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_n_remainder
+
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_64b:
+                esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_64b_multiple_loop:
+                    mv  t3, a1      // t3: input_ptr
+                    esp.zero.qacc
+
+                    esp.vld.128.ip  q6, a5, 16
+                    esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                    esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                    esp32p4_s8_128b_vector_relu  q0, s9, s10
+                    esp32p4_s8_64b_unaligned_vector_store  q0, a0
+
+                    addi  t1, t1, -1
+                    bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_64b_multiple_loop
+                j  esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_n_remainder
+
+        esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_128b:
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_128b_multiple_loop:
+                mv  t3, a1          // t3: input_ptr
+                esp.zero.qacc
+
+                esp.vld.128.ip  q6, a5, 16
+                esp32p4_s8_unaligned_conv2d_hwc16  q0, q1, q2, q3, q4, t3, a3, t0, a4, t2, a6, a7, s2, a2, s3, s4, s5
+                esp32p4_s8_128b_vector_per_channel_shift_result  q0, q6
+                esp32p4_s8_128b_vector_relu  q0, s9, s10
+                esp32p4_s8_128b_aligned_vector_store  q0, a0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_128b_multiple_loop
+
+    esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_n_remainder:
+        lw  t1, 140(a2)         // t1: n_remainder
+        beqz  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_n_remainder_end
+            lw  s3, 160(a2)     // s3: filter_y_offset_unaligned
+            lw  s4, 164(a2)     // s4: filter_n_offset_unaligned
+            lw  a3, 168(a2)     // a3: filter_ptr_unaligned
+
+            li  t4, 15
+            sub  t4, t4, a4     // t4: 15 - c_remainder
+            li  t5,  0          // t5: zero
+
+            esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_n_remainder_loop:
+                mv  t3, a1      // t3: input_ptr
+                esp.zero.xacc
+
+                lb  s11, 0(a5)
+                addi  a5, a5, 1
+                esp32p4_s8_unaligned_conv2d_hwc1  q0, q1, q2, q3, q4, q5, t3, a3, t0, a4, t2, a6, a7, s2, a2, t4, t5, s3, s4
+                esp32p4_s8_element_result  s0, s11
+                esp32p4_clamp  s0, s1, s8
+                esp32p4_s8_element_leakyrelu  s0, s9, s10
+                esp32p4_s8_element_store  a0, s0
+
+                addi  t1, t1, -1
+                bnez  t1, esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_n_remainder_loop
+
+        esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu_n_remainder_end:
+
+    esp32p4_pop_40_stacks_10r  s2, s3, s4, s5, s0, s1, s8, s9, s10, s11
     ret

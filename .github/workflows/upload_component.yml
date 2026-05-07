@@ -18,6 +18,7 @@ jobs:
             models/cat_detect;
             models/coco_detect;
             models/coco_pose;
+            models/yolo26;
             models/color_detect;
             models/dog_detect;
             models/hand_detect;

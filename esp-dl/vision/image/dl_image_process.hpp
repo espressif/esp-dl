@@ -57,7 +57,7 @@ public:
     float get_scale_y(bool inv = false);
     pix_cvt_param_t get_pix_cvt_param();
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
     static constexpr bool simd = true;
 #else
     static constexpr bool simd = false;
@@ -970,7 +970,7 @@ private:
             m_gen_xy_map = false;
         }
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
         uint32_t cfg = 0;
         if constexpr (SIMD) {
             cfg = dl_esp32p4_get_cfg();
@@ -1042,7 +1042,7 @@ private:
                 }
             }
         }
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ESP32P4_BOOST
         if constexpr (SIMD) {
             dl_esp32p4_cfg_misalign((misalign_mode_t)(cfg & 0b1), (misalign_mode_t)(cfg & 0b10));
         }

@@ -490,6 +490,21 @@ public:
         }
         return op;
     }
+    void reset() override
+    {
+        if (m_input_cache != nullptr) {
+            m_input_cache->memset(0);
+        }
+        if (m_hidden_cache != nullptr) {
+            m_hidden_cache->memset(0);
+        }
+        if (m_h_prev != nullptr) {
+            m_h_prev->memset(0);
+        }
+        if (m_c_prev != nullptr) {
+            m_c_prev->memset(0);
+        }
+    }
 
     void print() override
     {

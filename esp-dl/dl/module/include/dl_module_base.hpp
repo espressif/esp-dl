@@ -116,11 +116,7 @@ public:
     /**
      * @brief reset all state of module, include inputs， outputs and preload cache setting
      */
-    virtual void reset()
-    {
-        this->m_inputs_index.clear();
-        this->m_outputs_index.clear();
-    }
+    virtual void reset() {}
 
     /**
      * @brief Run the module with single input and single output

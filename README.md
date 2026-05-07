@@ -9,12 +9,14 @@ ESP-DL is a lightweight and efficient neural network inference framework designe
 ESP-DL offers APIs to load, debug, and run AI models. The framework is easy to use and can be seamlessly integrated with other Espressif SDKs. ESP-PPQ serves as the quantization tool for ESP-DL, capable of quantizing models from ONNX, Pytorch, and TensorFlow, and exporting them into the ESP-DL standard model format.
 
 - **ESP-DL Standard Model Format**: This format is similar to ONNX but uses FlatBuffers instead of Protobuf, making it more lightweight and supporting zero-copy deserialization, with a file extension of `.espdl`.
-- **Efficient Operator Implementation**: ESP-DL efficiently implements common AI operators such as Conv, Gemm, Add, and Mul. [**The list of supported operators**](./operator_support_state.md).
+- **Efficient Operator Implementation**: ESP-DL efficiently implements common AI operators such as Conv, Gemm, Add, and Mul. [**The list of supported operators**](./operator_support_state.md). For performance benchmark data of some operators on ESP32-S3 and ESP32-P4, please refer to [operator_performance.md](./operator_performance.md).
 - **Static Memory Planner**: The memory planner automatically allocates different layers to the optimal memory location based on the user-specified internal RAM size, ensuring efficient overall running speed while minimizing memory usage.
 - **Dual Core Scheduling**: Automatic dual-core scheduling allows computationally intensive operators to fully utilize the dual-core computing power. Currently, Conv2D and DepthwiseConv2D support dual-core scheduling.
 - **8bit LUT Activation**: All activation functions except for ReLU and PReLU are implemented using an 8-bit LUT (Look Up Table) method in ESP-DL to accelerate inference. You can use any activation function, and their computational complexity remains the same.
 
 ## News
+- [2026/4/23] Support model quantization via AutoQuant tool, which automatically explores optimal quantization strategies and parameters, significantly reducing manual tuning effort. See [how_to_use_AutoQuant.rst](./docs/en/tutorials/how_to_use_AutoQuant.rst).
+- [2026/4/20] Conv and Gemm operators on ESP32-P4 have been upgraded to per-channel quantization, significantly improving model accuracy. **Note**: This requires ESP-PPQ ≥ 1.2.10 and ESP-DL ≥ 3.3.1. The new ESP-DL maintains backward compatibility, and existing per-tensor models are not affected.
 - [2026/3/12] [YOLO26](./models/yolo26/) model has been added, thanks to [BoumedineBillal](https://github.com/BoumedineBillal) for the contribution. [Start training and deploying your own YOLO26 model](./examples/tutorial/how_to_quantize_model/quantize_yolo26).
 - [2026/3/11] The ESP-DL Agent Tool has been evolved into **espdl-operator skill**, making it easier for AI Agents to automatically implement operators. See [how_to_implement_operators_with_ai_agent.rst](./docs/en/tutorials/how_to_implement_operators_with_ai_agent.rst).
 - [2026/2/27] Support quantizing models with TrainedQuantizedThresholdPass. See [quantize_model_with_TQT.rst](./docs/en/tutorials/quantize_model_with_TQT.rst).
@@ -68,19 +70,10 @@ ESP-DL provides a series of API to quickly load and run models.  A typical examp
 [how to run model](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_run_model.html)  
 
 
-## Support Models
+## ESP-DL Model Zoo
 
-[Pedestrian Detection](./models/pedestrian_detect/)     
-[Human Face Detection](./models/human_face_detect/)     
-[Human Face Recognition](./models/human_face_recognition/)     
-[Imagenet Classification (MobileNetV2)](./models/imagenet_cls/)    
-[COCO Detection (YOLO11n)](./models/coco_detect/)    
-[Cat Detection (​​ESPDet-Pico)](./models/cat_detect/)  
-[Dog Detection (​​ESPDet-Pico)](./models/dog_detect/)  
-[Hand Detection (​​ESPDet-Pico)](./models/hand_detect/)   
-[Hand Gesture Recognition](./models/hand_gesture_recognition/)   
-[Pose Estimation (YOLO11n-Pose)](./models/coco_pose/)    
-[Speaker Verification (x-vector)](./models/speaker_verification/)   
+The directory [models](./models/) contains a collection of pre-trained and quantized models optimized for ESP32 series chips. Each model is provided as an ESP-IDF component for easy integration. For more details, please refer to [ESP-DL Model Zoo](./models/README.md).
+
 
 ## Support Operators
 

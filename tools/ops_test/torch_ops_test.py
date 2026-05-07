@@ -15,19 +15,33 @@ class CONV_TEST(nn.Module):
         super().__init__()
 
         conv_class = nn.Conv1d if len(config["input_shape"]) == 3 else nn.Conv2d
+        self.conv = conv_class(
+            in_channels=config["in_channels"],
+            out_channels=config["out_channels"],
+            kernel_size=config["kernel_size"],
+            stride=config["stride"],
+            padding=config["padding"],
+            dilation=config["dilation"],
+            groups=config["groups"],
+            bias=config["bias"],
+        )
 
-        op_list = [
-            conv_class(
-                in_channels=config["in_channels"],
-                out_channels=config["out_channels"],
-                kernel_size=config["kernel_size"],
-                stride=config["stride"],
-                padding=config["padding"],
-                dilation=config["dilation"],
-                groups=config["groups"],
-                bias=config["bias"],
-            )
-        ]
+        # === Optional per-channel differential initialization ===
+        if config.get("per_channel_enable", False):
+            # Set different weight ranges for each output channel to create inter-channel differences
+            with torch.no_grad():
+                out_ch = self.conv.weight.shape[0]  # [out_ch, in_ch, H, W]
+                for i in range(out_ch):
+                    # Increase weight magnitude for each channel exponentially or linearly
+                    # For example: channel 0 uses [-0.1, 0.1], channel N-1 uses [-10, 10]
+                    scale = 0.1 * (
+                        2 ** (i % 4)
+                    )  # Exponential growth, prevent from being too large
+                    self.conv.weight[i] = torch.randn_like(self.conv.weight[i]) * scale
+                    if self.conv.bias is not None:
+                        self.conv.bias[i] = torch.randn(1) * scale * 0.5
+
+        op_list = [self.conv]
         if config["activation_func"] == "ReLU":
             op_list.append(nn.ReLU())
         self.ops = nn.Sequential(*op_list)

@@ -40,21 +40,21 @@ Reference :project_file:`quantize_torch_model.py <examples/tutorial/how_to_quant
 
 After executing the script, three files will be exported:
 
-- ``**.espdl``: ESPDL model binary file, which can be directly used for chip reasoning.
+- ``**.espdl``: ESPDL model binary file, which can be deployed on chip for inference directly, and can be visualized with `Netron <https://netron.app>`__.
 - ``**.info``: ESPDL model text file, used to debug and determine whether the ``.espdl`` model is exported correctly. Contains model structure, quantized model weights, test input/output and other information.
 - ``**.json``: Quantization information file, used to save and load quantization information.
 
 .. note::
 
-   1. The ``.espdl`` models of different platforms cannot be mixed, otherwise the inference results will be inaccurate.
+   1. The ``.espdl`` models of different platforms cannot be mixed; inference results will be inaccurate.
 
-      - The ``ESP32`` uses ``ROUND_HALF_UP`` as its rounding strategy.
+      - ``ESP32`` uses a ``Per-Tensor`` quantization strategy; the rounding mode is ``ROUND_HALF_UP``.
 
-         - When quantizing **ESP32** platform models using **ESP-PPQ**, set the target to ``c``. Because ESP-DL implements its operators in C.
-         - When deploying **ESP32** platform models using **ESP-DL**, set the project compilation target to ``esp32``.
+         - When quantizing **ESP32** platform models with **ESP-PPQ**, set the target to ``c``, because ESP-DL implements those operators in C.
+         - When deploying **ESP32** platform models with **ESP-DL**, set the project build target to ``esp32``.
 
-      - The ROUND strategy used by ``ESP32S3`` is ``ROUND_HALF_UP``.
-      - The ROUND strategy used by ``ESP32P4`` is ``ROUND_HALF_EVEN``.
+      - ``ESP32S3`` uses a ``Per-Tensor`` quantization strategy; the rounding mode is ``ROUND_HALF_UP``.
+      - On ``ESP32P4``, ``Conv`` and ``GEMM`` use ``Per-Channel`` quantization; other operators use ``Per-Tensor``; the rounding mode is ``ROUND_HALF_EVEN``.
 
    2. The quantization strategy currently used by ESP-DL is symmetric quantization + POWER OF TWO.
 
@@ -86,7 +86,7 @@ The output obtained by quantized model inference can be used to calculate variou
 Advanced Quantization Methods
 ---------------------------------
 
-If you want to further improve the performance of the quantized model, please try the the following advanced quantization methods:
+If the default 8-bit quantization does not meet your accuracy needs, the following methods can further reduce accuracy loss of the quantized model:
 
 Post Training Quantization (PTQ)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -164,6 +164,15 @@ void *malloc_aligned(size_t size, uint32_t caps);
  */
 void *calloc_aligned(size_t n, size_t size, uint32_t caps);
 
+/**
+ * @brief Get the aligned size; it is aligned to 16 bytes by default.
+ *
+ * @param size
+ * @param alignment
+ * @return size_t
+ */
+size_t get_aligned_size(size_t size, int alignment = 16);
+
 template <typename T>
 struct PSRAMAllocator {
     typedef T value_type;

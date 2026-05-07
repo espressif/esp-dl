@@ -2,6 +2,7 @@
 #include "dl_image_process.hpp"
 #include "esp_check.h"
 #include "esp_heap_caps.h"
+#include "esp_idf_version.h"
 #include "esp_jpeg_common.h"
 #include "esp_jpeg_dec.h"
 #include "esp_jpeg_enc.h"
@@ -235,6 +236,9 @@ img_t hw_decode_jpeg(const jpeg_img_t &jpeg_img,
     jpeg_decode_engine_cfg_t decode_eng_cfg = {
         .intr_priority = 0,
         .timeout_ms = timeout_ms,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+        .flags = {0},
+#endif
     };
     if (jpeg_new_decoder_engine(&decode_eng_cfg, &jpgd_handle) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to create decoder engine.");
@@ -305,6 +309,9 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img,
     jpeg_encode_engine_cfg_t encode_eng_cfg = {
         .intr_priority = 0,
         .timeout_ms = timeout_ms,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+        .flags = {0},
+#endif
     };
     if (jpeg_new_encoder_engine(&encode_eng_cfg, &jpeg_handle) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to create encoder engine.");
@@ -336,6 +343,9 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img,
         .src_type = src_type,
         .sub_sample = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? JPEG_DOWN_SAMPLING_GRAY : rgb_sub_sample_method,
         .image_quality = quality,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+        .pixel_reverse = false,
+#endif
     };
 
     uint32_t out_len = 0;

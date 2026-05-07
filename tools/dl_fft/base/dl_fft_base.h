@@ -110,7 +110,8 @@ int dl_rfft_post_proc_sc16(int16_t *data, int cpx_points, int16_t *table);
 #define dl_ifft2r_sc16_dif dl_ifft2r_sc16_dif_aes3_
 #define dl_rfft_post_proc_sc16_asm dl_rfft_post_proc_sc16_aes3_
 #define dl_rfft_pre_proc_sc16_asm dl_rfft_pre_proc_sc16_aes3_
-#elif CONFIG_IDF_TARGET_ESP32P4 && !CONFIG_ESP32P4_SELECTS_REV_LESS_V3
+#elif !CONFIG_ESP32P4_SELECTS_REV_LESS_V3 && \
+    ((IDF_VERSION_MAJOR == 5 && IDF_VERSION_MINOR == 5) || IDF_VERSION_MAJOR > 5)
 #define dl_reduce_abs_max dl_reduce_abs_max_arp4_
 #define dl_fft2r_sc16_dif_asm dl_fft2r_sc16_dif_arp4_
 #define dl_fft2r_sc16_dif_hp_asm dl_fft2r_sc16_dif_hp_arp4_
