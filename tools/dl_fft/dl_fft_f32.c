@@ -1,4 +1,5 @@
 #include "dl_fft.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include <math.h>
 #include <string.h>
@@ -25,7 +26,7 @@ dl_fft_f32_t *dl_fft_f32_init(int fft_point, uint32_t caps)
     handle->log2n = dl_power_of_two(fft_point);
 
     // Allocate and generate FFT table
-    handle->fft_table = dl_gen_fftr2_table_f32(fft_point, caps);
+    handle->fft_table = dl_gen_fft2r_table_f32(fft_point, caps);
     if (!handle->fft_table) {
         ESP_LOGE(TAG, "Failed to generate FFT table");
         dl_fft_f32_deinit(handle);
@@ -41,15 +42,15 @@ void dl_fft_f32_deinit(dl_fft_f32_t *handle)
 {
     if (handle) {
         if (handle->fft_table) {
-            free(handle->fft_table);
+            heap_caps_free(handle->fft_table);
         }
         if (handle->rfft_table) {
-            free(handle->rfft_table);
+            heap_caps_free(handle->rfft_table);
         }
         if (handle->bitrev_table) {
-            free(handle->bitrev_table);
+            heap_caps_free(handle->bitrev_table);
         }
-        free(handle);
+        heap_caps_free(handle);
     }
 }
 

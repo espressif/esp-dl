@@ -1,5 +1,6 @@
 #include "dl_rfft.h"
 #include "esp_attr.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include <math.h>
 #include <string.h>
@@ -42,7 +43,7 @@ dl_fft_f32_t *dl_rfft_f32_init(int fft_point, uint32_t caps)
         }
     } else {
         handle->bitrev_table = dl_gen_bitrev2r_table(fft_point >> 1, caps, &handle->bitrev_size);
-        handle->fft_table = dl_gen_fftr2_table_f32(fft_point >> 1, caps);
+        handle->fft_table = dl_gen_fft2r_table_f32(fft_point >> 1, caps);
         if (!handle->fft_table) {
             ESP_LOGE(TAG, "Failed to generate FFT table");
             dl_rfft_f32_deinit(handle);
@@ -57,15 +58,15 @@ void dl_rfft_f32_deinit(dl_fft_f32_t *handle)
 {
     if (handle) {
         if (handle->fft_table) {
-            free(handle->fft_table);
+            heap_caps_free(handle->fft_table);
         }
         if (handle->rfft_table) {
-            free(handle->rfft_table);
+            heap_caps_free(handle->rfft_table);
         }
         if (handle->bitrev_table) {
-            free(handle->bitrev_table);
+            heap_caps_free(handle->bitrev_table);
         }
-        free(handle);
+        heap_caps_free(handle);
     }
 }
 esp_err_t dl_rfft_f32_run(dl_fft_f32_t *handle, float *data)
