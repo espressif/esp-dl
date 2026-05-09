@@ -370,7 +370,12 @@ void conv_operation_shell(ArgsType<feature_t> &args,
     feature_t *output_ptr = (feature_t *)args.output_element;
     if (args.padding_h_head || args.padding_w_head || args.padding_h_tail || args.padding_w_tail) { // padding same
         int n_h_head = (args.padding_h_head + args.stride_y - 1) / args.stride_y;
+        if (n_h_head > args.output_height)
+            n_h_head = args.output_height;
         int n_w_head = (args.padding_w_head + args.stride_x - 1) / args.stride_x;
+        if (n_w_head > args.output_width)
+            n_w_head = args.output_width;
+
         int n_h_body = ((args.input_height + args.padding_h_head - args.dilation_h * (args.filter_height - 1) - 1) /
                             args.stride_y +
                         1) -
@@ -385,7 +390,12 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             n_w_body = 0;
 
         int n_h_tail = args.output_height - n_h_head - n_h_body;
+        if (n_h_tail < 0)
+            n_h_tail = 0;
         int n_w_tail = args.output_width - n_w_head - n_w_body;
+        if (n_w_tail < 0)
+            n_w_tail = 0;
+
         int filter_h = args.filter_height;
         int filter_w = args.filter_width;
         feature_t *filter_ptr = (feature_t *)(args.filter_element);
@@ -1196,7 +1206,12 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
     feature_t *output_ptr = (feature_t *)args.output_element;
     if (args.padding_h_head || args.padding_w_head || args.padding_h_tail || args.padding_w_tail) { // padding same
         int n_h_head = (args.padding_h_head + args.stride_y - 1) / args.stride_y;
+        if (n_h_head > args.output_height)
+            n_h_head = args.output_height;
         int n_w_head = (args.padding_w_head + args.stride_x - 1) / args.stride_x;
+        if (n_w_head > args.output_width)
+            n_w_head = args.output_width;
+
         int n_h_body = ((args.input_height + args.padding_h_head - args.dilation_h * (args.filter_height - 1) - 1) /
                             args.stride_y +
                         1) -
@@ -1209,8 +1224,14 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
             n_w_head;
         if (n_w_body < 0)
             n_w_body = 0;
+
         int n_h_tail = args.output_height - n_h_head - n_h_body;
+        if (n_h_tail < 0)
+            n_h_tail = 0;
         int n_w_tail = args.output_width - n_w_head - n_w_body;
+        if (n_w_tail < 0)
+            n_w_tail = 0;
+
         int filter_h = args.filter_height;
         int filter_w = args.filter_width;
         feature_t *filter_ptr = (feature_t *)(args.filter_element);
