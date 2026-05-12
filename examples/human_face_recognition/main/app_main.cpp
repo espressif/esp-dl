@@ -3,7 +3,9 @@
 #include "human_face_recognition.hpp"
 #include "spiflash_fatfs.hpp"
 #include <filesystem>
+#if CONFIG_DB_FATFS_SDCARD || CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD || CONFIG_HUMAN_FACE_FEAT_MODEL_IN_SDCARD
 #include "bsp/esp-bsp.h"
+#endif
 
 extern const uint8_t bill1_jpg_start[] asm("_binary_bill1_jpg_start");
 extern const uint8_t bill1_jpg_end[] asm("_binary_bill1_jpg_end");

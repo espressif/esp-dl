@@ -1,4 +1,4 @@
-version: "3.3.2"
+version: "3.3.3"
 license: "MIT"
 targets:
   - esp32
@@ -19,7 +19,7 @@ dependencies:
         version: ">=5.3"
       - if: "target == esp32c5"
         version: ">=5.5"
-  espressif/esp_new_jpeg: "^0.6.1"
+  espressif/esp_new_jpeg: "^1"
   espressif/dl_fft: ">=0.3.1"
   espressif/esp-dsp: "==1.8.0"
 examples:

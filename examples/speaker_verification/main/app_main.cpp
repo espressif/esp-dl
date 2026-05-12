@@ -1,6 +1,8 @@
 #include "esp_log.h"
 #include "speaker_verification.hpp"
+#if CONFIG_SPEAKER_VERIFICATION_MODEL_IN_SDCARD
 #include "bsp/esp-bsp.h"
+#endif
 
 extern const uint8_t _binary_audio_a_wav_start[] asm("_binary_audio_a_wav_start");
 extern const uint8_t _binary_audio_a_wav_end[] asm("_binary_audio_a_wav_end");
