@@ -1,7 +1,9 @@
 #include "dl_image_jpeg.hpp"
 #include "esp_log.h"
 #include "human_face_detect.hpp"
+#if CONFIG_HUMAN_FACE_DETECT_MODEL_IN_SDCARD
 #include "bsp/esp-bsp.h"
+#endif
 
 extern const uint8_t human_face_jpg_start[] asm("_binary_human_face_jpg_start");
 extern const uint8_t human_face_jpg_end[] asm("_binary_human_face_jpg_end");

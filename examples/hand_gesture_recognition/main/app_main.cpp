@@ -1,7 +1,9 @@
 #include "dl_image_jpeg.hpp"
 #include "hand_detect.hpp"
 #include "hand_gesture_recognition.hpp"
+#if CONFIG_HAND_DETECT_MODEL_IN_SDCARD || CONFIG_HAND_GESTURE_CLS_MODEL_IN_SDCARD
 #include "bsp/esp-bsp.h"
+#endif
 
 extern const uint8_t gesture_jpg_start[] asm("_binary_gesture_jpg_start");
 extern const uint8_t gesture_jpg_end[] asm("_binary_gesture_jpg_end");

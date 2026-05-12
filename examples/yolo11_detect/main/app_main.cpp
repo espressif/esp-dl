@@ -1,7 +1,9 @@
 #include "coco_detect.hpp"
 #include "dl_image_jpeg.hpp"
 #include "esp_log.h"
+#if CONFIG_COCO_DETECT_MODEL_IN_SDCARD
 #include "bsp/esp-bsp.h"
+#endif
 
 extern const uint8_t bus_jpg_start[] asm("_binary_bus_jpg_start");
 extern const uint8_t bus_jpg_end[] asm("_binary_bus_jpg_end");

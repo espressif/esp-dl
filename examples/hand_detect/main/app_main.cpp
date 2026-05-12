@@ -1,7 +1,9 @@
 #include "dl_image_jpeg.hpp"
 #include "esp_log.h"
 #include "hand_detect.hpp"
+#if CONFIG_HAND_DETECT_MODEL_IN_SDCARD
 #include "bsp/esp-bsp.h"
+#endif
 
 extern const uint8_t hand_jpg_start[] asm("_binary_hand_jpg_start");
 extern const uint8_t hand_jpg_end[] asm("_binary_hand_jpg_end");
