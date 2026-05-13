@@ -1,5 +1,5 @@
-AutoQuant
-===========
+AutoQuant（离线穷举搜索）
+=========================
 
 :link_to_translation:`en:[English]`
 
