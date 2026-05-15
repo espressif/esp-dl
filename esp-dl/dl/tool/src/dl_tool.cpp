@@ -82,7 +82,7 @@ int round_half_up(double value)
 template <typename T>
 int round(T value)
 {
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ROUND_HALF_EVEN_ENABLED
     return round_half_even(value);
 #else
     return round_half_up(value);
@@ -138,7 +138,7 @@ T shift_and_round_half_up(T value, int shift)
 template <typename T>
 T shift_and_round(T value, int shift)
 {
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_ROUND_HALF_EVEN_ENABLED
     return shift_and_round_half_even(value, shift);
 #else
     return shift_and_round_half_up(value, shift);
