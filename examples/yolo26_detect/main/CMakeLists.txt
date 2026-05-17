@@ -18,10 +18,10 @@ idf_component_register(SRCS "app_main.cpp"
 # 2. Local Project: main/models/[p4|s3]/
 #    like
 #         yolo26n_lego_512_s8_p4.espdl   # Custom Lego Detection (28 Classes)
-set(MODEL_FILENAME "yolo26n_512_s8_p4.espdl")
+set(MODEL_FILENAME "yolo26n_512_s8_p4_tpie.espdl")
 # =========================================================================
 
-# --- Internal Logic: Path and Symbol Resolution ---
+# --- Internal Logic: Path and Symyolo26n_512_s8_p4_tpiebol Resolution ---
 idf_build_get_property(target IDF_TARGET)
 
 # FIX: Robust Component Finding

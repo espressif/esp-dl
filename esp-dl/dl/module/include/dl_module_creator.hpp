@@ -18,6 +18,9 @@
 #include "dl_module_gru.hpp"
 #include "dl_module_hard_sigmoid.hpp"
 #include "dl_module_hard_swish.hpp"
+#include "dl_module_hard_silu_pie8.hpp"
+#include "dl_module_transpose_pie.hpp"
+#include "dl_module_tiled_conv_block.hpp"
 #include "dl_module_identity.hpp"
 #include "dl_module_insert_zeros.hpp"
 #include "dl_module_layer_normalization.hpp"
@@ -146,6 +149,7 @@ public:
             this->register_module("LeakyRelu", LeakyRelu::deserialize);
             this->register_module("HardSigmoid", HardSigmoid::deserialize);
             this->register_module("HardSwish", HardSwish::deserialize);
+            this->register_module("HardSiluPie8", HardSiluPie8::deserialize);
             this->register_module("Gelu", LUT::deserialize);
             this->register_module("LUT", LUT::deserialize);
             this->register_module("Gemm", Gemm::deserialize);
@@ -157,6 +161,8 @@ public:
             this->register_module("Flatten", Flatten::deserialize);
             this->register_module("Reshape", Reshape::deserialize);
             this->register_module("Transpose", Transpose::deserialize);
+            this->register_module("TransposePIE", TransposePIE::deserialize);
+            this->register_module("TiledConvBlock", TiledConvBlock::deserialize);
             this->register_module("Exp", Exp::deserialize);
             this->register_module("Log", Log::deserialize);
             this->register_module("Sqrt", Sqrt::deserialize);

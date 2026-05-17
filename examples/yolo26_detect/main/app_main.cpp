@@ -1,6 +1,7 @@
 #include "dl_model_base.hpp" // Required for dl::Model
 #include "esp_log.h"
 #include "esp_timer.h"
+#include "esp_heap_caps.h"
 #include "nvs_flash.h"
 #include "yolo26.hpp" // Use the Official Component
 #include <stdio.h>
@@ -104,8 +105,8 @@ extern "C" void app_main(void)
     test_inference(model, processor, lego_jpg_start, (size_t)(lego_jpg_end - lego_jpg_start), "lego.jpg");
 #else
     test_inference(model, processor, bus_jpg_start, (size_t)(bus_jpg_end - bus_jpg_start), "bus.jpg");
-    test_inference(model, processor, person_jpg_start, (size_t)(person_jpg_end - person_jpg_start), "person.jpg");
+    //test_inference(model, processor, person_jpg_start, (size_t)(person_jpg_end - person_jpg_start), "person.jpg");
 #endif
-
+    //model->profile();
     delete model;
 }
