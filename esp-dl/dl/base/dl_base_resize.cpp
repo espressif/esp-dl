@@ -35,14 +35,14 @@ inline void resize_nearest_c1(feature_t *output_ptr, feature_t *input_ptr, void 
 
 inline void load_resize_nearest_2x2_c1_s8(ImplFunc_t<int8_t, int8_t> &impl_func, const resizeArgsType<int8_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         impl_func = dl_esp32p4_s8_resize_nearest_2x2_c1;
     } else {
         impl_func = dl_esp32p4_s8_unaligned_resize_nearest_2x2_c1;
     }
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         impl_func = dl_tie728_s8_resize_nearest_2x2_c1;
@@ -56,14 +56,14 @@ inline void load_resize_nearest_2x2_c1_s8(ImplFunc_t<int8_t, int8_t> &impl_func,
 
 inline void load_resize_nearest_c1_s8(ImplFunc_t<int8_t, int8_t> &impl_func, const resizeArgsType<int8_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         impl_func = dl_esp32p4_s8_resize_nearest_c1;
     } else {
         impl_func = dl_esp32p4_s8_unaligned_resize_nearest_c1;
     }
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         impl_func = dl_tie728_s8_resize_nearest_c1;

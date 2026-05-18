@@ -42,7 +42,7 @@ struct ArgsType {
     int c_rs2_1;                       /*!< 23 (input_channel >> 2) - 1 */
     int n_div_x;                       /*!< 24 output_channel / (vector_width / element_width) */
     int c_div_x_1;                     /*!< 25 input_channel / (vector_width / element_width) - 1 */
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     feature_t *tie_filter_channel_factor; /*!< 26 */
 #else
     int16_t *tie_filter_channel_factor; /*!< 26 */
@@ -209,7 +209,7 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
             args.filter_c = filter->shape[2]; // dw: filter->shape[3]. conv: filter->shape[2].
         } else {
             // depthwise
-#if CONFIG_TIE728_BOOST || CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V1_BOOST || CONFIG_PIE_V2_BOOST
             args.filter_y_offset = 16;
 #else
             args.filter_y_offset = 0;
@@ -246,7 +246,7 @@ std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
     // output->shape[1], args.output_width, args.output_channel);
 
     if (filter->exponent.is_per_channel()) {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
         // per-channel quantization
         args.mac_shift = INT_MIN;
         args.tie_filter_channel_factor = (feature_t *)tool::calloc_aligned(
@@ -408,7 +408,7 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             feature_t *filter_ptr_unaligned = (feature_t *)(args.filter_element_unaligned);
             feature_t *filter_ptr_y_unaligned;
             int unaligned_filter_c_n_offset = args.filter_c * sizeof(feature_t);
-#if CONFIG_TIE728_BOOST || CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V1_BOOST || CONFIG_PIE_V2_BOOST
             int filter_c_n_offset = args.n_div_x ? args.filter_c * 16 : unaligned_filter_c_n_offset;
 #else
             int filter_c_n_offset = unaligned_filter_c_n_offset;

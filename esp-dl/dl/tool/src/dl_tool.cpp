@@ -7,13 +7,13 @@ extern "C" {
 void dl_xtensa_bzero_32b(void *ptr, const int n);
 #endif
 
-#if CONFIG_TIE728_BOOST
+#if CONFIG_PIE_V1_BOOST
 void dl_tie728_bzero_128b(void *ptr, const int n);
 void dl_tie728_bzero(void *ptr, const int n);
 void dl_tie728_memcpy(void *dst, const void *src, const size_t n);
 #endif
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
 void dl_esp32p4_memcpy(void *dst, const void *src, const size_t n);
 #endif
 }
@@ -23,7 +23,7 @@ namespace tool {
 
 int round_half_even(float value)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     int ret;
     __asm__ volatile("fcvt.w.s %0, %1, rne" : "=r"(ret) : "f"(value));
     return ret;
@@ -150,7 +150,7 @@ template int64_t shift_and_round(int64_t value, int shift);
 
 void set_zero(void *ptr, const int n)
 {
-#if CONFIG_TIE728_BOOST
+#if CONFIG_PIE_V1_BOOST
     dl_tie728_bzero(ptr, n);
 #else
     bzero(ptr, n);
@@ -159,9 +159,9 @@ void set_zero(void *ptr, const int n)
 
 void copy_memory(void *dst, void *src, const size_t n)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     dl_esp32p4_memcpy(dst, src, n);
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     dl_tie728_memcpy(dst, src, n);
 #else
     memcpy(dst, src, n);

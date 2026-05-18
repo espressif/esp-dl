@@ -17,19 +17,19 @@
 #include "esp_timer.h"
 #include <functional>
 #include "freertos/FreeRTOS.h"
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
 #include "dl_esp32p4_cache_reg.hpp"
 #include "esp_memory_utils.h"
 #endif
 
 extern "C" {
-#if CONFIG_TIE728_BOOST
+#if CONFIG_PIE_V1_BOOST
 void dl_tie728_memset_8b(void *ptr, const int value, const int n);
 void dl_tie728_memset_16b(void *ptr, const int value, const int n);
 void dl_tie728_memset_32b(void *ptr, const int value, const int n);
 #endif
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
 typedef enum {
     ROUND_MODE_FLOOR = 0,
     ROUND_MODE_CEILING = 1,
@@ -115,7 +115,7 @@ void set_zero(void *ptr, const int n);
 template <typename T>
 void set_value(T *ptr, const T value, const int len)
 {
-#if CONFIG_TIE728_BOOST
+#if CONFIG_PIE_V1_BOOST
     int *temp = (int *)&value;
     if (sizeof(T) == 1)
         dl_tie728_memset_8b(ptr, *temp, len);
@@ -269,7 +269,7 @@ void truncate(int64_t &output, T input)
  */
 float *gen_lut_8bit(float *table, int exponent, std::function<float(float)> func);
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
 inline int calculate_exponent(int n, int max_value)
 {
     int exp;
@@ -351,7 +351,7 @@ private:
     uint32_t count;      /*!< the number of added period */
     uint32_t next;       /*!< point to next element in queue */
     uint32_t timestamp;  /*!< record the start */
-#if CONFIG_ESP32P4_BOOST && DL_LOG_CACHE_COUNT
+#if CONFIG_PIE_V2_BOOST && DL_LOG_CACHE_COUNT
     uint32_t l2dbus_hit_cnt_s;
     uint32_t l2dbus_hit_cnt_e;
     uint32_t l2dbus_miss_cnt_s;
@@ -392,7 +392,7 @@ public:
     Latency(const uint32_t size = 1) : size(size), period(0), sum(0), count(0), next(0)
     {
         this->queue = (this->size > 1) ? (uint32_t *)calloc(this->size, sizeof(uint32_t)) : NULL;
-#if CONFIG_ESP32P4_BOOST && DL_LOG_CACHE_COUNT
+#if CONFIG_PIE_V2_BOOST && DL_LOG_CACHE_COUNT
         REG_WRITE(CACHE_L1_CACHE_ACS_CNT_CTRL_REG, ~0);
         REG_WRITE(CACHE_L2_CACHE_ACS_CNT_CTRL_REG, ~0);
 #endif
@@ -416,7 +416,7 @@ public:
     {
 #if DL_LOG_LATENCY_UNIT
         this->timestamp = get_cycle();
-#if CONFIG_ESP32P4_BOOST && DL_LOG_CACHE_COUNT
+#if CONFIG_PIE_V2_BOOST && DL_LOG_CACHE_COUNT
         this->l2dbus_hit_cnt_s = REG_READ(L2_DCACHE_ACS_HIT_CNT_REG_n(xPortGetCoreID()));
         this->l2dbus_miss_cnt_s = REG_READ(L2_DCACHE_ACS_MISS_CNT_REG_n(xPortGetCoreID()));
         this->l2dbus_conflict_cnt_s = REG_READ(L2_DCACHE_ACS_CONFLICT_CNT_REG_n(xPortGetCoreID()));
@@ -448,7 +448,7 @@ public:
     {
 #if DL_LOG_LATENCY_UNIT
         this->period = get_cycle() - this->timestamp;
-#if CONFIG_ESP32P4_BOOST && DL_LOG_CACHE_COUNT
+#if CONFIG_PIE_V2_BOOST && DL_LOG_CACHE_COUNT
         this->l2dbus_hit_cnt_e = REG_READ(L2_DCACHE_ACS_HIT_CNT_REG_n(xPortGetCoreID()));
         this->l2dbus_miss_cnt_e = REG_READ(L2_DCACHE_ACS_MISS_CNT_REG_n(xPortGetCoreID()));
         this->l2dbus_conflict_cnt_e = REG_READ(L2_DCACHE_ACS_CONFLICT_CNT_REG_n(xPortGetCoreID()));
@@ -541,7 +541,7 @@ public:
 
 #if DL_LOG_LATENCY_UNIT
         ESP_LOGI(prefix, "%s: %lu cycle", key, this->get_average_period());
-#if CONFIG_ESP32P4_BOOST && DL_LOG_CACHE_COUNT
+#if CONFIG_PIE_V2_BOOST && DL_LOG_CACHE_COUNT
         ESP_LOGI(prefix, "%s: l2 dcache, hit cnt: %lu", key, this->l2dbus_hit_cnt_e - this->l2dbus_hit_cnt_s);
         ESP_LOGI(prefix, "%s: l2 dcache, miss cnt: %lu", key, this->l2dbus_miss_cnt_e - this->l2dbus_miss_cnt_s);
         ESP_LOGI(

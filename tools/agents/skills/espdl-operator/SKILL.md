@@ -207,9 +207,9 @@ For other ops, define a custom args struct.
 In the `.cpp` file, the implementation selection follows this pattern:
 
 ```cpp
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     impl_func = dl_esp32p4_s8_<op>_11c;  // P4 SIMD
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     impl_func = dl_tie728_s8_<op>_11c;   // S3 SIMD
 #else
     impl_func = c_impl_<op>;             // C reference (always present)

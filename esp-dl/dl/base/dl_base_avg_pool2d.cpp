@@ -34,7 +34,7 @@ inline void avgpool2d_hwc(buffer_t *buffer_ptr,
     float avg_pool_area_inv = 1.f / args.avg_pool_area;
     float scale = DL_SCALE(args.input_exponent) * avg_pool_area_inv * DL_RESCALE(args.output_exponent);
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if constexpr (std::is_same_v<feature_t, int8_t>) {
         if (args.input_channel % 16 == 0) {
             dl_esp32p4_s8_avg_pool2d_hwc_sum(buffer_ptr, input_ptr, &args);
@@ -86,7 +86,7 @@ inline void load_avg_pool2d_hwc1_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
 #if CONFIG_ACCURATE_INFER
     c_impl_func = avgpool2d_hwc<int16_t, int32_t>;
 #else
-#if CONFIG_TIE728_BOOST
+#if CONFIG_PIE_V1_BOOST
     if (args.input_x_offset % 8 == 0 && args.output_x_offset % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_tie728_s16_avg_pool2d_hwc1;
@@ -124,7 +124,7 @@ inline void load_avg_pool2d_hwc1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
 #if CONFIG_ACCURATE_INFER
     c_impl_func = avgpool2d_hwc<int8_t, int32_t>;
 #else
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.input_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_esp32p4_s8_avg_pool2d_hwc1;
@@ -135,7 +135,7 @@ inline void load_avg_pool2d_hwc1_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         i_impl_func_sp = (args.filter_height == 2 && args.filter_width == 2) ? dl_esp32p4_s8_unaligned_avg_pool2d_22c1
                                                                              : dl_esp32p4_s8_unaligned_avg_pool2d_hwc1;
     }
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.input_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_tie728_s8_avg_pool2d_hwc1;
@@ -160,7 +160,7 @@ void avg_pool2d<int8_t>(void *args_ptr)
     ImplFunc_t<int8_t, int8_t> i_impl_func;
     ImplFunc_t<int8_t, int8_t> i_impl_func_sp;
     avg_pool_c_impl_func_s8_t c_impl_func = NULL;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
 #endif
 
