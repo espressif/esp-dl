@@ -8,7 +8,7 @@ Tutorials
    :maxdepth: 1
 
    how_to_quantize_model
-   how_to_use_AutoQuant
+   auto_quantization/index
    how_to_load_test_profile_model
    how_to_run_model
    how_to_add_a_new_module(operator)

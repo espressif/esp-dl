@@ -1,0 +1,56 @@
+{
+  "skill_name": "espdl-quantize",
+  "_comment": "Trigger evals for the espdl-quantize skill. These prompts are realistic, ESP-DL-flavored phrasings of the three failure modes the skill targets: (1) generic post-quantization accuracy loss on any architecture, (2) calibration × TQT recipe selection, (3) esp32p4 per-channel equalization warn-only decision. The prompts intentionally do NOT name the skill so we can verify the description triggers it; one negative case (eval id 4) checks the skill does not over-trigger on unrelated questions about quantization-aware *training*.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我用 esp-ppq 把 ResNet-18 量化到 ESP32-P4 的 .espdl 之后，top-1 从 69.7% 跌到 64.3%。我手头有 calib dataloader 和一个 evaluate(model) 函数，能不能帮我自动迭代调一下 QuantizationSettingFactory.espdl_setting() 的参数，把精度尽量拉回来？设备上推理速度别太差就行。",
+      "expected_output": "The skill triggers and walks through the Phase 1 baseline + Phase 2 calibration × TQT(default) cartesian product + Phase 3 residual fixes loop, producing iter_<N>/setting.json files mutated from the best-so-far iteration with one knob change per iteration, accompanied by a layerwise SNR rationale. The final report cites the best iteration, its full setting.json, and how to reproduce it.",
+      "expectations": [
+        "Skill is triggered (no asking the user to manually pick parameters before running iter_0).",
+        "Iter_0 is the pure espdl_setting() baseline with kl calibration and no other passes enabled.",
+        "Phase 2 spawns three iterations covering kl, mse, and percentile each combined with the strict default TQT schedule (lr=1e-5, steps=500, block_size=4).",
+        "Composition discipline is followed: every iteration after Phase 2 mutates from best-so-far and changes exactly one knob, citing a layerwise SNR observation in the rationale.",
+        "Final report names the best iteration, includes its full setting.json content, and explains how the user reproduces it from their evaluate() contract."
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "esp-ppq 量化我的小 transformer 时，calib_algorithm 我试过 kl 和 minmax，结果都不太好。还有 percentile/mse/isotone 没试。同时听说有个 tqt_optimization 的训练 pass 可以再压一压误差。这些怎么搭配最稳？我想要一个能复现的流程，不要一个一个手动试。",
+      "expected_output": "The skill explains why calibration cannot be ranked independently of TQT (Composition discipline #4), then proposes the Phase 2 cartesian product of {kl, mse, percentile} × default TQT(lr=1e-5, steps=500, block_size=4), executed sequentially as iter_1..iter_3 in the same outputs/ tree. It does not run isotone or minmax in Phase 2 (those are non-default sweeps reserved for Phase 3 levers), and it does not collapse the cartesian product to a calibration-only sweep.",
+      "expectations": [
+        "Skill is triggered.",
+        "The reply explicitly states the Phase 2 cartesian product covers exactly {kl, mse, percentile} × TQT(default).",
+        "TQT default schedule is named with the exact values lr=1e-5, steps=500, block_size=4.",
+        "The reply warns against retiring percentile (or any calib) based on a calib-only score and cites Composition discipline #4 (or the equivalent reasoning).",
+        "isotone is not added to the Phase 2 sweep; it is only mentioned as a Phase 3 lever or distribution-specific option."
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "我的 EfficientNet-Lite 量化目标是 esp32p4，per-channel 权重那个。我看 esp-ppq 的官方文档说 layerwise equalization 不推荐 per-channel 用，但我经验里 enabled=true 反而精度高了 0.3%。skill 现在到底允许我开 equalization 吗？开了之后下一步该怎么走？",
+      "expected_output": "The skill confirms equalization on esp32p4 is now warn-only (apply_setting.py emits a warning but does not auto-disable the pass), explains *why* the official guidance is conservative (per-channel weight scales already absorb equalization), and slots equalization as Phase 3 lever 3d that is mutated from the best Phase-2 iteration. It also names the safer Phase 3 levers (TQT escalation, calib_algorithm change, mixed precision via dispatching_table) to fall back on if equalization regresses.",
+      "expectations": [
+        "Skill is triggered.",
+        "The reply states equalization on esp32p4 is warn-only (runs as configured, no auto-disable).",
+        "The reply explains per-channel weight scales absorb the equalization scale, which is why the official guidance is conservative.",
+        "Equalization is positioned as Phase 3 lever 3d, applied on top of the best Phase-2 iteration with no other knob changed.",
+        "If equalization regresses vs the best-so-far iteration, the skill prescribes dropping the lever next round (Composition discipline #3) and reaching for TQT escalation, calib_algorithm change, or mixed-precision int16 via dispatching_table."
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "我想在 PyTorch 里给一个 YOLO 模型加上 quantization-aware training，让训练时就感知 int8 误差。能不能给我搭一下训练循环，把 fake_quant 模块插进 nn.Conv2d 里？",
+      "expected_output": "The skill should NOT trigger. This is a quantization-aware *training* (QAT) request inside PyTorch, not a post-training calibration / esp-ppq tuning loop. The reply should help the user with PyTorch's torch.ao.quantization or similar APIs, not propose espdl_setting() iterations.",
+      "expectations": [
+        "Skill is NOT triggered.",
+        "The reply does not propose iter_N/setting.json files or the Phase 1/2/3 loop.",
+        "The reply addresses PyTorch QAT directly (torch.ao.quantization, fake_quant insertion, or equivalent)."
+      ],
+      "files": []
+    }
+  ]
+}

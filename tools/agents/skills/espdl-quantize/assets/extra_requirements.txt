@@ -1,0 +1,13 @@
+# Extra Python packages the espdl-quantize skill harness needs on top of an
+# `esp_ppq[cpu]` install (or `esp_ppq[gpu]`). Install once into the active Python
+# environment that you will use to run scripts/run_iteration.py. Substitute the
+# absolute path of the espdl-quantize skill directory (the directory holding
+# SKILL.md) — it may live under .cursor/skills/, .opencode/skills/, or any other
+# agent's skills folder:
+#
+#     pip install -r "$SKILL_DIR/assets/extra_requirements.txt"
+#
+# The skill runs in the current Python interpreter — no Docker isolation is required.
+pandas
+scipy
+tqdm

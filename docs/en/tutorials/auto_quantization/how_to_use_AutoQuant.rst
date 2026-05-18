@@ -1,5 +1,5 @@
-AutoQuant
-=========
+AutoQuant (Offline Exhaustive Search)
+=====================================
 
 :link_to_translation:`zh_CN:[中文]`
 
