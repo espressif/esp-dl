@@ -28,7 +28,7 @@ void c_impl_max_1_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
     int32_t length = elem_args->output_d0;
     feature_t temp = input0_ptr[0];
     for (int i = 0; i < length; i++) {
-        int32_t buffer = std::max(input0_ptr[0], temp);
+        int32_t buffer = std::max(temp, input1_ptr[i]);
 
         tool::truncate<int32_t>(output_ptr[i], buffer);
     }

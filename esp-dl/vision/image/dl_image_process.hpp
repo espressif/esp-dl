@@ -1044,7 +1044,7 @@ private:
         }
 #if CONFIG_PIE_V2_BOOST
         if constexpr (SIMD) {
-            dl_esp32p4_cfg_misalign((misalign_mode_t)(cfg & 0b1), (misalign_mode_t)(cfg & 0b10));
+            dl_esp32p4_cfg_misalign((misalign_mode_t)(cfg & 0b1), (misalign_mode_t)((cfg >> 1) & 0b1));
         }
 #endif
     }

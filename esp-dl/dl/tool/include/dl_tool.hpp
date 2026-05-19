@@ -272,13 +272,16 @@ float *gen_lut_8bit(float *table, int exponent, std::function<float(float)> func
 #if CONFIG_PIE_V2_BOOST
 inline int calculate_exponent(int n, int max_value)
 {
-    int exp;
+    int exp = 0;
     if (127 == max_value) {
         exp = 6;
-    }
-    if (32767 == max_value) {
+    } else if (32767 == max_value) {
         exp = 14;
+    } else {
+        ESP_LOGE(DL_LOG_TAG, "Unsupported max_value");
+        return -1;
     }
+
     float max_value_float = (float)max_value / (1 << exp);
     while (max_value_float > 1.f / n) {
         exp += 1;
