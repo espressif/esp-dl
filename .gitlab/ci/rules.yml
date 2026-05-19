@@ -122,6 +122,9 @@
 .patterns-example_how_to_deploy_streaming_model: &patterns-example_how_to_deploy_streaming_model
 - "examples/tutorial/example_how_to_deploy_streaming_model/**/*"
 
+.patterns-esp-dl_version: &patterns-esp-dl_version
+  - "esp-dl/idf_component.yml"
+
 # tool forder
 .patterns-tool_ops_test: &patterns-tool_ops_test
   - "tools/ops_test/config/op_cfg.toml"
@@ -459,3 +462,9 @@
       changes: *patterns-esp-dl_fbs_loader
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
+
+# rules for deploy
+.rules:deploy:create_version_tag:
+  rules:
+    - <<: *if-protected
+      changes: *patterns-esp-dl_version
