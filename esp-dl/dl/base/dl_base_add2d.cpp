@@ -42,7 +42,7 @@ inline void load_add2d_11c_s16(arith_i_impl_func_s16_t &i_impl_func,
                                arith_n_wise_tail_s16_t &n_wise_tail,
                                const arithArgsType<int16_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.input0_x_offset % 8 == 0 && args.input1_x_offset % 8 == 0 && args.output_x_offset % 8 == 0 &&
         !((unsigned)&args.input0_element[0] & 15) && !((unsigned)&args.input1_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
@@ -82,7 +82,7 @@ inline void load_add2d_11c_s16(arith_i_impl_func_s16_t &i_impl_func,
             break;
         }
     }
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.input0_x_offset % 8 == 0 && args.input1_x_offset % 8 == 0 && args.output_x_offset % 8 == 0 &&
         !((unsigned)&args.input0_element[0] & 15) && !((unsigned)&args.input1_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
@@ -144,7 +144,7 @@ inline void load_add2d_11c_s16(arith_i_impl_func_s16_t &i_impl_func,
         n_wise_tail = arith_output_prelu<int16_t, int32_t>;
         break;
     }
-#endif // CONFIG_TIE728_BOOST
+#endif // CONFIG_PIE_V1_BOOST
 }
 
 template <>
@@ -156,7 +156,7 @@ void add2d<int16_t>(void *const args_ptr)
     arith_c_impl_func_s16_t c_impl_func = NULL;
     arith_n_wise_tail_s16_t n_wise_tail = NULL;
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
 #endif
 
@@ -173,7 +173,7 @@ inline void load_add2d_11c_s8(arith_i_impl_func_s8_t &i_impl_func,
                               arith_n_wise_tail_s8_t &n_wise_tail,
                               const arithArgsType<int8_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.input0_x_offset % 16 == 0 && args.input1_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 &&
         !((unsigned)&args.input0_element[0] & 15) && !((unsigned)&args.input1_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
@@ -213,7 +213,7 @@ inline void load_add2d_11c_s8(arith_i_impl_func_s8_t &i_impl_func,
             break;
         }
     }
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.input0_x_offset % 16 == 0 && args.input1_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 &&
         !((unsigned)&args.input0_element[0] & 15) && !((unsigned)&args.input1_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
@@ -274,7 +274,7 @@ inline void load_add2d_11c_s8(arith_i_impl_func_s8_t &i_impl_func,
         n_wise_tail = arith_output_prelu<int8_t, int16_t>;
         break;
     }
-#endif // CONFIG_TIE728_BOOST
+#endif // CONFIG_PIE_V1_BOOST
 }
 
 template <>
@@ -286,7 +286,7 @@ void add2d<int8_t>(void *const args_ptr)
     arith_c_impl_func_s8_t c_impl_func = NULL;
     arith_n_wise_tail_s8_t n_wise_tail = NULL;
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
 #endif
     load_add2d_11c_s8(i_impl_func, c_impl_func, n_wise_tail, args);

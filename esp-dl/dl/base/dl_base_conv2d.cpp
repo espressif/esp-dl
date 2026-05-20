@@ -172,7 +172,7 @@ inline void load_conv2d_11cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
                                  n_wise_func_s16_t &n_wise_func,
                                  const ArgsType<int16_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -250,7 +250,7 @@ inline void load_conv2d_11cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
     i_impl_func = i_impl_func_sp;
     return;
 
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -405,7 +405,7 @@ inline void load_conv2d_33cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
                                  n_wise_func_s16_t &n_wise_func,
                                  const ArgsType<int16_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -506,7 +506,7 @@ inline void load_conv2d_33cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
     }
     return;
 
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -683,7 +683,7 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
                                  n_wise_func_s16_t &n_wise_func,
                                  const ArgsType<int16_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -761,7 +761,7 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
     i_impl_func = i_impl_func_sp;
     return;
 
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -920,7 +920,7 @@ void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
     c_impl_func_s16_t c_impl_func_sp = NULL;
     n_wise_func_s16_t n_wise_func = NULL;
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
 #endif
 
@@ -945,7 +945,7 @@ inline void load_conv2d_11cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
                                 ImplFunc_t<int8_t, int8_t> &i_impl_func_sp,
                                 const ArgsType<int8_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.output_channel % 16 == 0 && args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -1023,7 +1023,7 @@ inline void load_conv2d_11cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
     }
     i_impl_func = i_impl_func_sp;
     return;
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.output_channel % 16 == 0 && args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         switch (args.activation_type) {
@@ -1050,7 +1050,7 @@ inline void load_conv2d_33cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
                                 ImplFunc_t<int8_t, int8_t> &i_impl_func_sp,
                                 const ArgsType<int8_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.output_channel % 16 == 0 && args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -1147,7 +1147,7 @@ inline void load_conv2d_33cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
         }
     }
     return;
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.output_channel % 16 == 0 && args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         switch (args.activation_type) {
@@ -1177,7 +1177,7 @@ inline void load_conv2d_hwcn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
                                 ImplFunc_t<int8_t, int8_t> &i_impl_func_sp,
                                 const ArgsType<int8_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.output_channel % 16 == 0 && args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         if (args.bias_element) {
@@ -1255,7 +1255,7 @@ inline void load_conv2d_hwcn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
     }
     i_impl_func = i_impl_func_sp;
     return;
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.output_channel % 16 == 0 && args.input_channel % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         switch (args.activation_type) {
@@ -1391,7 +1391,7 @@ void conv2d<int8_t, int32_t, int32_t>(void *args_ptr)
     c_impl_func_s8_t c_impl_func_sp = NULL;
     n_wise_func_s8_t n_wise_func = NULL;
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
 #endif
 

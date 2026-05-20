@@ -131,7 +131,7 @@ std::vector<PoolArgsType<feature_t>> get_pool_args(TensorBase *output,
 
     args.avg_pool_area = args.filter_height * args.filter_width;
     int max_value = INT_MAX;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (sizeof(feature_t) == 1) {
         max_value = 127;
     } else if (sizeof(feature_t) == 2) {
@@ -150,7 +150,7 @@ std::vector<PoolArgsType<feature_t>> get_pool_args(TensorBase *output,
     // for ISA
     int u = 16 / sizeof(feature_t);
     args.c_remainder = (args.input_channel % u) * sizeof(feature_t);
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     args.avg_pool_area_inv = tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
     args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
@@ -211,7 +211,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
 
 #if !CONFIG_ACCURATE_INFER
     int max_value = INT_MAX;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (sizeof(feature_t) == 1) {
         max_value = 127;
     } else if (sizeof(feature_t) == 2) {
@@ -251,7 +251,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 new_pool_exponent = -tool::calculate_exponent(args.filter_height * args.filter_width, max_value);
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
                 args.avg_pool_area_inv =
                     tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
@@ -266,7 +266,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
             new_pool_exponent = -tool::calculate_exponent(args.filter_height * args.filter_width, max_value);
             args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
             args.pool_exponent = new_pool_exponent;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
             args.avg_pool_area_inv =
                 tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
@@ -283,7 +283,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 new_pool_exponent = -tool::calculate_exponent(args.filter_height * args.filter_width, max_value);
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
                 args.avg_pool_area_inv =
                     tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
@@ -315,7 +315,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 new_pool_exponent = -tool::calculate_exponent(args.filter_height * args.filter_width, max_value);
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
                 args.avg_pool_area_inv =
                     tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
@@ -330,7 +330,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
             new_pool_exponent = -tool::calculate_exponent(args.filter_height * args.filter_width, max_value);
             args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
             args.pool_exponent = new_pool_exponent;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
             args.avg_pool_area_inv =
                 tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
@@ -347,7 +347,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 new_pool_exponent = -tool::calculate_exponent(args.filter_height * args.filter_width, max_value);
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
                 args.avg_pool_area_inv =
                     tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
@@ -379,7 +379,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 new_pool_exponent = -tool::calculate_exponent(args.filter_height * args.filter_width, max_value);
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
                 args.avg_pool_area_inv =
                     tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
@@ -394,7 +394,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
             new_pool_exponent = -tool::calculate_exponent(args.filter_height * args.filter_width, max_value);
             args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
             args.pool_exponent = new_pool_exponent;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
             args.avg_pool_area_inv =
                 tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else
@@ -411,7 +411,7 @@ void avg_pool_shell(PoolArgsType<feature_t> &args,
                 new_pool_exponent = -tool::calculate_exponent(args.filter_height * args.filter_width, max_value);
                 args.mac_shift = args.mac_shift + args.pool_exponent - new_pool_exponent;
                 args.pool_exponent = new_pool_exponent;
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
                 args.avg_pool_area_inv =
                     tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
 #else

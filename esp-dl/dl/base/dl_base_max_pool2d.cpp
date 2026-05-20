@@ -37,7 +37,7 @@ void max_pool2d<int16_t>(void *args_ptr)
     ImplFunc_t<int16_t, int16_t> i_impl_func_sp;
     max_pool_c_impl_func_s16_t c_impl_func = NULL;
 
-#if CONFIG_TIE728_BOOST
+#if CONFIG_PIE_V1_BOOST
     if (args.input_x_offset % 8 == 0 && args.output_x_offset % 8 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_tie728_s16_max_pool2d_hwc1;
@@ -64,7 +64,7 @@ void max_pool2d<int8_t>(void *args_ptr)
     ImplFunc_t<int8_t, int8_t> i_impl_func_sp;
     max_pool_c_impl_func_s8_t c_impl_func = NULL;
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.input_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_esp32p4_s8_max_pool2d_hwc1;
@@ -75,7 +75,7 @@ void max_pool2d<int8_t>(void *args_ptr)
         i_impl_func_sp = (args.filter_height == 2 && args.filter_width == 2) ? dl_esp32p4_s8_unaligned_max_pool2d_22c1
                                                                              : dl_esp32p4_s8_unaligned_max_pool2d_hwc1;
     }
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.input_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 && !((unsigned)&args.input_element[0] & 15) &&
         !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_tie728_s8_max_pool2d_hwc1;

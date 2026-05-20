@@ -26,7 +26,7 @@ inline void load_prelu_11cn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
                                 c_impl_acti_s16_t &c_impl_func,
                                 const ArgsType<int16_t> &args)
 {
-#if CONFIG_TIE728_BOOST
+#if CONFIG_PIE_V1_BOOST
     if (args.input_stride_x_offset % 8 == 0 && args.output_x_offset % 8 == 0 &&
         !((unsigned)&args.input_element[0] & 15) && !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_tie728_s16_prelu_11c;
@@ -59,14 +59,14 @@ inline void load_prelu_11cn_s8(ImplFunc_t<int8_t, int8_t> &i_impl_func,
                                c_impl_acti_s8_t &c_impl_func,
                                const ArgsType<int8_t> &args)
 {
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     if (args.input_stride_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 &&
         !((unsigned)&args.input_element[0] & 15) && !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_esp32p4_s8_prelu_11c;
     } else {
         i_impl_func = dl_esp32p4_s8_unaligned_prelu_11c;
     }
-#elif CONFIG_TIE728_BOOST
+#elif CONFIG_PIE_V1_BOOST
     if (args.input_stride_x_offset % 16 == 0 && args.output_x_offset % 16 == 0 &&
         !((unsigned)&args.input_element[0] & 15) && !((unsigned)&args.output_element[0] & 15)) {
         i_impl_func = dl_tie728_s8_prelu_11c;
@@ -86,7 +86,7 @@ void prelu<int8_t>(void *const args_ptr)
     ImplFunc_t<int8_t, int8_t> i_impl_func;
     c_impl_acti_s8_t c_impl_func = NULL;
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
     dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
 #endif
     load_prelu_11cn_s8(i_impl_func, c_impl_func, args);

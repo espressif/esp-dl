@@ -480,7 +480,7 @@ esp_err_t ImageTransformer::transform()
     return pixel_cvt_dispatch(fn, m_src_img.pix_type, m_dst_img.pix_type, m_pix_cvt_param);
 }
 
-#if CONFIG_ESP32P4_BOOST
+#if CONFIG_PIE_V2_BOOST
 template esp_err_t ImageTransformer::transform<true>();
 #endif
 template esp_err_t ImageTransformer::transform<false>();
