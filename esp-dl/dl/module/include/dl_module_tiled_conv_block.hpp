@@ -46,6 +46,7 @@ private:
 
     // ── Tiling parameters ──────────────────────────────────
     int m_tile_h;                  // output rows per tile (from PPQ)
+    int m_c_tile;                  // output channels per tile, 0 = no channel tiling
 
     // ── Fused activation ───────────────────────────────────
     std::string m_act_type;        // "" | "HardSiluPie8" | "Swish" | "LUT"
@@ -190,13 +191,14 @@ public:
                    TensorBase *act_table,
                    int act1_input_exponent,
                    int scale_int = 256,
+                   int c_tile = 0,
                    const char *name = NULL,
                    int group = 1,
                    quant_type_t quant_type = QUANT_TYPE_NONE) :
         Module(name, MODULE_NON_INPLACE, quant_type),
         m_pads(pads), m_strides(strides), m_dilations(dilations),
         m_group(group), m_bias_reseted(false),
-        m_tile_h(tile_h),
+        m_tile_h(tile_h), m_c_tile(c_tile),
         m_act_type(act_type), m_act_table(act_table),
         m_act1_input_exponent(act1_input_exponent),
         m_scale_int(scale_int)
@@ -362,44 +364,84 @@ public:
             TensorBase tile_input(tile_input_shape, tile_input_ptr,
                                   input->exponent, input->dtype, false);
 
-            // ── Build a temporary TensorBase view for tile output ──
-            // Points into tile_buf (L2 internal RAM).
-            // Uses m_act1_input_exponent (= conv output exponent), NOT output->exponent
-            // (which is the act's output exponent = block output exponent).
-            std::vector<int> tile_output_shape = {1, tile_h_actual, W_out, C_out};
-            TensorBase tile_output(tile_output_shape, (T *)tile_buf,
-                                   m_act1_input_exponent, output->dtype, false);
+            // ── Channel tile loop ─────────────────────────────
+            // Filter is (N/16)HWC16: groups of 16 output channels are
+            // contiguous. Slicing at group boundaries = pointer offset.
+            const int c_tile = (m_c_tile > 0 && m_c_tile < C_out) ? m_c_tile : C_out;
+            const int kW = filter->shape[1];
 
-            // ── Run Conv3x3 → tile_buf ─────────────────────
-            std::vector<base::ArgsType<T>> m_args =
-                base::get_conv_operation_args<T>(
-                    &tile_output,
-                    &tile_input,
-                    tile_pads,
-                    filter,
-                    m_strides,
-                    m_dilations,
-                    m_group,
-                    bias,
-                    Linear,      // no fused activation (we apply separately)
-                    nullptr,
-                    mode);
+            for (int c_start = 0; c_start < C_out; c_start += c_tile) {
+                int c_actual = std::min(c_tile, C_out - c_start);
 
-            int task_size = m_args.size();
-            if (task_size == 1) {
-                forward_args((void *)&m_args[0]);
-            } else if (task_size == 2) {
-                module_forward_dual_core(this,
-                    (void *)&m_args[0], (void *)&m_args[1]);
+                // Filter slice: pointer into (N/16)HWC16 layout
+                T *filter_slice_ptr = (T *)filter->get_element_ptr()
+                                      + c_start * kH * kW * C_in;
+                std::vector<int> filter_slice_shape = {kH, kW, C_in, c_actual};
+                TensorBase filter_slice(filter_slice_shape, filter_slice_ptr,
+                                        filter->exponent, filter->dtype, false);
+
+                // Tile output view: c_actual channels (for args computation)
+                std::vector<int> tile_output_shape = {1, tile_h_actual, W_out, c_actual};
+                TensorBase tile_output(tile_output_shape, (T *)tile_buf,
+                                       m_act1_input_exponent, output->dtype, false);
+
+                // Build conv args for this channel tile
+                std::vector<base::ArgsType<T>> m_args =
+                    base::get_conv_operation_args<T>(
+                        &tile_output,
+                        &tile_input,
+                        tile_pads,
+                        &filter_slice,
+                        m_strides,
+                        m_dilations,
+                        m_group,
+                        bias,
+                        Linear,
+                        nullptr,
+                        mode);
+
+                // Override for strided write into full-width tile_buf
+                if (c_tile < C_out) {
+                    for (auto &a : m_args) {
+                        a.output_element = (T *)tile_buf + c_start;
+                        a.output_x_offset = C_out;
+                        a.output_y_offset = W_out * C_out;
+                        if (bias) {
+                            a.bias_element = (const void *)(
+                                (const int32_t *)bias->get_element_ptr() + c_start);
+                        }
+                        // Fix per-channel quant factors: rebuild with correct offset
+                        if (filter->exponent.is_per_channel() && a.tie_filter_channel_factor) {
+                            for (int i = 0; i < c_actual; i++) {
+                                a.tie_filter_channel_factor[i] =
+                                    (T)(output->exponent - filter->exponent.get(c_start + i) - input->exponent);
+                            }
+                        }
+                    }
+                }
+
+                int task_size = m_args.size();
+                if (task_size == 1) {
+                    forward_args((void *)&m_args[0]);
+                } else if (task_size == 2) {
+                    module_forward_dual_core(this,
+                        (void *)&m_args[0], (void *)&m_args[1]);
+                }
             }
+            // tile_buf now has complete [tile_h, W_out, C_out]
 
             // ── Apply fused activation: tile_buf → output ──
             // Act reads from tile_buf (L2), writes to correct output rows (PSRAM).
             T *output_dst = (T *)output->get_element_ptr()
                             + h_out * W_out * C_out;
 
+            // Build a full-width tile_output view for activation
+            std::vector<int> full_tile_shape = {1, tile_h_actual, W_out, C_out};
+            TensorBase full_tile_output(full_tile_shape, (T *)tile_buf,
+                                        m_act1_input_exponent, output->dtype, false);
+
             apply_act(output_dst, tile_buf, tile_n_elements,
-                      &tile_output, output);
+                      &full_tile_output, output);
         }
 
         // ── Free tile_buf ──────────────────────────────────
@@ -457,9 +499,13 @@ public:
             }
         }
 
+        // Channel tiling attribute (0 = no channel tiling)
+        int c_tile = 0;
+        fbs_model->get_operation_attribute(node_name, "c_tile", c_tile);
+
         return new TiledConvBlock(
             pads, strides, dilations, tile_h,
-            act_type, act_table, act1_input_exponent, scale_int,
+            act_type, act_table, act1_input_exponent, scale_int, c_tile,
             node_name.c_str(), group, quant_type);
     }
 
@@ -467,9 +513,9 @@ public:
     void print()
     {
         ESP_LOGI("TiledConvBlock",
-                 "tile_h: %d, act: %s, pads: %s, strides: %s, dilations: %s, "
+                 "tile_h: %d, c_tile: %d, act: %s, pads: %s, strides: %s, dilations: %s, "
                  "quant_type: %s.",
-                 m_tile_h,
+                 m_tile_h, m_c_tile,
                  m_act_type.empty() ? "none" : m_act_type.c_str(),
                  vector_to_string(m_pads).c_str(),
                  vector_to_string(m_strides).c_str(),
