@@ -48,7 +48,7 @@ _PHASE3_CAP = 5
 
 # Plateau detection: if the most recent N iterations all sit within this
 # relative window vs best-so-far, declare plateau and finalize.
-_PLATEAU_WINDOW = 2
+_PLATEAU_WINDOW = 3
 _PLATEAU_REL_TOL = 0.001  # 0.1%
 
 # 3a-3 unstable-fallback path: max relative regression that still counts as a
@@ -61,6 +61,54 @@ _3A3_PATH1_REL_TOL = 0.005  # 0.5%
 _PHASE3_ORDER_BALANCED = ("3a-1", "3a-2", "3b", "3c", "3d", "3e", "3f", "3g")
 _PHASE3_ORDER_SPEED = ("3a-1", "3a-2", "3b", "3c", "3d", "3g", "3e", "3f")
 _PHASE3_LEVER_IDS_ALL = ("3a-1", "3a-2", "3b", "3c", "3d", "3e", "3f", "3g")
+
+
+# ---------------------------------------------------------------------------
+# R8 (fusion_alignment / lever 3c) trigger constants.
+#
+# The historical rule "op_type ∈ {Concat, Add, Resize, AveragePool} AND
+# inputs_float_std_ratio > 5" almost never fires on real esp-dl quantization
+# runs — the three example projects under example_quantize_*/outputs/ all
+# show std_ratio < 2 yet 3c was empirically useful in exactly one of them.
+# The new rule below was calibrated against those three runs (mobilenetv2 on
+# esp32s3 / esp32p4, yolo11n on esp32s3) — see references/decision_playbook.md
+# §R8 for the rationale and the hindsight check in
+# tests/hindsight_r8_examples.py for the regression test.
+#
+# Surfaced as module constants so a future user collecting more data can
+# re-tune the thresholds in one place. If you change any of these, re-run
+# tests/hindsight_r8_examples.py before committing.
+# ---------------------------------------------------------------------------
+
+# Primary "Goldilocks band" for the candidate elementwise op's max_snr.
+#
+# The band emerged from the three example projects under
+# example_quantize_*/outputs/. Below the lower bound there is not enough
+# residual noise on the Add/Concat for fusion alignment to fix. Above the
+# upper bound the residual is so severe (often co-existing with a tight
+# TQT-trained scale grid the alignment would overwrite) that forcing
+# alignment regresses — the right move is a deeper pass (3a-3 / 3d / 3e)
+# instead.
+#
+# Anchors (best-so-far at the moment 3c was tried in each project):
+#   * mobilenetv2-esp32s3 iter_1: Add max_snr=0.264 → IN BAND, helped (+0.275%)
+#   * mobilenetv2-esp32p4 iter_5: Add max_snr=0.318 → ABOVE BAND, would
+#     have regressed (-0.35%)
+#   * yolo11n-esp32s3 iter_7:    Concat max_snr=0.094 → BELOW BAND, would
+#     have regressed (-0.34%)
+_R8_MAX_SNR_PRIMARY = 0.20
+_R8_MAX_SNR_UPPER = 0.30
+
+# Reinforcement (not required to fire — raises confidence if present).
+_R8_STD_RATIO_REINFORCE = 5.0
+
+# Activation veto: if a Relu/Swish/Sigmoid in the top-3 hot ops has max_snr
+# strictly greater than this multiple of the candidate elementwise op's
+# max_snr, skip 3c — the error is activation-dominated, fix that first.
+_R8_ACTIVATION_VETO_RATIO = 1.2
+
+_R8_ELEMWISE_OP_TYPES = ("Concat", "Add", "Sub", "Mul", "Resize", "AveragePool")
+_R8_ACTIVATION_OP_TYPES = ("Relu", "Swish", "Sigmoid", "HardSwish")
 
 
 # ---------------------------------------------------------------------------
@@ -443,15 +491,37 @@ def _plateau_detected(rows: List[dict], best: Optional[dict]) -> bool:
     return True
 
 
-def _all_phase3_levers_tried(rows: List[dict], priority: str) -> bool:
-    """True iff every linear-order Phase-3 lever has been used at least once.
+def _all_phase3_levers_tried(
+    rows: List[dict], priority: str, best: Optional[dict] = None
+) -> bool:
+    """True iff every linear-order Phase-3 lever has been used at least once
+    OR has been correctly skipped by its trigger.
 
     3a-3 is conditional and not part of the linear order; its absence does not
     by itself block finalization (otherwise the agent could never finish on a
     network where 3a-3's triggers never fire).
+
+    A lever counts as "covered" when:
+      * it appears in some iteration's setting.json (``_lever_tried`` true), OR
+      * its trigger does not fire on the current best (only 3c participates
+        today via ``_r8_check_for_best``) — exhausting the linear list while
+        respecting the structural-trigger rules.
+
+    Without the trigger-skip path, a network whose hot ops never match R8
+    would loop forever waiting for the agent to "try" 3c — which makes no
+    sense; we'd be asking the agent to run an iteration the data says will
+    regress. With the skip path, the state machine cleanly progresses to
+    Phase 5 (or Phase 4) once every lever is either tried or skipped.
     """
-    order = _phase3_order_for(priority)
-    return all(_lever_tried(rows, lever) for lever in order)
+    for lever in _phase3_order_for(priority):
+        if _lever_tried(rows, lever):
+            continue
+        if lever == "3c":
+            fires, _reason = _r8_check_for_best(best)
+            if not fires:
+                continue
+        return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -526,6 +596,195 @@ def _next_phase3_lever_in_order(rows: List[dict], priority: str) -> Optional[str
         if not _lever_tried(rows, lever):
             return lever
     return None
+
+
+# ---------------------------------------------------------------------------
+# R8 trigger helpers (govern whether lever 3c fires or is skipped-by-trigger)
+# ---------------------------------------------------------------------------
+
+
+def _load_non_computing_hot_ops(iter_dir: Any) -> List[dict]:
+    """Read ``<iter_dir>/non_computing_hot_ops.json`` if present, else []."""
+    if iter_dir is None:
+        return []
+    path = Path(str(iter_dir)) / "non_computing_hot_ops.json"
+    data = _load(path)
+    if isinstance(data, list):
+        return data
+    return []
+
+
+def _r8_trigger_fires(
+    hot_ops: List[dict],
+    *,
+    primary_lower: float = _R8_MAX_SNR_PRIMARY,
+    primary_upper: float = _R8_MAX_SNR_UPPER,
+    std_ratio_threshold: float = _R8_STD_RATIO_REINFORCE,
+    veto_ratio: float = _R8_ACTIVATION_VETO_RATIO,
+) -> Tuple[bool, str]:
+    """Return ``(fires, reason)`` for the R8 (fusion_alignment / lever 3c) check.
+
+    ``hot_ops`` is the list parsed from ``non_computing_hot_ops.json`` —
+    each entry has at least ``op_name`` / ``op_type`` / ``max_snr`` and may
+    have ``inputs_float_std_ratio``.
+
+    Logic (see references/decision_playbook.md §R8 for full rationale):
+
+    * Pick the top elementwise candidate ``c`` (``op_type ∈ {Concat, Add,
+      Sub, Mul, Resize, AveragePool}`` with the largest ``max_snr``).
+    * **Primary Goldilocks band**: fire when
+      ``primary_lower < c.max_snr ≤ primary_upper`` (default 0.20 < snr ≤
+      0.30). Below the band there is not enough residual noise on the
+      elementwise op for fusion alignment to fix; above the band the
+      residual is too severe to be fixed by alignment alone — usually a
+      sign that a deeper pass (3a-3 / 3d / 3e) is the right move and
+      forcing alignment will regress by overwriting an already-trained
+      tighter scale.
+    * **Reinforcement gate** (sufficient on its own): a non-zero explicit
+      ``inputs_float_std_ratio > std_ratio_threshold`` (default 5.0) keeps
+      firing even outside the primary band — the legacy std-ratio escape
+      hatch for the rare cases where wide input scales actually drive the
+      residual error.
+    * **Activation veto** (overrides primary and reinforcement): if any
+      Relu/Swish/Sigmoid/HardSwish in the top-3 hot ops has ``max_snr >
+      veto_ratio × c.max_snr`` (default 1.2×), skip 3c — the dominant
+      error is activation-shaped, not fusion-alignment-shaped. Fix the
+      activation via TQT escalation or int16 promotion first.
+
+    The reason string is meant to be embedded in the next iteration's
+    ``rationale`` so the agent (and the human reviewing later) can see
+    *why* 3c fired or was skipped.
+    """
+    if not hot_ops:
+        return False, "non_computing_hot_ops.json is empty (no hot ops to gate on)"
+
+    candidates = [
+        op
+        for op in hot_ops
+        if isinstance(op, dict) and op.get("op_type") in _R8_ELEMWISE_OP_TYPES
+    ]
+    if not candidates:
+        return (
+            False,
+            "no Concat/Add/Sub/Mul/Resize/AveragePool entry in non_computing_hot_ops.json",
+        )
+
+    def _msnr(op: dict) -> float:
+        v = op.get("max_snr")
+        return float(v) if isinstance(v, (int, float)) else 0.0
+
+    top = max(candidates, key=_msnr)
+    top_snr = _msnr(top)
+    top_name = top.get("op_name", "<unknown>")
+    top_type = top.get("op_type", "<unknown>")
+    std_ratio = top.get("inputs_float_std_ratio")
+    std_ratio_v = float(std_ratio) if isinstance(std_ratio, (int, float)) else 0.0
+
+    in_band = primary_lower < top_snr <= primary_upper
+    above_band = top_snr > primary_upper
+    below_band = top_snr <= primary_lower
+    reinforcement_passed = std_ratio_v > std_ratio_threshold
+
+    if not in_band and not reinforcement_passed:
+        if above_band:
+            reason = (
+                f"R8 above-band skip: top elementwise op {top_name} ({top_type}) "
+                f"max_snr={top_snr:.3f} > {primary_upper:.2f} upper bound — residual "
+                "noise too severe for fusion alignment alone (forces overwriting "
+                "an already-tight TQT scale); try lever 3a-3 / 3d / 3e instead. "
+                f"Reinforcement std_ratio={std_ratio_v:.2f} <= "
+                f"{std_ratio_threshold:.1f}, no escape hatch."
+            )
+        else:
+            reason = (
+                f"R8 below-band skip: top elementwise op {top_name} ({top_type}) "
+                f"max_snr={top_snr:.3f} <= {primary_lower:.2f} lower bound — "
+                "residual on this op is too small for fusion alignment to move "
+                "the metric. "
+                f"Reinforcement std_ratio={std_ratio_v:.2f} <= "
+                f"{std_ratio_threshold:.1f}, no escape hatch."
+            )
+        return False, reason
+
+    # Activation veto — check the top-3 hot ops (regardless of op type) for
+    # an activation that out-shouts the candidate by veto_ratio×.
+    top_three = hot_ops[:3] if isinstance(hot_ops, list) else []
+    activations = [
+        op
+        for op in top_three
+        if isinstance(op, dict) and op.get("op_type") in _R8_ACTIVATION_OP_TYPES
+    ]
+    if activations:
+        worst_act = max(activations, key=_msnr)
+        worst_act_snr = _msnr(worst_act)
+        if top_snr > 0 and worst_act_snr > top_snr * veto_ratio:
+            return (
+                False,
+                f"R8 activation veto: {worst_act.get('op_name', '<unknown>')} "
+                f"({worst_act.get('op_type', '<unknown>')}) max_snr={worst_act_snr:.3f} "
+                f"> {veto_ratio:.2f}× candidate {top_name} max_snr={top_snr:.3f} — "
+                "activation-dominated error; fix via TQT or int16 instead of 3c",
+            )
+
+    if in_band:
+        gate_label = (
+            f"primary band {primary_lower:.2f} < max_snr={top_snr:.3f} "
+            f"<= {primary_upper:.2f}"
+        )
+    elif below_band:
+        gate_label = (
+            f"reinforcement std_ratio={std_ratio_v:.2f} > "
+            f"{std_ratio_threshold:.1f} (max_snr={top_snr:.3f} below band)"
+        )
+    else:
+        gate_label = (
+            f"reinforcement std_ratio={std_ratio_v:.2f} > "
+            f"{std_ratio_threshold:.1f} (max_snr={top_snr:.3f} above band)"
+        )
+    return (
+        True,
+        f"R8 fired on {top_name} ({top_type}): {gate_label}",
+    )
+
+
+def _r8_check_for_best(best: Optional[dict]) -> Tuple[bool, str]:
+    """Run :func:`_r8_trigger_fires` against ``best``'s
+    ``non_computing_hot_ops.json``. Returns ``(False, reason)`` when ``best``
+    is missing or its hot_ops file is unreadable — the conservative default,
+    so 3c gets skipped on data starvation rather than firing blindly."""
+    if best is None:
+        return False, "no best iteration available yet; cannot run R8 check"
+    hot_ops = _load_non_computing_hot_ops(best.get("dir"))
+    if not hot_ops:
+        return (
+            False,
+            "best iteration has no readable non_computing_hot_ops.json "
+            "(too old? harness skipped the artifact?) — skipping 3c by default",
+        )
+    return _r8_trigger_fires(hot_ops)
+
+
+def _next_phase3_lever_with_skips(
+    rows: List[dict], priority: str, best: Optional[dict]
+) -> Tuple[Optional[str], List[Tuple[str, str]]]:
+    """Return ``(next_lever, skipped_levers)`` where each skipped entry is
+    ``(lever_id, reason)``. A lever is skipped when its trigger does not
+    fire on the current best-so-far's distribution data — at the moment,
+    only 3c (R8) participates. Skipped levers count as "covered" for the
+    all-linear-tried check, so the search progresses instead of getting
+    stuck looking for a distribution match that the data will never produce.
+    """
+    skipped: List[Tuple[str, str]] = []
+    for lever in _phase3_order_for(priority):
+        if _lever_tried(rows, lever):
+            continue
+        if lever == "3c":
+            fires, reason = _r8_check_for_best(best)
+            if not fires:
+                skipped.append(("3c", reason))
+                continue
+        return lever, skipped
+    return None, skipped
 
 
 # ---------------------------------------------------------------------------
@@ -692,13 +951,32 @@ def _phase3_lever_template(
             "the specific op + numbers in rationale.",
         )
     if lever_id == "3c":
+        # Embed the actual R8 fire-reason from best's non_computing_hot_ops.json
+        # so the agent's rationale can quote concrete numbers instead of
+        # re-deriving them from the artifact.
+        fires, reason = _r8_check_for_best(best)
+        change = (
+            "Lever 3c: fusion alignment for Concat/Add/Resize/AveragePool. "
+            f"Suggested rationale prefix: {reason}. "
+            "Switch `align_elementwise_to` (Add/Sub/Mul), `align_concat_to` "
+            "(Concat), `align_resize_to` (Resize), or `align_avgpooling_to` "
+            "(AveragePool) to 'Align to Large' depending on the triggering "
+            "op's type."
+        )
+        if not fires:
+            # Should not normally be reached — the state machine skips 3c
+            # via _next_phase3_lever_with_skips when this returns False —
+            # but keep a safe message in case an agent calls the template
+            # directly. Carrying the reason still helps the human reviewer.
+            change = (
+                "Lever 3c: fusion alignment. ⚠ R8 trigger did NOT fire on "
+                f"best-so-far ({reason}). The state machine normally skips "
+                "this lever in that case; if you are calling the template "
+                "manually, double-check the data before applying."
+            )
         return (
             {"fusion_alignment": {"align_elementwise_to": "Align to Large"}},
-            "Lever 3c: fusion alignment for Concat/Add/Resize. Trigger comes "
-            "primarily from non_computing_hot_ops.json — pick a row where "
-            "op_type ∈ {Concat, Add, Resize, AveragePool} AND "
-            "inputs_float_std_ratio > 5. Add `align_concat_to`/`align_resize_to`/"
-            "`align_avgpooling_to = 'Align to Large'` as appropriate.",
+            change,
         )
     if lever_id == "3d":
         return (
@@ -747,10 +1025,15 @@ def _phase3_lever_template(
             "⚠️ Tier B — adds an extra Add op per split layer at runtime.",
         )
     if lever_id == "3g":
-        # blockwise_reconstruction is mutex with TQT.
+        # blockwise_reconstruction is NOT mutex with TQT anymore — the engine
+        # runs TrainedQuantizationThresholdPass and then AdaroundPass
+        # sequentially (esp-ppq/esp_ppq/quantization/quantizer/base.py
+        # L379-420). The 3g template adds blockwise on top of best's TQT
+        # configuration instead of replacing it. PC quantization time roughly
+        # doubles (two gradient-based passes back to back) but accuracy
+        # attribution stays clean: blockwise is the only new variable.
         return (
             {
-                "tqt_optimization": {"enabled": False},
                 "blockwise_reconstruction": {
                     "enabled": True,
                     "lr": 1e-3,
@@ -761,12 +1044,13 @@ def _phase3_lever_template(
                     "collecting_device": "cuda",
                 },
             },
-            "Lever 3g: blockwise_reconstruction. ⚠️ Mutually exclusive with TQT "
-            "(apply_setting._check_mutex enforces). The template explicitly "
-            "disables tqt_optimization. This is a structural change (TQT off → "
-            "blockwise on), bigger than any other Phase-3 lever; if 3g regresses, "
-            "next iteration must roll back to best-so-far (TQT on) before "
-            "continuing.",
+            "Lever 3g: blockwise_reconstruction added on top of best-so-far. "
+            "Engine runs AdaroundPass after TrainedQuantizationThresholdPass — "
+            "they coexist sequentially, so TQT (if on in best) stays on. "
+            "PC quantization time roughly doubles vs the prior best; accuracy "
+            "attribution stays clean because blockwise is the only new "
+            "variable. If 3g regresses, the next iteration must roll back to "
+            "best-so-far (blockwise off) before continuing.",
         )
     raise ValueError(f"Unknown lever_id: {lever_id!r}")
 
@@ -811,6 +1095,1001 @@ def _build_phase3_hint(
         "top of this template. If this iteration regresses, drop this lever "
         "next round per Composition discipline #3."
     )
+    return " ".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 — agent-driven open exploration
+#
+# Phase 5 is intentionally NOT a state machine. The script's job here is to
+# stop prescribing settings and instead surface the data and history the
+# agent needs to write the next setting.json on its own. The shape of the
+# emitted hint mirrors Phase 2/3 (phase string + advice text) but the
+# advice is meta-guidance + a structured `phase5_signals` block; there is
+# NO setting.json template.
+# ---------------------------------------------------------------------------
+
+
+def _phase5_lever_label_for(setting_a: dict, setting_b: dict) -> Optional[str]:
+    """Return a short lever label describing the single most distinctive
+    change between two settings, or ``None`` when the diff is multi-knob
+    (already a Phase-5 stack) or empty. This is heuristic — it underpins
+    the ``improving_levers`` table only, where a one-line attribution is
+    enough; agents always have the raw setting.json available to dig in.
+    """
+    tqt_a = _tqt_block(setting_a)
+    tqt_b = _tqt_block(setting_b)
+    if tqt_a.get("enabled") != tqt_b.get("enabled"):
+        return "tqt_enabled" if tqt_b.get("enabled") else "tqt_disabled"
+    # TQT schedule change.
+    for k in ("steps", "lr", "block_size"):
+        if tqt_a.get(k) != tqt_b.get(k):
+            return f"tqt_{k}={tqt_b.get(k)}"
+    # Calibration change.
+    if (setting_a.get("calib_algorithm") or "kl") != (
+        setting_b.get("calib_algorithm") or "kl"
+    ):
+        return f"calib={setting_b.get('calib_algorithm')}"
+    # Pass-on toggle.
+    for key in (
+        "equalization",
+        "bias_correct",
+        "fusion_alignment",
+        "weight_split",
+        "blockwise_reconstruction",
+        "lsq_optimization",
+    ):
+        a = (
+            (setting_a.get(key) or {}).get("enabled")
+            if isinstance(setting_a.get(key), dict)
+            else bool(setting_a.get(key))
+        )
+        b = (
+            (setting_b.get(key) or {}).get("enabled")
+            if isinstance(setting_b.get(key), dict)
+            else bool(setting_b.get(key))
+        )
+        # fusion_alignment is a dict without "enabled" — fall back to truthiness.
+        if isinstance(setting_a.get(key), dict) and "enabled" not in setting_a[key]:
+            a = bool(setting_a[key])
+        if isinstance(setting_b.get(key), dict) and "enabled" not in setting_b[key]:
+            b = bool(setting_b[key])
+        if a != b:
+            return f"{key}={'on' if b else 'off'}"
+    # Dispatching table size change.
+    da = setting_a.get("dispatching_table") or []
+    db = setting_b.get("dispatching_table") or []
+    if isinstance(da, list) and isinstance(db, list) and len(da) != len(db):
+        return f"dispatching_table={len(db)}_ops"
+    return None
+
+
+def _phase5_improving_levers(rows: List[dict]) -> List[dict]:
+    """Walk the iterations in id order; for each that beat its immediate-prior
+    best, emit a record of ``(iter, delta, added_pass)``. The aggregate
+    is what the agent uses to decide which passes are worth stacking in
+    Phase 5.
+    """
+    if not rows:
+        return []
+    sorted_rows = sorted(rows, key=lambda r: r.get("iteration_id", 0))
+    direction = sorted_rows[0].get("metric_direction", "max") or "max"
+    history: List[dict] = []
+    best_so_far: Optional[dict] = None
+    for r in sorted_rows:
+        v = r.get("primary_value")
+        if not _is_finite_metric(v):
+            continue
+        if best_so_far is None:
+            best_so_far = r
+            continue
+        prior_best_val = best_so_far.get("primary_value")
+        improved = (direction == "max" and float(v) > float(prior_best_val)) or (
+            direction == "min" and float(v) < float(prior_best_val)
+        )
+        if improved:
+            label = _phase5_lever_label_for(
+                best_so_far.get("setting") or {}, r.get("setting") or {}
+            )
+            history.append(
+                {
+                    "iter": r.get("iteration_id"),
+                    "delta_vs_prior_best": float(v) - float(prior_best_val),
+                    "added_pass": label,
+                    "primary_value": float(v),
+                }
+            )
+            best_so_far = r
+    return history
+
+
+def _phase5_regressing_levers(rows: List[dict]) -> List[dict]:
+    """Symmetric to :func:`_phase5_improving_levers` — iterations that fell
+    behind the best-so-far at the time, with the single-knob attribution.
+    Useful as negative evidence so the agent doesn't stack a regressing
+    lever back onto the new winning recipe.
+    """
+    if not rows:
+        return []
+    sorted_rows = sorted(rows, key=lambda r: r.get("iteration_id", 0))
+    direction = sorted_rows[0].get("metric_direction", "max") or "max"
+    history: List[dict] = []
+    best_so_far: Optional[dict] = None
+    for r in sorted_rows:
+        v = r.get("primary_value")
+        if not _is_finite_metric(v):
+            continue
+        if best_so_far is None:
+            best_so_far = r
+            continue
+        prior_best_val = best_so_far.get("primary_value")
+        worse = (direction == "max" and float(v) < float(prior_best_val)) or (
+            direction == "min" and float(v) > float(prior_best_val)
+        )
+        if worse and r.get("iteration_id", 0) > 0:
+            label = _phase5_lever_label_for(
+                best_so_far.get("setting") or {}, r.get("setting") or {}
+            )
+            history.append(
+                {
+                    "iter": r.get("iteration_id"),
+                    "delta_vs_prior_best": float(v) - float(prior_best_val),
+                    "added_pass": label,
+                }
+            )
+        else:
+            best_so_far = r
+    return history
+
+
+def _phase5_untried_calib_swaps(rows: List[dict], best: Optional[dict]) -> List[str]:
+    """Return calib algorithms from the Phase-2 sweep that are NOT the
+    current best's calib_algorithm. Phase-5 cross-pollination candidates."""
+    if best is None:
+        return []
+    best_calib = ((best.get("setting") or {}).get("calib_algorithm") or "kl").lower()
+    tried_in_phase2 = _calib_with_default_tqt_tried(rows)
+    return [c for c in _CALIB_SWEEP_VALUES if c != best_calib and c in tried_in_phase2]
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 coverage tracking: classify each Phase-5 iteration into 5alpha /
+# 5beta / 5gamma / 5delta patterns and report which Phase-3 linear-order
+# levers were left uncovered by the Phase-3 cap.
+#
+# These signals are what the agent reads in Phase 5 to decide whether
+# stop signal (4) ("ran out of data-driven ideas") can legitimately fire.
+# Specifically: signal (4) is only allowed when BOTH
+# ``untried_phase5_patterns`` and ``untried_phase3_levers`` are empty AND
+# no user-given iteration budget remains. See SKILL.md "Phase 5 — Stop
+# signals" for the full contract.
+# ---------------------------------------------------------------------------
+
+
+# Passes whose enable/disable toggle counts as a Phase-5 STACK / ABLATE.
+# Excludes tqt_optimization because TQT toggling has a special semantics
+# (mutex with blockwise_reconstruction = lever 3g; bare TQT toggle is the
+# 3g lever entry path). For the coverage signal we treat tqt as part of
+# "enabled passes" anyway via its toggle.
+_PHASE5_TOGGLEABLE_PASSES = (
+    "equalization",
+    "bias_correct",
+    "fusion_alignment",
+    "weight_split",
+    "blockwise_reconstruction",
+    "tqt_optimization",
+)
+
+
+def _phase5_pass_enabled(setting: dict, pass_name: str) -> bool:
+    """Robust on/off check for a pass entry in a setting.json.
+
+    Each pass can show up as either ``{"enabled": True}`` (the canonical
+    Phase-3 lever shape) or as a non-empty dict without ``enabled``
+    (the fusion_alignment shape: ``{"align_elementwise_to": "..."}``).
+    Missing key => disabled.
+    """
+    block = setting.get(pass_name)
+    if not isinstance(block, dict):
+        return bool(block)
+    if "enabled" in block:
+        return bool(block["enabled"])
+    return len(block) > 0
+
+
+def _dispatch_int16_ops(setting: dict) -> set:
+    """Return the set of op names dispatched to int16 in this setting."""
+    entries = setting.get("dispatching_table") or []
+    if not isinstance(entries, list):
+        return set()
+    ops: set = set()
+    for entry in entries:
+        if isinstance(entry, dict) and entry.get("bits") == 16:
+            name = entry.get("op") or entry.get("op_name")
+            if name:
+                ops.add(name)
+    return ops
+
+
+def _weight_split_layers(setting: dict) -> set:
+    """Return the set of layer names targeted by weight_split, or empty
+    if weight_split is off / has no interested_layers."""
+    block = setting.get("weight_split")
+    if not isinstance(block, dict) or not block.get("enabled"):
+        return set()
+    layers = block.get("interested_layers") or []
+    if isinstance(layers, list):
+        return {str(layer) for layer in layers}
+    return set()
+
+
+def _classify_phase5_patterns(setting_prev: dict, setting_new: dict) -> List[str]:
+    """Structurally classify a Phase-5 iteration vs its prior-best setting.
+
+    Returns a list (possibly empty, possibly multi) of pattern keys among
+    ``5alpha`` / ``5beta`` / ``5gamma`` / ``5delta``. The list is multi
+    because Composition discipline #5 allows a single Phase-5 iteration
+    to combine multiple knob changes — and the agent's coverage tracker
+    should credit each pattern that fired, not just the "primary" one.
+
+    Patterns:
+      * 5alpha STACK         — any pass turned ON that was OFF before
+                              (equalization, bias_correct, fusion_alignment,
+                              weight_split, blockwise_reconstruction,
+                              tqt_optimization toggle). Also fires when
+                              dispatching_table goes from empty to non-empty
+                              (int16 promotion newly enabled).
+      * 5beta CROSS-POLLINATE — calib_algorithm differs.
+      * 5gamma ABLATE         — any pass turned OFF that was ON before, OR
+                              dispatching_table going from non-empty to
+                              empty (int16 dropped).
+      * 5delta DIVE-INTO-ARTIFACTS — dispatching_table op set changed
+                              while staying non-empty on both sides, OR
+                              weight_split interested_layers set changed
+                              while staying enabled on both sides. This
+                              captures "targeted artifact-driven choice"
+                              (different ops based on layerwise data).
+
+    No-op iterations (settings identical) return ``[]``. Levers that
+    correspond to canonical Phase-3 single-knob mutations (e.g. enabling
+    equalization on top of best) are reported as 5alpha; this is by design
+    — in Phase 5 they ARE Phase-5 STACK iterations even when they happen
+    to be Phase-3-shaped.
+    """
+    patterns: List[str] = []
+
+    for pass_name in _PHASE5_TOGGLEABLE_PASSES:
+        prev_on = _phase5_pass_enabled(setting_prev, pass_name)
+        new_on = _phase5_pass_enabled(setting_new, pass_name)
+        if new_on and not prev_on:
+            if "5alpha" not in patterns:
+                patterns.append("5alpha")
+        elif prev_on and not new_on:
+            if "5gamma" not in patterns:
+                patterns.append("5gamma")
+
+    prev_int16 = _dispatch_int16_ops(setting_prev)
+    new_int16 = _dispatch_int16_ops(setting_new)
+    if not prev_int16 and new_int16:
+        if "5alpha" not in patterns:
+            patterns.append("5alpha")
+    elif prev_int16 and not new_int16:
+        if "5gamma" not in patterns:
+            patterns.append("5gamma")
+    elif prev_int16 and new_int16 and prev_int16 != new_int16:
+        if "5delta" not in patterns:
+            patterns.append("5delta")
+
+    prev_ws = _weight_split_layers(setting_prev)
+    new_ws = _weight_split_layers(setting_new)
+    if prev_ws and new_ws and prev_ws != new_ws:
+        if "5delta" not in patterns:
+            patterns.append("5delta")
+
+    prev_calib = (setting_prev.get("calib_algorithm") or "kl").lower()
+    new_calib = (setting_new.get("calib_algorithm") or "kl").lower()
+    if prev_calib != new_calib:
+        if "5beta" not in patterns:
+            patterns.append("5beta")
+
+    return patterns
+
+
+def _phase5_cutoff_iter_id(rows: List[dict]) -> int:
+    """Find the iteration_id of the last iteration BEFORE Phase 5 began.
+
+    Iterations with id > the returned cutoff are Phase-5 iterations.
+
+    Returns -1 when the history never enters Phase 5 (e.g. target was hit
+    in Phase 3, plateau routed to phase-4, or the agent stopped mid-Phase-3
+    on user budget); coverage helpers using this should special-case the
+    -1 return as "no Phase 5 history" and emit an empty coverage dict.
+
+    Inlines the phase-5 trigger conditions directly (instead of calling
+    ``_suggest_next``) to avoid a recursion cycle — ``_suggest_next``
+    itself depends on this function via ``_phase5_signals_for``. The
+    inlined conditions mirror ``_suggest_next`` order:
+
+    * Phase-2 incomplete (some calib leg missing) → next iter would still
+      be phase-2, not phase-5.
+    * ``target_metric`` reached → next iter would be phase-4, not phase-5.
+    * ``_phase3_iteration_count(partial) >= _PHASE3_CAP`` → next iter is
+      phase-5.
+    * ``_all_phase3_levers_tried(partial, priority, best)`` → next iter
+      is phase-5.
+
+    Cost is O(N * cheap_checks) where N is iteration count; on real-world
+    N less than 30 this is microseconds.
+    """
+    if not rows:
+        return -1
+    sorted_rows = sorted(rows, key=lambda r: r.get("iteration_id", 0))
+    direction = (sorted_rows[0].get("metric_direction") or "max").lower()
+
+    for i in range(1, len(sorted_rows) + 1):
+        partial = sorted_rows[:i]
+
+        # Phase 2 still has missing calib legs? Next iter is phase-2.
+        tried_calib = _calib_with_default_tqt_tried(partial)
+        if any(c not in tried_calib for c in _CALIB_SWEEP_VALUES):
+            continue
+
+        target = _target_metric(partial)
+        if _target_reached(partial, target, direction):
+            # Target met after this prefix; next iter is phase-4, not phase-5.
+            continue
+
+        priority = _runtime_priority(partial)
+        best = _best(partial)
+
+        cap_hit = _phase3_iteration_count(partial) >= _PHASE3_CAP
+        all_done = _all_phase3_levers_tried(partial, priority, best)
+        if cap_hit or all_done:
+            return int(sorted_rows[i - 1].get("iteration_id", -1))
+
+    return -1
+
+
+def _phase5_pattern_coverage(rows: List[dict], cutoff_id: int) -> Dict[str, List[int]]:
+    """For each Phase-5 iteration (``iteration_id > cutoff_id``), classify
+    it against the iteration that was best-at-the-time and record which
+    pattern(s) it covered.
+
+    Returns ``{"5alpha": [iter_ids], "5beta": [...], "5gamma": [...], "5delta": [...]}``.
+    Iterations that classify to no pattern (no-op vs prior best) are
+    silently dropped.
+    """
+    coverage: Dict[str, List[int]] = {
+        "5alpha": [],
+        "5beta": [],
+        "5gamma": [],
+        "5delta": [],
+    }
+    if cutoff_id < 0 or not rows:
+        return coverage
+
+    sorted_rows = sorted(rows, key=lambda r: r.get("iteration_id", 0))
+    direction = (sorted_rows[0].get("metric_direction") or "max").lower()
+
+    for it in sorted_rows:
+        iid = it.get("iteration_id")
+        if not isinstance(iid, int) or iid <= cutoff_id:
+            continue
+        # Find best-at-the-time over iterations strictly before iid.
+        prior = [
+            r
+            for r in sorted_rows
+            if isinstance(r.get("iteration_id"), int)
+            and r["iteration_id"] < iid
+            and _is_finite_metric(r.get("primary_value"))
+        ]
+        if not prior:
+            continue
+        if direction == "min":
+            prior_best = min(prior, key=lambda r: float(r["primary_value"]))
+        else:
+            prior_best = max(prior, key=lambda r: float(r["primary_value"]))
+
+        patterns = _classify_phase5_patterns(
+            prior_best.get("setting") or {}, it.get("setting") or {}
+        )
+        for p in patterns:
+            coverage[p].append(iid)
+
+    return coverage
+
+
+def _untried_phase3_levers(
+    rows: List[dict], priority: str, best: Optional[dict]
+) -> List[str]:
+    """Return the list of linear-order Phase-3 levers (in order) that have
+    never been tried in any iteration AND have not been correctly skipped
+    by their trigger.
+
+    "Correctly skipped" today applies only to 3c (R8 trigger): when R8
+    does not fire on best's ``non_computing_hot_ops.json`` the lever is
+    excluded from the untried list — the data says it would regress, so
+    forcing a Phase-5 attempt would burn an iteration we already know
+    will not help.
+
+    Used in Phase 5 to remind the agent that ``_PHASE3_CAP=5`` may have
+    left levers uncovered (3d / 3e / 3f / 3g are common candidates) and
+    those still deserve a Phase-5 STACK attempt before stop signal (4)
+    can fire. See SKILL.md "Why _PHASE3_CAP=5 leaves untried linear-order
+    levers".
+    """
+    out: List[str] = []
+    for lever in _phase3_order_for(priority):
+        if _lever_tried(rows, lever):
+            continue
+        if lever == "3c":
+            fires, _ = _r8_check_for_best(best)
+            if not fires:
+                continue
+        out.append(lever)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# 5β-reapply: when the lever stack deepens after an early 5β CROSS-POLLINATE
+# attempt, the prior verdict on the calibration may no longer hold. The
+# canonical example is example_quantize_mobilenetv2_esp32p4 iter_13: an
+# early calib swap (percentile) regressed on a shallow stack, but the same
+# calib on top of the deepest lever stack delivered a +0.55% jump that
+# closed the gap to target. Composition discipline #4 says calib ranking is
+# unstable across stacks; this helper formalises "you tried percentile on
+# stack S_old, but current best's stack S_now is a strict superset — go
+# re-do percentile on S_now before declaring 5β covered".
+#
+# Coverage semantics: 5β is considered "fully covered" only when every
+# unique calib in untried_calib_swaps has been tried on the CURRENT best's
+# stack (or a deeper one). Otherwise the entry stays in
+# untried_5beta_reapply and "5beta" is forced back into
+# untried_phase5_patterns. See SKILL.md "Phase 5 — Stop signals" and the
+# Composition discipline #4 callout in references/decision_playbook.md.
+# ---------------------------------------------------------------------------
+
+
+def _phase5_lever_stack(setting: dict) -> frozenset:
+    """Return the stable, comparable set of "levers turned ON" in this setting.
+
+    Used to compare two iterations' lever stacks for the 5β-reapply check.
+    Each enabled pass contributes its name; the dispatching_table contributes
+    a sentinel ``int16:<count>`` so growing the int16 op count counts as a
+    deeper stack. Calibration is NOT part of the stack — that's the axis
+    that 5β is swapping along.
+    """
+    out = set()
+    for pass_name in _PHASE5_TOGGLEABLE_PASSES:
+        if _phase5_pass_enabled(setting, pass_name):
+            out.add(pass_name)
+    int16_ops = _dispatch_int16_ops(setting)
+    if int16_ops:
+        out.add(f"int16:{len(int16_ops)}")
+    ws_layers = _weight_split_layers(setting)
+    if ws_layers:
+        out.add(f"weight_split:{len(ws_layers)}")
+    return frozenset(out)
+
+
+def _phase5_5beta_attempts(rows: List[dict]) -> List[Tuple[str, frozenset]]:
+    """Enumerate every iteration whose calib swap (5β classification) was
+    fired vs its prior best, and record ``(target_calib, prior_best_stack)``.
+
+    The prior best is the best-at-the-time, not the global best — same
+    convention as ``_phase5_pattern_coverage``. We exclude iterations whose
+    only "change" was the calib (no other lever change AND no dispatching_
+    table change AND no weight_split change) because those carry the
+    cleanest attribution — but include calib-plus-other-changes too, since
+    if percentile + equalization both fired, percentile WAS attempted on a
+    stack that includes equalization (a strictly-deeper context).
+    """
+    if not rows:
+        return []
+    sorted_rows = sorted(rows, key=lambda r: r.get("iteration_id", 0))
+    direction = (sorted_rows[0].get("metric_direction") or "max").lower()
+    attempts: List[Tuple[str, frozenset]] = []
+    for it in sorted_rows:
+        iid = it.get("iteration_id")
+        if not isinstance(iid, int):
+            continue
+        prior = [
+            r
+            for r in sorted_rows
+            if isinstance(r.get("iteration_id"), int)
+            and r["iteration_id"] < iid
+            and _is_finite_metric(r.get("primary_value"))
+        ]
+        if not prior:
+            continue
+        if direction == "min":
+            prior_best = min(prior, key=lambda r: float(r["primary_value"]))
+        else:
+            prior_best = max(prior, key=lambda r: float(r["primary_value"]))
+        prev_calib = (
+            (prior_best.get("setting") or {}).get("calib_algorithm") or "kl"
+        ).lower()
+        new_calib = ((it.get("setting") or {}).get("calib_algorithm") or "kl").lower()
+        if prev_calib == new_calib:
+            continue
+        # Use this iteration's OWN stack (without the calib, which is the
+        # axis being swapped). That's the stack on which `new_calib` was
+        # tested.
+        stack_at_test = _phase5_lever_stack(it.get("setting") or {})
+        attempts.append((new_calib, stack_at_test))
+    return attempts
+
+
+def _untried_5beta_reapply(rows: List[dict], best: Optional[dict]) -> List[str]:
+    """Return the list of calibrations that appeared as 5β targets earlier
+    in history but have never been tested on a stack at least as deep as
+    the current best's stack.
+
+    An empty list means "5β-reapply fully covered" — every previously-
+    tried calib has been re-confirmed on the deepest stack (or deeper).
+    """
+    if best is None:
+        return []
+    best_stack = _phase5_lever_stack(best.get("setting") or {})
+    attempts = _phase5_5beta_attempts(rows)
+    if not attempts:
+        return []
+    # For each unique calib, find the deepest stack on which it was tried.
+    deepest_for: Dict[str, frozenset] = {}
+    for calib, stack in attempts:
+        cur = deepest_for.get(calib)
+        # "Deeper" = strict superset; if neither stack is a superset of the
+        # other, keep the existing (first-seen wins; the comparison below
+        # against best_stack handles the actual decision).
+        if cur is None:
+            deepest_for[calib] = stack
+            continue
+        if cur < stack:  # frozenset < means proper subset
+            deepest_for[calib] = stack
+    untried: List[str] = []
+    # Stable order: alphabetical (no canonical priority across calibs).
+    for calib in sorted(deepest_for):
+        deepest = deepest_for[calib]
+        # The calib was tried on stack `deepest`. If `best_stack` is
+        # strictly deeper, the calib has NOT been re-tested on the current
+        # best stack — flag as untried_5beta_reapply.
+        if deepest < best_stack:
+            untried.append(calib)
+        # If deepest == best_stack or deepest >= best_stack, the calib was
+        # already tested at the current depth (or deeper); covered.
+        # If the two stacks are incomparable (neither strict subset), we
+        # don't require a re-run — that's an ablation/divergence, not a
+        # deepening.
+    return untried
+
+
+def _untried_phase5_patterns(coverage: Dict[str, List[int]]) -> List[str]:
+    """Return the list of Phase-5 patterns (in canonical order) that have
+    no attempts recorded in ``coverage`` — the negative of the pattern
+    coverage dict, surfaced for the agent's stop-signal-(4) check."""
+    out: List[str] = []
+    for key in ("5alpha", "5beta", "5gamma", "5delta"):
+        if not coverage.get(key):
+            out.append(key)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Tunable-params soft advisory: lists the parameter knobs available inside
+# each currently-enabled pass on best, with common value ranges drawn from
+# references/ppq_methods.md. This is NOT prescriptive — the agent is meant
+# to read the section, decide whether the data justifies a knob change,
+# and propose the next iteration. The section is conditionally rendered:
+# if best has no enabled gradient/structural passes, the section is empty.
+# ---------------------------------------------------------------------------
+
+
+def _phase5_tunable_params_lines(setting: dict) -> List[str]:
+    """Return the bullet-style lines describing tunable parameters for each
+    pass currently enabled in ``setting``. Used by ``_build_phase5_hint`` to
+    surface a soft-advisory tunable-params section."""
+    lines: List[str] = []
+    if (setting.get("tqt_optimization") or {}).get("enabled"):
+        tqt = setting.get("tqt_optimization") or {}
+        cur_lr = tqt.get("lr", 1e-5)
+        cur_steps = tqt.get("steps", 500)
+        cur_bs = tqt.get("block_size", 4)
+        lines.append(
+            "tqt_optimization (current: "
+            f"lr={cur_lr}, steps={cur_steps}, block_size={cur_bs}) — try "
+            "lr in (1e-5 / 5e-5 / 1e-4), steps in (500 / 1000 / 2000 / "
+            "5000), block_size in (2 / 4 / 6 / 8); larger block_size aligns "
+            "with blockwise's reconstruction window"
+        )
+    if (setting.get("blockwise_reconstruction") or {}).get("enabled"):
+        blk = setting.get("blockwise_reconstruction") or {}
+        cur_lr = blk.get("lr", 1e-3)
+        cur_steps = blk.get("steps", 5000)
+        cur_bs = blk.get("block_size", 4)
+        lines.append(
+            "blockwise_reconstruction (current: "
+            f"lr={cur_lr}, steps={cur_steps}, block_size={cur_bs}) — try "
+            "lr in (5e-4 / 1e-3), steps in (5000 / 10000), block_size in "
+            "(4 / 6 / 8)"
+        )
+    if (setting.get("equalization") or {}).get("enabled"):
+        eq = setting.get("equalization") or {}
+        cur_opt = eq.get("opt_level", 2)
+        cur_iter = eq.get("iterations", 5)
+        lines.append(
+            "equalization (current: "
+            f"opt_level={cur_opt}, iterations={cur_iter}) — try opt_level "
+            "in (1 / 2), iterations in (5 / 10); higher opt_level explores "
+            "more channel-balance solutions per layer"
+        )
+    fa = setting.get("fusion_alignment")
+    if isinstance(fa, dict) and fa:
+        direction = fa.get("align_elementwise_to") or "(unset)"
+        lines.append(
+            "fusion_alignment "
+            f"(current: align_elementwise_to={direction!r}) — try other "
+            "directions in (Align to Large / Align to Output / Align to "
+            "Small); R8 hindsight shows the best direction is layer-"
+            "dependent"
+        )
+    calib = (setting.get("calib_algorithm") or "kl").lower()
+    if calib == "percentile":
+        lines.append(
+            "calibration percentile (default 99.99) — try 99.9 / 99.99 / "
+            "99.999 in the calib_algorithm_setting block (percentile only)"
+        )
+    return lines
+
+
+def _phase5_signals_for(rows: List[dict], best: Optional[dict]) -> Dict[str, Any]:
+    """Build the structured signals dict embedded in
+    ``comparison.json["next_step_hint"]["phase5_signals"]``. Pure data — the
+    agent reads it and decides what to do; no template, no recipe."""
+    if best is None:
+        return {}
+    best_setting = best.get("setting") or {}
+    enabled_passes: List[str] = []
+    if (best_setting.get("equalization") or {}).get("enabled"):
+        enabled_passes.append("equalization")
+    if (best_setting.get("bias_correct") or {}).get("enabled"):
+        enabled_passes.append("bias_correct")
+    if best_setting.get("fusion_alignment"):
+        enabled_passes.append("fusion_alignment")
+    if (best_setting.get("weight_split") or {}).get("enabled"):
+        enabled_passes.append("weight_split")
+    if (best_setting.get("blockwise_reconstruction") or {}).get("enabled"):
+        enabled_passes.append("blockwise_reconstruction")
+    if (best_setting.get("tqt_optimization") or {}).get("enabled"):
+        enabled_passes.append("tqt_optimization")
+    int16_ops = [
+        entry.get("op") or entry.get("op_name")
+        for entry in (best_setting.get("dispatching_table") or [])
+        if isinstance(entry, dict) and entry.get("bits") == 16
+    ]
+    if int16_ops:
+        enabled_passes.append(f"dispatching_table(int16x{len(int16_ops)})")
+
+    cost = _classify_runtime_cost(best_setting)
+
+    # Load the heavy artifacts as soft references — agents may want to read
+    # them directly, but we surface the top entries inline for cheap glance.
+    best_dir = best.get("dir")
+    hot_ops = _load_non_computing_hot_ops(best_dir)[:3] if best_dir else []
+    graphwise_jumps_path = (
+        Path(str(best_dir)) / "graphwise_jumps.json" if best_dir else None
+    )
+    graphwise_jumps = (
+        _load(graphwise_jumps_path) if graphwise_jumps_path is not None else None
+    )
+    if isinstance(graphwise_jumps, list):
+        graphwise_jumps_top3 = graphwise_jumps[:3]
+    else:
+        graphwise_jumps_top3 = []
+
+    # Coverage tracking — what Phase 5 patterns have been attempted and
+    # which Phase-3 linear-order levers the cap=5 left uncovered. Agents
+    # use these to decide whether stop signal (4) ("ran out of ideas") is
+    # legitimate or whether more pattern + lever ground must be covered
+    # before finalising. See SKILL.md "Phase 5 — Stop signals".
+    cutoff = _phase5_cutoff_iter_id(rows)
+    coverage = _phase5_pattern_coverage(rows, cutoff)
+    # 5β-reapply must be computed BEFORE _untried_phase5_patterns so we can
+    # force "5beta" back into the untried set when an earlier-tried calib
+    # has not been re-confirmed on the current best's deeper stack. Without
+    # this, the agent could treat shallow-stack calib swaps as "5β done"
+    # and skip the high-leverage deep-stack reapply (see
+    # example_quantize_mobilenetv2_esp32p4 iter_13 for the canonical
+    # "+0.55% jump after stack-deep reapply" case).
+    reapply_untried = _untried_5beta_reapply(rows, best)
+    untried_patterns = _untried_phase5_patterns(coverage)
+    if reapply_untried and "5beta" not in untried_patterns:
+        untried_patterns.append("5beta")
+    priority = _runtime_priority(rows)
+    untried_levers = _untried_phase3_levers(rows, priority, best)
+
+    iteration_count_total = len(
+        [r for r in rows if isinstance(r.get("iteration_id"), int)]
+    )
+    if cutoff >= 0:
+        phase5_iteration_count = len(
+            [
+                r
+                for r in rows
+                if isinstance(r.get("iteration_id"), int) and r["iteration_id"] > cutoff
+            ]
+        )
+    else:
+        phase5_iteration_count = 0
+
+    return {
+        "best_iteration_dir": str(best_dir) if best_dir else None,
+        "best_iteration_id": best.get("iteration_id"),
+        "best_primary_value": best.get("primary_value"),
+        "best_setting_summary": {
+            "calib_algorithm": best_setting.get("calib_algorithm") or "kl",
+            "tqt": _tqt_block(best_setting) or None,
+            "enabled_passes": enabled_passes,
+            "affects_inference_speed": cost.get("affects_speed", False),
+            "affects_inference_speed_label": cost.get("label", "No"),
+        },
+        "iteration_count_total": iteration_count_total,
+        "phase5_iteration_count": phase5_iteration_count,
+        "phase5_cutoff_iter_id": cutoff,
+        "phase5_pattern_coverage": coverage,
+        "untried_phase5_patterns": untried_patterns,
+        "untried_phase3_levers": untried_levers,
+        "untried_5beta_reapply": reapply_untried,
+        "improving_levers": _phase5_improving_levers(rows),
+        "regressing_levers": _phase5_regressing_levers(rows),
+        "untried_calib_swaps": _phase5_untried_calib_swaps(rows, best),
+        "top_error_layers": best.get("top_5_error_layers") or [],
+        "non_computing_hot_ops_top3": hot_ops,
+        "graphwise_jumps_top3": graphwise_jumps_top3,
+        "artifacts_to_read": [
+            "layerwise_error.json",
+            "layer_stats.json",
+            "layer_stats_full.json",
+            "non_computing_hot_ops.json",
+            "graphwise_jumps.json",
+        ],
+    }
+
+
+def _build_phase5_hint(
+    rows: List[dict],
+    best: Optional[dict],
+    signals: Dict[str, Any],
+    skipped_levers: Optional[List[Tuple[str, str]]] = None,
+    *,
+    trigger_reason: str = "Phase-3 search exhausted without meeting target",
+) -> str:
+    """Compose the narrative meta-guidance text that goes into
+    ``comparison.json["next_step_hint"]["advice"]``. Deliberately NO setting.json
+    template — the agent writes the next setting from scratch based on
+    ``phase5_signals`` and the on-disk artifacts. See SKILL.md "Phase 5 —
+    Agent-driven exploration" for the full contract.
+    """
+    best_id = (best or {}).get("iteration_id")
+    primary_metric = (best or {}).get("primary_metric") or "primary_metric"
+    primary_value = (best or {}).get("primary_value")
+    target = _target_metric(rows)
+    target_str = f"{target}" if isinstance(target, (int, float)) else "not set"
+
+    improving = signals.get("improving_levers", []) or []
+    regressing = signals.get("regressing_levers", []) or []
+    untried_calib = signals.get("untried_calib_swaps", []) or []
+    cost_label = (signals.get("best_setting_summary") or {}).get(
+        "affects_inference_speed_label", "No"
+    )
+
+    parts: List[str] = []
+    parts.append(
+        f"Phase 5 — agent-driven exploration ({trigger_reason}). "
+        f"Best so far: iter_{best_id} ({primary_metric}={primary_value}; "
+        f"target_metric={target_str}). The state machine is handing control "
+        "back to YOU. Read the data, then write the next setting.json from "
+        "scratch — no template here on purpose."
+    )
+
+    # Improving-levers attribution.
+    if improving:
+        bits: List[str] = []
+        for entry in improving[:6]:
+            it = entry.get("iter")
+            d = entry.get("delta_vs_prior_best")
+            lab = entry.get("added_pass") or "<multi-knob>"
+            if isinstance(d, (int, float)):
+                sign = "+" if d >= 0 else ""
+                bits.append(f"iter_{it} via {lab} ({sign}{d:.4f})")
+            else:
+                bits.append(f"iter_{it} via {lab}")
+        parts.append("Improving levers in history: " + "; ".join(bits) + ".")
+
+    # Untried calib swaps.
+    if untried_calib:
+        parts.append(
+            "Untried calibration swaps on top of current lever stack: "
+            + ", ".join(untried_calib)
+            + " (Composition discipline #4 — calib-only ranking does not "
+            "predict the combined ranking; re-run them with the current "
+            "lever stack on)."
+        )
+
+    # Regressing-lever caveat (negative evidence; don't re-stack).
+    if regressing:
+        bits = []
+        for entry in regressing[:3]:
+            it = entry.get("iter")
+            d = entry.get("delta_vs_prior_best")
+            lab = entry.get("added_pass") or "<multi-knob>"
+            sign = "+" if isinstance(d, (int, float)) and d >= 0 else ""
+            bits.append(
+                f"iter_{it} via {lab} " f"({sign}{d:.4f})"
+                if isinstance(d, (int, float))
+                else f"iter_{it} via {lab}"
+            )
+        parts.append("Regressions to avoid re-stacking: " + "; ".join(bits) + ".")
+
+    # Skipped levers from Phase 3 — included so the agent knows which trigger
+    # rules were applied without re-reading the script.
+    if skipped_levers:
+        bits = [f"{lev} ({why})" for lev, why in skipped_levers]
+        parts.append(
+            "Levers skipped by trigger rules in Phase 3: " + "; ".join(bits) + "."
+        )
+
+    # Coverage state — pattern attempts so far + untried Phase-3 linear-order
+    # levers + untried Phase-5 patterns. This is the data backing stop signal
+    # (4): the agent cannot legitimately invoke "ran out of ideas" while
+    # either list is non-empty AND user budget remains.
+    coverage = signals.get("phase5_pattern_coverage") or {}
+    untried_phase5 = signals.get("untried_phase5_patterns") or []
+    untried_phase3 = signals.get("untried_phase3_levers") or []
+    iter_total = signals.get("iteration_count_total", len(rows))
+    iter_phase5 = signals.get("phase5_iteration_count", 0)
+    pattern_label = {
+        "5alpha": "5alpha STACK",
+        "5beta": "5beta CROSS-POLLINATE",
+        "5gamma": "5gamma ABLATE",
+        "5delta": "5delta DIVE-INTO-ARTIFACTS",
+    }
+    coverage_bits: List[str] = []
+    for key in ("5alpha", "5beta", "5gamma", "5delta"):
+        iters = coverage.get(key) or []
+        if iters:
+            coverage_bits.append(
+                f"{pattern_label[key]} x{len(iters)} "
+                f"(iter_{', iter_'.join(str(i) for i in iters)})"
+            )
+    if coverage_bits:
+        parts.append(
+            f"Coverage so far: {iter_total} total iterations "
+            f"({iter_phase5} in Phase 5). Patterns attempted: "
+            + "; ".join(coverage_bits)
+            + "."
+        )
+    else:
+        parts.append(
+            f"Coverage so far: {iter_total} total iterations "
+            f"({iter_phase5} in Phase 5). Phase 5 patterns attempted: NONE yet."
+        )
+    if untried_phase5:
+        parts.append(
+            "Untried Phase 5 patterns: "
+            + ", ".join(pattern_label[k] for k in untried_phase5)
+            + "."
+        )
+    if untried_phase3:
+        parts.append(
+            "Untried Phase 3 linear-order levers (left uncovered by "
+            f"`_PHASE3_CAP={_PHASE3_CAP}`): "
+            + ", ".join(untried_phase3)
+            + ". STACK each onto best-so-far as a Phase-5 iteration before "
+            "invoking stop signal (4)."
+        )
+
+    # 5β-reapply: when an earlier calib swap was tried on a shallower stack
+    # than the current best's stack, Composition discipline #4 says the
+    # ranking may now be different. Surface this as a STRONG instruction —
+    # the canonical example is example_quantize_mobilenetv2_esp32p4
+    # iter_13, where re-running percentile on the deep stack delivered a
+    # +0.55% jump that closed the gap to target. Stop signal (4) is
+    # blocked while this list is non-empty.
+    reapply_targets = signals.get("untried_5beta_reapply") or []
+    if reapply_targets:
+        parts.append(
+            "5\u03b2-reapply coverage: the following calibrations were "
+            "tried earlier but on a SHALLOWER stack than current best — "
+            "re-run each on top of the current lever stack before invoking "
+            "stop signal (4) (Composition discipline #4 — calib ranking "
+            "across stacks is unstable; the canonical example is "
+            "example_quantize_mobilenetv2_esp32p4 iter_13, where re-"
+            "running percentile on the deepest stack delivered a +0.55% "
+            "jump that closed the gap to target): " + ", ".join(reapply_targets) + "."
+        )
+
+    # Tunable parameters in best's enabled passes. Soft advisory — NOT in
+    # coverage, the agent reads the section, decides if a parameter knob is
+    # worth a Phase-5 iteration based on the layerwise / non_computing_hot_ops
+    # data. References ppq_methods.md for the per-pass parameter rationale.
+    best_setting = (best or {}).get("setting") or {}
+    tunable_parts = _phase5_tunable_params_lines(best_setting)
+    if tunable_parts:
+        parts.append(
+            "Tunable parameters in current best (NOT a script — pick at "
+            "most one per iteration if the data motivates it; see "
+            "ppq_methods.md for parameter rationale): "
+            + "; ".join(tunable_parts)
+            + ". Tune-within-pass is a valid Phase-5 move — not all "
+            "variations require turning a pass on/off."
+        )
+
+    # Cost-trim hint when the best already costs.
+    if cost_label and cost_label != "No":
+        parts.append(
+            f"Best iteration trades on-device speed for accuracy "
+            f"({cost_label}). Once you find a higher accuracy in Phase 5, "
+            "consider a single iteration that trims the highest-cost "
+            "component (e.g. drop one int16 op, or disable weight_split) "
+            "to verify the runner-up still beats target."
+        )
+
+    # Inspiration patterns. Phrased as starting points; NOT prescriptive.
+    parts.append(
+        "Starting points to consider (NOT a script — let the data decide): "
+        "(a) STACK — pick 2+ improving levers and run a single iteration "
+        "that turns them ALL on. Multi-knob is allowed in Phase 5 if your "
+        "rationale cites the iter ids whose data motivates each pass "
+        "(Composition discipline #5). "
+        "(b) CROSS-POLLINATE CALIB — if untried_calib_swaps is non-empty, "
+        "swap calib while keeping the current lever stack on. "
+        "(c) ABLATE — drop one pass at a time from the new best to test "
+        "minimality / cost-trim. "
+        "(d) DIVE INTO ARTIFACTS — read best's layerwise_error.json + "
+        "layer_stats_full.json + non_computing_hot_ops.json + "
+        "graphwise_jumps.json and propose a change you can defend with a "
+        "concrete number from one of those files."
+    )
+
+    # Stop conditions — rewritten contract. User-budget is the hard ceiling;
+    # signal (4) "ran out of ideas" is gated on coverage + no-user-budget.
+    # `compare_iterations.py` HARD REJECTS `--finalize` in phase-5 if the
+    # state machine doesn't agree (target not met AND not plateau) unless
+    # the agent passes `--force-finalize`; this enforces the contract
+    # operationally and stops the agent from finalising prematurely.
+    parts.append(
+        "Stop signals (each → finalize): "
+        "(1) target_metric reached — script AUTO-finalizes via phase-4. "
+        "(2) plateau (last 3 iterations within 0.1% of best) — script "
+        "AUTO-finalizes via phase-4. "
+        "(3) USER-GIVEN ITERATION BUDGET REACHED — agent runs --finalize "
+        "NOW, regardless of phase and regardless of remaining untried "
+        "patterns/levers. User budget is the hard ceiling. Pass "
+        "--force-finalize alongside --finalize so the script confirms the "
+        "intentional early stop and records the gap in final_report.md. "
+        "(4) ONLY when ALL of the following hold simultaneously: "
+        "(a) the user did NOT give a specific iteration budget, AND "
+        "(b) `untried_phase5_patterns` is empty (every pattern attempted "
+        "at least once), AND "
+        "(c) `untried_phase3_levers` is empty (every linear-order Phase-3 "
+        "lever either tried or correctly skipped), AND "
+        "(d) `untried_5beta_reapply` is empty (every calib swap re-tested "
+        "on the deepest stack), AND "
+        "(e) the most recent iterations did not produce a new best. "
+        "If signal (3) is in play, signal (4) is DISABLED — keep iterating "
+        "until the user budget is met, drawing fresh variations from the "
+        "untried lists. Phase 5 has NO hard iteration cap from the state "
+        "machine; the user is the cap. NOTE: --finalize without "
+        "--force-finalize in phase-5 (target not met, no plateau) is HARD "
+        "REJECTED by compare_iterations.py — best/ and final_report.md "
+        "will NOT be written and the script exits with code 1."
+    )
+    parts.append(
+        "Copy-paste finalize command when done: see "
+        '`comparison.json["early_finalize_command"]` or the printed Tip '
+        "block at the bottom of stdout."
+    )
+
     return " ".join(parts)
 
 
@@ -904,12 +2183,17 @@ def _suggest_next(rows: List[dict], best: Optional[dict]) -> Tuple[str, str]:
     """Pick the phase + write a hint for the next iteration.
 
     Phases (priority order):
-      * phase-4-final-report — finalize: target hit, plateau, cap reached, or
-        all linear-order Phase-3 levers exhausted.
+      * phase-4-final-report — finalize when target hit or plateau detected.
+        (Phase-3 cap and all-linear-levers-tried now route to Phase 5 instead
+        of phase-4 when target is not yet met — the state machine stops
+        prescribing but the agent loop continues.)
       * phase-1-baseline — no iterations yet.
       * phase-2-calib-tqt-sweep — Phase-2 cartesian product still missing legs.
       * phase-3-residual / phase-3-pivot — Phase-3 levers from best-so-far.
         3a-3 is conditional inside this branch.
+      * phase-5-agent-driven — open exploration; emitted when Phase-3 stops
+        without target. Hint carries phase5_signals (improving levers,
+        untried calib swaps, top error layers) but NO setting.json template.
     """
     if not rows:
         return "phase-1-baseline", (
@@ -924,19 +2208,28 @@ def _suggest_next(rows: List[dict], best: Optional[dict]) -> Tuple[str, str]:
     priority = _runtime_priority(rows)
 
     # ---------- Phase 4 finalize triggers ----------
-    # target_metric and Phase-3 cap take priority over everything; plateau is
-    # checked AFTER 3a-3 path-1 (below) because path-1 is a specific stability
-    # signal that can fire inside the plateau band — block_size=2 then resolves
-    # whether we really have plateaued or merely perturbed a quiet layer.
+    # target_metric short-circuits everything — Phase 5 exists to close a
+    # gap, not to keep poking a model that already hit target. Phase-3 cap
+    # without target met now routes to Phase 5 instead of Phase 4: the
+    # state machine yields, but the agent loop continues. Plateau is checked
+    # AFTER 3a-3 path-1 (below) because path-1 is a specific stability
+    # signal that can fire inside the plateau band — block_size=2 then
+    # resolves whether we really have plateaued or merely perturbed a quiet
+    # layer.
     if _target_reached(rows, target, direction):
         return "phase-4-final-report", _build_phase4_hint(
             rows, best, "target_metric reached"
         )
     if _phase3_iteration_count(rows) >= _PHASE3_CAP:
-        return "phase-4-final-report", _build_phase4_hint(
+        return "phase-5-agent-driven", _build_phase5_hint(
             rows,
             best,
-            f"Phase-3 budget reached ({_PHASE3_CAP} iterations after Phase-2)",
+            _phase5_signals_for(rows, best),
+            None,
+            trigger_reason=(
+                f"Phase-3 budget reached ({_PHASE3_CAP} iterations after "
+                "Phase-2) without meeting target_metric"
+            ),
         )
 
     # ---------- Phase 2 cartesian product ----------
@@ -1007,11 +2300,24 @@ def _suggest_next(rows: List[dict], best: Optional[dict]) -> Tuple[str, str]:
             f"{_PLATEAU_REL_TOL * 100:.1f}% of best)",
         )
 
-    # Linear-order Phase-3 levers, by priority preference.
-    next_lever = _next_phase3_lever_in_order(rows, priority)
+    # Linear-order Phase-3 levers, by priority preference. The skip-aware
+    # variant lets us bypass 3c when R8 doesn't fire on best-so-far's
+    # non_computing_hot_ops.json — the data says fusion alignment would
+    # not help, so we don't burn an iteration on it. Skipped levers are
+    # surfaced in the next hint so the agent / user knows why.
+    next_lever, skipped = _next_phase3_lever_with_skips(rows, priority, best)
     if next_lever is None:
-        return "phase-4-final-report", _build_phase4_hint(
-            rows, best, "all linear-order Phase-3 levers tried"
+        # All linear levers tried or correctly skipped — hand to Phase 5
+        # so the agent can explore freely instead of finalising now. Plateau
+        # / target-reached have already short-circuited above.
+        return "phase-5-agent-driven", _build_phase5_hint(
+            rows,
+            best,
+            _phase5_signals_for(rows, best),
+            skipped,
+            trigger_reason=(
+                "all linear-order Phase-3 levers tried (or skipped by trigger)"
+            ),
         )
 
     # If the next linear lever is 3b/3c/3d AND 3a-3 path-2 preconditions hold,
@@ -1382,6 +2688,130 @@ def _gap_to_target(
     return None
 
 
+_STOP_REASON_PATTERN_LABEL = {
+    "5alpha": "5alpha STACK",
+    "5beta": "5beta CROSS-POLLINATE",
+    "5gamma": "5gamma ABLATE",
+    "5delta": "5delta DIVE-INTO-ARTIFACTS",
+}
+
+
+def _render_stop_reason(reason: Dict[str, Any], primary_metric: str) -> List[str]:
+    """Render the ``## Stop reason`` section as a list of markdown lines.
+
+    The section sits between ``## Summary`` and ``## Iteration history`` so
+    a human scanning the report top-down sees "what was achieved" → "why we
+    stopped here" → "the history" in that order. Categories follow the
+    enum in ``_FINALIZE_CATEGORIES``; each gets its own narrative tuned to
+    the data attached by ``_build_finalize_reason``.
+    """
+    lines: List[str] = ["## Stop reason", ""]
+    category = reason.get("category", "unknown")
+    best_id = reason.get("best_iteration_id")
+    best_value = reason.get("best_primary_value")
+    target = reason.get("target_metric")
+    gap = reason.get("gap_to_target")
+    lines.append(f"- **Category**: `{category}`")
+    if best_id is not None and best_value is not None:
+        lines.append(
+            f"- **Best**: iter_{best_id} ({primary_metric}="
+            f"{_format_metric_value(best_value)})"
+        )
+    if target is not None:
+        if gap is not None:
+            sign = "+" if gap >= 0 else ""
+            lines.append(
+                f"- **Target**: {_format_metric_value(target)} &nbsp; "
+                f"**Gap**: {sign}{gap:.4f}"
+            )
+        else:
+            lines.append(f"- **Target**: {_format_metric_value(target)}")
+    lines.append("")
+
+    if category == "target_reached":
+        lines.append(
+            "Target met at the best iteration; no remaining gap. The state "
+            "machine auto-finalized via `phase-4-final-report`. No further "
+            "iterations are needed."
+        )
+    elif category == "plateau":
+        window = reason.get("plateau_window", _PLATEAU_WINDOW)
+        recent = reason.get("plateau_recent_values") or []
+        lines.append(
+            f"The last {window} iterations were all within 0.1% (relative) "
+            "of the best, indicating accuracy has stopped moving. The state "
+            "machine auto-finalized via `phase-4-final-report`."
+        )
+        if recent:
+            lines.append("")
+            lines.append("Recent iterations triggering plateau:")
+            for entry in recent:
+                lines.append(
+                    f"- iter_{entry.get('iteration_id')}: "
+                    f"{primary_metric}={_format_metric_value(entry.get('primary_value'))}"
+                )
+    elif category == "force_finalize_phase5":
+        total = reason.get("iteration_count_total")
+        p5 = reason.get("phase5_iteration_count")
+        lines.append(
+            "`--force-finalize` was passed, overriding the premature-"
+            "finalize guard while phase=phase-5-agent-driven and the target "
+            "metric was NOT met (and not a plateau). The coverage gaps "
+            "below were skipped — re-open this session and continue "
+            "iterating if the user expects further improvement."
+        )
+        if total is not None and p5 is not None:
+            lines.append("")
+            lines.append(f"Iterations so far: {total} total ({p5} in Phase 5).")
+        untried_p5 = reason.get("untried_phase5_patterns") or []
+        untried_p3 = reason.get("untried_phase3_levers") or []
+        untried_reapply = reason.get("untried_5beta_reapply") or []
+        lines.append("")
+        if untried_p5:
+            lines.append(
+                "- **Untried Phase 5 patterns**: "
+                + ", ".join(_STOP_REASON_PATTERN_LABEL.get(k, k) for k in untried_p5)
+            )
+        else:
+            lines.append("- **Untried Phase 5 patterns**: (none)")
+        if untried_p3:
+            lines.append(
+                "- **Untried Phase 3 linear-order levers**: " + ", ".join(untried_p3)
+            )
+        else:
+            lines.append("- **Untried Phase 3 linear-order levers**: (none)")
+        if untried_reapply:
+            lines.append(
+                "- **Untried 5\u03b2-reapply targets** (re-run on the "
+                "deepest stack): " + ", ".join(untried_reapply)
+            )
+        else:
+            lines.append("- **Untried 5\u03b2-reapply targets**: (none)")
+    elif category == "manual_finalize_phase4":
+        lines.append(
+            "`--finalize` was passed while the state machine had already "
+            "routed to `phase-4-final-report` (target reached or plateau "
+            "detected). The flag was redundant but harmless."
+        )
+    elif category == "manual_finalize_pre_phase5":
+        lines.append(
+            "`--finalize` was passed while the state machine was still in "
+            "phase-1 / phase-2 / phase-3 — most often because the user "
+            "specified an iteration budget that was reached before Phase-3 "
+            "had a chance to run all linear-order levers. The skipped "
+            "levers and Phase 5 patterns are inherent to this early stop; "
+            "if the user expects more accuracy later, re-open the session "
+            "and remove the budget."
+        )
+    else:
+        lines.append(
+            "Stop reason category `" + str(category) + "` is not recognised "
+            "by this version of compare_iterations.py."
+        )
+    lines.append("")
+    return lines
+
+
 def _render_final_report(
     rows: List[dict],
     best: Optional[dict],
@@ -1395,6 +2825,7 @@ def _render_final_report(
     ranking_warnings: List[str],
     *,
     now: Optional[datetime.datetime] = None,
+    finalize_reason: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Build the full ``final_report.md`` content as a single string.
 
@@ -1479,6 +2910,9 @@ def _render_final_report(
         if gap is not None:
             lines.append(f"- Gap to target: {gap:.4f} (absolute)")
         lines.append("")
+
+    if finalize_reason is not None:
+        lines.extend(_render_stop_reason(finalize_reason, primary_metric))
 
     if ranking_warnings:
         lines.append("> **Ranking warnings**")
@@ -1701,6 +3135,91 @@ def _target_chip_from(rows: List[dict]) -> str:
     return "<target>"
 
 
+# Categories embedded into final_report.md and comparison.json so the user
+# (and any downstream tool) can answer "why did this session end here?". The
+# script computes the category up-front in main() and threads it through
+# both _finalize_outputs and _render_final_report.
+_FINALIZE_CATEGORIES = (
+    "target_reached",
+    "plateau",
+    "force_finalize_phase5",
+    "manual_finalize_phase4",
+    "manual_finalize_pre_phase5",
+)
+
+
+def _build_finalize_reason(
+    category: str,
+    rows: List[dict],
+    best: Optional[dict],
+    target: Any,
+    direction: str,
+    *,
+    phase5_signals: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Construct the structured ``finalize_reason`` dict that lands in
+    ``comparison.json["next_step_hint"]["finalize_reason"]`` and is rendered
+    into the ``## Stop reason`` section of ``final_report.md``.
+
+    The ``category`` argument must come from ``_FINALIZE_CATEGORIES``; the
+    helper does not validate (the call sites in ``main()`` are the only
+    callers and they pick the category deterministically).
+
+    Per-category fields:
+      * ``target_reached``: ``gap_to_target`` = 0.
+      * ``plateau``: ``plateau_window`` + ``plateau_recent_values``.
+      * ``force_finalize_phase5``: ``untried_phase5_patterns``,
+        ``untried_phase3_levers``, ``untried_5beta_reapply`` (from
+        ``phase5_signals``).
+      * ``manual_finalize_phase4`` / ``manual_finalize_pre_phase5``: only
+        the common fields.
+    """
+    best_id = (best or {}).get("iteration_id")
+    best_value = (best or {}).get("primary_value")
+    target_val = target if isinstance(target, (int, float)) else None
+    gap = None
+    if isinstance(best_value, (int, float)) and target_val is not None:
+        if direction == "max":
+            gap = target_val - best_value
+        else:
+            gap = best_value - target_val
+    reason: Dict[str, Any] = {
+        "category": category,
+        "best_iteration_id": best_id,
+        "best_primary_value": best_value,
+        "target_metric": target_val,
+        "gap_to_target": gap,
+    }
+    if category == "plateau":
+        sorted_rows = sorted(rows, key=lambda r: r.get("iteration_id", 0))
+        recent = sorted_rows[-_PLATEAU_WINDOW:]
+        reason["plateau_window"] = _PLATEAU_WINDOW
+        reason["plateau_recent_values"] = [
+            {
+                "iteration_id": r.get("iteration_id"),
+                "primary_value": r.get("primary_value"),
+            }
+            for r in recent
+        ]
+    if category == "force_finalize_phase5" and phase5_signals is not None:
+        reason["untried_phase5_patterns"] = (
+            phase5_signals.get("untried_phase5_patterns") or []
+        )
+        reason["untried_phase3_levers"] = (
+            phase5_signals.get("untried_phase3_levers") or []
+        )
+        reason["untried_5beta_reapply"] = (
+            phase5_signals.get("untried_5beta_reapply") or []
+        )
+        reason["phase5_iteration_count"] = phase5_signals.get(
+            "phase5_iteration_count", 0
+        )
+        reason["iteration_count_total"] = phase5_signals.get(
+            "iteration_count_total", len(rows)
+        )
+    return reason
+
+
 def _finalize_outputs(
     output_dir: Path,
     rows: List[dict],
@@ -1710,6 +3229,7 @@ def _finalize_outputs(
     ranking_warnings: List[str],
     *,
     force: bool = False,
+    finalize_reason: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Write outputs/best/ and outputs/final_report.md. Idempotent.
 
@@ -1754,6 +3274,7 @@ def _finalize_outputs(
         ranks=ranks,
         costs=costs,
         ranking_warnings=ranking_warnings,
+        finalize_reason=finalize_reason,
     )
 
     if report_path.exists():
@@ -1936,6 +3457,18 @@ def main(argv=None) -> int:
         "auto-generation marker comment). Without --force, agent-edited "
         "reports are preserved.",
     )
+    parser.add_argument(
+        "--force-finalize",
+        action="store_true",
+        help="Override the premature-finalize guard. By default, --finalize "
+        "during phase-5-agent-driven (target NOT met, no plateau) is HARD "
+        "REJECTED with exit code 1 — the script refuses to write "
+        "outputs/best/ or outputs/final_report.md, because the most "
+        "common cause is an agent giving up before the user's iteration "
+        "budget has been reached. Pass --force-finalize to confirm that "
+        "the early stop is intentional; the resulting final_report.md "
+        "will document the coverage gaps that were skipped.",
+    )
     args = parser.parse_args(argv)
 
     output_dir = Path(args.output_dir).resolve()
@@ -1950,6 +3483,158 @@ def main(argv=None) -> int:
     early_finalize_cmd = _early_finalize_command(output_dir)
 
     auto_finalize_target = phase == "phase-4-final-report"
+
+    # Decide whether the requested finalize is premature BEFORE writing
+    # anything. "Premature" means: --finalize was requested, but the state
+    # machine itself hasn't put us in phase-4 (target reached / plateau);
+    # the agent is voluntarily ending in phase-5 (or earlier) without
+    # explicit --force-finalize opt-in. This is the failure mode that
+    # produced example_quantize_mobilenetv2_bad_esp32s3 (12-of-20) and
+    # example_quantize_mobilenetv2_esp32p4_tmp (18-of-30 + 21-of-30). The
+    # previous attempt — printing a warning AFTER --finalize had already
+    # written best/ + final_report.md — was a soft signal that the agent
+    # ignored both times. The hard reject below makes the guardrail load-
+    # bearing: no output is created, exit code is non-zero, and the agent
+    # must either keep iterating or pass --force-finalize to confirm.
+    target_val = _target_metric(rows)
+    direction = (best or {}).get("metric_direction", "max") if best else "max"
+    target_met = _target_reached(rows, target_val, direction)
+    plateau_reached = _plateau_detected(rows, best)
+    premature = (
+        args.finalize
+        and not auto_finalize_target
+        and phase == "phase-5-agent-driven"
+        and not target_met
+        and not plateau_reached
+        and not args.force_finalize
+    )
+
+    if premature:
+        signals = _phase5_signals_for(rows, best)
+        untried_p5 = signals.get("untried_phase5_patterns") or []
+        untried_p3 = signals.get("untried_phase3_levers") or []
+        p5_iters = signals.get("phase5_iteration_count", 0)
+        total_iters = signals.get("iteration_count_total", len(rows))
+        best_value = (best or {}).get("primary_value")
+        gap_msg = ""
+        if isinstance(target_val, (int, float)) and isinstance(
+            best_value, (int, float)
+        ):
+            gap = (
+                (target_val - best_value)
+                if direction == "max"
+                else (best_value - target_val)
+            )
+            gap_msg = f" (gap to target: {abs(gap):+.4f})"
+        pattern_label = {
+            "5alpha": "5alpha STACK",
+            "5beta": "5beta CROSS-POLLINATE",
+            "5gamma": "5gamma ABLATE",
+            "5delta": "5delta DIVE-INTO-ARTIFACTS",
+        }
+        print()
+        print("===============================================================")
+        print(
+            "[compare] PREMATURE --finalize REJECTED " "(phase=phase-5-agent-driven)."
+        )
+        print("===============================================================")
+        print(f"  - target_metric NOT met{gap_msg}; NOT a plateau.")
+        print(
+            f"  - iterations so far: {total_iters} total " f"({p5_iters} in Phase 5)."
+        )
+        if untried_p5:
+            print(
+                "  - untried Phase 5 patterns: "
+                + ", ".join(pattern_label.get(k, k) for k in untried_p5)
+            )
+        else:
+            print("  - untried Phase 5 patterns: (none)")
+        if untried_p3:
+            print("  - untried Phase 3 linear-order levers: " + ", ".join(untried_p3))
+        else:
+            print("  - untried Phase 3 linear-order levers: (none)")
+        reapply = signals.get("untried_5beta_reapply") or []
+        if reapply:
+            print(
+                "  - untried 5\u03b2-reapply targets (re-run on current "
+                "deepest stack): " + ", ".join(reapply)
+            )
+        print()
+        print(
+            "  outputs/best/ and outputs/final_report.md were NOT written. "
+            "Pick ONE of:"
+        )
+        print(
+            "    (a) Re-run WITHOUT --finalize and iterate again. The "
+            "script auto-finalizes when target_metric is hit or plateau is "
+            "detected; otherwise it emits a Phase 5 hint with the untried "
+            "lists above as concrete targets."
+        )
+        print(
+            "    (b) Pass --force-finalize alongside --finalize to confirm "
+            "intentional early stop. The gap and untried lists above will "
+            "be recorded in final_report.md so the user can see what was "
+            "skipped."
+        )
+        print("===============================================================")
+
+        # Still emit comparison.json so the agent / user can read the
+        # phase-5 hint without re-running. But do NOT call
+        # _finalize_outputs and do NOT touch outputs/best/.
+        next_step_hint: Dict[str, Any] = {
+            "phase": phase,
+            "advice": hint,
+            "auto_finalized": False,
+            "premature_finalize_rejected": True,
+            "phase5_signals": signals,
+        }
+        summary: Dict[str, Any] = {
+            "iterations": rows,
+            "best_iteration": best,
+            "iteration_ranks": {str(k): v for k, v in ranks.items()},
+            "runtime_cost_classification": {str(k): v for k, v in costs.items()},
+            "ranking_warnings": ranking_warnings,
+            "early_finalize_command": early_finalize_cmd,
+            "next_step_hint": next_step_hint,
+        }
+        out_path = output_dir / "comparison.json"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with out_path.open("w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2, default=str, ensure_ascii=False)
+        return 1
+
+    # Compute the finalize reason BEFORE writing — it's persisted to
+    # comparison.json and embedded into final_report.md (B3). The decision
+    # order mirrors the routing precedence: auto-target > auto-plateau >
+    # force-finalize-phase5 > manual-finalize-phase4 > manual-finalize-pre-
+    # phase5. The "None" case (no finalize at all) leaves the field absent.
+    finalize_reason: Optional[Dict[str, Any]] = None
+    if auto_finalize_target and target_met:
+        finalize_reason = _build_finalize_reason(
+            "target_reached", rows, best, target_val, direction
+        )
+    elif auto_finalize_target and plateau_reached:
+        finalize_reason = _build_finalize_reason(
+            "plateau", rows, best, target_val, direction
+        )
+    elif args.finalize and args.force_finalize and phase == "phase-5-agent-driven":
+        finalize_reason = _build_finalize_reason(
+            "force_finalize_phase5",
+            rows,
+            best,
+            target_val,
+            direction,
+            phase5_signals=_phase5_signals_for(rows, best),
+        )
+    elif args.finalize and phase == "phase-4-final-report":
+        finalize_reason = _build_finalize_reason(
+            "manual_finalize_phase4", rows, best, target_val, direction
+        )
+    elif args.finalize:
+        finalize_reason = _build_finalize_reason(
+            "manual_finalize_pre_phase5", rows, best, target_val, direction
+        )
+
     finalize_result: Optional[Dict[str, Any]] = None
     if auto_finalize_target or args.finalize:
         finalize_result = _finalize_outputs(
@@ -1960,20 +3645,31 @@ def main(argv=None) -> int:
             costs,
             ranking_warnings,
             force=args.force,
+            finalize_reason=finalize_reason,
         )
 
-    summary: Dict[str, Any] = {
+    next_step_hint: Dict[str, Any] = {
+        "phase": phase,
+        "advice": hint,
+        "auto_finalized": finalize_result is not None,
+    }
+    if finalize_reason is not None:
+        next_step_hint["finalize_reason"] = finalize_reason
+    # Phase 5 carries structured signals so agents (and humans inspecting
+    # comparison.json) can see the same history summary the advice text
+    # paraphrases. The field is omitted in other phases to keep the file
+    # small.
+    if phase == "phase-5-agent-driven":
+        next_step_hint["phase5_signals"] = _phase5_signals_for(rows, best)
+
+    summary = {
         "iterations": rows,
         "best_iteration": best,
         "iteration_ranks": {str(k): v for k, v in ranks.items()},
         "runtime_cost_classification": {str(k): v for k, v in costs.items()},
         "ranking_warnings": ranking_warnings,
         "early_finalize_command": early_finalize_cmd,
-        "next_step_hint": {
-            "phase": phase,
-            "advice": hint,
-            "auto_finalized": finalize_result is not None,
-        },
+        "next_step_hint": next_step_hint,
     }
     out_path = output_dir / "comparison.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1985,7 +3681,12 @@ def main(argv=None) -> int:
     )
 
     if finalize_result is not None:
-        trigger = "phase-4 detected" if auto_finalize_target else "--finalize requested"
+        if auto_finalize_target:
+            trigger = "phase-4 detected"
+        elif args.finalize:
+            trigger = "--finalize requested"
+        else:
+            trigger = "finalize"
         print(f"\n[compare] {trigger}; finalize results:")
         print(f"  - outputs/best/         : {finalize_result['best_action']}")
         print(f"  - outputs/final_report.md: {finalize_result['report_action']}")

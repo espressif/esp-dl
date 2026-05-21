@@ -80,17 +80,49 @@ def _normalise_interested_layers(value: Any) -> Optional[List[str]]:
     )
 
 
+# LSQ is the only pass we still hard-reject when combined with another training
+# pass. The reason is target-policy, not training overlap: every esp-dl
+# quantizer declares POWER_OF_2, and esp-ppq's LSQDelegator silently disables
+# scale training under POWER_OF_2. Pairing LSQ with TQT / blockwise means the
+# only thing LSQ actually trains is weights, while TQT / blockwise already do
+# that — wasted PC time + confusing attribution. We block it up front.
+#
+# TQT + blockwise_reconstruction, on the other hand, are both
+# ``TrainingBasedPass`` subclasses that run sequentially in the esp-ppq
+# pipeline (TrainedQuantizationThresholdPass → AdaroundPass; see
+# esp-ppq/esp_ppq/quantization/quantizer/base.py L379-420). Engine-side there
+# is NO runtime conflict — combining them roughly doubles PC quantization
+# time but does not crash or silently degenerate. We therefore allow the
+# combination; earlier guidance that 3g must turn TQT off has been retired
+# (see compare_iterations._phase3_lever_template for the new 3g semantics).
+_LSQ_MUTEX_PARTNERS = ("tqt_optimization", "blockwise_reconstruction")
+
+
 def _check_mutex(payload: dict) -> None:
-    """Reject combinations that fight each other at training time."""
-    on = []
-    for key in ("tqt_optimization", "lsq_optimization", "blockwise_reconstruction"):
-        block = payload.get(key) or {}
+    """Reject the LSQ-vs-{TQT,blockwise} combinations only.
+
+    Engine-side TQT and blockwise coexist (run sequentially as separate
+    training-based passes); the skill no longer treats them as mutex. The
+    only remaining hard rejection is LSQ paired with another training-based
+    pass, because on esp-dl POWER_OF_2 targets LSQ degenerates and the
+    pairing wastes PC time without changing the scales.
+    """
+    lsq_block = payload.get("lsq_optimization") or {}
+    lsq_on = isinstance(lsq_block, dict) and lsq_block.get("enabled")
+    if not lsq_on:
+        return
+    conflicting = []
+    for partner in _LSQ_MUTEX_PARTNERS:
+        block = payload.get(partner) or {}
         if isinstance(block, dict) and block.get("enabled"):
-            on.append(key)
-    if len(on) > 1:
+            conflicting.append(partner)
+    if conflicting:
         raise ValueError(
-            f"Mutually exclusive passes enabled simultaneously: {on}. "
-            "Pick exactly one of TQT / LSQ / blockwise_reconstruction."
+            "LSQ is mutually exclusive with "
+            f"{conflicting} (esp-dl POWER_OF_2 policy degenerates LSQ's scale "
+            "training; pairing with TQT / blockwise_reconstruction wastes PC "
+            "time without changing the scales). TQT + blockwise_reconstruction "
+            "may coexist — the esp-ppq pipeline runs them sequentially."
         )
 
 

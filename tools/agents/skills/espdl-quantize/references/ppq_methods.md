@@ -559,23 +559,30 @@ If the user explicitly asks for one of these, look up parameters in
 
 ## 11. Compatibility matrix (method × method)
 
-|                       | calib_alg | equalization⁴ | mixed_precision | bias_correct | weight_split | TQT | LSQ³ | blockwise |
-|-----------------------|:---------:|:-------------:|:---------------:|:------------:|:------------:|:---:|:----:|:---------:|
-| **calib_alg**         | —         | OK            | OK              | OK           | OK           | OK  | OK   | OK        |
-| **equalization⁴**     | OK        | —             | OK              | OK           | OK           | OK  | OK   | OK        |
-| **mixed_precision**   | OK        | OK            | —               | OK           | OK           | OK  | OK   | OK        |
-| **bias_correct**      | OK        | OK            | OK              | —            | OK           | OK  | OK   | careful¹  |
-| **weight_split**      | OK        | OK            | OK              | OK           | —            | OK  | OK   | careful¹  |
-| **TQT**               | OK        | OK            | OK              | OK           | OK           | —   | NO²  | NO²       |
-| **LSQ³**              | OK        | OK            | OK              | OK           | OK           | NO² | —    | NO²       |
-| **blockwise**         | OK        | OK            | OK              | careful¹     | careful¹     | NO² | NO²  | —         |
+|                       | calib_alg | equalization⁴ | mixed_precision | bias_correct | weight_split | TQT       | LSQ³ | blockwise   |
+|-----------------------|:---------:|:-------------:|:---------------:|:------------:|:------------:|:---------:|:----:|:-----------:|
+| **calib_alg**         | —         | OK            | OK              | OK           | OK           | OK        | OK   | OK          |
+| **equalization⁴**     | OK        | —             | OK              | OK           | OK           | OK        | OK   | OK          |
+| **mixed_precision**   | OK        | OK            | —               | OK           | OK           | OK        | OK   | OK          |
+| **bias_correct**      | OK        | OK            | OK              | —            | OK           | OK        | OK   | careful¹    |
+| **weight_split**      | OK        | OK            | OK              | OK           | —            | OK        | OK   | careful¹    |
+| **TQT**               | OK        | OK            | OK              | OK           | OK           | —         | NO²  | OK² (long)  |
+| **LSQ³**              | OK        | OK            | OK              | OK           | OK           | NO²       | —    | NO²         |
+| **blockwise**         | OK        | OK            | OK              | careful¹     | careful¹     | OK² (long)| NO²  | —           |
 
 Notes:
 - ¹ `bias_correct` / `weight_split` modify graph topology before training-based passes —
   combining works but the training will see a different graph than what the analysis
   observed. Re-run analysis after.
-- ² Pick exactly one of TQT, LSQ, blockwise per iteration. They are different gradient-based
-  approaches that fight each other.
+- ² LSQ is mutex with TQT and blockwise — pick exactly one of LSQ × {TQT, blockwise}
+  per iteration. The reason is target-policy: on POWER_OF_2 targets LSQ's
+  `LSQDelegator` silently disables scale training, so pairing LSQ with TQT or
+  blockwise wastes PC time without changing the scales. **TQT × blockwise is NOT
+  mutex** — the esp-ppq pipeline runs `TrainedQuantizationThresholdPass` and then
+  `AdaroundPass` sequentially (see `esp-ppq/esp_ppq/quantization/quantizer/base.py`).
+  Combining them roughly doubles PC quantization time but does not crash or silently
+  degenerate. Use the combination when you want blockwise on top of best's TQT
+  schedule for clean accuracy attribution (lever 3g default behaviour).
 - ³ LSQ is also incompatible with the **target** policy on every esp-dl variant — see §12.
   Even where the method-vs-method matrix says "OK", the harness will skip LSQ on
   POWER_OF_2 targets.

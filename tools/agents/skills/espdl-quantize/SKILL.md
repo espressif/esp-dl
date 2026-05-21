@@ -3,15 +3,20 @@ name: espdl-quantize
 description: >
   Iteratively tune esp-ppq QuantizationSetting to recover post-quantization accuracy on
   ESP-DL targets. Drives a closed loop of "baseline -> calibration × TQT(default)
-  cartesian product -> distribution-aware residual fixes -> re-evaluate" in the current
-  Python environment, using a minimal user contract (calib dataloader + evaluate
-  function). Generic across architectures (ResNet / EfficientNet / ViT / DETR / YOLO /
-  LSTM and any esp-ppq-supported graph) — the search procedure is distribution-driven
-  and does not depend on a specific network family. Method ordering is accuracy-first
-  with a soft penalty for passes that slow down on-device inference; LSQ on POWER_OF_2
-  targets is auto-disabled (silent degenerate; use TQT instead) and esp32p4 layer-wise
-  equalization is warn-only (esp-ppq officially "Not recommend" for per-channel weights
-  but empirically can still help on some models).
+  cartesian product -> distribution-aware residual fixes -> agent-driven open
+  exploration -> re-evaluate" in the current Python environment, using a minimal user
+  contract (calib dataloader + evaluate function). Generic across architectures
+  (ResNet / EfficientNet / ViT / DETR / YOLO / LSTM and any esp-ppq-supported graph) —
+  the search procedure is distribution-driven and does not depend on a specific network
+  family. Method ordering is accuracy-first with a soft penalty for passes that slow
+  down on-device inference; once the prescribed Phase-1/2/3 sequence exhausts, the
+  skill hands control to the agent (Phase 5) with a structured history of improving
+  levers + the per-iteration error artifacts to read, so the agent can compose
+  multi-knob iterations (lever stacking, calibration cross-pollination, ablation,
+  cost-trim) without a rigid template. LSQ on POWER_OF_2 targets is auto-disabled
+  (silent degenerate; use TQT instead) and esp32p4 layer-wise equalization is warn-only
+  (esp-ppq officially "Not recommend" for per-channel weights but empirically can still
+  help on some models).
   Use this skill whenever the user wants to improve a quantized esp-dl/.espdl model's
   accuracy, debug high quantization error, choose between calibration algorithms,
   decide on equalization / bias correction / weight split / mixed precision / TQT /
@@ -120,12 +125,19 @@ flowchart TD
     evalfn --> art
     art --> compare[compare_iterations.py]
     compare --> hint["comparison.json<br/>next_step_hint"]
-    hint --> agent[agent reads hint, fills in rationale]
-    agent -.writes next setting.-> setjson
+    hint --> phase{phase?}
+    phase -- "1 / 2 / 3" --> agentTpl["agent fills rationale on embedded template"]
+    phase -- "5 (open exploration)" --> agentFree["agent reads phase5_signals + artifacts,<br/>writes setting.json from scratch"]
+    phase -- "4 (final)" --> finalize["outputs/best/ + outputs/final_report.md"]
+    agentTpl -.writes next setting.-> setjson
+    agentFree -.writes next setting.-> setjson
 ```
 
-The agent's job each round shrinks to: read `comparison.json["next_step_hint"]`, copy the
-embedded `setting.json` template, fill in the `rationale` field, run the harness.
+In Phases 1-3 the agent's job each round shrinks to: read
+`comparison.json["next_step_hint"]`, copy the embedded `setting.json` template, fill in the
+`rationale` field, run the harness. In Phase 5 the script stops prescribing settings — the
+agent reads `phase5_signals` plus the per-iteration error artifacts and writes the next
+`setting.json` from scratch (see "Phase 5 — Agent-driven exploration" below).
 
 ## Phases
 
@@ -272,11 +284,11 @@ under `Accuracy-first method ordering` below.
 | 3a-2 | A | 0 | TQT `lr: 1e-5 → 5e-5, steps: 1000 → 2000` (block_size=4 unchanged) | 3a-1 already gave a positive net effect. Do NOT push beyond this on the lr/steps axis (lr=1e-4 / steps=4000 stably regress on representative reproducers). |
 | 3a-3 | A | 0 | TQT `block_size: 4 → 2` (lr/steps from best-so-far unchanged) | **CONDITIONAL — enter only on one of these two signals**: (1) **unstable fallback** — last iter was 3a-1 or 3a-2, regressed by < 0.5% relative AND introduced a new layer into the top-5 error list (TQT joint training perturbed a previously-quiet layer); or (2) **gap-shrink after convergence** — 3a-1/3a-2 both improved on best AND none of R5/R8/R3 structural triggers match in best's `layer_stats.json` / `non_computing_hot_ops.json`. Smaller block_size = closer to layerwise = more stable. Do not try block_size=1 (full layerwise, no upside) or block_size≥6 (overlaps lever 3g, unstable). |
 | 3b | A | 0 | `bias_correct.enabled=true` | A top-error op's *output* row shows `|Noise Mean| > 0.1 × Noise Std`. |
-| 3c | A | 0 | `fusion_alignment.align_elementwise_to = 'Align to Large'` (and friends) | A row in `non_computing_hot_ops.json` with `op_type ∈ {Concat, Add, Resize, AveragePool}` AND `inputs_float_std_ratio > 5`. (Legacy fallback: same condition checked from layer_stats.json.) |
+| 3c | A | 0 | `fusion_alignment.align_elementwise_to = 'Align to Large'` (and friends) | R8 trigger fires on best's `non_computing_hot_ops.json`: a Concat/Add/Sub/Mul/Resize/AveragePool entry whose `max_snr ∈ (0.20, 0.30]` (primary Goldilocks band), OR `inputs_float_std_ratio > 5` (legacy reinforcement, fires outside the band too). Skipped above the band (`max_snr > 0.30` — residual too severe; use 3a-3/3d/3e), below the band (too little to fix), or via top-3 activation veto (`Relu/Swish/Sigmoid` `max_snr > 1.2× candidate` — activation-dominated, fix via TQT/int16). Constants live in `compare_iterations.py`; see references/decision_playbook.md §R8 for the empirical calibration. |
 | 3d | A | 0 | enable `equalization` (full lever-3d template; do **not** abbreviate to `enabled=true` only — esp-ppq defaults `opt_level=1` while the template recommends `opt_level=2`, see Common pitfalls) | Conv→activation→Conv chain with weight per-channel `max/mean > 5`. **Per-tensor weight targets (`esp32s3 / c`) are the canonical use case; on `esp32p4` the pass is warn-only — esp-ppq officially "Not recommend" for per-channel weights but it can empirically help on some MobileNet-family / depthwise-separable nets.** |
 | 3e | B | **+** | `dispatching_table` int16 on top 1-3 worst layers | One layer's SNR > 2× median of the top-5; structural fixes failed. ≤10% of total ops. **Permanent on-device runtime cost** (~2× cycles + ~2× activation memory on promoted ops). |
 | 3f | B | **+** | `weight_split` on a single Conv with weight kurtosis > 10 | Equalization didn't fix it (or wasn't applicable on esp32p4). ≤3 split layers. **Permanent on-device runtime cost** (one extra Add op per split layer). |
-| 3g | C | 0 | `blockwise_reconstruction` (last resort) | Tier A + Tier B all plateaued and gap > 5% absolute. GPU strongly recommended. **Mutually exclusive with TQT** — the lever template explicitly disables TQT before enabling blockwise; this is a bigger structural change than other levers. |
+| 3g | C | 0 | `blockwise_reconstruction` (last resort, **stacked on top of best**) | Tier A + Tier B all plateaued and gap > 5% absolute. GPU strongly recommended. The lever template no longer disables TQT — the engine runs `TrainedQuantizationThresholdPass` and then `AdaroundPass` sequentially (see `esp-ppq/esp_ppq/quantization/quantizer/base.py`), so the two passes coexist in the pipeline. PC quantization time roughly doubles vs the prior best, but accuracy attribution stays clean (blockwise is the only new variable). LSQ × {TQT, blockwise} remains hard-rejected by `apply_setting._check_mutex` because LSQ silently degenerates on POWER_OF_2 targets. |
 
 The state machine in `compare_iterations.py` automatically picks the next lever per the
 table above and the `deploy_runtime_priority` knob. The agent's job each Phase-3
@@ -284,13 +296,233 @@ iteration shrinks to: read `comparison.json["next_step_hint"]["advice"]`, copy t
 embedded change snippet onto best-so-far's `setting.json`, fill `rationale` with the
 specific layer-stats observation that drove the choice, run the harness.
 
-Stop conditions are no longer the agent's call — when **any** of the following hold,
-the state machine emits `phase-4-final-report` and the agent finalizes:
+Stop conditions are no longer the agent's call — when any of the following hold,
+the state machine yields. Two of them finalise (Phase 4); two of them hand
+control to the agent (Phase 5). Note that the Phase-3 cap fires at 5 iterations
+even though the linear-order list has 8 levers — see "Why `_PHASE3_CAP=5` leaves
+untried linear-order levers" in the Phase 5 section below for the trade-off and
+how Phase 5 picks up the slack.
 
-- The user's `primary_metric` reached or exceeded `target_metric`.
-- The most recent 2 iterations both sit within 0.1% relative of best-so-far (plateau).
-- 5 Phase-3 iterations have been run after the cartesian product (default cap).
-- All linear-order Phase-3 levers (3a-1, 3a-2, 3b, 3c, 3d, 3e, 3f, 3g) have been tried.
+| Stop condition | Routes to | Why |
+|----------------|-----------|-----|
+| `primary_metric` reached `target_metric` | **phase-4-final-report** | Target met — keep poking is a waste. |
+| Plateau: last 3 iterations all within 0.1% relative of best | **phase-4-final-report** | Accuracy stopped moving; Phase 5 has the same problem. The window is 3 (not 2) because real iteration histories often have a single sub-0.1% wobble in the middle of an otherwise-improving run; requiring 3 consecutive flat iterations rules out that false-positive. |
+| `_PHASE3_CAP` (= 5) Phase-3 iterations run after Phase 2 AND target NOT reached | **phase-5-agent-driven** | The linear search ran out of cap-budget but the metric is still moving — let the agent explore. The unfilled tail of the linear list shows up in `phase5_signals.untried_phase3_levers`. |
+| All linear-order Phase-3 levers (3a-1, 3a-2, 3b, 3c, 3d, 3e, 3f, 3g) tried or correctly skipped AND target NOT reached | **phase-5-agent-driven** | Same idea — the prescribed list is exhausted, but the model has more accuracy to give. |
+
+Lever 3c is **correctly skipped** when R8 doesn't fire on best-so-far's
+`non_computing_hot_ops.json` (see "R8 trigger" below): the data says fusion
+alignment would regress, so the state machine doesn't burn an iteration on it
+and instead advances to 3d. The skip is recorded in
+`comparison.json["next_step_hint"]` so the agent (and the human reviewing later)
+sees why the lever was bypassed.
+
+### Phase 5 — Agent-driven exploration
+
+Phase 5 exists because the Phase-3 linear search is, by design, surgically narrow.
+Each Phase-3 lever changes exactly one thing on top of best-so-far. That's the right
+shape when you're hunting for the next single biggest fix, but it can't find
+**combinations**: a recipe that needs `percentile + TQT + equalization + 3-layer int16
++ bias_correct` (the `example_quantize_mobilenetv2_esp32p4/outputs/` winning configuration,
+iter_14) is unreachable from any single Phase-3 lever applied to any single Phase-2 leg.
+Worse, Composition discipline #4 (calibration is not separable from the training pass)
+means even Phase 2 cannot tell you whether `percentile` becomes the best calibration once
+equalization + int16 + bias are stacked on top of it.
+
+In Phase 5 the state machine yields and the agent drives. The contract:
+
+- The hint in `comparison.json["next_step_hint"]["advice"]` is **meta-guidance**, not a
+  setting.json template. There is no `iteration_id` skeleton to fill in — you write the
+  next setting.json from scratch.
+- The hint is paired with a structured `comparison.json["next_step_hint"]["phase5_signals"]`
+  block that summarises history: which iterations improved over their prior best (and by
+  how much), which regressed (so you don't re-stack their changes), what calibration
+  algorithms haven't been tried on top of the current lever stack, and pointers to the
+  on-disk artifacts to consult before proposing the next change.
+- Each Phase-5 iteration must still `mutate from best-so-far` (Composition discipline #1)
+  and `stop escalating after one regression` (#3). Discipline #2 (one knob per iteration)
+  is relaxed — see Composition discipline #5 below.
+
+**Inspiration patterns** (these are starting points; let the actual data decide which
+one applies on your model):
+
+- **STACK improving levers.** When `phase5_signals.improving_levers` lists ≥2 entries (e.g.
+  iter_5 enabled `tqt_optimization`, iter_9 enabled `equalization`), the first natural
+  Phase-5 iteration is one that turns BOTH on at once. The mobilenetv2-p4 path went
+  iter_11 (TQT + equalization + int16x3) → iter_13 (added calibration swap, +0.55%) →
+  iter_14 (added bias_correct, +0.05%, final best).
+- **CROSS-POLLINATE CALIB.** When `phase5_signals.untried_calib_swaps` is non-empty, run a
+  single iteration that swaps the calibration on top of the current lever stack. The
+  Phase-2 cartesian product evaluates calib × TQT(default) in isolation; once 3-4 levers
+  are stacked the ranking can flip — exactly what happened on mobilenetv2-p4 when
+  percentile, which had previously been considered a calibration loser, became the winner
+  once stacked with TQT + equalization + int16.
+- **ABLATE.** Once Phase 5 finds a new best, drop one component at a time and check
+  whether accuracy stays above target. This produces a "minimal recipe": fewer passes,
+  fewer surprises, shorter PC quantization time. Two ablation directions are particularly
+  useful — drop the highest-cost component (e.g. one int16 op, or `weight_split`) for
+  on-device speed; drop a Tier-A pass (TQT off, equalization off) to test which passes
+  are actually load-bearing.
+- **DIVE INTO ARTIFACTS.** When the above three don't produce an obvious next move, open
+  best's `layerwise_error.json`, `layer_stats_full.json`, `non_computing_hot_ops.json`,
+  and `graphwise_jumps.json`. Pick a layer with a concrete distribution observation
+  (e.g. "Conv layer X has Float Std skew >5 but the weight per-channel max/mean is only
+  2.3 — equalization won't help; this is a high-variance activation, try TQT escalation
+  or int16 on this single op") and write the next iteration around that observation. Cite
+  the file + the number in `rationale`.
+
+**Stop signals** (each → finalize). Two are auto, two are agent-driven:
+
+1. **`primary_metric` reached `target_metric`** — `compare_iterations.py` AUTO-finalizes
+   via `phase-4-final-report`. `final_report.md` records `Stop reason category: target_reached`.
+2. **Plateau** — last 3 iterations all within 0.1% relative of best.
+   `compare_iterations.py` AUTO-finalizes via `phase-4-final-report`. `final_report.md`
+   records `Stop reason category: plateau` plus the three plateau values.
+3. **User-given iteration budget reached** — agent runs `--finalize --force-finalize`
+   NOW, regardless of phase and regardless of remaining untried patterns/levers. **User
+   budget is the hard ceiling.** `--force-finalize` is the explicit opt-in that confirms
+   "this early stop is intentional"; `final_report.md` records
+   `Stop reason category: force_finalize_phase5` plus the untried lists so the user can
+   see what was skipped.
+4. **Coverage-exhausted "ran out of ideas"** — STRICT. Only fires when ALL the following
+   hold simultaneously:
+   - the user did NOT give a specific iteration budget;
+   - `phase5_signals.untried_phase5_patterns` is empty (every pattern attempted at least
+     once);
+   - `phase5_signals.untried_phase3_levers` is empty (every linear-order Phase-3 lever
+     either tried or correctly skipped by its trigger);
+   - `phase5_signals.untried_5beta_reapply` is empty (every calib swap re-tested on the
+     current deepest stack — see "5β-reapply" below);
+   - the most recent iterations did not produce a new best.
+
+   **If signal (3) is in play, signal (4) is disabled.** Keep iterating until the user
+   budget is met, drawing fresh variations from the untried lists. Phase 5 has NO hard
+   iteration cap from the state machine; the user is the cap.
+
+The `comparison.json["early_finalize_command"]` field always contains the one-line
+`--finalize` invocation; the stdout "Tip" block reprints it after every run.
+
+**Hard-reject of premature `--finalize`**: if you run `--finalize` while still in
+`phase-5-agent-driven` and neither target nor plateau is met AND you do NOT pass
+`--force-finalize`, `compare_iterations.py` PRINTS THE REJECTION BLOCK, **REFUSES TO
+WRITE** `outputs/best/` or `outputs/final_report.md`, and **EXITS WITH CODE 1**. The
+agent must either (a) re-run without `--finalize` and keep iterating, or (b) pass
+`--force-finalize` to confirm intentional early stop. This is the operational
+enforcement of the user-budget contract in signal (3); see "How premature finalize is
+prevented" below for the rationale.
+
+**5β-reapply** (the high-leverage coverage gap that needs explicit tracking):
+Composition discipline #4 says calib-only ranking does not predict the combined ranking,
+but Phase 2 runs before any levers are on. The corollary is that an early 5β
+CROSS-POLLINATE attempt on a *shallow* stack can produce a misleading verdict — the
+same calib swap on the *current deepest* stack may behave very differently. The
+canonical example is `example_quantize_mobilenetv2_esp32p4` iter_13: percentile lost
+to kl on the Phase-2 stack but won by +0.55% on the deepest lever stack. The skill
+tracks this via `phase5_signals.untried_5beta_reapply`: a list of calibrations that
+appeared as 5β targets earlier in history but were not re-tested on the current best's
+stack. The Phase 5 hint surfaces the list explicitly, and stop signal (4) is blocked
+while it is non-empty.
+
+**Tunable-params soft advisory**: the Phase 5 hint includes a "Tunable parameters in
+current best" section listing the parameter knobs available inside each enabled pass
+(TQT `lr` / `steps` / `block_size`, blockwise `lr` / `steps` / `block_size`,
+equalization `opt_level` / `iterations`, fusion_alignment direction, percentile
+calibration `percentile`) with common value ranges drawn from `references/ppq_methods.md`.
+This is a SOFT advisory — NOT part of coverage. The agent reads the section, decides
+whether the layerwise / non_computing_hot_ops data justifies a knob change, and proposes
+the next iteration accordingly. Tuning a parameter within an already-enabled pass is a
+valid Phase-5 move; not every variation requires turning a pass on/off.
+
+### User-budget enforcement in Phase 5
+
+Phase 5's "no hard cap" property means the state machine will keep emitting hints
+forever if you let it. The user budget is what bounds the loop. Concretely:
+
+- Track the user-budget count in your head (or in scratchpad). Increment after each
+  iteration completes.
+- After the N-th iteration where N == user budget, run the `--finalize` command and
+  stop.
+- **Never** invoke stop signal (4) when a user budget is in play — even if all
+  patterns and levers are covered. Spend the remaining budget on variations of
+  attempted patterns: re-stack improving levers in different combinations, try the
+  same pattern on a different layer subset, ablate a different component, dive into
+  a different artifact than last time. Variation under user budget is REQUIRED;
+  fabricating defensible variations is part of the Phase 5 contract.
+- The mechanism that prevents the wrong call here is **rationale citation discipline
+  #5**: every iteration must name the iter id(s) whose data motivated the change. If
+  you cannot name any prior iter that motivates the next change AND the user budget
+  remains, look at a different artifact, find a number you can name, and use that
+  as your rationale — do not finalize.
+
+### Why `_PHASE3_CAP=5` leaves untried linear-order levers (by design)
+
+The Phase-3 linear-order lever list has 8 entries (`3a-1, 3a-2, 3b, 3c, 3d, 3e, 3f,
+3g`), but `_PHASE3_CAP=5` caps the number of structured single-knob Phase-3 iterations
+at 5. The trade-off this cap encodes:
+
+- **Pro**: Phase 5 can start exploring sooner (cross-pollination + ablation + stacking
+  are higher-leverage moves than the tail of the linear list in many real cases — see
+  the mobilenetv2-p4 iter_13 +0.55% jump).
+- **Pro**: when `target_metric` is hit early in Phase 3, the cap is irrelevant — the
+  short-circuit fires first.
+- **Con**: levers near the end of the linear order (typically 3d / 3e / 3f / 3g) are
+  often left untried when the cap fires. The 3a-3 conditional path can also occupy
+  a cap slot, making this worse.
+
+The skill closes the gap by treating those untried levers as **first-class Phase 5
+coverage targets**. `phase5_signals.untried_phase3_levers` lists them by id; the hint
+explicitly directs the agent to STACK each onto best-so-far as a Phase-5 iteration
+before stop signal (4) can fire. Functionally a Phase-3 single-knob mutation and a
+Phase-5 STACK iteration produce the same setting (both `mutate from best + flip one
+lever`), so coverage is preserved — just under a different label and with a slightly
+larger lever-stack baseline.
+
+**Worked example**: in `example_quantize_mobilenetv2_bad_esp32s3/outputs/`, the
+20-iteration run only produced 12 iterations because the agent (a) interpreted the old
+"Pretending there's a 5th idea when there isn't one is worse than finalising" line as
+permission to bail, and (b) had no visibility into the fact that `3f weight_split` and
+`3g blockwise_reconstruction` were untouched and `5gamma ABLATE` + `5delta DIVE-INTO-
+ARTIFACTS` were untried Phase-5 patterns. Under the current contract:
+
+- The "Pretending..." sentence is gone — replaced by the hard rule that user budget
+  trumps signal (4).
+- The hint now surfaces `untried_phase3_levers=[3f, 3g]` and
+  `untried_phase5_patterns=[5gamma, 5delta]` as named targets.
+- Premature `--finalize` in phase-5 (target not met, no plateau) is **HARD REJECTED**:
+  `compare_iterations.py` refuses to write `outputs/best/` / `outputs/final_report.md`
+  and exits with code 1. The agent must either continue iterating or explicitly pass
+  `--force-finalize`. The earlier soft-warning version of this guardrail was a load-
+  bearing failure mode that produced both this 12-of-20 run and the later 18-of-30 /
+  21-of-30 runs in `example_quantize_mobilenetv2_esp32p4_tmp/outputs/`.
+
+These three together make the iteration-budget mismatch self-correcting.
+
+### How premature finalize is prevented
+
+The hard-reject contract for `--finalize` is the operational enforcement of the user-
+budget rule in stop signal (3). Concretely:
+
+1. The agent (or user) runs `compare_iterations.py --finalize` while
+   `phase == phase-5-agent-driven` and the script computes `target_metric` is NOT
+   reached and the recent iterations are NOT a plateau.
+2. `compare_iterations.py` prints the rejection block, listing
+   `untried_phase5_patterns`, `untried_phase3_levers`, and `untried_5beta_reapply`.
+3. `comparison.json` is still written (so the agent can re-read the hint), but
+   `outputs/best/` and `outputs/final_report.md` are NOT touched.
+4. The script exits with code 1.
+5. The agent picks ONE of:
+   - re-run without `--finalize` and continue iterating (use the printed untried lists
+     as concrete next targets); OR
+   - pass `--force-finalize` alongside `--finalize` to confirm intentional early stop.
+     The resulting `final_report.md` has a `## Stop reason` section with category
+     `force_finalize_phase5` plus the untried lists so the user can see exactly what
+     was skipped.
+
+Why hard-reject (not soft warning): the soft warning was ignored both in the bad-
+esp32s3 12-of-20 run and in the esp32p4_tmp 18-of-30 / 21-of-30 runs. Making the
+reject load-bearing means the agent literally cannot produce a final_report.md by
+accident in phase-5 — a positive write requires `--force-finalize`, which the agent
+will only emit when the user budget rationale is solid.
 
 ### Phase 4 — Final report
 
@@ -355,18 +587,19 @@ The generated `final_report.md` carries an HTML marker comment on its first line
 
 ## Composition discipline (read before every iteration)
 
-These four rules govern the iteration loop. Violating any of them = current iteration is
+These rules govern the iteration loop. Violating any of them = current iteration is
 discarded, agent rolls back to best-so-far and re-runs.
 
 1. **Mutate from best-so-far, not the last iteration.** Always start the next
    `setting.json` from `comparison.json["best_iteration"]["dir"]/setting.json`. The most
    recent run can be a regression you should not inherit.
 
-2. **One new method (or one parameter change) per iteration.** Calibration algorithm and
-   `tqt_optimization` with the default schedule are treated as the **conjoined Phase 2
-   base** — they enter and leave together inside Phase 2. Outside Phase 2, change exactly
-   one knob. If two changes are stacked and the iteration regresses, you can't tell which
-   one hurt.
+2. **One new method (or one parameter change) per iteration (Phases 1-3 only).**
+   Calibration algorithm and `tqt_optimization` with the default schedule are treated as
+   the **conjoined Phase 2 base** — they enter and leave together inside Phase 2. Outside
+   Phase 2 and inside Phase 3, change exactly one knob. If two changes are stacked and
+   the iteration regresses, you can't tell which one hurt. (Phase 5 relaxes this rule —
+   see #5.)
 
 3. **Stop escalating after one regression.** If iter_N raises a TQT hyper-parameter (or
    tightens a lever) and the metric drops, do not push further on that axis; pivot to a
@@ -378,8 +611,20 @@ discarded, agent rolls back to best-so-far and re-runs.
    **not** predict combined accuracy: percentile may regress standalone but become the
    strongest TQT base, because tail-clipping leaves more "training space" for TQT to
    recover. Phase 2 must always evaluate calibration with `calib × TQT(default)` cartesian
-   product, never with calib-only ranking. See Worked example below for the concrete
-   reproducer.
+   product, never with calib-only ranking. The same principle applies in Phase 5:
+   calibration ranked against the Phase-3 lever stack can flip vs the Phase-2 cartesian
+   ranking — re-test untried calibrations after the lever stack settles. See Worked
+   example below for the concrete reproducer.
+
+5. **Phase 5 multi-knob changes are allowed iff the rationale cites historical evidence.**
+   The "one knob per iteration" rule (#2) is relaxed in Phase 5 — an iteration may stack
+   2+ passes — but only when each pass change names the specific iteration whose data
+   motivates it (e.g. "iter_5 showed lever 3a-3 stabilised the perturbed layer; iter_9
+   showed equalization improved bottleneck Conv chains; combining them tests whether the
+   gains compound"). Without citations, a multi-knob change is a guess and must be split
+   into single-knob steps as in Phase 3. The reason: in Phase 3 the linear search makes
+   attribution clear; in Phase 5 the only mechanism keeping attribution honest is the
+   rationale itself.
 
 ---
 
@@ -463,7 +708,12 @@ justify the slowdown — typically only on the worst 1-3 layers):
 
 8. **Blockwise reconstruction (`blockwise_reconstruction`)** — biggest hammer. Scales are
    frozen by default (POWER_OF_2-safe); only weights move. GPU strongly recommended; CPU
-   runs are hours per iteration. Mutually exclusive with TQT.
+   runs are hours per iteration. **Coexists with TQT** in the esp-ppq pipeline — the
+   engine runs `TrainedQuantizationThresholdPass` and then `AdaroundPass` sequentially,
+   so the two passes do not conflict. Combining doubles PC quantization time but
+   improves accuracy attribution when used in 3g (blockwise is the only new variable on
+   top of best). LSQ × {TQT, blockwise} remains hard-rejected (LSQ silently degenerates
+   on POWER_OF_2 targets).
 
 **Tier D — Auto-disabled on POWER_OF_2 targets**:
 
@@ -532,6 +782,14 @@ silently no-op.
   user asks for TQT/blockwise, warn them the iteration will take a long time before submitting.
 - **LSQ on POWER_OF_2 targets**: the harness will skip LSQ and warn — don't re-enable it
   in the next iteration. The accuracy you wanted from LSQ comes from TQT here.
+- **Calling `--finalize` in Phase 5 without `--force-finalize`**: the script HARD REJECTS
+  this by design (exit code 1, no outputs written) when target_metric is not reached and
+  no plateau is detected. The rejection block surfaces `untried_phase5_patterns`,
+  `untried_phase3_levers`, and `untried_5beta_reapply` so the agent can either keep
+  iterating or — if the user budget really is exhausted — re-invoke with
+  `--force-finalize` to confirm intentional early stop. The earlier soft-warning version
+  was the load-bearing failure mode behind the 12-of-20, 18-of-30 and 21-of-30 premature-
+  stop runs.
 - **Skipping the Phase 2 cartesian product**: this is the #1 search failure on esp-dl
   targets. Calib-only sweep does not work — see Composition discipline #4 and the Worked
   example. Always run all three legs (or short-circuit on `target_metric`).
@@ -560,7 +818,32 @@ silently no-op.
   iteration count is reached, run the command in
   `comparison.json["early_finalize_command"]` (or copy from the "Tip: how to wrap up
   at any time" block in stdout) so `outputs/best/` and `outputs/final_report.md` are
-  produced regardless of phase.
+  produced regardless of phase. **Especially important in Phase 5**, which has no hard
+  iteration cap — the only state-machine stop signals there are target_metric and
+  plateau, so the user's budget is the primary guardrail.
+- **Treating Phase 5 hints like a template**: the Phase-5 `advice` text is meta-guidance,
+  the `phase5_signals` block is data summary. Neither is a fillable `setting.json`
+  skeleton. If you find yourself looking for `"iteration_id"` to paste, you're confusing
+  Phase 3 with Phase 5 — go read `phase5_signals` and the on-disk error artifacts, then
+  write the next setting.json yourself.
+- **Phase 5 rationale without citations**: a multi-knob Phase 5 iteration whose rationale
+  is "trying equalization + bias_correct together" violates Composition discipline #5.
+  Cite the iteration numbers whose data motivates each pass (e.g. "iter_9 showed
+  equalization improved by +0.45 on bottleneck Convs; iter_7 layer_stats showed
+  /features.../Conv output has |Noise Mean|=0.18 > 0.1×Noise Std=0.07 — bias_correct
+  triggers"). Without citations the agent loses attribution and the iteration is a
+  guess wearing a multi-knob disguise.
+- **Bailing on Phase 5 stop signal (4) while user budget remains**: this is the failure
+  mode that bit `example_quantize_mobilenetv2_bad_esp32s3/outputs/` — the agent ran 12 of
+  20 requested iterations, tried 3 Phase-5 attempts that regressed, and signed off
+  with "out of ideas". Stop signal (4) is **strict**: it requires the user to NOT have
+  given a budget AND `untried_phase5_patterns`, `untried_phase3_levers`, and
+  `untried_5beta_reapply` to all be empty. If a user budget is in play, signal (4) is
+  **disabled** — the agent must keep iterating, drawing from the untried lists or
+  variations of attempted patterns, until the budget is hit. The hard-reject of
+  premature `--finalize` enforced by `compare_iterations.py` is the operational
+  guardrail; without `--force-finalize`, the script literally cannot write the final
+  report while phase=phase-5 + target not met + no plateau.
 - **Confusing on-device-cost with pc-time-cost**: the new `affects inference speed`
   column refers strictly to **deployment-time** cost (does the quantized model run
   slower on the ESP target?). Long PC quantization time (e.g. blockwise reconstruction)
@@ -610,6 +893,27 @@ TQT(default)`. No calibration is judged by its standalone score; the combined
 top1/top5/whatever-metric is the ranking signal. The Composition discipline #4 codifies
 this rule.
 
+**Follow-on (Phase 5 reachability).** The same project went on to produce iter_14
+(top1 = **72.30%**, the final best, beat target 71.878%) — but only after the Phase-3
+linear search had finished. The trajectory was:
+
+- iter_5 (3a-3 TQT block_size=4→2): +0.30%, became best at 71.45%.
+- iter_9 (3d equalization opt_level=2): +0.45%, became best at 71.60%.
+- iter_10/iter_11 (3e int16 promotion on 2→3 worst layers): +0.075%, became best at 71.70%.
+- **End of Phase-3 linear levers.** State machine emits `phase-5-agent-driven` because
+  target_metric=71.878% was still unmet. `phase5_signals.improving_levers` listed iter_5
+  (3a-3), iter_9 (3d), iter_10/11 (3e); `phase5_signals.untried_calib_swaps` listed
+  `mse, percentile` (best was still on kl).
+- iter_13 (Phase 5 — calib cross-pollination on top of the lever stack: kl→percentile
+  while keeping TQT + equalization + int16x3): **+0.55%** to 72.25%. The Phase-2 isolated
+  ranking had said percentile regressed (iter_3 percentile + TQT only was 71.0%); once
+  stacked the verdict flipped.
+- iter_14 (Phase 5 — stack: added bias_correct on top of iter_13): **+0.05%** to 72.30%, target met.
+
+iter_13 and iter_14 were unreachable from any single Phase-3 lever applied to any single
+Phase-2 leg — they required composing improving Phase-3 levers with a calibration
+re-test. This is the kind of move Composition discipline #5 sanctions.
+
 ---
 
 ## Reference index
@@ -629,11 +933,31 @@ this rule.
   mapping; performs target-policy compatibility checks (LSQ on POWER_OF_2 → auto-disable;
   esp32p4 equalization → warn-only).
 - [scripts/compare_iterations.py](scripts/compare_iterations.py) — cross-iteration diff +
-  next-step state machine driving the Phase 1 → 2 → 3 procedure. Auto-finalises
+  next-step state machine driving the Phase 1 → 2 → 3 → 5 procedure. Auto-finalises
   on `phase-4` (writes `outputs/best/` + `outputs/final_report.md`); `--finalize`
   forces finalize at any time (escape hatch when the user stops early at a fixed
   iteration budget); `--force` overrides the marker-based preserve check on
-  hand-edited reports.
+  hand-edited reports. Phase-5 hints surface a `phase5_signals` block of historical
+  improving / regressing levers + untried calibrations + top error layers + non-computing
+  hot ops + coverage tracking (`phase5_pattern_coverage`, `untried_phase5_patterns`,
+  `untried_phase3_levers` — the lever ids that `_PHASE3_CAP=5` left uncovered,
+  `untried_5beta_reapply` — calibrations tried earlier on a shallower stack that need
+  re-evaluating on the current best's deeper stack) plus a soft "Tunable parameters"
+  advisory section. Purely data, no template. Coverage helpers
+  `_classify_phase5_patterns`, `_phase5_cutoff_iter_id`, `_phase5_pattern_coverage`,
+  `_untried_phase3_levers`, `_untried_phase5_patterns`, `_phase5_lever_stack`,
+  `_phase5_5beta_attempts`, `_untried_5beta_reapply` are the building blocks; the
+  hard-reject of premature `--finalize` in `main()` consumes them and refuses to write
+  outputs unless `--force-finalize` confirms intentional early stop. The
+  `finalize_reason` recorded in `comparison.json` and the `## Stop reason` section of
+  `final_report.md` document the category (`target_reached` / `plateau` /
+  `force_finalize_phase5` / `manual_finalize_phase4` / `manual_finalize_pre_phase5`)
+  and any untried coverage gaps. R8 (lever 3c) trigger constants
+  `_R8_MAX_SNR_PRIMARY` (lower band) / `_R8_MAX_SNR_UPPER` (upper band) /
+  `_R8_STD_RATIO_REINFORCE` / `_R8_ACTIVATION_VETO_RATIO` live at the top of the script
+  for one-place tuning. Hindsight regression test:
+  [tests/hindsight_r8_examples.py](tests/hindsight_r8_examples.py) parametrises over
+  every `example_quantize_*/outputs/` checked in alongside the skill.
 - [assets/user_quant_torch_example.py](assets/user_quant_torch_example.py) — copy/edit for
   torch model flows.
 - [assets/user_quant_onnx_example.py](assets/user_quant_onnx_example.py) — copy/edit for
