@@ -107,6 +107,6 @@ extern "C" void app_main(void)
     test_inference(model, processor, bus_jpg_start, (size_t)(bus_jpg_end - bus_jpg_start), "bus.jpg");
     //test_inference(model, processor, person_jpg_start, (size_t)(person_jpg_end - person_jpg_start), "person.jpg");
 #endif
-    //model->profile();
+    model->profile();
     delete model;
 }
