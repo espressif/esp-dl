@@ -353,8 +353,13 @@ public:
                         a.output_x_offset = C_out;
                         a.output_y_offset = W_out * C_out;
                         if (bias) {
-                            a.bias_element = (const void *)(
-                                (const int32_t *)bias->get_element_ptr() + c_start);
+                            if (quant_type == QUANT_TYPE_SYMM_16BIT) {
+                                a.bias_element = (const void *)(
+                                    (const int64_t *)bias->get_element_ptr() + c_start);
+                            } else {
+                                a.bias_element = (const void *)(
+                                    (const int32_t *)bias->get_element_ptr() + c_start);
+                            }
                         }
                         if (filter->exponent.is_per_channel()
                             && a.tie_filter_channel_factor) {
