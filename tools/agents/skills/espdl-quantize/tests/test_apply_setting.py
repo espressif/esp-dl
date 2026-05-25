@@ -177,6 +177,8 @@ def test_dispatching_table_known_ops_no_warn():
 
 
 def test_mutex_tqt_lsq_rejected():
+    """LSQ paired with TQT must still be rejected — under POWER_OF_2 LSQ's
+    scale training is a no-op, so the pairing wastes PC time."""
     payload = _baseline_payload(
         {
             "tqt_optimization": {"enabled": True},
@@ -186,9 +188,49 @@ def test_mutex_tqt_lsq_rejected():
     try:
         apply_setting.apply(payload, target="esp32p4")
     except ValueError as exc:
-        assert "Mutually exclusive" in str(exc)
+        assert "mutually exclusive" in str(exc).lower()
+        assert "tqt_optimization" in str(exc)
     else:
         raise AssertionError("expected ValueError for TQT+LSQ both enabled")
+
+
+def test_mutex_lsq_blockwise_rejected():
+    """LSQ paired with blockwise_reconstruction must still be rejected (same
+    POWER_OF_2 + wasted-gradient-pass reasoning as TQT+LSQ)."""
+    payload = _baseline_payload(
+        {
+            "blockwise_reconstruction": {"enabled": True},
+            "lsq_optimization": {"enabled": True},
+        }
+    )
+    try:
+        apply_setting.apply(payload, target="esp32p4")
+    except ValueError as exc:
+        assert "mutually exclusive" in str(exc).lower()
+        assert "blockwise_reconstruction" in str(exc)
+    else:
+        raise AssertionError("expected ValueError for LSQ+blockwise both enabled")
+
+
+def test_tqt_and_blockwise_can_coexist():
+    """TQT and blockwise_reconstruction are NO LONGER mutex — the esp-ppq
+    pipeline runs TrainedQuantizationThresholdPass then AdaroundPass
+    sequentially. The skill permits the combination (PC quantization time
+    roughly doubles, but no engine-level conflict)."""
+    payload = _baseline_payload(
+        {
+            "tqt_optimization": {"enabled": True, "steps": 500},
+            "blockwise_reconstruction": {
+                "enabled": True,
+                "steps": 5000,
+                "is_scale_trainable": False,
+            },
+        }
+    )
+    result = apply_setting.apply(payload, target="esp32p4")
+    # Both passes survive into the final setting.
+    assert result.setting.tqt_optimization is True
+    assert result.setting.blockwise_reconstruction is True
 
 
 def test_fusion_alignment_validation():

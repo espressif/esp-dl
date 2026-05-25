@@ -191,8 +191,9 @@ The results of each iteration are saved in the ``outputs/iter_<N>/`` directory, 
 
 .. note::
 
-   The target metric in the Agent instruction (e.g., top1, map5095) must satisfy two consistency requirements: it must match ``QUANT_CONFIG["primary_metric"]``, and it must match the key returned by the ``evaluate()`` function in user_quant.py.
-   The Agent must support context compression or auto-summarization; models with larger context windows provide more stable results, such as deepseek_v4_pro.
+   - The target metric in the Agent instruction (e.g., top1, map5095) must satisfy two consistency requirements: it must match ``QUANT_CONFIG["primary_metric"]``, and it must match the key returned by the ``evaluate()`` function in user_quant.py.
+   - The Agent must support context compression or auto-summarization; models with larger context windows provide more stable results, such as deepseek_v4_pro.
+   - During automated search, the skill automatically determines convergence based on the convergence rule (3 consecutive iterations all within 0.1% relative to best). However, the AI Agent may terminate early before reaching the user-specified iteration rounds due to context loss or misjudgment. In this case, simply issue an additional iteration command (e.g., "iterate N more rounds"), and the skill will resume the search from the existing artifacts under ``outputs/`` without starting over.
 
 
 Complete Examples

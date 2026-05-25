@@ -210,8 +210,12 @@ checks:
 - `calib_algorithm` is one of the supported strings.
 - `dispatching_table` ops exist in `simplified_ops.json` from the most recent prior run
   (warns; doesn't fail).
-- No mutually-exclusive combinations (TQT + LSQ + blockwise_reconstruction more than one
-  at a time).
+- LSQ is mutually exclusive with TQT and blockwise_reconstruction (any of LSQ × TQT or
+  LSQ × blockwise_reconstruction is rejected by `apply_setting._check_mutex` — LSQ
+  silently degenerates under POWER_OF_2). **TQT + blockwise_reconstruction MAY coexist**
+  — the esp-ppq engine runs `TrainedQuantizationThresholdPass` and `AdaroundPass`
+  sequentially, so the two passes do not conflict. Combining them roughly doubles PC
+  quantization time but is allowed (lever 3g default behaviour).
 
 ## Recommended iteration templates
 
