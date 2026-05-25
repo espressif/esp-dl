@@ -100,14 +100,14 @@ dl_tie728_s8_conv2d_11cn:
 
     l32i a11, a4, 68  # bias
     l32i a8, a4, 64 # mac shift
-    blti a8, 0, dl_tie728_s8_conv2d_per_channel_11cn
+    blti a8, 0, .L11cn_per_channel
 
 
-dl_tie728_s8_conv2d_per_layer_11cn:
+.L11cn_per_layer:
 
-    beqz a11, tie728_s8_conv2d_per_layer_11cn_no_bias_loop
+    beqz a11, .L11cn_per_layer_no_bias_loop
 
-    tie728_s8_conv2d_per_layer_11cn_bias_loop:
+    .L11cn_per_layer_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -117,11 +117,11 @@ dl_tie728_s8_conv2d_per_layer_11cn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_11cn_bias_loop
+    bnez a7, .L11cn_per_layer_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_layer_11cn_no_bias_loop:
+    .L11cn_per_layer_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -130,16 +130,16 @@ dl_tie728_s8_conv2d_per_layer_11cn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_11cn_no_bias_loop
+    bnez a7, .L11cn_per_layer_no_bias_loop
     retw
 
 
-dl_tie728_s8_conv2d_per_channel_11cn:
+.L11cn_per_channel:
     l32i a8, a4, 104 # filter_channel_factor address
 
-    beqz a11, tie728_s8_conv2d_per_channel_11cn_no_bias_loop
+    beqz a11, .L11cn_per_channel_no_bias_loop
 
-    tie728_s8_conv2d_per_channel_11cn_bias_loop:
+    .L11cn_per_channel_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -150,11 +150,11 @@ dl_tie728_s8_conv2d_per_channel_11cn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_11cn_bias_loop
+    bnez a7, .L11cn_per_channel_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_channel_11cn_no_bias_loop:
+    .L11cn_per_channel_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -163,7 +163,7 @@ dl_tie728_s8_conv2d_per_channel_11cn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_11cn_no_bias_loop
+    bnez a7, .L11cn_per_channel_no_bias_loop
     retw
 
 
@@ -199,14 +199,14 @@ dl_tie728_s8_conv2d_11cn_relu:
 
     l32i a11, a4, 68  # bias
     l32i a8, a4, 64 # mac shift
-    blti a8, 0, dl_tie728_s8_conv2d_per_channel_11cn_relu
+    blti a8, 0, .L11cn_relu_per_channel
 
 
-dl_tie728_s8_conv2d_per_layer_11cn_relu:
+.L11cn_relu_per_layer:
 
-    beqz a11, tie728_s8_conv2d_per_layer_11cn_no_bias_relu_loop
+    beqz a11, .L11cn_relu_per_layer_no_bias_loop
 
-    tie728_s8_conv2d_per_layer_11cn_bias_relu_loop:
+    .L11cn_relu_per_layer_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -217,11 +217,11 @@ dl_tie728_s8_conv2d_per_layer_11cn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_11cn_bias_relu_loop
+    bnez a7, .L11cn_relu_per_layer_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_layer_11cn_no_bias_relu_loop:
+    .L11cn_relu_per_layer_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -231,16 +231,16 @@ dl_tie728_s8_conv2d_per_layer_11cn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_11cn_no_bias_relu_loop
+    bnez a7, .L11cn_relu_per_layer_no_bias_loop
     retw
 
 
-dl_tie728_s8_conv2d_per_channel_11cn_relu:
+.L11cn_relu_per_channel:
     l32i a8, a4, 104 # filter_channel_factor address
 
-    beqz a11, tie728_s8_conv2d_per_channel_11cn_no_bias_relu_loop
+    beqz a11, .L11cn_relu_per_channel_no_bias_loop
 
-    tie728_s8_conv2d_per_channel_11cn_bias_relu_loop:
+    .L11cn_relu_per_channel_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -252,11 +252,11 @@ dl_tie728_s8_conv2d_per_channel_11cn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_11cn_bias_relu_loop
+    bnez a7, .L11cn_relu_per_channel_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_channel_11cn_no_bias_relu_loop:
+    .L11cn_relu_per_channel_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -266,7 +266,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_11cn_no_bias_relu_loop
+    bnez a7, .L11cn_relu_per_channel_no_bias_loop
     retw
 
 
@@ -302,14 +302,14 @@ dl_tie728_s8_conv2d_11cn_prelu:
 
     l32i a11, a4, 68  # bias
     l32i a8, a4, 64 # mac shift
-    blti a8, 0, dl_tie728_s8_conv2d_per_channel_11cn_prelu
+    blti a8, 0, .L11cn_prelu_per_channel
 
 
-dl_tie728_s8_conv2d_per_layer_11cn_prelu:
+.L11cn_prelu_per_layer:
 
-    beqz a11, tie728_s8_conv2d_per_layer_11cn_no_bias_prelu_loop
+    beqz a11, .L11cn_prelu_per_layer_no_bias_loop
 
-    tie728_s8_conv2d_per_layer_11cn_bias_prelu_loop:
+    .L11cn_prelu_per_layer_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -320,11 +320,11 @@ dl_tie728_s8_conv2d_per_layer_11cn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_11cn_bias_prelu_loop
+    bnez a7, .L11cn_prelu_per_layer_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_layer_11cn_no_bias_prelu_loop:
+    .L11cn_prelu_per_layer_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -334,16 +334,16 @@ dl_tie728_s8_conv2d_per_layer_11cn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_11cn_no_bias_prelu_loop
+    bnez a7, .L11cn_prelu_per_layer_no_bias_loop
     retw
 
 
-dl_tie728_s8_conv2d_per_channel_11cn_prelu:
+.L11cn_prelu_per_channel:
     l32i a8, a4, 104 # filter_channel_factor address
 
-    beqz a11, tie728_s8_conv2d_per_channel_11cn_no_bias_prelu_loop
+    beqz a11, .L11cn_prelu_per_channel_no_bias_loop
 
-    tie728_s8_conv2d_per_channel_11cn_bias_prelu_loop:
+    .L11cn_prelu_per_channel_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -355,11 +355,11 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_11cn_bias_prelu_loop
+    bnez a7, .L11cn_prelu_per_channel_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_channel_11cn_no_bias_prelu_loop:
+    .L11cn_prelu_per_channel_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -369,7 +369,7 @@ dl_tie728_s8_conv2d_per_channel_11cn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_11cn_no_bias_prelu_loop
+    bnez a7, .L11cn_prelu_per_channel_no_bias_loop
     retw
 
 
@@ -1063,23 +1063,23 @@ dl_tie728_s8_unaligned_conv2d_11cn:
     tie728_s8_unaligned_conv2d_operation_type a10, a8, a11, a13, a12, a4
 
 
-    beqz a7, tie728_s8_conv2d_1_1_unaligned_c_n_loop_end # output_channel < 16
+    beqz a7, .Lu11cn_loop_end # output_channel < 16
 
     EE.LD.128.USAR.IP q1, a2, 0
     rur.sar_byte a14
 
-    beqi a14, 0, tie728_s8_conv2d_1_1_unaligned_c_n_loop0
-    beqi a14, 8, tie728_s8_unaligned_conv2d_11cn_loop8
+    beqi a14, 0, .Lu11cn_loop0
+    beqi a14, 8, .Lu11cn_loop8
 
 # output sar_byte != 0 && != 8
-    tie728_s8_unaligned_conv2d_11cn_loop:
+    .Lu11cn_loop:
         mov a15, a3    # reload input_ptr
         EE.ZERO.QACC
 
         # Without modifications specifically for per-channel, there may be issues with per-channel
-        beqz a11, tie728_s8_unaligned_conv2d_11cn_loop_no_preload_bias
+        beqz a11, .Lu11cn_loop_no_bias
             tie728_s8_conv2d_128b_vector_bias a11
-        tie728_s8_unaligned_conv2d_11cn_loop_no_preload_bias:
+        .Lu11cn_loop_no_bias:
         tie728_s8_conv2d_1_1_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a14
         tie728_s8_conv2d_1_1_unaligned_c_result a10, q0, a8, a11, a12, a13, a15, q1, q2
 
@@ -1087,36 +1087,36 @@ dl_tie728_s8_unaligned_conv2d_11cn:
         dl_tie728_s8_unaligned_store0 q0, a2, a14
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_unaligned_conv2d_11cn_loop
-    j tie728_s8_conv2d_1_1_unaligned_c_n_loop_end
+    bnez a7, .Lu11cn_loop
+    j .Lu11cn_loop_end
 
 # output sar_byte == 0
-    tie728_s8_conv2d_1_1_unaligned_c_n_loop0:
+    .Lu11cn_loop0:
         mov a15, a3    # reload input_ptr
         EE.ZERO.QACC
 
         # Without modifications specifically for per-channel, there may be issues with per-channel
-        beqz a11, tie728_s8_conv2d_1_1_unaligned_c_n_loop0_no_preload_bias
+        beqz a11, .Lu11cn_loop0_no_bias
             tie728_s8_conv2d_128b_vector_bias a11
-        tie728_s8_conv2d_1_1_unaligned_c_n_loop0_no_preload_bias:
+        .Lu11cn_loop0_no_bias:
         tie728_s8_conv2d_1_1_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a14
         tie728_s8_conv2d_1_1_unaligned_c_result a10, q0, a8, a11, a12, a13, a15, q1, q2
 
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_1_1_unaligned_c_n_loop0
-    j tie728_s8_conv2d_1_1_unaligned_c_n_loop_end
+    bnez a7, .Lu11cn_loop0
+    j .Lu11cn_loop_end
 
 # output sar_byte == 8
-    tie728_s8_unaligned_conv2d_11cn_loop8:
+    .Lu11cn_loop8:
         mov a15, a3    # reload input_ptr
         EE.ZERO.QACC
 
         # Without modifications specifically for per-channel, there may be issues with per-channel
-        beqz a11, tie728_s8_unaligned_conv2d_11cn_loop8_no_preload_bias
+        beqz a11, .Lu11cn_loop8_no_bias
             tie728_s8_conv2d_128b_vector_bias a11
-        tie728_s8_unaligned_conv2d_11cn_loop8_no_preload_bias:
+        .Lu11cn_loop8_no_bias:
         tie728_s8_conv2d_1_1_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a14
         tie728_s8_conv2d_1_1_unaligned_c_result a10, q0, a8, a11, a12, a13, a15, q1, q2
 
@@ -1124,29 +1124,29 @@ dl_tie728_s8_unaligned_conv2d_11cn:
         dl_tie728_s8_unaligned_store1 q0, a2
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_unaligned_conv2d_11cn_loop8
-    j tie728_s8_conv2d_1_1_unaligned_c_n_loop_end
+    bnez a7, .Lu11cn_loop8
+    j .Lu11cn_loop_end
 
 
-tie728_s8_conv2d_1_1_unaligned_c_n_loop_end:
+.Lu11cn_loop_end:
 
 
     # handle the n remainder
     # s16i a10, a1, 0
     EE.MOVI.32.Q q7, a10, 0 # store operation type in q7[0]
     l32i a10, a4, 140  # n % 16 remainder_n
-    beqz a10, dl_tie728_s8_unaligned_conv2d_11cn_end
+    beqz a10, .Lu11cn_end
 
 
     # n_remainder
-    tie728_s8_conv2d_1_1_c_unaligned_n_loop:
+    .Lu11cn_n_loop:
         mov a15, a3    # reload input_ptr
         EE.ZERO.ACCX
         # complete one n in ACCX
         # Without modifications specifically for per-channel, there may be issues with per-channel
-        beqz a11, tie728_s8_conv2d_1_1_c_unaligned_n_loop_no_preload_bias
+        beqz a11, .Lu11cn_n_loop_no_bias
             tie728_s8_conv2d_element_bias a11
-        tie728_s8_conv2d_1_1_c_unaligned_n_loop_no_preload_bias:
+        .Lu11cn_n_loop_no_bias:
         tie728_s8_conv2d_1_1_c_n_remainder q0, q1, q2, a15, q3, q4, q5, a5, a6, a9, a14, a7
         tie728_s8_conv2d_1_1_n_remainder_result q7, a7, a2, a8, a11, a12, a13, a14, q0
         # l16si a7, a1, 0
@@ -1158,9 +1158,9 @@ tie728_s8_conv2d_1_1_unaligned_c_n_loop_end:
         # addi a2, a2, 1
 
         addi a10, a10, -1
-    bnez a10, tie728_s8_conv2d_1_1_c_unaligned_n_loop
+    bnez a10, .Lu11cn_n_loop
 
-dl_tie728_s8_unaligned_conv2d_11cn_end:
+.Lu11cn_end:
 
     retw
 
@@ -1254,14 +1254,14 @@ dl_tie728_s8_conv2d_33cn:
 
     l32i a11, a4, 68  # bias
     l32i a8, a4, 64 # mac shift
-    blti a8, 0, dl_tie728_s8_conv2d_per_channel_33cn
+    blti a8, 0, .L33cn_per_channel
 
 
-dl_tie728_s8_conv2d_per_layer_33cn:
+.L33cn_per_layer:
 
-    beqz a11, tie728_s8_conv2d_per_layer_33cn_no_bias_loop
+    beqz a11, .L33cn_per_layer_no_bias_loop
 
-    tie728_s8_conv2d_per_layer_33cn_bias_loop:
+    .L33cn_per_layer_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1271,11 +1271,11 @@ dl_tie728_s8_conv2d_per_layer_33cn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_33cn_bias_loop
+    bnez a7, .L33cn_per_layer_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_layer_33cn_no_bias_loop:
+    .L33cn_per_layer_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1284,16 +1284,16 @@ dl_tie728_s8_conv2d_per_layer_33cn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_33cn_no_bias_loop
+    bnez a7, .L33cn_per_layer_no_bias_loop
     retw
 
 
-dl_tie728_s8_conv2d_per_channel_33cn:
+.L33cn_per_channel:
     l32i a8, a4, 104 # filter_channel_factor address
 
-    beqz a11, tie728_s8_conv2d_per_channel_33cn_no_bias_loop
+    beqz a11, .L33cn_per_channel_no_bias_loop
 
-    tie728_s8_conv2d_per_channel_33cn_bias_loop:
+    .L33cn_per_channel_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1304,11 +1304,11 @@ dl_tie728_s8_conv2d_per_channel_33cn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_33cn_bias_loop
+    bnez a7, .L33cn_per_channel_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_channel_33cn_no_bias_loop:
+    .L33cn_per_channel_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1317,7 +1317,7 @@ dl_tie728_s8_conv2d_per_channel_33cn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_33cn_no_bias_loop
+    bnez a7, .L33cn_per_channel_no_bias_loop
     retw
 
 
@@ -1353,14 +1353,14 @@ dl_tie728_s8_conv2d_33cn_relu:
 
     l32i a11, a4, 68  # bias
     l32i a8, a4, 64 # mac shift
-    blti a8, 0, dl_tie728_s8_conv2d_per_channel_33cn_relu
+    blti a8, 0, .L33cn_relu_per_channel
 
 
-dl_tie728_s8_conv2d_per_layer_33cn_relu:
+.L33cn_relu_per_layer:
 
-    beqz a11, tie728_s8_conv2d_per_layer_33cn_no_bias_relu_loop
+    beqz a11, .L33cn_relu_per_layer_no_bias_loop
 
-    tie728_s8_conv2d_per_layer_33cn_bias_relu_loop:
+    .L33cn_relu_per_layer_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1371,11 +1371,11 @@ dl_tie728_s8_conv2d_per_layer_33cn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_33cn_bias_relu_loop
+    bnez a7, .L33cn_relu_per_layer_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_layer_33cn_no_bias_relu_loop:
+    .L33cn_relu_per_layer_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1385,16 +1385,16 @@ dl_tie728_s8_conv2d_per_layer_33cn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_33cn_no_bias_relu_loop
+    bnez a7, .L33cn_relu_per_layer_no_bias_loop
     retw
 
 
-dl_tie728_s8_conv2d_per_channel_33cn_relu:
+.L33cn_relu_per_channel:
     l32i a8, a4, 104 # filter_channel_factor address
 
-    beqz a11, tie728_s8_conv2d_per_channel_33cn_no_bias_relu_loop
+    beqz a11, .L33cn_relu_per_channel_no_bias_loop
 
-    tie728_s8_conv2d_per_channel_33cn_bias_relu_loop:
+    .L33cn_relu_per_channel_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1406,11 +1406,11 @@ dl_tie728_s8_conv2d_per_channel_33cn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_33cn_bias_relu_loop
+    bnez a7, .L33cn_relu_per_channel_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_channel_33cn_no_bias_relu_loop:
+    .L33cn_relu_per_channel_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1420,7 +1420,7 @@ dl_tie728_s8_conv2d_per_channel_33cn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_33cn_no_bias_relu_loop
+    bnez a7, .L33cn_relu_per_channel_no_bias_loop
     retw
 
 
@@ -1456,14 +1456,14 @@ dl_tie728_s8_conv2d_33cn_prelu:
 
     l32i a11, a4, 68  # bias
     l32i a8, a4, 64 # mac shift
-    blti a8, 0, dl_tie728_s8_conv2d_per_channel_33cn_prelu
+    blti a8, 0, .L33cn_prelu_per_channel
 
 
-dl_tie728_s8_conv2d_per_layer_33cn_prelu:
+.L33cn_prelu_per_layer:
 
-    beqz a11, tie728_s8_conv2d_per_layer_33cn_no_bias_prelu_loop
+    beqz a11, .L33cn_prelu_per_layer_no_bias_loop
 
-    tie728_s8_conv2d_per_layer_33cn_bias_prelu_loop:
+    .L33cn_prelu_per_layer_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1474,11 +1474,11 @@ dl_tie728_s8_conv2d_per_layer_33cn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_33cn_bias_prelu_loop
+    bnez a7, .L33cn_prelu_per_layer_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_layer_33cn_no_bias_prelu_loop:
+    .L33cn_prelu_per_layer_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1488,16 +1488,16 @@ dl_tie728_s8_conv2d_per_layer_33cn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_33cn_no_bias_prelu_loop
+    bnez a7, .L33cn_prelu_per_layer_no_bias_loop
     retw
 
 
-dl_tie728_s8_conv2d_per_channel_33cn_prelu:
+.L33cn_prelu_per_channel:
     l32i a8, a4, 104 # filter_channel_factor address
 
-    beqz a11, tie728_s8_conv2d_per_channel_33cn_no_bias_prelu_loop
+    beqz a11, .L33cn_prelu_per_channel_no_bias_loop
 
-    tie728_s8_conv2d_per_channel_33cn_bias_prelu_loop:
+    .L33cn_prelu_per_channel_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1509,11 +1509,11 @@ dl_tie728_s8_conv2d_per_channel_33cn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_33cn_bias_prelu_loop
+    bnez a7, .L33cn_prelu_per_channel_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_channel_33cn_no_bias_prelu_loop:
+    .L33cn_prelu_per_channel_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1523,7 +1523,7 @@ dl_tie728_s8_conv2d_per_channel_33cn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_33cn_no_bias_prelu_loop
+    bnez a7, .L33cn_prelu_per_channel_no_bias_loop
     retw
 
 
@@ -1643,27 +1643,27 @@ dl_tie728_s8_unaligned_conv2d_33cn:
     tie728_s8_unaligned_conv2d_operation_type a14, a8, a11, a13, a12, a4
     EE.MOVI.32.Q q7, a14, 0  # operation_type q7[0]
 
-    beqz a7, tie728_s8_conv2d_3_3_unaligned_c_n_loop_end # output_channel < 16
+    beqz a7, .Lu33cn_loop_end # output_channel < 16
 
     EE.LD.128.USAR.IP q1, a2, 0  # output sar_byte
     rur.sar_byte a14
 
-    bgez a13, tie728_s8_conv2d_3_3_unaligned_c_n_activation
+    bgez a13, .Lu33cn_act
         l32i a13, a4, 136  # c_remainder: c % 16, replace activation_shift
         EE.MOVI.32.A q7, a12, 0  # operation_type, replace activation_alpha
 
-        beqi a14, 0, tie728_s8_conv2d_3_3_unaligned_c_n_loop0
-        beqi a14, 8, tie728_s8_conv2d_3_3_unaligned_c_n_loop8
+        beqi a14, 0, .Lu33cn_loop0
+        beqi a14, 8, .Lu33cn_loop8
 
     # output sar_byte != 0 && != 8
-        tie728_s8_conv2d_3_3_unaligned_c_n_loop:
+        .Lu33cn_loop:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a11, tie728_s8_conv2d_3_3_unaligned_c_n_loop_no_preload_bias
+            beqz a11, .Lu33cn_loop_no_bias
                 tie728_s8_conv2d_128b_vector_bias a11
-            tie728_s8_conv2d_3_3_unaligned_c_n_loop_no_preload_bias:
+            .Lu33cn_loop_no_bias:
             tie728_s8_conv2d_3_3_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a10, a13, a14
             tie728_s8_conv2d_1_1_unaligned_c_result a12, q0, a8, a11, a12, a13, a15, q1, q2
 
@@ -1671,36 +1671,36 @@ dl_tie728_s8_unaligned_conv2d_33cn:
             dl_tie728_s8_unaligned_store0 q0, a2, a14
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_3_3_unaligned_c_n_loop
-        j tie728_s8_conv2d_3_3_unaligned_c_n_loop_end
+        bnez a7, .Lu33cn_loop
+        j .Lu33cn_loop_end
 
     # output sar_byte == 0
-        tie728_s8_conv2d_3_3_unaligned_c_n_loop0:
+        .Lu33cn_loop0:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a11, tie728_s8_conv2d_3_3_unaligned_c_n_loop0_no_preload_bias
+            beqz a11, .Lu33cn_loop0_no_bias
                 tie728_s8_conv2d_128b_vector_bias a11
-            tie728_s8_conv2d_3_3_unaligned_c_n_loop0_no_preload_bias:
+            .Lu33cn_loop0_no_bias:
             tie728_s8_conv2d_3_3_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a10, a13, a14
             tie728_s8_conv2d_1_1_unaligned_c_result a12, q0, a8, a11, a12, a13, a15, q1, q2
 
             EE.VST.128.IP q0, a2, 16
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_3_3_unaligned_c_n_loop0
-        j tie728_s8_conv2d_3_3_unaligned_c_n_loop_end
+        bnez a7, .Lu33cn_loop0
+        j .Lu33cn_loop_end
 
     # output sar_byte == 8
-        tie728_s8_conv2d_3_3_unaligned_c_n_loop8:
+        .Lu33cn_loop8:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a11, tie728_s8_conv2d_3_3_unaligned_c_n_loop8_no_preload_bias
+            beqz a11, .Lu33cn_loop8_no_bias
                 tie728_s8_conv2d_128b_vector_bias a11
-            tie728_s8_conv2d_3_3_unaligned_c_n_loop8_no_preload_bias:
+            .Lu33cn_loop8_no_bias:
             tie728_s8_conv2d_3_3_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a10, a13, a14
             tie728_s8_conv2d_1_1_unaligned_c_result a12, q0, a8, a11, a12, a13, a15, q1, q2
 
@@ -1708,22 +1708,22 @@ dl_tie728_s8_unaligned_conv2d_33cn:
             dl_tie728_s8_unaligned_store1 q0, a2
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_3_3_unaligned_c_n_loop8
-        j tie728_s8_conv2d_3_3_unaligned_c_n_loop_end
+        bnez a7, .Lu33cn_loop8
+        j .Lu33cn_loop_end
 
-    tie728_s8_conv2d_3_3_unaligned_c_n_activation:
-        beqi a14, 0, tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop0
-        beqi a14, 8, tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop8
+    .Lu33cn_act:
+        beqi a14, 0, .Lu33cn_act_loop0
+        beqi a14, 8, .Lu33cn_act_loop8
 
     # output sar_byte != 0 && != 8
-        tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop:
+        .Lu33cn_act_loop:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a11, tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop_no_preload_bias
+            beqz a11, .Lu33cn_act_loop_no_bias
                 tie728_s8_conv2d_128b_vector_bias a11
-            tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop_no_preload_bias:
+            .Lu33cn_act_loop_no_bias:
             l32i a13, a4, 136  # c_remainder: c % 16, replace activation_shift
             tie728_s8_conv2d_3_3_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a10, a13, a14
 
@@ -1735,18 +1735,18 @@ dl_tie728_s8_unaligned_conv2d_33cn:
             dl_tie728_s8_unaligned_store0 q0, a2, a14
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop
-        j tie728_s8_conv2d_3_3_unaligned_c_n_loop_end
+        bnez a7, .Lu33cn_act_loop
+        j .Lu33cn_loop_end
 
     # output sar_byte == 0
-        tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop0:
+        .Lu33cn_act_loop0:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a11, tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop0_no_preload_bias
+            beqz a11, .Lu33cn_act_loop0_no_bias
                 tie728_s8_conv2d_128b_vector_bias a11
-            tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop0_no_preload_bias:
+            .Lu33cn_act_loop0_no_bias:
             l32i a13, a4, 136  # c_remainder: c % 16, replace activation_shift
             tie728_s8_conv2d_3_3_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a10, a13, a14
 
@@ -1757,18 +1757,18 @@ dl_tie728_s8_unaligned_conv2d_33cn:
             EE.VST.128.IP q0, a2, 16
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop0
-        j tie728_s8_conv2d_3_3_unaligned_c_n_loop_end
+        bnez a7, .Lu33cn_act_loop0
+        j .Lu33cn_loop_end
 
     # output sar_byte == 8
-        tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop8:
+        .Lu33cn_act_loop8:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a11, tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop8_no_preload_bias
+            beqz a11, .Lu33cn_act_loop8_no_bias
                 tie728_s8_conv2d_128b_vector_bias a11
-            tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop8_no_preload_bias:
+            .Lu33cn_act_loop8_no_bias:
             l32i a13, a4, 136  # c_remainder: c % 16, replace activation_shift
             tie728_s8_conv2d_3_3_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a9, a10, a13, a14
 
@@ -1780,50 +1780,50 @@ dl_tie728_s8_unaligned_conv2d_33cn:
             dl_tie728_s8_unaligned_store1 q0, a2
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_3_3_unaligned_c_n_activation_loop8
-        j tie728_s8_conv2d_3_3_unaligned_c_n_loop_end
+        bnez a7, .Lu33cn_act_loop8
+        j .Lu33cn_loop_end
 
-tie728_s8_conv2d_3_3_unaligned_c_n_loop_end:
+.Lu33cn_loop_end:
 
 
     # handle the n remainder
     l32i a13, a4, 140  # n % 16 remainder_n
-    beqz a13, dl_tie728_s8_unaligned_conv2d_33cn_end
+    beqz a13, .Lu33cn_end
 
     l32i a14, a4, 84  # activation_shift
 
-    bgez a14, tie728_s8_conv2d_3_3_c_unaligned_n_activation
+    bgez a14, .Lu33cn_n_act
         l32i a12, a4, 136  # c_remainder: c % 16, replace activation_shift
         # n_remainder
-        tie728_s8_conv2d_3_3_c_unaligned_n_loop:
+        .Lu33cn_n_loop:
             mov a15, a3    # reload input_ptr
             EE.ZERO.ACCX
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a11, tie728_s8_conv2d_3_3_c_unaligned_n_loop_no_preload_bias
+            beqz a11, .Lu33cn_n_loop_no_bias
                 tie728_s8_conv2d_element_bias a11
-            tie728_s8_conv2d_3_3_c_unaligned_n_loop_no_preload_bias:
+            .Lu33cn_n_loop_no_bias:
 
             # complete one n in ACCX
             tie728_s8_conv2d_3_3_c_n_remainder q0, q1, q2, a15, q3, q4, q5, a5, a6, a9, a10, a12, a14, a7
             tie728_s8_conv2d_1_1_n_remainder_result q7, a7, a2, a8, a11, a12, a13, a14, q0
 
             addi a13, a13, -1
-        bnez a13, tie728_s8_conv2d_3_3_c_unaligned_n_loop
-        j dl_tie728_s8_unaligned_conv2d_33cn_end
+        bnez a13, .Lu33cn_n_loop
+        j .Lu33cn_end
 
-    tie728_s8_conv2d_3_3_c_unaligned_n_activation:
+    .Lu33cn_n_act:
         EE.MOVI.32.Q q6, a13, 0 # store remainder_n in q6[0]
 
         # n_remainder
-        tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop:
+        .Lu33cn_n_act_loop:
             mov a15, a3    # reload input_ptr
             EE.ZERO.ACCX
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a11, tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias
+            beqz a11, .Lu33cn_n_act_loop_no_bias
                 tie728_s8_conv2d_element_bias a11
-            tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias:
+            .Lu33cn_n_act_loop_no_bias:
 
             # complete one n in ACCX
             l32i a13, a4, 136  # c_remainder: c % 16, replace activation_shift
@@ -1835,10 +1835,10 @@ tie728_s8_conv2d_3_3_unaligned_c_n_loop_end:
             EE.MOVI.32.A q6, a13, 0 # remainder_n in q6[0]
             addi a13, a13, -1
             EE.MOVI.32.Q q6, a13, 0
-        bnez a13, tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop
+        bnez a13, .Lu33cn_n_act_loop
 
 
-dl_tie728_s8_unaligned_conv2d_33cn_end:
+.Lu33cn_end:
 
     retw
 
@@ -1936,11 +1936,11 @@ dl_tie728_s8_conv2d_hwcn:
     EE.MOVI.32.Q q6, a12, 1 #filter_y_offset
     EE.MOVI.32.Q q6, a11, 2 #filter_n_offset
 
-dl_tie728_s8_conv2d_per_layer_hwcn:
+.Lhwcn_per_layer:
 
-    beqz a13, tie728_s8_conv2d_per_layer_hwcn_no_bias_loop
+    beqz a13, .Lhwcn_per_layer_no_bias_loop
 
-    tie728_s8_conv2d_per_layer_hwcn_bias_loop:
+    .Lhwcn_per_layer_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1950,11 +1950,11 @@ dl_tie728_s8_conv2d_per_layer_hwcn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_hwcn_bias_loop
+    bnez a7, .Lhwcn_per_layer_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_layer_hwcn_no_bias_loop:
+    .Lhwcn_per_layer_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1963,16 +1963,16 @@ dl_tie728_s8_conv2d_per_layer_hwcn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_hwcn_no_bias_loop
+    bnez a7, .Lhwcn_per_layer_no_bias_loop
     retw
 
 
-dl_tie728_s8_conv2d_per_channel_hwcn:
+.Lhwcn_per_channel:
     l32i a8, a4, 104 # filter_channel_factor address
 
-    beqz a13, tie728_s8_conv2d_per_channel_hwcn_no_bias_loop
+    beqz a13, .Lhwcn_per_channel_no_bias_loop
 
-    tie728_s8_conv2d_per_channel_hwcn_bias_loop:
+    .Lhwcn_per_channel_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1983,11 +1983,11 @@ dl_tie728_s8_conv2d_per_channel_hwcn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_hwcn_bias_loop
+    bnez a7, .Lhwcn_per_channel_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_channel_hwcn_no_bias_loop:
+    .Lhwcn_per_channel_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -1996,7 +1996,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_hwcn_no_bias_loop
+    bnez a7, .Lhwcn_per_channel_no_bias_loop
     retw
 
 
@@ -2036,14 +2036,14 @@ dl_tie728_s8_conv2d_hwcn_relu:
     l32i a11, a4, 144   # filter_n_offset
     EE.MOVI.32.Q q6, a12, 1
     EE.MOVI.32.Q q6, a11, 2
-    blti a8, 0, dl_tie728_s8_conv2d_per_channel_hwcn_relu
+    blti a8, 0, .Lhwcn_relu_per_channel
 
 
-dl_tie728_s8_conv2d_per_layer_hwcn_relu:
+.Lhwcn_relu_per_layer:
 
-    beqz a13, tie728_s8_conv2d_per_layer_hwcn_no_bias_relu
+    beqz a13, .Lhwcn_relu_per_layer_no_bias
 
-    tie728_s8_conv2d_per_layer_hwcn_bias_relu_loop:
+    .Lhwcn_relu_per_layer_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -2055,14 +2055,14 @@ dl_tie728_s8_conv2d_per_layer_hwcn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_hwcn_bias_relu_loop
+    bnez a7, .Lhwcn_relu_per_layer_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_layer_hwcn_no_bias_relu:
+    .Lhwcn_relu_per_layer_no_bias:
     l32i a13, a4, 84  # activation_shift
 
-    tie728_s8_conv2d_per_layer_hwcn_no_bias_relu_loop:
+    .Lhwcn_relu_per_layer_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -2072,16 +2072,16 @@ dl_tie728_s8_conv2d_per_layer_hwcn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_hwcn_no_bias_relu_loop
+    bnez a7, .Lhwcn_relu_per_layer_no_bias_loop
     retw
 
 
-dl_tie728_s8_conv2d_per_channel_hwcn_relu:
+.Lhwcn_relu_per_channel:
     l32i a8, a4, 104 # filter_channel_factor address
 
-    beqz a13, tie728_s8_conv2d_per_channel_hwcn_no_bias_relu
+    beqz a13, .Lhwcn_relu_per_channel_no_bias
 
-    tie728_s8_conv2d_per_channel_hwcn_bias_relu_loop:
+    .Lhwcn_relu_per_channel_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -2097,14 +2097,14 @@ dl_tie728_s8_conv2d_per_channel_hwcn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_hwcn_bias_relu_loop
+    bnez a7, .Lhwcn_relu_per_channel_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_channel_hwcn_no_bias_relu:
+    .Lhwcn_relu_per_channel_no_bias:
     l32i a13, a4, 84  # activation_shift
 
-    tie728_s8_conv2d_per_channel_hwcn_no_bias_relu_loop:
+    .Lhwcn_relu_per_channel_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -2114,7 +2114,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn_relu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_hwcn_no_bias_relu_loop
+    bnez a7, .Lhwcn_relu_per_channel_no_bias_loop
     retw
 
 
@@ -2154,14 +2154,14 @@ dl_tie728_s8_conv2d_hwcn_prelu:
     l32i a11, a4, 144
     EE.MOVI.32.Q q6, a12, 1
     EE.MOVI.32.Q q6, a11, 2
-    blti a8, 0, dl_tie728_s8_conv2d_per_channel_hwcn_prelu
+    blti a8, 0, .Lhwcn_prelu_per_channel
 
 
-dl_tie728_s8_conv2d_per_layer_hwcn_prelu:
+.Lhwcn_prelu_per_layer:
 
-    beqz a13, tie728_s8_conv2d_per_layer_hwcn_no_bias_prelu
+    beqz a13, .Lhwcn_prelu_per_layer_no_bias
 
-    tie728_s8_conv2d_per_layer_hwcn_bias_prelu_loop:
+    .Lhwcn_prelu_per_layer_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -2173,14 +2173,14 @@ dl_tie728_s8_conv2d_per_layer_hwcn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_hwcn_bias_prelu_loop
+    bnez a7, .Lhwcn_prelu_per_layer_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_layer_hwcn_no_bias_prelu:
+    .Lhwcn_prelu_per_layer_no_bias:
     l32i a13, a4, 84  # activation_shift
 
-    tie728_s8_conv2d_per_layer_hwcn_no_bias_prelu_loop:
+    .Lhwcn_prelu_per_layer_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -2190,16 +2190,16 @@ dl_tie728_s8_conv2d_per_layer_hwcn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_layer_hwcn_no_bias_prelu_loop
+    bnez a7, .Lhwcn_prelu_per_layer_no_bias_loop
     retw
 
 
-dl_tie728_s8_conv2d_per_channel_hwcn_prelu:
+.Lhwcn_prelu_per_channel:
     l32i a8, a4, 104 # filter_channel_factor address
 
-    beqz a13, tie728_s8_conv2d_per_channel_hwcn_no_bias_prelu
+    beqz a13, .Lhwcn_prelu_per_channel_no_bias
 
-    tie728_s8_conv2d_per_channel_hwcn_bias_prelu_loop:
+    .Lhwcn_prelu_per_channel_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -2213,14 +2213,14 @@ dl_tie728_s8_conv2d_per_channel_hwcn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_hwcn_bias_prelu_loop
+    bnez a7, .Lhwcn_prelu_per_channel_bias_loop
     retw
 
 
-    tie728_s8_conv2d_per_channel_hwcn_no_bias_prelu:
+    .Lhwcn_prelu_per_channel_no_bias:
     l32i a13, a4, 84  # activation_shift
 
-    tie728_s8_conv2d_per_channel_hwcn_no_bias_prelu_loop:
+    .Lhwcn_prelu_per_channel_no_bias_loop:
         mov a15, a3     # reload input_ptr
         EE.ZERO.QACC
 
@@ -2230,7 +2230,7 @@ dl_tie728_s8_conv2d_per_channel_hwcn_prelu:
         EE.VST.128.IP q0, a2, 16
 
         addi a7, a7, -1
-    bnez a7, tie728_s8_conv2d_per_channel_hwcn_no_bias_prelu_loop
+    bnez a7, .Lhwcn_prelu_per_channel_no_bias_loop
     retw
 
 
@@ -2393,27 +2393,27 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
     tie728_s8_unaligned_conv2d_operation_type a12, a8, a13, a11, a14, a4
     EE.MOVI.32.Q q7, a12, 0  # operation_type q7[0]
 
-    beqz a7, tie728_s8_conv2d_h_w_unaligned_c_n_loop_end # output_channel < 16
+    beqz a7, .Luhwcn_loop_end # output_channel < 16
 
     EE.LD.128.USAR.IP q1, a2, 0  # output sar_byte
     rur.sar_byte a12
 
-    bgez a11, tie728_s8_conv2d_h_w_unaligned_c_n_activation
+    bgez a11, .Luhwcn_act
         l32i a9, a4, 136  # c_remainder: c % 16
         EE.MOVI.32.A q7, a10, 0  # operation_type
 
-        beqi a12, 0, tie728_s8_conv2d_h_w_unaligned_c_n_loop0
-        beqi a12, 8, tie728_s8_conv2d_h_w_unaligned_c_n_loop8
+        beqi a12, 0, .Luhwcn_loop0
+        beqi a12, 8, .Luhwcn_loop8
 
     # output sar_byte != 0 && != 8
-        tie728_s8_conv2d_h_w_unaligned_c_n_loop:
+        .Luhwcn_loop:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a13, tie728_s8_conv2d_h_w_unaligned_c_n_loop_no_preload_bias
+            beqz a13, .Luhwcn_loop_no_bias
                 tie728_s8_conv2d_128b_vector_bias a13
-            tie728_s8_conv2d_h_w_unaligned_c_n_loop_no_preload_bias:
+            .Luhwcn_loop_no_bias:
             tie728_s8_conv2d_h_w_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a11, a12, a4, a9, a14, q6
             tie728_s8_conv2d_1_1_unaligned_c_result a10, q0, a8, a13, a11, a11, a11, q1, q2
 
@@ -2421,36 +2421,36 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
             dl_tie728_s8_unaligned_store0 q0, a2, a14
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_h_w_unaligned_c_n_loop
-        j tie728_s8_conv2d_h_w_unaligned_c_n_loop_end
+        bnez a7, .Luhwcn_loop
+        j .Luhwcn_loop_end
 
     # output sar_byte == 0
-        tie728_s8_conv2d_h_w_unaligned_c_n_loop0:
+        .Luhwcn_loop0:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a13, tie728_s8_conv2d_h_w_unaligned_c_n_loop0_no_preload_bias
+            beqz a13, .Luhwcn_loop0_no_bias
                 tie728_s8_conv2d_128b_vector_bias a13
-            tie728_s8_conv2d_h_w_unaligned_c_n_loop0_no_preload_bias:
+            .Luhwcn_loop0_no_bias:
             tie728_s8_conv2d_h_w_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a11, a12, a4, a9, a14, q6
             tie728_s8_conv2d_1_1_unaligned_c_result a10, q0, a8, a13, a11, a11, a11, q1, q2
 
             EE.VST.128.IP q0, a2, 16
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_h_w_unaligned_c_n_loop0
-        j tie728_s8_conv2d_h_w_unaligned_c_n_loop_end
+        bnez a7, .Luhwcn_loop0
+        j .Luhwcn_loop_end
 
     # output sar_byte == 8
-        tie728_s8_conv2d_h_w_unaligned_c_n_loop8:
+        .Luhwcn_loop8:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a13, tie728_s8_conv2d_h_w_unaligned_c_n_loop8_no_preload_bias
+            beqz a13, .Luhwcn_loop8_no_bias
                 tie728_s8_conv2d_128b_vector_bias a13
-            tie728_s8_conv2d_h_w_unaligned_c_n_loop8_no_preload_bias:
+            .Luhwcn_loop8_no_bias:
             tie728_s8_conv2d_h_w_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a11, a12, a4, a9, a14, q6
             tie728_s8_conv2d_1_1_unaligned_c_result a10, q0, a8, a13, a11, a11, a11, q1, q2
 
@@ -2458,27 +2458,27 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
             dl_tie728_s8_unaligned_store1 q0, a2
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_h_w_unaligned_c_n_loop8
-        j tie728_s8_conv2d_h_w_unaligned_c_n_loop_end
+        bnez a7, .Luhwcn_loop8
+        j .Luhwcn_loop_end
 
 
-    tie728_s8_conv2d_h_w_unaligned_c_n_activation:
+    .Luhwcn_act:
         l32i a9, a4, 136  # c_remainder: c % 16
 
         EE.LD.128.USAR.IP q1, a2, 0  # output sar_byte
         rur.sar_byte a12
-        beqi a12, 0, tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop0
-        beqi a12, 8, tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop8
+        beqi a12, 0, .Luhwcn_act_loop0
+        beqi a12, 8, .Luhwcn_act_loop8
 
     # output sar_byte != 0 && != 8
-        tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop:
+        .Luhwcn_act_loop:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a13, tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop_no_preload_bias
+            beqz a13, .Luhwcn_act_loop_no_bias
                 tie728_s8_conv2d_128b_vector_bias a13
-            tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop_no_preload_bias:
+            .Luhwcn_act_loop_no_bias:
             tie728_s8_conv2d_h_w_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a11, a12, a4, a9, a10, q6
             EE.MOVI.32.A q7, a10, 0  # operation_type
             l32i a11, a4, 84  # activation_shift
@@ -2488,18 +2488,18 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
             dl_tie728_s8_unaligned_store0 q0, a2, a11
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop
-        j tie728_s8_conv2d_h_w_unaligned_c_n_loop_end
+        bnez a7, .Luhwcn_act_loop
+        j .Luhwcn_loop_end
 
     # output sar_byte == 0
-        tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop0:
+        .Luhwcn_act_loop0:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a13, tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop0_no_preload_bias
+            beqz a13, .Luhwcn_act_loop0_no_bias
                 tie728_s8_conv2d_128b_vector_bias a13
-            tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop0_no_preload_bias:
+            .Luhwcn_act_loop0_no_bias:
             tie728_s8_conv2d_h_w_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a11, a12, a4, a9, a10, q6
             EE.MOVI.32.A q7, a10, 0  # operation_type
             l32i a11, a4, 84  # activation_shift
@@ -2508,18 +2508,18 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
             EE.VST.128.IP q0, a2, 16
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop0
-        j tie728_s8_conv2d_h_w_unaligned_c_n_loop_end
+        bnez a7, .Luhwcn_act_loop0
+        j .Luhwcn_loop_end
 
     # output sar_byte == 8
-        tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop8:
+        .Luhwcn_act_loop8:
             mov a15, a3    # reload input_ptr
             EE.ZERO.QACC
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a13, tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop8_no_preload_bias
+            beqz a13, .Luhwcn_act_loop8_no_bias
                 tie728_s8_conv2d_128b_vector_bias a13
-            tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop8_no_preload_bias:
+            .Luhwcn_act_loop8_no_bias:
             tie728_s8_conv2d_h_w_unaligned_c q0, q1, q2, a15, q3, q4, a5, a6, a11, a12, a4, a9, a10, q6
             EE.MOVI.32.A q7, a10, 0  # operation_type
             l32i a11, a4, 84  # activation_shift
@@ -2529,15 +2529,15 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
             dl_tie728_s8_unaligned_store1 q0, a2
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_h_w_unaligned_c_n_activation_loop8
-        j tie728_s8_conv2d_h_w_unaligned_c_n_loop_end
+        bnez a7, .Luhwcn_act_loop8
+        j .Luhwcn_loop_end
 
-tie728_s8_conv2d_h_w_unaligned_c_n_loop_end:
+.Luhwcn_loop_end:
 
 
     # handle the n remainder
     l32i a7, a4, 140  # n % 16 remainder_n
-    beqz a7, dl_tie728_s8_unaligned_conv2d_hwcn_end
+    beqz a7, .Luhwcn_end
 
     l32i a5, a4, 160
     l32i a11, a4, 164
@@ -2549,37 +2549,37 @@ tie728_s8_conv2d_h_w_unaligned_c_n_loop_end:
     l32i a9, a4, 136  # c_remainder: c % 16
 
 
-    bgez a11, tie728_s8_conv2d_h_w_c_unaligned_n_activation
+    bgez a11, .Luhwcn_n_act
         # n_remainder
-        tie728_s8_conv2d_h_w_c_unaligned_n_loop:
+        .Luhwcn_n_loop:
             mov a15, a3    # reload input_ptr
             EE.ZERO.ACCX
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a13, tie728_s8_conv2d_h_w_c_unaligned_n_loop_no_preload_bias
+            beqz a13, .Luhwcn_n_loop_no_bias
                 tie728_s8_conv2d_element_bias a13
-            tie728_s8_conv2d_h_w_c_unaligned_n_loop_no_preload_bias:
+            .Luhwcn_n_loop_no_bias:
 
             # complete one n in ACCX
             tie728_s8_conv2d_h_w_c_n_remainder q0, q1, q2, a15, q3, q4, q5, a5, a6, a4, a11, a12, a9, a10, a14, q6
             tie728_s8_conv2d_1_1_n_remainder_result q7, a10, a2, a8, a13, a11, a11, a11, q0
 
             addi a7, a7, -1
-        bnez a7, tie728_s8_conv2d_h_w_c_unaligned_n_loop
-        j dl_tie728_s8_unaligned_conv2d_hwcn_end
+        bnez a7, .Luhwcn_n_loop
+        j .Luhwcn_end
 
-    tie728_s8_conv2d_h_w_c_unaligned_n_activation:
+    .Luhwcn_n_act:
         EE.MOVI.32.Q q6, a7, 0 # store remainder_n in q6[0]
 
         # n_remainder
-        tie728_s8_conv2d_h_w_c_unaligned_n_activation_loop:
+        .Luhwcn_n_act_loop:
             mov a15, a3    # reload input_ptr
             EE.ZERO.ACCX
 
             # Without modifications specifically for per-channel, there may be issues with per-channel
-            beqz a13, tie728_s8_conv2d_h_w_c_unaligned_n_activation_loop_no_preload_bias
+            beqz a13, .Luhwcn_n_act_loop_no_bias
                 tie728_s8_conv2d_element_bias a13
-            tie728_s8_conv2d_h_w_c_unaligned_n_activation_loop_no_preload_bias:
+            .Luhwcn_n_act_loop_no_bias:
 
             # complete one n in ACCX
             tie728_s8_conv2d_h_w_c_n_remainder q0, q1, q2, a15, q3, q4, q5, a5, a6, a4, a11, a12, a9, a10, a7, q6
@@ -2590,9 +2590,9 @@ tie728_s8_conv2d_h_w_unaligned_c_n_loop_end:
             EE.MOVI.32.A q6, a7, 0
             addi a7, a7, -1
             EE.MOVI.32.Q q6, a7, 0 # store remainder_n in q6[0]
-        bnez a7, tie728_s8_conv2d_h_w_c_unaligned_n_activation_loop
+        bnez a7, .Luhwcn_n_act_loop
 
 
-dl_tie728_s8_unaligned_conv2d_hwcn_end:
+.Luhwcn_end:
 
     retw

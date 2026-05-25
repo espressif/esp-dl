@@ -85,7 +85,7 @@ dl_tie728_s16_conv2d_11cn_bias:
     # l32i a12, a4, 76  // activation_alpha
     # l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_11cn_bias_loop:
+.L11cn_bias_loop:
     mov a15, a3    # reload input_ptr
     EE.ZERO.QACC
 
@@ -95,7 +95,7 @@ tie728_s16_conv2d_11cn_bias_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_11cn_bias_loop
+    bnez a7, .L11cn_bias_loop
 
     retw
 
@@ -131,7 +131,7 @@ dl_tie728_s16_conv2d_11cn_bias_relu:
     l32i a12, a4, 76  // activation_alpha
     l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_11cn_bias_relu_loop:
+.L11cn_bias_relu_loop:
     mov a15, a3    # reload input_ptr
     EE.ZERO.QACC
 
@@ -142,7 +142,7 @@ tie728_s16_conv2d_11cn_bias_relu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_11cn_bias_relu_loop
+    bnez a7, .L11cn_bias_relu_loop
 
     retw
 
@@ -178,7 +178,7 @@ dl_tie728_s16_conv2d_11cn_bias_prelu:
     l32i a12, a4, 80  // activation_alpha_ptr
     l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_11cn_bias_prelu_loop:
+.L11cn_bias_prelu_loop:
     mov a15, a3    # reload input_ptr
     EE.ZERO.QACC
 
@@ -189,7 +189,7 @@ tie728_s16_conv2d_11cn_bias_prelu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_11cn_bias_prelu_loop
+    bnez a7, .L11cn_bias_prelu_loop
 
     retw
 
@@ -225,7 +225,7 @@ dl_tie728_s16_conv2d_11cn:
     # l32i a12, a4, 76  // activation_alpha
     # l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_11cn_loop:
+.L11cn_loop:
     mov a15, a3    # reload input_ptr
     EE.ZERO.QACC
 
@@ -234,7 +234,7 @@ tie728_s16_conv2d_11cn_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_11cn_loop
+    bnez a7, .L11cn_loop
 
     retw
 
@@ -270,7 +270,7 @@ dl_tie728_s16_conv2d_11cn_relu:
     l32i a12, a4, 76  // activation_alpha
     l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_11cn_relu_loop:
+.L11cn_relu_loop:
     mov a15, a3    # reload input_ptr
     EE.ZERO.QACC
 
@@ -280,7 +280,7 @@ tie728_s16_conv2d_11cn_relu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_11cn_relu_loop
+    bnez a7, .L11cn_relu_loop
 
     retw
 
@@ -316,7 +316,7 @@ dl_tie728_s16_conv2d_11cn_prelu:
     l32i a12, a4, 80  // activation_alpha_ptr
     l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_11cn_prelu_loop:
+.L11cn_prelu_loop:
     mov a15, a3    # reload input_ptr
     EE.ZERO.QACC
 
@@ -326,7 +326,7 @@ tie728_s16_conv2d_11cn_prelu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_11cn_prelu_loop
+    bnez a7, .L11cn_prelu_loop
 
     retw
 
@@ -411,7 +411,7 @@ dl_tie728_s16_conv2d_33cn_bias:
     # l32i a12, a4, 76  // activation_alpha
     # l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_33cn_bias_loop:
+.L33cn_bias_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -421,7 +421,7 @@ tie728_s16_conv2d_33cn_bias_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_33cn_bias_loop
+    bnez a7, .L33cn_bias_loop
 
     retw
 
@@ -457,7 +457,7 @@ dl_tie728_s16_conv2d_33cn_bias_relu:
     l32i a12, a4, 76  // activation_alpha
     l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_33cn_bias_relu_loop:
+.L33cn_bias_relu_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -468,7 +468,7 @@ tie728_s16_conv2d_33cn_bias_relu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_33cn_bias_relu_loop
+    bnez a7, .L33cn_bias_relu_loop
 
     retw
 
@@ -504,7 +504,7 @@ dl_tie728_s16_conv2d_33cn_bias_prelu:
     l32i a12, a4, 80  // activation_alpha_ptr
     l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_33cn_bias_prelu_loop:
+.L33cn_bias_prelu_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -515,7 +515,7 @@ tie728_s16_conv2d_33cn_bias_prelu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_33cn_bias_prelu_loop
+    bnez a7, .L33cn_bias_prelu_loop
 
     retw
 
@@ -551,7 +551,7 @@ dl_tie728_s16_conv2d_33cn:
     # l32i a12, a4, 76  // activation_alpha
     # l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_33cn_loop:
+.L33cn_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -560,7 +560,7 @@ tie728_s16_conv2d_33cn_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_33cn_loop
+    bnez a7, .L33cn_loop
 
     retw
 
@@ -596,7 +596,7 @@ dl_tie728_s16_conv2d_33cn_relu:
     l32i a12, a4, 76  // activation_alpha
     l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_33cn_relu_loop:
+.L33cn_relu_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -606,7 +606,7 @@ tie728_s16_conv2d_33cn_relu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_33cn_relu_loop
+    bnez a7, .L33cn_relu_loop
 
     retw
 
@@ -642,7 +642,7 @@ dl_tie728_s16_conv2d_33cn_prelu:
     l32i a12, a4, 80  // activation_alpha_ptr
     l32i a13, a4, 84  // activation_shift
 
-tie728_s16_conv2d_33cn_prelu_loop:
+.L33cn_prelu_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -652,7 +652,7 @@ tie728_s16_conv2d_33cn_prelu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_33cn_prelu_loop
+    bnez a7, .L33cn_prelu_loop
 
     retw
 
@@ -733,7 +733,7 @@ dl_tie728_s16_conv2d_hwcn_bias:
 
     l32i a13, a4, 68  // bias
 
-tie728_s16_conv2d_hwcn_bias_loop:
+.Lhwcn_bias_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -743,7 +743,7 @@ tie728_s16_conv2d_hwcn_bias_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_hwcn_bias_loop
+    bnez a7, .Lhwcn_bias_loop
 
     retw
 
@@ -784,7 +784,7 @@ dl_tie728_s16_conv2d_hwcn_bias_relu:
     l32i a13, a4, 68  // bias
     l32i a14, a4, 76  // activation_alpha
 
-tie728_s16_conv2d_hwcn_bias_relu_loop:
+.Lhwcn_bias_relu_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -796,7 +796,7 @@ tie728_s16_conv2d_hwcn_bias_relu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_hwcn_bias_relu_loop
+    bnez a7, .Lhwcn_bias_relu_loop
 
     retw
 
@@ -837,7 +837,7 @@ dl_tie728_s16_conv2d_hwcn_bias_prelu:
     l32i a13, a4, 68  // bias_ptr
     l32i a14, a4, 80  // activation_alpha_ptr
 
-tie728_s16_conv2d_hwcn_bias_prelu_loop:
+.Lhwcn_bias_prelu_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -849,7 +849,7 @@ tie728_s16_conv2d_hwcn_bias_prelu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_hwcn_bias_prelu_loop
+    bnez a7, .Lhwcn_bias_prelu_loop
 
     retw
 
@@ -889,7 +889,7 @@ dl_tie728_s16_conv2d_hwcn:
 
     # l32i a13, a4, 68  // bias
 
-tie728_s16_conv2d_hwcn_loop:
+.Lhwcn_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -898,7 +898,7 @@ tie728_s16_conv2d_hwcn_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_hwcn_loop
+    bnez a7, .Lhwcn_loop
 
     retw
 
@@ -939,7 +939,7 @@ dl_tie728_s16_conv2d_hwcn_relu:
     l32i a13, a4, 76  // activation_alpha
     l32i a14, a4, 84  // activation_shift
 
-tie728_s16_conv2d_hwcn_relu_loop:
+.Lhwcn_relu_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -949,7 +949,7 @@ tie728_s16_conv2d_hwcn_relu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_hwcn_relu_loop
+    bnez a7, .Lhwcn_relu_loop
 
     retw
 
@@ -990,7 +990,7 @@ dl_tie728_s16_conv2d_hwcn_prelu:
     l32i a13, a4, 80  // activation_alpha_ptr
     l32i a14, a4, 84  // activation_shift
 
-tie728_s16_conv2d_hwcn_prelu_loop:
+.Lhwcn_prelu_loop:
     mov a15, a3     # reload input_ptr
     EE.ZERO.QACC
 
@@ -1000,6 +1000,6 @@ tie728_s16_conv2d_hwcn_prelu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a7, a7, -1
-    bnez a7, tie728_s16_conv2d_hwcn_prelu_loop
+    bnez a7, .Lhwcn_prelu_loop
 
     retw

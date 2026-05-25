@@ -556,7 +556,7 @@ dl_tie728_s16_depthwise_conv2d_hwc1_bias:
     # l32i a14, a4,  80  // activation_alpha_ptr
     # l32i a15, a4,  84  // activation_shift
 
-tie728_s16_depthwise_conv2d_hwc1_bias_loop:
+.Lhwc1_bias_loop:
     EE.ZERO.QACC
     tie728_s16_conv2d_128b_vector_bias  a14
     tie728_s16_depthwise_conv2d_hw81 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
@@ -564,7 +564,7 @@ tie728_s16_depthwise_conv2d_hwc1_bias_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
-    bgez a9, tie728_s16_depthwise_conv2d_hwc1_bias_loop
+    bgez a9, .Lhwc1_bias_loop
 
     retw
 
@@ -607,7 +607,7 @@ dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu:
 
     EE.MOVI.32.Q q7, a10, 3
 
-tie728_s16_depthwise_conv2d_hwc1_bias_relu_loop:
+.Lhwc1_bias_relu_loop:
     EE.MOVI.32.A q7, a10, 1
     EE.ZERO.QACC
     tie728_s16_conv2d_128b_vector_bias  a14
@@ -619,7 +619,7 @@ tie728_s16_depthwise_conv2d_hwc1_bias_relu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
-    bgez a9, tie728_s16_depthwise_conv2d_hwc1_bias_relu_loop
+    bgez a9, .Lhwc1_bias_relu_loop
 
     retw
 
@@ -661,7 +661,7 @@ dl_tie728_s16_depthwise_conv2d_hwc1_bias_prelu:
     l32i a14, a4, 68  // bias_ptr
     EE.MOVI.32.Q q7, a10, 3
 
-tie728_s16_depthwise_conv2d_hwc1_bias_prelu_loop:
+.Lhwc1_bias_prelu_loop:
     EE.MOVI.32.A q7, a10, 1
     EE.ZERO.QACC
     tie728_s16_conv2d_128b_vector_bias  a14
@@ -673,7 +673,7 @@ tie728_s16_depthwise_conv2d_hwc1_bias_prelu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
-    bgez a9, tie728_s16_depthwise_conv2d_hwc1_bias_prelu_loop
+    bgez a9, .Lhwc1_bias_prelu_loop
 
     retw
 
@@ -713,14 +713,14 @@ dl_tie728_s16_depthwise_conv2d_hwc1:
     # l32i a14, a4,  80  // activation_alpha_ptr
     # l32i a15, a4,  84  // activation_shift
 
-tie728_s16_depthwise_conv2d_hwc1_loop:
+.Lhwc1_loop:
     EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_hw81 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a15
     tie728_s16_vector_round_result  q0, a10, a11, q6
     EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
-    bgez a9, tie728_s16_depthwise_conv2d_hwc1_loop
+    bgez a9, .Lhwc1_loop
 
     retw
 
@@ -763,7 +763,7 @@ dl_tie728_s16_depthwise_conv2d_hwc1_relu:
 
     EE.MOVI.32.Q q7, a10, 3
 
-tie728_s16_depthwise_conv2d_hwc1_relu_loop:
+.Lhwc1_relu_loop:
     EE.MOVI.32.A q7, a10, 1
     EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_hw81 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a10
@@ -773,7 +773,7 @@ tie728_s16_depthwise_conv2d_hwc1_relu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
-    bgez a9, tie728_s16_depthwise_conv2d_hwc1_relu_loop
+    bgez a9, .Lhwc1_relu_loop
 
     retw
 
@@ -816,7 +816,7 @@ dl_tie728_s16_depthwise_conv2d_hwc1_prelu:
 
     EE.MOVI.32.Q q7, a10, 3
 
-tie728_s16_depthwise_conv2d_hwc1_prelu_loop:
+.Lhwc1_prelu_loop:
     EE.MOVI.32.A q7, a10, 1
     EE.ZERO.QACC
     tie728_s16_depthwise_conv2d_hw81 q0, q1, q2, q3, q4, q5, a3, a5, a6, a7, a8, a11, a12, a13, a4, q7, a10
@@ -826,6 +826,6 @@ tie728_s16_depthwise_conv2d_hwc1_prelu_loop:
     EE.VST.128.IP  q0, a2, 16
 
     addi a9, a9, -1
-    bgez a9, tie728_s16_depthwise_conv2d_hwc1_prelu_loop
+    bgez a9, .Lhwc1_prelu_loop
 
     retw
