@@ -228,6 +228,9 @@ inline ActivationFunction get_activation_function(const std::string &name)
 
 inline void softmax(float *x, int num)
 {
+    if (num <= 0) {
+        return;
+    }
     float max_input = x[0];
     for (int i = 1; i < num; i++) max_input = DL_MAX(max_input, x[i]);
 

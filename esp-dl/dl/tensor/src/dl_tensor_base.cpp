@@ -400,6 +400,13 @@ TensorBase &TensorBase::set_element_ptr(void *data)
 
 TensorBase &TensorBase::set_shape(const std::vector<int> shape)
 {
+    if (shape.size() == 0) {
+        this->size = 1;
+        this->shape = shape;
+        this->axis_offset = {};
+        return *this;
+    }
+
     assert(shape.size() > 0);
     this->size = 1;
     for (int i = 0; i < shape.size(); ++i) {
@@ -702,6 +709,11 @@ TensorBase *TensorBase::transpose(T *input_element,
                                   std::vector<int> &input_axis_offset,
                                   std::vector<int> &perm)
 {
+    if (shape.size() == 0 || input_shape.size() == 0) {
+        ((T *)this->get_element_ptr())[0] = input_element[0];
+        return this;
+    }
+
     if (perm.size() == 0) {
         for (int i = shape.size() - 1; i >= 0; i--) {
             perm.push_back(i);
@@ -1011,6 +1023,12 @@ void _slice(TensorBase *input,
     T *output_element = output->get_element_ptr<T>();
     std::vector<int> input_shape = input->get_shape();
     int dims = input_shape.size();
+
+    if (dims == 0) {
+        output_element[0] = input_element[0];
+        return;
+    }
+
     std::vector<int> loop_start(dims, 0);
     std::vector<int> loop_end = input_shape;
     std::vector<int> loop_step(dims, 1);

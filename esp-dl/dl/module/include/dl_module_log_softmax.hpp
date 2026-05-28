@@ -84,6 +84,10 @@ public:
     void forward_float(float *output_element, int size, std::vector<int> shape, int axis)
     {
         int dims = shape.size();
+        if (dims == 0) {
+            output_element[0] = 0.0f;
+            return;
+        }
         int positive_axis = axis < 0 ? dims + axis : axis;
         int len = shape[positive_axis];
 
@@ -155,12 +159,17 @@ public:
             tool::gen_lut_8bit(m_exp_table, input->exponent, expf);
         }
 
+        assert(output->get_dtype() == DATA_TYPE_FLOAT);
+        float *output_element = (float *)output->get_element_ptr();
+
         int dims = input->get_shape().size();
+        if (dims == 0) {
+            output_element[0] = 0.0f;
+            return;
+        }
         int positive_axis = m_axis < 0 ? dims + m_axis : m_axis;
         int len = input->get_shape()[positive_axis];
         int8_t *input_element = (int8_t *)input->get_element_ptr();
-        assert(output->get_dtype() == DATA_TYPE_FLOAT);
-        float *output_element = (float *)output->get_element_ptr();
         float scale = DL_SCALE(input->exponent);
 
         if (positive_axis == dims - 1) {

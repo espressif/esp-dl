@@ -27,6 +27,8 @@ TensorInfo::TensorInfo(std::string &name,
             this->shape.push_back(shape[i]);
             this->size *= shape[i];
         }
+    } else if (shape.size() == 0) {
+        this->size = 1;
     }
 
     if (dtype == DATA_TYPE_FLOAT || dtype == DATA_TYPE_INT32 || dtype == DATA_TYPE_UINT32) {

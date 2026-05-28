@@ -206,7 +206,7 @@ if __name__ == "__main__":
         "--target",
         type=str,
         default="esp32p4",
-        help="esp32p4, esp32s3 or c, (defaults: esp32p4).",
+        help="esp32p4, esp32s31, esp32s3 or c, (defaults: esp32p4).",
     )
     parser.add_argument(
         "-b",
@@ -251,9 +251,9 @@ if __name__ == "__main__":
             op_test_func = op_test_config[op_type]["test_func"]
             quant_bits = op_test_config[op_type].get("quant_bits", [])
 
-            # Add for per channel testing, only for conv, convtranspose and gemm op on esp32p4 platform.
+            # Add for per channel testing, only for conv, convtranspose and gemm op on esp32p4/esp32s31 platform.
             per_channel_enable = False
-            if args.target in ["esp32p4"] and op_type in [
+            if args.target in ["esp32p4", "esp32s31"] and op_type in [
                 "Conv",
                 "ConvTranspose",
                 "Gemm",

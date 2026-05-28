@@ -1,7 +1,7 @@
 # Operator Support State
 
-| Supported Targets | ESP32 | ESP32-S3 | ESP32-P4 |
-| ----------------- | ----- | -------- | -------- |
+| Supported Targets | ESP32 | ESP32-S3 | ESP32-P4 | ESP32-S31 |
+| ----------------- | ----- | -------- | -------- | --------- |
 
 ## Quantization Strategy
 
@@ -85,4 +85,4 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Transpose[(ESP-DL)](esp-dl/dl/module/include/dl_module_transpose.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Transpose.html)                             | &#10004; | &#10004; | &#10004;  |                                                                                                          |
 | Unsqueeze[(ESP-DL)](esp-dl/dl/module/include/dl_module_unsqueeze.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Unsqueeze.html)                             | &#10004; | &#10004; | &#10004;  |                                                                                                          |
 
-Generation Time: 2026-03-06 16:33:55
+Generation Time: 2026-05-28 20:35:26
