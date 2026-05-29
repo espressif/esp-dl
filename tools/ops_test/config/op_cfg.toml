@@ -3399,7 +3399,7 @@
         bidirectional = false
         bias = true
         batch_first = false
-        export_name_prefix = "gru_seq1_input11_hidden24"
+        export_name_prefix = "lstm_seq1_input11_hidden24"
 
 
         [[ops_test.LSTM.cfg]]
@@ -3409,7 +3409,7 @@
         bidirectional = false
         bias = false
         batch_first = false
-        export_name_prefix = "gru_seq2_input8_hidden27_nobias"
+        export_name_prefix = "lstm_seq2_input8_hidden27_nobias"
 
 
         [[ops_test.LSTM.cfg]]
@@ -3420,7 +3420,7 @@
         bidirectional = false
         bias = true
         batch_first = false
-        export_name_prefix = "gru_seq4_input32_hidden32"
+        export_name_prefix = "lstm_seq4_input32_hidden32"
 
 
         [[ops_test.LSTM.cfg]]
@@ -3431,7 +3431,7 @@
         bidirectional = false
         bias = true
         batch_first = false
-        export_name_prefix = "gru_seq2_input96_hidden128"
+        export_name_prefix = "lstm_seq2_input96_hidden128"
 
 
         [[ops_test.LSTM.cfg]]
@@ -3442,7 +3442,7 @@
         bidirectional = false
         bias = true
         batch_first = true
-        export_name_prefix = "gru_seq4_input32_hidden32_batchfirst"
+        export_name_prefix = "lstm_seq4_input32_hidden32_batchfirst"
 
 
         [[ops_test.LSTM.cfg]]
@@ -3452,7 +3452,7 @@
         bidirectional = true
         bias = true
         batch_first = false
-        export_name_prefix = "gru_seq3_input16_hidden24_bidirectional"
+        export_name_prefix = "lstm_seq3_input16_hidden24_bidirectional"
 
     [ops_test.Pow]
     test_func = "POW_TEST"

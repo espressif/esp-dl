@@ -41,6 +41,11 @@ public:
 
     std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes)
     {
+        if (input_shapes[0].empty()) {
+            ESP_LOGE("Split", "Cannot compute output shape on 0-d scalar tensor");
+            abort();
+        }
+
         if (m_axis < 0) {
             m_axis += input_shapes[0].size();
         }
@@ -82,6 +87,12 @@ public:
     void forward(ModelContext *context, runtime_mode_t mode)
     {
         TensorBase *input = context->get_tensor(m_inputs_index[0]);
+
+        if (input->get_shape().empty()) {
+            ESP_LOGE("Split", "Cannot forward on 0-d scalar tensor.");
+            abort();
+        }
+
         int num_slices = 1;
         int slice_size = 1;
 
