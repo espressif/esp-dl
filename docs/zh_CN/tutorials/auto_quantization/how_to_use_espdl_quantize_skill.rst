@@ -7,7 +7,7 @@
   :local:
   :depth: 2
 
-本文档介绍如何使用 **espdl-quantize skill** 对深度学习模型进行自动量化调优。与 `AutoQuant <how_to_use_AutoQuant.html>`__ 的离线穷举搜索不同，espdl-quantize 是一个**在线迭代、分布感知**的 Agent skill：它会先跑 baseline，再逐轮分析 layerwise 误差分布，并据此自动选择最适合的 esp-ppq 量化方法（如 TQT、混合精度、权重均衡、偏置校正等），反复迭代直至精度收敛或达到上限。
+本文档介绍如何使用 **espdl-quantize skill** 对深度学习模型进行自动量化调优。espdl-quantize 是一个**在线迭代、分布感知**的 Agent skill：它会先跑 baseline，再逐轮分析 layerwise 误差分布，并据此自动选择最适合的 esp-ppq 量化方法（如 TQT、混合精度、权重均衡、偏置校正等），反复迭代直至精度收敛或达到上限。
 
 你只需提供校准数据加载和模型评估逻辑；skill 负责驱动 ``QuantizationSettingFactory.espdl_setting()`` 的迭代搜索。
 

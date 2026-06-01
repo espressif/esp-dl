@@ -83,32 +83,28 @@ def quant_yolo11n(imgsz):
     def collate_fn(batch: torch.Tensor) -> torch.Tensor:
         return batch.to(DEVICE)
 
-    # default setting
     quant_setting = QuantizationSettingFactory.espdl_setting()
+    quant_setting.quantize_activation_setting.calib_algorithm = "percentile"
 
-    """
-    # Mixed-Precision + Horizontal Layer Split Pass Quantization
+    quant_setting.equalization = False
+    quant_setting.equalization_setting.iterations = 10
+    quant_setting.equalization_setting.value_threshold = 0.1
+    quant_setting.equalization_setting.opt_level = 2
 
-    quant_setting.dispatching_table.append(
-        operation='/model.2/cv2/conv/Conv',
-        platform=get_target_platform(TARGET, 16)
-    )
-    quant_setting.dispatching_table.append(
-        operation='/model.3/conv/Conv',
-        platform=get_target_platform(TARGET, 16)
-    )
+    quant_setting.bias_correct = True
+    quant_setting.bias_correct_setting.interested_layers = []
+    quant_setting.bias_correct_setting.block_size = 4
+    quant_setting.bias_correct_setting.steps = 32
 
-    quant_setting.dispatching_table.append(
-        operation='/model.4/cv2/conv/Conv',
-        platform=get_target_platform(TARGET, 16)
-    )
-
-    quant_setting.weight_split = True
-    quant_setting.weight_split_setting.method = 'balance'
-    quant_setting.weight_split_setting.value_threshold = 1.5 #1.5
-    quant_setting.weight_split_setting.interested_layers = ['/model.0/conv/Conv',
-                                                            '/model.1/conv/Conv' ]
-    """
+    quant_setting.tqt_optimization = True
+    tqt_setting = quant_setting.tqt_optimization_setting
+    tqt_setting.lr = 1e-5
+    tqt_setting.steps = 500
+    tqt_setting.block_size = 4
+    tqt_setting.is_scale_trainable = True
+    tqt_setting.gamma = 0.0
+    tqt_setting.int_lambda = 0.0
+    tqt_setting.collecting_device = "cpu"
 
     quant_ppq_graph = espdl_quantize_onnx(
         onnx_import_file=ONNX_PATH,

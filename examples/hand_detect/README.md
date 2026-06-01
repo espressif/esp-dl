@@ -20,10 +20,12 @@ And the detection result of espdet_pico_224_224_hand after int8 quantization on 
 Follow the [quick start](https://docs.espressif.com/projects/esp-dl/en/latest/getting_started/readme.html#quick-start) to flash the example, you will see the output in idf monitor:
 
 ```
-I (1614) hand_detect: [category: 0, score: 0.622459, x1: 322, y1: 154, x2: 377, y2: 208]
-I (1614) hand_detect: [category: 0, score: 0.622459, x1: 137, y1: 243, x2: 185, y2: 271]
-I (1624) hand_detect: [category: 0, score: 0.377541, x1: 328, y1: 334, x2: 397, y2: 380]
-I (1634) main_task: Returned from app_main()
+I (1570) hand_detect: [category: 0, score: 0.622459, x1: 135, y1: 240, x2: 187, y2: 275]
+I (1570) hand_detect: [category: 0, score: 0.437824, x1: 318, y1: 148, x2: 377, y2: 208]
+I (1580) hand_detect: [category: 0, score: 0.377541, x1: 335, y1: 330, x2: 404, y2: 380]
+I (1580) hand_detect: [category: 0, score: 0.320821, x1: 205, y1: 187, x2: 234, y2: 220]
+I (1590) main_task: Returned from app_main()
+
 ```
 
 ## Configurable Options in Menuconfig

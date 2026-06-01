@@ -3,7 +3,7 @@ from ultralytics.nn.modules import Detect, Attention
 from ultralytics.engine.exporter import Exporter, try_export, arange_patch
 from ultralytics.utils import LOGGER, __version__, colorstr
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.torch_utils import get_latest_opset
+from ultralytics.engine.exporter import best_onnx_opset
 import torch
 import onnx
 
@@ -67,9 +67,12 @@ class ESP_Detect_Exporter(Exporter):
             ]
         check_requirements(requirements)
 
-        opset_version = self.args.opset or get_latest_opset()
+        opset = self.args.opset or best_onnx_opset(
+            onnx, cuda="cuda" in self.device.type
+        )
+
         LOGGER.info(
-            f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}..."
+            f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}..."
         )
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["box0", "score0", "box1", "score1", "box2", "score2"]
@@ -87,7 +90,7 @@ class ESP_Detect_Exporter(Exporter):
                 self.im,
                 f,
                 verbose=False,
-                opset_version=opset_version,
+                opset_version=opset,
                 do_constant_folding=False,
                 input_names=["images"],
                 output_names=output_names,
@@ -115,7 +118,7 @@ class ESP_Detect_Exporter(Exporter):
             meta.key, meta.value = k, str(v)
 
         onnx.save(model_onnx, f)
-        return f, model_onnx
+        return f
 
 
 class ESP_YOLO(YOLO):
