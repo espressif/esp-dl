@@ -417,7 +417,11 @@ MemoryChunk *MemoryManagerGreedy::alloc_tensor(TensorInfo *tensor, int mode)
             memory_list.push_back(chunk);
         }
     }
+#if CONFIG_SPIRAM
     tensor->set_offset(chunk->offset);
+#else
+    tensor->set_internal_offset(chunk->offset);
+#endif
     return chunk;
 }
 
