@@ -1,6 +1,8 @@
 .build_docs_template:
   stage: build
   image: "$CI_DOCKER_REGISTRY/esp-idf-doc-env-v6.1:1-1"
+  tags:
+    - build_docs
   needs:
   - job: "check_pre_commit"
     artifacts: false

@@ -130,31 +130,42 @@ std::vector<PoolArgsType<feature_t>> get_pool_args(TensorBase *output,
     args.output_exponent = output->exponent;
 
     args.avg_pool_area = args.filter_height * args.filter_width;
-    int max_value = INT_MAX;
-#if CONFIG_PIE_V2_BOOST
-    if (sizeof(feature_t) == 1) {
-        max_value = 127;
-    } else if (sizeof(feature_t) == 2) {
-        max_value = 32767;
-    }
-#else
-    if (sizeof(feature_t) == 1) {
-        max_value = 64;
-    } else if (sizeof(feature_t) == 2) {
-        max_value = 16384;
-    }
-#endif
-    args.pool_exponent = -tool::calculate_exponent(args.filter_height * args.filter_width, max_value);
-    args.mac_shift = output->exponent - args.pool_exponent - input->exponent;
 
     // for ISA
     int u = 16 / sizeof(feature_t);
     args.c_remainder = (args.input_channel % u) * sizeof(feature_t);
+
+    // pool_exponent / mac_shift / avg_pool_area_inv are only used by the quantized (int8/int16) paths.
+    // For float they are meaningless, and calculate_exponent does not support a float max_value
+    // (INT_MAX), which would hang on PIE_V1 (esp32s3) and log an error on PIE_V2 (esp32p4).
+    if constexpr (!std::is_same_v<feature_t, float>) {
+        int max_value = INT_MAX;
 #if CONFIG_PIE_V2_BOOST
-    args.avg_pool_area_inv = tool::round(1.f / (args.filter_height * args.filter_width) * (1 << (-args.pool_exponent)));
+        if (sizeof(feature_t) == 1) {
+            max_value = 127;
+        } else if (sizeof(feature_t) == 2) {
+            max_value = 32767;
+        }
 #else
-    args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / (args.filter_height * args.filter_width);
+        if (sizeof(feature_t) == 1) {
+            max_value = 64;
+        } else if (sizeof(feature_t) == 2) {
+            max_value = 16384;
+        }
 #endif
+        args.pool_exponent = -tool::calculate_exponent(args.avg_pool_area, max_value);
+        args.mac_shift = output->exponent - args.pool_exponent - input->exponent;
+#if CONFIG_PIE_V2_BOOST
+        args.avg_pool_area_inv = tool::round(1.f / args.avg_pool_area * (1 << (-args.pool_exponent)));
+#else
+        args.avg_pool_area_inv = (1 << (-args.pool_exponent)) / args.avg_pool_area;
+#endif
+    } else {
+        args.pool_exponent = 0;
+        args.mac_shift = 0;
+        args.avg_pool_area_inv = 0;
+    }
+
     int c_div_x = args.input_channel / u;
     if (args.c_remainder != 0 && args.input_x_offset % u == 0 && args.output_x_offset % u == 0 &&
         !((unsigned)&args.input_element[0] & 15) && !((unsigned)&args.output_element[0] & 15)) {
