@@ -103,7 +103,7 @@ esp_err_t MFCC::process_frame(const float *input, int win_len, float *output, fl
 
     // feature = dct_matrix_ * mel_energies [which now have log]
     for (int32_t i = 0; i != m_config.num_ceps; ++i) {
-        output[i] = dotprod_f32(m_dct_matrix + i * m_config.num_mel_bins, mel, m_config.num_mel_bins);
+        base::dotprod(m_dct_matrix + i * m_config.num_mel_bins, mel, output + i, m_config.num_mel_bins, 0);
     }
 
     if (m_lifter_coeffs) {
