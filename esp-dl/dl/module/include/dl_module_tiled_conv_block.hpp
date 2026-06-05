@@ -303,6 +303,26 @@ public:
         const int eff_kH = m_dilations[0] * (kH - 1) + 1;
         const int c_tile = (m_c_tile > 0 && m_c_tile < C_out) ? m_c_tile : C_out;
 
+        // Pre-allocate reusable vectors (avoid heap alloc in hot loop)
+        std::vector<int> tile_pads(4);
+        std::vector<int> tile_input_shape(4);
+        std::vector<int> filter_slice_shape(4);
+        std::vector<int> tile_output_shape(4);
+        std::vector<int> full_tile_shape(4);
+        tile_pads[2] = m_pads[2];
+        tile_pads[3] = m_pads[3];
+        tile_input_shape[0] = 1;
+        tile_input_shape[2] = W_in;
+        tile_input_shape[3] = C_in;
+        filter_slice_shape[0] = kH;
+        filter_slice_shape[1] = kW;
+        filter_slice_shape[2] = C_in;
+        tile_output_shape[0] = 1;
+        tile_output_shape[2] = W_out;
+        full_tile_shape[0] = 1;
+        full_tile_shape[2] = W_out;
+        full_tile_shape[3] = C_out;
+
         for (int h_out = 0; h_out < H_out; h_out += m_tile_h) {
             int tile_h_actual = std::min(m_tile_h, H_out - h_out);
             int tile_n_elements = tile_h_actual * W_out * C_out;
@@ -319,11 +339,12 @@ public:
             int h_in_clamped = std::max(0, h_in_start);
             int actual_h_in  = (h_in_end - h_in_start + 1) - pad_top - pad_bottom;
 
-            std::vector<int> tile_pads = {pad_top, pad_bottom, m_pads[2], m_pads[3]};
+            tile_pads[0] = pad_top;
+            tile_pads[1] = pad_bottom;
 
             T *tile_input_ptr = (T *)input->get_element_ptr()
                                 + h_in_clamped * W_in * C_in;
-            std::vector<int> tile_input_shape = {1, actual_h_in, W_in, C_in};
+            tile_input_shape[1] = actual_h_in;
             TensorBase tile_input(tile_input_shape, tile_input_ptr,
                                   input->exponent, input->dtype, false);
 
@@ -333,11 +354,12 @@ public:
 
                 T *filter_slice_ptr = (T *)filter->get_element_ptr()
                                       + c_start * kH * kW * C_in;
-                std::vector<int> filter_slice_shape = {kH, kW, C_in, c_actual};
+                filter_slice_shape[3] = c_actual;
                 TensorBase filter_slice(filter_slice_shape, filter_slice_ptr,
                                         filter->exponent, filter->dtype, false);
 
-                std::vector<int> tile_output_shape = {1, tile_h_actual, W_out, c_actual};
+                tile_output_shape[1] = tile_h_actual;
+                tile_output_shape[3] = c_actual;
                 TensorBase tile_output(tile_output_shape, output_dst,
                                        m_act1_input_exponent, output->dtype, false);
 
@@ -383,7 +405,7 @@ public:
             }
 
             // Fused activation in-place on L2-cached output
-            std::vector<int> full_tile_shape = {1, tile_h_actual, W_out, C_out};
+            full_tile_shape[1] = tile_h_actual;
             TensorBase full_tile_output(full_tile_shape, output_dst,
                                         m_act1_input_exponent, output->dtype, false);
 
