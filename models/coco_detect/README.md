@@ -4,29 +4,19 @@
 [supported]: https://img.shields.io/badge/-supported-green "supported"
 [no support]: https://img.shields.io/badge/-no_support-red "no support"
 
-| Chip     | YOLO11N_S8_V1          | YOLO11N_S8_V2           | YOLO11N_S8_V3           |  YOLO11N_320_S8_V3      |
-|----------|------------------------|-------------------------|-------------------------|-------------------------|
-| ESP32-S3 | ![alt text][supported] | ![alt text][supported]  | ![alt text][supported]  | ![alt text][supported]  |
-| ESP32-P4 | ![alt text][supported] | ![alt text][supported]  | ![alt text][supported]  | ![alt text][supported]  |
-
-- `yolo11n_s8_v1_s3` and `yolo11n_s8_v1_p4` use [8bit default configuration quantization](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#bit-default-configuration-quantization).
-- `yolo11n_s8_v2_s3` and `yolo11n_s8_v2_p4` use [Mixed-Precision + Horizontal Layer Split Pass Quantization](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#mixed-precision-horizontal-layer-split-pass-quantization).
-- `yolo11n_s8_v3_s3` , `yolo11n_s8_v3_p4` , `yolo11n_320_s8_v3_s3` and `yolo11n_320_s8_v3_p4` use [Quantization-Aware Training](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_deploy_yolo11n.html#quantization-aware-training).
+| Chip     | YOLO11N_S8_V1          |  YOLO11N_320_S8_V1      |
+|----------|------------------------|-------------------------|
+| ESP32-S3 | ![alt text][supported] | ![alt text][supported]  |
+| ESP32-P4 | ![alt text][supported] | ![alt text][supported]  |
 
 ## Model Latency
 
 | name                 | input(h*w*c)  | Flash(MB) | PSRAM(MB) | preprocess(ms) | model(ms) | postprocess(ms) | mAP50-95 on COCO val2017 |
 | ---------------------- | --------------- | ----------- | ----------- | ---------------- | ----------- | ----------------- | -------------------------- |
-|  yolo11n_s8_v1_s3 |  640 * 640 * 3 |  8 |  8 | 51.5 | 26162.6 | 58.6 |  0.307 |
-|  yolo11n_s8_v2_s3 |  640 * 640 * 3 |  16 |  16 | 51.7 | 15981.1 | 59.2 |  0.331 |
-|  yolo11n_s8_v3_s3 |  640 * 640 * 3 |  8 |  8 | 51.7 | 26057.1 | 58.0 |  0.359 |
-|  yolo11n_s8_v1_p4 |  640 * 640 * 3 |  16 |  32 | 17.5 | 2769.8 | 16.0 |  0.307 |
-|  yolo11n_s8_v2_p4 |  640 * 640 * 3 |  16 |  32 | 17.4 | 3260.4 | 16.3 |  0.334 |
-|  yolo11n_s8_v3_p4 |  640 * 640 * 3 |  16 |  32 | 17.3 | 2764.6 | 15.9 |  0.360 |
-|  yolo11n_320_s8_v3_s3 |  320 * 320 * 3 |  8 |  8 | 15.1 | 6184.2 | 17.6 |  0.277 |
-|  yolo11n_320_s8_v3_p4 |  320 * 320 * 3 |  16 |  32 | 5.6 | 600.0 | 5.8 |  0.275 |
-
-Please note that the yolo11n_s8_v2_s3 model requires more than 8MB of PSRAM on ESP32-S3 when processing inputs of size 640 * 640 * 3.
+|  yolo11n_s8_v1_s3 |  640 * 640 * 3 |  8 |  8 | 51.5 | 26014.2 | 58.9 |  0.370 |
+|  yolo11n_s8_v1_p4 |  640 * 640 * 3 |  16 |  32 | 16.0 | 2535.3 | 14.3 |  0.373 |
+|  yolo11n_320_s8_v1_s3 |  320 * 320 * 3 |  8 |  8 | 15.2 | 6161.8 | 19.3 |  0.276 |
+|  yolo11n_320_s8_v1_p4 |  320 * 320 * 3 |  16 |  32 | 5.2 | 550.1 | 5.3 |  0.278 |
 
 ## Model Usage
 
@@ -45,12 +35,8 @@ COCODetect *detect = new COCODetect();
 ```cpp
 // use YOLO11N_S8_V1
 COCODetect *detect = new COCODetect(COCODetect::YOLO11N_S8_V1);
-// use YOLO11N_S8_V2
-// COCODetect *detect = new COCODetect(COCODetect::YOLO11N_S8_V2);
-// use YOLO11N_S8_V3
-// COCODetect *detect = new COCODetect(COCODetect::YOLO11N_S8_V3);
-// use YOLO11N_320_S8_V3
-// COCODetect *detect = new COCODetect(COCODetect::YOLO11N_320_S8_V3);
+// use YOLO11N_320_S8_V1
+// COCODetect *detect = new COCODetect(COCODetect::YOLO11N_320_S8_V1);
 ```
 > [!NOTE] 
 > If multiple models is flashed or stored in sdcard, in addition to the default model, you can pass an explicit parameter to ``COCODetect`` to use one of them.
@@ -71,18 +57,14 @@ See [Kconfig](Kconfig).
 ## Model to Flash
 
 - CONFIG_FLASH_COCO_DETECT_YOLO11N_S8_V1
-- CONFIG_FLASH_COCO_DETECT_YOLO11N_S8_V2
-- CONFIG_FLASH_COCO_DETECT_YOLO11N_S8_V3
-- CONFIG_FLASH_COCO_DETECT_YOLO11N_320_S8_V3
+- CONFIG_FLASH_COCO_DETECT_YOLO11N_320_S8_V1
 
 Whether to flash the model when model location is set to FLASH rodata or FLASH partition.
 
 ## Default Model
 
 - CONFIG_COCO_DETECT_YOLO11N_S8_V1
-- CONFIG_COCO_DETECT_YOLO11N_S8_V2
-- CONFIG_COCO_DETECT_YOLO11N_S8_V3
-- CONFIG_COCO_DETECT_YOLO11N_320_S8_V3
+- CONFIG_COCO_DETECT_YOLO11N_320_S8_V1
 
 Default model to use if no parameter is passed to ``COCODetect``.
 

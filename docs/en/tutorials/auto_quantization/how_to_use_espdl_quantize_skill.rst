@@ -7,7 +7,7 @@ Using the espdl-quantize Skill for Automatic Quantization Tuning
   :local:
   :depth: 2
 
-This document explains how to use the **espdl-quantize skill** to automatically tune the quantization accuracy of deep learning models. Unlike the offline exhaustive search in `AutoQuant <how_to_use_AutoQuant.html>`__, espdl-quantize is an **online, distribution-aware** Agent skill: it first runs a baseline, then iteratively analyzes layer-wise error distributions and automatically selects the most suitable esp-ppq quantization methods (such as TQT, mixed precision, weight equalization, bias correction, etc.), repeating until accuracy converges or the limit is reached.
+This document explains how to use the **espdl-quantize skill** to automatically tune the quantization accuracy of deep learning models. The espdl-quantize is an **online, distribution-aware** Agent skill: it first runs a baseline, then iteratively analyzes layer-wise error distributions and automatically selects the most suitable esp-ppq quantization methods (such as TQT, mixed precision, weight equalization, bias correction, etc.), repeating until accuracy converges or the limit is reached.
 
 You only need to provide the calibration data loading and model evaluation logic; the skill drives the iterative search of ``QuantizationSettingFactory.espdl_setting()``.
 

@@ -93,9 +93,8 @@ Post Training Quantization (PTQ)
 
 - :ref:`Mixed precision quantization <mixed_precision_quantization_label>`
 - :ref:`Layerwise equalization quantization <layerwise_equalization_quantization_label>`
-- :ref:`Horizontal Layer Split Quantization <horizontal_layer_split_label>`
 
 Quantization Aware Training (QAT)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- :ref:`YOLO11n Quantization-Aware Training <quantization_aware_label>`
+
 - :ref:`YOLO11n-pose Quantization-Aware Training <quantization_aware_pose_label>`

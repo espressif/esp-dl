@@ -37,20 +37,8 @@ extern "C" void app_main(void)
     yolo11n_v1->run(img);
     delete yolo11n_v1;
 
-#if !CONFIG_IDF_TARGET_ESP32S3
-    ESP_LOGI(TAG, "yolo11n_v2");
-    COCODetect *yolo11n_v2 = new COCODetect(COCODetect::YOLO11N_S8_V2);
-    yolo11n_v2->run(img);
-    delete yolo11n_v2;
-#endif
-
-    ESP_LOGI(TAG, "yolo11n_v3");
-    COCODetect *yolo11n_v3 = new COCODetect(COCODetect::YOLO11N_S8_V3);
-    yolo11n_v3->run(img);
-    delete yolo11n_v3;
-
     ESP_LOGI(TAG, "yolo11n_320");
-    COCODetect *yolo11n_320_v3 = new COCODetect(COCODetect::YOLO11N_320_S8_V3);
+    COCODetect *yolo11n_320_v3 = new COCODetect(COCODetect::YOLO11N_320_S8_V1);
     yolo11n_320_v3->run(img);
     delete yolo11n_320_v3;
 

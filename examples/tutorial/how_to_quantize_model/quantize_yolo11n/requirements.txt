@@ -1,0 +1,9 @@
+ultralytics==8.4.50
+torch==2.2.0
+torchvision==0.17.0
+onnx==1.17.0
+onnxsim==0.4.36
+onnxruntime>=1.19.0
+opencv-python==4.11.0.86
+numpy==1.24.4
+git+https://github.com/espressif/esp-ppq
