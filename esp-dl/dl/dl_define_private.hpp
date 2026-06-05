@@ -19,7 +19,7 @@
                                 /*!< - 0: mute */
 
 #define DL_FAST_MATH 0 /*!< - 1: use fast math functions, which may have lower accuracy. */
-                        /*!< - 0: use accurate math functions. */
+                       /*!< - 0: use accurate math functions. */
 
 #if CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S3
 #define CONFIG_XTENSA_BOOST 1

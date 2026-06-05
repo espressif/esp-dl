@@ -14,7 +14,7 @@ int32_t reduce_l2(int8_t *input, int32_t size, int32_t stride)
 
     if (stride == 1) {
         int32_t i = 0;
-#if CONFIG_PIE_V1_BOOST
+#if CONFIG_PIE_V1_BOOST || CONFIG_PIE_V2_BOOST
         // Scalar prologue to reach a 16-byte aligned address required by the SIMD load.
         while (i < size && (reinterpret_cast<uintptr_t>(input + i) & 0xF)) {
             int32_t v = input[i];
@@ -22,8 +22,15 @@ int32_t reduce_l2(int8_t *input, int32_t size, int32_t stride)
             i++;
         }
         int32_t aligned_size = (size - i) & ~0xF; // largest multiple of 16 elements
+        // The 40-bit ACCX/XACC cannot saturate before the int32 result itself overflows
+        // (each int8 square <= 2^14, so ~2^25 elements would be needed), so the whole
+        // aligned region is reduced in a single call.
         if (aligned_size > 0) {
+#if CONFIG_PIE_V2_BOOST
+            sum += dl_esp32p4_reduce_l2_s8_aligned(input + i, aligned_size);
+#else
             sum += dl_tie728_reduce_l2_s8_aligned(input + i, aligned_size);
+#endif
             i += aligned_size;
         }
 #else
@@ -57,7 +64,7 @@ int64_t reduce_l2(int16_t *input, int32_t size, int32_t stride)
 
     if (stride == 1) {
         int32_t i = 0;
-#if CONFIG_PIE_V1_BOOST
+#if CONFIG_PIE_V1_BOOST || CONFIG_PIE_V2_BOOST
         // Scalar prologue to reach a 16-byte aligned address required by the SIMD load.
         while (i < size && (reinterpret_cast<uintptr_t>(input + i) & 0xF)) {
             int64_t v = input[i];
@@ -65,9 +72,22 @@ int64_t reduce_l2(int16_t *input, int32_t size, int32_t stride)
             i++;
         }
         int32_t aligned_size = (size - i) & ~0x7; // largest multiple of 8 elements (16 bytes)
-        if (aligned_size > 0) {
-            sum += dl_tie728_reduce_l2_s16_aligned(input + i, aligned_size);
-            i += aligned_size;
+        // Both PIE V1 (tie728) and PIE V2 (esp32p4) accumulate the int16 sum of squares
+        // into a 40-bit saturating ACCX/XACC. Each int16 square can reach ~2^30, so more
+        // than ~512 elements may overflow it. Process the aligned region in chunks of 256
+        // elements (a multiple of 8) and fold each partial result into the 64-bit sum.
+        constexpr int32_t kChunkElems = 256;
+        for (int32_t processed = 0; processed < aligned_size; processed += kChunkElems) {
+            int32_t chunk = aligned_size - processed;
+            if (chunk > kChunkElems) {
+                chunk = kChunkElems;
+            }
+#if CONFIG_PIE_V2_BOOST
+            sum += dl_esp32p4_reduce_l2_s16_aligned(input + i, chunk);
+#else
+            sum += dl_tie728_reduce_l2_s16_aligned(input + i, chunk);
+#endif
+            i += chunk;
         }
 #else
         for (; i + 3 < size; i += 4) {

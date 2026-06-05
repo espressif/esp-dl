@@ -107,9 +107,11 @@ void dotprod(float *input0_ptr, float *input1_ptr, float *output_ptr, int length
 #elif CONFIG_PIE_V1_BOOST
     dl_tie728_dotprod_f32(output_ptr, input0_ptr, input1_ptr, length);
 #else
+    float result = 0.0f;
     for (int i = 0; i < length; i++) {
-        output_ptr[i] = input0_ptr[i] * input1_ptr[i];
+        result += input0_ptr[i] * input1_ptr[i];
     }
+    *output_ptr = result;
 #endif
 }
 

@@ -11,6 +11,72 @@
 namespace fbs {
 
 /**
+    FBS_FILE_FORMAT_EDL1:
+    {
+        char[4]: "EDL1",
+        uint32:  the mode of entru
+        uint32:  the length of data
+        uint8[]:  the data
+    }
+
+    FBS_FILE_FORMAT_PDL1:
+    {
+        "PDL1": char[4]
+        model_num: uint32
+        model1_data_offset: uint32
+        model1_name_offset: uint32
+        model1_name_length: uint32
+        model2_data_offset: uint32
+        model2_name_offset: uint32
+        model2_name_length: uint32
+        ...
+        model1_name,
+        model2_name,
+        ...
+        model1_data(format:FBS_FILE_FORMAT_EDL1),
+        model2_data(format:FBS_FILE_FORMAT_EDL1),
+        ...
+    }
+
+    FBS_FILE_FORMAT_EDL2:
+    {
+        char[4]: "EDL2",
+        uint32:  the mode of entru
+        uint32:  the length of data
+        uint32:  zero padding
+        uint8[]:  the data
+        zero padding
+    }
+
+    FBS_FILE_FORMAT_PDL2:
+    {
+        "PDL2": char[4]
+        model_num: uint32
+        model1_data_offset: uint32
+        model1_name_offset: uint32
+        model1_name_length: uint32
+        model2_data_offset: uint32
+        model2_name_offset: uint32
+        model2_name_length: uint32
+        ...
+        model1_name,
+        model2_name,
+        ...
+        zero padding
+        model1_data(format:FBS_FILE_FORMAT_EDL2),
+        model2_data(format:FBS_FILE_FORMAT_EDL2),
+        ...
+    }
+*/
+typedef enum {
+    FBS_FILE_FORMAT_UNK = 0,  // Unknown format
+    FBS_FILE_FORMAT_EDL1 = 1, // EDL1 format
+    FBS_FILE_FORMAT_PDL1 = 2, // PDL1 format
+    FBS_FILE_FORMAT_EDL2 = 3, // EDL2 format
+    FBS_FILE_FORMAT_PDL2 = 4  // PDL2 format
+} fbs_file_format_t;
+
+/**
  * @brief Class for parser the flatbuffers.
  *
  */
@@ -104,5 +170,32 @@ private:
     model_location_type_t m_location;
     const void *m_fbs_buf;
 };
+
+/**
+ * @brief Get the format of model.
+ *
+ * @param fbs_buf   The buffer of fbs model.
+ * @param model_location    The location of fbs model.
+ *
+ * @return The format of model.
+ */
+fbs_file_format_t get_model_format(const char *fbs_buf, model_location_type_t model_location);
+
+/**
+ * @brief Create a FbsModel object.
+ *
+ * @param fbs_buf   The buffer of fbs model.
+ * @param format    The format of fbs model.
+ * @param model_location    The location of fbs model.
+ * @param offset    The offset of fbs model.
+ * @param key       The key of encrypted model.
+ * @param param_copy    Set to false to avoid copy model parameters from FLASH to PSRAM.
+ */
+FbsModel *create_fbs_model(const char *fbs_buf,
+                           fbs_file_format_t format,
+                           model_location_type_t model_location,
+                           uint32_t offset,
+                           const uint8_t *key,
+                           bool param_copy);
 
 } // namespace fbs

@@ -832,6 +832,9 @@ void dl_esp32p4_dotprod_i16k8o16(int16_t *output_ptr, int8_t *input0_ptr, int16_
 void dl_esp32p4_dotprod_i8k8o16(int16_t *out2_int8, int8_t *in1_int8, int8_t *in2_int8, int shift, int n);
 void dl_esp32p4_dotprod_f32(float *output_ptr, float *input0_ptr, float *input1_ptr, int length);
 
+int32_t dl_esp32p4_reduce_l2_s8_aligned(int8_t *input, int32_t size);
+int64_t dl_esp32p4_reduce_l2_s16_aligned(int16_t *input, int32_t size);
+
 void dl_esp32p4_s8_avg_pool2d_hwc_sum(int32_t *buffer_ptr, int8_t *input_ptr, void *args_ptr);
 
 void dl_esp32p4_rmsnorm_s8(int8_t *output, int8_t *input, float *scale, float *rms, int n);
