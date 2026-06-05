@@ -45,7 +45,7 @@ class ESP_Detect(Detect):
         return one2many + one2one
 
 
-class ESP_Attention(Attention):
+class ESP_Attention_0(Attention):
     def forward(self, x):
         """
         Forward pass of the Attention module.
@@ -62,6 +62,29 @@ class ESP_Attention(Attention):
         x = (v @ attn.transpose(-2, -1)).view(-1, C, H, W) + self.pe(
             v.reshape(-1, C, H, W)
         )
+        x = self.proj(x)
+        return x
+
+class ESP_Attention(Attention):
+    def forward(self, x):
+        """
+        Forward pass of the Attention module.
+        Uses view(-1, ...) to support static shape export without breaking reshape ops.
+        Avoids transposing the large N×N attention matrix by transposing v instead:
+            v @ attn^T  ≡  (attn @ v^T)^T
+        """
+        B, C, H, W = x.shape
+        N = H * W
+        qkv = self.qkv(x)
+        q, k, v = qkv.view(
+            -1, self.num_heads, self.key_dim * 2 + self.head_dim, N
+        ).split([self.key_dim, self.key_dim, self.head_dim], dim=2)
+        attn = (q.transpose(-2, -1) @ k) * self.scale
+        attn = attn.softmax(dim=-1)
+        x = (attn @ v.transpose(-2, -1)).transpose(-2, -1).reshape(-1, C, H, W) + self.pe(
+            v.reshape(-1, C, H, W)
+        )
+
         x = self.proj(x)
         return x
 

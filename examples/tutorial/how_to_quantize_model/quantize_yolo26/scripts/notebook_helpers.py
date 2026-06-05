@@ -7,6 +7,54 @@ from esp_ppq.IR import BaseGraph
 from config import QATConfig
 
 
+# ==========================================================================
+# FP64 Conv Toggle — matches ESP32-P4's 64-bit integer accumulators
+# ==========================================================================
+# The ESP32-P4 uses native 64-bit integer accumulators for INT16 convolutions.
+# PyTorch float32 (24-bit mantissa) truncates large accumulations in dense
+# detection head layers, causing fake mismatches in test vectors.
+# This toggle promotes INT16 Conv to float64 (53-bit mantissa) for bit-exact
+# matching, and should be disabled during calibration/QAT for speed.
+_FP64_CONV_ENABLED = False
+_FP64_CONV_REGISTERED = False
+
+
+def enable_fp64_conv():
+    global _FP64_CONV_ENABLED
+    _FP64_CONV_ENABLED = True
+
+
+def disable_fp64_conv():
+    global _FP64_CONV_ENABLED
+    _FP64_CONV_ENABLED = False
+
+
+def _register_fp64_conv_handler():
+    """Register the FP64 Conv handler once (idempotent)."""
+    global _FP64_CONV_REGISTERED
+    if _FP64_CONV_REGISTERED:
+        return
+    try:
+        from esp_ppq.api import register_operation_handler
+        from esp_ppq.executor.op.torch.default import Conv_forward as _orig_Conv_forward
+        from esp_ppq.core import TargetPlatform as _TP
+
+        def _espdl_int16_conv_fp64(op, values, ctx=None, **kwargs):
+            if not _FP64_CONV_ENABLED:
+                return _orig_Conv_forward(op, values, ctx, **kwargs)
+            promoted = [
+                v.to(torch.float64) if (v is not None and v.is_floating_point()) else v
+                for v in values
+            ]
+            return _orig_Conv_forward(op, promoted, ctx, **kwargs)
+
+        register_operation_handler(_espdl_int16_conv_fp64, 'Conv', _TP.ESPDL_INT16)
+        # register_operation_handler(_espdl_int16_conv_fp64, 'Conv', _TP.ESPDL_INT8)  # DEBUG: disabled
+        _FP64_CONV_REGISTERED = True
+    except Exception as e:
+        print(f"[notebook_helpers] WARNING: Failed to register FP64 Conv handler: {e}")
+
+
 def extract_model_meta():
     tmp_model = ESP_YOLO(QATConfig.PT_FILE)
     detect_head = tmp_model.model.model[-1]
@@ -178,8 +226,19 @@ def eval_espdl_model(
     test_input = torch.from_numpy(im_chw).to(device).float().div(255.0).unsqueeze(0)
 
     # ── 3. Run inference through quantized graph ───────────────────────────
+    # Enforce bit-exact context: SIMULATION mode + FP64 Conv for INT16 layers
+    from esp_ppq_lut import set_simulation_mode, SimulationMode
+    from esp_ppq_lut.emulator import GlobalMode
+    prev_mode = GlobalMode.get()
+    set_simulation_mode(SimulationMode.SIMULATION)
+    _register_fp64_conv_handler()
+    enable_fp64_conv()
+
     executor = TorchExecutor(graph=graph)
     raw_outputs = executor.forward(test_input)
+
+    disable_fp64_conv()
+    set_simulation_mode(prev_mode)
 
     output_keys = list(graph.outputs.keys())
     tv = {name: raw_outputs[i].detach().cpu() for i, name in enumerate(output_keys)}
