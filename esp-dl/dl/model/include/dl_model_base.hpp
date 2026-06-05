@@ -78,13 +78,16 @@ public:
      *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
      * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
+     * @param input_shapes  Optional map to override graph input shapes. The key is the graph input name and the
+     *                      value is the shape. If empty, the shapes stored in the model are used.
      */
     Model(const char *rodata_address_or_partition_label_or_path,
           fbs::model_location_type_t location = fbs::MODEL_LOCATION_IN_FLASH_RODATA,
           int max_internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
           const uint8_t *key = nullptr,
-          bool param_copy = true);
+          bool param_copy = true,
+          const std::map<std::string, std::vector<int>> &input_shapes = {});
 
     /**
      * @brief Create the Model object by rodata address or partition label.
@@ -104,6 +107,8 @@ public:
      *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
      * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
+     * @param input_shapes  Optional map to override graph input shapes. The key is the graph input name and the
+     *                      value is the shape. If empty, the shapes stored in the model are used.
      */
     Model(const char *rodata_address_or_partition_label_or_path,
           int model_index,
@@ -111,7 +116,8 @@ public:
           int max_internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
           const uint8_t *key = nullptr,
-          bool param_copy = true);
+          bool param_copy = true,
+          const std::map<std::string, std::vector<int>> &input_shapes = {});
 
     /**
      * @brief Create the Model object by rodata address or partition label.
@@ -131,6 +137,8 @@ public:
      *                      sacrifices the performance of model inference because the frequency of PSRAM is higher than
      * FLASH. Only takes effect when MODEL_LOCATION_IN_FLASH_RODATA(CONFIG_SPIRAM_RODATA not set) or
      * MODEL_LOCATION_IN_FLASH_PARTITION.
+     * @param input_shapes  Optional map to override graph input shapes. The key is the graph input name and the
+     *                      value is the shape. If empty, the shapes stored in the model are used.
      */
     Model(const char *rodata_address_or_partition_label_or_path,
           const char *model_name,
@@ -138,7 +146,8 @@ public:
           int max_internal_size = 0,
           memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
           const uint8_t *key = nullptr,
-          bool param_copy = true);
+          bool param_copy = true,
+          const std::map<std::string, std::vector<int>> &input_shapes = {});
 
     /**
      * @brief Create the Model object by fbs_model.
@@ -146,8 +155,13 @@ public:
      * @param fbs_model      The fbs model.
      * @param internal_size  Internal ram size, in bytes
      * @param mm_type        Type of memory manager
+     * @param input_shapes   Optional map to override graph input shapes. The key is the graph input name and the
+     *                       value is the shape. If empty, the shapes stored in the model are used.
      */
-    Model(fbs::FbsModel *fbs_model, int internal_size = 0, memory_manager_t mm_type = MEMORY_MANAGER_GREEDY);
+    Model(fbs::FbsModel *fbs_model,
+          int internal_size = 0,
+          memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
+          const std::map<std::string, std::vector<int>> &input_shapes = {});
 
     /**
      * @brief Destroy the Model object.
@@ -244,10 +258,13 @@ public:
      you want to alloc memory on internal RAM first.
      * @param mm_type        Type of memory manager
      * @param preload        Whether to preload the model's parameters to internal ram (not implemented yet)
+     * @param input_shapes   Optional map to override graph input shapes. The key is the graph input name and the
+     *                       value is the shape. If empty, the shapes stored in the model are used.
      */
     virtual void build(size_t max_internal_size,
                        memory_manager_t mm_type = MEMORY_MANAGER_GREEDY,
-                       bool preload = false);
+                       bool preload = false,
+                       const std::map<std::string, std::vector<int>> &input_shapes = {});
 
     /**
      * @brief Run the model module by module.
@@ -276,6 +293,21 @@ public:
     virtual void run(std::map<std::string, TensorBase *> &user_inputs,
                      runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE,
                      std::map<std::string, TensorBase *> user_outputs = {});
+
+    /**
+     * @brief Run a single stage of the model.
+     *
+     * The execution plan is split into `stage_num` near-equal segments and only the segment
+     * indexed by `stage_index` is executed. The stage progress is managed by the caller (no state
+     * is kept inside the model), so a full inference is done by calling this for stage_index from 0
+     * to stage_num - 1. Inputs/outputs are handled the same way as the other run() overloads (assign
+     * inputs before running stage 0, read outputs after running the last stage).
+     *
+     * @param stage_num    Total number of stages to split the execution plan into (>= 1).
+     * @param stage_index  Index of the stage to execute, in range [0, stage_num).
+     * @param mode         Runtime mode.
+     */
+    virtual void run(int stage_num, int stage_index, runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE);
 
     /**
      * @brief Minimize the model.

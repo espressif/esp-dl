@@ -10,11 +10,12 @@ namespace dl {
 
 bool MemoryManagerGreedy::alloc(fbs::FbsModel *fbs_model,
                                 std::vector<dl::module::Module *> &execution_plan,
-                                ModelContext *context)
+                                ModelContext *context,
+                                const std::map<std::string, std::vector<int>> &input_shapes)
 {
     std::vector<TensorInfo *> tensor_info;
     // get all tensor info from flatbuffers
-    get_tensor_info_from_fbs(fbs_model, execution_plan, context, tensor_info);
+    get_tensor_info_from_fbs(fbs_model, execution_plan, context, tensor_info, input_shapes);
 
     // simulate the memory allocation
 #if CONFIG_SPIRAM
@@ -76,7 +77,8 @@ void MemoryManagerGreedy::free()
 void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
                                                    std::vector<dl::module::Module *> execution_plan,
                                                    ModelContext *context,
-                                                   std::vector<TensorInfo *> &tensor_info)
+                                                   std::vector<TensorInfo *> &tensor_info,
+                                                   const std::map<std::string, std::vector<int>> &input_shapes)
 {
     tensor_info.resize(context->get_variable_count());
     // 1. add graph inputs
@@ -89,12 +91,11 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
         index = context->get_variable_index(name);
 
         if (index >= 0) {
-            TensorInfo *info = new TensorInfo(name,
-                                              0,
-                                              -1,
-                                              fbs_model->get_value_info_shape(name),
-                                              fbs_model->get_value_info_dtype(name),
-                                              fbs_model->get_value_info_exponent(name));
+            auto shape_iter = input_shapes.find(name);
+            std::vector<int> shape =
+                (shape_iter != input_shapes.end()) ? shape_iter->second : fbs_model->get_value_info_shape(name);
+            TensorInfo *info = new TensorInfo(
+                name, 0, -1, shape, fbs_model->get_value_info_dtype(name), fbs_model->get_value_info_exponent(name));
             tensor_info[index] = info;
         }
     }
@@ -112,7 +113,7 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
         }
 
         // update the time of tensor by node's inputs
-        std::vector<std::vector<int>> input_shapes;
+        std::vector<std::vector<int>> op_input_shapes;
         fbs_model->get_operation_inputs_and_outputs(sorted_nodes[i], op_inputs, op_outputs);
 
         for (int j = 0; j < op_inputs.size(); j++) {
@@ -130,19 +131,19 @@ void MemoryManagerGreedy::get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
                 auto out_iter = std::find(graph_outputs.begin(), graph_outputs.end(), name);
                 if (out_iter == graph_outputs.end())
                     tensor_info[index]->update_time(i + 1); // free this tensor next step
-                input_shapes.push_back(tensor_info[index]->get_shape());
+                op_input_shapes.push_back(tensor_info[index]->get_shape());
             } else {
                 TensorBase *tensor = context->get_tensor(name);
                 if (tensor) {
-                    input_shapes.push_back(tensor->get_shape());
+                    op_input_shapes.push_back(tensor->get_shape());
                 } else {
-                    input_shapes.push_back({});
+                    op_input_shapes.push_back({});
                 }
             }
         }
 
         // add output tensors
-        std::vector<std::vector<int>> output_shapes = module->get_output_shape(input_shapes);
+        std::vector<std::vector<int>> output_shapes = module->get_output_shape(op_input_shapes);
         if ((module->inplace == MODULE_INPLACE_UNCHANGED_BUFFER || module->inplace == MODULE_INPLACE_CHANGED_BUFFER) &&
             op_outputs.size() == 1) {
             name = op_outputs[0];
