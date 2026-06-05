@@ -211,3 +211,68 @@ dl_esp32p4_dotprod_i8k8o16:
 
     sh t3, 0(a0)
     ret
+
+
+
+/* void dl_esp32p4_dotprod_f32(float *output_ptr, float *input0_ptr, float *input1_ptr, int length); */
+/* The PIE SIMD extension only supports integer datatypes, so the float dot   */
+/* product is implemented with the RISC-V single-precision FPU. The main loop  */
+/* is unrolled by 4 with four independent accumulators to hide fmadd latency.  */
+    .text
+    .global dl_esp32p4_dotprod_f32
+    .type   dl_esp32p4_dotprod_f32, @function
+    #.section .iram1
+    .align 4
+dl_esp32p4_dotprod_f32:
+    /* a0 = float *z (output)
+     * a1 = float *x (input0)
+     * a2 = float *y (input1)
+     * a3 = int length
+     */
+
+    fmv.w.x ft0, zero       // acc0 = 0.0f
+    fmv.w.x ft1, zero       // acc1 = 0.0f
+    fmv.w.x ft2, zero       // acc2 = 0.0f
+    fmv.w.x ft3, zero       // acc3 = 0.0f
+
+    srli t0, a3, 2          // t0 = length / 4 (unrolled iterations)
+    andi t1, a3, 3          // t1 = length % 4 (remainder count)
+
+    beqz t0, loop_tail_dl_esp32p4_dotprod_f32
+
+    loop_main_dl_esp32p4_dotprod_f32:
+        flw ft4, 0(a1)
+        flw ft5, 0(a2)
+        flw ft6, 4(a1)
+        flw ft7, 4(a2)
+        flw ft8, 8(a1)
+        flw ft9, 8(a2)
+        flw ft10, 12(a1)
+        flw ft11, 12(a2)
+
+        fmadd.s ft0, ft4, ft5, ft0
+        fmadd.s ft1, ft6, ft7, ft1
+        fmadd.s ft2, ft8, ft9, ft2
+        fmadd.s ft3, ft10, ft11, ft3
+
+        addi a1, a1, 16
+        addi a2, a2, 16
+        addi t0, t0, -1
+        bnez t0, loop_main_dl_esp32p4_dotprod_f32
+
+    loop_tail_dl_esp32p4_dotprod_f32:
+        beqz t1, reduce_dl_esp32p4_dotprod_f32
+        flw ft4, 0(a1)
+        flw ft5, 0(a2)
+        fmadd.s ft0, ft4, ft5, ft0
+        addi a1, a1, 4
+        addi a2, a2, 4
+        addi t1, t1, -1
+        bnez t1, loop_tail_dl_esp32p4_dotprod_f32
+
+    reduce_dl_esp32p4_dotprod_f32:
+    fadd.s ft0, ft0, ft1
+    fadd.s ft2, ft2, ft3
+    fadd.s ft0, ft0, ft2
+    fsw ft0, 0(a0)
+    ret

@@ -103,6 +103,104 @@ dl_tie728_dotprod_i16k16o16:
 
 
 
+/* void dl_tie728_dotprod_f32(float *output_ptr, float *input0_ptr, float *input1_ptr, int n); */
+/* The PIE SIMD extension only supports integer datatypes, so the float dot   */
+/* product is implemented with the Xtensa LX7 single-precision FPU.           */
+/*                                                                            */
+/* Two code paths are selected at runtime:                                    */
+/*   - Fast path (both inputs 16-byte aligned): EE.LDF.128.IP loads 4 floats  */
+/*     per instruction, so each group of 4 elements costs 2 loads + 4 madd.s. */
+/*   - Scalar path (unaligned inputs): 4-way unrolled lsip loads.             */
+/* Both paths use 4 independent accumulators to hide madd.s latency and a     */
+/* scalar tail loop to process the remaining (n % 4) elements, so any length  */
+/* is handled at full speed (unlike esp-dsp, which falls back to a slow       */
+/* scalar loop whenever n % 4 != 0).                                          */
+    .text
+    .align 4
+    .global dl_tie728_dotprod_f32
+    .type   dl_tie728_dotprod_f32, @function
+dl_tie728_dotprod_f32:
+    /* a2 = float *out
+     * a3 = float *x (input0)
+     * a4 = float *y (input1)
+     * a5 = int n
+     */
+    entry sp, 16
+
+    movi.n a6, 0
+    wfr f0, a6          // acc0 = 0.0f
+    wfr f1, a6          // acc1 = 0.0f
+    wfr f2, a6          // acc2 = 0.0f
+    wfr f3, a6          // acc3 = 0.0f
+
+    // Use the 128-bit load fast path only if both inputs are 16-byte aligned.
+    or a6, a3, a4
+    movi.n a8, 15
+    and a6, a6, a8
+    bnez a6, dl_tie728_dotprod_f32_scalar
+
+    // ---- Fast path: EE.LDF.128.IP loads 4 floats per instruction ----
+    srli a7, a5, 2      // a7 = n / 4
+    loopnez a7, dl_tie728_dotprod_f32_fast_end
+        ee.ldf.128.ip f11, f10, f9, f8, a3, 16   // x[0..3]
+        ee.ldf.128.ip f7, f6, f5, f4, a4, 16     // y[0..3]
+        madd.s f0, f8, f4
+        madd.s f1, f9, f5
+        madd.s f2, f10, f6
+        madd.s f3, f11, f7
+    dl_tie728_dotprod_f32_fast_end:
+
+    add.s f0, f0, f1
+    add.s f2, f2, f3
+    add.s f0, f0, f2
+
+    // tail: process the remaining n % 4 elements
+    extui a7, a5, 0, 2  // a7 = n & 3
+    loopnez a7, dl_tie728_dotprod_f32_fast_tail_end
+        lsip f4, a3, 4
+        lsip f5, a4, 4
+        madd.s f0, f4, f5
+    dl_tie728_dotprod_f32_fast_tail_end:
+
+    ssi f0, a2, 0
+    retw
+
+    // ---- Scalar path: 4-way unrolled lsip loads ----
+dl_tie728_dotprod_f32_scalar:
+    srai a7, a5, 2      // a7 = n / 4 (unrolled iterations)
+    loopnez a7, dl_tie728_dotprod_f32_main_end
+        lsip f4, a3, 4
+        lsip f5, a4, 4
+        madd.s f0, f4, f5
+        lsip f6, a3, 4
+        lsip f7, a4, 4
+        madd.s f1, f6, f7
+        lsip f8, a3, 4
+        lsip f9, a4, 4
+        madd.s f2, f8, f9
+        lsip f10, a3, 4
+        lsip f11, a4, 4
+        madd.s f3, f10, f11
+    dl_tie728_dotprod_f32_main_end:
+
+    // reduce the 4 partial accumulators into f0
+    add.s f0, f0, f1
+    add.s f2, f2, f3
+    add.s f0, f0, f2
+
+    // tail: process the remaining n % 4 elements
+    extui a7, a5, 0, 2  // a7 = n & 3
+    loopnez a7, dl_tie728_dotprod_f32_tail_end
+        lsip f4, a3, 4
+        lsip f5, a4, 4
+        madd.s f0, f4, f5
+    dl_tie728_dotprod_f32_tail_end:
+
+    ssi f0, a2, 0
+    retw
+
+
+
 /** void dl_tie728_vsmul_s16f32(int16_t *in_int16, float* scale, int n);
     for (int i=0; i<n; i++)
     {

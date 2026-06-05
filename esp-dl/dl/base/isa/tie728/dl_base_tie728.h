@@ -450,8 +450,15 @@ void dl_tie728_dotprod_i8k8o16(
     int16_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, int shift, int n, int64_t *rounding_offset);
 void dl_tie728_dotprod_i16k16o16(
     int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int shift, int n, int64_t *rounding_offset);
+void dl_tie728_dotprod_f32(float *output_ptr, float *input0_ptr, float *input1_ptr, int n);
 
 void dl_tie728_vsmul_s16f32(int16_t *input, float *scale, int n);
 
 void dl_tie728_vsmul_s8f32(int8_t *input, float *scale, int n);
+
+int32_t dl_tie728_reduce_l2_s8_aligned(int8_t *input, int32_t size);
+int64_t dl_tie728_reduce_l2_s16_aligned(int16_t *input, int32_t size);
+
+void dl_tie728_rmsnorm_s8(int8_t *output, int8_t *input, float *scale, float *rms, int n);
+void dl_tie728_rmsnorm_s16(int16_t *output, int16_t *input, float *scale, float *rms, int n);
 }
