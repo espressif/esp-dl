@@ -210,6 +210,17 @@ build_example_yolo11_pose:
   variables:
     EXAMPLE_DIR: examples/yolo11_pose
 
+build_example_yolo26_detect:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_yolo26_detect
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+        TARGET: [esp32p4, esp32s3]
+  variables:
+    EXAMPLE_DIR: examples/yolo26_detect
+
 build_example_cat_detect:
   extends:
     - .build_examples_template
