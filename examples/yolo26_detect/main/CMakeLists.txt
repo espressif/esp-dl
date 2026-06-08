@@ -18,11 +18,18 @@ idf_component_register(SRCS "app_main.cpp"
 # 2. Local Project: main/models/[p4|s3]/
 #    like
 #         yolo26n_lego_512_s8_p4.espdl   # Custom Lego Detection (28 Classes)
-set(MODEL_FILENAME "yolo26n_512_s8_p4.espdl")
 # =========================================================================
 
 # --- Internal Logic: Path and Symbol Resolution ---
 idf_build_get_property(target IDF_TARGET)
+
+if(${target} STREQUAL "esp32p4")
+    set(MODEL_FILENAME "yolo26n_512_s8_p4.espdl")
+elseif(${target} STREQUAL "esp32s3")
+    set(MODEL_FILENAME "yolo26n_512_s8_s3.espdl")
+else()
+    message(FATAL_ERROR "YOLO26: Unsupported target ${target}")
+endif()
 
 # FIX: Robust Component Finding
 idf_build_get_property(component_targets __COMPONENT_TARGETS)

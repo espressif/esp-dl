@@ -52,6 +52,9 @@
 .patterns-model_coco_pose: &patterns-model_coco_pose
   - "models/coco_pose/**/*"
 
+.patterns-model_yolo26: &patterns-model_yolo26
+  - "models/yolo26/**/*"
+
 .patterns-model_cat_detect: &patterns-model_cat_detect
   - "models/cat_detect/**/*"
 
@@ -88,6 +91,9 @@
 
 .patterns-example_yolo11_pose: &patterns-example_yolo11_pose
 - "examples/yolo11_pose/**/*"
+
+.patterns-example_yolo26_detect: &patterns-example_yolo26_detect
+- "examples/yolo26_detect/**/*"
 
 .patterns-example_cat_detect: &patterns-example_cat_detect
 - "examples/cat_detect/**/*"
@@ -201,6 +207,8 @@
     - <<: *if-dev-push
       changes: *patterns-esp-dl
     - <<: *if-dev-push
+      changes: *patterns-model_human_face_detect
+    - <<: *if-dev-push
       changes: *patterns-model_human_face_recognition
     - <<: *if-dev-push
       changes: *patterns-example_human_face_recognition
@@ -226,6 +234,8 @@
     - <<: *if-label-build
     - <<: *if-dev-push
       changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_imagenet_cls
     - <<: *if-dev-push
       changes: *patterns-example_mobilenetv2_cls
     - <<: *if-dev-push
@@ -270,6 +280,19 @@
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 
+.rules:build:example_yolo26_detect:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_yolo26
+    - <<: *if-dev-push
+      changes: *patterns-example_yolo26_detect
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
 .rules:build:example_cat_detect:
   rules:
     - <<: *if-protected
@@ -302,6 +325,8 @@
     - <<: *if-label-build
     - <<: *if-dev-push
       changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_hand_detect
     - <<: *if-dev-push
       changes: *patterns-model_hand_gesture_recognition
     - <<: *if-dev-push
