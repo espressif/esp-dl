@@ -81,6 +81,13 @@ TEST_CASE("Test dl model API: run()", "[api]")
         model->run();
         latency.end();
         printf("run:%ld ms\n", latency.get_period() / 1000);
+
+        latency.start();
+        model->run(3, 0);
+        model->run(3, 1);
+        model->run(3, 2);
+        latency.end();
+        printf("run stage by stage:%ld ms\n", latency.get_period() / 1000);
         delete model;
     }
 

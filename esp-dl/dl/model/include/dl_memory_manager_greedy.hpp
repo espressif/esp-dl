@@ -24,11 +24,13 @@ private:
      * @param execution_plan Topologically sorted list of computation modules
      * @param context Runtime context containing device-specific configurations
      * @param tensor_info Output vector to store TensorInfo objects for all tensors
+     * @param input_shapes Optional map to override graph input shapes
      */
     void get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
                                   std::vector<dl::module::Module *> execution_plan,
                                   ModelContext *context,
-                                  std::vector<TensorInfo *> &tensor_info);
+                                  std::vector<TensorInfo *> &tensor_info,
+                                  const std::map<std::string, std::vector<int>> &input_shapes = {});
 
     /**
      * @brief Simulates memory allocation process for given tensor information
@@ -104,9 +106,13 @@ public:
      * @param fbs_model FlatBuffer model containing network architecture
      * @param execution_plan Execution graph ordered by computation dependencies
      * @param context Device-specific runtime configuration
+     * @param input_shapes Optional map to override shapes of graph inputs for allocation
      * @return bool True if successful allocation, false if memory insufficient
      */
-    bool alloc(fbs::FbsModel *fbs_model, std::vector<dl::module::Module *> &execution_plan, ModelContext *context);
+    bool alloc(fbs::FbsModel *fbs_model,
+               std::vector<dl::module::Module *> &execution_plan,
+               ModelContext *context,
+               const std::map<std::string, std::vector<int>> &input_shapes = {}) override;
 
     /**
      * @brief Releases all allocated memory including tensor buffers and memory pools

@@ -15,14 +15,15 @@ Model::Model(const char *rodata_address_or_partition_label_or_path,
              int max_internal_size,
              memory_manager_t mm_type,
              const uint8_t *key,
-             bool param_copy)
+             bool param_copy,
+             const std::map<std::string, std::vector<int>> &input_shapes)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
     m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
     m_model_context = new ModelContext();
     if (this->load(rodata_address_or_partition_label_or_path, location, key, param_copy) == ESP_OK) {
-        this->build(max_internal_size, mm_type);
+        this->build(max_internal_size, mm_type, false, input_shapes);
     }
     m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
@@ -34,14 +35,15 @@ Model::Model(const char *rodata_address_or_partition_label_or_path,
              int max_internal_size,
              memory_manager_t mm_type,
              const uint8_t *key,
-             bool param_copy)
+             bool param_copy,
+             const std::map<std::string, std::vector<int>> &input_shapes)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
     m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
     m_model_context = new ModelContext();
     if (this->load(rodata_address_or_partition_label_or_path, location, model_index, key, param_copy) == ESP_OK) {
-        this->build(max_internal_size, mm_type);
+        this->build(max_internal_size, mm_type, false, input_shapes);
     }
     m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
@@ -53,27 +55,31 @@ Model::Model(const char *rodata_address_or_partition_label_or_path,
              int max_internal_size,
              memory_manager_t mm_type,
              const uint8_t *key,
-             bool param_copy)
+             bool param_copy,
+             const std::map<std::string, std::vector<int>> &input_shapes)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
     m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
     m_model_context = new ModelContext();
     if (this->load(rodata_address_or_partition_label_or_path, location, model_name, key, param_copy) == ESP_OK) {
-        this->build(max_internal_size, mm_type);
+        this->build(max_internal_size, mm_type, false, input_shapes);
     }
     m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
 }
 
-Model::Model(fbs::FbsModel *fbs_model, int max_internal_size, memory_manager_t mm_type)
+Model::Model(fbs::FbsModel *fbs_model,
+             int max_internal_size,
+             memory_manager_t mm_type,
+             const std::map<std::string, std::vector<int>> &input_shapes)
 {
     dl::module::ModuleCreator::get_instance()->register_dl_modules();
     m_internal_size = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
     m_model_context = new ModelContext();
     if (this->load(fbs_model) == ESP_OK) {
-        this->build(max_internal_size, mm_type);
+        this->build(max_internal_size, mm_type, false, input_shapes);
     }
     m_internal_size -= heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_psram_size -= heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
@@ -183,7 +189,10 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
     return ret;
 }
 
-void Model::build(size_t max_internal_size, memory_manager_t mm_type, bool preload)
+void Model::build(size_t max_internal_size,
+                  memory_manager_t mm_type,
+                  bool preload,
+                  const std::map<std::string, std::vector<int>> &input_shapes)
 {
     // If memory manager has been created, delete it and reset all modules
     m_fbs_model->load_map();
@@ -195,7 +204,7 @@ void Model::build(size_t max_internal_size, memory_manager_t mm_type, bool prelo
         ESP_LOGW(TAG, "Memory manager(%d) is not supported yet. Use MemoryManagerGreedy instead.", mm_type);
         memory_manager = new MemoryManagerGreedy(max_internal_size);
     }
-    memory_manager->alloc(m_fbs_model, m_execution_plan, m_model_context);
+    memory_manager->alloc(m_fbs_model, m_execution_plan, m_model_context, input_shapes);
 
     // get the TensorBase* of inputs and outputs
     std::vector<std::string> inputs_tmp = m_fbs_model->get_graph_inputs();
@@ -225,6 +234,28 @@ void Model::run(runtime_mode_t mode)
         } else {
             break;
         }
+    }
+}
+
+void Model::run(int stage_num, int stage_index, runtime_mode_t mode)
+{
+    int plan_size = m_execution_plan.size();
+    if (stage_num < 1) {
+        stage_num = 1;
+    }
+    if (stage_index < 0 || stage_index >= stage_num) {
+        ESP_LOGE(TAG, "Invalid stage_index(%d), it should be in range [0, %d).", stage_index, stage_num);
+        return;
+    }
+
+    // Split the execution plan into stage_num near-equal segments and run the requested one.
+    int start = stage_index * plan_size / stage_num;
+    int end = (stage_index + 1) * plan_size / stage_num;
+
+    // execute each module of the current stage.
+    for (int i = start; i < end; i++) {
+        dl::module::Module *module = m_execution_plan[i];
+        module->forward(m_model_context, mode);
     }
 }
 
@@ -309,7 +340,13 @@ std::map<std::string, TensorBase *> &Model::get_inputs()
 
 TensorBase *Model::get_input()
 {
-    assert(m_inputs.size() == 1);
+    if (m_inputs.empty()) {
+        ESP_LOGE(TAG, "There's no input in model.");
+        return nullptr;
+    }
+    if (m_inputs.size() > 1) {
+        ESP_LOGW(TAG, "The inputs of model is not just one! This API will return the first input");
+    }
     return m_inputs.begin()->second;
 }
 
@@ -342,7 +379,14 @@ std::map<std::string, TensorBase *> &Model::get_outputs()
 
 TensorBase *Model::get_output()
 {
-    assert(m_outputs.size() == 1);
+    if (m_outputs.empty()) {
+        ESP_LOGE(TAG, "There's no output in model.");
+        return nullptr;
+    }
+
+    if (m_outputs.size() > 1) {
+        ESP_LOGW(TAG, "The outputs of model is not just one! This API will return the first output");
+    }
     return m_outputs.begin()->second;
 }
 
@@ -386,9 +430,7 @@ void Model::print()
 
 void Model::minimize()
 {
-    ESP_LOGW(TAG,
-             "Minimize() will delete variables not used in model inference, which will make it impossible to test "
-             "or debug the model.");
+    ESP_LOGW(TAG, "minimize() will delete unused inference variables, breaking model testing/debugging.");
 
     m_internal_size += heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     m_model_context->minimize();
