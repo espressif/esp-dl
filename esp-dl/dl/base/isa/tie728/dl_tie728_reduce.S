@@ -35,7 +35,8 @@ dl_tie728_reduce_l2_s8_aligned:
         bnez a4, dl_tie728_reduce_l2_s8_aligned_loop
     dl_tie728_reduce_l2_s8_aligned_end:
 
-    rur.accx_0 a2                  // return low 32 bits of the 40-bit accumulator
+    ee.srs.accx a2, a4, 0          // a4 == 0 here: arithmetic right shift ACCX by 0,
+                                   // saturate to int32, write result into a2 (return value)
     retw
 
 

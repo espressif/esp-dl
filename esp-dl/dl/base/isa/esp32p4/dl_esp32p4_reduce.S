@@ -9,9 +9,14 @@
  *
  * The XACC accumulator is 40-bit saturating (same as PIE V1 / tie728), so the int16
  * caller must bound the per-call element count (the C dispatcher chunks by 256) to
- * avoid saturation. The accumulated value is read back with ESP.ST.S.XACC.IP, which
- * sign-extends XACC to 8 bytes, so the 40-bit result is returned as a full int64.
+ * avoid saturation.
  *
+ * int8 kernel: the result is extracted with ESP.SRS.S.XACC (arithmetic right shift
+ * by 0), which saturates XACC to a 32-bit signed value directly into the return
+ * register a0.
+ *
+ * int16 kernel: the accumulated value is read back with ESP.ST.S.XACC.IP, which
+ * sign-extends XACC to 8 bytes, so the 40-bit result is returned as a full int64.
  * Note: the PIE engine cannot address sp (x2) directly, so the stack slot pointer
  * is first copied into a PIE-addressable AR (a3) before the XACC store.
  */
@@ -39,11 +44,8 @@ dl_esp32p4_reduce_l2_s8_aligned:
     addi a2, a2, -1
     bnez a2, 0b
 1:
-    addi sp, sp, -16
-    mv   a3, sp                    // sp (x2) is not PIE-addressable
-    esp.st.s.xacc.ip a3, 8         // store sign-extended 64-bit XACC to stack
-    lw   a0, 0(sp)                 // low 32 bits -> int32 return value
-    addi sp, sp, 16
+    esp.srs.s.xacc a0, a2          // a2 == 0 here: arithmetic right shift XACC by 0,
+                                   // saturate to int32, write result into a0 (return value)
     ret
 
 
