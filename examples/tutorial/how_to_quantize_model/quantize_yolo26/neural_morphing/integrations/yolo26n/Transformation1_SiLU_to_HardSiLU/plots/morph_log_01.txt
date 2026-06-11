@@ -1,0 +1,536 @@
+Neural Morphing Run #01
+Strategy: SiLUToHardSiLUPPQStrategy
+  lr=0.001, steps=4000, patience=2
+  min_cosine=0.9908, scale_bounds=(0.985, 1.015)
+================================================================================
+
+Block 1/130: [Graph Block from /model.0/conv/Conv to /model.0/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.0/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.011923053301870823 -> 0.004297434352338314
+  Duration:     337.8s
+  Cosine:       0.999794  (req >= 0.9908)  PASS
+  Scale:        1.001503  (req (0.985, 1.015))  PASS
+
+Block 2/130: [Graph Block from /model.1/conv/Conv to /model.1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.02624983713030815 -> 0.017100315541028976
+  Duration:     130.7s
+  Cosine:       0.999145  (req >= 0.9908)  PASS
+  Scale:        1.000107  (req (0.985, 1.015))  PASS
+
+Block 3/130: [Graph Block from /model.2/cv1/conv/Conv to /model.2/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.2/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.02760493941605091 -> 0.015304174274206161
+  Duration:     237.2s
+  Cosine:       0.998414  (req >= 0.9908)  PASS
+  Scale:        0.998862  (req (0.985, 1.015))  PASS
+
+Block 4/130: [Graph Block from /model.2/m.0/cv1/conv/Conv to /model.2/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.2/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.055451493710279465 -> 0.002686323132365942
+  Duration:     70.2s
+  Cosine:       0.998668  (req >= 0.9908)  PASS
+  Scale:        0.999047  (req (0.985, 1.015))  PASS
+
+Block 5/130: [Graph Block from /model.2/m.0/cv2/conv/Conv to /model.2/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.2/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.04625467211008072 -> 0.03291244059801102
+  Duration:     116.4s
+  Cosine:       0.996678  (req >= 0.9908)  PASS
+  Scale:        0.995439  (req (0.985, 1.015))  PASS
+
+Block 6/130: [Graph Block from /model.2/cv2/conv/Conv to /model.2/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.2/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.031770721077919006 -> 0.013359509408473969
+  Duration:     493.9s
+  Cosine:       0.996918  (req >= 0.9908)  PASS
+  Scale:        0.997041  (req (0.985, 1.015))  PASS
+
+Block 7/130: [Graph Block from /model.3/conv/Conv to /model.3/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.3/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.02548183873295784 -> 0.0048423646949231625
+  Duration:     88.5s
+  Cosine:       0.998591  (req >= 0.9908)  PASS
+  Scale:        0.998686  (req (0.985, 1.015))  PASS
+
+Block 8/130: [Graph Block from /model.4/cv1/conv/Conv to /model.4/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.4/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.026796653866767883 -> 0.006862205918878317
+  Duration:     81.4s
+  Cosine:       0.997722  (req >= 0.9908)  PASS
+  Scale:        0.994841  (req (0.985, 1.015))  PASS
+
+Block 9/130: [Graph Block from /model.4/m.0/cv1/conv/Conv to /model.4/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.4/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.022150816395878792 -> 0.005555802024900913
+  Duration:     62.6s
+  Cosine:       0.998376  (req >= 0.9908)  PASS
+  Scale:        1.005892  (req (0.985, 1.015))  PASS
+
+Block 10/130: [Graph Block from /model.4/m.0/cv2/conv/Conv to /model.4/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.4/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.028199099004268646 -> 0.00988877471536398
+  Duration:     42.6s
+  Cosine:       0.997572  (req >= 0.9908)  PASS
+  Scale:        0.991651  (req (0.985, 1.015))  PASS
+
+Block 11/130: [Graph Block from /model.4/cv2/conv/Conv to /model.4/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.4/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.14220723509788513 -> 0.024284416809678078
+  Duration:     132.6s
+  Cosine:       0.989419  (req >= 0.9908)  FAIL
+  Scale:        0.988898  (req (0.985, 1.015))  PASS
+
+Block 12/130: [Graph Block from /model.5/conv/Conv to /model.5/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.5/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.03943031281232834 -> 0.006755770184099674
+  Duration:     30.1s
+  Cosine:       0.997770  (req >= 0.9908)  PASS
+  Scale:        1.002553  (req (0.985, 1.015))  PASS
+
+Block 13/130: [Graph Block from /model.6/cv1/conv/Conv to /model.6/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.6/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.04604348540306091 -> 0.012625562027096748
+  Duration:     21.6s
+  Cosine:       0.995049  (req >= 0.9908)  PASS
+  Scale:        0.992598  (req (0.985, 1.015))  PASS
+
+Block 14/130: [Graph Block from /model.6/m.0/cv1/conv/Conv to /model.6/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.6/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.02614525333046913 -> 0.007650368381291628
+  Duration:     29.4s
+  Cosine:       0.996695  (req >= 0.9908)  PASS
+  Scale:        0.995128  (req (0.985, 1.015))  PASS
+
+Block 15/130: [Graph Block from /model.6/m.0/m/m.0/cv1/conv/Conv to /model.6/m.0/m/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.6/m.0/m/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.12035073339939117 -> 0.02192709594964981
+  Duration:     13.8s
+  Cosine:       0.988997  (req >= 0.9908)  FAIL
+  Scale:        0.992787  (req (0.985, 1.015))  PASS
+
+Block 16/130: [Graph Block from /model.6/m.0/m/m.0/cv2/conv/Conv to /model.6/m.0/m/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.6/m.0/m/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.06254847347736359 -> 0.01103740930557251
+  Duration:     14.5s
+  Cosine:       0.995056  (req >= 0.9908)  PASS
+  Scale:        0.995905  (req (0.985, 1.015))  PASS
+
+Block 17/130: [Graph Block from /model.6/m.0/m/m.1/cv1/conv/Conv to /model.6/m.0/m/m.1/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.6/m.0/m/m.1/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.10125245898962021 -> 0.015691891312599182
+  Duration:     9.3s
+  Cosine:       0.993097  (req >= 0.9908)  PASS
+  Scale:        0.998596  (req (0.985, 1.015))  PASS
+
+Block 18/130: [Graph Block from /model.6/m.0/m/m.1/cv2/conv/Conv to /model.6/m.0/m/m.1/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.6/m.0/m/m.1/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.03545770049095154 -> 0.01316913403570652
+  Duration:     18.1s
+  Cosine:       0.997759  (req >= 0.9908)  PASS
+  Scale:        1.001633  (req (0.985, 1.015))  PASS
+
+Block 19/130: [Graph Block from /model.6/m.0/cv2/conv/Conv to /model.6/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.6/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.06333005428314209 -> 0.022108476608991623
+  Duration:     20.8s
+  Cosine:       0.991118  (req >= 0.9908)  PASS
+  Scale:        0.993773  (req (0.985, 1.015))  PASS
+
+Block 20/130: [Graph Block from /model.6/m.0/cv3/conv/Conv to /model.6/m.0/cv3/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.6/m.0/cv3/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.0681561678647995 -> 0.019067812711000443
+  Duration:     13.1s
+  Cosine:       0.992388  (req >= 0.9908)  PASS
+  Scale:        0.991689  (req (0.985, 1.015))  PASS
+
+Block 21/130: [Graph Block from /model.6/cv2/conv/Conv to /model.6/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.6/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.11534352600574493 -> 0.019752681255340576
+  Duration:     24.5s
+  Cosine:       0.991467  (req >= 0.9908)  PASS
+  Scale:        0.993095  (req (0.985, 1.015))  PASS
+
+Block 22/130: [Graph Block from /model.7/conv/Conv to /model.7/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.7/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.07827441394329071 -> 0.014121189713478088
+  Duration:     13.8s
+  Cosine:       0.994286  (req >= 0.9908)  PASS
+  Scale:        0.995651  (req (0.985, 1.015))  PASS
+
+Block 23/130: [Graph Block from /model.8/cv1/conv/Conv to /model.8/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.8/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.09236974269151688 -> 0.022301029413938522
+  Duration:     12.3s
+  Cosine:       0.990738  (req >= 0.9908)  FAIL
+  Scale:        0.991866  (req (0.985, 1.015))  PASS
+
+Block 24/130: [Graph Block from /model.8/m.0/cv1/conv/Conv to /model.8/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.8/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.09741901606321335 -> 0.013445405289530754
+  Duration:     16.3s
+  Cosine:       0.994008  (req >= 0.9908)  PASS
+  Scale:        0.994307  (req (0.985, 1.015))  PASS
+
+Block 25/130: [Graph Block from /model.8/m.0/m/m.0/cv1/conv/Conv to /model.8/m.0/m/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.8/m.0/m/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.09672440588474274 -> 0.020308975130319595
+  Duration:     8.7s
+  Cosine:       0.990994  (req >= 0.9908)  PASS
+  Scale:        0.992754  (req (0.985, 1.015))  PASS
+
+Block 26/130: [Graph Block from /model.8/m.0/m/m.0/cv2/conv/Conv to /model.8/m.0/m/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.8/m.0/m/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.048541225492954254 -> 0.014692260883748531
+  Duration:     5.9s
+  Cosine:       0.994934  (req >= 0.9908)  PASS
+  Scale:        0.989925  (req (0.985, 1.015))  PASS
+
+Block 27/130: [Graph Block from /model.8/m.0/m/m.1/cv1/conv/Conv to /model.8/m.0/m/m.1/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.8/m.0/m/m.1/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.06436128169298172 -> 0.014863586984574795
+  Duration:     6.5s
+  Cosine:       0.994082  (req >= 0.9908)  PASS
+  Scale:        0.994740  (req (0.985, 1.015))  PASS
+
+Block 28/130: [Graph Block from /model.8/m.0/m/m.1/cv2/conv/Conv to /model.8/m.0/m/m.1/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.8/m.0/m/m.1/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.03947046399116516 -> 0.01943991333246231
+  Duration:     6.5s
+  Cosine:       0.996647  (req >= 0.9908)  PASS
+  Scale:        0.996418  (req (0.985, 1.015))  PASS
+
+Block 29/130: [Graph Block from /model.8/m.0/cv2/conv/Conv to /model.8/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.8/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.06334765255451202 -> 0.02898363210260868
+  Duration:     13.4s
+  Cosine:       0.988976  (req >= 0.9908)  FAIL
+  Scale:        0.991376  (req (0.985, 1.015))  PASS
+
+Block 30/130: [Graph Block from /model.8/m.0/cv3/conv/Conv to /model.8/m.0/cv3/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.8/m.0/cv3/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.08504370599985123 -> 0.01908274181187153
+  Duration:     8.1s
+  Cosine:       0.992136  (req >= 0.9908)  PASS
+  Scale:        0.991170  (req (0.985, 1.015))  PASS
+
+Block 31/130: [Graph Block from /model.8/cv2/conv/Conv to /model.8/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.8/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.07469536364078522 -> 0.013842221349477768
+  Duration:     10.8s
+  Cosine:       0.994444  (req >= 0.9908)  PASS
+  Scale:        0.995216  (req (0.985, 1.015))  PASS
+
+Block 33/130: [Graph Block from /model.9/cv2/conv/Conv to /model.9/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.9/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.16869091987609863 -> 0.03519397974014282
+  Duration:     8.5s
+  Cosine:       0.983489  (req >= 0.9908)  FAIL
+  Scale:        1.000661  (req (0.985, 1.015))  PASS
+
+Block 34/130: [Graph Block from /model.10/cv1/conv/Conv to /model.10/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.10/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.057917870581150055 -> 0.024429384618997574
+  Duration:     12.2s
+  Cosine:       0.991680  (req >= 0.9908)  PASS
+  Scale:        0.990898  (req (0.985, 1.015))  PASS
+
+Block 40/130: [Graph Block from /model.10/m/m.0/ffn/ffn.0/conv/Conv to /model.10/m/m.0/ffn/ffn.0/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.10/m/m.0/ffn/ffn.0/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.1119132861495018 -> 0.03623412549495697
+  Duration:     8.5s
+  Cosine:       0.982720  (req >= 0.9908)  FAIL
+  Scale:        0.998489  (req (0.985, 1.015))  PASS
+
+Block 42/130: [Graph Block from /model.10/cv2/conv/Conv to /model.10/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.10/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.16522087156772614 -> 0.028754085302352905
+  Duration:     6.5s
+  Cosine:       0.986155  (req >= 0.9908)  FAIL
+  Scale:        1.001336  (req (0.985, 1.015))  PASS
+
+Block 43/130: [Graph Block from /model.13/cv1/conv/Conv to /model.13/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.13/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.04965446516871452 -> 0.011850276961922646
+  Duration:     30.8s
+  Cosine:       0.995315  (req >= 0.9908)  PASS
+  Scale:        0.992215  (req (0.985, 1.015))  PASS
+
+Block 44/130: [Graph Block from /model.13/m.0/cv1/conv/Conv to /model.13/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.13/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.04530341923236847 -> 0.011711993254721165
+  Duration:     19.0s
+  Cosine:       0.994542  (req >= 0.9908)  PASS
+  Scale:        0.994710  (req (0.985, 1.015))  PASS
+
+Block 45/130: [Graph Block from /model.13/m.0/m/m.0/cv1/conv/Conv to /model.13/m.0/m/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.13/m.0/m/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.13651211559772491 -> 0.0284670852124691
+  Duration:     13.6s
+  Cosine:       0.985006  (req >= 0.9908)  FAIL
+  Scale:        0.983483  (req (0.985, 1.015))  FAIL
+
+Block 46/130: [Graph Block from /model.13/m.0/m/m.0/cv2/conv/Conv to /model.13/m.0/m/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.13/m.0/m/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.04272190481424332 -> 0.014621667563915253
+  Duration:     15.2s
+  Cosine:       0.994300  (req >= 0.9908)  PASS
+  Scale:        0.993141  (req (0.985, 1.015))  PASS
+
+Block 47/130: [Graph Block from /model.13/m.0/m/m.1/cv1/conv/Conv to /model.13/m.0/m/m.1/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.13/m.0/m/m.1/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.12512503564357758 -> 0.023062925785779953
+  Duration:     20.9s
+  Cosine:       0.988651  (req >= 0.9908)  FAIL
+  Scale:        0.991864  (req (0.985, 1.015))  PASS
+
+Block 48/130: [Graph Block from /model.13/m.0/m/m.1/cv2/conv/Conv to /model.13/m.0/m/m.1/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.13/m.0/m/m.1/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.04337059706449509 -> 0.019211655482649803
+  Duration:     35.0s
+  Cosine:       0.997297  (req >= 0.9908)  PASS
+  Scale:        1.000924  (req (0.985, 1.015))  PASS
+
+Block 49/130: [Graph Block from /model.13/m.0/cv2/conv/Conv to /model.13/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.13/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.09068338572978973 -> 0.03224986791610718
+  Duration:     49.0s
+  Cosine:       0.984959  (req >= 0.9908)  FAIL
+  Scale:        0.987342  (req (0.985, 1.015))  PASS
+
+Block 50/130: [Graph Block from /model.13/m.0/cv3/conv/Conv to /model.13/m.0/cv3/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.13/m.0/cv3/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.08832989633083344 -> 0.02648906596004963
+  Duration:     25.1s
+  Cosine:       0.987555  (req >= 0.9908)  FAIL
+  Scale:        0.991569  (req (0.985, 1.015))  PASS
+
+Block 51/130: [Graph Block from /model.13/cv2/conv/Conv to /model.13/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.13/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.09418004006147385 -> 0.017446396872401237
+  Duration:     43.6s
+  Cosine:       0.992267  (req >= 0.9908)  PASS
+  Scale:        0.990421  (req (0.985, 1.015))  PASS
+
+Block 52/130: [Graph Block from /model.16/cv1/conv/Conv to /model.16/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.16/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.02454587258398533 -> 0.006582842208445072
+  Duration:     234.2s
+  Cosine:       0.997742  (req >= 0.9908)  PASS
+  Scale:        0.997323  (req (0.985, 1.015))  PASS
+
+Block 53/130: [Graph Block from /model.16/m.0/cv1/conv/Conv to /model.16/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.16/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.02299305982887745 -> 0.004178009461611509
+  Duration:     45.2s
+  Cosine:       0.998028  (req >= 0.9908)  PASS
+  Scale:        0.999308  (req (0.985, 1.015))  PASS
+
+Block 54/130: [Graph Block from /model.16/m.0/m/m.0/cv1/conv/Conv to /model.16/m.0/m/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.16/m.0/m/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.06995212286710739 -> 0.023294107988476753
+  Duration:     46.8s
+  Cosine:       0.987827  (req >= 0.9908)  FAIL
+  Scale:        0.988862  (req (0.985, 1.015))  PASS
+
+Block 55/130: [Graph Block from /model.16/m.0/m/m.0/cv2/conv/Conv to /model.16/m.0/m/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.16/m.0/m/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.06279057264328003 -> 0.01582757756114006
+  Duration:     49.5s
+  Cosine:       0.992381  (req >= 0.9908)  PASS
+  Scale:        0.993492  (req (0.985, 1.015))  PASS
+
+Block 56/130: [Graph Block from /model.16/m.0/m/m.1/cv1/conv/Conv to /model.16/m.0/m/m.1/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.16/m.0/m/m.1/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.03954773023724556 -> 0.005519209895282984
+  Duration:     48.8s
+  Cosine:       0.998075  (req >= 0.9908)  PASS
+  Scale:        0.998295  (req (0.985, 1.015))  PASS
+
+Block 57/130: [Graph Block from /model.16/m.0/m/m.1/cv2/conv/Conv to /model.16/m.0/m/m.1/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.16/m.0/m/m.1/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.04531238600611687 -> 0.028569646179676056
+  Duration:     38.8s
+  Cosine:       0.997731  (req >= 0.9908)  PASS
+  Scale:        0.997999  (req (0.985, 1.015))  PASS
+
+Block 58/130: [Graph Block from /model.16/m.0/cv2/conv/Conv to /model.16/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.16/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.04250026121735573 -> 0.011557623744010925
+  Duration:     55.8s
+  Cosine:       0.996727  (req >= 0.9908)  PASS
+  Scale:        0.993564  (req (0.985, 1.015))  PASS
+
+Block 59/130: [Graph Block from /model.16/m.0/cv3/conv/Conv to /model.16/m.0/cv3/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.16/m.0/cv3/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.05049041658639908 -> 0.022691180929541588
+  Duration:     70.1s
+  Cosine:       0.992693  (req >= 0.9908)  PASS
+  Scale:        0.988265  (req (0.985, 1.015))  PASS
+
+Block 61/130: [Graph Block from /model.17/conv/Conv to /model.17/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.17/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.11813513934612274 -> 0.021816911175847054
+  Duration:     40.7s
+  Cosine:       0.988853  (req >= 0.9908)  FAIL
+  Scale:        0.988621  (req (0.985, 1.015))  PASS
+
+Block 62/130: [Graph Block from /model.19/cv1/conv/Conv to /model.19/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.19/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.07086265832185745 -> 0.022397885099053383
+  Duration:     65.6s
+  Cosine:       0.990045  (req >= 0.9908)  FAIL
+  Scale:        0.988585  (req (0.985, 1.015))  PASS
+
+Block 63/130: [Graph Block from /model.19/m.0/cv1/conv/Conv to /model.19/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.19/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.06106527894735336 -> 0.005272245034575462
+  Duration:     45.8s
+  Cosine:       0.997450  (req >= 0.9908)  PASS
+  Scale:        0.994322  (req (0.985, 1.015))  PASS
+
+Block 64/130: [Graph Block from /model.19/m.0/m/m.0/cv1/conv/Conv to /model.19/m.0/m/m.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.19/m.0/m/m.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.12308701872825623 -> 0.02934613637626171
+  Duration:     38.6s
+  Cosine:       0.985626  (req >= 0.9908)  FAIL
+  Scale:        0.989384  (req (0.985, 1.015))  PASS
+
+Block 65/130: [Graph Block from /model.19/m.0/m/m.0/cv2/conv/Conv to /model.19/m.0/m/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.19/m.0/m/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.07456661760807037 -> 0.012676219455897808
+  Duration:     39.9s
+  Cosine:       0.994696  (req >= 0.9908)  PASS
+  Scale:        0.989534  (req (0.985, 1.015))  PASS
+
+Block 66/130: [Graph Block from /model.19/m.0/m/m.1/cv1/conv/Conv to /model.19/m.0/m/m.1/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.19/m.0/m/m.1/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.0994604155421257 -> 0.023404436185956
+  Duration:     21.5s
+  Cosine:       0.987611  (req >= 0.9908)  FAIL
+  Scale:        0.992272  (req (0.985, 1.015))  PASS
+
+Block 67/130: [Graph Block from /model.19/m.0/m/m.1/cv2/conv/Conv to /model.19/m.0/m/m.1/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.19/m.0/m/m.1/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.059803321957588196 -> 0.03761208429932594
+  Duration:     36.6s
+  Cosine:       0.994449  (req >= 0.9908)  PASS
+  Scale:        0.998588  (req (0.985, 1.015))  PASS
+
+Block 68/130: [Graph Block from /model.19/m.0/cv2/conv/Conv to /model.19/m.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.19/m.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.06027709320187569 -> 0.025478333234786987
+  Duration:     44.6s
+  Cosine:       0.989374  (req >= 0.9908)  FAIL
+  Scale:        0.990048  (req (0.985, 1.015))  PASS
+
+Block 69/130: [Graph Block from /model.19/m.0/cv3/conv/Conv to /model.19/m.0/cv3/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.19/m.0/cv3/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.06203780323266983 -> 0.032001979649066925
+  Duration:     45.7s
+  Cosine:       0.988058  (req >= 0.9908)  FAIL
+  Scale:        0.995787  (req (0.985, 1.015))  PASS
+
+Block 71/130: [Graph Block from /model.20/conv/Conv to /model.20/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.20/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.10055820643901825 -> 0.02604427933692932
+  Duration:     21.4s
+  Cosine:       0.985025  (req >= 0.9908)  FAIL
+  Scale:        0.988821  (req (0.985, 1.015))  PASS
+
+Block 72/130: [Graph Block from /model.22/cv1/conv/Conv to /model.22/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.22/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.09687727689743042 -> 0.02800244465470314
+  Duration:     41.7s
+  Cosine:       0.986247  (req >= 0.9908)  FAIL
+  Scale:        0.983650  (req (0.985, 1.015))  FAIL
+
+Block 73/130: [Graph Block from /model.22/m.0/m.0.0/cv1/conv/Conv to /model.22/m.0/m.0.0/cv1/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.22/m.0/m.0.0/cv1/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.07960506528615952 -> 0.012107130140066147
+  Duration:     19.5s
+  Cosine:       0.994509  (req >= 0.9908)  PASS
+  Scale:        0.999114  (req (0.985, 1.015))  PASS
+
+Block 74/130: [Graph Block from /model.22/m.0/m.0.0/cv2/conv/Conv to /model.22/m.0/m.0.0/cv2/conv/Conv/Swish_HardSiluPie8]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.22/m.0/m.0.0/cv2/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.05182050168514252 -> 0.01455592829734087
+  Duration:     14.9s
+  Cosine:       0.994600  (req >= 0.9908)  PASS
+  Scale:        0.995087  (req (0.985, 1.015))  PASS
+
+Block 80/130: [Graph Block from /model.22/m.0/m.0.1/ffn/ffn.0/conv/Conv to /model.22/m.0/m.0.1/ffn/ffn.0/conv/Conv/Swish_HardSiluPie8]
+  Status:       REJECTED
+  Replaced ops: ['/model.22/m.0/m.0.1/ffn/ffn.0/conv/Conv/Swish_HardSiluPie8']
+  Loss:         0.1038351058959961 -> 0.03701554238796234
+  Duration:     17.4s
+  Cosine:       0.982999  (req >= 0.9908)  FAIL
+  Scale:        0.986770  (req (0.985, 1.015))  PASS
+
+================================================================================
+Summary: 45 accepted, 21 rejected

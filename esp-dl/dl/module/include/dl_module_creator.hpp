@@ -18,7 +18,7 @@
 #include "dl_module_gru.hpp"
 #include "dl_module_hard_sigmoid.hpp"
 #include "dl_module_hard_swish.hpp"
-#include "dl_module_hard_silu_pie8.hpp"
+#include "dl_module_hard_silu8.hpp"
 #include "dl_module_transpose_pie.hpp"
 #include "dl_module_tiled_conv_block.hpp"
 #include "dl_module_identity.hpp"

@@ -833,7 +833,7 @@ void dl_esp32p4_dotprod_i8k8o16(int16_t *out2_int8, int8_t *in1_int8, int8_t *in
 
 void dl_esp32p4_s8_avg_pool2d_hwc_sum(int32_t *buffer_ptr, int8_t *input_ptr, void *args_ptr);
 
-void dl_esp32p4_s8_hard_silu_pie8(int8_t *output_ptr, int8_t *input_ptr, int n_16,
+void dl_esp32p4_s8_hard_silu8(int8_t *output_ptr, int8_t *input_ptr, int n_16,
                                    int16_t *half_buf, int clamp_hi, int sar_total,
                                    int16_t *scale_buf);
 }

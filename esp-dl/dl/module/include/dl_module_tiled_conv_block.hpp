@@ -1,3 +1,15 @@
+// ═══════════════════════════════════════════════════════════════════
+// Author: Boumedine Billal (https://github.com/BoumedineBillal)
+//
+// Contribution:
+//   - Designed the TiledConvBlock module: spatial H-tiling with fused
+//     activation exploiting the ESP32-P4 L2 cache locality.
+//   - Implements Conv → Activation fusion per tile so the output stays
+//     hot in L2 cache, avoiding redundant PSRAM round-trips.
+//   - Integrates Nearest-Neighbor INT16 LUT SIMD activation and
+//     HardSiluPie8 as fused in-place activation paths.
+// ═══════════════════════════════════════════════════════════════════
+
 #pragma once
 
 #include "dl_base_conv2d.hpp"
@@ -6,7 +18,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-extern "C" void dl_esp32p4_s16_lut_pie8(
+extern "C" void dl_esp32p4_s16_lut_nearest_neighbor(
     int16_t *output, int16_t *input, int32_t n_8,
     int16_t *table, int16_t *ones_buf, int16_t *xor_buf,
     int32_t shift);
@@ -98,7 +110,7 @@ private:
                 half_buf[i] = (int16_t)half_val;
             }
 
-            dl_esp32p4_s8_hard_silu_pie8(
+            dl_esp32p4_s8_hard_silu8(
                 (int8_t *)dst, (int8_t *)src,
                 n_elements / 16, half_buf, clamp_hi, sar_total, m_scale_buf);
 
@@ -142,7 +154,7 @@ private:
                             (int16_t)0x8000, (int16_t)0x8000,
                             (int16_t)0x8000, (int16_t)0x8000,
                             (int16_t)0x8000, (int16_t)0x8000};
-                        dl_esp32p4_s16_lut_pie8(d, s, n_elements / 8,
+                        dl_esp32p4_s16_lut_nearest_neighbor(d, s, n_elements / 8,
                                                  t, ones, xor_buf,
                                                  __builtin_ctz(step));
                     } else if (step == 1) {

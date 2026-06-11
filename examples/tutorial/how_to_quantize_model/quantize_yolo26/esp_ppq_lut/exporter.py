@@ -1,7 +1,7 @@
 from esp_ppq.parser import EspdlExporter
 from esp_ppq.core import TargetPlatform
 import esp_ppq.lib as PFL
-from .emulator import GlobalMode, SimulationMode
+from .emulator_nearest_neighbor import GlobalMode, SimulationMode
 
 
 class HardwareAwareEspdlExporter(EspdlExporter):

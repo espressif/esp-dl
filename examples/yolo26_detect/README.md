@@ -90,10 +90,31 @@ set(MODEL_FILENAME "yolo26n_640_s8_p4.espdl")
 | Resolution | ESP32-P4 Filename | ESP32-S3 Filename |
 | :--- | :--- | :--- |
 | **512x512** | `yolo26n_512_s8_p4.espdl` (Default) | `yolo26n_512_s8_s3.espdl` (Default) |
+| **512x512 (P4-optimized)** | `yolo26n_512_s8_p4_tpie.espdl` | — |
 | **640x640** | `yolo26n_640_s8_p4.espdl` | `yolo26n_640_s8_s3.espdl` |
 
+> The P4-optimized model includes: HardSiLU8 (Neural Morphing), TransposePIE, Nearest-Neighbor INT16 LUT, and TiledConv with activation fusion.
 
-### 2. Using Your Own Custom Model
+
+### 3. Raw RGB Input (Bit-Exact Verification)
+
+By default, firmware loads JPEG images which introduces decoder rounding. For **bit-exact** detection matching the Python quantization preview, use a raw RGB header instead:
+
+1. Generate the header from your test image:
+   ```bash
+   cd main/images
+   python generate_raw_rgb.py
+   ```
+2. This produces `raw_rgb_bus.h` — a C array with the exact RGB pixels used during Python evaluation.
+3. Enable it in `main/CMakeLists.txt`:
+   ```cmake
+   # Bit-exact validation: bypasses HW JPEG decoder, uses raw RGB input
+   # Only works with COCO models (Component Zoo) and the bus.jpg test image
+   # Otherwise, comment it out with #
+   add_definitions(-DUSE_RAW_RGB)
+   ```
+
+### 4. Using Your Own Custom Model
 
 You can easily deploy your own custom-trained YOLOv26n model (e.g., for detecting specific objects like Lego bricks).
 

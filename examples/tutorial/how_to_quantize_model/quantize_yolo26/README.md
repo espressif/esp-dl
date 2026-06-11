@@ -43,6 +43,16 @@ Supports any Roboflow dataset with any number of classes and any image resolutio
 
 Reproduce our official mAP benchmarks or build a generic 80-class object detector.
 
+### Option C  ESP32-P4 Optimized (Neural Morphing + LUT Fusion)
+**`quantize_yolo26_coco_p4.ipynb`**
+
+Extends Option B with P4-specific optimizations:
+- Loads a pre-morphed `.native` graph (SiLU → HardSiLU8 via Neural Morphing)
+- HardSiLU8 PIE ops, TransposePIE, TiledConv L2-caching, Nearest-Neighbor LUT SIMD
+- Hardcoded `PLATFORM = "p4"` (will not run on ESP32-S3)
+
+See [`neural_morphing/README.md`](neural_morphing/README.md) for the full engine documentation.
+
 ---
 
 ## 3. Quantization Pipeline (Inside the Notebooks)
@@ -119,3 +129,6 @@ Once you have your `.espdl` file:
 
 ### `esp_ppq_lut/` Extension
 Provides `EspdlLUTFusionPass`  converts INT16 Swish ops into compact step-interpolated Look-Up Tables (controllable step size via `INT16_LUT_STEP`, default=32)  and `HardwareAwareEspdlExporter` with LUT tables embedded in the `.espdl` output.
+
+### `neural_morphing/` Extension
+General-purpose graph transformation engine for structural optimizations (SiLU → HardSiLU8, Conv decomposition, channel pruning). Used by `quantize_yolo26_coco_p4.ipynb`. See [`neural_morphing/README.md`](neural_morphing/README.md).

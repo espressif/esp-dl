@@ -2,7 +2,7 @@
 
 #include "dl_module_base.hpp"
 
-extern "C" void dl_esp32p4_s16_lut_pie8(
+extern "C" void dl_esp32p4_s16_lut_nearest_neighbor(
     int16_t *output, int16_t *input, int32_t n_8,
     int16_t *table, int16_t *ones_buf, int16_t *xor_buf,
     int32_t shift);
@@ -83,7 +83,7 @@ public:
                 static __attribute__((aligned(16))) int16_t xor_buf[8] = {
                     (int16_t)0x8000, (int16_t)0x8000, (int16_t)0x8000, (int16_t)0x8000,
                     (int16_t)0x8000, (int16_t)0x8000, (int16_t)0x8000, (int16_t)0x8000};
-                dl_esp32p4_s16_lut_pie8(output_ptr, input_ptr, input->size / 8,
+                dl_esp32p4_s16_lut_nearest_neighbor(output_ptr, input_ptr, input->size / 8,
                                          table_ptr, ones, xor_buf,
                                          __builtin_ctz(this->step));
             } else if (this->step == 1) {

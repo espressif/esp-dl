@@ -1,0 +1,4 @@
+# Ignore large regeneratable files, keep .native checkpoints and mAP caches
+*.onnx
+!*.native
+!baseline_mAP.txt

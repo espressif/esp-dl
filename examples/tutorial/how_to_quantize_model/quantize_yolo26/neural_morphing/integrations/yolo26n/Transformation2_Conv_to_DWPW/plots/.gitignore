@@ -1,0 +1,4 @@
+# Ignore plot images (regeneratable), keep logs
+*.png
+!morph_log_*.txt
+

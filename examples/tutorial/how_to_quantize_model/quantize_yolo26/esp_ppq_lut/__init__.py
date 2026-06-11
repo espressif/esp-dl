@@ -1,5 +1,5 @@
-from .emulator import register_lut_op_handler, set_simulation_mode, SimulationMode
-from . import emulator
+from .emulator_nearest_neighbor import register_lut_op_handler, set_simulation_mode, SimulationMode
+from . import emulator_nearest_neighbor as emulator
 from .exporter import register_espdl_exporter
 from .passes import EspdlLUTFusionPass
 from .utils import run_numerical_verification, to_c_header, generate_comparison_plot

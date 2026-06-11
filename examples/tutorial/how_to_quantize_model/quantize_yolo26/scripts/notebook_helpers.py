@@ -228,7 +228,7 @@ def eval_espdl_model(
     # ── 3. Run inference through quantized graph ───────────────────────────
     # Enforce bit-exact context: SIMULATION mode + FP64 Conv for INT16 layers
     from esp_ppq_lut import set_simulation_mode, SimulationMode
-    from esp_ppq_lut.emulator import GlobalMode
+    from esp_ppq_lut.emulator_nearest_neighbor import GlobalMode
     prev_mode = GlobalMode.get()
     set_simulation_mode(SimulationMode.SIMULATION)
     _register_fp64_conv_handler()
@@ -301,11 +301,11 @@ def eval_espdl_model(
     # Collect predictions first
     for j in range(len(final_boxes)):
         box = final_boxes[j].numpy()
-        score = final_scores[j].item()
+        score = round(final_scores[j].item(), 2)  # match firmware %.2f
         cls_id = final_classes[j].item()
         cls_name = class_names[cls_id] if cls_id < len(class_names) else str(cls_id)
         predictions.append(
-            {"box": box.tolist(), "score": score, "class": cls_name, "class_id": cls_id}
+            {"box": [int(v) for v in box], "score": score, "class": cls_name, "class_id": cls_id}
         )
 
     # ── 7. Build matplotlib figure (high quality rendering) ───────────────

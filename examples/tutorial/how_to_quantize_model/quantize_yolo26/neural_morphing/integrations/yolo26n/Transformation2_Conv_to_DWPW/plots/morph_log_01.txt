@@ -1,0 +1,248 @@
+Neural Morphing Run #01
+Strategy: ConvDecompStrategy
+  lr=0.001, steps=6000, patience=10
+  min_cosine=0.99, scale_bounds=(0.9, 1.1)
+================================================================================
+
+Block 2/130: [Graph Block from /model.1/conv/Conv_/dw/Conv to /model.1/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.1/conv/Conv_/dw/Conv', '/model.1/conv/Conv_/pw_main/Conv', '/model.1/conv/Conv_/pw_skip/Conv', '/model.1/conv/Conv_/Add']
+  Loss:         2.412432909011841 -> 0.16377496719360352
+  Duration:     485.0s
+  Cosine:       0.991916  (req >= 0.99)  PASS
+  Scale:        0.985229  (req (0.9, 1.1))  PASS
+
+Block 4/130: [Graph Block from /model.2/m.0/cv1/conv/Conv_/dw/Conv to /model.2/m.0/cv1/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.2/m.0/cv1/conv/Conv_/dw/Conv', '/model.2/m.0/cv1/conv/Conv_/pw_main/Conv', '/model.2/m.0/cv1/conv/Conv_/pw_skip/Conv', '/model.2/m.0/cv1/conv/Conv_/Add']
+  Loss:         0.026668144389986992 -> 0.009584450162947178
+  Duration:     149.8s
+  Cosine:       0.995292  (req >= 0.99)  PASS
+  Scale:        1.000933  (req (0.9, 1.1))  PASS
+
+Block 5/130: [Graph Block from /model.2/m.0/cv2/conv/Conv_/dw/Conv to /model.2/m.0/cv2/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.2/m.0/cv2/conv/Conv_/dw/Conv', '/model.2/m.0/cv2/conv/Conv_/pw_main/Conv', '/model.2/m.0/cv2/conv/Conv_/pw_skip/Conv', '/model.2/m.0/cv2/conv/Conv_/Add']
+  Loss:         0.840072512626648 -> 0.1838899552822113
+  Duration:     179.1s
+  Cosine:       0.985387  (req >= 0.99)  FAIL
+  Scale:        0.981326  (req (0.9, 1.1))  PASS
+
+Block 7/130: [Graph Block from /model.3/conv/Conv_/dw/Conv to /model.3/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.3/conv/Conv_/dw/Conv', '/model.3/conv/Conv_/pw_main/Conv', '/model.3/conv/Conv_/pw_skip/Conv', '/model.3/conv/Conv_/Add']
+  Loss:         0.16108781099319458 -> 0.024773819372057915
+  Duration:     426.1s
+  Cosine:       0.993277  (req >= 0.99)  PASS
+  Scale:        0.993295  (req (0.9, 1.1))  PASS
+
+Block 9/130: [Graph Block from /model.4/m.0/cv1/conv/Conv_/dw/Conv to /model.4/m.0/cv1/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.4/m.0/cv1/conv/Conv_/dw/Conv', '/model.4/m.0/cv1/conv/Conv_/pw_main/Conv', '/model.4/m.0/cv1/conv/Conv_/pw_skip/Conv', '/model.4/m.0/cv1/conv/Conv_/Add']
+  Loss:         0.23650331795215607 -> 0.02083970606327057
+  Duration:     97.1s
+  Cosine:       0.993730  (req >= 0.99)  PASS
+  Scale:        0.993925  (req (0.9, 1.1))  PASS
+
+Block 10/130: [Graph Block from /model.4/m.0/cv2/conv/Conv_/dw/Conv to /model.4/m.0/cv2/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.4/m.0/cv2/conv/Conv_/dw/Conv', '/model.4/m.0/cv2/conv/Conv_/pw_main/Conv', '/model.4/m.0/cv2/conv/Conv_/pw_skip/Conv', '/model.4/m.0/cv2/conv/Conv_/Add']
+  Loss:         0.5976954698562622 -> 0.05716559663414955
+  Duration:     56.8s
+  Cosine:       0.985961  (req >= 0.99)  FAIL
+  Scale:        0.985825  (req (0.9, 1.1))  PASS
+
+Block 12/130: [Graph Block from /model.5/conv/Conv_/dw/Conv to /model.5/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.5/conv/Conv_/dw/Conv', '/model.5/conv/Conv_/pw_main/Conv', '/model.5/conv/Conv_/pw_skip/Conv', '/model.5/conv/Conv_/Add']
+  Loss:         0.044100385159254074 -> 0.021158810704946518
+  Duration:     239.1s
+  Cosine:       0.992555  (req >= 0.99)  PASS
+  Scale:        0.995073  (req (0.9, 1.1))  PASS
+
+Block 15/130: [Graph Block from /model.6/m.0/m/m.0/cv1/conv/Conv_/dw/Conv to /model.6/m.0/m/m.0/cv1/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.6/m.0/m/m.0/cv1/conv/Conv_/dw/Conv', '/model.6/m.0/m/m.0/cv1/conv/Conv_/pw_main/Conv', '/model.6/m.0/m/m.0/cv1/conv/Conv_/pw_skip/Conv', '/model.6/m.0/m/m.0/cv1/conv/Conv_/Add']
+  Loss:         0.4083606004714966 -> 0.09308679401874542
+  Duration:     39.9s
+  Cosine:       0.957246  (req >= 0.99)  FAIL
+  Scale:        0.976984  (req (0.9, 1.1))  PASS
+
+Block 16/130: [Graph Block from /model.6/m.0/m/m.0/cv2/conv/Conv_/dw/Conv to /model.6/m.0/m/m.0/cv2/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.6/m.0/m/m.0/cv2/conv/Conv_/dw/Conv', '/model.6/m.0/m/m.0/cv2/conv/Conv_/pw_main/Conv', '/model.6/m.0/m/m.0/cv2/conv/Conv_/pw_skip/Conv', '/model.6/m.0/m/m.0/cv2/conv/Conv_/Add']
+  Loss:         0.15027077496051788 -> 0.0566076897084713
+  Duration:     57.4s
+  Cosine:       0.974199  (req >= 0.99)  FAIL
+  Scale:        0.987196  (req (0.9, 1.1))  PASS
+
+Block 17/130: [Graph Block from /model.6/m.0/m/m.1/cv1/conv/Conv_/dw/Conv to /model.6/m.0/m/m.1/cv1/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.6/m.0/m/m.1/cv1/conv/Conv_/dw/Conv', '/model.6/m.0/m/m.1/cv1/conv/Conv_/pw_main/Conv', '/model.6/m.0/m/m.1/cv1/conv/Conv_/pw_skip/Conv', '/model.6/m.0/m/m.1/cv1/conv/Conv_/Add']
+  Loss:         0.35527366399765015 -> 0.06585893034934998
+  Duration:     75.2s
+  Cosine:       0.971023  (req >= 0.99)  FAIL
+  Scale:        0.984404  (req (0.9, 1.1))  PASS
+
+Block 18/130: [Graph Block from /model.6/m.0/m/m.1/cv2/conv/Conv_/dw/Conv to /model.6/m.0/m/m.1/cv2/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.6/m.0/m/m.1/cv2/conv/Conv_/dw/Conv', '/model.6/m.0/m/m.1/cv2/conv/Conv_/pw_main/Conv', '/model.6/m.0/m/m.1/cv2/conv/Conv_/pw_skip/Conv', '/model.6/m.0/m/m.1/cv2/conv/Conv_/Add']
+  Loss:         0.16998329758644104 -> 0.04919902980327606
+  Duration:     71.5s
+  Cosine:       0.990847  (req >= 0.99)  PASS
+  Scale:        0.991041  (req (0.9, 1.1))  PASS
+
+Block 22/130: [Graph Block from /model.7/conv/Conv_/dw/Conv to /model.7/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.7/conv/Conv_/dw/Conv', '/model.7/conv/Conv_/pw_main/Conv', '/model.7/conv/Conv_/pw_skip/Conv', '/model.7/conv/Conv_/Add']
+  Loss:         0.05203312262892723 -> 0.027527034282684326
+  Duration:     112.3s
+  Cosine:       0.988636  (req >= 0.99)  FAIL
+  Scale:        0.995646  (req (0.9, 1.1))  PASS
+
+Block 25/130: [Graph Block from /model.8/m.0/m/m.0/cv1/conv/Conv_/dw/Conv to /model.8/m.0/m/m.0/cv1/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.8/m.0/m/m.0/cv1/conv/Conv_/dw/Conv', '/model.8/m.0/m/m.0/cv1/conv/Conv_/pw_main/Conv', '/model.8/m.0/m/m.0/cv1/conv/Conv_/pw_skip/Conv', '/model.8/m.0/m/m.0/cv1/conv/Conv_/Add']
+  Loss:         0.2646033763885498 -> 0.07711117714643478
+  Duration:     73.7s
+  Cosine:       0.966507  (req >= 0.99)  FAIL
+  Scale:        0.978762  (req (0.9, 1.1))  PASS
+
+Block 26/130: [Graph Block from /model.8/m.0/m/m.0/cv2/conv/Conv_/dw/Conv to /model.8/m.0/m/m.0/cv2/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.8/m.0/m/m.0/cv2/conv/Conv_/dw/Conv', '/model.8/m.0/m/m.0/cv2/conv/Conv_/pw_main/Conv', '/model.8/m.0/m/m.0/cv2/conv/Conv_/pw_skip/Conv', '/model.8/m.0/m/m.0/cv2/conv/Conv_/Add']
+  Loss:         0.10732302814722061 -> 0.04138155281543732
+  Duration:     76.0s
+  Cosine:       0.984890  (req >= 0.99)  FAIL
+  Scale:        0.986151  (req (0.9, 1.1))  PASS
+
+Block 27/130: [Graph Block from /model.8/m.0/m/m.1/cv1/conv/Conv_/dw/Conv to /model.8/m.0/m/m.1/cv1/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.8/m.0/m/m.1/cv1/conv/Conv_/dw/Conv', '/model.8/m.0/m/m.1/cv1/conv/Conv_/pw_main/Conv', '/model.8/m.0/m/m.1/cv1/conv/Conv_/pw_skip/Conv', '/model.8/m.0/m/m.1/cv1/conv/Conv_/Add']
+  Loss:         0.15710222721099854 -> 0.03865848109126091
+  Duration:     69.2s
+  Cosine:       0.984463  (req >= 0.99)  FAIL
+  Scale:        0.988852  (req (0.9, 1.1))  PASS
+
+Block 28/130: [Graph Block from /model.8/m.0/m/m.1/cv2/conv/Conv_/dw/Conv to /model.8/m.0/m/m.1/cv2/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.8/m.0/m/m.1/cv2/conv/Conv_/dw/Conv', '/model.8/m.0/m/m.1/cv2/conv/Conv_/pw_main/Conv', '/model.8/m.0/m/m.1/cv2/conv/Conv_/pw_skip/Conv', '/model.8/m.0/m/m.1/cv2/conv/Conv_/Add']
+  Loss:         0.09509265422821045 -> 0.03579259663820267
+  Duration:     64.4s
+  Cosine:       0.993492  (req >= 0.99)  PASS
+  Scale:        0.993519  (req (0.9, 1.1))  PASS
+
+Block 45/130: [Graph Block from /model.13/m.0/m/m.0/cv1/conv/Conv_/dw/Conv to /model.13/m.0/m/m.0/cv1/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.13/m.0/m/m.0/cv1/conv/Conv_/dw/Conv', '/model.13/m.0/m/m.0/cv1/conv/Conv_/pw_main/Conv', '/model.13/m.0/m/m.0/cv1/conv/Conv_/pw_skip/Conv', '/model.13/m.0/m/m.0/cv1/conv/Conv_/Add']
+  Loss:         0.4307166635990143 -> 0.06042836979031563
+  Duration:     73.1s
+  Cosine:       0.970161  (req >= 0.99)  FAIL
+  Scale:        0.984733  (req (0.9, 1.1))  PASS
+
+Block 46/130: [Graph Block from /model.13/m.0/m/m.0/cv2/conv/Conv_/dw/Conv to /model.13/m.0/m/m.0/cv2/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.13/m.0/m/m.0/cv2/conv/Conv_/dw/Conv', '/model.13/m.0/m/m.0/cv2/conv/Conv_/pw_main/Conv', '/model.13/m.0/m/m.0/cv2/conv/Conv_/pw_skip/Conv', '/model.13/m.0/m/m.0/cv2/conv/Conv_/Add']
+  Loss:         0.14951172471046448 -> 0.035945504903793335
+  Duration:     72.5s
+  Cosine:       0.985896  (req >= 0.99)  FAIL
+  Scale:        0.987225  (req (0.9, 1.1))  PASS
+
+Block 47/130: [Graph Block from /model.13/m.0/m/m.1/cv1/conv/Conv_/dw/Conv to /model.13/m.0/m/m.1/cv1/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.13/m.0/m/m.1/cv1/conv/Conv_/dw/Conv', '/model.13/m.0/m/m.1/cv1/conv/Conv_/pw_main/Conv', '/model.13/m.0/m/m.1/cv1/conv/Conv_/pw_skip/Conv', '/model.13/m.0/m/m.1/cv1/conv/Conv_/Add']
+  Loss:         0.47953757643699646 -> 0.044848788529634476
+  Duration:     72.9s
+  Cosine:       0.978377  (req >= 0.99)  FAIL
+  Scale:        0.990707  (req (0.9, 1.1))  PASS
+
+Block 48/130: [Graph Block from /model.13/m.0/m/m.1/cv2/conv/Conv_/dw/Conv to /model.13/m.0/m/m.1/cv2/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.13/m.0/m/m.1/cv2/conv/Conv_/dw/Conv', '/model.13/m.0/m/m.1/cv2/conv/Conv_/pw_main/Conv', '/model.13/m.0/m/m.1/cv2/conv/Conv_/pw_skip/Conv', '/model.13/m.0/m/m.1/cv2/conv/Conv_/Add']
+  Loss:         0.17791375517845154 -> 0.04313752055168152
+  Duration:     73.0s
+  Cosine:       0.993899  (req >= 0.99)  PASS
+  Scale:        0.993224  (req (0.9, 1.1))  PASS
+
+Block 54/130: [Graph Block from /model.16/m.0/m/m.0/cv1/conv/Conv_/dw/Conv to /model.16/m.0/m/m.0/cv1/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.16/m.0/m/m.0/cv1/conv/Conv_/dw/Conv', '/model.16/m.0/m/m.0/cv1/conv/Conv_/pw_main/Conv', '/model.16/m.0/m/m.0/cv1/conv/Conv_/pw_skip/Conv', '/model.16/m.0/m/m.0/cv1/conv/Conv_/Add']
+  Loss:         0.8701907396316528 -> 0.05870486795902252
+  Duration:     89.6s
+  Cosine:       0.970027  (req >= 0.99)  FAIL
+  Scale:        0.981466  (req (0.9, 1.1))  PASS
+
+Block 55/130: [Graph Block from /model.16/m.0/m/m.0/cv2/conv/Conv_/dw/Conv to /model.16/m.0/m/m.0/cv2/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.16/m.0/m/m.0/cv2/conv/Conv_/dw/Conv', '/model.16/m.0/m/m.0/cv2/conv/Conv_/pw_main/Conv', '/model.16/m.0/m/m.0/cv2/conv/Conv_/pw_skip/Conv', '/model.16/m.0/m/m.0/cv2/conv/Conv_/Add']
+  Loss:         0.2160790115594864 -> 0.03722936287522316
+  Duration:     89.6s
+  Cosine:       0.981506  (req >= 0.99)  FAIL
+  Scale:        0.989609  (req (0.9, 1.1))  PASS
+
+Block 56/130: [Graph Block from /model.16/m.0/m/m.1/cv1/conv/Conv_/dw/Conv to /model.16/m.0/m/m.1/cv1/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.16/m.0/m/m.1/cv1/conv/Conv_/dw/Conv', '/model.16/m.0/m/m.1/cv1/conv/Conv_/pw_main/Conv', '/model.16/m.0/m/m.1/cv1/conv/Conv_/pw_skip/Conv', '/model.16/m.0/m/m.1/cv1/conv/Conv_/Add']
+  Loss:         0.13620734214782715 -> 0.01009045448154211
+  Duration:     88.1s
+  Cosine:       0.996095  (req >= 0.99)  PASS
+  Scale:        0.998860  (req (0.9, 1.1))  PASS
+
+Block 57/130: [Graph Block from /model.16/m.0/m/m.1/cv2/conv/Conv_/dw/Conv to /model.16/m.0/m/m.1/cv2/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.16/m.0/m/m.1/cv2/conv/Conv_/dw/Conv', '/model.16/m.0/m/m.1/cv2/conv/Conv_/pw_main/Conv', '/model.16/m.0/m/m.1/cv2/conv/Conv_/pw_skip/Conv', '/model.16/m.0/m/m.1/cv2/conv/Conv_/Add']
+  Loss:         0.6331356763839722 -> 0.06173330917954445
+  Duration:     82.7s
+  Cosine:       0.995017  (req >= 0.99)  PASS
+  Scale:        0.994402  (req (0.9, 1.1))  PASS
+
+Block 61/130: [Graph Block from /model.17/conv/Conv_/dw/Conv to /model.17/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.17/conv/Conv_/dw/Conv', '/model.17/conv/Conv_/pw_main/Conv', '/model.17/conv/Conv_/pw_skip/Conv', '/model.17/conv/Conv_/Add']
+  Loss:         0.3655063211917877 -> 0.038407981395721436
+  Duration:     139.0s
+  Cosine:       0.981746  (req >= 0.99)  FAIL
+  Scale:        0.993098  (req (0.9, 1.1))  PASS
+
+Block 64/130: [Graph Block from /model.19/m.0/m/m.0/cv1/conv/Conv_/dw/Conv to /model.19/m.0/m/m.0/cv1/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.19/m.0/m/m.0/cv1/conv/Conv_/dw/Conv', '/model.19/m.0/m/m.0/cv1/conv/Conv_/pw_main/Conv', '/model.19/m.0/m/m.0/cv1/conv/Conv_/pw_skip/Conv', '/model.19/m.0/m/m.0/cv1/conv/Conv_/Add']
+  Loss:         0.9770380854606628 -> 0.06435468792915344
+  Duration:     80.2s
+  Cosine:       0.969099  (req >= 0.99)  FAIL
+  Scale:        0.987039  (req (0.9, 1.1))  PASS
+
+Block 65/130: [Graph Block from /model.19/m.0/m/m.0/cv2/conv/Conv_/dw/Conv to /model.19/m.0/m/m.0/cv2/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.19/m.0/m/m.0/cv2/conv/Conv_/dw/Conv', '/model.19/m.0/m/m.0/cv2/conv/Conv_/pw_main/Conv', '/model.19/m.0/m/m.0/cv2/conv/Conv_/pw_skip/Conv', '/model.19/m.0/m/m.0/cv2/conv/Conv_/Add']
+  Loss:         0.09896112978458405 -> 0.026256579905748367
+  Duration:     72.0s
+  Cosine:       0.988654  (req >= 0.99)  FAIL
+  Scale:        0.997102  (req (0.9, 1.1))  PASS
+
+Block 66/130: [Graph Block from /model.19/m.0/m/m.1/cv1/conv/Conv_/dw/Conv to /model.19/m.0/m/m.1/cv1/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.19/m.0/m/m.1/cv1/conv/Conv_/dw/Conv', '/model.19/m.0/m/m.1/cv1/conv/Conv_/pw_main/Conv', '/model.19/m.0/m/m.1/cv1/conv/Conv_/pw_skip/Conv', '/model.19/m.0/m/m.1/cv1/conv/Conv_/Add']
+  Loss:         0.6299612522125244 -> 0.042048972100019455
+  Duration:     71.3s
+  Cosine:       0.977673  (req >= 0.99)  FAIL
+  Scale:        0.991463  (req (0.9, 1.1))  PASS
+
+Block 67/130: [Graph Block from /model.19/m.0/m/m.1/cv2/conv/Conv_/dw/Conv to /model.19/m.0/m/m.1/cv2/conv/Conv/Swish]
+  Status:       ACCEPTED
+  Replaced ops: ['/model.19/m.0/m/m.1/cv2/conv/Conv_/dw/Conv', '/model.19/m.0/m/m.1/cv2/conv/Conv_/pw_main/Conv', '/model.19/m.0/m/m.1/cv2/conv/Conv_/pw_skip/Conv', '/model.19/m.0/m/m.1/cv2/conv/Conv_/Add']
+  Loss:         0.2586672902107239 -> 0.06111898273229599
+  Duration:     75.2s
+  Cosine:       0.990887  (req >= 0.99)  PASS
+  Scale:        0.990742  (req (0.9, 1.1))  PASS
+
+Block 71/130: [Graph Block from /model.20/conv/Conv_/dw/Conv to /model.20/conv/Conv/Swish]
+  Status:       REJECTED
+  Replaced ops: ['/model.20/conv/Conv_/dw/Conv', '/model.20/conv/Conv_/pw_main/Conv', '/model.20/conv/Conv_/pw_skip/Conv', '/model.20/conv/Conv_/Add']
+  Loss:         0.15826107561588287 -> 0.04023418202996254
+  Duration:     103.7s
+  Cosine:       0.978643  (req >= 0.99)  FAIL
+  Scale:        0.992242  (req (0.9, 1.1))  PASS
+
+================================================================================
+Summary: 11 accepted, 19 rejected

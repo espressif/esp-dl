@@ -1,0 +1,41 @@
+# Test artifacts
+checkpoints*/
+data*/
+
+# Output artifacts
+exports*/
+logs*/
+runs/
+*.onnx
+*.espdl
+*.pt
+
+# ── Ignore plots/ and output/ dirs everywhere EXCEPT integrations ──
+# First ignore all plots/output dirs
+plots*/
+output*/
+*.native
+
+# Then un-ignore the integration paths (must un-ignore each directory level)
+!integrations/
+!integrations/yolo26n/
+!integrations/yolo26n/*/
+!integrations/yolo26n/*/plots/
+!integrations/yolo26n/*/output/
+!integrations/yolo26n/*/output/*/
+
+# Re-ignore bulk files inside those un-ignored dirs
+integrations/yolo26n/*/plots/*.png
+integrations/yolo26n/*/output/**/*.onnx
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/

@@ -19,6 +19,11 @@ idf_component_register(SRCS "app_main.cpp"
 #    like
 #         yolo26n_lego_512_s8_p4.espdl   # Custom Lego Detection (28 Classes)
 set(MODEL_FILENAME "yolo26n_512_s8_p4_tpie.espdl")
+
+# Bit-exact validation: bypasses HW JPEG decoder, uses raw RGB input
+# Only works with COCO models (Component Zoo) and the bus.jpg test image
+# Otherwise, comment it out with #
+add_definitions(-DUSE_RAW_RGB)
 # =========================================================================
 
 # --- Internal Logic: Path and Symyolo26n_512_s8_p4_tpiebol Resolution ---

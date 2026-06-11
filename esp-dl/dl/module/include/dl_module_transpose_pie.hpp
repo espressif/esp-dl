@@ -1,13 +1,23 @@
-#pragma once
+// ═══════════════════════════════════════════════════════════════════
+// Author: Boumedine Billal (https://github.com/BoumedineBillal)
+//
+// Contribution:
+//   - Designed the TransposePIE module: SIMD-accelerated transpose
+//     replacing esp-dl's scalar Transpose op on ESP32-P4.
+//   - Implemented the 6-step dispatch algorithm that automatically
+//     selects between byte-zip (K1) and block-copy (K2) PIE kernels.
+//     Both kernels live in dl_esp32p4_s8_transpose.S.
+//   - Validated 48/48 on ESP32-P4 silicon including all 16 YOLO26n
+//     attention transposes.
+// ═══════════════════════════════════════════════════════════════════
 
-// Uncomment the line below to enable verbose debug prints for every forward call
-// #define TRANSPOSE_PIE_DEBUG
+#pragma once
 
 #include "dl_module_base.hpp"
 #include <vector>
 #include <cstring>
 
-// Assembly kernels (linked from .S files)
+// Assembly kernels (both in dl_esp32p4_s8_transpose.S)
 extern "C" {
 void dl_esp32p4_s8_transpose(int8_t* out, int8_t* in, int32_t N, int32_t M);
 void dl_esp32p4_block_transpose(int8_t* out, int8_t* in, int32_t N, int32_t M, int32_t K);
@@ -168,62 +178,7 @@ public:
             m_kernel_id = try_simd_transpose(input->shape, perm_copy);
             m_perm = perm_copy; // store normalized perm
             m_dispatch_cached = true;
-
-            const char *kname = (m_kernel_id == 1) ? "K1_zip" :
-                                (m_kernel_id == 2) ? "K2_blk" : "scalar";
-#ifdef TRANSPOSE_PIE_DEBUG
-            ESP_LOGI("TransposePIE",
-                     "kernel=%s, batch=%d, N=%d, M=%d, K=%d",
-                     kname, m_batch, m_N, m_M, m_K);
-#endif
         }
-
-#ifdef TRANSPOSE_PIE_DEBUG
-        // --- Debug: print full context for every forward ---
-        {
-            int ndims = (int)input->shape.size();
-            ESP_LOGW("TransposePIE_DBG", "--- forward ---");
-
-            // Print input shape
-            char buf[128];
-            int pos = 0;
-            pos += snprintf(buf + pos, sizeof(buf) - pos, "in_shape=[");
-            for (int i = 0; i < ndims; i++)
-                pos += snprintf(buf + pos, sizeof(buf) - pos, "%d%s",
-                                input->shape[i], i < ndims - 1 ? "," : "");
-            pos += snprintf(buf + pos, sizeof(buf) - pos, "]");
-            ESP_LOGW("TransposePIE_DBG", "  %s", buf);
-
-            // Print perm
-            pos = 0;
-            pos += snprintf(buf + pos, sizeof(buf) - pos, "perm=[");
-            for (int i = 0; i < (int)m_perm.size(); i++)
-                pos += snprintf(buf + pos, sizeof(buf) - pos, "%d%s",
-                                m_perm[i], i < (int)m_perm.size() - 1 ? "," : "");
-            pos += snprintf(buf + pos, sizeof(buf) - pos, "]");
-            ESP_LOGW("TransposePIE_DBG", "  %s", buf);
-
-            // Print dispatch
-            ESP_LOGW("TransposePIE_DBG",
-                     "  kernel=%d batch=%d N=%d M=%d K=%d",
-                     m_kernel_id, m_batch, m_N, m_M, m_K);
-
-            // Total elements and pointers
-            int total = 1;
-            for (int i = 0; i < ndims; i++) total *= input->shape[i];
-            ESP_LOGW("TransposePIE_DBG",
-                     "  total_bytes=%d in_ptr=%p out_ptr=%p",
-                     total, in_ptr, out_ptr);
-
-            // Hex dump first 32 bytes of input
-            int dump_len = total < 32 ? total : 32;
-            pos = 0;
-            for (int i = 0; i < dump_len; i++)
-                pos += snprintf(buf + pos, sizeof(buf) - pos, "%02x ",
-                                (uint8_t)in_ptr[i]);
-            ESP_LOGW("TransposePIE_DBG", "  in[0..%d]: %s", dump_len - 1, buf);
-        }
-#endif // TRANSPOSE_PIE_DEBUG
 
         if (m_kernel_id == 1) {
             // Kernel 1: byte zip transpose (K==1)
@@ -250,22 +205,6 @@ public:
         output->axis_offset[ndims - 1] = 1;
         for (int i = ndims - 2; i >= 0; i--)
             output->axis_offset[i] = output->axis_offset[i + 1] * output->shape[i + 1];
-
-#ifdef TRANSPOSE_PIE_DEBUG
-        // --- Debug: print output after kernel ---
-        {
-            int total = 1;
-            for (int i = 0; i < ndims; i++) total *= output->shape[i];
-            int dump_len = total < 32 ? total : 32;
-            char buf[128];
-            int pos = 0;
-            for (int i = 0; i < dump_len; i++)
-                pos += snprintf(buf + pos, sizeof(buf) - pos, "%02x ",
-                                (uint8_t)out_ptr[i]);
-            ESP_LOGW("TransposePIE_DBG", "  out[0..%d]: %s", dump_len - 1, buf);
-            ESP_LOGW("TransposePIE_DBG", "--- done ---");
-        }
-#endif // TRANSPOSE_PIE_DEBUG
     }
 
     void forward_args(void *args) {}

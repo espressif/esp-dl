@@ -6,6 +6,7 @@
 #include "yolo26.hpp" // Use the Official Component
 #include <stdio.h>
 #include <string.h>
+#include "dl_tensor_base.hpp"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -37,6 +38,13 @@ extern const uint8_t bus_jpg_start[] asm("_binary_bus_jpg_start");
 extern const uint8_t bus_jpg_end[] asm("_binary_bus_jpg_end");
 extern const uint8_t person_jpg_start[] asm("_binary_person_jpg_start");
 extern const uint8_t person_jpg_end[] asm("_binary_person_jpg_end");
+#endif
+
+// --- Raw RGB Embedding (bit-exact validation, bypasses HW JPEG decoder) ---
+#ifdef USE_RAW_RGB
+namespace test_data {
+#include "images/raw_rgb_bus.h"
+}
 #endif
 
 void test_inference(dl::Model *model, YOLO26 &processor, const uint8_t *jpg_data, size_t jpg_len, const char *name)
@@ -84,6 +92,53 @@ void test_inference(dl::Model *model, YOLO26 &processor, const uint8_t *jpg_data
     heap_caps_free(img.data);
 }
 
+void test_inference_raw(dl::Model *model, YOLO26 &processor,
+                       const uint8_t *rgb_data, int width, int height, const char *name)
+{
+    ESP_LOGI("image:", "%s (raw RGB)", name);
+
+    // 1. Construct img_t from raw RGB888 (bypasses JPEG decoder)
+    dl::image::img_t img;
+    img.data     = (uint8_t *)rgb_data;
+    img.width    = width;
+    img.height   = height;
+    img.pix_type = dl::image::DL_IMAGE_PIX_TYPE_RGB888;
+
+    // 2. Preprocess (Measure Time)
+    int64_t start_pre = esp_timer_get_time();
+    processor.preprocess(img);
+    int64_t end_pre = esp_timer_get_time();
+
+    // 3. Inference (Measure Time)
+    int64_t start_inf = esp_timer_get_time();
+    model->run();
+    int64_t end_inf = esp_timer_get_time();
+
+    // 4. Post-Process (Measure Time)
+    int64_t start_post = esp_timer_get_time();
+    auto results = processor.postprocess(model->get_outputs());
+    int64_t end_post = esp_timer_get_time();
+
+    // Calculate Latencies
+    uint32_t lat_pre = (uint32_t)((end_pre - start_pre) / 1000);
+    uint32_t lat_inf = (uint32_t)((end_inf - start_inf) / 1000);
+    uint32_t lat_post = (uint32_t)((end_post - start_post) / 1000);
+
+    ESP_LOGI(TAG, "Pre: %lu ms | Inf: %lu ms | Post: %lu ms", lat_pre, lat_inf, lat_post);
+
+    for (const auto &res : results) {
+        ESP_LOGI("YOLO26",
+                 "[category: %s, score: %.2f, x1: %d, y1: %d, x2: %d, y2: %d]",
+                 current_classes[res.category],
+                 res.score,
+                 res.box[0],
+                 res.box[1],
+                 res.box[2],
+                 res.box[3]);
+    }
+    // No heap_caps_free — rgb_data is static const in flash
+}
+
 extern "C" void app_main(void)
 {
     ESP_LOGI(TAG, "YOLO26 Firmware Example");
@@ -101,12 +156,16 @@ extern "C" void app_main(void)
     YOLO26 processor(model, YOLO_TARGET_K, YOLO_CONF_THRESH, current_classes);
 
     // 3. Run Tests
-#ifdef USE_LEGO_MODEL
+#ifdef USE_RAW_RGB
+    test_inference_raw(model, processor,
+        test_data::raw_rgb_bus, test_data::raw_rgb_bus_width, test_data::raw_rgb_bus_height,
+        "bus.jpg");
+#elif defined(USE_LEGO_MODEL)
     test_inference(model, processor, lego_jpg_start, (size_t)(lego_jpg_end - lego_jpg_start), "lego.jpg");
 #else
     test_inference(model, processor, bus_jpg_start, (size_t)(bus_jpg_end - bus_jpg_start), "bus.jpg");
     //test_inference(model, processor, person_jpg_start, (size_t)(person_jpg_end - person_jpg_start), "person.jpg");
 #endif
-    //model->profile();
+    model->profile();
     delete model;
 }

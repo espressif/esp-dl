@@ -1,0 +1,14 @@
+==============================================================
+RESULTS
+==============================================================
+  Baseline mAP50-95  : 0.3753
+  Morphed mAP50-95   : 0.3701  (delta: +0.0052)
+  Recovery           : 98.6%
+  Original Swish     : 105
+  Replaced (HardSiLU): 45
+  Remaining Swish    : 60
+  HardSiluPie8 ops   : 45
+==============================================================
+
+from Transformation1_SiLU_to_HardSiLU\plots\morph_log_01.txt
+Summary: 45 accepted, 21 rejected (39 frozen layers,s because there is excluded layers from the beginning(sencitive layers))
