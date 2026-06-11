@@ -1,4 +1,5 @@
 #include "dl_audio_common.hpp"
+#include "dl_base_dotprod.hpp"
 
 namespace dl {
 namespace audio {
@@ -280,13 +281,6 @@ float *compute_spectrum(float *x, int win_len, bool use_power)
     return x; // x: [nfft//2+1], power or magnitude
 }
 
-float dotprod_f32(float *x1, float *x2, int len)
-{
-    float sum = 0;
-    for (int i = 0; i < len; i++) sum += x1[i] * x2[i];
-    return sum;
-}
-
 float *mel_dotprod(float *x, mel_filter_t *mel_filter, float *output)
 {
     float *coeff = mel_filter->coeff;
@@ -298,7 +292,7 @@ float *mel_dotprod(float *x, mel_filter_t *mel_filter, float *output)
     for (int j = 0; j < nfilter; j++) {
         len = bank_pos[j * 2 + 1] - bank_pos[j * 2] + 1;
         x_shift = bank_pos[j * 2];
-        output[j] = dotprod_f32(coeff + coeff_shift, x + x_shift, len);
+        dl::base::dotprod(coeff + coeff_shift, x + x_shift, output + j, len, 0);
         coeff_shift += len;
     }
 

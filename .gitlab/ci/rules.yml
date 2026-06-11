@@ -143,6 +143,9 @@
 .patterns-test_dl_audio: &patterns-test_dl_audio
   - "esp-dl/dl_audio/**/*"
 
+.patterns-test_dl_pie_func: &patterns-test_dl_pie_func
+  - "esp-dl/dl_pie_func/**/*"
+
 ##############
 # if anchors #
 ##############
@@ -435,6 +438,17 @@
       changes: *patterns-test_dl_fft
     - <<: *if-dev-push
       changes: *patterns-test_dl_audio
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:test_dl_pie_func:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-test_dl_fft
+    - <<: *if-dev-push
+      changes: *patterns-test_dl_pie_func
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 

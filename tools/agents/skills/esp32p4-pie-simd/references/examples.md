@@ -460,31 +460,33 @@ GEMM is essentially a 1x1 conv2d without spatial dimensions. Use XACC for dot-pr
 
 ```asm
 # Average pool over HxW window
-# Sum all elements using XACC, then divide
+# Sum all elements with XACC, then divide by the window size
 
     esp.zero.xacc
+
+    # q7 = all-ones (each 16-bit lane = 1) so vmulas computes a plain element sum.
+    # a6 points to an int16 constant {1}; broadcast it to all 8 lanes.
+    esp.vldbc.16.ip  q7, a6, 0
 
     # Loop over window
     mv  t0, a3              # window height
     0:
         mv  t1, a4          # window width
         1:
-            esp.vld.128.ip  q0, a1, 16
-            esp.zero.q  q7
-            esp.vmulas.s16.xacc  q0, q7  # accumulate all elements
-            # Actually, use vmulas with all-ones or proper approach
+            esp.vld.128.ip       q0, a1, 16
+            esp.vmulas.s16.xacc  q0, q7   # XACC += sum(q0[i] * 1) = sum(q0[i])
             addi  t1, t1, -1
             bgtz  t1, 1b
         add  a1, a1, a5     # next row
         addi  t0, t0, -1
         bgtz  t0, 0b
 
-    # Divide by window_size = H * W
-    # Set SAR for right shift
+    # Divide by window_size = H * W via an arithmetic right shift.
+    # ESP.SRS.S.XACC takes the shift amount from t0[5:0], saturates the shifted
+    # 40-bit XACC to a 32-bit signed value, and writes the result into t1.
     li  t0, \log2_window_size
-    esp.movx.w.sar  t0
-    esp.srs.s.xacc  q0, t0
-    # ... extract and store
+    esp.srs.s.xacc  t1, t0        # t1 = sat_s32(XACC >> log2_window_size)
+    # ... t1 holds the pooled average; extract/store as needed
 ```
 
 ---

@@ -365,3 +365,14 @@ build_dl_audio:
         TARGET: [esp32p4, esp32s3, esp32]
   variables:
     EXAMPLE_DIR: test_apps/dl_audio
+
+build_dl_pie_func:
+  extends:
+    - .build_examples_template
+    - .rules:build:test_dl_pie_func
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+        TARGET: [esp32p4, esp32s3, esp32]
+  variables:
+    EXAMPLE_DIR: test_apps/dl_pie_func

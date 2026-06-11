@@ -26,6 +26,7 @@
 #include "dl_module_less_or_equal.hpp"
 #include "dl_module_log.hpp"
 #include "dl_module_log_softmax.hpp"
+#include "dl_module_lp_normalization.hpp"
 #include "dl_module_lstm.hpp"
 #include "dl_module_lut.hpp"
 #include "dl_module_matmul.hpp"
@@ -51,6 +52,7 @@
 #include "dl_module_reshape.hpp"
 #include "dl_module_resize.hpp"
 #include "dl_module_reverse_sequence.hpp"
+#include "dl_module_rms_normalization.hpp"
 #include "dl_module_scatter_nd.hpp"
 #include "dl_module_sigmoid.hpp"
 #include "dl_module_slice.hpp"
@@ -198,6 +200,8 @@ public:
             this->register_module("StreamingCache", StreamingCache::deserialize);
             this->register_module("InsertZeros", InsertZeros::deserialize);
             this->register_module("LayerNormalization", LayerNormalization::deserialize);
+            this->register_module("LpNormalization", LpNormalization::deserialize);
+            this->register_module("RMSNormalization", RMSNormalization::deserialize);
         }
     }
 

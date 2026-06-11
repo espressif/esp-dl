@@ -137,7 +137,11 @@ EE.VMULAS.S8.ACCX    qx, qy    ; ACCX += Σ(qx[i] * qy[i]) for i=0..15, saturate
 EE.VMULAS.S16.ACCX   qx, qy    ; ACCX += Σ(qx[i] * qy[i]) for i=0..7
 EE.VMULAS.U8.ACCX    qx, qy    ; unsigned
 EE.VMULAS.U16.ACCX   qx, qy    ; unsigned
-; Read result: RUR.ACCX_0 aN (low 32), RUR.ACCX_1 aN (high 8)
+; Read raw result: RUR.ACCX_0 aN (low 32), RUR.ACCX_1 aN (high 8)
+EE.SRS.ACCX rd, rs, sel        ; arithmetic right shift ACCX by rs[5:0], write 40-bit
+                               ;   shifted result back to ACCX, and write it saturated
+                               ;   to a 32-bit signed value min(max(ACCX>>rs,-2^31),2^31-1)
+                               ;   into general register rd (sel selects shift source, 0 in esp-dl)
 ```
 
 **QACC mode (per-lane accumulation, 20-bit or 40-bit per lane):**

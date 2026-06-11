@@ -390,8 +390,8 @@ One operand is a vector, the other is selected as a scalar from the vector using
 | `ESP.SRCMB.S16.Q.QACC qx, qy` | Same as SRCMB.S16.QACC but shift amount from QR |
 | `ESP.SRCMB.U8.Q.QACC qx, qy` | Same as SRCMB.U8.QACC but shift amount from QR |
 | `ESP.SRCMB.U16.Q.QACC qx, qy` | Same as SRCMB.U16.QACC but shift amount from QR |
-| `ESP.SRS.S.XACC qv, imm` | Shift XACC right by imm with sign extension |
-| `ESP.SRS.U.XACC qv, imm` | Shift XACC right by imm with zero extension |
+| `ESP.SRS.S.XACC rd, rs1` | Arithmetic right shift XACC by `rs1[5:0]`; write the 40-bit shifted result back to XACC, and write the result saturated to a 32-bit signed value `min(max(XACC>>rs1, -2^31), 2^31-1)` into general register `rd` |
+| `ESP.SRS.U.XACC rd, rs1` | Unsigned counterpart of `ESP.SRS.S.XACC`: right shift XACC by `rs1[5:0]`, write the 40-bit result back to XACC, and write the result saturated to a 32-bit value into `rd` |
 
 ### Activation / Other Arithmetic
 

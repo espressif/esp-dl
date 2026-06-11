@@ -1,7 +1,6 @@
 #include "dl_base_dotprod.hpp"
 #include "dl_base_isa.hpp"
 #include "dl_tool.hpp"
-#include "esp_dsp.h"
 
 namespace dl {
 namespace base {
@@ -103,7 +102,17 @@ void dotprod(int16_t *input0_ptr, int16_t *input1_ptr, int16_t *output_ptr, int 
 
 void dotprod(float *input0_ptr, float *input1_ptr, float *output_ptr, int length, int shift)
 {
-    dsps_dotprod_f32(input0_ptr, input1_ptr, output_ptr, length);
+#if CONFIG_PIE_V2_BOOST
+    dl_esp32p4_dotprod_f32(output_ptr, input0_ptr, input1_ptr, length);
+#elif CONFIG_PIE_V1_BOOST
+    dl_tie728_dotprod_f32(output_ptr, input0_ptr, input1_ptr, length);
+#else
+    float result = 0.0f;
+    for (int i = 0; i < length; i++) {
+        result += input0_ptr[i] * input1_ptr[i];
+    }
+    *output_ptr = result;
+#endif
 }
 
 } // namespace base
