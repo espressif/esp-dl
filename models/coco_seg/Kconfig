@@ -1,0 +1,48 @@
+menu "models: coco_seg"
+    config FLASH_COCO_SEG_YOLO11N_SEG_S8_V1
+        bool "flash coco_seg_yolo11n_seg_s8_v1"
+        depends on !COCO_SEG_MODEL_IN_SDCARD
+        default y
+
+    choice
+        prompt "default model"
+        default COCO_SEG_YOLO11N_SEG_S8_V1
+        help
+            default coco_seg model
+        config COCO_SEG_YOLO11N_SEG_S8_V1
+            bool "coco_seg_yolo11n_seg_s8_v1"
+            depends on COCO_SEG_MODEL_IN_SDCARD || FLASH_COCO_SEG_YOLO11N_SEG_S8_V1
+    endchoice
+
+    config DEFAULT_COCO_SEG_MODEL
+        int
+        default 0 if COCO_SEG_YOLO11N_SEG_S8_V1
+
+
+    choice
+        prompt "model location"
+        default COCO_SEG_MODEL_IN_FLASH_RODATA
+        help
+            coco_seg model location
+        config COCO_SEG_MODEL_IN_FLASH_RODATA
+            bool "flash_rodata"
+        config COCO_SEG_MODEL_IN_FLASH_PARTITION
+            bool "flash_partition"
+        config COCO_SEG_MODEL_IN_SDCARD
+            bool "sdcard"
+    endchoice
+
+    config COCO_SEG_MODEL_LOCATION
+        int
+        default 0 if COCO_SEG_MODEL_IN_FLASH_RODATA
+        default 1 if COCO_SEG_MODEL_IN_FLASH_PARTITION
+        default 2 if COCO_SEG_MODEL_IN_SDCARD
+
+    config COCO_SEG_MODEL_SDCARD_DIR
+        string "coco_seg model sdcard dir"
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
+        depends on COCO_SEG_MODEL_IN_SDCARD
+        help
+            Directory of models relative to sdcard mount point.
+endmenu

@@ -73,7 +73,7 @@ This component also contains `HandGestureRecognizer`. If you want to recognize a
 ## How to New Hand Gesture Recognizer
 
 ```cpp
-HandGestureRecognizer *hand_gesture_recognizer = new HandGestureRecognizer("????");
+HandGestureRecognizer *hand_gesture_recognizer = new HandGestureRecognizer("HandGestureCls::MOBILENETV2_0_5_S8_V1");
 ```
 
 ## How to Recognize a Hand Gesture

@@ -7,10 +7,12 @@
 namespace dl {
 namespace detect {
 typedef struct {
-    int category;              /*!< category index */
-    float score;               /*!< score of box */
-    std::vector<int> box;      /*!< [left_up_x, left_up_y, right_down_x, right_down_y] */
-    std::vector<int> keypoint; /*!< [x1, y1, x2, y2, ...] */
+    int category;                    /*!< category index */
+    float score;                     /*!< score of box */
+    std::vector<int> box;            /*!< [left_up_x, left_up_y, right_down_x, right_down_y] */
+    std::vector<int> keypoint;       /*!< [x1, y1, x2, y2, ...] */
+    std::vector<float> mask_coeff{}; /*!< YOLO-seg mask coefficients */
+    std::vector<uint8_t> mask{};     /*!< binary mask raster aligned to box (original image size) */
     void limit_box(int width, int height)
     {
         box[0] = DL_CLIP(box[0], 0, width - 1);
@@ -30,7 +32,7 @@ typedef struct {
     int box_area() const { return (box[2] - box[0]) * (box[3] - box[1]); }
 } result_t;
 
-inline bool greater_box(result_t a, result_t b)
+inline bool greater_box(const result_t &a, const result_t &b)
 {
     return a.score > b.score;
 }
