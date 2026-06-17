@@ -47,7 +47,7 @@ esp_err_t Fbank::process_frame(const float *input, int win_len, float *output, f
 
     if (m_config.use_log_fbank == 1) {
         float epsilon = m_config.log_epsilon;
-        for (int j = 0; j < m_config.num_mel_bins; j++) output[j] = logf(MAX(output[j], epsilon));
+        for (int j = 0; j < m_config.num_mel_bins; j++) output[j] = logf(DL_MAX(output[j], epsilon));
     } else if (m_config.use_log_fbank == 2) {
         float epsilon = m_config.log_epsilon;
         for (int j = 0; j < m_config.num_mel_bins; j++) output[j] = logf(output[j] + epsilon);

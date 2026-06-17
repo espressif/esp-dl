@@ -65,19 +65,20 @@ def create_md(config_file, output_path):
 
     content = """# Operator Support State
 
-| Supported Targets | ESP32 | ESP32-S3 | ESP32-P4 | ESP32-S31 |
-| ----------------- | ----- | -------- | -------- | --------- |
+| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C5 | ESP32-C6 | ESP32-S2 | ESP32-S3 | ESP32-P4 | ESP32-S31 |
+| ----------------- | ----- | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- |
 
 ## Quantization Strategy
 
 The quantization type of all operators is symmetric quantization. Now ESP-DL supports both 8-bit and 16-bit.
-The ``ESP32`` uses [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up) as its rounding strategy. Its operator is implemented in C, which is significantly slower compared to the ESP32-S3 and ESP32-P4.
 
-    - When quantizing **ESP32** platform models using **ESP-PPQ**, set the target to ``c``. Because ESP-DL implements its operators in C.
-    - When deploying **ESP32** platform models using **ESP-DL**, set the project compilation target to ``esp32``.
+Currently supported targets can be divided into three categories:
 
-The rounding for ``ESP32-S3`` is [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up).
-The rounding for ``ESP32-P4`` is [rounding half to even](https://simple.wikipedia.org/wiki/Rounding#Round_half_to_even).
+1. **ESP32 / ESP32-C2 / ESP32-C3 / ESP32-C5 / ESP32-C6 / ESP32-S2** — no PIE instructions. All operators are implemented in C, which is significantly slower compared to PIE-accelerated targets. Rounding strategy: [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up).
+
+2. **ESP32-S3** — PIE V1 instructions. Rounding strategy: [rounding half up](https://simple.wikipedia.org/wiki/Rounding#Round_half_up).
+
+3. **ESP32-P4 / ESP32-S31** — PIE V2 instructions. Rounding strategy: [rounding half to even](https://simple.wikipedia.org/wiki/Rounding#Round_half_to_even).
 
 ## Support Operators
 

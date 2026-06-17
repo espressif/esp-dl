@@ -10,11 +10,6 @@
 
 namespace dl {
 namespace audio {
-
-#define MAX(x, y) ((x) > (y) ? (x) : (y))
-#define MIN(x, y) ((x) < (y) ? (x) : (y))
-#define M_2PI 6.283185307179586476925286766559005
-
 /**
  * @brief Window function type enumeration.
  */

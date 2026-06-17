@@ -172,7 +172,7 @@ float compute_energy(float *x, int len, float epsilon)
     }
 
     // Return log of the energy
-    return logf(MAX(sum_squares, epsilon));
+    return logf(DL_MAX(sum_squares, epsilon));
 }
 
 mel_filter_t *mel_filter_init(int nfft, int nfilter, int low_freq, int high_freq, int sample_rate, uint32_t caps)
@@ -205,7 +205,7 @@ mel_filter_t *mel_filter_init(int nfft, int nfilter, int low_freq, int high_freq
         for (int j = bands_to_zero; j < feat_width; j++) {
             float lower_slope = (bin_mel[j] - bin[i]) / (bin[i + 1] - bin[i]);
             float upper_slope = (bin[i + 2] - bin_mel[j]) / (bin[i + 2] - bin[i + 1]);
-            float temp = MIN(lower_slope, upper_slope);
+            float temp = DL_MIN(lower_slope, upper_slope);
             if (lower_slope > 0 && start == -1)
                 start = j;
             if (upper_slope <= 0 && stop == -1)

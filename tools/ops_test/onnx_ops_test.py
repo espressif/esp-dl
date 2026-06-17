@@ -689,3 +689,140 @@ def DEPTHTOSPACE_TEST(config) -> ModelProto:
     print("The model is checked!")
 
     return model_def
+
+
+def LPNORM_TEST(config) -> ModelProto:
+    """
+    ONNX Operator: LpNormalization
+
+    Given a matrix, apply Lp-normalization along the provided axis.
+    output = input / Lp_norm(input, axis).
+    When the Lp norm is zero, the output is defined to be zero.
+
+    Attributes
+    axis - INT (default is -1): The axis on which to apply normalization.
+    p - INT (default is 2): The order of the normalization, only 1 or 2 are supported.
+    """
+
+    input_shape = config["input_shape"]
+    axis = config.get("axis", -1)
+    p = config.get("p", 2)
+    export_name_prefix = config.get("export_name_prefix", "onnx-model-lpnorm")
+
+    input_tensor = helper.make_tensor_value_info(
+        "input", TensorProto.FLOAT, input_shape
+    )
+    output_tensor = helper.make_tensor_value_info(
+        "output", TensorProto.FLOAT, input_shape
+    )
+
+    node_def = helper.make_node(
+        "LpNormalization",
+        inputs=["input"],
+        outputs=["output"],
+        axis=axis,
+        p=p,
+    )
+
+    graph_def = helper.make_graph(
+        [node_def],
+        "lpnorm_model",
+        [input_tensor],
+        [output_tensor],
+    )
+
+    model_def = helper.make_model(graph_def, producer_name=export_name_prefix)
+
+    onnx.checker.check_model(model_def)
+    print("The model is checked!")
+
+    return model_def
+
+
+def RMSNORMALIZATION_TEST(config) -> ModelProto:
+    """
+    RMSNormalization custom operator.
+
+    Computes: y = x / sqrt(mean(x^2) + epsilon) * weight
+
+    Inputs
+    X (heterogeneous) - T:
+        Input tensor
+    Scale (heterogeneous) - T:
+        Scale/weight tensor (1D, size = normalized dimension)
+
+    Outputs
+    Y (heterogeneous) - T:
+        Normalized output tensor (same shape as X)
+
+    Attributes
+    axis - INT (default -1):
+        The axis to normalize
+    epsilon - FLOAT (default 1e-5):
+        Small value to avoid division by zero
+    """
+
+    input_shape = config["input_shape"]
+    axis = config.get("axis", -1)
+    epsilon = config.get("epsilon", 1e-5)
+    export_name_prefix = config.get("export_name_prefix", "rmsnorm-model")
+
+    # Input tensor
+    input_tensor = helper.make_tensor_value_info(
+        "input", TensorProto.FLOAT, input_shape
+    )
+
+    # Weight/Scale initializer (shape = last dimension)
+    valid_axis = axis if axis >= 0 else len(input_shape) + axis
+    weight_shape = input_shape[valid_axis:]
+
+    # Create weight with random values around 1.0
+    np.random.seed(42)
+    weight_size = 1
+    for d in weight_shape:
+        weight_size *= d
+    weight_values = np.random.normal(1.0, 0.02, weight_size).astype(np.float32)
+
+    weight_init = helper.make_tensor(
+        name="weight",
+        data_type=TensorProto.FLOAT,
+        dims=weight_shape,
+        vals=weight_values,
+    )
+
+    # Output tensor
+    output_tensor = helper.make_tensor_value_info(
+        "output", TensorProto.FLOAT, input_shape
+    )
+
+    node_def = helper.make_node(
+        "RMSNormalization",
+        inputs=["input", "weight"],
+        outputs=["output"],
+        axis=axis,
+        epsilon=epsilon,
+    )
+
+    graph_def = helper.make_graph(
+        [node_def],
+        "rmsnorm_model",
+        [input_tensor],
+        [output_tensor],
+        initializer=[weight_init],
+    )
+
+    opset = OperatorSetIdProto()
+    opset.domain = ""
+    opset.version = 13
+
+    model_def = helper.make_model(
+        graph_def, opset_imports=[opset], producer_name=export_name_prefix
+    )
+
+    try:
+        onnx.checker.check_model(model_def)
+        print("The model is checked!")
+    except Exception as e:
+        print(f"ONNX checker warning (expected for custom ops): {e}")
+
+    return model_def

@@ -95,7 +95,7 @@ esp_err_t MFCC::process_frame(const float *input, int win_len, float *output, fl
 
     if (m_config.use_log_fbank == 1) {
         float epsilon = m_config.log_epsilon;
-        for (int j = 0; j < m_config.num_mel_bins; j++) mel[j] = logf(MAX(mel[j], epsilon));
+        for (int j = 0; j < m_config.num_mel_bins; j++) mel[j] = logf(DL_MAX(mel[j], epsilon));
     } else if (m_config.use_log_fbank == 2) {
         float epsilon = m_config.log_epsilon;
         for (int j = 0; j < m_config.num_mel_bins; j++) mel[j] = logf(mel[j] + epsilon);
