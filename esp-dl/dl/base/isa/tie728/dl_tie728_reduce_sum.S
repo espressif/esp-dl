@@ -88,7 +88,8 @@ dl_tie728_reduce_sum_s16_aligned:
         bnez a4, dl_tie728_reduce_sum_s16_aligned_loop
     dl_tie728_reduce_sum_s16_aligned_end:
 
-    // Read 40-bit ACCX as two 32-bit halves: ACCX_0 = low 32, ACCX_1 = high 8.
     rur.accx_0 a2                     // low 32 bits
-    rur.accx_1 a3                     // high 8 bits (sign-extended by hardware)
-    retw
+    rur.accx_1 a3                     // high 8 bits (zero-extended from bit 39:32)
+    slli a3, a3, 24                  // sign-extend: bit 7 → bit 31
+    srai a3, a3, 24                  // fill upper 24 bits with sign
+    retw                              // return int64_t as a3:a2

@@ -630,23 +630,14 @@ int64_t reduce_sum(int16_t *input, int32_t size, int32_t stride)
             i++;
         }
         int32_t aligned_size = (size - i) & ~0x7; // largest multiple of 8 elements (16 bytes)
-        // Both PIE V1 (tie728) and PIE V2 (esp32p4) accumulate int16 sums into a
-        // 40-bit saturating ACCX/XACC. Each int16 sum-of-8 contributes up to ~2^18,
-        // so more than ~2^21 elements may overflow. Process the aligned region in
-        // chunks of 256 elements (a multiple of 8) and fold each partial result into
-        // the 64-bit sum.
-        constexpr int32_t kChunkElems = 256;
-        for (int32_t processed = 0; processed < aligned_size; processed += kChunkElems) {
-            int32_t chunk = aligned_size - processed;
-            if (chunk > kChunkElems) {
-                chunk = kChunkElems;
-            }
+
+        if (aligned_size > 0) {
 #if CONFIG_PIE_V2_BOOST
-            sum += dl_esp32p4_reduce_sum_s16_aligned(input + i, chunk);
+            sum += dl_esp32p4_reduce_sum_s16_aligned(input + i, aligned_size);
 #else
-            sum += dl_tie728_reduce_sum_s16_aligned(input + i, chunk);
+            sum += dl_tie728_reduce_sum_s16_aligned(input + i, aligned_size);
 #endif
-            i += chunk;
+            i += aligned_size;
         }
 #else
         for (; i + 3 < size; i += 4) {
@@ -696,7 +687,7 @@ int32_t reduce_l1(int8_t *input, int32_t size, int32_t stride)
         // Scalar prologue to reach a 16-byte aligned address required by the SIMD load.
         while (i < size && (reinterpret_cast<uintptr_t>(input + i) & 0xF)) {
             int32_t v = input[i];
-            sum += v < 0 ? (v == INT8_MIN ? INT8_MAX : -v) : v;
+            sum += v < 0 ? -v : v; // int32 accumulator: |INT8_MIN| = 128 is exact, no saturation
             i++;
         }
         int32_t aligned_size = (size - i) & ~0xF; // largest multiple of 16 elements
@@ -714,20 +705,18 @@ int32_t reduce_l1(int8_t *input, int32_t size, int32_t stride)
             int32_t v1 = input[i + 1];
             int32_t v2 = input[i + 2];
             int32_t v3 = input[i + 3];
-            sum += (v0 < 0 ? (v0 == INT8_MIN ? INT8_MAX : -v0) : v0) +
-                (v1 < 0 ? (v1 == INT8_MIN ? INT8_MAX : -v1) : v1) + (v2 < 0 ? (v2 == INT8_MIN ? INT8_MAX : -v2) : v2) +
-                (v3 < 0 ? (v3 == INT8_MIN ? INT8_MAX : -v3) : v3);
+            sum += (v0 < 0 ? -v0 : v0) + (v1 < 0 ? -v1 : v1) + (v2 < 0 ? -v2 : v2) + (v3 < 0 ? -v3 : v3);
         }
 #endif
         for (; i < size; i++) {
             int32_t v = input[i];
-            sum += v < 0 ? (v == INT8_MIN ? INT8_MAX : -v) : v;
+            sum += v < 0 ? -v : v;
         }
     } else {
         int8_t *ptr = input;
         for (int32_t i = 0; i < size; i++) {
             int32_t v = *ptr;
-            sum += v < 0 ? (v == INT8_MIN ? INT8_MAX : -v) : v;
+            sum += v < 0 ? -v : v;
             ptr += stride;
         }
     }
@@ -744,45 +733,38 @@ int64_t reduce_l1(int16_t *input, int32_t size, int32_t stride)
 #if CONFIG_PIE_V1_BOOST || CONFIG_PIE_V2_BOOST
         // Scalar prologue to reach a 16-byte aligned address required by the SIMD load.
         while (i < size && (reinterpret_cast<uintptr_t>(input + i) & 0xF)) {
-            int64_t v = input[i];
-            sum += v < 0 ? (v == INT16_MIN ? INT16_MAX : -v) : v;
+            int32_t v = input[i];
+            sum += v < 0 ? -v : v; // int64 accumulator: |INT16_MIN| = 32768 is exact, no saturation
             i++;
         }
         int32_t aligned_size = (size - i) & ~0x7; // largest multiple of 8 elements (16 bytes)
-        constexpr int32_t kChunkElems = 256;
-        for (int32_t processed = 0; processed < aligned_size; processed += kChunkElems) {
-            int32_t chunk = aligned_size - processed;
-            if (chunk > kChunkElems) {
-                chunk = kChunkElems;
-            }
+
+        if (aligned_size > 0) {
 #if CONFIG_PIE_V2_BOOST
-            sum += dl_esp32p4_reduce_l1_s16_aligned(input + i, chunk);
+            sum += dl_esp32p4_reduce_l1_s16_aligned(input + i, aligned_size);
 #else
-            sum += dl_tie728_reduce_l1_s16_aligned(input + i, chunk);
+            sum += dl_tie728_reduce_l1_s16_aligned(input + i, aligned_size);
 #endif
-            i += chunk;
+            i += aligned_size;
         }
 #else
         for (; i + 3 < size; i += 4) {
-            int64_t v0 = input[i];
-            int64_t v1 = input[i + 1];
-            int64_t v2 = input[i + 2];
-            int64_t v3 = input[i + 3];
-            sum += (v0 < 0 ? (v0 == INT16_MIN ? INT16_MAX : -v0) : v0) +
-                (v1 < 0 ? (v1 == INT16_MIN ? INT16_MAX : -v1) : v1) +
-                (v2 < 0 ? (v2 == INT16_MIN ? INT16_MAX : -v2) : v2) +
-                (v3 < 0 ? (v3 == INT16_MIN ? INT16_MAX : -v3) : v3);
+            int32_t v0 = input[i];
+            int32_t v1 = input[i + 1];
+            int32_t v2 = input[i + 2];
+            int32_t v3 = input[i + 3];
+            sum += (v0 < 0 ? -v0 : v0) + (v1 < 0 ? -v1 : v1) + (v2 < 0 ? -v2 : v2) + (v3 < 0 ? -v3 : v3);
         }
 #endif
         for (; i < size; i++) {
-            int64_t v = input[i];
-            sum += v < 0 ? (v == INT16_MIN ? INT16_MAX : -v) : v;
+            int32_t v = input[i];
+            sum += v < 0 ? -v : v;
         }
     } else {
         int16_t *ptr = input;
         for (int32_t i = 0; i < size; i++) {
-            int64_t v = *ptr;
-            sum += v < 0 ? (v == INT16_MIN ? INT16_MAX : -v) : v;
+            int32_t v = *ptr;
+            sum += v < 0 ? -v : v;
             ptr += stride;
         }
     }

@@ -18,8 +18,8 @@ static int32_t reduce_l1_s8_naive(const int8_t *input, int32_t size, int32_t str
     const int8_t *ptr = input;
     for (int32_t i = 0; i < size; i++) {
         int32_t v = *ptr;
-        // SIMD abs saturates INT8_MIN (-128) to INT8_MAX (127); match that behavior.
-        sum += v < 0 ? (v == INT8_MIN ? INT8_MAX : -v) : v;
+        // True absolute value: |INT8_MIN| = 128 is accumulated exactly (no saturation).
+        sum += v < 0 ? -v : v;
         ptr += stride;
     }
     return sum;
@@ -31,8 +31,8 @@ static int64_t reduce_l1_s16_naive(const int16_t *input, int32_t size, int32_t s
     const int16_t *ptr = input;
     for (int32_t i = 0; i < size; i++) {
         int64_t v = *ptr;
-        // SIMD abs saturates INT16_MIN (-32768) to INT16_MAX (32767); match that behavior.
-        sum += v < 0 ? (v == INT16_MIN ? INT16_MAX : -v) : v;
+        // True absolute value: |INT16_MIN| = 32768 is accumulated exactly (no saturation).
+        sum += v < 0 ? -v : v;
         ptr += stride;
     }
     return sum;
@@ -126,7 +126,7 @@ TEST_CASE("Test dl base reduce_l1 int8: precision", "[pie]")
         heap_caps_free(input);
     }
 
-    // Edge: INT8_MIN (abs clamps to INT8_MAX in SIMD).
+    // Edge: INT8_MIN (|−128| = 128 must be accumulated exactly, not saturated to 127).
     {
         int n = 64;
         int8_t *input = (int8_t *)heap_caps_aligned_alloc(16, n, MALLOC_CAP_DEFAULT);
@@ -190,6 +190,21 @@ TEST_CASE("Test dl base reduce_l1 int16: precision", "[pie]")
         assert_equal_int64(ref, opt, "int16 reduce_l1 (strided) mismatch");
         heap_caps_free(input);
     }
+
+    // Edge: INT16_MIN (|−32768| = 32768 must be accumulated exactly, not saturated to 32767).
+    {
+        int n = 64;
+        int16_t *input = (int16_t *)heap_caps_aligned_alloc(16, n * sizeof(int16_t), MALLOC_CAP_DEFAULT);
+        TEST_ASSERT_NOT_NULL(input);
+        for (int i = 0; i < n; i++) {
+            input[i] = INT16_MIN;
+        }
+        int64_t ref = reduce_l1_s16_naive(input, n, 1);
+        int64_t opt = dl::base::reduce_l1(input, n, 1);
+        ESP_LOGI(TAG, "INT16_MIN stress n=%d | ref=%lld | opt=%lld", n, (long long)ref, (long long)opt);
+        assert_equal_int64(ref, opt, "int16 reduce_l1 INT16_MIN stress mismatch");
+        heap_caps_free(input);
+    }
 }
 
 TEST_CASE("Test dl base reduce_l1 float: precision", "[pie]")
@@ -242,11 +257,6 @@ TEST_CASE("Test dl base reduce_l1 float: precision", "[pie]")
 TEST_CASE("Test dl base reduce_l1 int8: speed", "[pie]")
 {
     ESP_LOGI(TAG, "Test dl base reduce_l1 int8: speed");
-    int8_t a = -128;
-    int16_t b = abs(a);
-
-    printf("a=%d\n", a);
-    printf("b=%d\n", b);
 
     const int lengths[] = {64, 256, 1024, 4096};
     const int num_lengths = sizeof(lengths) / sizeof(lengths[0]);

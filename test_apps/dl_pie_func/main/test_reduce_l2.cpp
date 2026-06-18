@@ -135,6 +135,22 @@ TEST_CASE("Test dl base reduce_l2 int16: precision", "[pie]")
         }
     }
 
+    // Worst-case overflow stress: every element at the int16 negative extreme so each
+    // square is 2^30 and the running sum climbs fast (32768^2 * 16384 = 2^60).
+    {
+        int n = 16384;
+        int16_t *input = (int16_t *)heap_caps_aligned_alloc(16, n * sizeof(int16_t), MALLOC_CAP_DEFAULT);
+        TEST_ASSERT_NOT_NULL(input);
+        for (int i = 0; i < n; i++) {
+            input[i] = INT16_MIN; // -32768
+        }
+        int64_t ref = reduce_l2_s16_naive(input, n, 1);
+        int64_t opt = dl::base::reduce_l2(input, n, 1);
+        ESP_LOGI(TAG, "int16 overflow stress n=%d | ref=%lld | opt=%lld", n, (long long)ref, (long long)opt);
+        assert_equal_int64(ref, opt, "int16 reduce_l2 overflow stress mismatch");
+        heap_caps_free(input);
+    }
+
     // Strided path (stride != 1 always uses the scalar implementation).
     {
         int n = 257;
