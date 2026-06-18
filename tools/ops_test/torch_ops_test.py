@@ -1287,6 +1287,82 @@ class LSTM_TEST(nn.Module):
         return output, h_n, c_n
 
 
+class ManualRMSNorm(nn.Module):
+    """RMSNorm decomposed into primitive ops for portable ONNX export.
+
+    ``torch.nn.RMSNorm`` lowers to the opset-23 ``RMSNormalization`` op via
+    PyTorch's onnxscript torchlib, which requires ``onnx>=1.18`` AND a
+    consumer that understands that op (ESP-PPQ, older ORT, onnxsim with old
+    onnx, etc. do not). Decomposing into ``Pow / ReduceMean / Add / Rsqrt /
+    Mul`` is numerically identical and runs everywhere.
+    """
+
+    def __init__(
+        self,
+        normalized_shape: int,
+        eps: float = 1e-8,
+    ) -> None:
+        super().__init__()
+        self.normalized_shape = (int(normalized_shape),)
+        self.eps = float(eps)
+        self.weight = nn.Parameter(torch.ones(normalized_shape))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # y = x * rsqrt(mean(x^2, dim=-1) + eps) * weight
+        ms = x.pow(2).mean(dim=-1, keepdim=True)
+        x = x / torch.sqrt(ms + self.eps)
+        x = x * self.weight
+        return x
+
+    def extra_repr(self) -> str:
+        return (
+            f"{self.normalized_shape[0]}, eps={self.eps}, "
+            f"elementwise_affine={self.weight is not None}"
+        )
+
+
+class RMSNORMALIZATION_TEST(nn.Module):
+    """RMSNormalization test model using decomposed ManualRMSNorm.
+
+    Computes: y = x / sqrt(mean(x^2) + epsilon) * weight
+
+    Normalizes over the axis-to-end slice of ``input_shape``, matching the
+    ONNX ``RMSNormalization`` custom op semantics in ``onnx_ops_test.py``.
+    """
+
+    def __init__(self, config):
+        super().__init__()
+        self.config = config
+
+        input_shape = config["input_shape"]
+        axis = config.get("axis", -1)
+        epsilon = config.get("epsilon", 1e-5)
+
+        if axis < 0:
+            axis = len(input_shape) + axis
+
+        inner_shape = input_shape[axis:]
+        inner_dim = 1
+        for d in inner_shape:
+            inner_dim *= d
+
+        self.axis = axis
+        self.input_shape = input_shape
+        self.rms_norm = ManualRMSNorm(inner_dim, eps=epsilon)
+        torch.nn.init.normal_(self.rms_norm.weight, mean=1.0, std=0.02)
+
+    def forward(self, x):
+        outer_dim = 1
+        for d in self.input_shape[: self.axis]:
+            outer_dim *= d
+        inner_dim = self.rms_norm.normalized_shape[0]
+
+        x = F.relu(x)
+        x_flat = x.reshape(outer_dim, inner_dim)
+        y_flat = self.rms_norm(x_flat)
+        return y_flat.reshape(self.input_shape)
+
+
 if __name__ == "__main__":
     print(f"Test {os.path.basename(sys.argv[0])} Module Start...")
 

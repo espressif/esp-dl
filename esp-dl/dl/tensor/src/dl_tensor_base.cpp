@@ -9,8 +9,13 @@ template <typename RT, typename T>
 RT quantize(T input, float inv_scale)
 {
     int output = tool::round(input * inv_scale);
-    output = DL_CLIP(
-        output, sizeof(RT) == 1 ? DL_QUANT8_MIN : DL_QUANT16_MIN, sizeof(RT) == 1 ? DL_QUANT8_MAX : DL_QUANT16_MAX);
+
+    if constexpr (sizeof(RT) == 1) {
+        output = DL_CLIP(output, DL_QUANT8_MIN, DL_QUANT8_MAX);
+    } else {
+        output = DL_CLIP(output, DL_QUANT16_MIN, DL_QUANT16_MAX);
+    }
+
     return static_cast<RT>(output);
 }
 

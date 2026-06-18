@@ -43,7 +43,7 @@ esp_err_t Spectrogram::process_frame(const float *input, int win_len, float *out
 
     if (m_config.use_log_fbank == 1) {
         float epsilon = m_config.log_epsilon;
-        for (int j = 1; j < m_feature_dim; j++) output[j] = logf(MAX(m_cache[j], epsilon));
+        for (int j = 1; j < m_feature_dim; j++) output[j] = logf(DL_MAX(m_cache[j], epsilon));
     } else if (m_config.use_log_fbank == 2) {
         float epsilon = m_config.log_epsilon;
         for (int j = 1; j < m_feature_dim; j++) output[j] = logf(m_cache[j] + epsilon);
