@@ -102,6 +102,10 @@ TensorBase *ImagePreprocessor::get_model_input()
     return m_model_input;
 }
 
+const img_t &ImagePreprocessor::get_src_img()
+{
+    return m_image_transformer.get_src_img();
+}
 void ImagePreprocessor::preprocess(const img_t &img, const std::vector<int> &crop_area)
 {
     if (m_letter_box) {

@@ -42,6 +42,7 @@ public:
     int get_border_top();
     int get_border_left();
     TensorBase *get_model_input();
+    const img_t &get_src_img();
     void preprocess(const img_t &img, const std::vector<int> &crop_area = {});
     void preprocess(const img_t &img, const dl::math::Matrix<float> &M, bool inv = false);
 
