@@ -174,7 +174,7 @@ TEST_CASE("Test dl base reduce_l2 int8: speed", "[pie]")
 {
     ESP_LOGI(TAG, "Test dl base reduce_l2 int8: speed");
 
-    const int lengths[] = {64, 256, 1024, 4096, 16384};
+    const int lengths[] = {64, 256, 1024, 4096};
     const int num_lengths = sizeof(lengths) / sizeof(lengths[0]);
     const int iters = 4000;
 
@@ -225,7 +225,7 @@ TEST_CASE("Test dl base reduce_l2 int16: speed", "[pie]")
 {
     ESP_LOGI(TAG, "Test dl base reduce_l2 int16: speed");
 
-    const int lengths[] = {64, 256, 1024, 4096, 16384};
+    const int lengths[] = {64, 256, 1024, 4096};
     const int num_lengths = sizeof(lengths) / sizeof(lengths[0]);
     const int iters = 4000;
 

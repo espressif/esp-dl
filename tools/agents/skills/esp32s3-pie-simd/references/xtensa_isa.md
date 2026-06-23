@@ -44,7 +44,7 @@
 
 ## 2. 特殊寄存器(Special Registers)
 
-### 2.1 程序状态寄存器
+### 2.1 循环/移位/控制寄存器
 
 | SR# | 名称 | 描述 | 宽度 | 特权 | 复位值 |
 |-----|------|------|------|------|--------|
@@ -52,20 +52,22 @@
 | 1 | LEND | 循环结束地址 | 32 | 否 | 0 |
 | 2 | LCOUNT | 循环计数器 | 32 | 否 | 0 |
 | 3 | SAR | 移位量寄存器 | 6 | 否 | 0 |
-| 5 | LITBASE | 字面量基址 | 32 | 否 | 0 |
+| 4 | BR / b0..15 | 布尔寄存器 | 16 | 否 | 0 |
+| 5 | LITBASE | 字面量基址 | 21 | 否 | 0 |
+| 12 | SCOMPARE1 | S32C1I条件存储比较寄存器 | 32 | 否 | 0 |
 
 ### 2.2 窗口寄存器
 
 | SR# | 名称 | 描述 | 宽度 | 特权 |
 |-----|------|------|------|------|
-| 48 | WINDOWBASE | 窗口基址 | 4-8 | 是 |
-| 49 | WINDOWSTART | 窗口起始 | 16 | 是 |
+| 72 | WINDOWBASE | 窗口基址 | 4-8 | 是 |
+| 73 | WINDOWSTART | 窗口起始 | 16 | 是 |
 
 ### 2.3 程序状态寄存器 (PS)
 
 | SR# | 名称 | 描述 | 宽度 | 特权 |
 |-----|------|------|------|------|
-| 230 | PS | 程序状态 | 32 | 是 |
+| 230 | PS | 程序状态 | 15 | 是 |
 
 **PS寄存器字段:**
 - **INTLEVEL** (位0-3): 中断级别
@@ -80,22 +82,23 @@
 
 | SR# | 名称 | 描述 | 宽度 | 特权 |
 |-----|------|------|------|------|
-| 128 | EXCCAUSE | 异常原因 | 32 | 是 |
-| 129 | DEBUGCAUSE | 调试原因 | 32 | 是 |
-| 136-142 | EPC1-EPC7 | 异常程序计数器 | 32 | 是 |
-| 144-150 | EPS2-EPS7 | 异常程序状态 | 32 | 是 |
-| 160 | EXCVADDR | 异常虚拟地址 | 32 | 是 |
-| 176-182 | EXCSAVE1-EXCSAVE7 | 异常保存 | 32 | 是 |
+| 177 | EPC1 | 异常程序计数器(Level-1) | 32 | 是 |
+| 178-183 | EPC2-EPC7 | 异常程序计数器(High-Level) | 32 | 是 |
 | 192 | DEPC | 双异常程序计数器 | 32 | 是 |
+| 194-199 | EPS2-EPS7 | 异常程序状态 | 32 | 是 |
+| 209 | EXCSAVE1 | 异常保存(Level-1) | 32 | 是 |
+| 210-215 | EXCSAVE2-EXCSAVE7 | 异常保存(High-Level) | 32 | 是 |
+| 232 | EXCCAUSE | 异常原因 | 32 | 是 |
+| 238 | EXCVADDR | 异常虚拟地址 | 32 | 是 |
 
 ### 2.5 中断相关寄存器
 
 | SR# | 名称 | 描述 | 宽度 | 特权 |
 |-----|------|------|------|------|
-| 226 | INTENABLE | 中断使能 | 32 | 是 |
-| 227 | INTENABLE | 中断使能(别名) | 32 | 是 |
-| 228 | INTERRUPT | 中断状态 | 32 | 是 |
-| 229 | INTCLEAR | 中断清除 | 32 | 是 |
+| 226 | INTERRUPT | 中断状态(读) | 32 | 是 |
+| 226 | INTSET | 中断置位(写) | 32 | 是 |
+| 227 | INTCLEAR | 中断清除 | 32 | 是 |
+| 228 | INTENABLE | 中断使能 | 32 | 是 |
 
 ### 2.6 定时器寄存器
 
@@ -108,44 +111,44 @@
 
 | SR# | 名称 | 描述 | 宽度 | 特权 |
 |-----|------|------|------|------|
-| 176 | ACCLO | MAC累加器低32位 | 32 | 否 |
-| 177 | ACCHI | MAC累加器高8位 | 8 | 否 |
-| 178-181 | M0-M3 | MAC16数据寄存器 | 32 | 否 |
-| 182 | MR | MAC16读寄存器 | 32 | 否 |
+| 16 | ACCLO | MAC累加器低32位 | 32 | 否 |
+| 17 | ACCHI | MAC累加器高8位 | 8 | 否 |
+| 32-35 | M0..3 / MR | MAC16数据寄存器 / 读寄存器(同组) | 32 | 否 |
 
 ### 2.8 调试相关寄存器
 
 | SR# | 名称 | 描述 | 宽度 | 特权 |
 |-----|------|------|------|------|
-| 129 | DEBUGCAUSE | 调试原因 | 32 | 是 |
-| 197 | ICOUNT | 指令计数 | 32 | 是 |
-| 198 | ICOUNTLEVEL | 指令计数级别 | 4 | 是 |
-| 200-201 | IBREAKA0-IBREAKA1 | 指令断点地址 | 32 | 是 |
-| 202 | IBREAKENABLE | 指令断点使能 | 2 | 是 |
-| 204-205 | DBREAKA0-DBREAKA1 | 数据断点地址 | 32 | 是 |
-| 208-209 | DBREAKC0-DBREAKC1 | 数据断点控制 | 32 | 是 |
-| 210 | DDR | 调试数据寄存器 | 32 | 是 |
+| 96 | IBREAKENABLE | 指令断点使能 | 2 | 是 |
+| 104 | DDR | 调试数据寄存器 | 32 | 是 |
+| 128-129 | IBREAKA0-IBREAKA1 | 指令断点地址 | 32 | 是 |
+| 144-145 | DBREAKA0-DBREAKA1 | 数据断点地址 | 32 | 是 |
+| 160-161 | DBREAKC0-DBREAKC1 | 数据断点控制 | 32 | 是 |
+| 233 | DEBUGCAUSE | 调试原因 | 32 | 是 |
+| 236 | ICOUNT | 指令计数 | 32 | 是 |
+| 237 | ICOUNTLEVEL | 指令计数级别 | 4 | 是 |
 
 ### 2.9 TLB相关寄存器
 
 | SR# | 名称 | 描述 | 宽度 | 特权 |
 |-----|------|------|------|------|
-| 176 | PTEVADDR | PTE虚拟地址 | 32 | 是 |
-| 177 | RASID | 环ASID | 32 | 是 |
-| 178 | ITLBCFG | 指令TLB配置 | 32 | 是 |
-| 179 | DTLBCFG | 数据TLB配置 | 32 | 是 |
+| 83 | PTEVADDR | PTE虚拟地址 | 32 | 是 |
+| 90 | RASID | 环ASID | 32 | 是 |
+| 91 | ITLBCFG | 指令TLB配置 | 32 | 是 |
+| 92 | DTLBCFG | 数据TLB配置 | 32 | 是 |
 
 ### 2.10 其他寄存器
 
 | SR# | 名称 | 描述 | 宽度 | 特权 |
 |-----|------|------|------|------|
-| 89 | VECBASE | 向量基址 | 32 | 是 |
-| 195 | MISC0-MISC3 | 杂项寄存器 | 32 | 是 |
-| 196 | THREADPTR | 线程指针 | 32 | 否 |
-| 197 | PRID | 处理器ID | 32 | 是 |
-| 204 | MMID | 内存映射ID | 32 | 是 |
-| 235 | ATOMCTL | 原子控制 | 32 | 是 |
-| 236 | CPENABLE | 协处理器使能 | 32 | 是 |
+| 89 | MMID | 内存映射ID | 32 | 是 |
+| 99 | ATOMCTL | 原子控制 | 32 | 是 |
+| 224 | CPENABLE | 协处理器使能 | 32 | 是 |
+| 231 | VECBASE | 向量基址 | 32 | 是 |
+| 235 | PRID | 处理器ID | 32 | 是 |
+| 244-247 | MISC0-MISC3 | 杂项寄存器 | 32 | 是 |
+
+**注意:** THREADPTR 是用户寄存器 #231，不属于特殊寄存器(SR)。参见 [3. 用户寄存器](#3-用户寄存器user-registers)。
 
 ---
 
@@ -1405,17 +1408,18 @@ endif
 
 **操作:** 
 ```
-LBEG ← PC + 4
-LEND ← PC + sign_extend(imm8) + 4
-LCOUNT ← AR[s]
+LBEG ← PC + 3
+LEND ← PC + 4 + zero_extend(imm8)
+LCOUNT ← AR[s] - 1
 ```
+当 LCOUNT=0 时迭代 2^32 次。
 
 **描述:** 设置零开销循环，循环次数由as指定，循环体从当前指令后开始到label处结束。
 
 **异常:** EveryInst Group
 
 **限制:**
-- 循环体最多56条指令
+- 循环体最多256字节(imm8为8位无符号偏移量)
 - LEND必须大于LBEG
 - 循环体内不能有跳转指令
 
@@ -1427,16 +1431,15 @@ LCOUNT ← AR[s]
 
 **操作:** 
 ```
-if AR[s] > 0 then
-  LBEG ← PC + 4
-  LEND ← PC + sign_extend(imm8) + 4
-  LCOUNT ← AR[s]
-else
-  PC ← PC + sign_extend(imm8) + 4
+LBEG ← PC + 3
+LEND ← PC + 4 + zero_extend(imm8)
+LCOUNT ← AR[s] - 1
+if AR[s] <= 0 then
+  PC ← PC + 4 + zero_extend(imm8)
 endif
 ```
 
-**描述:** 如果as大于0，则设置零开销循环，否则跳过循环体。
+**描述:** 如果as大于0，则设置零开销循环，否则跳过循环体。注意 LBEG/LEND/LCOUNT 在跳过时仍会被设置(但不会被执行)。
 
 **异常:** EveryInst Group
 
@@ -1448,16 +1451,15 @@ endif
 
 **操作:** 
 ```
-if AR[s] != 0 then
-  LBEG ← PC + 4
-  LEND ← PC + sign_extend(imm8) + 4
-  LCOUNT ← AR[s]
-else
-  PC ← PC + sign_extend(imm8) + 4
+LBEG ← PC + 3
+LEND ← PC + 4 + zero_extend(imm8)
+LCOUNT ← AR[s] - 1
+if AR[s] == 0 then
+  PC ← PC + 4 + zero_extend(imm8)
 endif
 ```
 
-**描述:** 如果as不等于0，则设置零开销循环，否则跳过循环体。
+**描述:** 如果as不等于0，则设置零开销循环，否则跳过循环体。注意 LBEG/LEND/LCOUNT 在跳过时仍会被设置(但不会被执行)。
 
 **异常:** EveryInst Group
 
@@ -2008,14 +2010,12 @@ PS.INTLEVEL ← imm4
 
 **操作:** 
 ```
-AR[s - 16] ← AR[0]
-AR[s - 12] ← AR[1]
-AR[s - 8] ← AR[2]
-AR[s - 4] ← AR[3]
-AR[1] ← AR[s] - (imm12 << 3)
+AR[PS.CALLINC||s1..0] ← AR[s] - (imm12 << 3)
+WindowBase ← WindowBase + PS.CALLINC
+WindowStart[WindowBase] ← 1
 ```
 
-**描述:** 保存寄存器窗口并分配栈空间，用于函数入口。
+**描述:** 旋转寄存器窗口并分配栈空间，用于函数入口。旋转后 callee 的 sp(a1) 指向新栈帧，caller 的 a0-a3 被保存在 callee 不可见的寄存器区域中。
 
 **异常:** 
 - EveryInst Group
@@ -2137,9 +2137,12 @@ AR[1] ← AR[s] - (imm12 << 3)
 
 ### 7.1 异常向量
 
-| 向量 | 地址 | 描述 |
+> **注意:** 向量地址的具体偏移量由处理器配置决定，下表为典型 Xtensa 配置下的偏移值。在可重定位向量选项(Relocatable Vector Option)下，静态组(ResetVector/MemoryErrorVector)使用固定绝对地址，动态组(其余向量)以 VECBASE 为基址并使用可配置偏移量。
+
+| 向量 | 地址(典型偏移) | 描述 |
 |------|------|------|
-| ResetVector | VECBASE + 0x00 | 复位向量 |
+| ResetVector | (配置时固定) + 0x00 | 复位向量 |
+| MemoryErrorVector | (配置时固定) + 0x60 | 内存错误向量 |
 | UserExceptionVector | VECBASE + 0x40 | 用户异常向量 |
 | KernelExceptionVector | VECBASE + 0x50 | 内核异常向量 |
 | DoubleExceptionVector | VECBASE + 0x70 | 双异常向量 |
@@ -2149,8 +2152,7 @@ AR[1] ← AR[s] - (imm12 << 3)
 | WindowUnderflow8 | VECBASE + 0xB0 | 8寄存器窗口下溢 |
 | WindowOverflow12 | VECBASE + 0xC0 | 12寄存器窗口溢出 |
 | WindowUnderflow12 | VECBASE + 0xD0 | 12寄存器窗口下溢 |
-| InterruptVector2..7 | VECBASE + 0x100 + (level-2)*0x10 | 中断向量 |
-| MemoryErrorVector | VECBASE + 0x60 | 内存错误向量 |
+| InterruptVector2..7 | VECBASE + 0x100 + (level-2)×0x10 | 中断向量 |
 
 ### 7.2 异常原因 (EXCCAUSE)
 
@@ -2172,20 +2174,20 @@ AR[1] ← AR[s] - (imm12 << 3)
 | 16 | InstTLBMissCause | 指令TLB未命中 |
 | 17 | InstTLBMultiHitCause | 指令TLB多重命中 |
 | 18 | InstFetchPrivilegeCause | 指令取指特权错误 |
-| 19 | InstFetchProhibitedCause | 指令取指禁止 |
+| 20 | InstFetchProhibitedCause | 指令取指禁止 |
 | 24 | LoadStoreTLBMissCause | 加载/存储TLB未命中 |
 | 25 | LoadStoreTLBMultiHitCause | 加载/存储TLB多重命中 |
 | 26 | LoadStorePrivilegeCause | 加载/存储特权错误 |
-| 27 | LoadProhibitedCause | 加载禁止 |
-| 28 | StoreProhibitedCause | 存储禁止 |
-| 29 | Coprocessor0DisabledCause | 协处理器0禁用 |
-| 32 | Coprocessor1DisabledCause | 协处理器1禁用 |
-| 33 | Coprocessor2DisabledCause | 协处理器2禁用 |
-| 34 | Coprocessor3DisabledCause | 协处理器3禁用 |
-| 35 | Coprocessor4DisabledCause | 协处理器4禁用 |
-| 36 | Coprocessor5DisabledCause | 协处理器5禁用 |
-| 37 | Coprocessor6DisabledCause | 协处理器6禁用 |
-| 38 | Coprocessor7DisabledCause | 协处理器7禁用 |
+| 28 | LoadProhibitedCause | 加载禁止 |
+| 29 | StoreProhibitedCause | 存储禁止 |
+| 32 | Coprocessor0DisabledCause | 协处理器0禁用 |
+| 33 | Coprocessor1DisabledCause | 协处理器1禁用 |
+| 34 | Coprocessor2DisabledCause | 协处理器2禁用 |
+| 35 | Coprocessor3DisabledCause | 协处理器3禁用 |
+| 36 | Coprocessor4DisabledCause | 协处理器4禁用 |
+| 37 | Coprocessor5DisabledCause | 协处理器5禁用 |
+| 38 | Coprocessor6DisabledCause | 协处理器6禁用 |
+| 39 | Coprocessor7DisabledCause | 协处理器7禁用 |
 
 ---
 

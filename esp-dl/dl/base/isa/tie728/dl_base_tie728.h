@@ -458,6 +458,16 @@ void dl_tie728_vsmul_s8f32(int8_t *input, float *scale, int n);
 
 int32_t dl_tie728_reduce_l2_s8_aligned(int8_t *input, int32_t size);
 int64_t dl_tie728_reduce_l2_s16_aligned(int16_t *input, int32_t size);
+int8_t dl_tie728_reduce_max_s8_aligned(int8_t *input, int32_t size);
+int16_t dl_tie728_reduce_max_s16_aligned(int16_t *input, int32_t size);
+int8_t dl_tie728_reduce_min_s8_aligned(int8_t *input, int32_t size);
+int16_t dl_tie728_reduce_min_s16_aligned(int16_t *input, int32_t size);
+int8_t dl_tie728_reduce_abs_max_s8_aligned(int8_t *input, int32_t size);
+int16_t dl_tie728_reduce_abs_max_s16_aligned(int16_t *input, int32_t size);
+int32_t dl_tie728_reduce_sum_s8_aligned(int8_t *input, int32_t size);
+int64_t dl_tie728_reduce_sum_s16_aligned(int16_t *input, int32_t size);
+int32_t dl_tie728_reduce_l1_s8_aligned(int8_t *input, int32_t size);
+int64_t dl_tie728_reduce_l1_s16_aligned(int16_t *input, int32_t size);
 
 void dl_tie728_rmsnorm_s8(int8_t *output, int8_t *input, float *scale, float *rms, int n);
 void dl_tie728_rmsnorm_s16(int16_t *output, int16_t *input, float *scale, float *rms, int n);

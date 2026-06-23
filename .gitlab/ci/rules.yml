@@ -150,7 +150,8 @@
   - "esp-dl/dl_audio/**/*"
 
 .patterns-test_dl_pie_func: &patterns-test_dl_pie_func
-  - "esp-dl/dl_pie_func/**/*"
+  - "esp-dl/dl/base/**/*"
+  - "test_apps/dl_pie_func/**/*"
 
 ##############
 # if anchors #

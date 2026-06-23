@@ -48,6 +48,7 @@ Eight 128-bit vector registers q0-q7. Each can hold:
 | QACC_L | 256 | R/W | Low 256-bit accumulator |
 | XACC | 40 | R/W | 40-bit scalar accumulator for dot-product style accumulation |
 | FFT_BIT_WIDTH | 4 | R/W | Bit width configuration for ESP.BITREV (range 3-10 bits) |
+| PERF | 32 | R/W | Performance counter register |
 | UA_STATE | 128 | R/W | Unaligned state register for FFT instructions |
 | CFG | 32 | R/W | Configuration register (rounding mode, saturation enable, misaligned access) |
 
@@ -55,12 +56,12 @@ Eight 128-bit vector registers q0-q7. Each can hold:
 
 | Field | Bits | Description |
 |-------|------|-------------|
-| vxsat_en | CFG[9] | Enable saturation status |
-| vxrm | CFG[8:7:4:3] | 4-bit rounding mode (0=FLOOR, 1=CEILING, 2=UP, 3=DOWN, 4=HALF_UP, 5=HALF_DOWN, 6=HALF_EVEN, 7=UNNECESSARY) |
-| rm_exc | CFG[2] | Exception status for UNNECESSARY mode (RO) |
-| vxsat | CFG[1] | Saturation status (RO, cleared on CFG read) |
-| mis_ld | CFG[7] | Enable hardware handle load misaligned access |
-| mis_st | CFG[3] | Enable hardware handle store misaligned access |
+| vxsat_en | 8 | Enable saturation status |
+| vxrm | 7:4 | 4-bit rounding mode (0=FLOOR, 1=CEILING, 2=UP, 3=DOWN, 4=HALF_UP, 5=HALF_DOWN, 6=HALF_EVEN, 7=UNNECESSARY) |
+| rm_exc | 3 | Exception status for UNNECESSARY mode (RO) |
+| vxsat | 2 | Saturation status (RO, cleared on CFG read) |
+| mis_ld | 1 | Enable hardware handle load misaligned access |
+| mis_st | 0 | Enable hardware handle store misaligned access |
 
 ### SAR Usage Constraints
 - **Vector shifts** (ESP.VSR.32, ESP.VSL.32): Uses lower 5 bits as shift amount
@@ -79,6 +80,7 @@ Instructions are organized into these categories. See `references/instructions.m
 6. **Bitwise Logical Instructions** - AND/OR/XOR/NOT on 128-bit QR registers
 7. **Shift Instructions** - Vector shifts, spliced shifts, immediate/register-controlled shifts
 8. **FFT Dedicated Instructions** - Radix-2 butterfly, complex multiply, bit-reverse, real FFT
+9. **Assembly functions are declared with .balign 4 alignment**.
 
 ## Quick Instruction Reference
 
@@ -109,7 +111,7 @@ Instructions are organized into these categories. See `references/instructions.m
 | `esp.zero.xacc` | Clear XACC |
 | `esp.zero.q qN` | Clear QR register |
 | `esp.movx.w.sar rs` | Write SAR register |
-| `esp.movx.r.sar.bytes rs` | Read SAR_BYTE |
+| `esp.movx.r.sar.bytes rd` | Read SAR_BYTE |
 
 ## Optimization Workflow
 

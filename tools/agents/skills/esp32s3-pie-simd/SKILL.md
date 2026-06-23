@@ -33,6 +33,7 @@ description: >
 ```asm
 WSR.SAR aN          ; write SAR
 RSR.SAR aN          ; read SAR
+XSR.SAR aN          ; exchange AR and SAR
 WUR.ACCX_0 aN       ; write ACCX[31:0]
 WUR.ACCX_1 aN       ; write ACCX[39:32]  (lower 8 bits of aN used)
 RUR.ACCX_0 aN       ; read ACCX[31:0]
@@ -75,25 +76,30 @@ EE.SRC.Q           q2, q0, q1    ; {q1,q0} >> SAR_BYTE*8 → q2 (lower 128 bits)
 ```
 EE.VLD.128.IP       qu, as, imm16    ; qu=load128(aligned(as)), as+=sext(imm16)*16
 EE.VLD.128.XP       qu, as, ad       ; qu=load128(aligned(as)), as+=ad
-EE.LD.128.USAR.IP   qu, as, imm16    ; SAR_BYTE=as[3:0], qu=load128(aligned(as)), as+=imm16
+EE.LD.128.USAR.IP   qu, as, imm16    ; SAR_BYTE=as[3:0], qu=load128(aligned(as)), as+=sext(imm16)*16
 EE.LD.128.USAR.XP   qu, as, ad       ; SAR_BYTE=as[3:0], qu=load128(aligned(as)), as+=ad
-EE.VLD.H.64.IP      qu, as, imm8     ; qu[127:64]=load64(aligned(as)), as+=imm8*8
-EE.VLD.L.64.IP      qu, as, imm8     ; qu[63:0]=load64(aligned(as)), as+=imm8*8
-EE.VLDBC.8          qu, as           ; qu = broadcast(load8(as)), as+=1
-EE.VLDBC.16         qu, as           ; qu = broadcast(load16(aligned(as))), as+=2
-EE.VLDBC.32         qu, as           ; qu = broadcast(load32(aligned(as))), as+=4
-EE.LDQA.S8.128.IP   as, imm16        ; sign-extend 16×8bit→16×20bit into QACC_H+L, as+=imm16
-EE.LDQA.S16.128.IP  as, imm16        ; sign-extend 8×16bit→8×40bit into QACC_H+L, as+=imm16
+EE.VLD.H.64.IP      qu, as, imm8     ; qu[127:64]=load64(aligned(as)), as+=sext(imm8)*8
+EE.VLD.L.64.IP      qu, as, imm8     ; qu[63:0]=load64(aligned(as)), as+=sext(imm8)*8
+EE.VLDBC.8          qu, as           ; qu = broadcast(load8(as)), as += 1
+EE.VLDBC.8.IP       qu, as, imm1     ; qu = broadcast(load8(as)), as += imm1 (0..1)
+EE.VLDBC.16         qu, as           ; qu = broadcast(load16(aligned(as))), as += 2
+EE.VLDBC.32         qu, as           ; qu = broadcast(load32(aligned(as))), as += 4
+EE.LDQA.S8.128.IP   as, imm16        ; sign-extend 16×8bit→16×20bit into QACC_H+L, as+=sext(imm16)*16
+EE.LDQA.S16.128.IP  as, imm16        ; sign-extend 8×16bit→8×40bit into QACC_H+L, as+=sext(imm16)*16
+EE.LDQA.U8.128.IP   as, imm16        ; zero-extend 16×8bit→16×20bit into QACC_H+L, as+=sext(imm16)*16
+EE.LDQA.U16.128.IP  as, imm16        ; zero-extend 8×16bit→8×40bit into QACC_H+L, as+=sext(imm16)*16
 ; IP = Immediate Post-increment, XP = register post-increment
-; imm16 for 128-bit: step = sext(imm16[7:0])*16, range -2048..2032
+; VLD.128.IP: step = sext(imm16)*16, range -512..496  (6-bit immediate)
+; VST.128.IP: step = sext(imm8)*16, range -2048..2032 (8-bit immediate)
+; VLD.H/L.64.IP: step = sext(imm8)*8, range -1024..1016
 ```
 
 ### 2. STORE (QR → Memory)
 ```
-EE.VST.128.IP       qv, as, imm16    ; store128(qv, aligned(as)), as+=sext(imm16)*16
+EE.VST.128.IP       qv, as, imm16    ; store128(qv, aligned(as)), as+=sext(imm8)*16
 EE.VST.128.XP       qv, as, ad       ; store128(qv, aligned(as)), as+=ad
-EE.VST.H.64.IP      qv, as, imm8     ; store64(qv[127:64], aligned(as)), as+=imm8*8
-EE.VST.L.64.IP      qv, as, imm8     ; store64(qv[63:0], aligned(as)), as+=imm8*8
+EE.VST.H.64.IP      qv, as, imm8     ; store64(qv[127:64], aligned(as)), as+=sext(imm8)*8
+EE.VST.L.64.IP      qv, as, imm8     ; store64(qv[63:0], aligned(as)), as+=sext(imm8)*8
 ```
 
 ### 3. VECTOR ARITHMETIC (lane-wise, saturated)
@@ -106,7 +112,8 @@ EE.VSUBS.S16        qa, qx, qy       ; qa[i]=saturate_s16(qx[i]-qy[i])
 EE.VSUBS.S32        qa, qx, qy       ; qa[i]=saturate_s32(qx[i]-qy[i])
 ; Combined Load+Arithmetic (qu=load result, qa=arithmetic result)
 EE.VADDS.S8.LD.INCP  qu, as, qa, qx, qy  ; as+=16
-EE.VSUBS.S8.LD.INCP  qu, as, qa, qx, qy
+EE.VADDS.S16.LD.INCP qu, as, qa, qx, qy  ; as+=16
+EE.VADDS.S32.LD.INCP qu, as, qa, qx, qy  ; as+=16
 ; Combined Store+Arithmetic (store qv, compute qa)
 EE.VADDS.S8.ST.INCP  qv, as, qa, qx, qy  ; store qv→aligned(as), as+=16
 ```
@@ -122,11 +129,16 @@ EE.VMUL.U16         qz, qx, qy       ; unsigned variant
 ;   wsr.sar aN
 ```
 
-### 5. COMPLEX MULTIPLY (16-bit, 4 selectable 32-bit complex pairs from qy)
+### 5. COMPLEX MULTIPLY (16-bit, 4 complex pairs × selected qy half)
 ```
 EE.CMUL.S16         qz, qx, qy, sel4
-; sel4 selects which 32-bit segment of qy: 0→[31:0], 1→[63:32], 2→[95:64], 3→[127:96]
-; qz[2*i+1:2*i] = complex_mul(qx[2*i+1:2*i], qy[sel4*32+31:sel4*32]) >> SAR
+; sel4 selects one 32-bit complex number from qy:
+;   temp[31:0] = qy[sel4*32+31:sel4*32]
+;   For each of the 4 complex pairs in qx (i=0..3):
+;     qz[64*i+15:64*i]   = qx[64*i+15:64*i] * temp[15:0] - qx[64*i+31:64*i+16] * temp[31:16]
+;     qz[64*i+31:64*i+16] = qx[64*i+15:64*i] * temp[31:16] + qx[64*i+31:64*i+16] * temp[15:0]
+;   All results right-shifted by SAR. All 4 complex pairs multiply with the
+;   same selected temp value (not pairwise with corresponding qy elements).
 ```
 
 ### 6. MULTIPLY-ACCUMULATE
@@ -138,10 +150,9 @@ EE.VMULAS.S16.ACCX   qx, qy    ; ACCX += Σ(qx[i] * qy[i]) for i=0..7
 EE.VMULAS.U8.ACCX    qx, qy    ; unsigned
 EE.VMULAS.U16.ACCX   qx, qy    ; unsigned
 ; Read raw result: RUR.ACCX_0 aN (low 32), RUR.ACCX_1 aN (high 8)
-EE.SRS.ACCX rd, rs, sel        ; arithmetic right shift ACCX by rs[5:0], write 40-bit
-                               ;   shifted result back to ACCX, and write it saturated
-                               ;   to a 32-bit signed value min(max(ACCX>>rs,-2^31),2^31-1)
-                               ;   into general register rd (sel selects shift source, 0 in esp-dl)
+EE.SRS.ACCX rd, rs, 0            ; arithmetic right shift ACCX by rs[5:0], write back to ACCX
+                               ;   and write saturated 32-bit signed result to rd
+                               ;   rd = min(max(ACCX>>rs[5:0], -2^31), 2^31-1)
 ```
 
 **QACC mode (per-lane accumulation, 20-bit or 40-bit per lane):**
@@ -150,18 +161,19 @@ EE.VMULAS.S8.QACC    qx, qy    ; QACC[i] += qx[i]*qy[i], 20-bit signed saturated
 EE.VMULAS.S16.QACC   qx, qy    ; QACC[i] += qx[i]*qy[i], 40-bit signed saturated per lane
 EE.VMULAS.U8.QACC    qx, qy    ; unsigned
 EE.VMULAS.U16.QACC   qx, qy    ; unsigned
-; Extract QACC→QR with right-shift+sat:
-EE.SRCMB.S8.QACC     qu, as, 0 ; 16×20-bit→16×8-bit, R-shift SAR, saturate to s8→qu
-EE.SRCMB.S16.QACC    qu, as, 0 ; 8×40-bit→8×16-bit, R-shift SAR, saturate to s16→qu
+; Extract QACC→QR with right-shift+sat (shift amount from as register, NOT SAR):
+EE.SRCMB.S8.QACC     qu, as, 0 ; 16×20-bit→16×8-bit, R-shift by as[4:0], saturate to s8→qu
+EE.SRCMB.S16.QACC    qu, as, 0 ; 8×40-bit→8×16-bit, R-shift by as[5:0], saturate to s16→qu
+; QACC values are also updated with the shifted results (read-modify-write)
 ```
 
 ### 7. COMPARISON (result = 0xFF on true, 0 on false)
 ```
 EE.VMAX.S8 / S16 / S32   qa, qx, qy    ; qa[i] = max(qx[i], qy[i])
 EE.VMIN.S8 / S16 / S32   qa, qx, qy    ; qa[i] = min(qx[i], qy[i])
-EE.VCMP.EQ.S8 / S16 / S32  qa, qx, qy  ; qa[i] = (qx[i]==qy[i]) ? 0xFF : 0
-EE.VCMP.LT.S8 / S16 / S32  qa, qx, qy  ; qa[i] = (qx[i] < qy[i]) ? 0xFF : 0
-EE.VCMP.GT.S8 / S16 / S32  qa, qx, qy  ; qa[i] = (qx[i] > qy[i]) ? 0xFF : 0
+EE.VCMP.EQ.S8        qa, qx, qy       ; qa[i] = (qx[i]==qy[i]) ? 0xFF : 0
+EE.VCMP.LT.S8        qa, qx, qy       ; qa[i] = (qx[i] < qy[i]) ? 0xFF : 0
+EE.VCMP.GT.S8        qa, qx, qy       ; qa[i] = (qx[i] > qy[i]) ? 0xFF : 0
 ; Use ANDQ with mask to implement conditional selection (e.g. ReLU)
 ```
 
@@ -187,6 +199,10 @@ MV.QR               qu, qs        ; qu = qs
 EE.ZERO.Q           qa            ; qa = 0
 EE.MOVI.32.A        qs, au, sel4  ; au = qs[sel4*32+31:sel4*32]  (extract 32-bit lane)
 EE.MOVI.32.Q        qu, as, sel4  ; qu[sel4*32+31:sel4*32] = as  (insert 32-bit lane)
+EE.MOV.S8.QACC      qs            ; sign-extend 16×8bit→16×20bit to QACC_H+L
+EE.MOV.S16.QACC     qs            ; sign-extend 8×16bit→8×40bit to QACC_H+L
+EE.MOV.U8.QACC      qs            ; zero-extend 16×8bit→16×20bit to QACC_H+L
+EE.MOV.U16.QACC     qs            ; zero-extend 8×16bit→8×40bit to QACC_H+L
 ```
 
 ### 11. ACTIVATION
@@ -215,6 +231,14 @@ EE.FFT.AMS.S16.LD.R32.DECP     qu, as, qz, qz1, qx, qy, qm, sel2  ; AMS+reversed
 EE.FFT.AMS.S16.ST.INCP         qv, qz1, at, as, qx, qy, qm, sel2  ; AMS + store
 EE.FFT.VST.R32.DECP            qv, as, sar2           ; reversed32 store, as-=16
 EE.BITREV                      qa, as                 ; bit-reverse (needs FFT_BIT_WIDTH)
+```
+
+### 14. GPIO
+```
+EE.WR_MASK_GPIO_OUT     as, ax          ; GPIO_OUT[7:0] = (GPIO_OUT & ~ax[7:0]) | (as[7:0] & ax[7:0])
+EE.SET_BIT_GPIO_OUT     imm8            ; GPIO_OUT[imm8] = 1
+EE.CLR_BIT_GPIO_OUT     imm8            ; GPIO_OUT[imm8] = 0
+EE.GET_GPIO_IN          au              ; au[7:0] = GPIO_IN[7:0]
 ```
 
 ---
@@ -280,15 +304,14 @@ EE.BITREV                      qa, as                 ; bit-reverse (needs FFT_B
 ```asm
 ; Use QACC for per-lane accumulation
     ee.zero.qacc
-    movi    a6, shift_amount
-    wsr.sar a6
+    movi    a6, shift_amount     ; shift for SRCMB (not SAR!)
     srai    a5, a5, 4            ; 16×int8 per load
     loopgtz a5, 0f
     ee.vld.128.ip     q0, a3, 16
     ee.vld.128.ip     q1, a4, 16
     ee.vmulas.s8.qacc q0, q1     ; QACC[i] += q0[i]*q1[i] for i=0..15
 0:
-    ee.srcmb.s8.qacc  q2, a2, 0  ; extract: 20-bit→8-bit with >>SAR, saturate
+    ee.srcmb.s8.qacc  q2, a6, 0  ; extract: 20-bit→8-bit with >>a6[4:0], saturate
 ```
 
 ### Pattern E: ReLU Activation
@@ -297,12 +320,12 @@ EE.BITREV                      qa, as                 ; bit-reverse (needs FFT_B
 ```
 →
 ```asm
+; Use VMAX with zero: max(x, 0) = ReLU (VCMP.GT only has S8, no S16 variant)
     ee.zero.q   q3               ; zeros vector
     srai    a5, a5, 3
     loopgtz a5, 0f
     ee.vld.128.ip    q0, a3, 16
-    ee.vcmp.gt.s16   q1, q0, q3  ; mask = (q0 > 0) → 0xFFFF or 0
-    ee.andq          q2, q0, q1  ; apply mask
+    ee.vmax.s16      q2, q0, q3  ; q2[i] = max(q0[i], 0)
     ee.vst.128.ip    q2, a2, 16
 0:
 ```
@@ -401,7 +424,7 @@ For branch/loop targets, use **local labels**: either a plain number (`0:`, `1:`
 ```asm
 ; GOOD — numeric local label
     loopgtz a6, 0f
-        ee.vmin.s16.ld.incp q0, a3, q2, q0, q1
+        ee.vadds.s16.ld.incp q0, a3, q2, q0, q1
         ee.vld.128.ip       q1, a4, 16
         ee.vst.128.ip       q2, a2, 16
     0:
@@ -474,6 +497,7 @@ ee.vadds.s16.ld.incp  q0, a3, q2, q4, q5  ; computes q2 while loading q0 for nex
 8. **VADDS/VSUBS saturate** — use when overflow is a concern; VMUL shifts and truncates (no sat).
 9. **EE.VRELU modifies input register in-place** — qs is both source and destination.
 10. **Don't mix EE.* and Xtensa native load/store on same address** without MEMW/DSYNC if caching matters.
+11. **Assembly functions are declared with .balign 4 alignment**.
 
 ---
 
@@ -490,7 +514,7 @@ ee.vadds.s16.ld.incp  q0, a3, q2, q4, q5  ; computes q2 while loading q0 for nex
 | `c = min(a, b)` | int8/int16/int32 | EE.VMIN.S8/S16/S32 |
 | `c = a > 0 ? a : 0` (ReLU) | int16 | EE.VRELU.S16 qs, zero, zero |
 | `c = a > 0 ? a : a*slope` (PReLU) | int8/int16 | EE.VPRELU.S8/S16 |
-| `c = a > b ? 0xFF : 0` (mask) | int8/int16 | EE.VCMP.GT.S8/S16 |
+| `c = a > b ? 0xFF : 0` (mask) | int8 | EE.VCMP.GT.S8 |
 | `c = a & b` | any | EE.ANDQ |
 | `c = a | b` | any | EE.ORQ |
 | `c = broadcast(scalar)` | int8/int16/int32 | EE.VLDBC.8/16/32 |
