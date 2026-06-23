@@ -37,7 +37,7 @@
 # Load 128-bit bias into QACC
 .macro esp32p4_s16_conv2d_128b_vector_bias bias_ptr
     esp.vld.128.ip  q7, \bias_ptr, 16
-    esp.vmov.s16.qacc q7
+    esp.mov.s16.qacc q7
 .endm
 ```
 
@@ -169,7 +169,7 @@ dl_esp32p4_s16_conv2d_11cn_bias_relu:
 
         # 1. Load bias into QACC
         esp.vld.128.ip  q7, a5, 16
-        esp.vmov.s16.qacc q7
+        esp.mov.s16.qacc q7
 
         # 2. Core conv2d MAC loop
         esp32p4_s16_conv2d_11c8  q0, q1, q2, t5, a3, t1, t0
@@ -602,5 +602,5 @@ esp.zero.qacc
 
 # Never do this (wasteful):
 esp.zero.q  q7
-esp.vmov.s16.qacc q7    # Only if you need to load bias, otherwise use zero.qacc
+esp.mov.s16.qacc q7    # Only if you need to load bias, otherwise use zero.qacc
 ```
