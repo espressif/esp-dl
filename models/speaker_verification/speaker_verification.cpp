@@ -1,6 +1,8 @@
 #include "speaker_verification.hpp"
 #include "esp_log.h"
 
+static const char *TAG = "speaker_verification";
+
 #if CONFIG_SPEAKER_VERIFICATION_MODEL_IN_FLASH_RODATA
 extern const uint8_t sv_model_espdl[] asm("_binary_sv_tdnn_tiny_espdl_start");
 static const char *path = (const char *)sv_model_espdl;
@@ -42,13 +44,14 @@ SpeakerVerification::SpeakerVerification(int target_sec) : target_seconds(target
 
     fbank = new dl::audio::Fbank(config);
 
-    int max_samples = target_seconds * config.sample_rate + 240;
-    num_frames = (max_samples - config.frame_length * config.sample_rate / 1000) /
+    feature_dim = config.num_mel_bins;
+    target_samples = target_seconds * config.sample_rate + 240;
+    num_frames = (target_samples - config.frame_length * config.sample_rate / 1000) /
             (config.frame_shift * config.sample_rate / 1000) +
         1;
-
-    audio_buffer = (float *)malloc(sizeof(float) * max_samples);
-    features_buffer = (float *)malloc(sizeof(float) * num_frames * config.num_mel_bins);
+    embedding_dim = model->get_outputs().begin()->second->size;
+    audio_buffer = (float *)malloc(sizeof(float) * target_samples);
+    features_buffer = (float *)malloc(sizeof(float) * num_frames * feature_dim);
 }
 
 SpeakerVerification::~SpeakerVerification()
@@ -59,28 +62,50 @@ SpeakerVerification::~SpeakerVerification()
     delete model;
 }
 
-dl::TensorBase *SpeakerVerification::preprocess(const uint8_t *wav_start, size_t wav_len)
+void SpeakerVerification::normalize_audio(const int16_t *src, int src_len)
+{
+    // Center-crop if too long, right-pad with zeros if too short, and scale int16 -> [-1, 1).
+    if (src_len < target_samples) {
+        for (int i = 0; i < target_samples; i++) audio_buffer[i] = (i < src_len) ? src[i] / 32768.0f : 0.0f;
+    } else {
+        int start = (src_len - target_samples) / 2;
+        for (int i = 0; i < target_samples; i++) audio_buffer[i] = src[start + i] / 32768.0f;
+    }
+}
+
+bool SpeakerVerification::preprocess(const uint8_t *wav_start, size_t wav_len)
 {
     dl::audio::dl_audio_t *audio = dl::audio::decode_wav(wav_start, wav_len);
-    int target_samples = target_seconds * 16000 + 240;
-
-    // Pad or crop audio
-    if (audio->length < target_samples) {
-        for (int i = 0; i < target_samples; i++)
-            audio_buffer[i] = (i < audio->length) ? audio->data[i] / 32768.0f : 0.0f;
-    } else {
-        int start = (audio->length - target_samples) / 2;
-        for (int i = 0; i < target_samples; i++) audio_buffer[i] = audio->data[start + i] / 32768.0f;
+    if (!audio) {
+        ESP_LOGE(TAG, "Failed to decode WAV.");
+        return false;
     }
+    normalize_audio(audio->data, audio->length);
     free(audio->data);
     free(audio);
 
+    extract_features();
+    return true;
+}
+
+bool SpeakerVerification::preprocess(const int16_t *samples, size_t num_samples)
+{
+    if (!samples || num_samples == 0) {
+        ESP_LOGE(TAG, "Invalid PCM input.");
+        return false;
+    }
+    normalize_audio(samples, (int)num_samples);
+    extract_features();
+    return true;
+}
+
+void SpeakerVerification::extract_features()
+{
     // FBank
     auto input_tensor = model->get_inputs().begin()->second;
     fbank->process(audio_buffer, target_samples, features_buffer);
 
     // CMVN (only subtract mean)
-    int feature_dim = 80;
     for (int d = 0; d < feature_dim; d++) {
         float mean = 0.0f;
         for (int t = 0; t < num_frames; t++) mean += features_buffer[t * feature_dim + d];
@@ -92,39 +117,59 @@ dl::TensorBase *SpeakerVerification::preprocess(const uint8_t *wav_start, size_t
     int16_t *quantized_input = (int16_t *)input_tensor->data;
     for (int i = 0; i < in_dim; i++)
         quantized_input[i] = dl::quantize<int16_t>(features_buffer[i], DL_RESCALE(input_tensor->exponent));
-
-    return input_tensor;
 }
 
-float *SpeakerVerification::run(const uint8_t *wav_start, size_t wav_len)
+float *SpeakerVerification::run_model()
 {
-    preprocess(wav_start, wav_len);
     model->run();
 
-    auto outputs = model->get_outputs();
-    dl::TensorBase *output_tensor = outputs.begin()->second;
-    int out_dim = output_tensor->size;
-    float *embedding = (float *)malloc(sizeof(float) * out_dim);
+    dl::TensorBase *output_tensor = model->get_outputs().begin()->second;
+
+    float *embedding = (float *)malloc(sizeof(float) * embedding_dim);
+    if (!embedding) {
+        ESP_LOGE(TAG, "Failed to allocate embedding buffer.");
+        return nullptr;
+    }
+
     int8_t *ptr = (int8_t *)output_tensor->data;
-    for (int i = 0; i < out_dim; i++) embedding[i] = dl::dequantize(ptr[i], DL_SCALE(output_tensor->exponent));
+    for (int i = 0; i < embedding_dim; i++) embedding[i] = dl::dequantize(ptr[i], DL_SCALE(output_tensor->exponent));
 
     return embedding;
 }
 
+float *SpeakerVerification::run(const uint8_t *wav_start, size_t wav_len)
+{
+    if (!preprocess(wav_start, wav_len))
+        return nullptr;
+    return run_model();
+}
+
+float *SpeakerVerification::run(const int16_t *samples, size_t num_samples)
+{
+    if (!preprocess(samples, num_samples))
+        return nullptr;
+    return run_model();
+}
+
 float SpeakerVerification::compute_similarity(const float *e1, const float *e2)
 {
-    int out_dim = model->get_outputs().begin()->second->size;
+    if (!e1 || !e2) {
+        ESP_LOGE(TAG, "Invalid embedding.");
+        return 0.0f;
+    }
 
-    float norm1 = 0.0f, norm2 = 0.0f;
-    for (int i = 0; i < out_dim; i++) {
+    float dot = 0.0f;
+    float norm1 = 0.0f;
+    float norm2 = 0.0f;
+
+    for (int i = 0; i < embedding_dim; i++) {
+        dot += e1[i] * e2[i];
         norm1 += e1[i] * e1[i];
         norm2 += e2[i] * e2[i];
     }
-    norm1 = sqrtf(norm1);
-    norm2 = sqrtf(norm2);
 
-    float sim = 0.0f;
-    for (int i = 0; i < out_dim; i++) sim += (e1[i] / norm1) * (e2[i] / norm2);
+    if (norm1 == 0.0f || norm2 == 0.0f)
+        return 0.0f;
 
-    return sim;
+    return dot / (sqrtf(norm1) * sqrtf(norm2));
 }
