@@ -73,24 +73,30 @@ void SpeakerVerification::normalize_audio(const int16_t *src, int src_len)
     }
 }
 
-void SpeakerVerification::preprocess(const uint8_t *wav_start, size_t wav_len)
+bool SpeakerVerification::preprocess(const uint8_t *wav_start, size_t wav_len)
 {
     dl::audio::dl_audio_t *audio = dl::audio::decode_wav(wav_start, wav_len);
     if (!audio) {
-        ESP_LOGE(TAG, "Failed to decode WAV");
-        return;
+        ESP_LOGE(TAG, "Failed to decode WAV.");
+        return false;
     }
     normalize_audio(audio->data, audio->length);
     free(audio->data);
     free(audio);
 
     extract_features();
+    return true;
 }
 
-void SpeakerVerification::preprocess(const int16_t *samples, size_t num_samples)
+bool SpeakerVerification::preprocess(const int16_t *samples, size_t num_samples)
 {
+    if (!samples || num_samples == 0) {
+        ESP_LOGE(TAG, "Invalid PCM input.");
+        return false;
+    }
     normalize_audio(samples, (int)num_samples);
     extract_features();
+    return true;
 }
 
 void SpeakerVerification::extract_features()
@@ -127,13 +133,15 @@ float *SpeakerVerification::run_model()
 
 float *SpeakerVerification::run(const uint8_t *wav_start, size_t wav_len)
 {
-    preprocess(wav_start, wav_len);
+    if (!preprocess(wav_start, wav_len))
+        return nullptr;
     return run_model();
 }
 
 float *SpeakerVerification::run(const int16_t *samples, size_t num_samples)
 {
-    preprocess(samples, num_samples);
+    if (!preprocess(samples, num_samples))
+        return nullptr;
     return run_model();
 }
 
