@@ -25,6 +25,18 @@ extern "C" void app_main(void)
     float *embed_b = verifier->run(_binary_audio_b_wav_start, _binary_audio_b_wav_end - _binary_audio_b_wav_start);
     float *embed_c = verifier->run(_binary_audio_c_wav_start, _binary_audio_c_wav_end - _binary_audio_c_wav_start);
 
+    if (!embed_a || !embed_b || !embed_c) {
+        ESP_LOGE(TAG, "Failed to extract speaker embeddings.");
+        free(embed_a);
+        free(embed_b);
+        free(embed_c);
+        delete verifier;
+#if CONFIG_SPEAKER_VERIFICATION_MODEL_IN_SDCARD
+        bsp_sdcard_unmount();
+#endif
+        return;
+    }
+
     float similarity1 = verifier->compute_similarity(embed_a, embed_b);
     ESP_LOGI(TAG, "Cosine similarity between audio a and b: %.4f", similarity1);
     float similarity2 = verifier->compute_similarity(embed_b, embed_c);

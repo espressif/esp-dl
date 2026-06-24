@@ -147,6 +147,11 @@ float *SpeakerVerification::run(const int16_t *samples, size_t num_samples)
 
 float SpeakerVerification::compute_similarity(const float *e1, const float *e2)
 {
+    if (!e1 || !e2) {
+        ESP_LOGE(TAG, "Invalid embedding.");
+        return 0.0f;
+    }
+
     float dot = 0.0f;
     float norm1 = 0.0f;
     float norm2 = 0.0f;
