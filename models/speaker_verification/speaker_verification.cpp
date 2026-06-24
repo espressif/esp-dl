@@ -64,7 +64,7 @@ SpeakerVerification::~SpeakerVerification()
 
 void SpeakerVerification::normalize_audio(const int16_t *src, int src_len)
 {
-    // Center-crop if too long, zero-pad if too short, and scale int16 -> [-1, 1).
+    // Center-crop if too long, right-pad with zeros if too short, and scale int16 -> [-1, 1).
     if (src_len < target_samples) {
         for (int i = 0; i < target_samples; i++) audio_buffer[i] = (i < src_len) ? src[i] / 32768.0f : 0.0f;
     } else {
@@ -124,7 +124,13 @@ float *SpeakerVerification::run_model()
     model->run();
 
     dl::TensorBase *output_tensor = model->get_outputs().begin()->second;
+
     float *embedding = (float *)malloc(sizeof(float) * embedding_dim);
+    if (!embedding) {
+        ESP_LOGE(TAG, "Failed to allocate embedding buffer.");
+        return nullptr;
+    }
+
     int8_t *ptr = (int8_t *)output_tensor->data;
     for (int i = 0; i < embedding_dim; i++) embedding[i] = dl::dequantize(ptr[i], DL_SCALE(output_tensor->exponent));
 
