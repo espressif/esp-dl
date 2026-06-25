@@ -1,7 +1,7 @@
 ## IDF Component Manager Manifest File
 dependencies:
   espressif/speaker_verification:
-    version: "^0.1.0"
+    version: "^0.2.0"
     override_path: "../../../models/speaker_verification"
   espressif/esp32_p4_function_ev_board_noglib:
     version: "*"
