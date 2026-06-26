@@ -3,6 +3,8 @@
 #include "esp_log.h"
 #include <climits>
 #include <cmath>
+#include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <sys/stat.h>
 
@@ -243,78 +245,112 @@ esp_err_t AudioVerificationDatabase::save_database_to_storage()
     if (!is_valid()) {
         return m_init_error;
     }
-    FILE *f = fopen(m_db_path.c_str(), "wb");
+
+    // Write to a temp file and rename only after a full successful write, so a
+    // failed save never corrupts the existing database.
+    const std::string tmp_path = m_db_path + ".tmp";
+    FILE *f = fopen(tmp_path.c_str(), "wb");
     if (!f) {
-        ESP_LOGE(TAG, "Failed to open database.");
+        ESP_LOGE(TAG, "Failed to open temp database.");
         return ESP_FAIL;
     }
+
+    uint32_t count = 0;
+
+// Abort to the cleanup label on any short write.
+#define WRITE_OR_FAIL(ptr, sz, cnt)                           \
+    do {                                                      \
+        if (fwrite((ptr), (sz), (cnt), f) != (size_t)(cnt)) { \
+            goto write_fail;                                  \
+        }                                                     \
+    } while (0)
 
     // Write metadata
-    size_t written = fwrite(&m_meta, sizeof(AudioDatabaseMeta), 1, f);
-    if (written != 1) {
-        ESP_LOGE(TAG, "Failed to write metadata.");
-        fclose(f);
-        return ESP_FAIL;
-    }
+    WRITE_OR_FAIL(&m_meta, sizeof(AudioDatabaseMeta), 1);
 
     // Write all speakers with embeddings and subspace
-    uint32_t count = 0;
     for (const auto &spk : m_speakers) {
         // Write speaker header
         uint16_t num_embeds = spk.embeddings.size();
-        fwrite(&spk.speaker_id, sizeof(uint16_t), 1, f);
-        fwrite(&num_embeds, sizeof(uint16_t), 1, f);
+        WRITE_OR_FAIL(&spk.speaker_id, sizeof(uint16_t), 1);
+        WRITE_OR_FAIL(&num_embeds, sizeof(uint16_t), 1);
         char spk_name[AUDIO_SPK_NAME_MAX] = {};
         snprintf(spk_name, AUDIO_SPK_NAME_MAX, "%s", spk.speaker_name.c_str());
-        fwrite(spk_name, sizeof(char), AUDIO_SPK_NAME_MAX, f);
+        WRITE_OR_FAIL(spk_name, sizeof(char), AUDIO_SPK_NAME_MAX);
 
         // Write subspace flag (1 = ready, 0 = not ready)
         uint8_t subspace_ready = spk.subspace.is_ready() ? 1 : 0;
-        fwrite(&subspace_ready, sizeof(uint8_t), 1, f);
+        WRITE_OR_FAIL(&subspace_ready, sizeof(uint8_t), 1);
 
         // Always write subspace data (use defaults if not ready)
         int subspace_dim = subspace_ready ? spk.subspace.get_dimension() : 0;
-        fwrite(&subspace_dim, sizeof(int), 1, f);
+        WRITE_OR_FAIL(&subspace_dim, sizeof(int), 1);
 
         // Write mean (or zeros if not ready)
         if (subspace_ready) {
-            const float *mean = spk.subspace.get_mean();
-            fwrite(mean, sizeof(float), m_meta.embedding_dim, f);
+            WRITE_OR_FAIL(spk.subspace.get_mean(), sizeof(float), m_meta.embedding_dim);
         } else {
             std::vector<float> zero_mean(m_meta.embedding_dim, 0.0f);
-            fwrite(zero_mean.data(), sizeof(float), m_meta.embedding_dim, f);
+            WRITE_OR_FAIL(zero_mean.data(), sizeof(float), m_meta.embedding_dim);
         }
 
         // Write basis (or zeros if not ready)
         int basis_size = subspace_dim * m_meta.embedding_dim;
         if (subspace_ready && basis_size > 0) {
-            const float *basis = spk.subspace.get_basis();
-            fwrite(basis, sizeof(float), basis_size, f);
+            WRITE_OR_FAIL(spk.subspace.get_basis(), sizeof(float), basis_size);
         } else {
             std::vector<float> zero_basis(basis_size > 0 ? basis_size : m_meta.embedding_dim, 0.0f);
-            fwrite(zero_basis.data(), sizeof(float), zero_basis.size(), f);
+            WRITE_OR_FAIL(zero_basis.data(), sizeof(float), zero_basis.size());
         }
 
         // Write variances (or zeros if not ready)
         if (subspace_ready && subspace_dim > 0) {
-            const float *variances = spk.subspace.get_variances();
-            fwrite(variances, sizeof(float), subspace_dim, f);
+            WRITE_OR_FAIL(spk.subspace.get_variances(), sizeof(float), subspace_dim);
         } else {
             float zero_var = 0.0f;
-            fwrite(&zero_var, sizeof(float), 1, f);
+            WRITE_OR_FAIL(&zero_var, sizeof(float), 1);
         }
 
         // Write embeddings
         for (const auto &embed : spk.embeddings) {
+            // Embedding ids are stored as uint16_t; guard against truncation.
+            if (count >= UINT16_MAX) {
+                ESP_LOGE(TAG, "Too many embeddings to store (id overflows uint16_t).");
+                goto write_fail;
+            }
             uint16_t id = ++count;
-            fwrite(&id, sizeof(uint16_t), 1, f);
-            fwrite(embed.data(), sizeof(float), m_meta.embedding_dim, f);
+            WRITE_OR_FAIL(&id, sizeof(uint16_t), 1);
+            WRITE_OR_FAIL(embed.data(), sizeof(float), m_meta.embedding_dim);
         }
     }
 
-    fclose(f);
+#undef WRITE_OR_FAIL
+
+    // Call both unconditionally so a failed fflush never leaks the FILE handle.
+    {
+        int flush_ret = fflush(f);
+        int close_ret = fclose(f);
+        if (flush_ret != 0 || close_ret != 0) {
+            ESP_LOGE(TAG, "Failed to finalize temp database.");
+            remove(tmp_path.c_str());
+            return ESP_FAIL;
+        }
+    }
+
+    if (rename(tmp_path.c_str(), m_db_path.c_str()) != 0) {
+        ESP_LOGE(TAG, "Failed to commit database file.");
+        remove(tmp_path.c_str());
+        return ESP_FAIL;
+    }
+
     ESP_LOGI(TAG, "Saved %d embeddings to storage.", count);
     return ESP_OK;
+
+write_fail:
+    ESP_LOGE(TAG, "Failed to write database content.");
+    fclose(f);
+    remove(tmp_path.c_str());
+    return ESP_FAIL;
 }
 
 AudioVerificationDatabase::speaker_bucket_t *AudioVerificationDatabase::find_speaker(const std::string &name)
