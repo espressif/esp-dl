@@ -127,6 +127,9 @@ esp_err_t AudioVerificationDatabase::load_database_from_storage(int embedding_di
             fclose(f);
             return ESP_FAIL;
         }
+        // Force null-termination so a corrupted (non-terminated) name can't cause
+        // an out-of-bounds read when constructing the std::string below.
+        speaker_name[AUDIO_SPK_NAME_MAX - 1] = '\0';
 
         // Read subspace flag
         uint8_t subspace_ready;
