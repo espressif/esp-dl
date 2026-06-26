@@ -13,6 +13,7 @@ set(src_dirs        ./dl/tool/src
                     ./vision/classification
                     ./audio/common
                     ./audio/speech_features
+                    ./audio/verification
                     )
 
 set(include_dirs    ./dl
@@ -31,6 +32,7 @@ set(include_dirs    ./dl
                     ./vision/classification
                     ./audio/common
                     ./audio/speech_features
+                    ./audio/verification
                     )
 
 file(GLOB exclude_srcs RELATIVE ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_LIST_DIR}/vision/image/dl_image_pixel_cvt_dispatch_*.cpp)
@@ -70,7 +72,8 @@ set(requires        dl_fft
                     esp_partition
                     esp_timer
                     mbedtls
-                    spi_flash)
+                    spi_flash
+                    eigen)
 
 if (CONFIG_PIX_CVT_GRAY_TO_GRAY_SUPPORT)
     list(REMOVE_ITEM exclude_srcs vision/image/dl_image_pixel_cvt_dispatch_gray2gray.cpp)

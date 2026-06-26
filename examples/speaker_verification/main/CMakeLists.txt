@@ -2,7 +2,8 @@ set(src_dirs        ./)
 
 set(include_dirs    ./)
 
-set(requires        speaker_verification)
+set(requires        speaker_verification
+                    spiffs)
 
 if (IDF_TARGET STREQUAL "esp32s3")
     list(APPEND requires esp32_s3_eye_noglib

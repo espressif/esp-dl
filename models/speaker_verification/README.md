@@ -10,32 +10,37 @@
 
 ## Model Latency
 
-| name         | preprocess(ms) | model(ms) | postprocess(ms) |
-| -------------- | ---------------- | ----------- | ----------------- |
-|  sv_tdnn_tiny | 123.0 | 438.9 | 0.1 |
+| name             | preprocess(us) | model(us) | postprocess(us) |
+| ---------------- | ---------------- | ----------- | ----------------- |
+|  sv_tdnn_tiny_3s | 61593  | 228370 | 171 |
+|  sv_tdnn_tiny_6s | 119947 | 441884 | 171 |
 
 ## Model Metrics (after quantization)
 
-| name         | dataset      | EER   |
-|--------------|--------------|-------|
-| sv_tdnn_tiny | vox1-O-clean | 2.36% |
+| name            | dataset      | EER   |
+|-----------------|--------------|-------|
+| sv_tdnn_tiny_3s | vox1-O-clean | 4.51% |
+| sv_tdnn_tiny_6s | vox1-O-clean | 2.19% |
 
 ## Model Usage
 
 ### How to Create
 
-By default, the model uses a 6-second target duration.
-All input audio will be automatically padded or trimmed to this length.
+Two fixed-length models are shipped: a 6-second window (`sv_tdnn_tiny_6s`, 600 frames)
+and a 3-second window (`sv_tdnn_tiny_3s`, 300 frames). The target duration selects which
+model is loaded and only accepts `3` or `6` (any other value falls back to `6`).
+All input audio is automatically padded or trimmed to the selected model's window.
+
+By default the 6-second model is used:
 
 ```cpp
-SpeakerVerification* verifier = new SpeakerVerification();
+SpeakerVerification* verifier = new SpeakerVerification();   // 6s / 600 frames
 ```
 
-You can also specify a custom target duration (e.g., 3 seconds).
-In this case, the model will use only 3 seconds of audio as input.
+To use the 3-second model:
 
 ```cpp
-SpeakerVerification* verifier = new SpeakerVerification(3);
+SpeakerVerification* verifier = new SpeakerVerification(3);  // 3s / 300 frames
 ```
 
 ### How to Use
@@ -71,7 +76,7 @@ Whether to flash the model when model location is set to FLASH rodata or FLASH p
 This component supports to [load model](https://docs.espressif.com/projects/esp-dl/en/latest/tutorials/how_to_load_test_profile_model.html) from three different locations.
 
 > [!NOTE]
-> - If model location is set to FLASH partition, `partition.csv` must contain a partition named `sv_model`, and the partition should be big enough to hold the model file.
+> - If model location is set to FLASH partition, `partition.csv` must contain two partitions named `sv_model_3s` and `sv_model_6s`, each big enough to hold the corresponding model file.
 
 ## SDCard Directory
 
