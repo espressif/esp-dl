@@ -1070,12 +1070,16 @@ void _slice(TensorBase *input,
         loop_step[axis] = step_i;
         assert(loop_start[axis] < loop_end[axis]);
     }
-    int min_offset = loop_end[last_axis] - loop_start[last_axis];
+    // contiguous_block_size: tail after last_axis (step always 1, safe for copy_memory).
+    // min_offset: includes last_axis range — only valid for copy_memory when step==1.
+    int contiguous_block_size = 1;
     for (int i = last_axis + 1; i < dims; i++) {
-        min_offset *= input_shape[i];
+        contiguous_block_size *= input_shape[i];
     }
+    int min_offset = (loop_end[last_axis] - loop_start[last_axis]) * contiguous_block_size;
     T *slice_ptr = nullptr;
     int min_offset_bytes = min_offset * sizeof(T);
+    int block_bytes = contiguous_block_size * sizeof(T);
 
     if (step.empty()) {
         if (dims == 1 || last_axis == 0) {
@@ -1099,7 +1103,7 @@ void _slice(TensorBase *input,
             }
         }
     } else {
-        if (dims == 1 || last_axis == 0) {
+        if (dims == 1) {
             slice_ptr = input_element + input->get_element_index(loop_start);
             if (loop_step[0] == 1) {
                 tool::copy_memory(output_element, slice_ptr, min_offset_bytes);
@@ -1110,18 +1114,35 @@ void _slice(TensorBase *input,
                     output_element += 1;
                 }
             }
+        } else if (last_axis == 0) {
+            // Multi-dimensional tensor slicing the outermost axis (axis 0).
+            // loop_step[0] is a coordinate-space step, NOT a flat-memory stride:
+            // each selected coordinate yields a contiguous_block_size memory block.
+            if (loop_step[0] == 1) {
+                slice_ptr = input_element + input->get_element_index(loop_start);
+                tool::copy_memory(output_element, slice_ptr, min_offset_bytes);
+            } else {
+                std::vector<int> loop_index = loop_start;
+                for (int idx = loop_start[0]; idx < loop_end[0]; idx += loop_step[0]) {
+                    loop_index[0] = idx;
+                    slice_ptr = input_element + input->get_element_index(loop_index);
+                    tool::copy_memory(output_element, slice_ptr, block_bytes);
+                    output_element += contiguous_block_size;
+                }
+            }
         } else {
             std::vector<int> loop_index = loop_start;
             while (loop_index[0] < loop_end[0]) {
-                slice_ptr = input_element + input->get_element_index(loop_index);
                 if (loop_step[last_axis] == 1) {
+                    slice_ptr = input_element + input->get_element_index(loop_index);
                     tool::copy_memory(output_element, slice_ptr, min_offset_bytes);
                     output_element += min_offset;
                 } else {
-                    for (int i = 0; i < min_offset; i += loop_step[last_axis]) {
-                        *output_element = *slice_ptr;
-                        slice_ptr += loop_step[last_axis];
-                        output_element += 1;
+                    for (int idx = loop_start[last_axis]; idx < loop_end[last_axis]; idx += loop_step[last_axis]) {
+                        loop_index[last_axis] = idx;
+                        slice_ptr = input_element + input->get_element_index(loop_index);
+                        tool::copy_memory(output_element, slice_ptr, block_bytes);
+                        output_element += contiguous_block_size;
                     }
                 }
 
