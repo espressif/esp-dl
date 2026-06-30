@@ -2023,6 +2023,45 @@
         flip = -1
         export_name_prefix = "slice_ishap_1_8_20_20_flip"
 
+        # Reproduces issue #315: slice with step>1 on a non-innermost axis
+        # https://github.com/espressif/esp-dl/issues/315
+        # _slice() treats loop_step[last_axis] as a contiguous-memory stride,
+        # but it is a coordinate-space step. When last_axis != dims-1 the
+        # output is corrupted and partially unwritten.
+        [[ops_test.Slice.cfg]]
+        input_shape = [1, 4, 4, 8]
+        starts = [0]
+        ends = [-1]
+        axes = [1]
+        steps = [2]
+        export_name_prefix = "slice_ishap_1_4_4_8_step2_axis1"
+
+        # Sibling of issue #315: slice with step>1 on the OUTERMOST axis (axis 0)
+        # of a multi-dim tensor (last_axis == 0, dims > 1). _slice() previously
+        # treated loop_step[0] as a flat-memory stride in this branch too, which
+        # is only valid for dims==1. For dims>1 each axis-0 coordinate maps to a
+        # contiguous_block_size memory block, so the old code scattered single
+        # elements across rows and left the tail of the output unwritten.
+        # Expected output for [10,8] step=3: full rows 0,3,6,9 -> shape [4,8]=32
+        # elements; the buggy code wrote only 27 single elements.
+        [[ops_test.Slice.cfg]]
+        input_shape = [10, 8]
+        starts = [0]
+        ends = [10]
+        axes = [0]
+        steps = [3]
+        export_name_prefix = "slice_ishap_10_8_step3_axis0"
+
+        # Same sibling branch with dims=3 (contiguous_block_size = 3*4 = 12),
+        # exercising a larger per-coordinate memory block.
+        [[ops_test.Slice.cfg]]
+        input_shape = [6, 3, 4]
+        starts = [0]
+        ends = [6]
+        axes = [0]
+        steps = [2]
+        export_name_prefix = "slice_ishap_6_3_4_step2_axis0"
+
 
     [ops_test.Pad]
     test_func = "PAD_TEST"

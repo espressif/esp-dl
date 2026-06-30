@@ -654,7 +654,7 @@ class POW_TEST(nn.Module):
         self.config = config
 
     def forward(self, input1, input2):
-        input1 = torch.exp(input1)
+        input1 = torch.exp(input1 * 0.5)
         output = torch.pow(input1, input2)
         return output
 
@@ -683,16 +683,16 @@ class SLICE_TEST(nn.Module):
         if self.flip:
             output = torch.flip(input, self.axes)
         else:
-            array_idx = []
-            for i, dim in enumerate(input.shape):
-                if i in self.axes:
-                    index = self.axes.index(i)
-                    array_idx.append(
-                        slice(self.starts[index], self.ends[index], self.steps[index])
-                    )
-                else:
-                    array_idx.append(slice(dim))
-            output = input[array_idx]
+            # aten.slice.Tensor exports only the specified axes to ONNX.
+            # PyTorch indexing (input[array_idx]) expands ALL dims, which
+            # esp-ppq merges into axes=[0..ndim-1], hiding bugs where the
+            # sliced axis is not the last dimension (issue #315).
+            output = input
+            for idx, axis in enumerate(self.axes):
+                start = self.starts[idx]
+                end = self.ends[idx]
+                step = self.steps[idx] if self.steps else 1
+                output = torch.ops.aten.slice.Tensor(output, axis, start, end, step)
         return output
 
 
