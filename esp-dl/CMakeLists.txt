@@ -70,8 +70,7 @@ set(requires        dl_fft
                     esp_partition
                     esp_timer
                     mbedtls
-                    spi_flash
-                    eigen)
+                    spi_flash)
 
 if (CONFIG_PIX_CVT_GRAY_TO_GRAY_SUPPORT)
     list(REMOVE_ITEM exclude_srcs vision/image/dl_image_pixel_cvt_dispatch_gray2gray.cpp)
