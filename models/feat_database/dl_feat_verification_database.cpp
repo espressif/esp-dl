@@ -2,6 +2,7 @@
 #include "dl_feat_verification_define.hpp"
 #include "esp_log.h"
 #include <cerrno>
+#include <cinttypes>
 #include <climits>
 #include <cmath>
 #include <cstdint>
@@ -21,6 +22,16 @@ FeatVerificationDatabase::FeatVerificationDatabase(const std::string &db_path, i
     m_meta.total_embeddings = 0;
     m_meta.valid_embeddings = 0;
     struct stat st;
+
+    // If only the temporary database remains, promote it to the committed database.
+    const std::string tmp_path = db_path + ".tmp";
+    if (stat(db_path.c_str(), &st) != 0 && stat(tmp_path.c_str(), &st) == 0) {
+        ESP_LOGW(TAG, "No committed DB found; recovering from temporary file %s.", tmp_path.c_str());
+        if (rename(tmp_path.c_str(), db_path.c_str()) != 0) {
+            ESP_LOGE(TAG, "Failed to recover from %s (errno=%d: %s).", tmp_path.c_str(), errno, strerror(errno));
+        }
+    }
+
     if (stat(db_path.c_str(), &st) == 0) {
         ESP_LOGI(TAG, "Loading database from %s.", db_path.c_str());
         m_init_error = load_database_from_storage(embedding_dim);
@@ -128,8 +139,7 @@ esp_err_t FeatVerificationDatabase::load_database_from_storage(int embedding_dim
             fclose(f);
             return ESP_FAIL;
         }
-        // Force null-termination so a corrupted (non-terminated) label can't cause
-        // an out-of-bounds read when constructing the std::string below.
+        // Ensure null termination even if the stored label is corrupted.
         label[FEAT_LABEL_MAX - 1] = '\0';
 
         // Read subspace flag
@@ -239,8 +249,7 @@ esp_err_t FeatVerificationDatabase::load_database_from_storage(int embedding_dim
             max_id = ident.identity_id;
         }
     }
-    // Recover the next assignable identity id. Identity ids start from 1;
-    // m_next_identity_id == 0 indicates that the id space is exhausted.
+    // Identity ids start from 1; 0 indicates that the id space is exhausted.
     if (max_id == UINT16_MAX) {
         // No more identity ids can be allocated.
         m_next_identity_id = 0;
@@ -349,19 +358,19 @@ esp_err_t FeatVerificationDatabase::save_database_to_storage()
         }
     }
 
-    // SPIFFS (and some other embedded filesystems) cannot rename onto an existing
-    // file -- the rename fails with EIO. Remove the previous database first; the
-    // temp file already holds the complete new database. The only unsafe window is
-    // a power loss between this remove and the rename (rare; on failure the .tmp
-    // file is left behind for recovery).
+    // SPIFFS cannot rename onto an existing file. Remove the old database first; 
+    // if power is lost before rename(), the temporary file is preserved for recovery.
     remove(m_db_path.c_str());
     if (rename(tmp_path.c_str(), m_db_path.c_str()) != 0) {
-        ESP_LOGE(TAG, "Failed to commit database file (errno=%d: %s).", errno, strerror(errno));
-        remove(tmp_path.c_str());
+        ESP_LOGE(TAG,
+                 "Failed to commit database file (errno=%d: %s). Temporary database preserved at %s.",
+                 errno,
+                 strerror(errno),
+                 tmp_path.c_str());
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "Saved %d embeddings to storage.", count);
+    ESP_LOGI(TAG, "Saved %" PRIu32 " embeddings to storage.", count);
     return ESP_OK;
 
 write_fail:
@@ -387,8 +396,7 @@ FeatVerificationDatabase::identity_bucket_t *FeatVerificationDatabase::get_or_cr
     if (ident) {
         return ident;
     }
-    // m_next_identity_id == 0 means the 1..UINT16_MAX id space is exhausted.
-    // Assigning here would wrap and collide with an existing identity id.
+    // m_next_identity_id == 0 means the identity id space is exhausted.
     if (m_next_identity_id == 0) {
         ESP_LOGE(TAG, "Identity ID space exhausted; cannot create new identity '%s'.", label.c_str());
         return nullptr;
