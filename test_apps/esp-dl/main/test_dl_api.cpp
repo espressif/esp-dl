@@ -4,9 +4,11 @@
 #include "dl_module_relu.hpp"
 #include "esp_log.h"
 #include "esp_timer.h"
+#include "fbs_loader.hpp"
 #include "unity.h"
 #include <cstring>
 #include <map>
+#include <string>
 #include <type_traits>
 #include <vector>
 static const char *TAG = "TEST DL MODEL";
@@ -273,4 +275,56 @@ TEST_CASE("Test dl module API: StreamingCache reset()", "[api]")
 
     int total_ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);
+}
+
+TEST_CASE("Test PDL3 package: verify integrity", "[api]")
+{
+    ESP_LOGI(TAG, "Test PDL3 package: verify integrity");
+
+    // The "model" partition is packed in the PDL3 format by default, verify it directly.
+    fbs::FbsLoader loader("model", fbs::MODEL_LOCATION_IN_FLASH_PARTITION);
+
+    int model_num = loader.get_model_num();
+    ESP_LOGI(TAG, "model_num: %d", model_num);
+    TEST_ASSERT_GREATER_THAN(0, model_num);
+
+    uint32_t package_size = loader.get_package_size();
+    ESP_LOGI(TAG, "package_size: %lu", (unsigned long)package_size);
+    TEST_ASSERT_GREATER_THAN(0, package_size);
+
+    char ver[16] = {0};
+    TEST_ASSERT_EQUAL(ESP_OK, loader.get_package_version(ver, sizeof(ver)));
+    ESP_LOGI(TAG, "package_version: %s", ver);
+    // package_version is set by the build (see main/CMakeLists.txt).
+    TEST_ASSERT_EQUAL_STRING("v1.0.0", ver);
+
+    // The digest stored in the header must match the one recomputed from the package bytes.
+    uint8_t stored[32];
+    uint8_t calc[32];
+    TEST_ASSERT_EQUAL(ESP_OK, loader.get_package_sha256(stored));
+    TEST_ASSERT_EQUAL(ESP_OK, loader.calc_package_sha256(calc));
+    TEST_ASSERT_EQUAL(0, memcmp(stored, calc, 32));
+
+    TEST_ASSERT_EQUAL(true, loader.verify_package_sha256());
+}
+
+TEST_CASE("Test PDL3 package: non-PDL3 returns unsupported", "[api]")
+{
+    ESP_LOGI(TAG, "Test PDL3 package: non-PDL3 returns unsupported");
+
+    // A non-PDL3 (EDL2) buffer should make all PDL3-specific interfaces report unsupported/default.
+    std::vector<uint8_t> buf(64, 0);
+    memcpy(buf.data(), "PDL2", 4);
+
+    fbs::FbsLoader loader((const char *)buf.data(), fbs::MODEL_LOCATION_IN_FLASH_RODATA);
+
+    TEST_ASSERT_EQUAL_UINT32(0, loader.get_package_size());
+
+    char ver[16] = {0};
+    TEST_ASSERT_EQUAL(ESP_ERR_NOT_SUPPORTED, loader.get_package_version(ver, sizeof(ver)));
+
+    uint8_t sha[32];
+    TEST_ASSERT_EQUAL(ESP_ERR_NOT_SUPPORTED, loader.get_package_sha256(sha));
+    TEST_ASSERT_EQUAL(ESP_ERR_NOT_SUPPORTED, loader.calc_package_sha256(sha));
+    TEST_ASSERT_EQUAL(false, loader.verify_package_sha256());
 }

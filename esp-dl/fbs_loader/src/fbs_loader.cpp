@@ -1,5 +1,6 @@
 #include "fbs_loader.hpp"
 #include "esp_idf_version.h"
+#include "mbedtls/sha256.h"
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
 #include "psa/crypto.h"
@@ -10,6 +11,15 @@
 static const char *TAG = "FbsLoader";
 
 namespace fbs {
+
+// PDL3 header byte layout
+#define PDL3_VERSION_OFFSET 4
+#define PDL3_VERSION_SIZE 16
+#define PDL3_PACKAGE_SIZE_OFFSET 20
+#define PDL3_SHA256_OFFSET 24
+#define PDL3_SHA256_SIZE 32
+#define PDL3_MODEL_NUM_OFFSET 56
+#define PDL3_HEADER_SIZE 60
 
 /**
  * @brief This function is used to decrypt the AES 128-bit CTR mode encrypted data.
@@ -58,6 +68,35 @@ void fbs_aes_crypt_ctr(const uint8_t *ciphertext, uint8_t *plaintext, size_t siz
 #endif
 }
 
+static inline bool is_packed_format(fbs_file_format_t format)
+{
+    return format == FBS_FILE_FORMAT_PDL1 || format == FBS_FILE_FORMAT_PDL2 || format == FBS_FILE_FORMAT_PDL3;
+}
+
+// uint32 word index of model_num within the packed header
+static inline uint32_t pack_model_num_word(fbs_file_format_t format)
+{
+    return (format == FBS_FILE_FORMAT_PDL3) ? (PDL3_MODEL_NUM_OFFSET / 4) : 1;
+}
+
+// uint32 word index of the first model entry within the packed header
+static inline uint32_t pack_entry_base_word(fbs_file_format_t format)
+{
+    return (format == FBS_FILE_FORMAT_PDL3) ? (PDL3_HEADER_SIZE / 4) : 2;
+}
+
+// byte offset of model_num within the packed header
+static inline uint32_t pack_model_num_byte(fbs_file_format_t format)
+{
+    return (format == FBS_FILE_FORMAT_PDL3) ? PDL3_MODEL_NUM_OFFSET : 4;
+}
+
+// byte offset of the first model entry within the packed header
+static inline uint32_t pack_entry_base_byte(fbs_file_format_t format)
+{
+    return (format == FBS_FILE_FORMAT_PDL3) ? PDL3_HEADER_SIZE : 8;
+}
+
 fbs_file_format_t get_model_format(const char *fbs_buf, model_location_type_t model_location)
 {
     char str[5];
@@ -83,6 +122,8 @@ fbs_file_format_t get_model_format(const char *fbs_buf, model_location_type_t mo
         return FBS_FILE_FORMAT_EDL2;
     } else if (strcmp(str, "PDL2") == 0) {
         return FBS_FILE_FORMAT_PDL2;
+    } else if (strcmp(str, "PDL3") == 0) {
+        return FBS_FILE_FORMAT_PDL3;
     } else {
         return FBS_FILE_FORMAT_UNK;
     }
@@ -90,17 +131,22 @@ fbs_file_format_t get_model_format(const char *fbs_buf, model_location_type_t mo
 
 esp_err_t get_model_offset_by_index(const char *fbs_buf,
                                     model_location_type_t model_location,
+                                    fbs_file_format_t format,
                                     uint32_t index,
                                     uint32_t &offset)
 {
+    uint32_t num_word = pack_model_num_word(format);
+    uint32_t entry_word = pack_entry_base_word(format);
+    uint32_t num_byte = pack_model_num_byte(format);
+    uint32_t entry_byte = pack_entry_base_byte(format);
     if (model_location != MODEL_LOCATION_IN_SDCARD) {
         const uint32_t *header = (const uint32_t *)fbs_buf;
-        uint32_t model_num = header[1];
+        uint32_t model_num = header[num_word];
         if (index >= model_num) {
             ESP_LOGE(TAG, "The model index is out of range.");
             return ESP_FAIL;
         }
-        offset = header[2 + index * 3];
+        offset = header[entry_word + index * 3];
         return ESP_OK;
     } else {
         FILE *f = fopen(fbs_buf, "rb");
@@ -108,7 +154,7 @@ esp_err_t get_model_offset_by_index(const char *fbs_buf,
             ESP_LOGE(TAG, "Failed to open %s.", fbs_buf);
             return ESP_FAIL;
         }
-        fseek(f, 4, SEEK_SET);
+        fseek(f, num_byte, SEEK_SET);
         uint32_t model_num;
         fread(&model_num, 4, 1, f);
         if (index >= model_num) {
@@ -116,7 +162,7 @@ esp_err_t get_model_offset_by_index(const char *fbs_buf,
             fclose(f);
             return ESP_FAIL;
         }
-        fseek(f, 4 * (2 + index * 3), SEEK_SET);
+        fseek(f, entry_byte + 12 * index, SEEK_SET);
         fread(&offset, 4, 1, f);
         fclose(f);
         return ESP_OK;
@@ -125,19 +171,24 @@ esp_err_t get_model_offset_by_index(const char *fbs_buf,
 
 esp_err_t get_model_offset_by_name(const char *fbs_buf,
                                    model_location_type_t model_location,
+                                   fbs_file_format_t format,
                                    const char *name,
                                    uint32_t &offset)
 {
+    uint32_t num_word = pack_model_num_word(format);
+    uint32_t entry_word = pack_entry_base_word(format);
+    uint32_t num_byte = pack_model_num_byte(format);
+    uint32_t entry_byte = pack_entry_base_byte(format);
     if (model_location != MODEL_LOCATION_IN_SDCARD) {
         const uint32_t *header = (const uint32_t *)fbs_buf;
-        uint32_t model_num = header[1];
+        uint32_t model_num = header[num_word];
         uint32_t name_offset, name_length;
         for (int i = 0; i < model_num; i++) {
-            name_offset = header[2 + 3 * i + 1];
-            name_length = header[2 + 3 * i + 2];
+            name_offset = header[entry_word + 3 * i + 1];
+            name_length = header[entry_word + 3 * i + 2];
             std::string model_name(fbs_buf + name_offset, name_length);
             if (model_name == std::string(name)) {
-                offset = header[2 + 3 * i];
+                offset = header[entry_word + 3 * i];
                 return ESP_OK;
             }
         }
@@ -149,19 +200,19 @@ esp_err_t get_model_offset_by_name(const char *fbs_buf,
             ESP_LOGE(TAG, "Failed to open %s.", fbs_buf);
             return ESP_FAIL;
         }
-        fseek(f, 4, SEEK_SET);
+        fseek(f, num_byte, SEEK_SET);
         uint32_t model_num;
         fread(&model_num, 4, 1, f);
         uint32_t name_offset, name_length;
         for (int i = 0; i < model_num; i++) {
-            fseek(f, 4 * (2 + 3 * i + 1), SEEK_SET);
+            fseek(f, entry_byte + 12 * i + 4, SEEK_SET);
             fread(&name_offset, 4, 1, f);
             fread(&name_length, 4, 1, f);
             std::string model_name(name_length, '\0');
             fseek(f, name_offset, SEEK_SET);
             fread(model_name.data(), name_length, 1, f);
             if (model_name == std::string(name)) {
-                fseek(f, 4 * (2 + 3 * i), SEEK_SET);
+                fseek(f, entry_byte + 12 * i, SEEK_SET);
                 fread(&offset, 4, 1, f);
                 fclose(f);
                 return ESP_OK;
@@ -333,9 +384,9 @@ FbsModel *FbsLoader::load(const int model_index, const uint8_t *key, bool param_
 
     uint32_t offset = 0;
     fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
-    if (format == FBS_FILE_FORMAT_PDL1 || format == FBS_FILE_FORMAT_PDL2) {
+    if (is_packed_format(format)) {
         // packed multiple espdl models
-        if (get_model_offset_by_index((const char *)m_fbs_buf, m_location, model_index, offset) != ESP_OK) {
+        if (get_model_offset_by_index((const char *)m_fbs_buf, m_location, format, model_index, offset) != ESP_OK) {
             return nullptr;
         }
     } else if (format == FBS_FILE_FORMAT_EDL1 || format == FBS_FILE_FORMAT_EDL2) {
@@ -365,9 +416,9 @@ FbsModel *FbsLoader::load(const char *model_name, const uint8_t *key, bool param
 
     uint32_t offset = 0;
     fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
-    if (format == FBS_FILE_FORMAT_PDL1 || format == FBS_FILE_FORMAT_PDL2) {
+    if (is_packed_format(format)) {
         // packed multiple espdl models
-        if (get_model_offset_by_name((const char *)m_fbs_buf, m_location, model_name, offset) != ESP_OK) {
+        if (get_model_offset_by_name((const char *)m_fbs_buf, m_location, format, model_name, offset) != ESP_OK) {
             return nullptr;
         }
     } else if (format == FBS_FILE_FORMAT_EDL1 || format == FBS_FILE_FORMAT_EDL2) {
@@ -390,19 +441,19 @@ int FbsLoader::get_model_num()
     }
 
     fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
-    if (format == FBS_FILE_FORMAT_PDL1 || format == FBS_FILE_FORMAT_PDL2) {
+    if (is_packed_format(format)) {
         // packed multiple espdl models
         uint32_t model_num;
         if (m_location != MODEL_LOCATION_IN_SDCARD) {
             uint32_t *header = (uint32_t *)m_fbs_buf;
-            model_num = header[1];
+            model_num = header[pack_model_num_word(format)];
         } else {
             FILE *f = fopen((const char *)m_fbs_buf, "rb");
             if (!f) {
                 ESP_LOGE(TAG, "Failed to open %s.", (const char *)m_fbs_buf);
                 return 0;
             }
-            fseek(f, 4, SEEK_SET);
+            fseek(f, pack_model_num_byte(format), SEEK_SET);
             fread(&model_num, 4, 1, f);
             fclose(f);
         }
@@ -426,14 +477,16 @@ void FbsLoader::list_models()
     }
 
     fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
-    if (format == FBS_FILE_FORMAT_PDL1 || format == FBS_FILE_FORMAT_PDL2) {
+    if (is_packed_format(format)) {
         // packed multiple espdl models
+        uint32_t entry_word = pack_entry_base_word(format);
+        uint32_t entry_byte = pack_entry_base_byte(format);
         if (m_location != MODEL_LOCATION_IN_SDCARD) {
             uint32_t *header = (uint32_t *)m_fbs_buf;
-            uint32_t model_num = header[1];
+            uint32_t model_num = header[pack_model_num_word(format)];
             for (int i = 0; i < model_num; i++) {
-                uint32_t name_offset = header[2 + 3 * i + 1];
-                uint32_t name_length = header[2 + 3 * i + 2];
+                uint32_t name_offset = header[entry_word + 3 * i + 1];
+                uint32_t name_length = header[entry_word + 3 * i + 2];
                 std::string name((const char *)m_fbs_buf + name_offset, name_length);
                 ESP_LOGI(TAG, "model name: %s, index:%d", name.c_str(), i);
             }
@@ -443,12 +496,12 @@ void FbsLoader::list_models()
                 ESP_LOGE(TAG, "Failed to open %s.", (const char *)m_fbs_buf);
                 return;
             }
-            fseek(f, 4, SEEK_SET);
+            fseek(f, pack_model_num_byte(format), SEEK_SET);
             uint32_t model_num;
             fread(&model_num, 4, 1, f);
             uint32_t name_offset, name_length;
             for (int i = 0; i < model_num; i++) {
-                fseek(f, 4 * (2 + 3 * i + 1), SEEK_SET);
+                fseek(f, entry_byte + 12 * i + 4, SEEK_SET);
                 fread(&name_offset, 4, 1, f);
                 fread(&name_length, 4, 1, f);
                 std::string name(name_length, '\0');
@@ -461,6 +514,203 @@ void FbsLoader::list_models()
     } else if (format == FBS_FILE_FORMAT_EDL1 || format == FBS_FILE_FORMAT_EDL2) {
         ESP_LOGI(TAG, "There is only one model in the flatbuffers without model name.");
     }
+}
+
+esp_err_t FbsLoader::get_package_version(char *out_version, size_t out_size)
+{
+    if (out_version == nullptr || out_size == 0) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    if (this->m_fbs_buf == nullptr) {
+        ESP_LOGE(TAG, "Model's flatbuffers is empty.");
+        return ESP_ERR_INVALID_STATE;
+    }
+    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    if (format != FBS_FILE_FORMAT_PDL3) {
+        ESP_LOGW(TAG, "get_package_version is only supported for PDL3 packages.");
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+    if (out_size < PDL3_VERSION_SIZE) {
+        return ESP_ERR_INVALID_SIZE;
+    }
+
+    char version[PDL3_VERSION_SIZE];
+    if (m_location != MODEL_LOCATION_IN_SDCARD) {
+        memcpy(version, (const char *)m_fbs_buf + PDL3_VERSION_OFFSET, PDL3_VERSION_SIZE);
+    } else {
+        FILE *f = fopen((const char *)m_fbs_buf, "rb");
+        if (!f) {
+            ESP_LOGE(TAG, "Failed to open %s.", (const char *)m_fbs_buf);
+            return ESP_FAIL;
+        }
+        fseek(f, PDL3_VERSION_OFFSET, SEEK_SET);
+        fread(version, PDL3_VERSION_SIZE, 1, f);
+        fclose(f);
+    }
+    version[PDL3_VERSION_SIZE - 1] = '\0'; // guarantee termination
+    strlcpy(out_version, version, out_size);
+    return ESP_OK;
+}
+
+uint32_t FbsLoader::get_package_size()
+{
+    if (this->m_fbs_buf == nullptr) {
+        return 0;
+    }
+    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    if (format != FBS_FILE_FORMAT_PDL3) {
+        return 0;
+    }
+
+    uint32_t package_size = 0;
+    if (m_location != MODEL_LOCATION_IN_SDCARD) {
+        memcpy(&package_size, (const char *)m_fbs_buf + PDL3_PACKAGE_SIZE_OFFSET, sizeof(uint32_t));
+    } else {
+        FILE *f = fopen((const char *)m_fbs_buf, "rb");
+        if (!f) {
+            ESP_LOGE(TAG, "Failed to open %s.", (const char *)m_fbs_buf);
+            return 0;
+        }
+        fseek(f, PDL3_PACKAGE_SIZE_OFFSET, SEEK_SET);
+        fread(&package_size, sizeof(uint32_t), 1, f);
+        fclose(f);
+    }
+    return package_size;
+}
+
+esp_err_t FbsLoader::get_package_sha256(uint8_t out_sha256[32])
+{
+    if (out_sha256 == nullptr) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    if (this->m_fbs_buf == nullptr) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    if (format != FBS_FILE_FORMAT_PDL3) {
+        ESP_LOGW(TAG, "get_package_sha256 is only supported for PDL3 packages.");
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+
+    if (m_location != MODEL_LOCATION_IN_SDCARD) {
+        memcpy(out_sha256, (const char *)m_fbs_buf + PDL3_SHA256_OFFSET, PDL3_SHA256_SIZE);
+    } else {
+        FILE *f = fopen((const char *)m_fbs_buf, "rb");
+        if (!f) {
+            ESP_LOGE(TAG, "Failed to open %s.", (const char *)m_fbs_buf);
+            return ESP_FAIL;
+        }
+        fseek(f, PDL3_SHA256_OFFSET, SEEK_SET);
+        fread(out_sha256, PDL3_SHA256_SIZE, 1, f);
+        fclose(f);
+    }
+    return ESP_OK;
+}
+
+esp_err_t FbsLoader::calc_package_sha256(uint8_t out_sha256[32])
+{
+    if (out_sha256 == nullptr) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    if (this->m_fbs_buf == nullptr) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    if (format != FBS_FILE_FORMAT_PDL3) {
+        ESP_LOGW(TAG, "calc_package_sha256 is only supported for PDL3 packages.");
+        return ESP_ERR_NOT_SUPPORTED;
+    }
+
+    uint32_t package_size = this->get_package_size();
+    if (package_size <= PDL3_SHA256_OFFSET + PDL3_SHA256_SIZE) {
+        ESP_LOGE(TAG, "Invalid PDL3 package_size: %lu", (unsigned long)package_size);
+        return ESP_ERR_INVALID_SIZE;
+    }
+
+    const uint8_t zero_digest[PDL3_SHA256_SIZE] = {0};
+    mbedtls_sha256_context ctx;
+    mbedtls_sha256_init(&ctx);
+    esp_err_t ret = ESP_OK;
+    // 0 selects SHA-256 (as opposed to SHA-224).
+    if (mbedtls_sha256_starts(&ctx, 0) != 0) {
+        mbedtls_sha256_free(&ctx);
+        return ESP_FAIL;
+    }
+
+    if (m_location != MODEL_LOCATION_IN_SDCARD) {
+        const uint8_t *buf = (const uint8_t *)m_fbs_buf;
+        // [0, PDL3_SHA256_OFFSET): magic + version + package_size
+        if (mbedtls_sha256_update(&ctx, buf, PDL3_SHA256_OFFSET) != 0 ||
+            // the package_sha256 field is hashed as 32 zero bytes
+            mbedtls_sha256_update(&ctx, zero_digest, PDL3_SHA256_SIZE) != 0 ||
+            // remaining bytes up to package_size
+            mbedtls_sha256_update(&ctx,
+                                  buf + PDL3_SHA256_OFFSET + PDL3_SHA256_SIZE,
+                                  package_size - PDL3_SHA256_OFFSET - PDL3_SHA256_SIZE) != 0) {
+            ret = ESP_FAIL;
+        }
+    } else {
+        FILE *f = fopen((const char *)m_fbs_buf, "rb");
+        if (!f) {
+            ESP_LOGE(TAG, "Failed to open %s.", (const char *)m_fbs_buf);
+            mbedtls_sha256_free(&ctx);
+            return ESP_FAIL;
+        }
+        const size_t chunk_size = 1024;
+        uint8_t *chunk = (uint8_t *)malloc(chunk_size);
+        if (!chunk) {
+            fclose(f);
+            mbedtls_sha256_free(&ctx);
+            return ESP_ERR_NO_MEM;
+        }
+        uint32_t remaining = package_size;
+        uint32_t consumed = 0;
+        while (remaining > 0 && ret == ESP_OK) {
+            size_t to_read = remaining < chunk_size ? remaining : chunk_size;
+            if (fread(chunk, 1, to_read, f) != to_read) {
+                ret = ESP_FAIL;
+                break;
+            }
+            // mask out the package_sha256 field with zeros within this chunk
+            for (size_t i = 0; i < to_read; i++) {
+                uint32_t abs_off = consumed + i;
+                if (abs_off >= PDL3_SHA256_OFFSET && abs_off < PDL3_SHA256_OFFSET + PDL3_SHA256_SIZE) {
+                    chunk[i] = 0;
+                }
+            }
+            if (mbedtls_sha256_update(&ctx, chunk, to_read) != 0) {
+                ret = ESP_FAIL;
+                break;
+            }
+            consumed += to_read;
+            remaining -= to_read;
+        }
+        free(chunk);
+        fclose(f);
+    }
+
+    if (ret == ESP_OK && mbedtls_sha256_finish(&ctx, out_sha256) != 0) {
+        ret = ESP_FAIL;
+    }
+    mbedtls_sha256_free(&ctx);
+    return ret;
+}
+
+bool FbsLoader::verify_package_sha256()
+{
+    uint8_t stored[PDL3_SHA256_SIZE];
+    uint8_t computed[PDL3_SHA256_SIZE];
+    if (this->get_package_sha256(stored) != ESP_OK) {
+        return false;
+    }
+    if (this->calc_package_sha256(computed) != ESP_OK) {
+        return false;
+    }
+    if (memcmp(stored, computed, PDL3_SHA256_SIZE) != 0) {
+        ESP_LOGE(TAG, "PDL3 package SHA256 verification failed.");
+        return false;
+    }
+    return true;
 }
 
 const char *FbsLoader::get_model_location_string()
