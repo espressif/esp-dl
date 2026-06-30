@@ -226,18 +226,26 @@ esp_err_t FeatVerificationDatabase::load_database_from_storage(int embedding_dim
         }
 
         m_identities.push_back(std::move(bucket));
-
-        if (identity_id >= m_next_identity_id) {
-            m_next_identity_id = identity_id + 1;
-        }
     }
 
     fclose(f);
 
-    // Update valid embeddings count
+    // Update valid embeddings count and recover the next assignable identity id.
     m_meta.valid_embeddings = 0;
+    uint16_t max_id = 0;
     for (const auto &ident : m_identities) {
         m_meta.valid_embeddings += ident.embeddings.size();
+        if (ident.identity_id > max_id) {
+            max_id = ident.identity_id;
+        }
+    }
+    // Recover the next assignable identity id. Identity ids start from 1;
+    // m_next_identity_id == 0 indicates that the id space is exhausted.
+    if (max_id == UINT16_MAX) {
+        // No more identity ids can be allocated.
+        m_next_identity_id = 0;
+    } else {
+        m_next_identity_id = static_cast<uint16_t>(max_id + 1);
     }
 
     ESP_LOGI(TAG, "Loaded %zu identities, %d embeddings.", m_identities.size(), m_meta.valid_embeddings);
@@ -379,8 +387,14 @@ FeatVerificationDatabase::identity_bucket_t *FeatVerificationDatabase::get_or_cr
     if (ident) {
         return ident;
     }
+    // m_next_identity_id == 0 means the 1..UINT16_MAX id space is exhausted.
+    // Assigning here would wrap and collide with an existing identity id.
+    if (m_next_identity_id == 0) {
+        ESP_LOGE(TAG, "Identity ID space exhausted; cannot create new identity '%s'.", label.c_str());
+        return nullptr;
+    }
     identity_bucket_t bucket;
-    bucket.identity_id = m_next_identity_id++;
+    bucket.identity_id = m_next_identity_id++; // wraps to 0 (exhausted) after assigning UINT16_MAX
     bucket.label = label;
     m_identities.push_back(bucket);
     return &m_identities.back();
@@ -432,6 +446,10 @@ esp_err_t FeatVerificationDatabase::enroll(const std::string &label, const float
 
     // Get or create identity bucket
     auto *ident = get_or_create_identity(label);
+    if (!ident) {
+        ESP_LOGE(TAG, "Failed to enroll '%s': identity ID space exhausted.", label.c_str());
+        return ESP_ERR_NO_MEM;
+    }
     ident->embeddings.push_back(std::move(normalized_embedding));
     ident->subspace.set_ready(false);
 
@@ -487,6 +505,7 @@ esp_err_t FeatVerificationDatabase::build_per_identity(const std::string &label,
     if (!is_valid()) {
         return m_init_error;
     }
+    min_samples = std::max(min_samples, 2);
     auto embeddings = get_embeddings(label);
     if (static_cast<int>(embeddings.size()) < min_samples) {
         ESP_LOGW(TAG,
@@ -521,6 +540,8 @@ esp_err_t FeatVerificationDatabase::build(int min_samples)
     if (!is_valid()) {
         return m_init_error;
     }
+    // A meaningful subspace needs >= 2 samples.
+    min_samples = std::max(min_samples, 2);
     auto labels = get_labels();
     if (labels.empty()) {
         ESP_LOGW(TAG, "No enrolled identities found.");

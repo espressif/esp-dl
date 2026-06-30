@@ -5,3 +5,5 @@ url: https://github.com/espressif/esp-dl/tree/master/models/feat_database
 dependencies:
   idf:
     version: ">=5.0"
+  espressif/eigen:
+    version: "^3.4.0"

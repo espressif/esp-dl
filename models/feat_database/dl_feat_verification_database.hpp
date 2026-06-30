@@ -46,7 +46,7 @@ private:
     std::string m_db_path;
     FeatDatabaseMeta m_meta;
     std::vector<identity_bucket_t> m_identities;
-    uint16_t m_next_identity_id;
+    uint16_t m_next_identity_id; // next id to assign; 0 == id space (1..UINT16_MAX) exhausted
     esp_err_t m_init_error;
 
     // Storage operations

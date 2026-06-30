@@ -30,6 +30,11 @@ void FeatSubspace::build(const std::vector<const float *> &enroll_embeds, int em
 {
     clear();
 
+    // A subspace needs at least 2 samples and a positive embedding dimension.
+    if (enroll_embeds.size() < 2 || embedding_dim <= 0) {
+        return;
+    }
+
     int num_samples = enroll_embeds.size();
     m_embedding_dim = embedding_dim;
     m_num_embeddings = std::min(num_samples - 1, embedding_dim);
