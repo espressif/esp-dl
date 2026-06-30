@@ -30,6 +30,7 @@ jobs:
             models/motion_detect;
             models/pedestrian_detect;
             models/speaker_verification;
+            models/person_reid;
             tools/dl_fft;
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}

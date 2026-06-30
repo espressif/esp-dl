@@ -35,6 +35,7 @@ examples:
   - path: ../examples/motion_detect
   - path: ../examples/pedestrian_detect
   - path: ../examples/speaker_verification
+  - path: ../examples/person_reid
   - path: ../examples/tutorial/how_to_deploy_streaming_model
   - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_flash_partition
   - path: ../examples/tutorial/how_to_load_test_profile_model/model_in_flash_rodata
@@ -42,4 +43,5 @@ examples:
   - path: ../examples/tutorial/how_to_run_model
   - path: ../examples/yolo11_detect
   - path: ../examples/yolo11_pose
+  - path: ../examples/yolo11_seg
   - path: ../examples/yolo26_detect

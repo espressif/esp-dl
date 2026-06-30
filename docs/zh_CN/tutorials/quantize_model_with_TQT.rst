@@ -16,7 +16,7 @@
 为何使用 TQT
 ------------
 
-TQT（Trained Quantization Thresholds）出自论文 `Trained Quantization Thresholds for Accurate and Efficient Fixed-Point Inference of Deep Neural Networks <https://arxiv.org/abs/1903.08066>`_ （Sambhav R. Jain, Albert Gural, Michael Wu, Chris H. Dick），发表于 :strong:`MLSys 2020`。由于ESP32系列芯片目前仅支持 :strong:`Per-Tensor + Symmetric + Power-of-2` 量化策略生成的 ``.espdl`` 模型，我们在ESP-PPQ中引入了TQT的核心思想，通过 :strong:`标准反向传播与梯度下降` 联合优化量化阈值（scale）和模型权重，以适配硬件约束。
+TQT（Trained Quantization Thresholds）出自论文 `Trained Quantization Thresholds for Accurate and Efficient Fixed-Point Inference of Deep Neural Networks <https://arxiv.org/abs/1903.08066>`_ （Sambhav R. Jain, Albert Gural, Michael Wu, Chris H. Dick），发表于 :strong:`MLSys 2020`。由于ESP32系列芯片目前仅支持 :strong:`Per-Tensor/Per-Channel + Symmetric + Power-of-2` 量化策略生成的 ``.espdl`` 模型，我们在ESP-PPQ中引入了TQT的核心思想，通过 :strong:`标准反向传播与梯度下降` 联合优化量化阈值（scale）和模型权重，以适配硬件约束。
 
 在 ESP-PPQ 中，TQT 以 :strong:`TrainedQuantizationThresholdPass` 的形式实现，我们在 log 域对scale进行优化，并结合ESP-DL的 :strong:`Power-of-2` 约束做了适配（如 ``int_lambda`` ，STE等）。
 
@@ -173,6 +173,9 @@ TQT 量化示例
 ------------
 
 以下示例展示如何对 :strong:`YOLO26n` (检测) 和 :strong:`MobileNetV2` (分类) 模型启用 TQT 量化并导出 ESP-DL。校准数据与模型路径需按实际环境修改。
+
+.. note::
+   示例YOLO26n和MobileNetV2中的P4量化精度均是在Per-Tensor的量化粒度下测得的，现P4已支持对Conv/Gemm算子做Per-Channel量化。
 
 .. _yolo26n:
 

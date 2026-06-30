@@ -130,7 +130,7 @@ class ESP_Pose_Exporter(Exporter):
             meta.key, meta.value = k, str(v)
 
         onnx.save(model_onnx, f)
-        return f, model_onnx
+        return f
 
 
 class ESP_YOLO(YOLO):

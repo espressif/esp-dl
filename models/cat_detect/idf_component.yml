@@ -1,4 +1,4 @@
-version: "0.2.2"
+version: "0.3.0"
 license: "MIT"
 description: cat detect model.
 url: https://github.com/espressif/esp-dl/tree/master/models/cat_detect

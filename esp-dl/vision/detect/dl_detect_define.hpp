@@ -6,7 +6,7 @@
 
 namespace dl {
 namespace detect {
-typedef struct {
+struct result_t {
     int category;                    /*!< category index */
     float score;                     /*!< score of box */
     std::vector<int> box;            /*!< [left_up_x, left_up_y, right_down_x, right_down_y] */
@@ -30,7 +30,7 @@ typedef struct {
         }
     }
     int box_area() const { return (box[2] - box[0]) * (box[3] - box[1]); }
-} result_t;
+};
 
 inline bool greater_box(const result_t &a, const result_t &b)
 {

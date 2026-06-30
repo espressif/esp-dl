@@ -16,8 +16,8 @@ A simple image inference example. See full example in [esp-who](https://github.c
 Follow the [quick start](https://docs.espressif.com/projects/esp-dl/en/latest/getting_started/readme.html#quick-start) to flash the example, you will see the output in idf monitor:
 
 ```
-I (1942) hand_gesture_recognition: category: one, score: 0.999957
-I (1952) main_task: Returned from app_main()
+I (1784) hand_gesture_recognition: category: one, score: 0.999960
+I (1784) main_task: Returned from app_main()
 
 ```
 ## Configurable Options in Menuconfig

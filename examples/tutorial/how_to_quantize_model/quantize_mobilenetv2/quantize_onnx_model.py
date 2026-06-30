@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
     evaluate_ppq_module_with_imagenet(
         model=quant_ppq_graph,
-        imagenet_validation_dir=CALIB_DIR,
+        imagenet_validation_dir=CALIB_DIR,  # replace with the imagenet val dataset path when testing the accuracy
         batchsize=BATCH_SIZE,
         device=DEVICE,
         verbose=1,
