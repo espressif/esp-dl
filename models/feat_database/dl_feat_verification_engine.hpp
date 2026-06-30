@@ -1,29 +1,28 @@
 #pragma once
-#include "dl_audio_verification_define.hpp"
-#include "dl_tensor_base.hpp"
+#include "dl_feat_verification_define.hpp"
 #include "esp_check.h"
 #include "esp_system.h"
 #include <vector>
 
 namespace dl {
-namespace audio {
+namespace feat {
 
 /**
- * @brief Speaker Subspace for Speaker Verification
+ * @brief Feature subspace for embedding verification
  *
- * Computes and stores each speaker subspace from enrollment embeddings.
- * Supports verification using subspace distance.
+ * Computes and stores a per-identity subspace from enrollment embeddings.
+ * Supports verification using subspace (residual) distance.
  */
-class SpeakerSubspace {
+class FeatSubspace {
 public:
-    SpeakerSubspace();
-    ~SpeakerSubspace();
+    FeatSubspace();
+    ~FeatSubspace();
     void clear();
 
-    // Build speaker subspace from enrollment embeddings
+    // Build the subspace from enrollment embeddings
     void build(const std::vector<const float *> &enroll_embeds, int embedding_dim);
 
-    // Compute negative distance to speaker subspace (higher score = better match)
+    // Compute negative distance to the subspace (higher score = better match)
     // Note: target_embed should be raw (not normalized), inv_norm = 1/||target_embed||
     float compute_neg_distance(const float *target_embed, float inv_norm) const;
 
@@ -54,5 +53,5 @@ private:
     std::vector<float> m_variances;
 };
 
-} // namespace audio
+} // namespace feat
 } // namespace dl

@@ -2,32 +2,32 @@
 #include <cstdint>
 
 namespace dl {
-namespace audio {
+namespace feat {
 
-constexpr int AUDIO_SPK_NAME_MAX = 32;
+constexpr int FEAT_LABEL_MAX = 32;
 
 // Database metadata
-struct AudioDatabaseMeta {
+struct FeatDatabaseMeta {
     uint16_t total_embeddings;
     uint16_t valid_embeddings;
     uint16_t embedding_dim;
 };
 
 // One enrollment record
-struct SpeakerEmbedding {
+struct FeatEmbedding {
     uint16_t id;
-    uint16_t speaker_id;
-    char speaker_name[AUDIO_SPK_NAME_MAX];
+    uint16_t identity_id;
+    char label[FEAT_LABEL_MAX];
     float *embedding;
 };
 
 // Verification result
 struct VerificationResult {
     float score;
-    bool is_same_speaker;
-    uint16_t speaker_id;
-    char speaker_name[AUDIO_SPK_NAME_MAX];
+    bool is_match;
+    uint16_t identity_id;
+    char label[FEAT_LABEL_MAX];
 };
 
-} // namespace audio
+} // namespace feat
 } // namespace dl

@@ -1,6 +1,7 @@
-#include "dl_audio_verification_database.hpp"
-#include "dl_audio_verification_define.hpp"
+#include "dl_feat_verification_database.hpp"
+#include "dl_feat_verification_define.hpp"
 #include "esp_log.h"
+#include <cerrno>
 #include <climits>
 #include <cmath>
 #include <cstdint>
@@ -8,13 +9,13 @@
 #include <cstring>
 #include <sys/stat.h>
 
-static const char *TAG = "dl::audio::VerificationDB";
+static const char *TAG = "dl::feat::VerificationDB";
 
 namespace dl {
-namespace audio {
+namespace feat {
 
-AudioVerificationDatabase::AudioVerificationDatabase(const std::string &db_path, int embedding_dim) :
-    m_db_path(db_path), m_next_speaker_id(1), m_init_error(ESP_OK)
+FeatVerificationDatabase::FeatVerificationDatabase(const std::string &db_path, int embedding_dim) :
+    m_db_path(db_path), m_next_identity_id(1), m_init_error(ESP_OK)
 {
     m_meta.embedding_dim = embedding_dim;
     m_meta.total_embeddings = 0;
@@ -28,39 +29,39 @@ AudioVerificationDatabase::AudioVerificationDatabase(const std::string &db_path,
         m_init_error = create_empty_database_in_storage(embedding_dim);
     }
     if (m_init_error != ESP_OK) {
-        m_speakers.clear();
+        m_identities.clear();
         m_meta.embedding_dim = embedding_dim;
         m_meta.total_embeddings = 0;
         m_meta.valid_embeddings = 0;
-        m_next_speaker_id = 1;
+        m_next_identity_id = 1;
         ESP_LOGE(TAG, "Database initialization failed for %s (err=0x%x).", db_path.c_str(), m_init_error);
     }
 }
 
-AudioVerificationDatabase::~AudioVerificationDatabase()
+FeatVerificationDatabase::~FeatVerificationDatabase()
 {
-    m_speakers.clear();
+    m_identities.clear();
     m_meta.total_embeddings = 0;
     m_meta.valid_embeddings = 0;
 }
 
-esp_err_t AudioVerificationDatabase::clear()
+esp_err_t FeatVerificationDatabase::clear()
 {
     if (!is_valid()) {
         return m_init_error;
     }
-    for (auto &spk : m_speakers) {
-        spk.subspace.clear();
+    for (auto &ident : m_identities) {
+        ident.subspace.clear();
     }
-    m_speakers.clear();
+    m_identities.clear();
     m_meta.total_embeddings = 0;
     m_meta.valid_embeddings = 0;
-    m_next_speaker_id = 1;
+    m_next_identity_id = 1;
     ESP_LOGI(TAG, "Database cleared.");
     return create_empty_database_in_storage(m_meta.embedding_dim);
 }
 
-esp_err_t AudioVerificationDatabase::create_empty_database_in_storage(int embedding_dim)
+esp_err_t FeatVerificationDatabase::create_empty_database_in_storage(int embedding_dim)
 {
     FILE *f = fopen(m_db_path.c_str(), "wb");
     size_t size = 0;
@@ -71,7 +72,7 @@ esp_err_t AudioVerificationDatabase::create_empty_database_in_storage(int embedd
     m_meta.total_embeddings = 0;
     m_meta.valid_embeddings = 0;
     m_meta.embedding_dim = embedding_dim;
-    size = fwrite(&m_meta, sizeof(AudioDatabaseMeta), 1, f);
+    size = fwrite(&m_meta, sizeof(FeatDatabaseMeta), 1, f);
     if (size != 1) {
         ESP_LOGE(TAG, "Failed to write database meta.");
         fclose(f);
@@ -82,7 +83,7 @@ esp_err_t AudioVerificationDatabase::create_empty_database_in_storage(int embedd
     return ESP_OK;
 }
 
-esp_err_t AudioVerificationDatabase::load_database_from_storage(int embedding_dim)
+esp_err_t FeatVerificationDatabase::load_database_from_storage(int embedding_dim)
 {
     FILE *f = fopen(m_db_path.c_str(), "rb");
     size_t size = 0;
@@ -91,7 +92,7 @@ esp_err_t AudioVerificationDatabase::load_database_from_storage(int embedding_di
         return ESP_FAIL;
     }
 
-    size = fread(&m_meta, sizeof(AudioDatabaseMeta), 1, f);
+    size = fread(&m_meta, sizeof(FeatDatabaseMeta), 1, f);
     if (size != 1) {
         ESP_LOGE(TAG, "Failed to read database meta.");
         fclose(f);
@@ -104,13 +105,13 @@ esp_err_t AudioVerificationDatabase::load_database_from_storage(int embedding_di
         return ESP_FAIL;
     }
 
-    // Read speakers
+    // Read identities
     while (true) {
-        uint16_t speaker_id, num_embeds;
-        char speaker_name[AUDIO_SPK_NAME_MAX];
+        uint16_t identity_id, num_embeds;
+        char label[FEAT_LABEL_MAX];
 
-        // Read speaker header
-        size = fread(&speaker_id, sizeof(uint16_t), 1, f);
+        // Read identity header
+        size = fread(&identity_id, sizeof(uint16_t), 1, f);
         if (size != 1)
             break; // End of file
 
@@ -121,15 +122,15 @@ esp_err_t AudioVerificationDatabase::load_database_from_storage(int embedding_di
             return ESP_FAIL;
         }
 
-        size = fread(speaker_name, sizeof(char), AUDIO_SPK_NAME_MAX, f);
-        if (size != AUDIO_SPK_NAME_MAX) {
-            ESP_LOGE(TAG, "Failed to read speaker name.");
+        size = fread(label, sizeof(char), FEAT_LABEL_MAX, f);
+        if (size != FEAT_LABEL_MAX) {
+            ESP_LOGE(TAG, "Failed to read identity label.");
             fclose(f);
             return ESP_FAIL;
         }
-        // Force null-termination so a corrupted (non-terminated) name can't cause
+        // Force null-termination so a corrupted (non-terminated) label can't cause
         // an out-of-bounds read when constructing the std::string below.
-        speaker_name[AUDIO_SPK_NAME_MAX - 1] = '\0';
+        label[FEAT_LABEL_MAX - 1] = '\0';
 
         // Read subspace flag
         uint8_t subspace_ready;
@@ -140,10 +141,10 @@ esp_err_t AudioVerificationDatabase::load_database_from_storage(int embedding_di
             return ESP_FAIL;
         }
 
-        // Create speaker bucket
-        speaker_bucket_t bucket;
-        bucket.speaker_id = speaker_id;
-        bucket.speaker_name = speaker_name;
+        // Create identity bucket
+        identity_bucket_t bucket;
+        bucket.identity_id = identity_id;
+        bucket.label = label;
 
         // Load subspace data
         int subspace_dim;
@@ -200,7 +201,7 @@ esp_err_t AudioVerificationDatabase::load_database_from_storage(int embedding_di
         bucket.subspace.load(
             subspace_ready, m_meta.embedding_dim, subspace_dim, mean.data(), basis.data(), variances.data());
         if (subspace_ready && subspace_dim > 0) {
-            ESP_LOGD(TAG, "Loaded subspace for '%s' (dim=%d, ready=%d).", speaker_name, subspace_dim, subspace_ready);
+            ESP_LOGD(TAG, "Loaded subspace for '%s' (dim=%d, ready=%d).", label, subspace_dim, subspace_ready);
         }
 
         // Read embeddings
@@ -224,10 +225,10 @@ esp_err_t AudioVerificationDatabase::load_database_from_storage(int embedding_di
             bucket.embeddings.push_back(std::move(embedding));
         }
 
-        m_speakers.push_back(std::move(bucket));
+        m_identities.push_back(std::move(bucket));
 
-        if (speaker_id >= m_next_speaker_id) {
-            m_next_speaker_id = speaker_id + 1;
+        if (identity_id >= m_next_identity_id) {
+            m_next_identity_id = identity_id + 1;
         }
     }
 
@@ -235,15 +236,15 @@ esp_err_t AudioVerificationDatabase::load_database_from_storage(int embedding_di
 
     // Update valid embeddings count
     m_meta.valid_embeddings = 0;
-    for (const auto &spk : m_speakers) {
-        m_meta.valid_embeddings += spk.embeddings.size();
+    for (const auto &ident : m_identities) {
+        m_meta.valid_embeddings += ident.embeddings.size();
     }
 
-    ESP_LOGI(TAG, "Loaded %zu speakers, %d embeddings.", m_speakers.size(), m_meta.valid_embeddings);
+    ESP_LOGI(TAG, "Loaded %zu identities, %d embeddings.", m_identities.size(), m_meta.valid_embeddings);
     return ESP_OK;
 }
 
-esp_err_t AudioVerificationDatabase::save_database_to_storage()
+esp_err_t FeatVerificationDatabase::save_database_to_storage()
 {
     if (!is_valid()) {
         return m_init_error;
@@ -269,29 +270,29 @@ esp_err_t AudioVerificationDatabase::save_database_to_storage()
     } while (0)
 
     // Write metadata
-    WRITE_OR_FAIL(&m_meta, sizeof(AudioDatabaseMeta), 1);
+    WRITE_OR_FAIL(&m_meta, sizeof(FeatDatabaseMeta), 1);
 
-    // Write all speakers with embeddings and subspace
-    for (const auto &spk : m_speakers) {
-        // Write speaker header
-        uint16_t num_embeds = spk.embeddings.size();
-        WRITE_OR_FAIL(&spk.speaker_id, sizeof(uint16_t), 1);
+    // Write all identities with embeddings and subspace
+    for (const auto &ident : m_identities) {
+        // Write identity header
+        uint16_t num_embeds = ident.embeddings.size();
+        WRITE_OR_FAIL(&ident.identity_id, sizeof(uint16_t), 1);
         WRITE_OR_FAIL(&num_embeds, sizeof(uint16_t), 1);
-        char spk_name[AUDIO_SPK_NAME_MAX] = {};
-        snprintf(spk_name, AUDIO_SPK_NAME_MAX, "%s", spk.speaker_name.c_str());
-        WRITE_OR_FAIL(spk_name, sizeof(char), AUDIO_SPK_NAME_MAX);
+        char label_buf[FEAT_LABEL_MAX] = {};
+        snprintf(label_buf, FEAT_LABEL_MAX, "%s", ident.label.c_str());
+        WRITE_OR_FAIL(label_buf, sizeof(char), FEAT_LABEL_MAX);
 
         // Write subspace flag (1 = ready, 0 = not ready)
-        uint8_t subspace_ready = spk.subspace.is_ready() ? 1 : 0;
+        uint8_t subspace_ready = ident.subspace.is_ready() ? 1 : 0;
         WRITE_OR_FAIL(&subspace_ready, sizeof(uint8_t), 1);
 
         // Always write subspace data (use defaults if not ready)
-        int subspace_dim = subspace_ready ? spk.subspace.get_dimension() : 0;
+        int subspace_dim = subspace_ready ? ident.subspace.get_dimension() : 0;
         WRITE_OR_FAIL(&subspace_dim, sizeof(int), 1);
 
         // Write mean (or zeros if not ready)
         if (subspace_ready) {
-            WRITE_OR_FAIL(spk.subspace.get_mean(), sizeof(float), m_meta.embedding_dim);
+            WRITE_OR_FAIL(ident.subspace.get_mean(), sizeof(float), m_meta.embedding_dim);
         } else {
             std::vector<float> zero_mean(m_meta.embedding_dim, 0.0f);
             WRITE_OR_FAIL(zero_mean.data(), sizeof(float), m_meta.embedding_dim);
@@ -300,7 +301,7 @@ esp_err_t AudioVerificationDatabase::save_database_to_storage()
         // Write basis (or zeros if not ready)
         int basis_size = subspace_dim * m_meta.embedding_dim;
         if (subspace_ready && basis_size > 0) {
-            WRITE_OR_FAIL(spk.subspace.get_basis(), sizeof(float), basis_size);
+            WRITE_OR_FAIL(ident.subspace.get_basis(), sizeof(float), basis_size);
         } else {
             std::vector<float> zero_basis(basis_size > 0 ? basis_size : m_meta.embedding_dim, 0.0f);
             WRITE_OR_FAIL(zero_basis.data(), sizeof(float), zero_basis.size());
@@ -308,14 +309,14 @@ esp_err_t AudioVerificationDatabase::save_database_to_storage()
 
         // Write variances (or zeros if not ready)
         if (subspace_ready && subspace_dim > 0) {
-            WRITE_OR_FAIL(spk.subspace.get_variances(), sizeof(float), subspace_dim);
+            WRITE_OR_FAIL(ident.subspace.get_variances(), sizeof(float), subspace_dim);
         } else {
             float zero_var = 0.0f;
             WRITE_OR_FAIL(&zero_var, sizeof(float), 1);
         }
 
         // Write embeddings
-        for (const auto &embed : spk.embeddings) {
+        for (const auto &embed : ident.embeddings) {
             // Embedding ids are stored as uint16_t; guard against truncation.
             if (count >= UINT16_MAX) {
                 ESP_LOGE(TAG, "Too many embeddings to store (id overflows uint16_t).");
@@ -340,8 +341,14 @@ esp_err_t AudioVerificationDatabase::save_database_to_storage()
         }
     }
 
+    // SPIFFS (and some other embedded filesystems) cannot rename onto an existing
+    // file -- the rename fails with EIO. Remove the previous database first; the
+    // temp file already holds the complete new database. The only unsafe window is
+    // a power loss between this remove and the rename (rare; on failure the .tmp
+    // file is left behind for recovery).
+    remove(m_db_path.c_str());
     if (rename(tmp_path.c_str(), m_db_path.c_str()) != 0) {
-        ESP_LOGE(TAG, "Failed to commit database file.");
+        ESP_LOGE(TAG, "Failed to commit database file (errno=%d: %s).", errno, strerror(errno));
         remove(tmp_path.c_str());
         return ESP_FAIL;
     }
@@ -356,48 +363,48 @@ write_fail:
     return ESP_FAIL;
 }
 
-AudioVerificationDatabase::speaker_bucket_t *AudioVerificationDatabase::find_speaker(const std::string &name)
+FeatVerificationDatabase::identity_bucket_t *FeatVerificationDatabase::find_identity(const std::string &label)
 {
-    for (auto &spk : m_speakers) {
-        if (spk.speaker_name == name) {
-            return &spk;
+    for (auto &ident : m_identities) {
+        if (ident.label == label) {
+            return &ident;
         }
     }
     return nullptr;
 }
 
-AudioVerificationDatabase::speaker_bucket_t *AudioVerificationDatabase::get_or_create_speaker(const std::string &name)
+FeatVerificationDatabase::identity_bucket_t *FeatVerificationDatabase::get_or_create_identity(const std::string &label)
 {
-    auto *spk = find_speaker(name);
-    if (spk) {
-        return spk;
+    auto *ident = find_identity(label);
+    if (ident) {
+        return ident;
     }
-    speaker_bucket_t bucket;
-    bucket.speaker_id = m_next_speaker_id++;
-    bucket.speaker_name = name;
-    m_speakers.push_back(bucket);
-    return &m_speakers.back();
+    identity_bucket_t bucket;
+    bucket.identity_id = m_next_identity_id++;
+    bucket.label = label;
+    m_identities.push_back(bucket);
+    return &m_identities.back();
 }
 
-std::vector<std::string> AudioVerificationDatabase::get_speaker_names() const
+std::vector<std::string> FeatVerificationDatabase::get_labels() const
 {
-    std::vector<std::string> names;
-    for (const auto &spk : m_speakers) {
-        names.push_back(spk.speaker_name);
+    std::vector<std::string> labels;
+    for (const auto &ident : m_identities) {
+        labels.push_back(ident.label);
     }
-    return names;
+    return labels;
 }
 
-std::vector<std::vector<float>> AudioVerificationDatabase::get_speaker_embeddings(const std::string &speaker_name)
+std::vector<std::vector<float>> FeatVerificationDatabase::get_embeddings(const std::string &label)
 {
-    auto *spk = find_speaker(speaker_name);
-    if (spk) {
-        return spk->embeddings;
+    auto *ident = find_identity(label);
+    if (ident) {
+        return ident->embeddings;
     }
     return {};
 }
 
-esp_err_t AudioVerificationDatabase::enroll(const std::string &speaker_name, const float *embedding)
+esp_err_t FeatVerificationDatabase::enroll(const std::string &label, const float *embedding)
 {
     if (!is_valid()) {
         return m_init_error;
@@ -423,115 +430,115 @@ esp_err_t AudioVerificationDatabase::enroll(const std::string &speaker_name, con
         normalized_embedding[i] = embedding[i] / norm;
     }
 
-    // Get or create speaker bucket
-    auto *spk = get_or_create_speaker(speaker_name);
-    spk->embeddings.push_back(std::move(normalized_embedding));
-    spk->subspace.set_ready(false);
+    // Get or create identity bucket
+    auto *ident = get_or_create_identity(label);
+    ident->embeddings.push_back(std::move(normalized_embedding));
+    ident->subspace.set_ready(false);
 
     // Update metadata
     m_meta.total_embeddings++;
     m_meta.valid_embeddings++;
 
-    ESP_LOGI(TAG, "Enrolled embedding for speaker '%s'.", speaker_name.c_str());
+    ESP_LOGI(TAG, "Enrolled embedding for identity '%s'.", label.c_str());
     return ESP_OK;
 }
 
-esp_err_t AudioVerificationDatabase::delete_embedding(const std::string &speaker_name, int idx)
+esp_err_t FeatVerificationDatabase::delete_embedding(const std::string &label, int idx)
 {
     if (!is_valid()) {
         return m_init_error;
     }
-    auto *spk = find_speaker(speaker_name);
-    if (!spk) {
-        ESP_LOGE(TAG, "Speaker '%s' not found.", speaker_name.c_str());
+    auto *ident = find_identity(label);
+    if (!ident) {
+        ESP_LOGE(TAG, "Identity '%s' not found.", label.c_str());
         return ESP_ERR_NOT_FOUND;
     }
 
-    if (idx < 0 || idx >= static_cast<int>(spk->embeddings.size())) {
+    if (idx < 0 || idx >= static_cast<int>(ident->embeddings.size())) {
         ESP_LOGE(TAG,
-                 "Invalid index %d for speaker '%s' (have %zu embeddings).",
+                 "Invalid index %d for identity '%s' (have %zu embeddings).",
                  idx,
-                 speaker_name.c_str(),
-                 spk->embeddings.size());
+                 label.c_str(),
+                 ident->embeddings.size());
         return ESP_ERR_INVALID_ARG;
     }
 
     // Remove embedding and update metadata
-    spk->embeddings.erase(spk->embeddings.begin() + idx);
-    spk->subspace.set_ready(false);
+    ident->embeddings.erase(ident->embeddings.begin() + idx);
+    ident->subspace.set_ready(false);
     m_meta.total_embeddings--;
     m_meta.valid_embeddings = 0;
-    for (const auto &s : m_speakers) {
+    for (const auto &s : m_identities) {
         m_meta.valid_embeddings += s.embeddings.size();
     }
 
     ESP_LOGI(TAG,
-             "Deleted embedding %d from speaker '%s'. Remaining: %zu embeddings.",
+             "Deleted embedding %d from identity '%s'. Remaining: %zu embeddings.",
              idx,
-             speaker_name.c_str(),
-             spk->embeddings.size());
+             label.c_str(),
+             ident->embeddings.size());
 
     // Automatically build and save to Flash after deletion
     return build();
 }
 
-esp_err_t AudioVerificationDatabase::build_per_speaker(const std::string &speaker_name, int min_samples)
+esp_err_t FeatVerificationDatabase::build_per_identity(const std::string &label, int min_samples)
 {
     if (!is_valid()) {
         return m_init_error;
     }
-    auto embeddings = get_speaker_embeddings(speaker_name);
+    auto embeddings = get_embeddings(label);
     if (static_cast<int>(embeddings.size()) < min_samples) {
         ESP_LOGW(TAG,
                  "'%s' has only %zu sample(s), default to cosine similarity for verification.",
-                 speaker_name.c_str(),
+                 label.c_str(),
                  embeddings.size());
         return ESP_ERR_INVALID_STATE;
     }
 
-    auto *spk = find_speaker(speaker_name);
-    if (spk == nullptr) {
-        ESP_LOGE(TAG, "Speaker '%s' not found during build.", speaker_name.c_str());
+    auto *ident = find_identity(label);
+    if (ident == nullptr) {
+        ESP_LOGE(TAG, "Identity '%s' not found during build.", label.c_str());
         return ESP_ERR_NOT_FOUND;
     }
-    if (spk->subspace.is_ready()) {
+    if (ident->subspace.is_ready()) {
         return ESP_OK;
     }
 
-    ESP_LOGI(TAG, "Building subspace for '%s' with %zu samples...", speaker_name.c_str(), embeddings.size());
+    ESP_LOGI(TAG, "Building subspace for '%s' with %zu samples...", label.c_str(), embeddings.size());
     std::vector<const float *> enroll_ptrs;
     for (const auto &embed : embeddings) {
         enroll_ptrs.push_back(embed.data());
     }
-    spk->subspace.build(enroll_ptrs, m_meta.embedding_dim);
-    ESP_LOGI(TAG, "Subspace is ready for '%s'.", speaker_name.c_str());
+    ident->subspace.build(enroll_ptrs, m_meta.embedding_dim);
+    ESP_LOGI(TAG, "Subspace is ready for '%s'.", label.c_str());
 
     return ESP_OK;
 }
 
-esp_err_t AudioVerificationDatabase::build(int min_samples)
+esp_err_t FeatVerificationDatabase::build(int min_samples)
 {
     if (!is_valid()) {
         return m_init_error;
     }
-    auto speakers = get_speaker_names();
-    if (speakers.empty()) {
-        ESP_LOGW(TAG, "No enrolled speakers found.");
+    auto labels = get_labels();
+    if (labels.empty()) {
+        ESP_LOGW(TAG, "No enrolled identities found.");
         return ESP_ERR_NOT_FOUND;
     }
-    for (const auto &speaker : speakers) {
-        build_per_speaker(speaker, min_samples);
+    for (const auto &label : labels) {
+        build_per_identity(label, min_samples);
     }
     return save_database_to_storage();
 }
 
-esp_err_t AudioVerificationDatabase::verify_max_cosine(const float *embedding, float threshold)
+esp_err_t FeatVerificationDatabase::verify_max_cosine(const float *embedding, float threshold)
 {
     if (!is_valid()) {
         return m_init_error;
     }
-    if (!embedding || m_speakers.empty()) {
-        ESP_LOGW(TAG, "Invalid target embedding or no enrolled speakers found.");
+    if (!embedding || m_identities.empty()) {
+        ESP_LOGW(TAG, "Invalid target embedding or no enrolled identities found.");
         return ESP_ERR_NOT_FOUND;
     }
 
@@ -547,14 +554,14 @@ esp_err_t AudioVerificationDatabase::verify_max_cosine(const float *embedding, f
     }
     float inv_norm = 1.0f / norm;
 
-    for (const auto &spk : m_speakers) {
-        if (spk.embeddings.empty()) {
+    for (const auto &ident : m_identities) {
+        if (ident.embeddings.empty()) {
             continue;
         }
 
         // Find max cosine similarity
         float score = -1.0f;
-        for (const auto &en : spk.embeddings) {
+        for (const auto &en : ident.embeddings) {
             float sim = 0.0f;
             for (int i = 0; i < m_meta.embedding_dim; ++i) {
                 sim += (embedding[i] * inv_norm) * en[i];
@@ -563,25 +570,25 @@ esp_err_t AudioVerificationDatabase::verify_max_cosine(const float *embedding, f
                 score = sim;
         }
 
-        bool is_same = (score > threshold);
+        bool is_match = (score > threshold);
         ESP_LOGI(TAG,
                  "[MAX-COSINE] %s: score=%.4f (threshold=%.4f) -> %s",
-                 spk.speaker_name.c_str(),
+                 ident.label.c_str(),
                  score,
                  threshold,
-                 is_same ? "SAME speaker" : "DIFFERENT speaker");
+                 is_match ? "MATCH" : "NO MATCH");
     }
 
     return ESP_OK;
 }
 
-esp_err_t AudioVerificationDatabase::verify_subspace(const float *embedding, float threshold)
+esp_err_t FeatVerificationDatabase::verify_subspace(const float *embedding, float threshold)
 {
     if (!is_valid()) {
         return m_init_error;
     }
-    if (!embedding || m_speakers.empty()) {
-        ESP_LOGW(TAG, "Invalid target embedding or no enrolled speakers found.");
+    if (!embedding || m_identities.empty()) {
+        ESP_LOGW(TAG, "Invalid target embedding or no enrolled identities found.");
         return ESP_ERR_NOT_FOUND;
     }
 
@@ -597,33 +604,33 @@ esp_err_t AudioVerificationDatabase::verify_subspace(const float *embedding, flo
     }
     const float inv_norm = 1.0f / norm;
 
-    for (const auto &spk : m_speakers) {
-        if (!spk.subspace.is_ready() || spk.embeddings.size() < 2) {
+    for (const auto &ident : m_identities) {
+        if (!ident.subspace.is_ready() || ident.embeddings.size() < 2) {
             continue;
         }
-        float score = spk.subspace.compute_neg_distance(embedding, inv_norm);
-        bool is_same = (score > threshold);
+        float score = ident.subspace.compute_neg_distance(embedding, inv_norm);
+        bool is_match = (score > threshold);
         ESP_LOGI(TAG,
                  "[SUBSPACE] %s: score=%.4f (threshold=%.4f) -> %s",
-                 spk.speaker_name.c_str(),
+                 ident.label.c_str(),
                  score,
                  threshold,
-                 is_same ? "SAME speaker" : "DIFFERENT speaker");
+                 is_match ? "MATCH" : "NO MATCH");
     }
 
     return ESP_OK;
 }
 
-void AudioVerificationDatabase::print()
+void FeatVerificationDatabase::print()
 {
     ESP_LOGI(TAG, "============ Database Summary ============");
-    ESP_LOGI(TAG, "%-5s | %-20s | %-10s", "ID", "Name", "#Embeddings");
+    ESP_LOGI(TAG, "%-5s | %-20s | %-10s", "ID", "Label", "#Embeddings");
     ESP_LOGI(TAG, "------------------------------------------");
-    for (const auto &spk : m_speakers) {
-        ESP_LOGI(TAG, "%-5d | %-20s | %-10zu", spk.speaker_id, spk.speaker_name.c_str(), spk.embeddings.size());
+    for (const auto &ident : m_identities) {
+        ESP_LOGI(TAG, "%-5d | %-20s | %-10zu", ident.identity_id, ident.label.c_str(), ident.embeddings.size());
     }
     ESP_LOGI(TAG, "==========================================");
 }
 
-} // namespace audio
+} // namespace feat
 } // namespace dl

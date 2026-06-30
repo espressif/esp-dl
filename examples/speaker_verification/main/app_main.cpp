@@ -1,4 +1,4 @@
-#include "dl_audio_verification_database.hpp"
+#include "dl_feat_verification_database.hpp"
 #include "esp_log.h"
 #include "esp_spiffs.h"
 #include "speaker_verification.hpp"
@@ -32,7 +32,7 @@ extern "C" void app_main(void)
 
     SpeakerVerification *verifier = new SpeakerVerification();
 
-    dl::audio::AudioVerificationDatabase db("/spiffs/spker.db", verifier->get_embedding_dim());
+    dl::feat::FeatVerificationDatabase db("/spiffs/spker.db", verifier->get_embedding_dim());
     if (!db.is_valid()) {
         ESP_LOGE(TAG, "Failed to initialize verification database.");
         delete verifier;

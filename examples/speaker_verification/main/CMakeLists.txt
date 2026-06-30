@@ -3,6 +3,7 @@ set(src_dirs        ./)
 set(include_dirs    ./)
 
 set(requires        speaker_verification
+                    feat_database
                     spiffs)
 
 if (IDF_TARGET STREQUAL "esp32s3")

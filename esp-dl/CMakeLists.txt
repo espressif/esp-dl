@@ -13,7 +13,6 @@ set(src_dirs        ./dl/tool/src
                     ./vision/classification
                     ./audio/common
                     ./audio/speech_features
-                    ./audio/verification
                     )
 
 set(include_dirs    ./dl
@@ -32,7 +31,6 @@ set(include_dirs    ./dl
                     ./vision/classification
                     ./audio/common
                     ./audio/speech_features
-                    ./audio/verification
                     )
 
 file(GLOB exclude_srcs RELATIVE ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_LIST_DIR}/vision/image/dl_image_pixel_cvt_dispatch_*.cpp)

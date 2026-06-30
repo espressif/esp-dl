@@ -3,6 +3,9 @@ dependencies:
   espressif/speaker_verification:
     version: "^0.3.0"
     override_path: "../../../models/speaker_verification"
+  espressif/feat_database:
+    version: "^0.1.0"
+    override_path: "../../../models/feat_database"
   espressif/esp32_p4_function_ev_board_noglib:
     version: "*"
     rules:

@@ -1,22 +1,22 @@
-#include "dl_audio_verification_engine.hpp"
+#include "dl_feat_verification_engine.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <eigen3/Eigen/Dense>
 
 namespace dl {
-namespace audio {
+namespace feat {
 
-SpeakerSubspace::SpeakerSubspace() : m_is_ready(false), m_embedding_dim(0), m_num_embeddings(0)
+FeatSubspace::FeatSubspace() : m_is_ready(false), m_embedding_dim(0), m_num_embeddings(0)
 {
 }
 
-SpeakerSubspace::~SpeakerSubspace()
+FeatSubspace::~FeatSubspace()
 {
     clear();
 }
 
-void SpeakerSubspace::clear()
+void FeatSubspace::clear()
 {
     m_mean.clear();
     m_basis.clear();
@@ -26,7 +26,7 @@ void SpeakerSubspace::clear()
     m_embedding_dim = 0;
 }
 
-void SpeakerSubspace::build(const std::vector<const float *> &enroll_embeds, int embedding_dim)
+void FeatSubspace::build(const std::vector<const float *> &enroll_embeds, int embedding_dim)
 {
     clear();
 
@@ -68,7 +68,7 @@ void SpeakerSubspace::build(const std::vector<const float *> &enroll_embeds, int
     m_is_ready = true;
 }
 
-float SpeakerSubspace::compute_neg_distance(const float *target_embed, float inv_norm) const
+float FeatSubspace::compute_neg_distance(const float *target_embed, float inv_norm) const
 {
     std::vector<float> coords(m_num_embeddings, 0.0f);
 
@@ -96,7 +96,7 @@ float SpeakerSubspace::compute_neg_distance(const float *target_embed, float inv
     return -sqrtf(residual_norm_sq / 2.0f);
 }
 
-void SpeakerSubspace::load(
+void FeatSubspace::load(
     bool ready, int embedding_dim, int num_embeddings, const float *mean, const float *basis, const float *variances)
 {
     m_is_ready = ready;
@@ -107,5 +107,5 @@ void SpeakerSubspace::load(
     m_variances.assign(variances, variances + num_embeddings);
 }
 
-} // namespace audio
+} // namespace feat
 } // namespace dl
