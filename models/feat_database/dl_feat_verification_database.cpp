@@ -358,7 +358,7 @@ esp_err_t FeatVerificationDatabase::save_database_to_storage()
         }
     }
 
-    // SPIFFS cannot rename onto an existing file. Remove the old database first; 
+    // SPIFFS cannot rename onto an existing file. Remove the old database first;
     // if power is lost before rename(), the temporary file is preserved for recovery.
     remove(m_db_path.c_str());
     if (rename(tmp_path.c_str(), m_db_path.c_str()) != 0) {
