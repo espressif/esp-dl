@@ -1,4 +1,4 @@
-## ESP32-S3 fft benchmark:
+## ESP32-S3 fft benchmark (dl_fft v0.4.0):
 
 | Test Name         | Size | SNR (dB) | RMSE   | Time (μs) |
 |-----------------------|----------|--------------|------------|---------------|

@@ -179,7 +179,7 @@ esp_err_t dl_rfft_post_proc_sc16_ansi(int16_t *data, int cpx_points, int16_t *wi
 int dl_rfft_pre_proc_sc16(int16_t *data, int cpx_points, int16_t *table)
 {
     int shift = 0;
-#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4
+#if DL_FFT_PIE_V1_BOOST || DL_FFT_PIE_V2_BOOST
     int max_q = dl_array_max_q_s16(data, cpx_points * 2);
     if (max_q >= 15) {
         for (int i = 0; i < cpx_points * 2; i++) {
@@ -210,7 +210,7 @@ int dl_rfft_pre_proc_sc16(int16_t *data, int cpx_points, int16_t *table)
 int dl_rfft_post_proc_sc16(int16_t *data, int cpx_points, int16_t *table)
 {
     int shift = 0;
-#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32P4
+#if DL_FFT_PIE_V1_BOOST || DL_FFT_PIE_V2_BOOST
     int max_q = dl_array_max_q_s16(data, cpx_points * 2);
     if (max_q >= 15) {
         for (int i = 0; i < cpx_points * 2; i++) {
@@ -264,4 +264,11 @@ esp_err_t dl_rfft_pre_proc_sc16_ansi(int16_t *data, int cpx_points, int16_t *tab
     }
 
     return ESP_OK;
+}
+
+void dl_fft_cfg_round(int32_t round_mode)
+{
+#if DL_FFT_PIE_V2_BOOST
+    dl_fft_cfg_round_arp4_(round_mode);
+#endif
 }
