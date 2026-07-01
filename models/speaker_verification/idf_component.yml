@@ -1,4 +1,4 @@
-version: "0.2.0"
+version: "0.3.0"
 license: "MIT"
 description: speaker verification model.
 url: https://github.com/espressif/esp-dl/tree/master/models/speaker_verification

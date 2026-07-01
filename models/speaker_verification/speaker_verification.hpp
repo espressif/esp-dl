@@ -9,6 +9,8 @@
 
 class SpeakerVerification {
 public:
+    // target_seconds selects the model window length. Only 3 or 6 are supported
+    // (each maps to a dedicated .espdl); any other value falls back to 6.
     SpeakerVerification(int target_seconds = 6);
     ~SpeakerVerification();
 
@@ -18,6 +20,9 @@ public:
     // caller must free() the returned embedding.
     float *run(const int16_t *samples, size_t num_samples);
     float compute_similarity(const float *e1, const float *e2);
+
+    // Output embedding dimensionality.
+    int get_embedding_dim() const { return embedding_dim; }
 
 private:
     // Preprocess WAV input. Returns false on failure.
