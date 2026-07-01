@@ -194,6 +194,14 @@ public:
     const char *get_model_location_string();
 
     /**
+     * @brief Get the format of the loaded model/package.
+     *
+     * @return The format of the model, or FBS_FILE_FORMAT_UNK if the flatbuffers is empty or the format is
+     * unrecognized.
+     */
+    fbs_file_format_t get_model_format();
+
+    /**
      * @brief Get the package version string of a PDL3 package.
      *
      * @note Only valid for the PDL3 format.
@@ -257,6 +265,7 @@ private:
     void *m_mmap_handle;
     model_location_type_t m_location;
     const void *m_fbs_buf;
+    fbs_file_format_t m_format;
 };
 
 /**

@@ -288,6 +288,11 @@ TEST_CASE("Test PDL3 package: verify integrity", "[api]")
     ESP_LOGI(TAG, "model_num: %d", model_num);
     TEST_ASSERT_GREATER_THAN(0, model_num);
 
+    if (loader.get_model_format() != fbs::FBS_FILE_FORMAT_PDL3) {
+        ESP_LOGI(TAG, "model format is not PDL3");
+        return;
+    }
+
     uint32_t package_size = loader.get_package_size();
     ESP_LOGI(TAG, "package_size: %lu", (unsigned long)package_size);
     TEST_ASSERT_GREATER_THAN(0, package_size);

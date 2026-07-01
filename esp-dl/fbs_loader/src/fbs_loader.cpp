@@ -232,7 +232,7 @@ FbsModel *create_fbs_model(const char *fbs_buf,
                            bool param_copy)
 {
     if (fbs_buf == nullptr) {
-        ESP_LOGE(TAG, "Model's flatbuffers is empty.");
+        ESP_LOGE(TAG, "Model's flatbuffers is empty or broken.");
         return nullptr;
     }
 
@@ -267,7 +267,7 @@ FbsModel *create_fbs_model(const char *fbs_buf,
                 heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
             return nullptr;
         }
-        if (format == FBS_FILE_FORMAT_EDL2 || format == FBS_FILE_FORMAT_PDL2) {
+        if (format == FBS_FILE_FORMAT_EDL2 || format == FBS_FILE_FORMAT_PDL2 || format == FBS_FILE_FORMAT_PDL3) {
             fseek(f, 4, SEEK_CUR);
         }
         fread(model_buf, size, 1, f);
@@ -330,7 +330,7 @@ FbsModel *create_fbs_model(const char *fbs_buf,
 }
 
 FbsLoader::FbsLoader(const char *name, model_location_type_t location) :
-    m_mmap_handle(nullptr), m_location(location), m_fbs_buf(nullptr)
+    m_mmap_handle(nullptr), m_location(location), m_fbs_buf(nullptr), m_format(FBS_FILE_FORMAT_UNK)
 {
     if (name == nullptr) {
         return;
@@ -362,6 +362,10 @@ FbsLoader::FbsLoader(const char *name, model_location_type_t location) :
             ESP_LOGE(TAG, "Can not find %s in partition table", name);
         }
     }
+
+    if (m_fbs_buf != nullptr) {
+        m_format = fbs::get_model_format((const char *)m_fbs_buf, m_location);
+    }
 }
 
 FbsLoader::~FbsLoader()
@@ -377,13 +381,13 @@ FbsLoader::~FbsLoader()
 
 FbsModel *FbsLoader::load(const int model_index, const uint8_t *key, bool param_copy)
 {
-    if (this->m_fbs_buf == nullptr) {
-        ESP_LOGE(TAG, "Model's flatbuffers is empty.");
+    if (m_format == FBS_FILE_FORMAT_UNK) {
+        ESP_LOGE(TAG, "Model's flatbuffers is empty or broken.");
         return nullptr;
     }
 
     uint32_t offset = 0;
-    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    fbs_file_format_t format = m_format;
     if (is_packed_format(format)) {
         // packed multiple espdl models
         if (get_model_offset_by_index((const char *)m_fbs_buf, m_location, format, model_index, offset) != ESP_OK) {
@@ -409,13 +413,13 @@ FbsModel *FbsLoader::load(const uint8_t *key, bool param_copy)
 
 FbsModel *FbsLoader::load(const char *model_name, const uint8_t *key, bool param_copy)
 {
-    if (this->m_fbs_buf == nullptr) {
-        ESP_LOGE(TAG, "Model's flatbuffers is empty.");
+    if (m_format == FBS_FILE_FORMAT_UNK) {
+        ESP_LOGE(TAG, "Model's flatbuffers is empty or broken.");
         return nullptr;
     }
 
     uint32_t offset = 0;
-    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    fbs_file_format_t format = m_format;
     if (is_packed_format(format)) {
         // packed multiple espdl models
         if (get_model_offset_by_name((const char *)m_fbs_buf, m_location, format, model_name, offset) != ESP_OK) {
@@ -436,11 +440,11 @@ FbsModel *FbsLoader::load(const char *model_name, const uint8_t *key, bool param
 
 int FbsLoader::get_model_num()
 {
-    if (this->m_fbs_buf == nullptr) {
+    if (m_format == FBS_FILE_FORMAT_UNK) {
         return 0;
     }
 
-    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    fbs_file_format_t format = m_format;
     if (is_packed_format(format)) {
         // packed multiple espdl models
         uint32_t model_num;
@@ -471,12 +475,12 @@ int FbsLoader::get_model_num()
 
 void FbsLoader::list_models()
 {
-    if (this->m_fbs_buf == nullptr) {
-        ESP_LOGE(TAG, "Model's flatbuffers is empty.");
+    if (m_format == FBS_FILE_FORMAT_UNK) {
+        ESP_LOGE(TAG, "Model's flatbuffers is empty or broken.");
         return;
     }
 
-    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    fbs_file_format_t format = m_format;
     if (is_packed_format(format)) {
         // packed multiple espdl models
         uint32_t entry_word = pack_entry_base_word(format);
@@ -521,11 +525,11 @@ esp_err_t FbsLoader::get_package_version(char *out_version, size_t out_size)
     if (out_version == nullptr || out_size == 0) {
         return ESP_ERR_INVALID_ARG;
     }
-    if (this->m_fbs_buf == nullptr) {
-        ESP_LOGE(TAG, "Model's flatbuffers is empty.");
+    if (m_format == FBS_FILE_FORMAT_UNK) {
+        ESP_LOGE(TAG, "Model's flatbuffers is empty or broken.");
         return ESP_ERR_INVALID_STATE;
     }
-    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    fbs_file_format_t format = m_format;
     if (format != FBS_FILE_FORMAT_PDL3) {
         ESP_LOGW(TAG, "get_package_version is only supported for PDL3 packages.");
         return ESP_ERR_NOT_SUPPORTED;
@@ -554,10 +558,10 @@ esp_err_t FbsLoader::get_package_version(char *out_version, size_t out_size)
 
 uint32_t FbsLoader::get_package_size()
 {
-    if (this->m_fbs_buf == nullptr) {
+    if (m_format == FBS_FILE_FORMAT_UNK) {
         return 0;
     }
-    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    fbs_file_format_t format = m_format;
     if (format != FBS_FILE_FORMAT_PDL3) {
         return 0;
     }
@@ -583,10 +587,10 @@ esp_err_t FbsLoader::get_package_sha256(uint8_t out_sha256[32])
     if (out_sha256 == nullptr) {
         return ESP_ERR_INVALID_ARG;
     }
-    if (this->m_fbs_buf == nullptr) {
+    if (m_format == FBS_FILE_FORMAT_UNK) {
         return ESP_ERR_INVALID_STATE;
     }
-    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    fbs_file_format_t format = m_format;
     if (format != FBS_FILE_FORMAT_PDL3) {
         ESP_LOGW(TAG, "get_package_sha256 is only supported for PDL3 packages.");
         return ESP_ERR_NOT_SUPPORTED;
@@ -612,10 +616,10 @@ esp_err_t FbsLoader::calc_package_sha256(uint8_t out_sha256[32])
     if (out_sha256 == nullptr) {
         return ESP_ERR_INVALID_ARG;
     }
-    if (this->m_fbs_buf == nullptr) {
+    if (m_format == FBS_FILE_FORMAT_UNK) {
         return ESP_ERR_INVALID_STATE;
     }
-    fbs_file_format_t format = get_model_format((const char *)m_fbs_buf, m_location);
+    fbs_file_format_t format = m_format;
     if (format != FBS_FILE_FORMAT_PDL3) {
         ESP_LOGW(TAG, "calc_package_sha256 is only supported for PDL3 packages.");
         return ESP_ERR_NOT_SUPPORTED;
@@ -711,6 +715,11 @@ bool FbsLoader::verify_package_sha256()
         return false;
     }
     return true;
+}
+
+fbs_file_format_t FbsLoader::get_model_format()
+{
+    return m_format;
 }
 
 const char *FbsLoader::get_model_location_string()

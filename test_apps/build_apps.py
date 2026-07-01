@@ -26,6 +26,11 @@ from pack_espdl_models import pack_models  # noqa: E402
 
 APPS_BUILD_PER_JOB = 5
 
+# Must match the `package_version` used by test_apps/esp-dl/main/CMakeLists.txt so that
+# per-operator model packages repacked here also satisfy the PDL3 integrity test
+# ("Test PDL3 package: verify integrity" in test_dl_api.cpp).
+PDL3_PACKAGE_VERSION = "v1.0.0"
+
 
 def list_directories(path):
     directories = []
@@ -101,7 +106,12 @@ def build_and_copy(apps_to_build, model_path):
                 shutil.copytree(build_path, op_build_path)
             print(build_path, op_build_path, op_path)
             bin_path = op_build_path / "espdl_models" / "models.espdl"
-            pack_models([str(op_path)], bin_path)
+            pack_models(
+                [str(op_path)],
+                bin_path,
+                pack_format="PDL3",
+                package_version=PDL3_PACKAGE_VERSION,
+            )
 
 
 def build_single_op(apps_to_build, op_path):
@@ -122,7 +132,12 @@ def build_single_op(apps_to_build, op_path):
 
         print(build_path, op_build_path, op_path)
         bin_path = op_build_path / "espdl_models"
-        pack_models([str(op_path)], bin_path / "models.espdl")
+        pack_models(
+            [str(op_path)],
+            bin_path / "models.espdl",
+            pack_format="PDL3",
+            package_version=PDL3_PACKAGE_VERSION,
+        )
 
 
 def main(args):  # type: (argparse.Namespace) -> None
