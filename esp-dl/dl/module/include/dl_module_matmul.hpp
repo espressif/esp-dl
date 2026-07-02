@@ -170,24 +170,23 @@ public:
                 output->set_shape({1, 1, origin_output_shape[0], 1});
             }
 
-            std::vector<base::ArgsType<T>> m_args =
-                base::get_conv_operation_args<T>(output,
-                                                 input0,
-                                                 padding,
-                                                 input1 /*filter*/,
-                                                 {1, 1} /*strides*/,
-                                                 {1, 1} /*dilations*/,
-                                                 1 /*group*/,
-                                                 nullptr /*bias*/,
-                                                 m_activation,
-                                                 nullptr,
-                                                 mode); // do not support PReLU and Leaky RelU
+            base::ConvOpArgs<T> m_args(output,
+                                       input0,
+                                       padding,
+                                       input1 /*filter*/,
+                                       {1, 1} /*strides*/,
+                                       {1, 1} /*dilations*/,
+                                       1 /*group*/,
+                                       nullptr /*bias*/,
+                                       m_activation,
+                                       nullptr,
+                                       mode); // do not support PReLU and Leaky RelU
             int task_size = m_args.size();
             if (task_size == 1) { // single task
-                forward_args((void *)&m_args[0]);
+                forward_args((void *)&m_args.get_args(0));
             } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
                 ESP_LOGI("MatMul", "two task...");
-                module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]);
+                module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
             } else {
                 ESP_LOGE("MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
             }
@@ -247,24 +246,23 @@ public:
                                           false /*deep*/,
                                           output->caps /*caps*/);
 
-                    std::vector<base::ArgsType<T>> m_args =
-                        base::get_conv_operation_args<T>(&output_tmp,
-                                                         input0,
-                                                         padding,
-                                                         &input1_tmp /*filter*/,
-                                                         {1, 1} /*strides*/,
-                                                         {1, 1} /*dilations*/,
-                                                         1 /*group*/,
-                                                         nullptr /*bias*/,
-                                                         m_activation,
-                                                         nullptr,
-                                                         mode); // do not support PReLU and Leaky RelU
+                    base::ConvOpArgs<T> m_args(&output_tmp,
+                                               input0,
+                                               padding,
+                                               &input1_tmp /*filter*/,
+                                               {1, 1} /*strides*/,
+                                               {1, 1} /*dilations*/,
+                                               1 /*group*/,
+                                               nullptr /*bias*/,
+                                               m_activation,
+                                               nullptr,
+                                               mode); // do not support PReLU and Leaky RelU
                     int task_size = m_args.size();
                     if (task_size == 1) { // single task
-                        forward_args((void *)&m_args[0]);
+                        forward_args((void *)&m_args.get_args(0));
                     } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
                         ESP_LOGI("MatMul", "two task...");
-                        module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]);
+                        module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
                     } else {
                         ESP_LOGE("MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
                     }
@@ -304,24 +302,23 @@ public:
                                           false /*deep*/,
                                           output->caps /*caps*/);
 
-                    std::vector<base::ArgsType<T>> m_args =
-                        base::get_conv_operation_args<T>(&output_tmp,
-                                                         &input0_tmp,
-                                                         padding,
-                                                         input1 /*filter*/,
-                                                         {1, 1} /*strides*/,
-                                                         {1, 1} /*dilations*/,
-                                                         1 /*group*/,
-                                                         nullptr /*bias*/,
-                                                         m_activation,
-                                                         nullptr,
-                                                         mode); // do not support PReLU and Leaky RelU
+                    base::ConvOpArgs<T> m_args(&output_tmp,
+                                               &input0_tmp,
+                                               padding,
+                                               input1 /*filter*/,
+                                               {1, 1} /*strides*/,
+                                               {1, 1} /*dilations*/,
+                                               1 /*group*/,
+                                               nullptr /*bias*/,
+                                               m_activation,
+                                               nullptr,
+                                               mode); // do not support PReLU and Leaky RelU
                     int task_size = m_args.size();
                     if (task_size == 1) { // single task
-                        forward_args((void *)&m_args[0]);
+                        forward_args((void *)&m_args.get_args(0));
                     } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
                         ESP_LOGI("MatMul", "two task...");
-                        module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]);
+                        module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
                     } else {
                         ESP_LOGE("MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
                     }
@@ -388,24 +385,23 @@ public:
                                           false /*deep*/,
                                           output->caps /*caps*/);
 
-                    std::vector<base::ArgsType<T>> m_args =
-                        base::get_conv_operation_args<T>(&output_tmp,
-                                                         &input0_tmp,
-                                                         padding,
-                                                         &input1_tmp /*filter*/,
-                                                         {1, 1} /*strides*/,
-                                                         {1, 1} /*dilations*/,
-                                                         1 /*group*/,
-                                                         nullptr /*bias*/,
-                                                         m_activation,
-                                                         nullptr,
-                                                         mode); // do not support PReLU and Leaky RelU
+                    base::ConvOpArgs<T> m_args(&output_tmp,
+                                               &input0_tmp,
+                                               padding,
+                                               &input1_tmp /*filter*/,
+                                               {1, 1} /*strides*/,
+                                               {1, 1} /*dilations*/,
+                                               1 /*group*/,
+                                               nullptr /*bias*/,
+                                               m_activation,
+                                               nullptr,
+                                               mode); // do not support PReLU and Leaky RelU
                     int task_size = m_args.size();
                     if (task_size == 1) { // single task
-                        forward_args((void *)&m_args[0]);
+                        forward_args((void *)&m_args.get_args(0));
                     } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
                         ESP_LOGI("MatMul", "two task...");
-                        module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]);
+                        module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
                     } else {
                         ESP_LOGE("MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
                     }
@@ -492,24 +488,23 @@ public:
                                               false /*deep*/,
                                               output->caps /*caps*/);
 
-                        std::vector<base::ArgsType<T>> m_args =
-                            base::get_conv_operation_args<T>(&output_tmp,
-                                                             &input0_tmp,
-                                                             padding,
-                                                             &input1_tmp /*filter*/,
-                                                             {1, 1} /*strides*/,
-                                                             {1, 1} /*dilations*/,
-                                                             1 /*group*/,
-                                                             nullptr /*bias*/,
-                                                             m_activation,
-                                                             nullptr,
-                                                             mode); // do not support PReLU and Leaky RelU
+                        base::ConvOpArgs<T> m_args(&output_tmp,
+                                                   &input0_tmp,
+                                                   padding,
+                                                   &input1_tmp /*filter*/,
+                                                   {1, 1} /*strides*/,
+                                                   {1, 1} /*dilations*/,
+                                                   1 /*group*/,
+                                                   nullptr /*bias*/,
+                                                   m_activation,
+                                                   nullptr,
+                                                   mode); // do not support PReLU and Leaky RelU
                         int task_size = m_args.size();
                         if (task_size == 1) { // single task
-                            forward_args((void *)&m_args[0]);
+                            forward_args((void *)&m_args.get_args(0));
                         } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
                             ESP_LOGI("MatMul", "two task...");
-                            module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]);
+                            module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
                         } else {
                             ESP_LOGE(
                                 "MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
