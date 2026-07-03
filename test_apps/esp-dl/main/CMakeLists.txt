@@ -29,10 +29,15 @@ set(MVMODEL_EXE ${PROJECT_DIR}/../../esp-dl/fbs_loader/pack_espdl_models.py)
 idf_build_get_property(build_dir BUILD_DIR)
 set(image_file ${build_dir}/espdl_models/models.espdl)
 
+# Pack the models into the PDL3 format by default so the package integrity
+# (package_size / package_version / package_sha256) can be verified on device.
+set(package_version "v1.0.0")
+
 add_custom_command(
     OUTPUT ${image_file}
-    COMMENT "Move and Pack models..."
+    COMMENT "Move and Pack models (PDL3)..."
     COMMAND python ${MVMODEL_EXE} --model_path=${model_path} --out_file=${image_file}
+            --format PDL3 --package_version ${package_version}
     DEPENDS ${CONFIG_MODEL_FILE_PATH}
     VERBATIM)
 
