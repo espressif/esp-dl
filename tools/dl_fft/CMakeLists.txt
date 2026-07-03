@@ -26,7 +26,7 @@ elseif(CONFIG_IDF_TARGET_ESP32S3)
                             "base/isa/esp32s3/dl_fft4r_fc32_aes3.S"
                             "base/isa/esp32s3/dl_fft2r_sc16_aes3.S" )
 
-elseif(CONFIG_IDF_TARGET_ESP32P4)
+elseif(CONFIG_IDF_TARGET_ESP32P4 OR CONFIG_IDF_TARGET_ESP32S31)
     list(APPEND srcs        "base/isa/esp32p4/dl_fft2r_fc32_arp4.S"
                             "base/isa/esp32p4/dl_fft4r_fc32_arp4.S"
                             "base/isa/esp32p4/dl_fft2r_sc16_arp4.S" )

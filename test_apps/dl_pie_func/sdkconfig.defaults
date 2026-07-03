@@ -1,1 +1,12 @@
 CONFIG_PARTITION_TABLE_OFFSET=0x9000
+
+# Diagnostic aid for the "Guru Meditation Error (LoadProhibited)" crash seen in
+# reduce_sum/reduce_mean speed tests: the crash happens inside Unity's own
+# UnityPrint()/CurrentDetail2 bookkeeping, which this project never writes to,
+# implying some earlier buffer write is overrunning into adjacent heap memory
+# and only surfacing much later. Comprehensive heap poisoning makes
+# heap_caps_malloc/free validate guard bytes on every call, so an overrun is
+# caught immediately at the offending allocation instead of crashing several
+# tests later with a confusing, unrelated-looking backtrace.
+CONFIG_HEAP_POISONING_COMPREHENSIVE=y
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8000
