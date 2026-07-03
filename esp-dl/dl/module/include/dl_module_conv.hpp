@@ -140,23 +140,22 @@ public:
         }
         TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
-        std::vector<base::ArgsType<T>> m_args =
-            base::get_conv_operation_args<T>(output,
-                                             input,
-                                             m_pads,
-                                             filter,
-                                             m_strides,
-                                             m_dilations,
-                                             m_group,
-                                             bias,
-                                             this->activation,
-                                             nullptr,
-                                             mode); // do not support RReLU and Leaky RelU
+        base::ConvOpArgs<T> m_args(output,
+                                   input,
+                                   m_pads,
+                                   filter,
+                                   m_strides,
+                                   m_dilations,
+                                   m_group,
+                                   bias,
+                                   this->activation,
+                                   nullptr,
+                                   mode); // do not support RReLU and Leaky RelU
         int task_size = m_args.size();
         if (task_size == 1) { // single task
-            forward_args((void *)&m_args[0]);
+            forward_args((void *)&m_args.get_args(0));
         } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
-            module_forward_dual_core(this, (void *)&m_args[0], (void *)&m_args[1]);
+            module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
         } else {
             ESP_LOGE("Conv", "Only support task size is 1 or 2, currently task size is %d", task_size);
         }

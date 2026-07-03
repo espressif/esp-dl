@@ -10,10 +10,15 @@
 
 ## Model Latency
 
-| name                 | input(h*w*c)  | preprocess(ms) | model(ms) | postprocess(ms) |
-| ---------------------- | --------------- | ---------------- | ----------- | ----------------- |
-|  mobilenetv2_s8_v1_s3 |  224 * 224 * 3 | 9.2 | 1281.0 | 1.1 |
-|  mobilenetv2_s8_v1_p4 |  224 * 224 * 3 | 3.1 | 353.1 | 0.8 |
+| name                                             | input(h*w*c)  | preprocess(ms) | model(ms) | postprocess(ms) |
+| ------------------------------------------------ | ------------- | -------------- | --------- | ---------------- |
+| mobilenetv2_s8_v1_s3 (RUNTIME_MODE_SINGLE_CORE)  | 224 * 224 * 3 | 9.2            | 1294.5    | 1.1              |
+| mobilenetv2_s8_v1_s3 (RUNTIME_MODE_MULTI_CORE)   | 224 * 224 * 3 | 9.2            | 856.0     | 1.1              |
+| mobilenetv2_s8_v1_p4 (RUNTIME_MODE_SINGLE_CORE)  | 224 * 224 * 3 | 3.1            | 327.9     | 0.8              |
+| mobilenetv2_s8_v1_p4 (RUNTIME_MODE_MULTI_CORE)   | 224 * 224 * 3 | 3.1            | 225.6     | 0.8              |
+
+> Multi-core mode only accelerates inference on dual-core targets (ESP32-S3 / ESP32-P4).
+> On a single-core target, `RUNTIME_MODE_MULTI_CORE` falls back to single-core execution.
 
 ## Model Usage
 
@@ -26,7 +31,21 @@ ImageNetCls *cls = new ImageNetCls();
 
 ```cpp
 dl::image::img_t img = {.data=DATA, .width=WIDTH, .height=HEIGHT, .pix_type=PIX_TYPE};
-std::vector<dl::cls::result_t> &res = detect->run(img);
+
+// single-core inference (default)
+std::vector<dl::cls::result_t> &res = cls->run(img);
+```
+
+### How to Select the Runtime Mode
+
+`run()` accepts an optional `dl::runtime_mode_t` (default `RUNTIME_MODE_SINGLE_CORE`) to choose
+between single-core and dual-core execution:
+
+```cpp
+// dl::RUNTIME_MODE_SINGLE_CORE - always single core (default)
+// dl::RUNTIME_MODE_MULTI_CORE  - dual core (ESP32-S3 / ESP32-P4)
+// dl::RUNTIME_MODE_AUTO        - auto select
+std::vector<dl::cls::result_t> &res = cls->run(img, dl::RUNTIME_MODE_MULTI_CORE);
 ```
 
 More details, see [`dl::image::img_t`](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/image/dl_image_define.hpp) and [`dl::cls::result_t`](https://github.com/espressif/esp-dl/blob/master/esp-dl/vision/classification/dl_cls_define.hpp).
