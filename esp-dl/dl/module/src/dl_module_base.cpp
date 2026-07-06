@@ -120,6 +120,8 @@ Module::~Module()
 void Module::run(TensorBase *input, TensorBase *output, runtime_mode_t mode)
 {
     ModelContext context;
+    m_inputs_index.clear();
+    m_outputs_index.clear();
     m_inputs_index.push_back(context.push_back_tensor(input));
     m_outputs_index.push_back(context.push_back_tensor(output));
     forward(&context, mode);
@@ -128,6 +130,8 @@ void Module::run(TensorBase *input, TensorBase *output, runtime_mode_t mode)
 void Module::run(std::vector<dl::TensorBase *> inputs, std::vector<dl::TensorBase *> outputs, runtime_mode_t mode)
 {
     ModelContext context;
+    m_inputs_index.clear();
+    m_outputs_index.clear();
     for (int i = 0; i < inputs.size(); i++) {
         m_inputs_index.push_back(context.push_back_tensor(inputs[i]));
     }
