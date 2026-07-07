@@ -59,7 +59,6 @@ TensorBase *FeatImpl::run(const dl::image::img_t &img, const std::vector<int> &l
 int FeatImpl::get_feat_len()
 {
     return m_model->get_output()->get_size();
-    ;
 }
 
 dl::Model *FeatImpl::get_raw_model()

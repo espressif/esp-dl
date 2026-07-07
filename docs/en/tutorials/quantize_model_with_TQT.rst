@@ -17,7 +17,7 @@ This document explains why and how to use Trained Quantization Thresholds (TQT) 
 Why Use TQT
 -----------
 
-TQT (Trained Quantization Thresholds) comes from the paper `Trained Quantization Thresholds for Accurate and Efficient Fixed-Point Inference of Deep Neural Networks <https://arxiv.org/abs/1903.08066>`_ (Sambhav R. Jain, Albert Gural, Michael Wu, Chris H. Dick), published at **MLSys 2020**. Since ESP32-series chips currently only support ``.espdl`` models produced by **Per-Tensor + Symmetric + Power-of-2** quantization, we have integrated the core idea of TQT into ESP-PPQ, jointly optimizing quantization thresholds (scale) and model weights via **standard backpropagation and gradient descent** to match hardware constraints.
+TQT (Trained Quantization Thresholds) comes from the paper `Trained Quantization Thresholds for Accurate and Efficient Fixed-Point Inference of Deep Neural Networks <https://arxiv.org/abs/1903.08066>`_ (Sambhav R. Jain, Albert Gural, Michael Wu, Chris H. Dick), published at **MLSys 2020**. Since ESP32-series chips currently only support ``.espdl`` models produced by **Per-Tensor/Per-Channel + Symmetric + Power-of-2** quantization, we have integrated the core idea of TQT into ESP-PPQ, jointly optimizing quantization thresholds (scale) and model weights via **standard backpropagation and gradient descent** to match hardware constraints.
 
 In ESP-PPQ, TQT is implemented as **TrainedQuantizationThresholdPass**. We optimize scale in the log domain and adapt to ESP-DL's **Power-of-2** constraint (e.g. int_lambda, STE, etc.).
 
@@ -174,6 +174,9 @@ TQT Quantization Examples
 --------------------------
 
 The following examples show how to enable TQT quantization for **YOLO26n** (detection) and **MobileNetV2** (classification) and export to ESP-DL. Adjust calibration data and model paths to your environment.
+
+.. note::
+   The P4 quantization accuracy reported in the YOLO26n and MobileNetV2 examples was measured with Per-Tensor quantization granularity. P4 now supports Per-Channel quantization for Conv/Gemm operators.
 
 .. _yolo26n-en:
 

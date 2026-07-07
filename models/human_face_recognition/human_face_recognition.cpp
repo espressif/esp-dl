@@ -97,7 +97,7 @@ std::vector<dl::recognition::result_t> HumanFaceRecognizer::recognize(const dl::
             std::max_element(detect_res.begin(),
                              detect_res.end(),
                              [](const dl::detect::result_t &a, const dl::detect::result_t &b) -> bool {
-                                 return a.box_area() > b.box_area();
+                                 return a.box_area() < b.box_area();
                              });
         auto feat = m_feat.run(img, max_detect_res->keypoint);
         return m_db->query_feat(feat, m_thr, m_top_k);
@@ -120,7 +120,7 @@ esp_err_t HumanFaceRecognizer::enroll(const dl::image::img_t &img, const std::li
             std::max_element(detect_res.begin(),
                              detect_res.end(),
                              [](const dl::detect::result_t &a, const dl::detect::result_t &b) -> bool {
-                                 return a.box_area() > b.box_area();
+                                 return a.box_area() < b.box_area();
                              });
         auto feat = m_feat.run(img, max_detect_res->keypoint);
         return m_db->enroll_feat(feat);

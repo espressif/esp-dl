@@ -300,6 +300,17 @@ build_example_speaker_verification:
   variables:
     EXAMPLE_DIR: examples/speaker_verification
 
+build_example_person_reid:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_person_reid
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+        TARGET: [esp32p4, esp32s3]
+  variables:
+    EXAMPLE_DIR: examples/person_reid
+
 build_example_how_to_run_model:
   extends:
     - .build_examples_template

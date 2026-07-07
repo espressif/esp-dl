@@ -1,0 +1,8 @@
+version: "0.1.0"
+license: "MIT"
+description: person reid model.
+url: https://github.com/espressif/esp-dl/tree/master/models/person_reid
+dependencies: 
+  espressif/pedestrian_detect:
+    version: "~0.3.0"
+    override_path: "../pedestrian_detect"

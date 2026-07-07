@@ -1,0 +1,47 @@
+menu "models: person_reid_feat"
+    config FLASH_PERSON_REID_FEAT_OSN_S8_V1
+        bool "flash person_reid_feat_osn_s8_v1"
+        depends on !PERSON_REID_FEAT_MODEL_IN_SDCARD
+        default y
+
+    choice
+        prompt "default model"
+        default PERSON_REID_FEAT_OSN_S8_V1
+        help
+            default person_reid_feat model
+        config PERSON_REID_FEAT_OSN_S8_V1
+            bool "person_reid_feat_osn_s8_v1"
+            depends on PERSON_REID_FEAT_MODEL_IN_SDCARD || FLASH_PERSON_REID_FEAT_OSN_S8_V1
+    endchoice
+
+    config DEFAULT_PERSON_REID_FEAT_MODEL
+        int
+        default 0 if PERSON_REID_FEAT_OSN_S8_V1
+
+    choice
+        prompt "model location"
+        default PERSON_REID_FEAT_MODEL_IN_FLASH_RODATA
+        help
+            person_reid_feat model location
+        config PERSON_REID_FEAT_MODEL_IN_FLASH_RODATA
+            bool "flash_rodata"
+        config PERSON_REID_FEAT_MODEL_IN_FLASH_PARTITION
+            bool "flash_partition"
+        config PERSON_REID_FEAT_MODEL_IN_SDCARD
+            bool "sdcard"
+    endchoice
+
+    config PERSON_REID_FEAT_MODEL_LOCATION
+        int
+        default 0 if PERSON_REID_FEAT_MODEL_IN_FLASH_RODATA
+        default 1 if PERSON_REID_FEAT_MODEL_IN_FLASH_PARTITION
+        default 2 if PERSON_REID_FEAT_MODEL_IN_SDCARD
+
+    config PERSON_REID_FEAT_MODEL_SDCARD_DIR
+        string "person_reid_feat model sdcard dir"
+        default "models/s3" if IDF_TARGET_ESP32S3
+        default "models/p4" if IDF_TARGET_ESP32P4
+        depends on PERSON_REID_FEAT_MODEL_IN_SDCARD
+        help
+            Directory of models relative to sdcard mount point.
+endmenu

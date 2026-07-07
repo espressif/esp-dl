@@ -20,9 +20,10 @@ And the detection result of espdet_pico_224_224_cat after int8 quantization on E
 Follow the [quick start](https://docs.espressif.com/projects/esp-dl/en/latest/getting_started/readme.html#quick-start) to flash the example, you will see the output in idf monitor:
 
 ```
-I (1555) cat_detect: [category: 0, score: 0.880797, x1: 0, y1: 171, x2: 428, y2: 479]
-I (1555) cat_detect: [category: 0, score: 0.851953, x1: 280, y1: 85, x2: 639, y2: 479]
-I (1565) main_task: Returned from app_main()
+I (1553) cat_detect: [category: 0, score: 0.924142, x1: 0, y1: 171, x2: 434, y2: 479]
+I (1553) cat_detect: [category: 0, score: 0.909907, x1: 285, y1: 91, x2: 639, y2: 479]
+I (1563) main_task: Returned from app_main()
+
 ```
 
 ## Configurable Options in Menuconfig

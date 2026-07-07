@@ -91,8 +91,7 @@ If the default 8-bit quantization does not meet your accuracy needs, the followi
 Post Training Quantization (PTQ)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- :ref:`Mixed precision quantization <mixed_precision_quantization_label>`
-- :ref:`Layerwise equalization quantization <layerwise_equalization_quantization_label>`
+- :ref:`8bit 后量化 <8bit_ptq_label>`
 
 Quantization Aware Training (QAT)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
