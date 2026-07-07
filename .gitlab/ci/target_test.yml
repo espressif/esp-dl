@@ -133,6 +133,26 @@ test_dl_fft:
     TEST_TARGET: ${IDF_TARGET}
     TEST_ENV: ${IDF_TARGET}
 
+test_example_mobilenetv2_cls:
+  extends:
+    - .pytest_template
+    - .rules:build:example_mobilenetv2_cls
+  needs:
+    - job: "build_example_mobilenetv2_cls"
+      artifacts: true
+      optional: true
+  parallel:
+    matrix:
+      - IDF_TARGET: [esp32p4, esp32s3]
+        IDF_VERSION: "5.3"
+  tags:
+    - ${IDF_TARGET}
+  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  variables:
+    TEST_FOLDER: 'examples/mobilenetv2_cls'
+    TEST_TARGET: ${IDF_TARGET}
+    TEST_ENV: ${IDF_TARGET}
+
 test_dl_image:
   extends:
     - .pytest_template

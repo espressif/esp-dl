@@ -7,12 +7,12 @@ ClsWrapper::~ClsWrapper()
     delete m_model;
 }
 
-std::vector<dl::cls::result_t> &ClsWrapper::run(const dl::image::img_t &img)
+std::vector<dl::cls::result_t> &ClsWrapper::run(const dl::image::img_t &img, runtime_mode_t mode)
 {
     if (!m_model) {
         load_model();
     }
-    return m_model->run(img);
+    return m_model->run(img, mode);
 }
 
 Cls &ClsWrapper::set_topk(int topk)
@@ -50,7 +50,7 @@ ClsImpl::~ClsImpl()
     delete m_postprocessor;
 }
 
-std::vector<dl::cls::result_t> &ClsImpl::run(const dl::image::img_t &img)
+std::vector<dl::cls::result_t> &ClsImpl::run(const dl::image::img_t &img, runtime_mode_t mode)
 {
     DL_LOG_INFER_LATENCY_INIT();
     DL_LOG_INFER_LATENCY_START();
@@ -58,7 +58,7 @@ std::vector<dl::cls::result_t> &ClsImpl::run(const dl::image::img_t &img)
     DL_LOG_INFER_LATENCY_END_PRINT("cls", "pre");
 
     DL_LOG_INFER_LATENCY_START();
-    m_model->run();
+    m_model->run(mode);
     DL_LOG_INFER_LATENCY_END_PRINT("cls", "model");
 
     DL_LOG_INFER_LATENCY_START();

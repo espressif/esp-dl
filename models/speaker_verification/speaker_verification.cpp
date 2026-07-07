@@ -4,10 +4,10 @@
 static const char *TAG = "speaker_verification";
 
 #if CONFIG_SPEAKER_VERIFICATION_MODEL_IN_FLASH_RODATA
-extern const uint8_t sv_model_espdl[] asm("_binary_sv_tdnn_tiny_espdl_start");
-static const char *path = (const char *)sv_model_espdl;
+extern const uint8_t sv_model_3s_espdl[] asm("_binary_sv_tdnn_tiny_3s_espdl_start");
+extern const uint8_t sv_model_6s_espdl[] asm("_binary_sv_tdnn_tiny_6s_espdl_start");
 #elif CONFIG_SPEAKER_VERIFICATION_MODEL_IN_FLASH_PARTITION
-static const char *path = "sv_model";
+// Partition labels are selected at runtime based on target_seconds.
 #else
 #if !defined(CONFIG_BSP_SD_MOUNT_POINT)
 #define CONFIG_BSP_SD_MOUNT_POINT "/sdcard"
@@ -16,7 +16,18 @@ static const char *path = "sv_model";
 
 SpeakerVerification::SpeakerVerification(int target_sec) : target_seconds(target_sec)
 {
+    // Only the 3s and 6s models are shipped; anything else falls back to 6s.
+    if (target_seconds != 3 && target_seconds != 6) {
+        ESP_LOGE(TAG, "Unsupported target_seconds=%d; only 3 or 6 are supported. Falling back to 6.", target_seconds);
+        target_seconds = 6;
+    }
+
 #if !CONFIG_SPEAKER_VERIFICATION_MODEL_IN_SDCARD
+#if CONFIG_SPEAKER_VERIFICATION_MODEL_IN_FLASH_RODATA
+    const char *path = (const char *)(target_seconds == 3 ? sv_model_3s_espdl : sv_model_6s_espdl);
+#else // CONFIG_SPEAKER_VERIFICATION_MODEL_IN_FLASH_PARTITION
+    const char *path = (target_seconds == 3) ? "sv_model_3s" : "sv_model_6s";
+#endif
     model = new dl::Model(path, static_cast<fbs::model_location_type_t>(CONFIG_SPEAKER_VERIFICATION_MODEL_LOCATION));
 #else
     char sd_path[256];
@@ -25,7 +36,7 @@ SpeakerVerification::SpeakerVerification(int target_sec) : target_seconds(target
              "%s/%s/%s",
              CONFIG_BSP_SD_MOUNT_POINT,
              CONFIG_SPEAKER_VERIFICATION_MODEL_SDCARD_DIR,
-             "sv_tdnn_tiny.espdl");
+             target_seconds == 3 ? "sv_tdnn_tiny_3s.espdl" : "sv_tdnn_tiny_6s.espdl");
     model = new dl::Model(sd_path, static_cast<fbs::model_location_type_t>(CONFIG_SPEAKER_VERIFICATION_MODEL_LOCATION));
 #endif
 
@@ -45,10 +56,13 @@ SpeakerVerification::SpeakerVerification(int target_sec) : target_seconds(target
     fbank = new dl::audio::Fbank(config);
 
     feature_dim = config.num_mel_bins;
-    target_samples = target_seconds * config.sample_rate + 240;
-    num_frames = (target_samples - config.frame_length * config.sample_rate / 1000) /
-            (config.frame_shift * config.sample_rate / 1000) +
-        1;
+    // Derive the frame count from the loaded model's input so the audio is always
+    // cropped/padded to exactly the model window.
+    const int frame_shift_samples = (int)(config.frame_shift * config.sample_rate / 1000);   // 160
+    const int frame_length_samples = (int)(config.frame_length * config.sample_rate / 1000); // 400
+    dl::TensorBase *input_tensor = model->get_inputs().begin()->second;
+    num_frames = input_tensor->size / feature_dim;
+    target_samples = (num_frames - 1) * frame_shift_samples + frame_length_samples;
     embedding_dim = model->get_outputs().begin()->second->size;
     audio_buffer = (float *)malloc(sizeof(float) * target_samples);
     features_buffer = (float *)malloc(sizeof(float) * num_frames * feature_dim);

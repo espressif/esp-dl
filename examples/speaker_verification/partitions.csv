@@ -2,3 +2,4 @@
 # Note: if you change the phy_init or app partition offset, make sure to change the offset in Kconfig.projbuild
 
 factory,  app,  factory,  0x010000,  8000K,
+storage,  data, spiffs,   ,          1M,

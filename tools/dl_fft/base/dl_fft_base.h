@@ -69,6 +69,7 @@ esp_err_t dl_ifft2r_sc16_ansi(int16_t *data, int N, int16_t *table);
 esp_err_t dl_rfft_post_proc_sc16_ansi(int16_t *data, int N, int16_t *table);
 esp_err_t dl_rfft_pre_proc_sc16_ansi(int16_t *data, int N, int16_t *table);
 esp_err_t dl_cplx2real_sc16_hp_ansi(int16_t *data, int N, int16_t *table, int *shift);
+void dl_fft_cfg_round(int32_t round_mode);
 
 /* Pre-shifts input by 1 if needed (to avoid int16 overflow in
  * dl_rfft_post_proc_sc16_asm), then runs the post-processing.
@@ -84,12 +85,12 @@ int dl_rfft_post_proc_sc16(int16_t *data, int cpx_points, int16_t *table);
 #define dl_ifft2r_fc32 dl_ifft2r_fc32_ae32_
 #define dl_fft4r_fc32 dl_fft4r_fc32_ae32_
 #define dl_ifft4r_fc32 dl_ifft4r_fc32_ae32_
-#elif CONFIG_IDF_TARGET_ESP32S3
+#elif DL_FFT_PIE_V1_BOOST
 #define dl_fft2r_fc32 dl_fft2r_fc32_aes3_
 #define dl_ifft2r_fc32 dl_ifft2r_fc32_aes3_
 #define dl_fft4r_fc32 dl_fft4r_fc32_aes3_
 #define dl_ifft4r_fc32 dl_ifft4r_fc32_aes3_
-#elif CONFIG_IDF_TARGET_ESP32P4
+#elif DL_FFT_PIE_V2_BOOST
 #define dl_fft2r_fc32 dl_fft2r_fc32_arp4_
 #define dl_ifft2r_fc32 dl_ifft2r_fc32_arp4_
 #define dl_fft4r_fc32 dl_fft4r_fc32_arp4_
@@ -101,7 +102,7 @@ int dl_rfft_post_proc_sc16(int16_t *data, int cpx_points, int16_t *table);
 #define dl_ifft4r_fc32 dl_ifft4r_fc32_ansi
 #endif
 
-#if CONFIG_IDF_TARGET_ESP32S3
+#if DL_FFT_PIE_V1_BOOST
 #define dl_reduce_abs_max dl_reduce_abs_max_aes3_
 #define dl_fft2r_sc16_dif_asm dl_fft2r_sc16_dif_aes3_
 #define dl_fft2r_sc16_dif_hp_asm dl_fft2r_sc16_dif_hp_aes3_
@@ -110,17 +111,24 @@ int dl_rfft_post_proc_sc16(int16_t *data, int cpx_points, int16_t *table);
 #define dl_ifft2r_sc16_dif dl_ifft2r_sc16_dif_aes3_
 #define dl_rfft_post_proc_sc16_asm dl_rfft_post_proc_sc16_aes3_
 #define dl_rfft_pre_proc_sc16_asm dl_rfft_pre_proc_sc16_aes3_
-#elif !CONFIG_ESP32P4_SELECTS_REV_LESS_V3 && \
-    ((IDF_VERSION_MAJOR == 5 && IDF_VERSION_MINOR == 5) || IDF_VERSION_MAJOR > 5)
+#elif DL_FFT_PIE_V2_BOOST
 #define dl_reduce_abs_max dl_reduce_abs_max_arp4_
 #define dl_fft2r_sc16_dif_asm dl_fft2r_sc16_dif_arp4_
 #define dl_fft2r_sc16_dif_hp_asm dl_fft2r_sc16_dif_hp_arp4_
-#define dl_bitrev2r_sc16_asm dl_bitrev2r_sc16_arp4_
 #define dl_ifft2r_sc16_dif_hp dl_ifft2r_sc16_dif_hp_arp4_
 #define dl_ifft2r_sc16_dif dl_ifft2r_sc16_dif_arp4_
-#define dl_rfft_post_proc_sc16_asm dl_rfft_post_proc_sc16_ansi
-#define dl_rfft_pre_proc_sc16_asm dl_rfft_pre_proc_sc16_ansi
+#define dl_rfft_post_proc_sc16_asm dl_rfft_post_proc_sc16_arp4_
+#define dl_rfft_pre_proc_sc16_asm dl_rfft_pre_proc_sc16_arp4_
+
+#if (IDF_VERSION_MAJOR < 5 || (IDF_VERSION_MAJOR == 5 && IDF_VERSION_MINOR < 5))
+#define dl_bitrev2r_sc16_asm dl_bitrev2r_sc16_ansi
+#elif (CONFIG_IDF_TARGET_ESP32P4 && CONFIG_ESP32P4_SELECTS_REV_LESS_V3)
+#define dl_bitrev2r_sc16_asm dl_bitrev2r_sc16_ansi
 #else
+#define dl_bitrev2r_sc16_asm dl_bitrev2r_sc16_arp4_
+#endif
+#else
+
 #define dl_reduce_abs_max dl_reduce_abs_max_ansi
 #define dl_fft2r_sc16_dif_asm dl_fft2r_sc16_dif_ansi
 #define dl_fft2r_sc16_dif_hp_asm dl_fft2r_sc16_dif_hp_ansi

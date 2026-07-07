@@ -6,16 +6,18 @@
 
 # Speaker Verification Example
 
-A simple audio inference example. Three audio samples are provided: a and b are from the same speaker, while b and c are from different speakers.
+A simple audio inference example. Three audio samples are provided: a and b are from the same speaker, while c is from a different speaker. Audio a is enrolled as `speaker1` in a verification database (stored on SPIFFS), then b and c are verified against it by cosine similarity.
 
 ## Quick start
 
 Follow the [quick start](https://docs.espressif.com/projects/esp-dl/en/latest/getting_started/readme.html#quick-start) to flash the example, you will see the output in idf monitor:
 
 ```
-I (3567) speaker_verification: Cosine similarity between audio a and b: 0.7500
-I (3567) speaker_verification: Cosine similarity between audio b and c: 0.0834
-I (3577) main_task: Returned from app_main()
+I (13694) speaker_verification: Testing audio_b against enrolled speaker1:
+I (13694) dl::audio::VerificationDB: [MAX-COSINE] speaker1: score=0.7300 (threshold=0.2500) -> SAME speaker
+I (14254) speaker_verification: Testing audio_c against enrolled speaker1:
+I (14254) dl::audio::VerificationDB: [MAX-COSINE] speaker1: score=0.0378 (threshold=0.2500) -> DIFFERENT speaker
+I (14264) main_task: Returned from app_main()
 ```
 
 ## Configurable Options in Menuconfig

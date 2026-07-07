@@ -4,5 +4,5 @@ description: imagenet classification model.
 url: https://github.com/espressif/esp-dl/tree/master/models/imagenet_cls
 dependencies: 
   espressif/esp-dl:
-    version: "~3.3.0"
+    version: "~3.3.7"
     override_path: "../../esp-dl"

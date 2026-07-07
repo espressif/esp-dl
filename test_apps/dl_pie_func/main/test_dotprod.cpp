@@ -19,7 +19,7 @@ static float dotprod_f32_naive(const float *a, const float *b, int n)
 
 // Compares the optimized base::dotprod (ISA-accelerated where available) against
 // a scalar reference and esp-dsp, reporting numerical accuracy and throughput.
-TEST_CASE("Test dl base dotprod f32: precision and speed", "[pie, dotprod]")
+TEST_CASE("Test dl base dotprod f32: precision and speed", "[pie]")
 {
     ESP_LOGI(TAG, "Test dl base dotprod f32: precision and speed");
 

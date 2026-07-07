@@ -1157,3 +1157,178 @@ dl_ifft2r_sc16_dif_hp_arp4_:
     lw              s0, 28(sp)
     addi            sp, sp, 32
     ret
+
+
+/* esp_err_t dl_rfft_post_proc_sc16_arp4_(int16_t *data, int N, int16_t *table);
+ *
+ * RFFT post-processing (extract the real spectrum from the half-size complex
+ * FFT output) using the ESP32-P4 PIE real-FFT AMS instructions. Mirrors the
+ * ESP32-S3 dl_rfft_post_proc_sc16_aes3_.
+ *
+ * NOTE: The AMS hardware truncates the intermediate (sum_r + tw_r) addition to
+ * 16 bits BEFORE the built-in `>> 1` shift in the store, so callers must
+ * pre-shift the input by 1 right shift whenever the data uses (close to) the
+ * full int16 range (handled by the dl_rfft_post_proc_sc16 wrapper, which then
+ * compensates the output exponent by +1).
+ *
+ * Args (RV32 ABI):
+ *   a0 = data, a1 = N (cpx_point), a2 = table
+ *
+ * GPR usage (PIE-valid where used by esp.* instructions):
+ *   a0 : data base (fixed; q3 load + DC term load/store)   (Xtensa a2)
+ *   a1 : N -> loop count (N / 16)                           (Xtensa a3)
+ *   a2 : twiddle/table ptr (advancing)                      (Xtensa a4)
+ *   a3 : output store ptr (advancing)                       (Xtensa a6)
+ *   t3 : ptr1 = data + 16 (advancing)                       (Xtensa a7)
+ *   t4 : ptr_inv (decrementing, r32 load)                   (Xtensa a8)
+ *   t5 : ptr_inv1 (decrementing, r32 store)                 (Xtensa a9)
+ *   t6 : constant 0 (rs2 for AMS store)                     (Xtensa a11)
+ *   a4, a5 : scratch (SAR / SAR_BYTE consts, temp address)
+ *   t0 : DC sum  = data[0] + data[1] (preserved over loop)
+ *   t1 : DC diff = data[0] - data[1] (preserved over loop)
+ */
+    .text
+    .align 4
+    .global dl_rfft_post_proc_sc16_arp4_
+    .type   dl_rfft_post_proc_sc16_arp4_, @function
+dl_rfft_post_proc_sc16_arp4_:
+    li              a4, 14
+    esp.movx.w.sar  a4                     /* SAR = 14 */
+    mv              a3, a0                 /* out store ptr = data    */
+    addi            t3, a0, 16             /* ptr1 = data + 16        */
+    slli            t5, a1, 2              /* t5 = N * 4 (bytes)      */
+    add             t5, t5, a0             /* ptr_inv1 = data + N*4   */
+    addi            t4, t5, -16            /* ptr_inv = ptr_inv1 - 16 */
+
+    lh              a4, 0(a0)              /* data[0]                 */
+    lh              a5, 2(a0)              /* data[1]                 */
+    add             t0, a4, a5             /* DC sum  = data[0]+data[1] */
+    sub             t1, a4, a5             /* DC diff = data[0]-data[1] */
+
+    li              t6, 0                  /* rs2 = 0 for AMS store    */
+    addi            t5, t5, -16            /* ptr_inv1 -= 16           */
+
+    esp.vld.128.ip  q2, a2, 16
+    esp.fft.ams.s16.ld.r32.decp q1, t4, q6, q7, q3, q4, q5, 0   /* load only */
+
+    esp.vld.128.ip  q3, a0, 0
+    li              a4, 4
+    esp.movx.w.sar.bytes a4                /* SAR_BYTE = 4 */
+    esp.vld.128.ip  q4, t3, 16
+    esp.src.q       q0, q3, q4
+
+    addi            a4, a0, 16             /* throwaway uaup priming ptr = data + 16 */
+    esp.fft.ams.s16.ld.incp.uaup q3, a4, q6, q7, q0, q1, q2, 0  /* load only */
+
+    srli            a1, a1, 4              /* N / 16 */
+    beqz            a1, .Lpost_loop_end
+.Lpost_loop:
+    esp.fft.ams.s16.ld.incp.uaup q3, t3, q6, q7, q0, q1, q2, 0
+    esp.fft.ams.s16.ld.incp      q5, a2, q6, q7, q0, q1, q2, 0
+    esp.fft.ams.s16.ld.r32.decp  q4, t4, q6, q7, q0, q1, q2, 0
+    esp.fft.ams.s16.st.incp      q6, q7, t6, a3, q0, q1, q2, 0
+    esp.fft.vst.r32.decp         q7, t5, 1
+
+    esp.fft.ams.s16.ld.incp.uaup q0, t3, q6, q7, q3, q4, q5, 0
+    esp.fft.ams.s16.ld.incp      q2, a2, q6, q7, q3, q4, q5, 0
+    esp.fft.ams.s16.ld.r32.decp  q1, t4, q6, q7, q3, q4, q5, 0
+    esp.fft.ams.s16.st.incp      q6, q7, t6, a3, q3, q4, q5, 0
+    esp.fft.vst.r32.decp         q7, t5, 1
+
+    addi            a1, a1, -1
+    bnez            a1, .Lpost_loop
+.Lpost_loop_end:
+    sh              t0, 0(a0)              /* data[0] = DC sum  */
+    sh              t1, 2(a0)              /* data[1] = DC diff */
+
+    li              a0, 0                  /* return ESP_OK */
+    ret
+
+
+/* esp_err_t dl_rfft_pre_proc_sc16_arp4_(int16_t *data, int N, int16_t *table);
+ *
+ * RFFT pre-processing (pack the real spectrum into a half-size complex
+ * spectrum prior to the inverse FFT) using the ESP32-P4 PIE real-FFT AMS
+ * instructions. Mirrors the ESP32-S3 dl_rfft_pre_proc_sc16_aes3_.
+ *
+ * Identical structure to the post-processing routine; the differences are
+ * the AMS sel2 immediate (1 instead of 0) and the VST.R32.DECP sel2
+ * immediate (0 instead of 1).
+ *
+ * Args (RV32 ABI):
+ *   a0 = data, a1 = N (cpx_point), a2 = table
+ *
+ * GPR usage: identical to dl_rfft_post_proc_sc16_arp4_.
+ */
+    .text
+    .align 4
+    .global dl_rfft_pre_proc_sc16_arp4_
+    .type   dl_rfft_pre_proc_sc16_arp4_, @function
+dl_rfft_pre_proc_sc16_arp4_:
+    li              a4, 14
+    esp.movx.w.sar  a4                     /* SAR = 14 */
+    mv              a3, a0                 /* out store ptr = data    */
+    addi            t3, a0, 16             /* ptr1 = data + 16        */
+    slli            t5, a1, 2              /* t5 = N * 4 (bytes)      */
+    add             t5, t5, a0             /* ptr_inv1 = data + N*4   */
+    addi            t4, t5, -16            /* ptr_inv = ptr_inv1 - 16 */
+
+    lh              a4, 0(a0)              /* data[0]                 */
+    lh              a5, 2(a0)              /* data[1]                 */
+    add             t0, a4, a5             /* DC sum  = data[0]+data[1] */
+    sub             t1, a4, a5             /* DC diff = data[0]-data[1] */
+
+    li              t6, 0                  /* rs2 = 0 for AMS store    */
+    addi            t5, t5, -16            /* ptr_inv1 -= 16           */
+
+    esp.vld.128.ip  q2, a2, 16
+    esp.fft.ams.s16.ld.r32.decp q1, t4, q6, q7, q3, q4, q5, 0   /* load only */
+
+    esp.vld.128.ip  q3, a0, 0
+    li              a4, 4
+    esp.movx.w.sar.bytes a4                /* SAR_BYTE = 4 */
+    esp.vld.128.ip  q4, t3, 16
+    esp.src.q       q0, q3, q4
+
+    addi            a4, a0, 16             /* throwaway uaup priming ptr = data + 16 */
+    esp.fft.ams.s16.ld.incp.uaup q3, a4, q6, q7, q0, q1, q2, 0  /* load only */
+
+    srli            a1, a1, 4              /* N / 16 */
+    beqz            a1, .Lpre_loop_end
+.Lpre_loop:
+    esp.fft.ams.s16.ld.incp.uaup q3, t3, q6, q7, q0, q1, q2, 1
+    esp.fft.ams.s16.ld.incp      q5, a2, q6, q7, q0, q1, q2, 1
+    esp.fft.ams.s16.ld.r32.decp  q4, t4, q6, q7, q0, q1, q2, 1
+    esp.fft.ams.s16.st.incp      q6, q7, t6, a3, q0, q1, q2, 1
+    esp.fft.vst.r32.decp         q7, t5, 0
+
+    esp.fft.ams.s16.ld.incp.uaup q0, t3, q6, q7, q3, q4, q5, 1
+    esp.fft.ams.s16.ld.incp      q2, a2, q6, q7, q3, q4, q5, 1
+    esp.fft.ams.s16.ld.r32.decp  q1, t4, q6, q7, q3, q4, q5, 1
+    esp.fft.ams.s16.st.incp      q6, q7, t6, a3, q3, q4, q5, 1
+    esp.fft.vst.r32.decp         q7, t5, 0
+
+    addi            a1, a1, -1
+    bnez            a1, .Lpre_loop
+.Lpre_loop_end:
+    sh              t0, 0(a0)              /* data[0] = DC sum  */
+    sh              t1, 2(a0)              /* data[1] = DC diff */
+
+    li              a0, 0                  /* return ESP_OK */
+    ret
+
+
+    .text
+    .global dl_fft_cfg_round_arp4_
+    .type   dl_fft_cfg_round_arp4_, @function
+    .balign 4
+    .option norvc
+dl_fft_cfg_round_arp4_:
+
+    esp.movx.r.cfg a1
+    li a2, 0xffffff0f
+    and a1, a1, a2
+    slli a0, a0, 4
+    or a1, a1, a0
+    esp.movx.w.cfg a1
+    ret

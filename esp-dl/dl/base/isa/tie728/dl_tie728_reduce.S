@@ -414,10 +414,9 @@ dl_tie728_reduce_l1_s8_aligned:
      */
     entry sp, 16
 
-    movi a5, 1
-    s8i  a5, sp, 0                   // store byte 1 to stack
-    ee.vldbc.8.ip q3, sp, 0          // q3 = broadcast 1 to all 16 bytes
     ee.zero.q q2                      // q2 = 0 (compare reference)
+    ee.vcmp.eq.s8 q3, q2, q2          // q3 = -1 in all 16 lanes
+    ee.vsubs.s8 q3, q2, q3            // q3 = broadcast 1 to all 16 lanes
 
     ee.zero.accx
     srai a4, a3, 4                   // a4 = size / 16 (16 int8 per 128-bit vector)
@@ -454,10 +453,9 @@ dl_tie728_reduce_l1_s16_aligned:
      */
     entry sp, 16
 
-    movi a5, 1
-    s16i a5, sp, 0                   // store halfword 1 to stack
-    ee.vldbc.16.ip q3, sp, 0         // q3 = broadcast 1 to all 8 lanes
     ee.zero.q q2                      // q2 = 0 (compare reference)
+    ee.vcmp.eq.s16 q3, q2, q2         // q3 = -1 in all 8 lanes
+    ee.vsubs.s16 q3, q2, q3           // q3 = broadcast 1 to all 8 lanes
 
     ee.zero.accx
     srai a4, a3, 3                   // a4 = size / 8 (8 int16 per 128-bit vector)
@@ -495,9 +493,9 @@ dl_tie728_reduce_sum_s8_aligned:
      */
     entry sp, 16
 
-    movi a5, 1
-    s8i  a5, sp, 0                   // store byte 1 to stack
-    ee.vldbc.8.ip q1, sp, 0          // q1 = broadcast 1 to all 16 bytes
+    ee.zero.q q2
+    ee.vcmp.eq.s8 q1, q2, q2          // q1 = -1 in all 16 lanes
+    ee.vsubs.s8 q1, q2, q1            // q1 = broadcast 1 to all 16 lanes
 
     ee.zero.accx
     srai a4, a3, 4                   // a4 = size / 16 (16 int8 per 128-bit vector)
@@ -532,9 +530,9 @@ dl_tie728_reduce_sum_s16_aligned:
      */
     entry sp, 16
 
-    movi a5, 1
-    s16i a5, sp, 0                   // store halfword 1 to stack
-    ee.vldbc.16.ip q1, sp, 0         // q1 = broadcast 1 to all 8 lanes
+    ee.zero.q q2
+    ee.vcmp.eq.s16 q1, q2, q2         // q1 = -1 in all 8 lanes
+    ee.vsubs.s16 q1, q2, q1           // q1 = broadcast 1 to all 8 lanes
 
     ee.zero.accx
     srai a4, a3, 3                   // a4 = size / 8 (8 int16 per 128-bit vector)

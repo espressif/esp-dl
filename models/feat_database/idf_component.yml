@@ -1,0 +1,9 @@
+version: "0.1.0"
+license: "MIT"
+description: Generic feature-embedding verification database (enroll / cosine / subspace).
+url: https://github.com/espressif/esp-dl/tree/master/models/feat_database
+dependencies:
+  idf:
+    version: ">=5.0"
+  espressif/eigen:
+    version: "^3.4.0"

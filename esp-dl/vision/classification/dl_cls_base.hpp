@@ -9,7 +9,8 @@ namespace cls {
 class Cls {
 public:
     virtual ~Cls() {};
-    virtual std::vector<dl::cls::result_t> &run(const dl::image::img_t &img) = 0;
+    virtual std::vector<dl::cls::result_t> &run(const dl::image::img_t &img,
+                                                runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE) = 0;
     virtual Cls &set_topk(int topk) = 0;
     virtual Cls &set_score_thr(float score_thr) = 0;
     virtual dl::Model *get_raw_model() = 0;
@@ -25,7 +26,8 @@ protected:
 
 public:
     ~ClsWrapper();
-    std::vector<dl::cls::result_t> &run(const dl::image::img_t &img);
+    std::vector<dl::cls::result_t> &run(const dl::image::img_t &img,
+                                        runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE) override;
     Cls &set_topk(int topk) override;
     Cls &set_score_thr(float score_thr) override;
     dl::Model *get_raw_model() override;
@@ -39,7 +41,8 @@ protected:
 
 public:
     ~ClsImpl();
-    std::vector<dl::cls::result_t> &run(const dl::image::img_t &img) override;
+    std::vector<dl::cls::result_t> &run(const dl::image::img_t &img,
+                                        runtime_mode_t mode = RUNTIME_MODE_SINGLE_CORE) override;
     Cls &set_topk(int topk) override;
     Cls &set_score_thr(float score_thr) override;
     dl::Model *get_raw_model() override;

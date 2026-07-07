@@ -11,41 +11,41 @@ namespace dl {
 namespace base {
 template <typename feature_t>
 struct ArgsType {
-    feature_t *input_element;          /*!<  0 */
-    int input_channel;                 /*!<  1 */
-    int input_stride_y_offset;         /*!<  2 input_width_with_padding * input_channel_with_padding * stride_y */
-    int input_stride_x_offset;         /*!<  3 input_channel_with_padding * stride_x */
-    int input_dilation_y_offset;       /*!<  4 input_width_with_padding * input_channel_with_padding * dilation_y */
-    int input_dilation_x_offset;       /*!<  5 input_channel_with_padding * dilation_x */
-                                       //
-    feature_t *output_element;         /*!<  6 */
-    int output_height;                 /*!<  7 */
-    int output_width;                  /*!<  8 */
-    int output_channel;                /*!<  9 */
-    int output_y_offset;               /*!< 10 output_width_with_padding * output_channel_with_padding */
-    int output_x_offset;               /*!< 11 output_channel_with_padding */
-                                       //
-    const void *filter_element;        /*!< 12 */
-    int filter_height;                 /*!< 13 */
-    int filter_width;                  /*!< 14 */
-    int filter_y_offset;               /*!< 15 filter_width * input_channel */
-    int mac_shift;                     /*!< 16 mac_shift = output.exponent - filter.exponent - input.exponent */
-                                       //
-    const void *bias_element;          /*!< 17 */
-                                       //
-    activation_type_t activation_type; /*!< 18 */
-    int activation_alpha;              /*!< 19 */
-    const void *activation_alpha_ptr;  /*!< 20 */
-    int activation_shift;              /*!< 21 */
-                                       //
-    int c_rs1_1;                       /*!< 22 (input_channel >> 1) - 1 */
-    int c_rs2_1;                       /*!< 23 (input_channel >> 2) - 1 */
-    int n_div_x;                       /*!< 24 output_channel / (vector_width / element_width) */
-    int c_div_x_1;                     /*!< 25 input_channel / (vector_width / element_width) - 1 */
+    feature_t *input_element = nullptr;   /*!<  0 */
+    int input_channel;                    /*!<  1 */
+    int input_stride_y_offset;            /*!<  2 input_width_with_padding * input_channel_with_padding * stride_y */
+    int input_stride_x_offset;            /*!<  3 input_channel_with_padding * stride_x */
+    int input_dilation_y_offset;          /*!<  4 input_width_with_padding * input_channel_with_padding * dilation_y */
+    int input_dilation_x_offset;          /*!<  5 input_channel_with_padding * dilation_x */
+                                          //
+    feature_t *output_element = nullptr;  /*!<  6 */
+    int output_height;                    /*!<  7 */
+    int output_width;                     /*!<  8 */
+    int output_channel;                   /*!<  9 */
+    int output_y_offset;                  /*!< 10 output_width_with_padding * output_channel_with_padding */
+    int output_x_offset;                  /*!< 11 output_channel_with_padding */
+                                          //
+    const void *filter_element = nullptr; /*!< 12 */
+    int filter_height;                    /*!< 13 */
+    int filter_width;                     /*!< 14 */
+    int filter_y_offset;                  /*!< 15 filter_width * input_channel */
+    int mac_shift;                        /*!< 16 mac_shift = output.exponent - filter.exponent - input.exponent */
+                                          //
+    const void *bias_element = nullptr;   /*!< 17 */
+                                          //
+    activation_type_t activation_type;    /*!< 18 */
+    int activation_alpha;                 /*!< 19 */
+    const void *activation_alpha_ptr = nullptr; /*!< 20 */
+    int activation_shift;                       /*!< 21 */
+                                                //
+    int c_rs1_1;                                /*!< 22 (input_channel >> 1) - 1 */
+    int c_rs2_1;                                /*!< 23 (input_channel >> 2) - 1 */
+    int n_div_x;                                /*!< 24 output_channel / (vector_width / element_width) */
+    int c_div_x_1;                              /*!< 25 input_channel / (vector_width / element_width) - 1 */
 #if CONFIG_PIE_V2_BOOST
-    feature_t *tie_filter_channel_factor; /*!< 26 */
+    feature_t *tie_filter_channel_factor = nullptr; /*!< 26 */
 #else
-    int16_t *tie_filter_channel_factor; /*!< 26 */
+    int16_t *tie_filter_channel_factor = nullptr; /*!< 26 */
 #endif
     //
     int xtensa_dilation_x_offset;     /*!< 27 (dilation_x * input_channel_with_padding - input_channel) *
@@ -64,12 +64,12 @@ struct ArgsType {
     int n_remainder;                   /*!< 35 */
     int filter_n_offset;               /*!< 36 filter_height * filter_width * input_channel */
     int filter_w_rs1_1;                /*!< 37 (filter_width >> 1) - 1 */
-    int16_t *filter_channel_factor;    /*!< 38 */
-    int input_channel_with_padding;    /*!< 39 */
+    int16_t *filter_channel_factor = nullptr; /*!< 38 */
+    int input_channel_with_padding;           /*!< 39 */
 
-    int filter_y_offset_unaligned;        /*!< 40 */
-    int filter_n_offset_unaligned;        /*!< 41 */
-    const void *filter_element_unaligned; /*!< 42 */
+    int filter_y_offset_unaligned;                  /*!< 40 */
+    int filter_n_offset_unaligned;                  /*!< 41 */
+    const void *filter_element_unaligned = nullptr; /*!< 42 */
 
     int output_shift; /*!< 43 */
     int output_scale; /*!< 44 */
@@ -91,9 +91,9 @@ struct ArgsType {
     int filter_y_offset_c; /*!< 58 */
     int filter_n_offset_c; /*!< 59 */
 
-    int element_num;   /*!< 60 */
-    int input_height;  /*!< 61 */
-    void *debug_value; /*!< 62 It will malloc 16 bytes memory if malloc_debug_memory = true */
+    int element_num;             /*!< 60 */
+    int input_height;            /*!< 61 */
+    void *debug_value = nullptr; /*!< 62 It will malloc 16 bytes memory if malloc_debug_memory = true */
     bool auto_split;
 };
 
@@ -119,244 +119,265 @@ void load_input_output_ptr()
 // TODO:: It is possible to remove the template for ArgsType
 
 /**
- * @brief Get the conv operation args object
+ * @brief Owner of the conv-operation args and the per-channel / debug memory they reference.
+ *
+ * Replaces the former get_conv_operation_args() free function. In the dual-core split case the
+ * internal m_args holds two ArgsType entries that share the same tie_filter_channel_factor and
+ * debug_value allocations (both copied from the first entry via push_back). Freeing those inside
+ * the per-args shell therefore freed each block twice. This RAII class allocates them once and
+ * releases them once in its destructor, after module_forward_dual_core() has rejoined both cores.
  *
  * @tparam feature_t
- * @param output
- * @param input
- * @param padding
- * @param filter
- * @param stride_y
- * @param stride_x
- * @param dilation_y
- * @param dilation_x
- * @param group
- * @param bias
- * @param activate
- * @param activation_alpha
- * @param runtime_mode
- * @param malloc_debug_memory
- * @return std::vector<ArgsType<feature_t>>
  */
 template <typename feature_t>
-std::vector<ArgsType<feature_t>> get_conv_operation_args(TensorBase *output,
-                                                         TensorBase *input,
-                                                         std::vector<int> &padding,
-                                                         TensorBase *filter,
-                                                         const std::vector<int> &strides,
-                                                         const std::vector<int> &dilations,
-                                                         const int group,
-                                                         TensorBase *bias = NULL,
-                                                         const activation_type_t activate = Linear,
-                                                         TensorBase *activation_alpha = nullptr,
-                                                         const runtime_mode_t runtime_mode = RUNTIME_MODE_AUTO,
-                                                         bool malloc_debug_memory = false)
-{
-    ArgsType<feature_t> args = {};
-    args.input_element = (feature_t *)input->get_element_ptr();
-    args.output_element = (feature_t *)output->get_element_ptr();
-    args.filter_element = filter->get_element_ptr();
+class ConvOpArgs {
+public:
+    ConvOpArgs(TensorBase *output,
+               TensorBase *input,
+               std::vector<int> &padding,
+               TensorBase *filter,
+               const std::vector<int> &strides,
+               const std::vector<int> &dilations,
+               const int group,
+               TensorBase *bias = NULL,
+               const activation_type_t activate = Linear,
+               TensorBase *activation_alpha = nullptr,
+               const runtime_mode_t runtime_mode = RUNTIME_MODE_AUTO,
+               bool malloc_debug_memory = false)
+    {
+        ArgsType<feature_t> args = {};
+        args.input_element = (feature_t *)input->get_element_ptr();
+        args.output_element = (feature_t *)output->get_element_ptr();
+        args.filter_element = filter->get_element_ptr();
 
-    if (input->shape.size() == 3) {
-        args.input_height = 1;
-        args.input_width = input->shape[1];
-        args.input_channel = input->shape[2];
-        args.dilation_h = 1;
-        args.dilation_w = dilations[0];
-        args.stride_y = 1;
-        args.stride_x = strides[0];
+        if (input->shape.size() == 3) {
+            args.input_height = 1;
+            args.input_width = input->shape[1];
+            args.input_channel = input->shape[2];
+            args.dilation_h = 1;
+            args.dilation_w = dilations[0];
+            args.stride_y = 1;
+            args.stride_x = strides[0];
 
-        args.output_height = 1;
-        args.output_width = output->shape[1];
-        args.output_channel = output->shape[2];
+            args.output_height = 1;
+            args.output_width = output->shape[1];
+            args.output_channel = output->shape[2];
 
-        args.filter_height = 1;
-        args.filter_width = filter->shape[0];
-        if (group == 1) {
-            // conv
-            args.filter_y_offset = 0;
-            args.filter_c = filter->shape[1]; // dw: filter->shape[2]. conv: filter->shape[1].
-        } else {
-            // depthwise
-            args.filter_y_offset = 16;
-            args.filter_c = filter->shape[2]; // dw: filter->shape[2]. conv: filter->shape[1].
-        }
-        /* It's for c. We need to confirm whether the following definitions conform to the C logical implementation. */
-        args.filter_y_offset_c = args.filter_width * filter->shape[1];
+            args.filter_height = 1;
+            args.filter_width = filter->shape[0];
+            if (group == 1) {
+                // conv
+                args.filter_y_offset = 0;
+                args.filter_c = filter->shape[1]; // dw: filter->shape[2]. conv: filter->shape[1].
+            } else {
+                // depthwise
+                args.filter_y_offset = 16;
+                args.filter_c = filter->shape[2]; // dw: filter->shape[2]. conv: filter->shape[1].
+            }
+            /* It's for c. We need to confirm whether the following definitions conform to the C logical implementation.
+             */
+            args.filter_y_offset_c = args.filter_width * filter->shape[1];
 
-        args.padding_h_head = 0;
-        args.padding_h_tail = 0;
-        args.padding_w_head = padding[0];
-        args.padding_w_tail = padding[1];
-    } else if (input->shape.size() == 4) {
-        args.input_height = input->shape[1];
-        args.input_width = input->shape[2];
-        args.input_channel = input->shape[3];
-        args.dilation_h = dilations[0];
-        args.dilation_w = dilations[1];
-        args.stride_y = strides[0];
-        args.stride_x = strides[1];
+            args.padding_h_head = 0;
+            args.padding_h_tail = 0;
+            args.padding_w_head = padding[0];
+            args.padding_w_tail = padding[1];
+        } else if (input->shape.size() == 4) {
+            args.input_height = input->shape[1];
+            args.input_width = input->shape[2];
+            args.input_channel = input->shape[3];
+            args.dilation_h = dilations[0];
+            args.dilation_w = dilations[1];
+            args.stride_y = strides[0];
+            args.stride_x = strides[1];
 
-        args.output_height = output->shape[1];
-        args.output_width = output->shape[2];
-        args.output_channel = output->shape[3];
+            args.output_height = output->shape[1];
+            args.output_width = output->shape[2];
+            args.output_channel = output->shape[3];
 
-        args.filter_height = filter->shape[0];
-        args.filter_width = filter->shape[1];
-        if (group == 1) {
-            // conv
-            args.filter_y_offset = 0;
-            args.filter_c = filter->shape[2]; // dw: filter->shape[3]. conv: filter->shape[2].
-        } else {
-            // depthwise
+            args.filter_height = filter->shape[0];
+            args.filter_width = filter->shape[1];
+            if (group == 1) {
+                // conv
+                args.filter_y_offset = 0;
+                args.filter_c = filter->shape[2]; // dw: filter->shape[3]. conv: filter->shape[2].
+            } else {
+                // depthwise
 #if CONFIG_PIE_V1_BOOST || CONFIG_PIE_V2_BOOST
-            args.filter_y_offset = 16;
+                args.filter_y_offset = 16;
 #else
-            args.filter_y_offset = 0;
+                args.filter_y_offset = 0;
 #endif
-            args.filter_c = filter->shape[3]; // dw: filter->shape[3]. conv: filter->shape[2].
+                args.filter_c = filter->shape[3]; // dw: filter->shape[3]. conv: filter->shape[2].
+            }
+            /* It's for c. We need to confirm whether the following definitions conform to the C logical implementation.
+             */
+            args.filter_y_offset_c = args.filter_width * filter->shape[2];
+
+            args.padding_h_head = padding[0];
+            args.padding_h_tail = padding[1];
+            args.padding_w_head = padding[2];
+            args.padding_w_tail = padding[3];
+        } else {
+            ESP_LOGE(__FUNCTION__, "Do not support input shape.");
+            return;
         }
-        /* It's for c. We need to confirm whether the following definitions conform to the C logical implementation. */
-        args.filter_y_offset_c = args.filter_width * filter->shape[2];
 
-        args.padding_h_head = padding[0];
-        args.padding_h_tail = padding[1];
-        args.padding_w_head = padding[2];
-        args.padding_w_tail = padding[3];
-    } else {
-        ESP_LOGE(__FUNCTION__, "Do not support input shape.");
-        return {};
-    }
+        args.filter_n_offset = 0;
+        args.filter_n_offset_c = args.filter_y_offset_c * args.filter_height;
 
-    args.filter_n_offset = 0;
-    args.filter_n_offset_c = args.filter_y_offset_c * args.filter_height;
+        args.input_stride_y_offset = args.input_width * args.input_channel * args.stride_y;
+        args.input_stride_x_offset = args.input_channel * args.stride_x;
+        args.input_dilation_y_offset = args.input_width * args.input_channel * args.dilation_h;
+        args.input_dilation_x_offset = args.input_channel * args.dilation_w;
 
-    args.input_stride_y_offset = args.input_width * args.input_channel * args.stride_y;
-    args.input_stride_x_offset = args.input_channel * args.stride_x;
-    args.input_dilation_y_offset = args.input_width * args.input_channel * args.dilation_h;
-    args.input_dilation_x_offset = args.input_channel * args.dilation_w;
+        args.output_y_offset = args.output_width * args.output_channel;
+        args.output_x_offset = args.output_channel;
 
-    args.output_y_offset = args.output_width * args.output_channel;
-    args.output_x_offset = args.output_channel;
+        args.input_y_offset = args.input_width * args.input_channel;
+        args.input_channel_with_padding = args.input_channel;
+        args.auto_split = true;
+        // printf("input: %d, %d, %d, output: %d, %d, %d\n", input->shape[1], args.input_width, args.input_channel,
+        // output->shape[1], args.output_width, args.output_channel);
 
-    args.input_y_offset = args.input_width * args.input_channel;
-    args.input_channel_with_padding = args.input_channel;
-    args.auto_split = true;
-    // printf("input: %d, %d, %d, output: %d, %d, %d\n", input->shape[1], args.input_width, args.input_channel,
-    // output->shape[1], args.output_width, args.output_channel);
-
-    if (filter->exponent.is_per_channel()) {
+        if (filter->exponent.is_per_channel()) {
 #if CONFIG_PIE_V2_BOOST
-        // per-channel quantization
-        args.mac_shift = INT_MIN;
-        args.tie_filter_channel_factor = (feature_t *)tool::calloc_aligned(
-            dl::tool::get_aligned_size(args.output_channel * sizeof(feature_t)), 1, MALLOC_CAP_DEFAULT);
-        for (int i = 0; i < args.output_channel; i++) {
-            args.tie_filter_channel_factor[i] =
-                (feature_t)(output->exponent - filter->exponent.get(i) - input->exponent);
-        }
+            // per-channel quantization
+            args.mac_shift = INT_MIN;
+            args.tie_filter_channel_factor = (feature_t *)tool::calloc_aligned(
+                dl::tool::get_aligned_size(args.output_channel * sizeof(feature_t)), 1, MALLOC_CAP_DEFAULT);
+            for (int i = 0; i < args.output_channel; i++) {
+                args.tie_filter_channel_factor[i] =
+                    (feature_t)(output->exponent - filter->exponent.get(i) - input->exponent);
+            }
 #else
-        // Don't support per-channel quantization
-        args.mac_shift = INT_MIN;
-        args.tie_filter_channel_factor = NULL;
+            // Don't support per-channel quantization
+            args.mac_shift = INT_MIN;
+            args.tie_filter_channel_factor = NULL;
 #endif
-    } else {
-        // per-tensor quantization
-        args.mac_shift = output->exponent - filter->exponent - input->exponent;
-    }
+        } else {
+            // per-tensor quantization
+            args.mac_shift = output->exponent - filter->exponent - input->exponent;
+        }
 
-    args.bias_element = bias ? bias->get_element_ptr() : NULL; // TODO: auto_split
-    args.activation_type = activate;
+        args.bias_element = bias ? bias->get_element_ptr() : NULL; // TODO: auto_split
+        args.activation_type = activate;
 
-    switch (args.activation_type) {
-    case ReLU:
-        args.activation_alpha = 0;
-        args.activation_shift = 0;
-        args.activation_alpha_ptr = NULL;
-        break;
-    case LeakyReLU:
-        // ESP_LOGE(__FUNCTION__, "Do not support Leaky ReLU");
-        //     args.activation_alpha = activation_alpha->get_element_ptr()[0];
-        //     args.activation_shift = -activation_alpha->exponent;
-        //     args.activation_alpha_ptr = NULL;
-        break;
-    case PReLU:
-        // ESP_LOGE(__FUNCTION__, "Do not support PReLU");
-        // args.activation_alpha_ptr = activation_alpha->get_element_ptr(); //TODO: auto_split
-        // args.activation_shift = -activation_alpha->exponent;
-        break;
-    default:
-        args.activation_alpha_ptr = NULL;
-        args.activation_shift = -1;
-        break;
-    }
+        switch (args.activation_type) {
+        case ReLU:
+            args.activation_alpha = 0;
+            args.activation_shift = 0;
+            args.activation_alpha_ptr = NULL;
+            break;
+        case LeakyReLU:
+            // ESP_LOGE(__FUNCTION__, "Do not support Leaky ReLU");
+            //     args.activation_alpha = activation_alpha->get_element_ptr()[0];
+            //     args.activation_shift = -activation_alpha->exponent;
+            //     args.activation_alpha_ptr = NULL;
+            break;
+        case PReLU:
+            // ESP_LOGE(__FUNCTION__, "Do not support PReLU");
+            // args.activation_alpha_ptr = activation_alpha->get_element_ptr(); //TODO: auto_split
+            // args.activation_shift = -activation_alpha->exponent;
+            break;
+        default:
+            args.activation_alpha_ptr = NULL;
+            args.activation_shift = -1;
+            break;
+        }
 
-    // for ISA
-    args.c_rs1_1 = (args.input_channel >> 1) - 1;
-    args.c_rs2_1 = (args.input_channel >> 2) - 1;
-    int u = 16 / sizeof(feature_t);
-    args.n_div_x = args.output_channel / u; // TODO: auto_split
-    args.c_div_x_1 = args.input_channel / u - 1;
+        // for ISA
+        args.c_rs1_1 = (args.input_channel >> 1) - 1;
+        args.c_rs2_1 = (args.input_channel >> 2) - 1;
+        int u = 16 / sizeof(feature_t);
+        args.n_div_x = args.output_channel / u; // TODO: auto_split
+        args.c_div_x_1 = args.input_channel / u - 1;
 
-    args.c_remainder = args.input_channel % u * sizeof(feature_t);
-    args.n_remainder = args.output_channel % u;
+        args.c_remainder = args.input_channel % u * sizeof(feature_t);
+        args.n_remainder = args.output_channel % u;
 
-    args.xtensa_dilation_x_offset = (args.dilation_w * args.input_channel - args.input_channel) * sizeof(feature_t);
-    args.xtensa_dilation_y_offset_stable = args.dilation_h * args.input_channel * args.input_width;
-    args.xtensa_dilation_y_offset = (args.xtensa_dilation_y_offset_stable - args.input_channel -
-                                     (args.filter_width - 1) * args.dilation_w * args.input_channel) *
-        sizeof(feature_t);
-
-    args.filter_y_offset_unaligned = 0;
-    args.filter_n_offset_unaligned = 0;
-    args.filter_element_unaligned = args.n_remainder
-        ? ((feature_t *)args.filter_element + args.n_div_x * args.filter_height * args.filter_width * args.filter_c * u)
-        : args.filter_element;
-
-    if (group > 1) {
-        args.filter_w_rs1_1 = (args.filter_width >> 1) - 1;
-        args.tie_depth2d_dilation_x_offset = args.dilation_w * args.input_channel * sizeof(feature_t);
-        args.tie_depth2d_dilation_y_offset_stable = args.dilation_h * args.input_channel * args.input_width;
-        args.tie_depth2d_dilation_y_offset = (args.tie_depth2d_dilation_y_offset_stable -
-                                              (args.filter_width - 1) * args.dilation_w * args.input_channel) *
+        args.xtensa_dilation_x_offset = (args.dilation_w * args.input_channel - args.input_channel) * sizeof(feature_t);
+        args.xtensa_dilation_y_offset_stable = args.dilation_h * args.input_channel * args.input_width;
+        args.xtensa_dilation_y_offset = (args.xtensa_dilation_y_offset_stable - args.input_channel -
+                                         (args.filter_width - 1) * args.dilation_w * args.input_channel) *
             sizeof(feature_t);
 
-        args.tie_depth2d_next_hwx1 =
-            (args.filter_width - 1) * args.dilation_w + (args.filter_height - 1) * args.dilation_h * args.input_width;
-        args.tie_depth2d_next_hwx1 = 16 - args.tie_depth2d_next_hwx1 * args.input_channel * sizeof(feature_t);
-    }
-    args.debug_value = nullptr;
-    if (malloc_debug_memory) {
-        args.debug_value = tool::calloc_aligned(16, 1, MALLOC_CAP_DEFAULT);
-    }
-    std::vector<ArgsType<feature_t>> m_args(1, args);
-    if (args.input_height > 4 * args.dilation_h * args.filter_height) {
-        if (runtime_mode == RUNTIME_MODE_MULTI_CORE ||
-            (runtime_mode == RUNTIME_MODE_AUTO && args.input_height >= 100 && args.input_width >= 50)) {
-            m_args.push_back(args);
+        args.filter_y_offset_unaligned = 0;
+        args.filter_n_offset_unaligned = 0;
+        args.filter_element_unaligned = args.n_remainder
+            ? ((feature_t *)args.filter_element +
+               args.n_div_x * args.filter_height * args.filter_width * args.filter_c * u)
+            : args.filter_element;
 
-            // Divide this convolution into two tasks by splitting the input height.
-            // up
-            int dilation_filter_height = args.dilation_h * (args.filter_height - 1) + 1;
-            int half_step = (args.padding_h_head + args.padding_h_tail + args.input_height - dilation_filter_height) /
-                args.stride_y / 2;
-            m_args[0].input_height = dilation_filter_height - args.padding_h_head + half_step * args.stride_y;
-            m_args[0].padding_h_tail = 0;
-            m_args[0].output_height = half_step + 1;
-            // bottom
-            m_args[1].padding_h_head = 0;
-            m_args[1].input_height =
-                dilation_filter_height - args.stride_y + args.input_height - m_args[0].input_height;
-            m_args[1].input_element +=
-                (args.input_height - m_args[1].input_height) * args.input_width * args.input_channel;
-            m_args[1].output_height = args.output_height - m_args[0].output_height;
-            m_args[1].output_element +=
-                (args.output_height - m_args[1].output_height) * args.output_width * args.output_channel;
+        if (group > 1) {
+            args.filter_w_rs1_1 = (args.filter_width >> 1) - 1;
+            args.tie_depth2d_dilation_x_offset = args.dilation_w * args.input_channel * sizeof(feature_t);
+            args.tie_depth2d_dilation_y_offset_stable = args.dilation_h * args.input_channel * args.input_width;
+            args.tie_depth2d_dilation_y_offset = (args.tie_depth2d_dilation_y_offset_stable -
+                                                  (args.filter_width - 1) * args.dilation_w * args.input_channel) *
+                sizeof(feature_t);
+
+            args.tie_depth2d_next_hwx1 = (args.filter_width - 1) * args.dilation_w +
+                (args.filter_height - 1) * args.dilation_h * args.input_width;
+            args.tie_depth2d_next_hwx1 = 16 - args.tie_depth2d_next_hwx1 * args.input_channel * sizeof(feature_t);
+        }
+        if (malloc_debug_memory) {
+            args.debug_value = tool::calloc_aligned(16, 1, MALLOC_CAP_DEFAULT);
+        }
+        m_args.assign(1, args);
+        if (args.input_height > 4 * args.dilation_h * args.filter_height) {
+            if (runtime_mode == RUNTIME_MODE_MULTI_CORE ||
+                (runtime_mode == RUNTIME_MODE_AUTO && args.input_height >= 100 && args.input_width >= 50)) {
+                m_args.push_back(args);
+
+                // Divide this convolution into two tasks by splitting the input height.
+                // up
+                int dilation_filter_height = args.dilation_h * (args.filter_height - 1) + 1;
+                int half_step =
+                    (args.padding_h_head + args.padding_h_tail + args.input_height - dilation_filter_height) /
+                    args.stride_y / 2;
+                m_args[0].input_height = dilation_filter_height - args.padding_h_head + half_step * args.stride_y;
+                m_args[0].padding_h_tail = 0;
+                m_args[0].output_height = half_step + 1;
+                // bottom
+                m_args[1].padding_h_head = 0;
+                m_args[1].input_height =
+                    dilation_filter_height - args.stride_y + args.input_height - m_args[0].input_height;
+                m_args[1].input_element +=
+                    (args.input_height - m_args[1].input_height) * args.input_width * args.input_channel;
+                m_args[1].output_height = args.output_height - m_args[0].output_height;
+                m_args[1].output_element +=
+                    (args.output_height - m_args[1].output_height) * args.output_width * args.output_channel;
+            }
         }
     }
 
-    return m_args;
-}
+    ~ConvOpArgs()
+    {
+        // tie_filter_channel_factor and debug_value are allocated once and shared by both split
+        // args (the second entry is push_back'd from the first, copying the pointers). Free the
+        // single shared allocation once here. m_args is empty only on the unsupported-shape
+        // early-return path.
+        if (m_args.empty())
+            return;
+        // tie_filter_channel_factor is allocated only on the per-channel path (mac_shift == INT_MIN).
+        if (m_args[0].mac_shift == INT_MIN)
+            heap_caps_free(m_args[0].tie_filter_channel_factor);
+        // debug_value defaults to nullptr (see ArgsType); free is a no-op when not allocated.
+        heap_caps_free(m_args[0].debug_value);
+    }
+
+    size_t size() const { return m_args.size(); }
+    ArgsType<feature_t> &get_args(int i) { return m_args[i]; }
+
+    // This class owns heap allocations (tie_filter_channel_factor / debug_value); copying would
+    // share the pointers and double-free on destruction.
+    ConvOpArgs(const ConvOpArgs &) = delete;
+    ConvOpArgs &operator=(const ConvOpArgs &) = delete;
+
+private:
+    std::vector<ArgsType<feature_t>> m_args;
+};
 
 template <typename feature_t, typename buffer_t>
 void conv_operation_shell(ArgsType<feature_t> &args,
@@ -1170,16 +1191,7 @@ void conv_operation_shell(ArgsType<feature_t> &args,
         }
     }
 
-    if (args.mac_shift == INT_MIN) {
-        heap_caps_free(args.tie_filter_channel_factor);
-        heap_caps_free(args.filter_channel_factor);
-    }
-
-    if (args.debug_value) {
-        heap_caps_free(args.debug_value);
-        args.debug_value = nullptr;
-    }
-
+    // tie_filter_channel_factor and debug_value are owned by ConvOpArgs and freed by its destructor.
     return;
 }
 /**
@@ -2090,16 +2102,7 @@ void dwconv_operation_shell(ArgsType<feature_t> &args,
         }
     }
 
-    if (args.mac_shift == INT_MIN) {
-        heap_caps_free(args.tie_filter_channel_factor);
-        heap_caps_free(args.filter_channel_factor);
-    }
-
-    if (args.debug_value) {
-        heap_caps_free(args.debug_value);
-        args.debug_value = nullptr;
-    }
-
+    // tie_filter_channel_factor and debug_value are owned by ConvOpArgs and freed by its destructor.
     return;
 }
 

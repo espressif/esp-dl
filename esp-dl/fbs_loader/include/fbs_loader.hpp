@@ -67,13 +67,41 @@ namespace fbs {
         model2_data(format:FBS_FILE_FORMAT_EDL2),
         ...
     }
+
+    FBS_FILE_FORMAT_PDL3:
+    {
+        "PDL3": char[4]
+        package_version: char[16]   // ASCII, '\0' terminated, max 15 chars
+        package_size: uint32        // valid byte count of the whole package
+        package_sha256: uint8[32]   // integrity digest, see SHA256 rule below
+        model_num: uint32
+        model1_data_offset: uint32  // 16-byte aligned
+        model1_name_offset: uint32
+        model1_name_length: uint32
+        model2_data_offset: uint32
+        model2_name_offset: uint32
+        model2_name_length: uint32
+        ...
+        model1_name,
+        model2_name,
+        ...
+        zero padding
+        model1_data(format:FBS_FILE_FORMAT_EDL2),
+        model2_data(format:FBS_FILE_FORMAT_EDL2),
+        ...
+    }
+
+    PDL3 SHA256 rule:
+        package_sha256 = SHA256(package[0, package_size)) where the 32 bytes of
+        the package_sha256 field itself are treated as all zeros.
 */
 typedef enum {
     FBS_FILE_FORMAT_UNK = 0,  // Unknown format
     FBS_FILE_FORMAT_EDL1 = 1, // EDL1 format
     FBS_FILE_FORMAT_PDL1 = 2, // PDL1 format
     FBS_FILE_FORMAT_EDL2 = 3, // EDL2 format
-    FBS_FILE_FORMAT_PDL2 = 4  // PDL2 format
+    FBS_FILE_FORMAT_PDL2 = 4, // PDL2 format
+    FBS_FILE_FORMAT_PDL3 = 5  // PDL3 format
 } fbs_file_format_t;
 
 /**
@@ -165,10 +193,79 @@ public:
      */
     const char *get_model_location_string();
 
+    /**
+     * @brief Get the format of the loaded model/package.
+     *
+     * @return The format of the model, or FBS_FILE_FORMAT_UNK if the flatbuffers is empty or the format is
+     * unrecognized.
+     */
+    fbs_file_format_t get_model_format();
+
+    /**
+     * @brief Get the package version string of a PDL3 package.
+     *
+     * @note Only valid for the PDL3 format.
+     *
+     * @param out_version  Output buffer that receives the '\0' terminated version string.
+     * @param out_size     Size of the output buffer in bytes. Must be at least 16 bytes to hold the full field.
+     *
+     * @return ESP_OK on success.
+     *         ESP_ERR_NOT_SUPPORTED if the package is not PDL3.
+     *         ESP_ERR_INVALID_ARG / ESP_ERR_INVALID_SIZE on bad arguments.
+     */
+    esp_err_t get_package_version(char *out_version, size_t out_size);
+
+    /**
+     * @brief Get the package_size field of a PDL3 package.
+     *
+     * @note Only valid for the PDL3 format.
+     *
+     * @return The valid byte count of the PDL3 package, or 0 if the package is not PDL3.
+     */
+    uint32_t get_package_size();
+
+    /**
+     * @brief Get the package_sha256 field stored in a PDL3 package header.
+     *
+     * @note Only valid for the PDL3 format. This returns the digest stored in the package, it does not recompute it.
+     *
+     * @param out_sha256  Output buffer that receives the 32-byte digest.
+     *
+     * @return ESP_OK on success.
+     *         ESP_ERR_NOT_SUPPORTED if the package is not PDL3.
+     *         ESP_ERR_INVALID_ARG on bad arguments.
+     */
+    esp_err_t get_package_sha256(uint8_t out_sha256[32]);
+
+    /**
+     * @brief Recompute the SHA256 digest of a PDL3 package.
+     *
+     * The digest is computed over the package bytes [0, package_size), where the 32 bytes of the package_sha256 field
+     * are treated as all zeros. Only the PDL3 header and the data within package_size are read.
+     *
+     * @param out_sha256  Output buffer that receives the recomputed 32-byte digest.
+     *
+     * @return ESP_OK on success.
+     *         ESP_ERR_NOT_SUPPORTED if the package is not PDL3.
+     *         ESP_ERR_INVALID_ARG on bad arguments.
+     */
+    esp_err_t calc_package_sha256(uint8_t out_sha256[32]);
+
+    /**
+     * @brief Verify the integrity of a PDL3 package.
+     *
+     * Recomputes the SHA256 digest (see calc_package_sha256) and compares it with the package_sha256 field stored in
+     * the header.
+     *
+     * @return true if the package is PDL3 and the recomputed digest matches the stored digest, false otherwise.
+     */
+    bool verify_package_sha256();
+
 private:
     void *m_mmap_handle;
     model_location_type_t m_location;
     const void *m_fbs_buf;
+    fbs_file_format_t m_format;
 };
 
 /**
