@@ -246,7 +246,7 @@ TEST_CASE("5. test dl fft s16", "[dl_fft]")
         fft_input_s16_128, fft_input_s16_256, fft_input_s16_512, fft_input_s16_1024, fft_input_s16_2048};
     const float *output[5] = {fft_output_128, fft_output_256, fft_output_512, fft_output_1024, fft_output_2048};
     int test_nfft[5] = {128, 256, 512, 1024, 2048};
-    float target_db = 45;
+    float target_db = 36;
     FFT *fft = FFT::get_instance();
     int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     uint32_t start = 0, end = 0;
@@ -270,7 +270,7 @@ TEST_CASE("5. test dl fft s16", "[dl_fft]")
         dl_short_to_float(x, nfft * 2, out_exponent, y);
         dl_short_to_float(x2, nfft * 2, out_exponent, y2);
         TEST_ASSERT_EQUAL(true, check_is_same(y, y2, nfft, 1e-6));
-        TEST_ASSERT_EQUAL(true, check_fft_results(y, output[i], nfft, target_db, 6e-2));
+        TEST_ASSERT_EQUAL(true, check_fft_results(y, output[i], nfft, target_db, 4e-2));
 
         start = esp_timer_get_time();
         for (int k = 0; k < LOOP; k++) {

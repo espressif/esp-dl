@@ -31,6 +31,8 @@ dl_fft_s16_t *dl_fft_s16_init(int fft_point, uint32_t caps)
         return NULL;
     }
 
+    dl_fft_cfg_round(6); // round mode: 6 - round to nearest even, just for ESP32P4 and ESP32S31
+
     return handle;
 }
 

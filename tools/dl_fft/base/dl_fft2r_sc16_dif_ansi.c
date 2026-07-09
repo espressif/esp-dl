@@ -87,14 +87,50 @@ void dl_fft2r_sc16_dif_ansi(int16_t *data, int16_t *table, int shift, int num_st
     }
 }
 
+#if DL_FFT_PIE_V1_BOOST
+// ESP32-S3 only: dispatch by transform size. The aes3 SIMD butterfly truncates every
+// stage (the S3 FFT ISA has no rounding mode, unlike ESP32-P4's round-to-even), so the
+// accumulated bias is fine for small transforms but grows too large for big ones. Use the
+// SIMD kernel up to 2^10 points and fall back to the rounding C reference beyond that.
+// On ESP32-P4 and plain-C targets these names are macros (see dl_fft_base.h), so this
+// wrapper is compiled only here. DL_FFT_SC16_AES3_MAX_STAGES is defined in dl_fft_base.h.
+
 void dl_fft2r_sc16_dif(int16_t *data, int16_t *table, int shift, int num_stages, int N)
 {
-    if (num_stages >= 3 && num_stages <= 10) {
+    if (num_stages >= 3 && num_stages <= DL_FFT_SC16_AES3_MAX_STAGES) {
         dl_fft2r_sc16_dif_asm(data, table, shift, num_stages, N);
     } else {
         dl_fft2r_sc16_dif_ansi(data, table, shift, num_stages, N);
     }
 }
+
+void dl_fft2r_sc16_dif_hp(int16_t *data, int16_t *table, int num_stages, int N, int *out_shift)
+{
+    if (num_stages >= 3 && num_stages <= DL_FFT_SC16_AES3_MAX_STAGES) {
+        dl_fft2r_sc16_dif_hp_asm(data, table, num_stages, N, out_shift);
+    } else {
+        dl_fft2r_sc16_dif_hp_ansi(data, table, num_stages, N, out_shift);
+    }
+}
+
+void dl_ifft2r_sc16_dif(int16_t *data, int16_t *table, int shift, int num_stages, int N)
+{
+    if (num_stages >= 3 && num_stages <= DL_FFT_SC16_AES3_MAX_STAGES) {
+        dl_ifft2r_sc16_dif_asm(data, table, shift, num_stages, N);
+    } else {
+        dl_ifft2r_sc16_dif_ansi(data, table, shift, num_stages, N);
+    }
+}
+
+void dl_ifft2r_sc16_dif_hp(int16_t *data, int16_t *table, int num_stages, int N, int *out_shift)
+{
+    if (num_stages >= 3 && num_stages <= DL_FFT_SC16_AES3_MAX_STAGES) {
+        dl_ifft2r_sc16_dif_hp_asm(data, table, num_stages, N, out_shift);
+    } else {
+        dl_ifft2r_sc16_dif_hp_ansi(data, table, num_stages, N, out_shift);
+    }
+}
+#endif
 
 void dl_ifft2r_sc16_dif_ansi(int16_t *data, int16_t *table, int shift, int num_stages, int N)
 {
@@ -180,15 +216,6 @@ void dl_fft2r_sc16_dif_hp_ansi(int16_t *data, int16_t *table, int num_stages, in
         tw_offset += half_size;
         half_size >>= 1;
         num_groups <<= 1;
-    }
-}
-
-void dl_fft2r_sc16_dif_hp(int16_t *data, int16_t *table, int num_stages, int N, int *out_shift)
-{
-    if (num_stages >= 3 && num_stages <= 10) {
-        dl_fft2r_sc16_dif_hp_asm(data, table, num_stages, N, out_shift);
-    } else {
-        dl_fft2r_sc16_dif_hp_ansi(data, table, num_stages, N, out_shift);
     }
 }
 
