@@ -129,7 +129,7 @@ build_espdl_ops:
       optional: true
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5, espressif/idf:release-v6.0]
         TARGET: [esp32p4, esp32s3, esp32]
   variables:
     EXAMPLE_DIR: test_apps/esp-dl

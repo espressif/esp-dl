@@ -1,11 +1,11 @@
 #include "fbs_loader.hpp"
 #include "esp_idf_version.h"
-#include "mbedtls/sha256.h"
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
 #include "psa/crypto.h"
 #else
 #include "mbedtls/aes.h"
+#include "mbedtls/sha256.h"
 #endif
 
 static const char *TAG = "FbsLoader";

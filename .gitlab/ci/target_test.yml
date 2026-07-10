@@ -104,7 +104,7 @@ test_espdl_api:
   parallel:
     matrix:
       - IDF_TARGET: [esp32p4, esp32s3, esp32]
-        IDF_VERSION: "5.3"
+        IDF_VERSION: ["5.3", "5.5", "6.0"]
   tags:
     - ${IDF_TARGET}
   image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
