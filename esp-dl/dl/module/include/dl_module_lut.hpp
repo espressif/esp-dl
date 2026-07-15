@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dl_base_lut.hpp"
 #include "dl_module_base.hpp"
 
 namespace dl {
@@ -69,16 +70,8 @@ public:
                     output_ptr[i] = table_ptr[input_ptr[i] + 32768];
                 }
             } else {
-                for (size_t i = 0; i < input->size; i++) {
-                    int idx = input_ptr[i] + 32768;
-                    int len = idx % this->step;
-                    idx = idx / this->step;
-
-                    // linear interpolation
-                    int x = table_ptr[idx];
-                    int y = table_ptr[idx + 1];
-                    output_ptr[i] = x + len * (y - x) / this->step;
-                }
+                assert((this->step & (this->step - 1)) == 0);
+                base::lut_s16_nearest_neighbor(output_ptr, input_ptr, input->size, table_ptr, this->step);
             }
         }
     }

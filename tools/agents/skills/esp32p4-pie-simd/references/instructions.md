@@ -804,18 +804,32 @@ All operate on full 128-bit QR registers.
 |-------------|-------------|
 | `ESP.VSL.32 qz, qx` | 4 × 32-bit shift left by SAR |
 
-### Vector Shift by Immediate
+### Vector Shift by Register (per-element signed shift amount)
 
-Shift amount is an immediate value (1–16). Per-element shift; bits shifted out are discarded, and the vacated bits are zero-filled for left shifts. For VSRD, logical (unsigned) right shift behavior.
+The shift amount is **not** an immediate — it comes from a Q register (`qw`), with one signed field per element aligned to that element's lane. If an element's shift field is negative, that element is shifted right by its absolute value; otherwise it is shifted left. Bits shifted out are discarded, and vacated bits are zero-filled.
 
 | Instruction | Description |
 |-------------|-------------|
-| `ESP.VSRD.8 qz, qx, imm` | 16 × 8-bit shift right by immediate (1–16) |
-| `ESP.VSRD.16 qz, qx, imm` | 8 × 16-bit shift right by immediate (1–16) |
-| `ESP.VSRD.32 qz, qx, imm` | 4 × 32-bit shift right by immediate (1–16) |
-| `ESP.VSLD.8 qz, qx, imm` | 16 × 8-bit shift left by immediate (1–16) |
-| `ESP.VSLD.16 qz, qx, imm` | 8 × 16-bit shift left by immediate (1–16) |
-| `ESP.VSLD.32 qz, qx, imm` | 4 × 32-bit shift left by immediate (1–16) |
+| `ESP.VSLD.8 qu, qy, qw` | 16 × 8-bit vector shift; per-lane signed amount from `qw` (negative ⇒ right shift, else left shift) |
+| `ESP.VSLD.16 qu, qy, qw` | 8 × 16-bit vector shift; per-lane signed amount from `qw` (negative ⇒ right shift, else left shift) |
+| `ESP.VSLD.32 qu, qy, qw` | 4 × 32-bit vector shift; per-lane signed amount from `qw` (negative ⇒ right shift, else left shift) |
+| `ESP.VSRD.8 qu, qy, qw` | 16 × 8-bit vector shift; per-lane signed amount from `qw` |
+| `ESP.VSRD.16 qu, qy, qw` | 8 × 16-bit vector shift; per-lane signed amount from `qw` |
+| `ESP.VSRD.32 qu, qy, qw` | 4 × 32-bit vector shift; per-lane signed amount from `qw` |
+
+Operation for `ESP.VSLD.16 qu, qy, qw` (8 lanes of 16 bits; each lane's shift amount is the low 5 bits of the corresponding 16-bit segment of `qw`, treated as signed):
+
+```
+for i in 0..7:
+    lane_hi = 16*i + 15
+    lane_lo = 16*i
+    shamt   = qw[16*i+4 : 16*i]        # signed 5-bit field
+    qu[lane_hi:lane_lo] = (shamt < 0)
+        ? (qy[lane_hi:lane_lo] >> -shamt)
+        : (qy[lane_hi:lane_lo] << shamt)
+```
+
+`ESP.VSLD.8`/`.32` and `ESP.VSRD.8/16/32` follow the same per-lane, sign-selects-direction pattern, just with the shift-amount field width and stride matched to the 8-bit/32-bit lane size instead of 16-bit.
 
 ### Spliced Shift Instructions (for misalignment handling)
 
