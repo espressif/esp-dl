@@ -1,4 +1,67 @@
     .text
+    .global dl_tie728_s8_lut
+    .type   dl_tie728_s8_lut, @function
+    .balign 4
+
+.macro LUT_S8_WAVE offset, lane
+    l8ui            a8, a3, \offset
+    l8ui            a9, a3, \offset + 1
+    l8ui            a10, a3, \offset + 2
+    l8ui            a11, a3, \offset + 3
+    xor             a8, a8, a6
+    xor             a9, a9, a6
+    xor             a10, a10, a6
+    xor             a11, a11, a6
+    add             a8, a8, a5
+    add             a9, a9, a5
+    add             a10, a10, a5
+    add             a11, a11, a5
+    l8ui            a12, a8, 0
+    l8ui            a13, a9, 0
+    l8ui            a14, a10, 0
+    l8ui            a15, a11, 0
+    slli            a13, a13, 8
+    slli            a14, a14, 16
+    slli            a15, a15, 24
+    or              a12, a12, a13
+    or              a12, a12, a14
+    or              a12, a12, a15
+    ee.movi.32.q    q1, a12, \lane
+.endm
+
+// ===================================================================
+// ESP32-S3 INT8 LUT lookup.
+//
+// Unrolls 16 independent scalar table reads and packs their results into
+// one 128-bit PIE store. The table lookup itself remains scalar because
+// TIE728 has no indexed vector gather instruction.
+//
+// Arguments:
+//   a2: int8_t *output_ptr
+//   a3: int8_t *input_ptr
+//   a4: int     n_16
+//   a5: int8_t *table_ptr
+// ===================================================================
+dl_tie728_s8_lut:
+    entry           sp, 16
+    movi            a6, 128
+    beqz            a4, .L_lut_s8_done
+
+.L_lut_s8_loop:
+    LUT_S8_WAVE     0, 0
+    LUT_S8_WAVE     4, 1
+    LUT_S8_WAVE     8, 2
+    LUT_S8_WAVE     12, 3
+    addi            a3, a3, 16
+    ee.vst.128.ip   q1, a2, 16
+    addi            a4, a4, -1
+    bnez            a4, .L_lut_s8_loop
+
+.L_lut_s8_done:
+    retw
+
+    .size dl_tie728_s8_lut, .-dl_tie728_s8_lut
+
     .global dl_tie728_s16_lut_nearest_neighbor
     .type   dl_tie728_s16_lut_nearest_neighbor, @function
     .balign 4

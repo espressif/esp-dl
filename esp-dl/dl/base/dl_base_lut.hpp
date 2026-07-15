@@ -6,6 +6,21 @@ namespace dl {
 namespace base {
 
 /**
+ * @brief Apply an int8 lookup table.
+ *
+ * Converts each signed input to the unsigned domain and reads the corresponding
+ * int8 entry from @p table. ESP32-P4 and ESP32-S3 use their PIE kernels when
+ * alignment and size permit; other cases use the C implementation.
+ *
+ * @param output Output buffer.
+ * @param input Input buffer.
+ * @param size Number of int8 elements.
+ * @param table 256-entry LUT base address. The SIMD path requires 16-byte
+ *              alignment.
+ */
+void lut_s8(int8_t *output, const int8_t *input, int32_t size, const int8_t *table);
+
+/**
  * @brief Apply an int16 nearest-neighbor lookup table.
  *
  * Converts each signed input to the unsigned domain, divides it by

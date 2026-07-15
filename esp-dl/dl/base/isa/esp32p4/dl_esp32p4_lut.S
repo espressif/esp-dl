@@ -91,3 +91,90 @@ dl_esp32p4_s16_lut_nearest_neighbor:
 
 .L_lut_done:
     ret
+
+    .size dl_esp32p4_s16_lut_nearest_neighbor, .-dl_esp32p4_s16_lut_nearest_neighbor
+
+
+
+    .text
+    .global dl_esp32p4_s8_lut
+    .type   dl_esp32p4_s8_lut, @function
+    .balign 4
+    .option norvc
+// ===================================================================
+// ESP32-P4 INT8 LUT lookup using indexed 32-bit PIE loads.
+//
+// Each gather loads four adjacent int8 table entries. The low two bits
+// of the original index select the desired byte from the gathered word.
+//
+// Arguments:
+//   a0: int8_t *output_ptr
+//   a1: int8_t *input_ptr
+//   a2: int     n_8
+//   a3: int8_t *table_ptr
+// ===================================================================
+dl_esp32p4_s8_lut:
+    // ESP.VSRD.32 below must discard bits without rounding. PIE kernels that
+    // run before LUT commonly leave CFG.vxrm at HALF_EVEN.
+    esp.movx.r.cfg   t6
+    mv               t4, t6
+    li               t5, 0xffffff0f
+    and              t4, t4, t5
+    esp.movx.w.cfg   t4
+
+    // q7 = broadcast(0x80), used to map signed input to [0, 255].
+    esp.zero.q       q4
+    esp.zero.q       q7
+    li               t4, 0x80808080
+    esp.movi.32.q    q7, t4, 0
+    esp.movi.32.q    q7, t4, 1
+    esp.movi.32.q    q7, t4, 2
+    esp.movi.32.q    q7, t4, 3
+
+    // q5 = broadcast_u16(3), q6 = broadcast_u16(2).
+    esp.vcmp.eq.s16  q5, q4, q4
+    esp.vsub.s16     q5, q4, q5
+    esp.vadd.u16     q6, q5, q5
+    esp.vadd.u16     q5, q6, q5
+
+    mv               t3, a2
+    beqz             t3, .L_lut_s8_done
+
+.L_lut_s8_loop:
+    // Convert eight signed indices to uint16.
+    esp.vld.l.64.ip  q4, a1, 8
+    esp.xorq         q4, q4, q7
+    esp.vext.u8      q0, q1, q4
+
+    // Gather table[(index >> 2) * 4 .. +3].
+    esp.vsrd.16      q2, q0, q6
+    esp.ldxq.32      q3, q2, a3, 0, 0
+    esp.ldxq.32      q3, q2, a3, 1, 1
+    esp.ldxq.32      q3, q2, a3, 2, 2
+    esp.ldxq.32      q3, q2, a3, 3, 3
+    esp.ldxq.32      q4, q2, a3, 0, 4
+    esp.ldxq.32      q4, q2, a3, 1, 5
+    esp.ldxq.32      q4, q2, a3, 2, 6
+    esp.ldxq.32      q4, q2, a3, 3, 7
+
+    // Shift each gathered word by (index & 3) * 8 bits.
+    esp.andq         q0, q0, q5
+    esp.vsld.16      q0, q0, q5
+    esp.vext.u16     q2, q1, q0
+    esp.vsrd.32      q3, q3, q2
+    esp.vsrd.32      q4, q4, q1
+
+    // Pack the low byte of each gathered word and store eight outputs.
+    esp.vunzip.16    q3, q4
+    esp.zero.q       q4
+    esp.vunzip.8     q3, q4
+    esp.vst.l.64.ip  q3, a0, 8
+
+    addi             t3, t3, -1
+    bnez             t3, .L_lut_s8_loop
+
+.L_lut_s8_done:
+    esp.movx.w.cfg   t6
+    ret
+
+    .size dl_esp32p4_s8_lut, .-dl_esp32p4_s8_lut

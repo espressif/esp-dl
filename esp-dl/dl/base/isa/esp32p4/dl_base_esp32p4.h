@@ -851,5 +851,6 @@ void dl_esp32p4_rmsnorm_s8(int8_t *output, int8_t *input, float *scale, float *r
 void dl_esp32p4_rmsnorm_s16(int16_t *output, int16_t *input, float *scale, float *rms, int n);
 
 /* LUT API */
+void dl_esp32p4_s8_lut(int8_t *output, int8_t *input, int32_t n_8, int8_t *table);
 void dl_esp32p4_s16_lut_nearest_neighbor(int16_t *output, int16_t *input, int32_t n_8, int16_t *table, int32_t shift);
 }
