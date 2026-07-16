@@ -5,6 +5,8 @@ variables:
 .test_template: &test_template
   image: DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
   stage: target_test
+  retry:
+    max: 2
   timeout: 4 hour
   variables:
     GIT_DEPTH: 1

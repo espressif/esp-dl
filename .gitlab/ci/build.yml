@@ -1,5 +1,7 @@
 .build_docs_template:
   stage: build
+  retry:
+    max: 2
   image: "$CI_DOCKER_REGISTRY/esp-idf-doc-env-v6.1:1-1"
   tags:
     - build_docs
@@ -53,6 +55,8 @@ build_esp_dl_pdf:
 
 .build_template: &build_template
   stage: build
+  retry:
+    max: 2
   tags:
     - build
   image: ${IMAGE}
