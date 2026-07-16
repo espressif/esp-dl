@@ -145,7 +145,7 @@ build_dl_image:
     - .rules:build:dl_image
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: test_apps/dl_image
@@ -156,7 +156,7 @@ build_example_human_face_recognition:
     - .rules:build:example_human_face_recognition
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/human_face_recognition
@@ -167,7 +167,7 @@ build_example_human_face_detect:
     - .rules:build:example_human_face_detect
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/human_face_detect
@@ -178,7 +178,7 @@ build_example_mobilenetv2_cls:
     - .rules:build:example_mobilenetv2_cls
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/mobilenetv2_cls
@@ -189,7 +189,7 @@ build_example_pedestrian_detect:
     - .rules:build:example_pedestrian_detect
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/pedestrian_detect
@@ -200,7 +200,7 @@ build_example_yolo11_detect:
     - .rules:build:example_yolo11_detect
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/yolo11_detect
@@ -211,7 +211,7 @@ build_example_yolo11_pose:
     - .rules:build:example_yolo11_pose
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/yolo11_pose
@@ -222,7 +222,7 @@ build_example_yolo11_seg:
     - .rules:build:example_yolo11_seg
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/yolo11_seg
@@ -233,7 +233,7 @@ build_example_yolo26_detect:
     - .rules:build:example_yolo26_detect
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/yolo26_detect
@@ -244,7 +244,7 @@ build_example_cat_detect:
     - .rules:build:example_cat_detect
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/cat_detect
@@ -255,7 +255,7 @@ build_example_hand_detect:
     - .rules:build:example_hand_detect
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/hand_detect
@@ -266,7 +266,7 @@ build_example_hand_gesture_recognition:
     - .rules:build:example_hand_gesture_recognition
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/hand_gesture_recognition
@@ -277,7 +277,7 @@ build_example_dog_detect:
     - .rules:build:example_dog_detect
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/dog_detect
@@ -288,7 +288,7 @@ build_example_color_detect:
     - .rules:build:example_color_detect
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/color_detect
@@ -299,7 +299,7 @@ build_example_speaker_verification:
     - .rules:build:example_speaker_verification
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4]
   variables:
     EXAMPLE_DIR: examples/speaker_verification
@@ -310,7 +310,7 @@ build_example_person_reid:
     - .rules:build:example_person_reid
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/person_reid
@@ -321,7 +321,7 @@ build_example_how_to_run_model:
     - .rules:build:example_how_to_run_model
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/tutorial/how_to_run_model
@@ -332,7 +332,7 @@ build_example_model_in_flash_partition:
     - .rules:build:example_model_in_flash_partition
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/tutorial/how_to_load_test_profile_model/model_in_flash_partition
@@ -343,7 +343,7 @@ build_example_model_in_flash_rodata:
     - .rules:build:example_model_in_flash_rodata
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/tutorial/how_to_load_test_profile_model/model_in_flash_rodata
@@ -354,7 +354,7 @@ build_example_model_in_sdcard:
     - .rules:build:example_model_in_sdcard
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/tutorial/how_to_load_test_profile_model/model_in_sdcard
@@ -365,7 +365,7 @@ build_example_how_to_deploy_streaming_model:
     - .rules:build:example_how_to_deploy_streaming_model
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3]
   variables:
     EXAMPLE_DIR: examples/tutorial/how_to_deploy_streaming_model/test_streaming_model
@@ -376,7 +376,7 @@ build_dl_fft:
     - .rules:build:test_dl_fft
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3, esp32c3, esp32]
   variables:
     EXAMPLE_DIR: test_apps/dl_fft
@@ -387,7 +387,7 @@ build_dl_audio:
     - .rules:build:test_dl_audio
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3, esp32]
   variables:
     EXAMPLE_DIR: test_apps/dl_audio
@@ -398,7 +398,7 @@ build_dl_pie_func:
     - .rules:build:test_dl_pie_func
   parallel:
     matrix:
-      - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5]
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
         TARGET: [esp32p4, esp32s3, esp32]
   variables:
     EXAMPLE_DIR: test_apps/dl_pie_func
