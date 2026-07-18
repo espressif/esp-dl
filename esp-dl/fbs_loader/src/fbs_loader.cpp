@@ -1,16 +1,67 @@
 #include "fbs_loader.hpp"
 #include "esp_idf_version.h"
-#include "mbedtls/sha256.h"
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
 #include "psa/crypto.h"
 #else
 #include "mbedtls/aes.h"
+#include "mbedtls/sha256.h"
 #endif
 
 static const char *TAG = "FbsLoader";
 
 namespace fbs {
+
+// Keep the loader compatible with ESP-IDF's crypto API transition in v6.
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+using sha256_context_t = psa_hash_operation_t;
+
+static int sha256_init(sha256_context_t *ctx)
+{
+    *ctx = PSA_HASH_OPERATION_INIT;
+    return psa_crypto_init() == PSA_SUCCESS && psa_hash_setup(ctx, PSA_ALG_SHA_256) == PSA_SUCCESS ? 0 : -1;
+}
+
+static int sha256_update(sha256_context_t *ctx, const uint8_t *data, size_t size)
+{
+    return psa_hash_update(ctx, data, size) == PSA_SUCCESS ? 0 : -1;
+}
+
+static int sha256_finish(sha256_context_t *ctx, uint8_t output[32])
+{
+    size_t output_length = 0;
+    return psa_hash_finish(ctx, output, 32, &output_length) == PSA_SUCCESS && output_length == 32 ? 0 : -1;
+}
+
+static void sha256_free(sha256_context_t *ctx)
+{
+    psa_hash_abort(ctx);
+}
+#else
+using sha256_context_t = mbedtls_sha256_context;
+
+static int sha256_init(sha256_context_t *ctx)
+{
+    mbedtls_sha256_init(ctx);
+    // 0 selects SHA-256 (as opposed to SHA-224).
+    return mbedtls_sha256_starts(ctx, 0);
+}
+
+static int sha256_update(sha256_context_t *ctx, const uint8_t *data, size_t size)
+{
+    return mbedtls_sha256_update(ctx, data, size);
+}
+
+static int sha256_finish(sha256_context_t *ctx, uint8_t output[32])
+{
+    return mbedtls_sha256_finish(ctx, output);
+}
+
+static void sha256_free(sha256_context_t *ctx)
+{
+    mbedtls_sha256_free(ctx);
+}
+#endif
 
 // PDL3 header byte layout
 #define PDL3_VERSION_OFFSET 4
@@ -632,39 +683,37 @@ esp_err_t FbsLoader::calc_package_sha256(uint8_t out_sha256[32])
     }
 
     const uint8_t zero_digest[PDL3_SHA256_SIZE] = {0};
-    mbedtls_sha256_context ctx;
-    mbedtls_sha256_init(&ctx);
+    sha256_context_t ctx;
     esp_err_t ret = ESP_OK;
-    // 0 selects SHA-256 (as opposed to SHA-224).
-    if (mbedtls_sha256_starts(&ctx, 0) != 0) {
-        mbedtls_sha256_free(&ctx);
+    if (sha256_init(&ctx) != 0) {
+        sha256_free(&ctx);
         return ESP_FAIL;
     }
 
     if (m_location != MODEL_LOCATION_IN_SDCARD) {
         const uint8_t *buf = (const uint8_t *)m_fbs_buf;
         // [0, PDL3_SHA256_OFFSET): magic + version + package_size
-        if (mbedtls_sha256_update(&ctx, buf, PDL3_SHA256_OFFSET) != 0 ||
+        if (sha256_update(&ctx, buf, PDL3_SHA256_OFFSET) != 0 ||
             // the package_sha256 field is hashed as 32 zero bytes
-            mbedtls_sha256_update(&ctx, zero_digest, PDL3_SHA256_SIZE) != 0 ||
+            sha256_update(&ctx, zero_digest, PDL3_SHA256_SIZE) != 0 ||
             // remaining bytes up to package_size
-            mbedtls_sha256_update(&ctx,
-                                  buf + PDL3_SHA256_OFFSET + PDL3_SHA256_SIZE,
-                                  package_size - PDL3_SHA256_OFFSET - PDL3_SHA256_SIZE) != 0) {
+            sha256_update(&ctx,
+                          buf + PDL3_SHA256_OFFSET + PDL3_SHA256_SIZE,
+                          package_size - PDL3_SHA256_OFFSET - PDL3_SHA256_SIZE) != 0) {
             ret = ESP_FAIL;
         }
     } else {
         FILE *f = fopen((const char *)m_fbs_buf, "rb");
         if (!f) {
             ESP_LOGE(TAG, "Failed to open %s.", (const char *)m_fbs_buf);
-            mbedtls_sha256_free(&ctx);
+            sha256_free(&ctx);
             return ESP_FAIL;
         }
         const size_t chunk_size = 1024;
         uint8_t *chunk = (uint8_t *)malloc(chunk_size);
         if (!chunk) {
             fclose(f);
-            mbedtls_sha256_free(&ctx);
+            sha256_free(&ctx);
             return ESP_ERR_NO_MEM;
         }
         uint32_t remaining = package_size;
@@ -682,7 +731,7 @@ esp_err_t FbsLoader::calc_package_sha256(uint8_t out_sha256[32])
                     chunk[i] = 0;
                 }
             }
-            if (mbedtls_sha256_update(&ctx, chunk, to_read) != 0) {
+            if (sha256_update(&ctx, chunk, to_read) != 0) {
                 ret = ESP_FAIL;
                 break;
             }
@@ -693,10 +742,10 @@ esp_err_t FbsLoader::calc_package_sha256(uint8_t out_sha256[32])
         fclose(f);
     }
 
-    if (ret == ESP_OK && mbedtls_sha256_finish(&ctx, out_sha256) != 0) {
+    if (ret == ESP_OK && sha256_finish(&ctx, out_sha256) != 0) {
         ret = ESP_FAIL;
     }
-    mbedtls_sha256_free(&ctx);
+    sha256_free(&ctx);
     return ret;
 }
 

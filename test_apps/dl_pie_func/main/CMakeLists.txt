@@ -1,5 +1,6 @@
 	set(srcs app_main.cpp
 	         test_dotprod.cpp
+	         test_lut.cpp
 	         test_reduce_l2.cpp
 	         test_reduce_l1.cpp
 	         test_reduce_max_min.cpp

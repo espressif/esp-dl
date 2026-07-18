@@ -1,4 +1,4 @@
-version: "3.3.7"
+version: "3.3.8"
 license: "MIT"
 targets:
   - esp32
@@ -22,7 +22,7 @@ dependencies:
       - if: "target == esp32s31"
         version: ">=6.0"
   espressif/esp_new_jpeg: "^1"
-  espressif/dl_fft: ">=0.4.0"
+  espressif/dl_fft: ">=0.6.0"
 examples:
   - path: ../examples/cat_detect
   - path: ../examples/color_detect

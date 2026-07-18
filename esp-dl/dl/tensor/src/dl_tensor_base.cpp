@@ -2,8 +2,18 @@
 #include "dl_base_pad.hpp"
 #include "dl_base_requantize_linear.hpp"
 #include "esp_random.h"
+#include <cstdint>
+#include <cstring>
 #include <iostream>
+#include <type_traits>
 namespace dl {
+
+static bool is_nan(float value)
+{
+    uint32_t bits;
+    memcpy(&bits, &value, sizeof(bits));
+    return (bits & UINT32_C(0x7fffffff)) > UINT32_C(0x7f800000);
+}
 
 template <typename RT, typename T>
 RT quantize(T input, float inv_scale)
@@ -886,6 +896,25 @@ bool TensorBase::compare_elements(const T *gt_elements, float epsilon, bool verb
     }
 
     for (int i = 0; i < this->get_size(); i++) {
+        if constexpr (std::is_same_v<T, float>) {
+            const bool gt_is_nan = is_nan(gt_elements[i]);
+            const bool infer_is_nan = is_nan(elements[i]);
+            if (gt_is_nan || infer_is_nan) {
+                if (gt_is_nan && infer_is_nan) {
+                    continue;
+                }
+                if (verbose) {
+                    ESP_LOGE(__FUNCTION__,
+                             "Inconsistent values, ground truth: %.10f, infer: %.10f, epsilon:%.10f",
+                             gt_elements[i] * 1.0,
+                             elements[i] * 1.0,
+                             epsilon);
+                    std::vector<int> position = this->get_element_coordinates(i);
+                    ESP_LOGE(__FUNCTION__, "The position is: %s", vector_to_string(position).c_str());
+                }
+                return false;
+            }
+        }
         if (elements[i] - gt_elements[i] > epsilon || elements[i] - gt_elements[i] < -epsilon) {
             if (verbose) {
                 ESP_LOGE(__FUNCTION__,

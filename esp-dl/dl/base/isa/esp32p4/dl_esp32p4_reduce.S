@@ -306,12 +306,9 @@ dl_esp32p4_reduce_l1_s8_aligned:
     /* a0 = input (16-byte aligned)
      * a1 = size  (multiple of 16)
      */
-    addi sp, sp, -16
-    li   a4, 1
-    sb   a4, 0(sp)                   // store byte 1 to stack
-    mv   a4, sp                      // sp (x2) is not PIE-addressable
-    esp.vldbc.8.ip q2, a4, 0         // q2 = broadcast 1 to all 16 bytes
-    esp.zero.q q3                     // q3 = 0 (compare reference)
+    esp.zero.q q3                    // q3 = 0 (compare reference)
+    esp.vcmp.eq.s8 q2, q3, q3        // q2 = -1 in all 16 lanes
+    esp.vsub.s8 q2, q3, q2           // q2 = broadcast 1 to all 16 bytes (0 - (-1))
 
     esp.zero.xacc
     srli a2, a1, 4                   // a2 = size / 16 (16 int8 per 128-bit vector)
@@ -326,7 +323,6 @@ dl_esp32p4_reduce_l1_s8_aligned:
 1:
     esp.srs.s.xacc a0, a2            // a2 == 0 here: arithmetic right shift XACC by 0,
                                      // saturate to int32, write result into a0 (return value)
-    addi sp, sp, 16
     ret
 
 
@@ -345,12 +341,9 @@ dl_esp32p4_reduce_l1_s16_aligned:
     /* a0 = input (16-byte aligned)
      * a1 = size  (multiple of 8)
      */
-    addi sp, sp, -16
-    li   a4, 1
-    sh   a4, 0(sp)                   // store halfword 1 to stack
-    mv   a4, sp                      // sp (x2) is not PIE-addressable
-    esp.vldbc.16.ip q2, a4, 0        // q2 = broadcast 1 to all 8 lanes
-    esp.zero.q q3                     // q3 = 0 (compare reference)
+    esp.zero.q q3                    // q3 = 0 (compare reference)
+    esp.vcmp.eq.s16 q2, q3, q3       // q2 = -1 in all 8 lanes
+    esp.vsub.s16 q2, q3, q2          // q2 = broadcast 1 to all 8 lanes (0 - (-1))
 
     esp.zero.xacc
     srli a2, a1, 3                   // a2 = size / 8 (8 int16 per 128-bit vector)
@@ -368,7 +361,6 @@ dl_esp32p4_reduce_l1_s16_aligned:
     esp.st.s.xacc.ip a3, 8           // store sign-extended 64-bit XACC to stack
     lw   a0, 0(sp)                   // low 32 bits  -> int64 low word
     lw   a1, 4(sp)                   // high 32 bits -> int64 high word
-    addi sp, sp, 16
     addi sp, sp, 16
     ret
 
@@ -388,11 +380,9 @@ dl_esp32p4_reduce_sum_s8_aligned:
     /* a0 = input (16-byte aligned)
      * a1 = size  (multiple of 16)
      */
-    addi sp, sp, -16
-    li   a4, 1
-    sb   a4, 0(sp)                   // store byte 1 to stack
-    mv   a4, sp                      // sp (x2) is not PIE-addressable
-    esp.vldbc.8.ip q1, a4, 0         // q1 = broadcast 1 to all 16 bytes
+    esp.zero.q q0                    // q0 = 0 (temp compare reference)
+    esp.vcmp.eq.s8 q1, q0, q0        // q1 = -1 in all 16 lanes
+    esp.vsub.s8 q1, q0, q1           // q1 = broadcast 1 to all 16 bytes (0 - (-1))
 
     esp.zero.xacc
     srli a2, a1, 4                   // a2 = size / 16 (16 int8 per 128-bit vector)
@@ -405,7 +395,6 @@ dl_esp32p4_reduce_sum_s8_aligned:
 1:
     esp.srs.s.xacc a0, a2            // a2 == 0 here: arithmetic right shift XACC by 0,
                                      // saturate to int32, write result into a0 (return value)
-    addi sp, sp, 16
     ret
 
 
@@ -424,11 +413,9 @@ dl_esp32p4_reduce_sum_s16_aligned:
     /* a0 = input (16-byte aligned)
      * a1 = size  (multiple of 8)
      */
-    addi sp, sp, -16
-    li   a4, 1
-    sh   a4, 0(sp)                   // store halfword 1 to stack
-    mv   a4, sp                      // sp (x2) is not PIE-addressable
-    esp.vldbc.16.ip q1, a4, 0        // q1 = broadcast 1 to all 8 lanes
+    esp.zero.q q0                    // q0 = 0 (temp compare reference)
+    esp.vcmp.eq.s16 q1, q0, q0       // q1 = -1 in all 8 lanes
+    esp.vsub.s16 q1, q0, q1          // q1 = broadcast 1 to all 8 lanes (0 - (-1))
 
     esp.zero.xacc
     srli a2, a1, 3                   // a2 = size / 8 (8 int16 per 128-bit vector)
@@ -444,6 +431,5 @@ dl_esp32p4_reduce_sum_s16_aligned:
     esp.st.s.xacc.ip a3, 8           // store sign-extended 64-bit XACC to stack
     lw   a0, 0(sp)                   // low 32 bits  -> int64 low word
     lw   a1, 4(sp)                   // high 32 bits -> int64 high word
-    addi sp, sp, 16
     addi sp, sp, 16
     ret

@@ -8,12 +8,7 @@ from pytest_embedded import Dut
 @pytest.mark.env("esp32p4")
 @pytest.mark.env("esp32s3")
 @pytest.mark.env("esp32")
-@pytest.mark.parametrize(
-    "config",
-    [
-        "Gemm",
-    ],
-)
+@pytest.mark.config("Gemm")
 def test_model_common(dut: Dut) -> None:
     dut.expect_exact("Press ENTER to see the list of tests.")
     dut.write("[api]")

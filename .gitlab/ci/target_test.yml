@@ -1,10 +1,14 @@
 variables:
   DOCKER_TARGET_TEST_v5_3_ENV_IMAGE: "$CI_DOCKER_REGISTRY/target-test-env-v5.3:1"
+  DOCKER_TARGET_TEST_v5_5_ENV_IMAGE: "$CI_DOCKER_REGISTRY/target-test-env-v5.5:2"
+  DOCKER_TARGET_TEST_v6_0_ENV_IMAGE: "$CI_DOCKER_REGISTRY/target-test-env-v6.0:2"
   TEST_CASE_CONFIG: "tools/ops_test/config/op_cfg.toml"
 
 .test_template: &test_template
-  image: DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  image: $DOCKER_TARGET_TEST_v5_5_ENV_IMAGE
   stage: target_test
+  retry:
+    max: 2
   timeout: 4 hour
   variables:
     GIT_DEPTH: 1
@@ -32,7 +36,7 @@ variables:
     TEST_ENV: 'esp32p4'
   script:
     - pip install -r test_apps/requirements.txt
-    - pytest ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} --junitxml=XUNIT_RESULT.xml
+    - pytest ${TEST_FOLDER} -p no:idf-ci --target ${TEST_TARGET} --env ${TEST_ENV} --junitxml=XUNIT_RESULT.xml
 
 .pytest_ops_template:
   <<: *test_template
@@ -52,7 +56,7 @@ variables:
   script:
     - pip install -r test_apps/requirements.txt
     - python test_apps/esp-dl/gen_op_test.py -c ${TEST_CASE_CONFIG} --pytest_file ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} 
-    - pytest ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} --model ${TEST_MODEL} --junitxml=XUNIT_RESULT.xml
+    - pytest ${TEST_FOLDER} -p no:idf-ci --target ${TEST_TARGET} --env ${TEST_ENV} --model ${TEST_MODEL} --junitxml=XUNIT_RESULT.xml
 
 .pytest_api_template:
   <<: *test_template
@@ -70,7 +74,7 @@ variables:
     TEST_FOLDER: test_apps/esp-dl/pytest_espdl_api.py
   script:
     - pip install -r test_apps/requirements.txt
-    - pytest ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} --junitxml=XUNIT_RESULT.xml
+    - pytest ${TEST_FOLDER} -p no:idf-ci --target ${TEST_TARGET} --env ${TEST_ENV} --junitxml=XUNIT_RESULT.xml
 
 test_espdl_ops:
   extends:
@@ -83,11 +87,11 @@ test_espdl_ops:
   parallel:
     matrix:
       - IDF_TARGET: [esp32p4, esp32s3, esp32]
-        IDF_VERSION: "5.3"
+        IDF_VERSION: "5.5"
         TEST_MODEL: ["opset_5_0", "opset_5_1", "opset_5_2", "opset_5_3", "opset_5_4"]
   tags:
     - ${IDF_TARGET}
-  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  image: $DOCKER_TARGET_TEST_v5_5_ENV_IMAGE
   variables:
     TEST_TARGET: ${IDF_TARGET}
     TEST_ENV: ${IDF_TARGET}
@@ -103,11 +107,18 @@ test_espdl_api:
       optional: true
   parallel:
     matrix:
-      - IDF_TARGET: [esp32p4, esp32s3, esp32]
+      - IDF_TARGET: [esp32s3, esp32]
         IDF_VERSION: "5.3"
+        TEST_IMAGE: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+      - IDF_TARGET: [esp32p4, esp32s3, esp32]
+        IDF_VERSION: "5.5"
+        TEST_IMAGE: $DOCKER_TARGET_TEST_v5_5_ENV_IMAGE
+      - IDF_TARGET: [esp32p4, esp32s3, esp32]
+        IDF_VERSION: "6.0"
+        TEST_IMAGE: $DOCKER_TARGET_TEST_v6_0_ENV_IMAGE
   tags:
     - ${IDF_TARGET}
-  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  image: $TEST_IMAGE
   variables:
     TEST_TARGET: ${IDF_TARGET}
     TEST_ENV: ${IDF_TARGET}
@@ -124,10 +135,10 @@ test_dl_fft:
   parallel:
     matrix:
       - IDF_TARGET: [esp32p4, esp32s3, esp32]
-        IDF_VERSION: "5.3"
+        IDF_VERSION: "5.5"
   tags:
     - ${IDF_TARGET}
-  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  image: $DOCKER_TARGET_TEST_v5_5_ENV_IMAGE
   variables:
     TEST_FOLDER: 'test_apps/dl_fft'
     TEST_TARGET: ${IDF_TARGET}
@@ -144,10 +155,10 @@ test_example_mobilenetv2_cls:
   parallel:
     matrix:
       - IDF_TARGET: [esp32p4, esp32s3]
-        IDF_VERSION: "5.3"
+        IDF_VERSION: "5.5"
   tags:
     - ${IDF_TARGET}
-  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  image: $DOCKER_TARGET_TEST_v5_5_ENV_IMAGE
   variables:
     TEST_FOLDER: 'examples/mobilenetv2_cls'
     TEST_TARGET: ${IDF_TARGET}
@@ -163,10 +174,10 @@ test_dl_image:
   parallel:
     matrix:
       - IDF_TARGET: [esp32p4, esp32s3]
-        IDF_VERSION: "5.3"
+        IDF_VERSION: "5.5"
   tags:
     - ${IDF_TARGET}
-  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  image: $DOCKER_TARGET_TEST_v5_5_ENV_IMAGE
   variables:
     TEST_FOLDER: 'test_apps/dl_image'
     TEST_TARGET: ${IDF_TARGET}
@@ -183,10 +194,10 @@ test_dl_audio:
   parallel:
     matrix:
       - IDF_TARGET: [esp32p4, esp32s3, esp32]
-        IDF_VERSION: "5.3"
+        IDF_VERSION: "5.5"
   tags:
     - ${IDF_TARGET}
-  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  image: $DOCKER_TARGET_TEST_v5_5_ENV_IMAGE
   variables:
     TEST_FOLDER: 'test_apps/dl_audio'
     TEST_TARGET: ${IDF_TARGET}
@@ -203,10 +214,10 @@ test_dl_pie_func:
   parallel:
     matrix:
       - IDF_TARGET: [esp32p4, esp32s3, esp32]
-        IDF_VERSION: "5.3"
+        IDF_VERSION: "5.5"
   tags:
     - ${IDF_TARGET}
-  image: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
+  image: $DOCKER_TARGET_TEST_v5_5_ENV_IMAGE
   variables:
     TEST_FOLDER: 'test_apps/dl_pie_func'
     TEST_TARGET: ${IDF_TARGET}

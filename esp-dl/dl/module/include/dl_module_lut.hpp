@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dl_base_lut.hpp"
 #include "dl_module_base.hpp"
 
 namespace dl {
@@ -53,31 +54,22 @@ public:
         assert(output->exponent == this->table->exponent);
 
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            int8_t *input_ptr = (int8_t *)input->get_element_ptr();
-            int8_t *output_ptr = (int8_t *)output->get_element_ptr();
-            int8_t *table_ptr = (int8_t *)(this->table->get_element_ptr());
-            for (size_t i = 0; i < input->size; i++) {
-                output_ptr[i] = table_ptr[input_ptr[i] + 128];
-            }
+            base::lut_s8((int8_t *)output->get_element_ptr(),
+                         (int8_t *)input->get_element_ptr(),
+                         input->size,
+                         (int8_t *)this->table->get_element_ptr());
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             int16_t *input_ptr = (int16_t *)input->get_element_ptr();
             int16_t *output_ptr = (int16_t *)output->get_element_ptr();
             int16_t *table_ptr = (int16_t *)(this->table->get_element_ptr());
 
-            if (this->step == 1) {
-                for (size_t i = 0; i < input->size; i++) {
-                    output_ptr[i] = table_ptr[input_ptr[i] + 32768];
-                }
+            if (this->step > 1) {
+                assert((this->step & (this->step - 1)) == 0);
+                base::lut_s16_nearest_neighbor(output_ptr, input_ptr, input->size, table_ptr, this->step);
+
             } else {
                 for (size_t i = 0; i < input->size; i++) {
-                    int idx = input_ptr[i] + 32768;
-                    int len = idx % this->step;
-                    idx = idx / this->step;
-
-                    // linear interpolation
-                    int x = table_ptr[idx];
-                    int y = table_ptr[idx + 1];
-                    output_ptr[i] = x + len * (y - x) / this->step;
+                    output_ptr[i] = table_ptr[input_ptr[i] + 32768];
                 }
             }
         }

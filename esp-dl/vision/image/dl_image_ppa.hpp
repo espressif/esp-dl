@@ -47,12 +47,20 @@ inline void *alloc_ppa_outbuf(size_t size)
     return outbuf;
 }
 
-inline ppa_client_handle_t register_ppa_srm_client(const ppa_client_config_t &cfg = {
-                                                       PPA_OPERATION_SRM, 0, PPA_DATA_BURST_LENGTH_128})
+inline ppa_client_handle_t register_ppa_srm_client(const ppa_client_config_t &cfg)
 {
     ppa_client_handle_t handle;
     ESP_ERROR_CHECK(ppa_register_client(&cfg, &handle));
     return handle;
+}
+
+inline ppa_client_handle_t register_ppa_srm_client()
+{
+    ppa_client_config_t cfg = {};
+    cfg.oper_type = PPA_OPERATION_SRM;
+    cfg.max_pending_trans_num = 0;
+    cfg.data_burst_length = PPA_DATA_BURST_LENGTH_128;
+    return register_ppa_srm_client(cfg);
 }
 
 /**
