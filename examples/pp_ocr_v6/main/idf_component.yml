@@ -1,0 +1,8 @@
+dependencies:
+  espressif/pp_ocr_v6:
+    version: "*"
+    override_path: "../../../models/pp_ocr_v6"
+  espressif/esp32_p4_function_ev_board_noglib:
+    version: "*"
+    rules:
+      - if: "target == esp32p4"

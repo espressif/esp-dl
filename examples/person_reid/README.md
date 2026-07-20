@@ -40,4 +40,4 @@ We extracts person reid feature and saves them to a database. Three different ty
 > [!NOTE]  
 > - fatfs_flash and spiffs save features to a 1MB flash partition named `storage`. It's defined in `partitions.csv` and `partitions2.csv`.
 > - fatfs_sdcard save features to sdcard. 
-> - Each feature consumes 2050 bytes, including 2 bytes for id and 1024??? bytes for feature data. 
+> - Each feature entry occupies 2050 bytes: a 2-byte ID and a 512-dimensional `float32` feature vector (512 × 4 = 2048 bytes). The database file also has a one-time 6-byte metadata header.

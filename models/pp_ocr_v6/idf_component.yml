@@ -1,0 +1,8 @@
+version: "0.1.0"
+license: "MIT"
+description: PP-OCRv6 two-stage OCR pipeline.
+url: https://github.com/espressif/esp-dl/tree/master/models/pp_ocr_v6
+dependencies:
+  espressif/esp-dl:
+    version: "*"
+    override_path: "../../esp-dl"

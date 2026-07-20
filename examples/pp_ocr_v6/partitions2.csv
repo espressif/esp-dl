@@ -1,0 +1,8 @@
+# Model-partition layout for PP_OCR_V6_MODEL_IN_FLASH_PARTITION.
+# The 6M pp_ocr_v6 partition holds the 5.5M Dual model package.
+# Name,       Type,  SubType, Offset,    Size, Flags
+nvs,          data,  nvs,     0xA000,      20K,
+phy_init,     data,  phy,     0xf000,       4K,
+factory,      app,   factory, 0x010000,      4M,
+pp_ocr_v6,    data,  spiffs,  ,              6M,
+storage,      data,  fat,     ,              1M,

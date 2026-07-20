@@ -227,6 +227,17 @@ build_example_yolo11_seg:
   variables:
     EXAMPLE_DIR: examples/yolo11_seg
 
+build_example_pp_ocr_v6:
+  extends:
+    - .build_examples_template
+    - .rules:build:example_pp_ocr_v6
+  parallel:
+    matrix:
+      - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
+        TARGET: [esp32p4]
+  variables:
+    EXAMPLE_DIR: examples/pp_ocr_v6
+
 build_example_yolo26_detect:
   extends:
     - .build_examples_template

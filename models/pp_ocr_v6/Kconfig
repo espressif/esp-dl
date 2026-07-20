@@ -1,0 +1,94 @@
+menu "models: pp_ocr_v6"
+    config FLASH_PP_OCR_V6_REC_S8
+        bool "flash pp_ocr_v6_rec_s8"
+        depends on !PP_OCR_V6_MODEL_IN_SDCARD
+        default n
+
+    config FLASH_PP_OCR_V6_REC_S16
+        bool "flash pp_ocr_v6_rec_s16"
+        depends on !PP_OCR_V6_MODEL_IN_SDCARD
+        default y
+
+    config FLASH_PP_OCR_V6_REC_S16_W640
+        bool "flash pp_ocr_v6_rec_s16_w640 (long-line 48x640, S16)"
+        depends on !PP_OCR_V6_MODEL_IN_SDCARD
+        default n
+        help
+            Wide-input (48x640) recognition model used by Dual mode for
+            long-line crops. S16, same precision as the default short model.
+
+    choice
+        prompt "rec width mode"
+        default PP_OCR_V6_REC_MODE_SHORT
+        help
+            Short (default): only the 48x320 model (S8 or S16). Smallest and
+                 fastest; long crops (W/H > ~6.67) get horizontally squeezed,
+                 which can hurt recognition on long text lines.
+
+            Dual: load 48x320 + 48x640 and route crops with W/H beyond the
+                 short model's native ratio (~6.67) to the 640 model instead
+                 of squeezing them. The wide model is always S16; the short
+                 model can be S8 or S16. Routing has no geometric-squeeze
+                 downside, but needs extra flash (~2.4 MB) and gives long
+                 lines higher per-crop latency.
+                 Requires FLASH_PP_OCR_V6_REC_S16_W640 (or SD-card layout).
+
+        config PP_OCR_V6_REC_MODE_SHORT
+            bool "short (48x320 only)"
+
+        config PP_OCR_V6_REC_MODE_DUAL
+            bool "dual (short 48x320 + long 48x640)"
+            depends on PP_OCR_V6_MODEL_IN_SDCARD || FLASH_PP_OCR_V6_REC_S16_W640
+    endchoice
+
+    # Integer mirror of the choice above; values match pp_ocr_v6::RecMode.
+    config PP_OCR_V6_REC_MODE
+        int
+        default 0 if PP_OCR_V6_REC_MODE_SHORT
+        default 1 if PP_OCR_V6_REC_MODE_DUAL
+
+    choice
+        prompt "default rec model"
+        default PP_OCR_V6_REC_S16
+        help
+            default PP-OCRv6 recognition model. INT16 (default) has higher
+            recognition accuracy; INT8 is smaller and faster.
+        config PP_OCR_V6_REC_S8
+            bool "pp_ocr_v6_rec_s8"
+            depends on PP_OCR_V6_MODEL_IN_SDCARD || FLASH_PP_OCR_V6_REC_S8
+        config PP_OCR_V6_REC_S16
+            bool "pp_ocr_v6_rec_s16"
+            depends on PP_OCR_V6_MODEL_IN_SDCARD || FLASH_PP_OCR_V6_REC_S16
+    endchoice
+
+    config DEFAULT_PP_OCR_V6_REC_MODEL
+        int
+        default 1 if PP_OCR_V6_REC_S16
+        default 0 if PP_OCR_V6_REC_S8
+
+    choice
+        prompt "model location"
+        default PP_OCR_V6_MODEL_IN_FLASH_RODATA
+        help
+            PP-OCRv6 model location.
+        config PP_OCR_V6_MODEL_IN_FLASH_RODATA
+            bool "flash_rodata"
+        config PP_OCR_V6_MODEL_IN_FLASH_PARTITION
+            bool "flash_partition"
+        config PP_OCR_V6_MODEL_IN_SDCARD
+            bool "sdcard"
+    endchoice
+
+    config PP_OCR_V6_MODEL_LOCATION
+        int
+        default 0 if PP_OCR_V6_MODEL_IN_FLASH_RODATA
+        default 1 if PP_OCR_V6_MODEL_IN_FLASH_PARTITION
+        default 2 if PP_OCR_V6_MODEL_IN_SDCARD
+
+    config PP_OCR_V6_MODEL_SDCARD_DIR
+        string "pp_ocr_v6 model sdcard dir"
+        default "models/p4" if IDF_TARGET_ESP32P4
+        depends on PP_OCR_V6_MODEL_IN_SDCARD
+        help
+            Directory of PP-OCRv6 models relative to sdcard mount point.
+endmenu

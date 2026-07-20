@@ -15,6 +15,7 @@ ESP-DL offers APIs to load, debug, and run AI models. The framework is easy to u
 - **8bit LUT Activation**: All activation functions except for ReLU and PReLU are implemented using an 8-bit LUT (Look Up Table) method in ESP-DL to accelerate inference. You can use any activation function, and their computational complexity remains the same.
 
 ## News
+- [2026/7/30] Added [PP-OCRv6](./models/pp_ocr_v6/) OCR model and [example](./examples/pp_ocr_v6/), recognizing Chinese, English and 46 Latin-script languages on-device on ESP32-P4.
 - [2026/6/5] Introduce two skills, [esp32s3-pie-simd](./tools/agents/skills/esp32s3-pie-simd) and [esp32p4-pie-simd](./tools/agents/skills/esp32p4-pie-simd), to help the code agent rewrite the code into a PIE-accelerated version.
 - [2026/5/13] Introduced **espdl-quantize skill**, which automatically iterates to search for optimal esp-ppq quantization strategies, reducing manual tuning costs and improving quantized model accuracy. See [how_to_use_espdl_quantize_skill.rst](./docs/en/tutorials/auto_quantization/how_to_use_espdl_quantize_skill.rst).
 - [2026/4/23] Support model quantization via AutoQuant tool, which automatically explores optimal quantization strategies and parameters, significantly reducing manual tuning effort. See [how_to_use_AutoQuant.rst](./docs/en/tutorials/auto_quantization/how_to_use_AutoQuant.rst).

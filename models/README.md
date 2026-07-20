@@ -17,6 +17,8 @@
 | [**Speaker Verification**](./speaker_verification/) | Voiceprint recognition and verification | [![Registry](https://components.espressif.com/components/espressif/speaker_verification/badge.svg)](https://components.espressif.com/components/espressif/speaker_verification) | ESP32-S31, ESP32-P4 | [Link](../examples/speaker_verification/) |
 | [**Motion Detect**](./motion_detect/) | Frame-to-frame motion change detection | [![Registry](https://components.espressif.com/components/espressif/motion_detect/badge.svg)](https://components.espressif.com/components/espressif/motion_detect) | All ESP32 Series | [Link](../examples/motion_detect/) |
 | [**Color Detect**](./color_detect/) | Color-based object tracking (OpenCV-mobile) | [![Registry](https://components.espressif.com/components/espressif/color_detect/badge.svg)](https://components.espressif.com/components/espressif/color_detect) | All ESP32 Series | [Link](../examples/color_detect/) |
+| [**ReID**](./person_reid/) | Person ReID | [![Registry](https://components.espressif.com/components/espressif/person_reid/badge.svg)](https://components.espressif.com/components/espressif/person_reid) | ESP32-S3, ESP32-S31, ESP32-P4 | [Link](../examples/person_reid/) |
+| [**OCR**](./pp_ocr_v6/) | PP_OCR_V6 tiny | [![Registry](https://components.espressif.com/components/espressif/pp_ocr_v6/badge.svg)](https://components.espressif.com/components/espressif/pp_ocr_v6) |  ESP32-P4 | [Link](../examples/pp_ocr_v6/) |
 
 ## Visual Showcase
 
@@ -29,6 +31,7 @@
   <tr>
     <td align="center"><img src="../examples/dog_detect/img/dog_224_224_int8_p4.jpg" width="200px"><br>Dog Detection</td>
     <td align="center"><img src="../examples/yolo11_detect/img/bus_int8.jpg" width="200px"><br>COCO Detection</td>
+    <td align="center"><img src="../examples/pp_ocr_v6/img/pp_ocr_v6_res_dual.jpg" width="200px"><br>OCR</td>
   </tr>
 </table>
 
