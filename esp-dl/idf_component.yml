@@ -1,4 +1,4 @@
-version: "3.3.8"
+version: "3.3.9"
 license: "MIT"
 targets:
   - esp32
@@ -45,3 +45,4 @@ examples:
   - path: ../examples/yolo11_pose
   - path: ../examples/yolo11_seg
   - path: ../examples/yolo26_detect
+  - path: ../examples/pp_ocr_v6

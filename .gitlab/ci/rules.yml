@@ -55,6 +55,9 @@
 .patterns-model_coco_seg: &patterns-model_coco_seg
   - "models/coco_seg/**/*"
 
+.patterns-model_pp_ocr_v6: &patterns-model_pp_ocr_v6
+  - "models/pp_ocr_v6/**/*"
+
 .patterns-model_yolo26: &patterns-model_yolo26
   - "models/yolo26/**/*"
 
@@ -100,6 +103,9 @@
 
 .patterns-example_yolo11_seg: &patterns-example_yolo11_seg
 - "examples/yolo11_seg/**/*"
+
+.patterns-example_pp_ocr_v6: &patterns-example_pp_ocr_v6
+- "examples/pp_ocr_v6/**/*"
 
 .patterns-example_yolo26_detect: &patterns-example_yolo26_detect
 - "examples/yolo26_detect/**/*"
@@ -306,6 +312,19 @@
       changes: *patterns-model_coco_seg
     - <<: *if-dev-push
       changes: *patterns-example_yolo11_seg
+    - <<: *if-dev-push
+      changes: *patterns-gitlab-ci
+
+.rules:build:example_pp_ocr_v6:
+  rules:
+    - <<: *if-protected
+    - <<: *if-label-build
+    - <<: *if-dev-push
+      changes: *patterns-esp-dl
+    - <<: *if-dev-push
+      changes: *patterns-model_pp_ocr_v6
+    - <<: *if-dev-push
+      changes: *patterns-example_pp_ocr_v6
     - <<: *if-dev-push
       changes: *patterns-gitlab-ci
 

@@ -20,6 +20,7 @@ ESP-DL 提供了加载、调试和运行 AI 模型的 API。该框架易于使�
 
 
 ## 更新 
+- [2026/7/30] 新增 [PP-OCRv6](./models/pp_ocr_v6/) OCR 模型及 [示例](./examples/pp_ocr_v6/)，在 ESP32-P4 上端侧识别中文、英文及 46 种拉丁字母文字。
 - [2026/6/5] 添加 [esp32s3-pie-simd](./tools/agents/skills/esp32s3-pie-simd) 和 [esp32p4-pie-simd](./tools/agents/skills/esp32p4-pie-simd)两个skills, 方便code agent将代码重写为PIE指令加速版本。
 - [2026/5/13] 推出 **espdl-quantize skill**，自动迭代搜索最优 esp-ppq 量化策略，降低人工调参成本并提升量化模型精度。详见 [how_to_use_espdl_quantize_skill.rst](./docs/zh_CN/tutorials/auto_quantization/how_to_use_espdl_quantize_skill.rst)。
 - [2026/4/23] 支持使用AutoQuant进行模型量化，该工具自动探索最优量化策略与参数配置，从而降低人工调参成本。详见AutoQuant使用文档：[how_to_use_AutoQuant.rst](./docs/zh_CN/tutorials/auto_quantization/how_to_use_AutoQuant.rst).

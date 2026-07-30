@@ -1,0 +1,7 @@
+# Larger factory for det+rec models + camera/video/JPEG/USB BSP stack;
+# storage for optional SD / FAT use.
+# Name,   Type, SubType, Offset,  Size, Flags
+nvs,       data,  nvs,      0xA000,      20K,
+phy_init,  data,  phy,      0xf000,      4K,
+factory,   app,   factory,  0x010000,    9000K,
+storage,   data,  fat,      ,            1M,
