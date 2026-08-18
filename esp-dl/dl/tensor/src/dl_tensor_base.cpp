@@ -142,6 +142,8 @@ const char *quant_type_to_string(quant_type_t type)
         return "symm 16bit";
     case QUANT_TYPE_SYMM_32BIT:
         return "symm 32bit";
+    case QUANT_TYPE_SYMM_W8A16:
+        return "symm w8a16";
     case QUANT_TYPE_FLOAT32:
         return "float";
     default:
@@ -522,7 +524,7 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         this->data = dst_ptr;
         this->auto_free = true;
 
-    } else if (op_quant_type == QUANT_TYPE_SYMM_16BIT) {
+    } else if (op_quant_type == QUANT_TYPE_SYMM_16BIT || op_quant_type == QUANT_TYPE_SYMM_W8A16) {
         // 0x000000AAAAAAAAAA000000BBBBBBBBBB ==> 0xAAAAAAAAAABBBBBBBBBB
         size_t dtype_bytes = 2;
         size_t align = 16 / dtype_bytes;

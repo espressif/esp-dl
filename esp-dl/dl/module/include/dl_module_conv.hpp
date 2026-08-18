@@ -3,6 +3,7 @@
 #include "dl_base_conv2d.hpp"
 #include "dl_base_depthwise_conv2d.hpp"
 #include "dl_module_base.hpp"
+#include <string>
 #include <typeinfo>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -108,6 +109,8 @@ public:
                 base::conv2d<int8_t, int32_t, int32_t>(args);
             } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
                 base::conv2d<int16_t, int32_t, int64_t>(args);
+            } else if (quant_type == QUANT_TYPE_SYMM_W8A16) {
+                base::conv2d<int16_t, int32_t, int64_t, int8_t>(args);
             }
         } else {
             if (quant_type == QUANT_TYPE_SYMM_8BIT) {
@@ -126,10 +129,12 @@ public:
             forward_template<int8_t>(context, mode);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             forward_template<int16_t>(context, mode);
+        } else if (quant_type == QUANT_TYPE_SYMM_W8A16) {
+            forward_template<int16_t, int8_t>(context, mode);
         }
     }
 
-    template <typename T>
+    template <typename T, typename filter_t = T>
     void forward_template(ModelContext *context, runtime_mode_t mode)
     {
         TensorBase *input = context->get_tensor(m_inputs_index[0]);
@@ -140,17 +145,17 @@ public:
         }
         TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
-        base::ConvOpArgs<T> m_args(output,
-                                   input,
-                                   m_pads,
-                                   filter,
-                                   m_strides,
-                                   m_dilations,
-                                   m_group,
-                                   bias,
-                                   this->activation,
-                                   nullptr,
-                                   mode); // do not support RReLU and Leaky RelU
+        base::ConvOpArgs<T, filter_t> m_args(output,
+                                             input,
+                                             m_pads,
+                                             filter,
+                                             m_strides,
+                                             m_dilations,
+                                             m_group,
+                                             bias,
+                                             this->activation,
+                                             nullptr,
+                                             mode); // do not support RReLU and Leaky RelU
         int task_size = m_args.size();
         if (task_size == 1) { // single task
             forward_args((void *)&m_args.get_args(0));
@@ -173,16 +178,25 @@ public:
         std::vector<int> dilations;
         int group = 1;
         activation_type_t activation_type;
-        quant_type_t quant_type;
+        quant_type_t quant_type = QUANT_TYPE_NONE;
+        std::string quant_type_str;
         fbs_model->get_operation_attribute(node_name, "pads", pads);
         fbs_model->get_operation_attribute(node_name, "strides", strides);
         fbs_model->get_operation_attribute(node_name, "dilations", dilations);
         fbs_model->get_operation_attribute(node_name, "group", group);
         fbs_model->get_operation_attribute(node_name, "activation", activation_type);
-        fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
+        // Prebuilt fbs_model only maps S8/S16/F32. Read the raw string first so
+        // W8A16 is not lost if the library treats it as unknown.
+        if (fbs_model->get_operation_attribute(node_name, "quant_type", quant_type_str) == ESP_OK &&
+            quant_type_str == "W8A16") {
+            quant_type = QUANT_TYPE_SYMM_W8A16;
+        } else {
+            fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
+        }
 
         // Create module
-        if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
+        if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT ||
+            quant_type == QUANT_TYPE_SYMM_W8A16) {
             if (pads.size() == 4) {
                 pads = {pads[0], pads[2], pads[1], pads[3]};
             } else if (pads.size() == 0) {

@@ -97,6 +97,7 @@ typedef enum {
     QUANT_TYPE_SYMM_8BIT,  /*!< symmetry 8bit quantization (per tensor) */
     QUANT_TYPE_SYMM_16BIT, /*!< symmetry 16bit quantization (per tensor) */
     QUANT_TYPE_SYMM_32BIT, /*!< symmetry 32bit quantization (per tensor) */
+    QUANT_TYPE_SYMM_W8A16, /*!< symmetry mixed quantization: signed int8 weights, signed int16 activations */
 } quant_type_t;
 
 typedef enum {

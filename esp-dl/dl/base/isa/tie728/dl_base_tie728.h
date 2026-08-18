@@ -43,6 +43,21 @@ void dl_tie728_s16_conv2d_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *ar
 void dl_tie728_s16_conv2d_hwcn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_tie728_s16_conv2d_hwcn_prelu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 
+void dl_tie728_w8a16_conv2d_11cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_11cn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_11cn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_11cn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_tie728_w8a16_conv2d_33cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_33cn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_33cn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_33cn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_tie728_w8a16_conv2d_hwcn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_hwcn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_hwcn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
 void dl_tie728_s16_unaligned_conv2d_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_tie728_s16_unaligned_conv2d_hwcn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_tie728_s16_unaligned_conv2d_hwcn_leakyrelu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
