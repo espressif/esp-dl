@@ -1242,8 +1242,16 @@
         export_name_prefix = "global_average_pooling_ishap_1_51_3_3"
 
         [[ops_test.GlobalAveragePool.cfg]]
-        input_shape = [1, 96, 5]
-        export_name_prefix = "global_average_pooling_ishap_1_96_5"
+        input_shape = [1, 48, 2, 2]
+        export_name_prefix = "global_average_pooling_ishap_1_48_2_2"
+
+        [[ops_test.GlobalAveragePool.cfg]]
+        input_shape = [1, 96, 17]
+        export_name_prefix = "global_average_pooling_ishap_1_96_17"
+
+        [[ops_test.GlobalAveragePool.cfg]]
+        input_shape = [1, 64, 34]
+        export_name_prefix = "global_average_pooling_ishap_1_64_34"
 
         [[ops_test.GlobalAveragePool.cfg]]
         input_shape = [1, 51, 3]

@@ -25,6 +25,28 @@ private:
     int *m_exponents;
     int m_size;
 
+    /**
+     * @brief Take a copy of a per-channel exponent array.
+     *
+     * MALLOC_CAP_DEFAULT prefers PSRAM when one is present and falls back to internal RAM otherwise.
+     * Unlike plain new/malloc it is not capped by CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL, so these arrays
+     * (4 bytes per output channel) stay out of internal RAM. Degrades to per-tensor mode on failure,
+     * so that callers never observe a null array.
+     */
+    void copy_exponents(const int *exponents, int size)
+    {
+        m_exponents = static_cast<int *>(tool::malloc_aligned(size * sizeof(int), MALLOC_CAP_DEFAULT));
+        if (!m_exponents) {
+            ESP_LOGE("ExponentInfo", "Failed to alloc %d per-channel exponents, fall back to per-tensor.", size);
+            m_size = 1;
+            return;
+        }
+        m_size = size;
+        for (int i = 0; i < size; i++) {
+            m_exponents[i] = exponents[i];
+        }
+    }
+
 public:
     /**
      * @brief Construct a per-tensor ExponentInfo with a single exponent value.
@@ -37,17 +59,12 @@ public:
      * @param exponents Vector of exponent values. If size <= 1, uses per-tensor mode;
      *                  otherwise uses per-channel mode with heap allocation.
      */
-    ExponentInfo(const std::vector<int> &exponents) : m_exponents(nullptr), m_size(1)
+    ExponentInfo(const std::vector<int> &exponents) : m_exponent(0), m_exponents(nullptr), m_size(1)
     {
         if (exponents.size() <= 1) {
             m_exponent = exponents.empty() ? 0 : exponents[0];
         } else {
-            m_size = exponents.size();
-            m_exponents = new int[m_size];
-            for (int i = 0; i < m_size; i++) {
-                m_exponents[i] = exponents[i];
-            }
-            m_exponent = 0;
+            copy_exponents(exponents.data(), exponents.size());
         }
     }
 
@@ -56,7 +73,7 @@ public:
      */
     ~ExponentInfo()
     {
-        delete[] m_exponents;
+        heap_caps_free(m_exponents);
         m_exponents = nullptr;
     }
 
@@ -66,11 +83,8 @@ public:
      */
     ExponentInfo(const ExponentInfo &other) : m_exponent(other.m_exponent), m_exponents(nullptr), m_size(other.m_size)
     {
-        if (other.m_exponents && m_size > 1) {
-            m_exponents = new int[m_size];
-            for (int i = 0; i < m_size; i++) {
-                m_exponents[i] = other.m_exponents[i];
-            }
+        if (other.m_exponents && other.m_size > 1) {
+            copy_exponents(other.m_exponents, other.m_size);
         }
     }
 
@@ -82,16 +96,12 @@ public:
     ExponentInfo &operator=(const ExponentInfo &other)
     {
         if (this != &other) {
-            delete[] m_exponents;
+            heap_caps_free(m_exponents);
+            m_exponents = nullptr;
             m_exponent = other.m_exponent;
             m_size = other.m_size;
-            if (other.m_exponents && m_size > 1) {
-                m_exponents = new int[m_size];
-                for (int i = 0; i < m_size; i++) {
-                    m_exponents[i] = other.m_exponents[i];
-                }
-            } else {
-                m_exponents = nullptr;
+            if (other.m_exponents && other.m_size > 1) {
+                copy_exponents(other.m_exponents, other.m_size);
             }
         }
         return *this;
@@ -116,7 +126,7 @@ public:
     ExponentInfo &operator=(ExponentInfo &&other) noexcept
     {
         if (this != &other) {
-            delete[] m_exponents;
+            heap_caps_free(m_exponents);
             m_exponent = other.m_exponent;
             m_exponents = other.m_exponents;
             m_size = other.m_size;
@@ -133,7 +143,7 @@ public:
      */
     ExponentInfo &operator=(int value)
     {
-        delete[] m_exponents;
+        heap_caps_free(m_exponents);
         m_exponents = nullptr;
         m_size = 1;
         m_exponent = value;
@@ -353,11 +363,15 @@ public:
         }
     }
 
-#if CONFIG_SPIRAM
-    void *operator new(size_t size) { return tool::malloc_aligned(size, MALLOC_CAP_SPIRAM); }
+    /**
+     * @brief Allocate the tensor object itself.
+     *
+     * MALLOC_CAP_DEFAULT prefers PSRAM when one is present and falls back to internal RAM otherwise,
+     * so a model holding many tensors does not spend internal RAM on the objects themselves.
+     */
+    void *operator new(size_t size) { return tool::malloc_aligned(size, MALLOC_CAP_DEFAULT); }
 
     void operator delete(void *ptr) { heap_caps_free(ptr); }
-#endif
 
     /**
      * @brief Assign tensor to this tensor

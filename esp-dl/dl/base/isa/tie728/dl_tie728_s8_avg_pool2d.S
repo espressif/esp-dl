@@ -549,3 +549,121 @@ dl_tie728_s8_unaligned_avg_pool2d_h1_remainder:
 
 dl_tie728_s8_unaligned_avg_pool2d_hwc1_end:
 	retw
+
+
+############################################################################################################################################################
+####
+#### dl_tie728_s8_avg_pool2d_hwc_sum
+####
+#### Accurate SIMD variant: accumulate the raw (unquantized) sum of the pooling window into QACC
+#### (16 lanes x 20-bit, signed saturated) and dump the raw QACC bits to the int32_t buffer.
+#### The 1/area scaling and rounding are settled by the C code afterwards, so the result is
+#### bit-identical to the C reference implementation.
+####
+#### Requirements (checked by the caller):
+####   - input_channel % 16 == 0
+####   - input_ptr is 16-byte aligned (input_y/x offsets are multiples of input_channel bytes)
+####   - filter_height * filter_width <= 4095 (|sum| <= 128 * area <= 2^19 - 1, no QACC saturation)
+############################################################################################################################################################
+
+    .align 4
+    .text
+    .global dl_tie728_s8_avg_pool2d_hwc_sum
+    .type	dl_tie728_s8_avg_pool2d_hwc_sum, @function
+    .section .iram1
+dl_tie728_s8_avg_pool2d_hwc_sum:
+    .align      4
+    entry       sp,     16
+
+    # a2: int32_t *buffer_ptr
+    # a3: int8_t *input_ptr
+    # a4: void *args
+
+    l32i a5, a4, 16     # input_y_offset
+    l32i a6, a4, 20     # input_x_offset
+    l32i a8, a4, 48     # filter_height
+    l32i a9, a4, 52     # filter_width
+    l32i a11, a4, 104   # c_div_x_1
+
+    # ones vector for raw-sum accumulation (QACC += 1 * input)
+    EE.ZERO.Q q3                # q3 = 0 (compare reference)
+    EE.VCMP.EQ.S8 q0, q3, q3    # q0 = -1 in all 16 lanes
+    EE.VSUBS.S8 q0, q3, q0      # q0 = 1 in all 16 lanes
+
+    srli a10, a9, 1
+    addi a10, a10, -1   # filter_w / 2 - 1
+
+    addi a11, a11, 1    # number of 16-channel blocks
+
+    beqi a9, 1, dl_tie728_s8_avg_pool2d_hwc_sum_w1
+
+dl_tie728_s8_avg_pool2d_hwc_sum_block_loop:
+    mov a7, a3          # row base
+    mov a14, a7         # running pointer
+    mov a15, a8         # filter_height counter
+    EE.ZERO.QACC
+
+dl_tie728_s8_avg_pool2d_hwc_sum_row_loop:
+    EE.VLD.128.XP q1, a14, a6
+    EE.VLD.128.XP q2, a14, a6
+    loopgtz a10, 0f
+        EE.VMULAS.S8.QACC.LD.XP q1, a14, a6, q0, q1
+        EE.VMULAS.S8.QACC.LD.XP q2, a14, a6, q0, q2
+    0:
+    bbci a9, 0, 2f
+    # filter_width odd: one element left
+    EE.VMULAS.S8.QACC.LD.XP q1, a14, a6, q0, q1
+    EE.VMULAS.S8.QACC q0, q2
+    EE.VMULAS.S8.QACC q0, q1
+    j 3f
+
+2:  # filter_width even: two elements left
+    EE.VMULAS.S8.QACC q0, q1
+    EE.VMULAS.S8.QACC q0, q2
+3:
+    addi a15, a15, -1
+    add a7, a7, a5
+    mov a14, a7
+    bnez a15, dl_tie728_s8_avg_pool2d_hwc_sum_row_loop
+
+    # dump the 16 x 20-bit QACC lanes to buffer_ptr. Note: EE.ST.QACC_*.L.128.IP forces the
+    # address to 16-byte alignment, so L.H.32 must post-increment by 16 to keep the H.L.128
+    # store at a 16-byte boundary. Layout per 64-byte block:
+    #   [0,16)  QACC_L[127:0]      [16,20) QACC_L[159:128]  [20,32) gap
+    #   [32,48) QACC_H[127:0]      [48,52) QACC_H[159:128]  [52,64) unused
+    EE.ST.QACC_L.L.128.IP a2, 16
+    EE.ST.QACC_L.H.32.IP  a2, 16
+    EE.ST.QACC_H.L.128.IP a2, 16
+    EE.ST.QACC_H.H.32.IP  a2, 4
+    addi a2, a2, 12     # 52 -> 64 bytes per 16 int32 slots
+
+    addi a3, a3, 16     # next 16 input channels
+    addi a11, a11, -1
+    bnez a11, dl_tie728_s8_avg_pool2d_hwc_sum_block_loop
+    j dl_tie728_s8_avg_pool2d_hwc_sum_end
+
+dl_tie728_s8_avg_pool2d_hwc_sum_w1:
+    # filter_width == 1: one element per row
+    addi a8, a8, -1
+
+dl_tie728_s8_avg_pool2d_hwc_sum_w1_block_loop:
+    mov a14, a3
+    EE.ZERO.QACC
+    EE.VLD.128.XP q1, a14, a5
+    loopgtz a8, 0f
+        EE.VMULAS.S8.QACC.LD.XP q1, a14, a5, q0, q1
+    0:
+    EE.VMULAS.S8.QACC q0, q1
+
+    EE.ST.QACC_L.L.128.IP a2, 16
+    EE.ST.QACC_L.H.32.IP  a2, 16
+    EE.ST.QACC_H.L.128.IP a2, 16
+    EE.ST.QACC_H.H.32.IP  a2, 4
+    addi a2, a2, 12
+
+    addi a3, a3, 16
+    addi a11, a11, -1
+    bnez a11, dl_tie728_s8_avg_pool2d_hwc_sum_w1_block_loop
+
+dl_tie728_s8_avg_pool2d_hwc_sum_end:
+    retw

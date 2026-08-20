@@ -21,33 +21,6 @@ void dl_esp32p4_memcpy(void *dst, const void *src, const size_t n);
 namespace dl {
 namespace tool {
 
-int round_half_even(float value)
-{
-#if CONFIG_PIE_V2_BOOST
-    int ret;
-    __asm__ volatile("fcvt.w.s %0, %1, rne" : "=r"(ret) : "f"(value));
-    return ret;
-#else
-    float rounded;
-    if (value < 0) {
-        rounded = value - 0.5f;
-    } else {
-        rounded = value + 0.5f;
-    }
-
-    int int_part = (int)rounded;
-    if (fabsf(rounded - int_part) < 1e-6) {
-        if ((int_part & 1) != 0) {
-            if (value < 0)
-                int_part++;
-            else
-                int_part--;
-        }
-    }
-    return int_part;
-#endif
-}
-
 int round_half_even(double value)
 {
     double rounded;
@@ -69,28 +42,10 @@ int round_half_even(double value)
     return int_part;
 }
 
-int round_half_up(float value)
-{
-    return (int)floorf(value + 0.5);
-}
-
 int round_half_up(double value)
 {
     return (int)floor(value + 0.5);
 }
-
-template <typename T>
-int round(T value)
-{
-#if CONFIG_ROUND_HALF_EVEN_ENABLED
-    return round_half_even(value);
-#else
-    return round_half_up(value);
-#endif
-}
-
-template int round(float value);
-template int round(double value);
 
 template <typename T>
 T shift_and_round_half_even(T value, int shift)

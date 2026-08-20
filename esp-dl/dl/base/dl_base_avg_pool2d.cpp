@@ -7,6 +7,67 @@
 namespace dl {
 namespace base {
 
+#if CONFIG_PIE_V1_BOOST
+/**
+ * @brief Sign-extend a 20-bit value (stored in the low 20 bits) to int32.
+ */
+inline int32_t sign_extend_20bit(uint32_t value)
+{
+    return (int32_t)(value << 12) >> 12;
+}
+
+/**
+ * @brief Scale one 160-bit half of the TIE728 s8 QACC dump written by
+ * dl_tie728_s8_avg_pool2d_hwc_sum (8 lanes x 20-bit, lane i at bit [20i, 20i+20)) into 8
+ * quantized outputs. The dump layout per 64-byte channel block is:
+ *   word 0..3  = QACC_L[127:0],  word 4 = QACC_L[159:128],  words 5..7 = gap (unused),
+ *   word 8..11 = QACC_H[127:0],  word 12 = QACC_H[159:128], words 13..15 = unused.
+ * so lanes 0..7 start at word 0 and lanes 8..15 at word 8.
+ *
+ * Scaling straight out of the packed dump keeps the unpacked sums in registers; going through
+ * an int32 buffer instead costs a store and a load per channel. Eight lanes at a time is what
+ * fits in the register file - unpacking all 16 makes the compiler spill.
+ */
+template <typename feature_t>
+inline void scale_tie728_s8_qacc_8x20(const uint32_t *raw, feature_t *output, float scale)
+{
+    uint32_t w0 = raw[0], w1 = raw[1], w2 = raw[2], w3 = raw[3], w4 = raw[4];
+
+    tool::truncate(output[0], tool::round(sign_extend_20bit(w0) * scale));
+    tool::truncate(output[1], tool::round(sign_extend_20bit((w0 >> 20) | (w1 << 12)) * scale));
+    tool::truncate(output[2], tool::round(sign_extend_20bit(w1 >> 8) * scale));
+    tool::truncate(output[3], tool::round(sign_extend_20bit((w1 >> 28) | (w2 << 4)) * scale));
+    tool::truncate(output[4], tool::round(sign_extend_20bit((w2 >> 16) | (w3 << 16)) * scale));
+    tool::truncate(output[5], tool::round(sign_extend_20bit(w3 >> 4) * scale));
+    tool::truncate(output[6], tool::round(sign_extend_20bit((w3 >> 24) | (w4 << 8)) * scale));
+    tool::truncate(output[7], tool::round(sign_extend_20bit(w4 >> 12) * scale));
+}
+
+/**
+ * @brief Scale the dump of the TIE728 s16 QACC written by dl_tie728_s16_avg_pool2d_hwc_sum
+ * (8 lanes x 40-bit, lane i at bit [40i, 40i+40) of the 320-bit QACC) into 8 quantized
+ * outputs. The dump layout (52 bytes used of a 13-word scratch) is the same as above.
+ * The caller guarantees |sum| <= 2^31 - 1, so only the low 32 bits of each lane are read.
+ */
+template <typename feature_t>
+inline void scale_tie728_s16_qacc_8x40(const uint32_t *raw, feature_t *output, float scale)
+{
+    uint32_t w0 = raw[0], w1 = raw[1], w2 = raw[2], w3 = raw[3], w4 = raw[4];
+
+    tool::truncate(output[0], tool::round((int32_t)w0 * scale));
+    tool::truncate(output[1], tool::round((int32_t)((w1 >> 8) | (w2 << 24)) * scale));
+    tool::truncate(output[2], tool::round((int32_t)((w2 >> 16) | (w3 << 16)) * scale));
+    tool::truncate(output[3], tool::round((int32_t)((w3 >> 24) | (w4 << 8)) * scale));
+
+    uint32_t w8 = raw[8], w9 = raw[9], w10 = raw[10], w11 = raw[11], w12 = raw[12];
+
+    tool::truncate(output[4], tool::round((int32_t)w8 * scale));
+    tool::truncate(output[5], tool::round((int32_t)((w9 >> 8) | (w10 << 24)) * scale));
+    tool::truncate(output[6], tool::round((int32_t)((w10 >> 16) | (w11 << 16)) * scale));
+    tool::truncate(output[7], tool::round((int32_t)((w11 >> 24) | (w12 << 8)) * scale));
+}
+#endif
+
 template <typename feature_t, typename buffer_t>
 inline void avgpool2d_hwc_sum(buffer_t *buffer_ptr, feature_t *input_ptr, PoolArgsType<feature_t> &args)
 {
@@ -44,6 +105,42 @@ inline void avgpool2d_hwc(buffer_t *buffer_ptr,
     } else {
         avgpool2d_hwc_sum(buffer_ptr, input_ptr, args);
     }
+#elif CONFIG_PIE_V1_BOOST
+    if constexpr (std::is_same_v<feature_t, int8_t>) {
+        // TIE728 s8 QACC accumulates 16 lanes x 20-bit (signed, saturating). Accumulating the raw
+        // sum (multiplier = 1) is exact as long as |sum| <= 2^19 - 1, i.e. 128 * area <= 2^19 - 1.
+        // EE.ST.QACC_*.128 forces its address to a 16-byte boundary, so a misaligned buffer_ptr
+        // would silently dump the accumulator somewhere else.
+        if (args.input_channel % 16 == 0 && args.filter_height * args.filter_width <= 4095 &&
+            !((unsigned)input_ptr & 15) && !((unsigned)buffer_ptr & 15)) {
+            dl_tie728_s8_avg_pool2d_hwc_sum(buffer_ptr, input_ptr, &args);
+            int c_div_x = args.input_channel / 16;
+            for (int block = 0; block < c_div_x; block++) {
+                const uint32_t *raw = (const uint32_t *)(buffer_ptr + 16 * block);
+                scale_tie728_s8_qacc_8x20(raw, output_ptr + 16 * block, scale);
+                scale_tie728_s8_qacc_8x20(raw + 8, output_ptr + 16 * block + 8, scale);
+            }
+            // The buffer holds the raw QACC dump, and the C path accumulates into it, so it has
+            // to go back to all zeros. dl_tie728_bzero clears 16 bytes per instruction.
+            tool::set_zero(buffer_ptr, args.input_channel * sizeof(buffer_t));
+            return;
+        }
+    } else if constexpr (std::is_same_v<feature_t, int16_t>) {
+        // TIE728 s16 QACC accumulates 8 lanes x 40-bit (signed, saturating). Accumulating the raw
+        // sum (multiplier = 1) is exact and fits int32 as long as 32768 * area <= 2^31 - 1.
+        if (args.input_channel % 8 == 0 && args.filter_height * args.filter_width <= 65535 &&
+            !((unsigned)input_ptr & 15)) {
+            // The dump goes to the stack, so buffer_ptr keeps the zeros the C path expects.
+            uint32_t scratch[13] __attribute__((aligned(16)));
+            int c_div_x = args.input_channel / 8;
+            for (int block = 0; block < c_div_x; block++) {
+                dl_tie728_s16_avg_pool2d_hwc_sum(scratch, input_ptr + 8 * block, &args);
+                scale_tie728_s16_qacc_8x40(scratch, output_ptr + 8 * block, scale);
+            }
+            return;
+        }
+    }
+    avgpool2d_hwc_sum(buffer_ptr, input_ptr, args);
 #else
     avgpool2d_hwc_sum(buffer_ptr, input_ptr, args);
 #endif
