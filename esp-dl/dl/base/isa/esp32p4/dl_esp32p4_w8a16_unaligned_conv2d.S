@@ -12,10 +12,9 @@
 #### esp32p4_w8a16_unaligned_conv2d_11cn series
 ####
 ############################################################################################################################################################
-.macro esp32p4_w8a16_unaligned_conv2d_11c8  input_v, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, temp
-    # 8 output channels, unaligned int16 input, int8 filter packed as [C][8].
-    # q5 is scratch for 8-byte int8 filter loads / vext.s8; callers must not keep
-    # live values in q5. Per-channel shift stays in q6.
+.macro esp32p4_w8a16_unaligned_conv2d_11c8_a16  input_v, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, temp
+    # 8 output channels, 16-byte-aligned int8 filter packed as [C][8].
+    # q5 is scratch; per-channel shift stays in q6.
     # c_div_x_1: input_channel // 8 - 1
 
     esp.ld.128.usar.ip  \input_front, \input_ptr, 16
@@ -156,6 +155,152 @@
     0:
         addi  \input_ptr, \input_ptr, -16
 
+.endm
+
+
+# Packed [C][8] int8 is only 8-byte aligned when C is odd. vldext.s8.ip / 128-bit
+# ld.incp require 16-byte alignment, so the 8-aligned path uses 64-bit halves.
+.macro esp32p4_w8a16_ld_c8x2  dest0, dest1, scratch, filter_ptr
+    esp.vld.l.64.ip  \scratch, \filter_ptr, 8
+    esp.vld.h.64.ip  \scratch, \filter_ptr, 8
+    esp.vext.s8      \dest0, \dest1, \scratch
+.endm
+
+.macro esp32p4_w8a16_ld_c8  dest0, dest1, scratch, filter_ptr
+    esp.vld.l.64.ip  \scratch, \filter_ptr, 8
+    esp.vext.s8      \dest0, \dest1, \scratch
+.endm
+
+.macro esp32p4_w8a16_mac_pair_ld_c8x2  dest0, dest1, scratch, filter_ptr, input_v, sel0, sel1
+    esp.vsmulas.s16.qacc  \dest0, \input_v, \sel0
+    esp.vld.l.64.ip  \scratch, \filter_ptr, 8
+    esp.vsmulas.s16.qacc  \dest1, \input_v, \sel1
+    esp.vld.h.64.ip  \scratch, \filter_ptr, 8
+    esp.vext.s8      \dest0, \dest1, \scratch
+.endm
+
+
+.macro esp32p4_w8a16_unaligned_conv2d_11c8_a8  input_v, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, temp
+    # Filter pointer is 8-byte aligned (bit3 set).
+    esp.ld.128.usar.ip  \input_front, \input_ptr, 16
+
+    bltz  \c_div_x_1, 67f
+        esp.ld.128.usar.ip  \input_back, \input_ptr, 16
+        esp32p4_w8a16_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr
+
+        beqz  \c_div_x_1, 68f
+        mv  \temp, \c_div_x_1
+        69:
+            esp.src.q.qup  \input_v, \input_front, \input_back
+            esp.ld.128.usar.ip  \input_back, \input_ptr, 16
+
+            esp32p4_w8a16_mac_pair_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr, \input_v, 0, 1
+            esp32p4_w8a16_mac_pair_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr, \input_v, 2, 3
+            esp32p4_w8a16_mac_pair_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr, \input_v, 4, 5
+            esp32p4_w8a16_mac_pair_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr, \input_v, 6, 7
+
+            addi  \temp, \temp, -1
+            bgtz  \temp, 69b
+
+        68:
+        esp.src.q.qup  \input_v, \input_front, \input_back
+        esp32p4_w8a16_mac_pair_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr, \input_v, 0, 1
+        esp32p4_w8a16_mac_pair_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr, \input_v, 2, 3
+        esp32p4_w8a16_mac_pair_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr, \input_v, 4, 5
+        esp.vsmulas.s16.qacc          \filter_v0, \input_v, 6
+        esp.vsmulas.s16.qacc          \filter_v1, \input_v, 7
+        beqz  \c_remainder, 60f
+
+    67:
+        esp.ld.128.usar.xp  \input_back, \input_ptr, \c_remainder
+        esp.src.q.qup  \input_v, \input_front, \input_back
+
+        li  \temp, 8
+        blt  \c_remainder, \temp, 63f
+            esp32p4_w8a16_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr
+
+            li  \temp, 12
+            blt  \c_remainder, \temp, 65f
+                li  \temp, 14
+                blt  \c_remainder, \temp, 66f
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 0
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 1
+                    esp32p4_w8a16_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 2
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 3
+                    esp32p4_w8a16_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 4
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 5
+                    esp32p4_w8a16_ld_c8  \filter_v0, \filter_v1, q5, \filter_ptr
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 6
+                    j 60f
+
+                66:
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 0
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 1
+                    esp32p4_w8a16_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 2
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 3
+                    esp32p4_w8a16_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 4
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 5
+                    j 60f
+
+            65:
+                li  \temp, 10
+                blt  \c_remainder, \temp, 64f
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 0
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 1
+                    esp32p4_w8a16_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 2
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 3
+                    esp32p4_w8a16_ld_c8  \filter_v0, \filter_v1, q5, \filter_ptr
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 4
+                    j 60f
+
+                64:
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 0
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 1
+                    esp32p4_w8a16_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 2
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 3
+                    j 60f
+
+        63:
+            li  \temp, 4
+            blt  \c_remainder, \temp, 61f
+                esp32p4_w8a16_ld_c8x2  \filter_v0, \filter_v1, q5, \filter_ptr
+
+                li  \temp, 6
+                blt  \c_remainder, \temp, 62f
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 0
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 1
+                    esp32p4_w8a16_ld_c8  \filter_v0, \filter_v1, q5, \filter_ptr
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 2
+                    j 60f
+
+                62:
+                    esp.vsmulas.s16.qacc  \filter_v0, \input_v, 0
+                    esp.vsmulas.s16.qacc  \filter_v1, \input_v, 1
+                    j 60f
+
+            61:
+                esp32p4_w8a16_ld_c8  \filter_v0, \filter_v1, q5, \filter_ptr
+                esp.vsmulas.s16.qacc  \filter_v0, \input_v, 0
+
+    60:
+        addi  \input_ptr, \input_ptr, -16
+.endm
+
+
+.macro esp32p4_w8a16_unaligned_conv2d_11c8  input_v, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, temp
+    andi  \temp, \filter_ptr, 8
+    bnez  \temp, 70f
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        j  80f
+    70:
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    80:
 .endm
 
 
@@ -712,32 +857,96 @@ dl_esp32p4_w8a16_unaligned_conv2d_11cn_relu:
 ####
 ############################################################################################################################################################
 .macro esp32p4_w8a16_unaligned_conv2d_33c8  input_v0, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, temp
-    esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-    add  \input_ptr, \input_ptr, \dilation_x_offset
+    # Tap stride is C*8 bytes. Even C keeps alignment; odd C flips 16-byte <->
+    # 8-byte each tap. Packed [N/8][H][W][C][8] also makes later OC groups start
+    # 8-byte aligned when C is odd, so the first tap must follow filter_ptr bit3.
+    andi  \temp, \filter_ptr, 8
+    bnez  \temp, 94f
+    andi  \temp, \c_remainder, 2
+    bnez  \temp, 92f
 
-    esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-    add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_y_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_y_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        j  91f
 
-    esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-    add  \input_ptr, \input_ptr, \dilation_y_offset
+    92:
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_y_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_y_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        j  91f
 
-    esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-    add  \input_ptr, \input_ptr, \dilation_x_offset
+    94:
+        andi  \temp, \c_remainder, 2
+        beqz  \temp, 93f
 
-    esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-    add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_y_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_y_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        j  91f
 
-    esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-    add  \input_ptr, \input_ptr, \dilation_y_offset
+    93:
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_y_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_y_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+        add  \input_ptr, \input_ptr, \dilation_x_offset
+        esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
 
-    esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-    add  \input_ptr, \input_ptr, \dilation_x_offset
-
-    esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-    add  \input_ptr, \input_ptr, \dilation_x_offset
-
-    esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-    # add  \input_ptr, \input_ptr, \dilation_y_offset
+    91:
 .endm
 
 
@@ -1268,27 +1477,87 @@ dl_esp32p4_w8a16_unaligned_conv2d_33cn_relu:
 ####
 ############################################################################################################################################################
 .macro esp32p4_w8a16_unaligned_conv2d_hwc8  input_v0, input_front, input_back, filter_v0, filter_v1, input_ptr, filter_ptr, c_div_x_1, c_remainder, dilation_x_offset, dilation_y_offset, filter_h, filter_w, args, filter_y_offset, filter_n_offset, temp
-    lw  \filter_h, 52(\args)  # filter_height
-    11:
-        lw  \filter_w, 56(\args)  # filter_width
-        addi  \filter_w, \filter_w, -1
-        beqz  \filter_w, 12f
-            10:
-                esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
-                add  \input_ptr, \input_ptr, \dilation_x_offset
+    andi  \temp, \c_remainder, 2
+    bnez  \temp, 40f
 
-                addi  \filter_w, \filter_w, -1
-                bnez  \filter_w, 10b
-        12:
-        esp32p4_w8a16_unaligned_conv2d_11c8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+    # Even C: tap stride is 16-byte aligned, so every tap matches the first.
+    andi  \temp, \filter_ptr, 8
+    bnez  \temp, 41f
+        lw  \filter_h, 52(\args)
+        11:
+            lw  \filter_w, 56(\args)
+            addi  \filter_w, \filter_w, -1
+            beqz  \filter_w, 12f
+                10:
+                    esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+                    add  \input_ptr, \input_ptr, \dilation_x_offset
+                    addi  \filter_w, \filter_w, -1
+                    bnez  \filter_w, 10b
+            12:
+            esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+            add  \filter_ptr, \filter_ptr, \filter_y_offset
+            add  \input_ptr, \input_ptr, \dilation_y_offset
+            addi  \filter_h, \filter_h, -1
+            bnez  \filter_h, 11b
+        add  \filter_ptr, \filter_ptr, \filter_n_offset
+        j  49f
 
+    41:
+        lw  \filter_h, 52(\args)
+        21:
+            lw  \filter_w, 56(\args)
+            addi  \filter_w, \filter_w, -1
+            beqz  \filter_w, 22f
+                20:
+                    esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+                    add  \input_ptr, \input_ptr, \dilation_x_offset
+                    addi  \filter_w, \filter_w, -1
+                    bnez  \filter_w, 20b
+            22:
+            esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+            add  \filter_ptr, \filter_ptr, \filter_y_offset
+            add  \input_ptr, \input_ptr, \dilation_y_offset
+            addi  \filter_h, \filter_h, -1
+            bnez  \filter_h, 21b
+        add  \filter_ptr, \filter_ptr, \filter_n_offset
+        j  49f
+
+    40:
+    # Odd C: tap stride is 8-byte aligned, so consecutive taps flip alignment.
+    # Later rows / OC groups may start 8-byte aligned as well.
+    lw  \filter_h, 52(\args)
+    43:
+        lw  \filter_w, 56(\args)
+        andi  \temp, \filter_ptr, 8
+        bnez  \temp, 45f
+        44:
+            esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+            addi  \filter_w, \filter_w, -1
+            beqz  \filter_w, 48f
+            add  \input_ptr, \input_ptr, \dilation_x_offset
+            esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+            addi  \filter_w, \filter_w, -1
+            beqz  \filter_w, 48f
+            add  \input_ptr, \input_ptr, \dilation_x_offset
+            j  44b
+        45:
+            esp32p4_w8a16_unaligned_conv2d_11c8_a8  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+            addi  \filter_w, \filter_w, -1
+            beqz  \filter_w, 48f
+            add  \input_ptr, \input_ptr, \dilation_x_offset
+            esp32p4_w8a16_unaligned_conv2d_11c8_a16  \input_v0, \input_front, \input_back, \filter_v0, \filter_v1, \input_ptr, \filter_ptr, \c_div_x_1, \c_remainder, \temp
+            addi  \filter_w, \filter_w, -1
+            beqz  \filter_w, 48f
+            add  \input_ptr, \input_ptr, \dilation_x_offset
+            j  45b
+        48:
         add  \filter_ptr, \filter_ptr, \filter_y_offset
         add  \input_ptr, \input_ptr, \dilation_y_offset
-
         addi  \filter_h, \filter_h, -1
-        bnez  \filter_h, 11b
-
+        bnez  \filter_h, 43b
     add  \filter_ptr, \filter_ptr, \filter_n_offset
+
+    49:
 .endm
 
 

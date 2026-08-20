@@ -1196,60 +1196,108 @@ inline void load_conv2d_w8a16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
 #elif CONFIG_PIE_V1_BOOST
     bool pointwise = args.filter_height == 1 && args.filter_width == 1;
     bool square3x3 = args.filter_height == 3 && args.filter_width == 3;
+    bool aligned = args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && args.mac_shift != INT_MIN &&
+        !((unsigned)&args.input_element[0] & 15) && !((unsigned)&args.output_element[0] & 15);
 
-    if (args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && args.mac_shift != INT_MIN &&
-        !((unsigned)&args.input_element[0] & 15) && !((unsigned)&args.output_element[0] & 15)) {
-        if (args.bias_element) {
-            switch (args.activation_type) {
-            case Linear:
+    if (args.bias_element) {
+        switch (args.activation_type) {
+        case Linear:
+            if (aligned) {
                 if (pointwise) {
                     i_impl_func_sp = dl_tie728_w8a16_conv2d_11cn_bias;
                 } else if (square3x3) {
                     i_impl_func_sp = dl_tie728_w8a16_conv2d_33cn_bias;
                 }
                 i_impl_func = dl_tie728_w8a16_conv2d_hwcn_bias;
-                break;
-            case ReLU:
+            } else if (args.mac_shift != INT_MIN) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_11cn_bias;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_33cn_bias;
+                    i_impl_func = dl_tie728_w8a16_unaligned_conv2d_hwcn_bias;
+                } else {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_hwcn_bias;
+                    i_impl_func = i_impl_func_sp;
+                }
+            }
+            break;
+        case ReLU:
+            if (aligned) {
                 if (pointwise) {
                     i_impl_func_sp = dl_tie728_w8a16_conv2d_11cn_bias_relu;
                 } else if (square3x3) {
                     i_impl_func_sp = dl_tie728_w8a16_conv2d_33cn_bias_relu;
                 }
                 i_impl_func = dl_tie728_w8a16_conv2d_hwcn_bias_relu;
-                break;
-            default:
-                break;
+            } else if (args.mac_shift != INT_MIN) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_11cn_bias_relu;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_33cn_bias_relu;
+                    i_impl_func = dl_tie728_w8a16_unaligned_conv2d_hwcn_bias_relu;
+                } else {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_hwcn_bias_relu;
+                    i_impl_func = i_impl_func_sp;
+                }
             }
-        } else {
-            switch (args.activation_type) {
-            case Linear:
+            break;
+        default:
+            break;
+        }
+    } else {
+        switch (args.activation_type) {
+        case Linear:
+            if (aligned) {
                 if (pointwise) {
                     i_impl_func_sp = dl_tie728_w8a16_conv2d_11cn;
                 } else if (square3x3) {
                     i_impl_func_sp = dl_tie728_w8a16_conv2d_33cn;
                 }
                 i_impl_func = dl_tie728_w8a16_conv2d_hwcn;
-                break;
-            case ReLU:
+            } else if (args.mac_shift != INT_MIN) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_11cn;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_33cn;
+                    i_impl_func = dl_tie728_w8a16_unaligned_conv2d_hwcn;
+                } else {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_hwcn;
+                    i_impl_func = i_impl_func_sp;
+                }
+            }
+            break;
+        case ReLU:
+            if (aligned) {
                 if (pointwise) {
                     i_impl_func_sp = dl_tie728_w8a16_conv2d_11cn_relu;
                 } else if (square3x3) {
                     i_impl_func_sp = dl_tie728_w8a16_conv2d_33cn_relu;
                 }
                 i_impl_func = dl_tie728_w8a16_conv2d_hwcn_relu;
-                break;
-            default:
-                break;
+            } else if (args.mac_shift != INT_MIN) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_11cn_relu;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_33cn_relu;
+                    i_impl_func = dl_tie728_w8a16_unaligned_conv2d_hwcn_relu;
+                } else {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_hwcn_relu;
+                    i_impl_func = i_impl_func_sp;
+                }
             }
+            break;
+        default:
+            break;
         }
-        if (!i_impl_func) {
-            i_impl_func = w8a16_conv2d_hwcn;
-        }
-        if (!i_impl_func_sp) {
-            i_impl_func_sp = i_impl_func;
-        }
-    } else {
+    }
+    if (!i_impl_func && i_impl_func_sp) {
+        i_impl_func = i_impl_func_sp;
+    }
+    if (!i_impl_func) {
+        // LeakyReLU / PReLU / per-channel have no vector kernel yet.
         i_impl_func = w8a16_conv2d_hwcn;
+    }
+    if (!i_impl_func_sp) {
         i_impl_func_sp = i_impl_func;
     }
     return;
