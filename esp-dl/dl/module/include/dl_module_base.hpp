@@ -51,9 +51,18 @@ public:
      *
      * MALLOC_CAP_DEFAULT prefers PSRAM when one is present and falls back to internal RAM otherwise,
      * so a model's modules do not spend internal RAM on the objects themselves.
+     *
+     * @param size Size of the object in bytes
+     *
+     * @return Pointer to the allocated memory
      */
     void *operator new(size_t size) { return tool::malloc_aligned(size, MALLOC_CAP_DEFAULT); }
 
+    /**
+     * @brief Deallocate the module object.
+     *
+     * @param ptr Pointer previously returned by operator new
+     */
     void operator delete(void *ptr) { heap_caps_free(ptr); }
 
     /**

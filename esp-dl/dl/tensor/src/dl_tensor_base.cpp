@@ -196,6 +196,16 @@ TensorBase::TensorBase(std::vector<int> shape,
     this->exponent = ExponentInfo(exponents);
     this->dtype = dtype;
     this->cache = nullptr;
+    this->caps = caps;
+    if (!this->exponent.is_valid()) {
+        // Without the exponent array the data cannot be dequantized, so leave the tensor empty
+        // instead of handing back one that silently quantizes with a wrong scale.
+        ESP_LOGE(
+            "TensorBase", "Failed to alloc %d per-channel exponents, the tensor is left empty.", (int)exponents.size());
+        this->auto_free = false;
+        this->data = nullptr;
+        return;
+    }
     size_t dtype_bytes = this->get_dtype_bytes();
     size_t aligned_size = this->get_aligned_size();
     if (element) {
@@ -219,7 +229,6 @@ TensorBase::TensorBase(std::vector<int> shape,
             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.f,
             heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
     }
-    this->caps = caps;
 }
 
 bool TensorBase::assign(TensorBase *tensor)

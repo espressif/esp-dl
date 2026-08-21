@@ -172,12 +172,25 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
         for (int j = 0; j < op_inputs.size(); j++) {
             bool is_parameter = m_fbs_model->is_parameter(op_inputs[j]);
             if (is_parameter || op_inputs[j].empty()) {
-                index =
-                    m_model_context->add_tensor(op_inputs[j], true, m_fbs_model->get_operation_parameter(node_name, j));
+                TensorBase *parameter = m_fbs_model->get_operation_parameter(node_name, j);
+                // An empty input name is an omitted optional input, but a named parameter that comes
+                // back missing, or without the exponents its data is quantized with, would leave the
+                // operator computing on a weight it cannot interpret.
+                if (is_parameter && (!parameter || !parameter->exponent.is_valid())) {
+                    ESP_LOGE(TAG, "Fail to load the parameter %s of node %s", op_inputs[j].c_str(), node_name.c_str());
+                    delete parameter;
+                    ret = ESP_FAIL;
+                    break;
+                }
+                index = m_model_context->add_tensor(op_inputs[j], true, parameter);
             } else {
                 index = m_model_context->add_tensor(op_inputs[j], false, nullptr);
             }
             module->m_inputs_index.push_back(index); // assign input index of module
+        }
+
+        if (ret != ESP_OK) {
+            break;
         }
 
         for (int j = 0; j < op_outputs.size(); j++) {
