@@ -72,6 +72,8 @@ public:
      */
     virtual std::vector<int> get_outputs_index() { return m_outputs_index; }
 
+    virtual bool is_lut_module() const { return false; }
+
     /**
      * @brief Calculate output shape by input shape
      *

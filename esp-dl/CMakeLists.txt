@@ -141,8 +141,8 @@ endif()
 idf_component_register(SRC_DIRS ${src_dirs} EXCLUDE_SRCS ${exclude_srcs} INCLUDE_DIRS ${include_dirs} REQUIRES ${requires})
 
 component_compile_options(-ffast-math -O3 -Wno-error=format=-Wno-format)
-add_prebuilt_library(fbs_model fbs_loader/lib/${IDF_TARGET}/libfbs_model.a)
-target_link_libraries(${COMPONENT_LIB} PRIVATE fbs_model)
+#add_prebuilt_library(fbs_model fbs_loader/lib/${IDF_TARGET}/libfbs_model.a)
+#target_link_libraries(${COMPONENT_LIB} PRIVATE fbs_model)
 
 # component_compile_options(-ffast-math -frtti -O3 -Wno-error=format=-Wno-format)
 target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-array-bounds
