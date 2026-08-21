@@ -31,25 +31,29 @@ def create_md(config_file, output_path):
     for op_type in op_test_config:
         if op_type == "class_package" or op_type == "Requantize":
             continue
-        # print(op_type, op_test_config[op_type]["quant_bits"], op_test_config[op_type]["support_state"])
-        quant_bits = op_test_config[op_type].get("quant_bits", [])
+        quant_types = set(op_test_config[op_type].get("quant_type", []))
         restrictions = op_test_config[op_type].get("restrictions", "")
 
         onnx_op_link = onnx_link.replace("##", op_type)
         espdl_op_link = espdl_link.replace("##", camel_to_snake(op_type))
 
         item = [op_type + espdl_op_link + onnx_op_link]
-        if "int8" in quant_bits:
+        if "int8" in quant_types or "w8a8" in quant_types:
             item.append(yes_icon)
         else:
             item.append(no_icon)
 
-        if "int16" in quant_bits:
+        if "int16" in quant_types or "w16a16" in quant_types:
             item.append(yes_icon)
         else:
             item.append(no_icon)
 
-        if "float32" in quant_bits:
+        if "w8a16" in quant_types:
+            item.append(yes_icon)
+        else:
+            item.append(no_icon)
+
+        if "float32" in quant_types or "none" in quant_types:
             item.append(yes_icon)
         else:
             item.append(no_icon)
@@ -59,7 +63,7 @@ def create_md(config_file, output_path):
 
     sorted_op_list = sorted(data, key=lambda x: x[0].lower())
     sorted_op_list = [
-        ["Operator", "int8", "int16", "float32", "Restrictions"]
+        ["Operator", "int8", "int16", "w8a16", "float32", "Restrictions"]
     ] + sorted_op_list
     markdown_table = tabulate(sorted_op_list, headers="firstrow", tablefmt="github")
 
