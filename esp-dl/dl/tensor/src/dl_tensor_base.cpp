@@ -142,6 +142,8 @@ const char *quant_type_to_string(quant_type_t type)
         return "symm 16bit";
     case QUANT_TYPE_SYMM_32BIT:
         return "symm 32bit";
+    case QUANT_TYPE_SYMM_W8A16:
+        return "symm w8a16";
     case QUANT_TYPE_FLOAT32:
         return "float";
     default:
@@ -194,6 +196,16 @@ TensorBase::TensorBase(std::vector<int> shape,
     this->exponent = ExponentInfo(exponents);
     this->dtype = dtype;
     this->cache = nullptr;
+    this->caps = caps;
+    if (!this->exponent.is_valid()) {
+        // Without the exponent array the data cannot be dequantized, so leave the tensor empty
+        // instead of handing back one that silently quantizes with a wrong scale.
+        ESP_LOGE(
+            "TensorBase", "Failed to alloc %d per-channel exponents, the tensor is left empty.", (int)exponents.size());
+        this->auto_free = false;
+        this->data = nullptr;
+        return;
+    }
     size_t dtype_bytes = this->get_dtype_bytes();
     size_t aligned_size = this->get_aligned_size();
     if (element) {
@@ -217,7 +229,6 @@ TensorBase::TensorBase(std::vector<int> shape,
             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.f,
             heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
     }
-    this->caps = caps;
 }
 
 bool TensorBase::assign(TensorBase *tensor)
@@ -522,7 +533,7 @@ void TensorBase::reset_bias_layout(quant_type_t op_quant_type, bool is_depthwise
         this->data = dst_ptr;
         this->auto_free = true;
 
-    } else if (op_quant_type == QUANT_TYPE_SYMM_16BIT) {
+    } else if (op_quant_type == QUANT_TYPE_SYMM_16BIT || op_quant_type == QUANT_TYPE_SYMM_W8A16) {
         // 0x000000AAAAAAAAAA000000BBBBBBBBBB ==> 0xAAAAAAAAAABBBBBBBBBB
         size_t dtype_bytes = 2;
         size_t align = 16 / dtype_bytes;

@@ -18,12 +18,39 @@ namespace dl {
  * Per-tensor: m_exponent only, zero heap allocation.
  * Per-channel: heap-allocated m_exponents array.
  * Provides operator int() so existing `DL_SCALE(tensor->exponent)` code works unchanged.
+ *
+ * A failed per-channel allocation leaves the object in the invalid state reported by is_valid();
+ * such an object describes no scale at all and its tensor must be rejected by the caller.
  */
 class ExponentInfo {
 private:
     int m_exponent;
     int *m_exponents;
-    int m_size;
+    int m_size; ///< channel count, 0 marks a failed per-channel allocation
+
+    /**
+     * @brief Take a copy of a per-channel exponent array.
+     *
+     * MALLOC_CAP_DEFAULT prefers PSRAM when one is present and falls back to internal RAM otherwise.
+     * Unlike plain new/malloc it is not capped by CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL, so these arrays
+     * (4 bytes per output channel) stay out of internal RAM.
+     *
+     * Falling back to per-tensor mode on failure is not possible: m_exponent holds no scale that
+     * describes per-channel data, so the object is marked invalid instead.
+     */
+    void copy_exponents(const int *exponents, int size)
+    {
+        m_exponents = static_cast<int *>(tool::malloc_aligned(size * sizeof(int), MALLOC_CAP_DEFAULT));
+        if (!m_exponents) {
+            ESP_LOGE("ExponentInfo", "Failed to alloc %d per-channel exponents.", size);
+            m_size = 0;
+            return;
+        }
+        m_size = size;
+        for (int i = 0; i < size; i++) {
+            m_exponents[i] = exponents[i];
+        }
+    }
 
 public:
     /**
@@ -37,17 +64,12 @@ public:
      * @param exponents Vector of exponent values. If size <= 1, uses per-tensor mode;
      *                  otherwise uses per-channel mode with heap allocation.
      */
-    ExponentInfo(const std::vector<int> &exponents) : m_exponents(nullptr), m_size(1)
+    ExponentInfo(const std::vector<int> &exponents) : m_exponent(0), m_exponents(nullptr), m_size(1)
     {
         if (exponents.size() <= 1) {
             m_exponent = exponents.empty() ? 0 : exponents[0];
         } else {
-            m_size = exponents.size();
-            m_exponents = new int[m_size];
-            for (int i = 0; i < m_size; i++) {
-                m_exponents[i] = exponents[i];
-            }
-            m_exponent = 0;
+            copy_exponents(exponents.data(), exponents.size());
         }
     }
 
@@ -56,7 +78,7 @@ public:
      */
     ~ExponentInfo()
     {
-        delete[] m_exponents;
+        heap_caps_free(m_exponents);
         m_exponents = nullptr;
     }
 
@@ -66,11 +88,8 @@ public:
      */
     ExponentInfo(const ExponentInfo &other) : m_exponent(other.m_exponent), m_exponents(nullptr), m_size(other.m_size)
     {
-        if (other.m_exponents && m_size > 1) {
-            m_exponents = new int[m_size];
-            for (int i = 0; i < m_size; i++) {
-                m_exponents[i] = other.m_exponents[i];
-            }
+        if (other.m_exponents && other.m_size > 1) {
+            copy_exponents(other.m_exponents, other.m_size);
         }
     }
 
@@ -82,16 +101,12 @@ public:
     ExponentInfo &operator=(const ExponentInfo &other)
     {
         if (this != &other) {
-            delete[] m_exponents;
+            heap_caps_free(m_exponents);
+            m_exponents = nullptr;
             m_exponent = other.m_exponent;
             m_size = other.m_size;
-            if (other.m_exponents && m_size > 1) {
-                m_exponents = new int[m_size];
-                for (int i = 0; i < m_size; i++) {
-                    m_exponents[i] = other.m_exponents[i];
-                }
-            } else {
-                m_exponents = nullptr;
+            if (other.m_exponents && other.m_size > 1) {
+                copy_exponents(other.m_exponents, other.m_size);
             }
         }
         return *this;
@@ -116,7 +131,7 @@ public:
     ExponentInfo &operator=(ExponentInfo &&other) noexcept
     {
         if (this != &other) {
-            delete[] m_exponents;
+            heap_caps_free(m_exponents);
             m_exponent = other.m_exponent;
             m_exponents = other.m_exponents;
             m_size = other.m_size;
@@ -133,7 +148,7 @@ public:
      */
     ExponentInfo &operator=(int value)
     {
-        delete[] m_exponents;
+        heap_caps_free(m_exponents);
         m_exponents = nullptr;
         m_size = 1;
         m_exponent = value;
@@ -167,8 +182,15 @@ public:
     bool is_per_channel() const { return m_exponents != nullptr && m_size > 1; }
 
     /**
+     * @brief Check whether this object describes a usable scale.
+     * @return false only when a per-channel exponent array could not be allocated. Quantized data
+     *         governed by such an object cannot be interpreted, so its tensor must be rejected.
+     */
+    bool is_valid() const { return m_size > 0; }
+
+    /**
      * @brief Get the number of channels.
-     * @return Number of channels for per-channel mode, or 1 for per-tensor mode.
+     * @return Number of channels for per-channel mode, 1 for per-tensor mode, or 0 when invalid.
      */
     int channel_size() const { return m_size; }
 
@@ -181,10 +203,14 @@ public:
     /**
      * @brief Compare two ExponentInfo objects for equality.
      * @param other The ExponentInfo object to compare with.
-     * @return true if both have the same exponent values, false otherwise.
+     * @return true if both are valid and have the same exponent values, false otherwise.
      */
     bool operator==(const ExponentInfo &other) const
     {
+        if (!this->is_valid() || !other.is_valid()) {
+            // An invalid object has no exponent value, so it matches nothing, not even itself.
+            return false;
+        }
         if (!this->is_per_channel() && !other.is_per_channel()) {
             return this->m_exponent == other.m_exponent;
         }
@@ -334,6 +360,8 @@ public:
      * @param deep      True: malloc memory and copy data, false: use the pointer directly
      * @param caps      Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned
      *
+     * @warning If the per-channel exponents cannot be allocated, the tensor is left empty
+     *          (data == nullptr, exponent.is_valid() == false) and must not be used.
      */
     TensorBase(std::vector<int> shape,
                const void *element,
@@ -353,11 +381,24 @@ public:
         }
     }
 
-#if CONFIG_SPIRAM
-    void *operator new(size_t size) { return tool::malloc_aligned(size, MALLOC_CAP_SPIRAM); }
+    /**
+     * @brief Allocate the tensor object itself.
+     *
+     * MALLOC_CAP_DEFAULT prefers PSRAM when one is present and falls back to internal RAM otherwise,
+     * so a model holding many tensors does not spend internal RAM on the objects themselves.
+     *
+     * @param size Size of the object in bytes
+     *
+     * @return Pointer to the allocated memory
+     */
+    void *operator new(size_t size) { return tool::malloc_aligned(size, MALLOC_CAP_DEFAULT); }
 
+    /**
+     * @brief Deallocate the tensor object.
+     *
+     * @param ptr Pointer previously returned by operator new
+     */
     void operator delete(void *ptr) { heap_caps_free(ptr); }
-#endif
 
     /**
      * @brief Assign tensor to this tensor

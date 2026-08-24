@@ -127,9 +127,10 @@ void load_input_output_ptr()
  * the per-args shell therefore freed each block twice. This RAII class allocates them once and
  * releases them once in its destructor, after module_forward_dual_core() has rejoined both cores.
  *
- * @tparam feature_t
+ * @tparam feature_t type of the input / output activations
+ * @tparam filter_t   type of the filter elements, differs from feature_t for mixed precision (W8A16)
  */
-template <typename feature_t>
+template <typename feature_t, typename filter_t = feature_t>
 class ConvOpArgs {
 public:
     ConvOpArgs(TensorBase *output,
@@ -305,7 +306,7 @@ public:
         args.filter_y_offset_unaligned = 0;
         args.filter_n_offset_unaligned = 0;
         args.filter_element_unaligned = args.n_remainder
-            ? ((feature_t *)args.filter_element +
+            ? ((filter_t *)args.filter_element +
                args.n_div_x * args.filter_height * args.filter_width * args.filter_c * u)
             : args.filter_element;
 
@@ -379,7 +380,7 @@ private:
     std::vector<ArgsType<feature_t>> m_args;
 };
 
-template <typename feature_t, typename buffer_t>
+template <typename feature_t, typename buffer_t, typename filter_t = feature_t>
 void conv_operation_shell(ArgsType<feature_t> &args,
                           ImplFunc_t<feature_t, feature_t> i_impl_func,
                           ImplFunc_t<feature_t, feature_t> i_impl_func_sp,
@@ -419,22 +420,25 @@ void conv_operation_shell(ArgsType<feature_t> &args,
 
         int filter_h = args.filter_height;
         int filter_w = args.filter_width;
-        feature_t *filter_ptr = (feature_t *)(args.filter_element);
+        filter_t *filter_ptr = (filter_t *)(args.filter_element);
 
         if (i_impl_func_sp) {
             feature_t *input_y_real;
             feature_t *input_x_real;
-            feature_t *filter_ptr_y;
+            filter_t *filter_ptr_y;
             feature_t *output_yx = output_ptr;
-            feature_t *filter_ptr_unaligned = (feature_t *)(args.filter_element_unaligned);
-            feature_t *filter_ptr_y_unaligned;
-            int unaligned_filter_c_n_offset = args.filter_c * sizeof(feature_t);
+            filter_t *filter_ptr_unaligned = (filter_t *)(args.filter_element_unaligned);
+            filter_t *filter_ptr_y_unaligned;
+            int unaligned_filter_c_n_offset = args.filter_c * sizeof(filter_t);
 #if CONFIG_PIE_V1_BOOST || CONFIG_PIE_V2_BOOST
-            int filter_c_n_offset = args.n_div_x ? args.filter_c * 16 : unaligned_filter_c_n_offset;
+            // One filter block interleaves 16 / sizeof(feature_t) output channels, which is what the
+            // vector MAC accumulates in parallel, and each of them contributes sizeof(filter_t) bytes.
+            int filter_c_n_offset = args.n_div_x ? args.filter_c * (16 / sizeof(feature_t)) * sizeof(filter_t)
+                                                 : unaligned_filter_c_n_offset;
 #else
             int filter_c_n_offset = unaligned_filter_c_n_offset;
 #endif
-            int filter_c_n_ptr_offset = filter_c_n_offset / sizeof(feature_t);
+            int filter_c_n_ptr_offset = filter_c_n_offset / sizeof(filter_t);
 
             if (n_wise_tail) {
                 for (size_t output_y = 0; output_y < n_h_head; output_y++) {
@@ -943,7 +947,7 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                 (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
             feature_t *input_y_real;
             feature_t *input_x_real;
-            feature_t *filter_ptr_y;
+            filter_t *filter_ptr_y;
             feature_t *output_yx = output_ptr;
             int filter_c_n_offset = args.input_channel;
             int filter_c_n_ptr_offset = filter_c_n_offset;

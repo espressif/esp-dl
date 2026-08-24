@@ -1,5 +1,7 @@
 # Name,   Type, SubType, Offset,  Size, Flags
 # Note: if you change the phy_init or app partition offset, make sure to change the offset in Kconfig.projbuild
 
-factory,  app,  factory,  0x010000,  8M,
+# The default model location is FLASH rodata, so the app image also carries the
+# 3s and 6s models (~2.7M each). Keep the factory partition large enough for both.
+factory,  app,  factory,  0x010000,  12M,
 storage,  data, spiffs,   ,          1M,

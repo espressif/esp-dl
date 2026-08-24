@@ -3,13 +3,14 @@
 #include "dl_base_activate_buffer.hpp"
 #include "dl_base_activate_output.hpp"
 #include "dl_base_isa.hpp"
+#include <cstring>
 
 namespace dl {
 namespace base {
-template <typename feature_t, typename buffer_t>
+template <typename feature_t, typename buffer_t, typename filter_t = feature_t>
 inline void conv2d_11cn(buffer_t *buffer_ptr, feature_t *input_ptr, const ArgsType<feature_t> &args)
 {
-    const feature_t *filter_element = (const feature_t *)args.filter_element;
+    const filter_t *filter_element = (const filter_t *)args.filter_element;
 
     // filter in sequence [H, W, C, N]
     // for (size_t input_c = 0; input_c < args.input_channel; input_c++)
@@ -32,7 +33,7 @@ inline void conv2d_11cn(buffer_t *buffer_ptr, feature_t *input_ptr, const ArgsTy
     }
 }
 
-template <typename feature_t, typename buffer_t>
+template <typename feature_t, typename buffer_t, typename filter_t = feature_t>
 inline void conv2d_33cn(buffer_t *buffer_ptr, feature_t *input_ptr, const ArgsType<feature_t> &args)
 {
     // filter in sequence [H, W, C, N]
@@ -74,17 +75,17 @@ inline void conv2d_33cn(buffer_t *buffer_ptr, feature_t *input_ptr, const ArgsTy
     feature_t *input_21 = input_20 + args.input_dilation_x_offset;
     feature_t *input_22 = input_21 + args.input_dilation_x_offset;
 
-    const feature_t *filter_00 = (const feature_t *)args.filter_element;
-    const feature_t *filter_01 = filter_00 + args.input_channel;
-    const feature_t *filter_02 = filter_01 + args.input_channel;
+    const filter_t *filter_00 = (const filter_t *)args.filter_element;
+    const filter_t *filter_01 = filter_00 + args.input_channel;
+    const filter_t *filter_02 = filter_01 + args.input_channel;
 
-    const feature_t *filter_10 = filter_00 + args.filter_y_offset_c;
-    const feature_t *filter_11 = filter_10 + args.input_channel;
-    const feature_t *filter_12 = filter_11 + args.input_channel;
+    const filter_t *filter_10 = filter_00 + args.filter_y_offset_c;
+    const filter_t *filter_11 = filter_10 + args.input_channel;
+    const filter_t *filter_12 = filter_11 + args.input_channel;
 
-    const feature_t *filter_20 = filter_10 + args.filter_y_offset_c;
-    const feature_t *filter_21 = filter_20 + args.input_channel;
-    const feature_t *filter_22 = filter_21 + args.input_channel;
+    const filter_t *filter_20 = filter_10 + args.filter_y_offset_c;
+    const filter_t *filter_21 = filter_20 + args.input_channel;
+    const filter_t *filter_22 = filter_21 + args.input_channel;
 
     for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
         buffer_t acc = 0;
@@ -113,7 +114,7 @@ inline void conv2d_33cn(buffer_t *buffer_ptr, feature_t *input_ptr, const ArgsTy
     }
 }
 
-template <typename feature_t, typename buffer_t>
+template <typename feature_t, typename buffer_t, typename filter_t = feature_t>
 inline void conv2d_hwcn(buffer_t *buffer_ptr, feature_t *input_ptr, const ArgsType<feature_t> &args)
 {
     // filter in sequence [H, W, C, N]
@@ -138,7 +139,7 @@ inline void conv2d_hwcn(buffer_t *buffer_ptr, feature_t *input_ptr, const ArgsTy
     // }
 
     // filter in sequence [N, H, W, C]
-    const feature_t *filter_element = (const feature_t *)args.filter_element;
+    const filter_t *filter_element = (const filter_t *)args.filter_element;
     for (size_t output_c = 0; output_c < args.output_channel; output_c++)         // N
     {                                                                             //
         feature_t *input_syx_dy = input_ptr;                                      //
@@ -936,6 +937,429 @@ void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
     }
 
     conv_operation_shell<int16_t, int64_t>(args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// specialize conv2d<int16_t, int32_t, int64_t, int8_t>: W8A16, int8 filter with int16 activations
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#if CONFIG_PIE_V2_BOOST || CONFIG_PIE_V1_BOOST
+static inline int64_t w8a16_load_bias(const void *bias, int output_c)
+{
+#if CONFIG_IDF_TARGET_ESP32S3
+    // 8 channels occupy 64 bytes: two groups of 4 x 5-byte 40-bit values, each padded to 32.
+    const int8_t *p = static_cast<const int8_t *>(bias);
+    p += (output_c / 8) * 64 + ((output_c % 8) / 4) * 32 + (output_c % 4) * 5;
+    uint64_t u = 0;
+    memcpy(&u, p, 5);
+    int64_t v = static_cast<int64_t>(u);
+    if (v & (1LL << 39)) {
+        v |= ~((1LL << 40) - 1);
+    }
+    return v;
+#else
+    return static_cast<const int64_t *>(bias)[output_c];
+#endif
+}
+
+/**
+ * @brief W8A16 convolution over the (N/8)HWC8 filter layout, without vector instructions.
+ *
+ * Covers the cases the SIMD kernels cannot: those need 16-byte aligned activations and
+ * an input channel count that is a multiple of 8. Handles any filter shape, so it doubles
+ * as the 1x1 and 3x3 fallback.
+ */
+void w8a16_conv2d_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr)
+{
+    const ArgsType<int16_t> &args = *((const ArgsType<int16_t> *)args_ptr);
+    const int8_t *filter = (const int8_t *)args.filter_element;
+    const void *bias = args.bias_element;
+    const int16_t *channel_shift = args.tie_filter_channel_factor;
+    const bool per_channel = args.mac_shift == INT_MIN;
+    const bool relu = args.activation_type == ReLU;
+    const int channel = args.input_channel;
+
+    int output_c = 0;
+    for (int block = 0; block < args.n_div_x; block++) {
+        int64_t acc[8];
+        for (int j = 0; j < 8; j++) {
+            acc[j] = bias ? w8a16_load_bias(bias, output_c + j) : 0;
+        }
+
+        int16_t *input_y = input_ptr;
+        for (int filter_y = 0; filter_y < args.filter_height; filter_y++) {
+            int16_t *input_x = input_y;
+            for (int filter_x = 0; filter_x < args.filter_width; filter_x++) {
+                for (int c = 0; c < channel; c++) {
+                    int32_t input_value = input_x[c];
+                    const int8_t *taps = filter + c * 8;
+                    for (int j = 0; j < 8; j++) {
+                        acc[j] += (int64_t)input_value * taps[j];
+                    }
+                }
+                filter += channel * 8;
+                input_x += args.input_dilation_x_offset;
+            }
+            filter += args.filter_y_offset;
+            input_y += args.input_dilation_y_offset;
+        }
+        filter += args.filter_n_offset;
+
+        for (int j = 0; j < 8; j++, output_c++) {
+            int64_t value =
+                tool::shift_and_round<int64_t>(acc[j], per_channel ? channel_shift[output_c] : args.mac_shift);
+            if (relu && value < 0) {
+                value = 0;
+            }
+            tool::truncate(output_ptr[output_c], value);
+        }
+    }
+
+    // The output channels that do not fill a whole block keep the plain [N][H][W][C] layout.
+    const int8_t *filter_tail = (const int8_t *)args.filter_element_unaligned;
+    for (int tail = 0; tail < args.n_remainder; tail++, output_c++) {
+#if CONFIG_IDF_TARGET_ESP32S3
+        const int64_t *bias_tail =
+            bias ? reinterpret_cast<const int64_t *>(static_cast<const int8_t *>(bias) + args.n_div_x * 64) : nullptr;
+        int64_t acc = bias_tail ? bias_tail[tail] : 0;
+#else
+        int64_t acc = bias ? static_cast<const int64_t *>(bias)[output_c] : 0;
+#endif
+
+        int16_t *input_y = input_ptr;
+        for (int filter_y = 0; filter_y < args.filter_height; filter_y++) {
+            int16_t *input_x = input_y;
+            for (int filter_x = 0; filter_x < args.filter_width; filter_x++) {
+                for (int c = 0; c < channel; c++) {
+                    acc += (int64_t)input_x[c] * filter_tail[c];
+                }
+                filter_tail += channel;
+                input_x += args.input_dilation_x_offset;
+            }
+            filter_tail += args.filter_y_offset_unaligned;
+            input_y += args.input_dilation_y_offset;
+        }
+        filter_tail += args.filter_n_offset_unaligned;
+
+        int64_t value = tool::shift_and_round<int64_t>(acc, per_channel ? channel_shift[output_c] : args.mac_shift);
+        if (relu && value < 0) {
+            value = 0;
+        }
+        tool::truncate(output_ptr[output_c], value);
+    }
+}
+#endif
+
+inline void load_conv2d_w8a16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
+                              ImplFunc_t<int16_t, int16_t> &i_impl_func_sp,
+                              c_impl_func_s16_t &c_impl_func,
+                              c_impl_func_s16_t &c_impl_func_sp,
+                              n_wise_func_s16_t &n_wise_func,
+                              const ArgsType<int16_t> &args)
+{
+#if CONFIG_PIE_V2_BOOST
+    bool pointwise = args.filter_height == 1 && args.filter_width == 1;
+    bool square3x3 = args.filter_height == 3 && args.filter_width == 3;
+    bool aligned = args.output_channel % 8 == 0 && args.input_channel % 8 == 0 &&
+        !((unsigned)&args.input_element[0] & 15) && !((unsigned)&args.output_element[0] & 15);
+    bool per_channel = args.mac_shift == INT_MIN;
+
+    if (args.bias_element) {
+        switch (args.activation_type) {
+        case Linear:
+            if (aligned) {
+                if (pointwise) {
+                    i_impl_func_sp =
+                        per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_11cn_bias : dl_esp32p4_w8a16_conv2d_11cn_bias;
+                } else if (square3x3) {
+                    i_impl_func_sp =
+                        per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_33cn_bias : dl_esp32p4_w8a16_conv2d_33cn_bias;
+                }
+                i_impl_func =
+                    per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_hwcn_bias : dl_esp32p4_w8a16_conv2d_hwcn_bias;
+            } else {
+                if (pointwise) {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_bias
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_11cn_bias;
+                } else if (square3x3) {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_bias
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_33cn_bias;
+                    i_impl_func = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias
+                                              : dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias;
+                } else {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias;
+                    i_impl_func = i_impl_func_sp;
+                }
+            }
+            break;
+        case ReLU:
+            if (aligned) {
+                if (pointwise) {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_11cn_bias_relu
+                                                 : dl_esp32p4_w8a16_conv2d_11cn_bias_relu;
+                } else if (square3x3) {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_33cn_bias_relu
+                                                 : dl_esp32p4_w8a16_conv2d_33cn_bias_relu;
+                }
+                i_impl_func = per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_hwcn_bias_relu
+                                          : dl_esp32p4_w8a16_conv2d_hwcn_bias_relu;
+            } else {
+                if (pointwise) {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_bias_relu
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_11cn_bias_relu;
+                } else if (square3x3) {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_bias_relu
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_33cn_bias_relu;
+                    i_impl_func = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias_relu
+                                              : dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias_relu;
+                } else {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias_relu
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias_relu;
+                    i_impl_func = i_impl_func_sp;
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    } else {
+        switch (args.activation_type) {
+        case Linear:
+            if (aligned) {
+                if (pointwise) {
+                    i_impl_func_sp =
+                        per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_11cn : dl_esp32p4_w8a16_conv2d_11cn;
+                } else if (square3x3) {
+                    i_impl_func_sp =
+                        per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_33cn : dl_esp32p4_w8a16_conv2d_33cn;
+                }
+                i_impl_func = per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_hwcn : dl_esp32p4_w8a16_conv2d_hwcn;
+            } else {
+                if (pointwise) {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_11cn;
+                } else if (square3x3) {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_33cn;
+                    i_impl_func = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn
+                                              : dl_esp32p4_w8a16_unaligned_conv2d_hwcn;
+                } else {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_hwcn;
+                    i_impl_func = i_impl_func_sp;
+                }
+            }
+            break;
+        case ReLU:
+            if (aligned) {
+                if (pointwise) {
+                    i_impl_func_sp =
+                        per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_11cn_relu : dl_esp32p4_w8a16_conv2d_11cn_relu;
+                } else if (square3x3) {
+                    i_impl_func_sp =
+                        per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_33cn_relu : dl_esp32p4_w8a16_conv2d_33cn_relu;
+                }
+                i_impl_func =
+                    per_channel ? dl_esp32p4_w8a16_conv2d_per_channel_hwcn_relu : dl_esp32p4_w8a16_conv2d_hwcn_relu;
+            } else {
+                if (pointwise) {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_relu
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_11cn_relu;
+                } else if (square3x3) {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_relu
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_33cn_relu;
+                    i_impl_func = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_relu
+                                              : dl_esp32p4_w8a16_unaligned_conv2d_hwcn_relu;
+                } else {
+                    i_impl_func_sp = per_channel ? dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_relu
+                                                 : dl_esp32p4_w8a16_unaligned_conv2d_hwcn_relu;
+                    i_impl_func = i_impl_func_sp;
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    if (!i_impl_func && i_impl_func_sp) {
+        i_impl_func = i_impl_func_sp;
+    }
+    if (!i_impl_func) {
+        // LeakyReLU / PReLU have no vector kernel yet.
+        i_impl_func = w8a16_conv2d_hwcn;
+    }
+    if (!i_impl_func_sp) {
+        i_impl_func_sp = i_impl_func;
+    }
+    return;
+
+#elif CONFIG_PIE_V1_BOOST
+    bool pointwise = args.filter_height == 1 && args.filter_width == 1;
+    bool square3x3 = args.filter_height == 3 && args.filter_width == 3;
+    bool aligned = args.output_channel % 8 == 0 && args.input_channel % 8 == 0 && args.mac_shift != INT_MIN &&
+        !((unsigned)&args.input_element[0] & 15) && !((unsigned)&args.output_element[0] & 15);
+
+    if (args.bias_element) {
+        switch (args.activation_type) {
+        case Linear:
+            if (aligned) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_conv2d_11cn_bias;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_conv2d_33cn_bias;
+                }
+                i_impl_func = dl_tie728_w8a16_conv2d_hwcn_bias;
+            } else if (args.mac_shift != INT_MIN) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_11cn_bias;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_33cn_bias;
+                    i_impl_func = dl_tie728_w8a16_unaligned_conv2d_hwcn_bias;
+                } else {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_hwcn_bias;
+                    i_impl_func = i_impl_func_sp;
+                }
+            }
+            break;
+        case ReLU:
+            if (aligned) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_conv2d_11cn_bias_relu;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_conv2d_33cn_bias_relu;
+                }
+                i_impl_func = dl_tie728_w8a16_conv2d_hwcn_bias_relu;
+            } else if (args.mac_shift != INT_MIN) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_11cn_bias_relu;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_33cn_bias_relu;
+                    i_impl_func = dl_tie728_w8a16_unaligned_conv2d_hwcn_bias_relu;
+                } else {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_hwcn_bias_relu;
+                    i_impl_func = i_impl_func_sp;
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    } else {
+        switch (args.activation_type) {
+        case Linear:
+            if (aligned) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_conv2d_11cn;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_conv2d_33cn;
+                }
+                i_impl_func = dl_tie728_w8a16_conv2d_hwcn;
+            } else if (args.mac_shift != INT_MIN) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_11cn;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_33cn;
+                    i_impl_func = dl_tie728_w8a16_unaligned_conv2d_hwcn;
+                } else {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_hwcn;
+                    i_impl_func = i_impl_func_sp;
+                }
+            }
+            break;
+        case ReLU:
+            if (aligned) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_conv2d_11cn_relu;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_conv2d_33cn_relu;
+                }
+                i_impl_func = dl_tie728_w8a16_conv2d_hwcn_relu;
+            } else if (args.mac_shift != INT_MIN) {
+                if (pointwise) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_11cn_relu;
+                } else if (square3x3) {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_33cn_relu;
+                    i_impl_func = dl_tie728_w8a16_unaligned_conv2d_hwcn_relu;
+                } else {
+                    i_impl_func_sp = dl_tie728_w8a16_unaligned_conv2d_hwcn_relu;
+                    i_impl_func = i_impl_func_sp;
+                }
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    if (!i_impl_func && i_impl_func_sp) {
+        i_impl_func = i_impl_func_sp;
+    }
+    if (!i_impl_func) {
+        // LeakyReLU / PReLU / per-channel have no vector kernel yet.
+        i_impl_func = w8a16_conv2d_hwcn;
+    }
+    if (!i_impl_func_sp) {
+        i_impl_func_sp = i_impl_func;
+    }
+    return;
+
+#else // C/C++ implementation, the filter keeps the plain [N][H][W][C] layout
+    if (args.filter_height == 1 && args.filter_width == 1) {
+        c_impl_func_sp = conv2d_11cn<int16_t, DL_S16_BUFFER_TYPE, int8_t>;
+        c_impl_func = c_impl_func_sp;
+    } else if (args.filter_height == 3 && args.filter_width == 3) {
+        c_impl_func_sp = conv2d_33cn<int16_t, DL_S16_BUFFER_TYPE, int8_t>;
+        c_impl_func = conv2d_hwcn<int16_t, DL_S16_BUFFER_TYPE, int8_t>;
+    } else {
+        c_impl_func_sp = conv2d_hwcn<int16_t, DL_S16_BUFFER_TYPE, int8_t>;
+        c_impl_func = c_impl_func_sp;
+    }
+
+    if (args.bias_element) {
+        switch (args.activation_type) {
+        case Linear:
+            n_wise_func = buffer_bias_linear<int16_t, DL_S16_BUFFER_TYPE, DL_S16_BUFFER_TYPE>;
+            break;
+        case ReLU:
+            n_wise_func = buffer_bias_relu<int16_t, DL_S16_BUFFER_TYPE, DL_S16_BUFFER_TYPE>;
+            break;
+        default:
+            break;
+        }
+    } else {
+        switch (args.activation_type) {
+        case Linear:
+            n_wise_func = buffer_0000_linear<int16_t, DL_S16_BUFFER_TYPE>;
+            break;
+        case ReLU:
+            n_wise_func = buffer_0000_relu<int16_t, DL_S16_BUFFER_TYPE>;
+            break;
+        default:
+            break;
+        }
+    }
+    return;
+#endif
+}
+
+template <>
+void conv2d<int16_t, int32_t, int64_t, int8_t>(void *args_ptr)
+{
+    ArgsType<int16_t> &args = *((ArgsType<int16_t> *)args_ptr);
+
+    ImplFunc_t<int16_t, int16_t> i_impl_func;
+    ImplFunc_t<int16_t, int16_t> i_impl_func_sp;
+    c_impl_func_s16_t c_impl_func = NULL;
+    c_impl_func_s16_t c_impl_func_sp = NULL;
+    n_wise_func_s16_t n_wise_func = NULL;
+
+#if CONFIG_PIE_V2_BOOST
+    dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
+#endif
+
+    load_conv2d_w8a16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
+
+    conv_operation_shell<int16_t, int64_t, int8_t>(
+        args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -14,7 +14,7 @@
     - pip install toml
     - pip install ${TORCH} --index-url https://download.pytorch.org/whl/cpu
     - pip install esp-ppq
-    - python tools/ops_test/gen_test_cases.py -t ${TARGET} -b ${BITS} -o ${MODEL_PATH}/${TARGET} -c ${CONFIG_FILE} --ops ${OPS}
+    - python tools/ops_test/gen_test_cases.py -t ${TARGET} -q ${QUANT_TYPE} -o ${MODEL_PATH}/${TARGET} -c ${CONFIG_FILE} --ops ${OPS}
 
 install_esp_ppq:
   extends:
@@ -32,7 +32,7 @@ install_esp_ppq:
     MODEL_PATH: test_apps/esp-dl/models
     CONFIG_FILE: tools/ops_test/config/op_cfg.toml
     OPS: Add
-    BITS: 8
+    QUANT_TYPE: w8a8
 
 gen_espdl_ops_cases:
   extends:
@@ -41,9 +41,9 @@ gen_espdl_ops_cases:
   parallel:
     matrix:
       - TARGET: [esp32p4, esp32s3, c]
-        BITS: [8, 16]
+        QUANT_TYPE: [w8a8, w16a16, w8a16]
       - TARGET: [esp32p4]
-        BITS: [32]
+        QUANT_TYPE: [none]
   variables:
     IMAGE: "python:3.11"
     TORCH: "torch==2.5.0"

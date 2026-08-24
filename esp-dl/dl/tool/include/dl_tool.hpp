@@ -77,6 +77,65 @@ namespace dl {
 namespace tool {
 
 /**
+ * @brief Round a float half away from zero.
+ *
+ * Kept in the header, and lowered to the single FPU conversion instruction where there is one:
+ * GCC never emits it for (int)floorf(x + 0.5f) (not even with -fno-math-errno), it calls libm
+ * instead. The operators that round element by element used to pay two nested windowed calls
+ * per element for this.
+ *
+ * @param value The float value.
+ * @return int
+ */
+inline int round_half_up(float value)
+{
+#if CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S3
+    int int_part;
+    __asm__("floor.s %0, %1, 0" : "=a"(int_part) : "f"(value + 0.5f));
+    return int_part;
+#else
+    return (int)floorf(value + 0.5f);
+#endif
+}
+
+/**
+ * @brief Round a float half to even.
+ *
+ * @param value The float value.
+ * @return int
+ */
+inline int round_half_even(float value)
+{
+#if CONFIG_PIE_V2_BOOST
+    int ret;
+    __asm__ volatile("fcvt.w.s %0, %1, rne" : "=r"(ret) : "f"(value));
+    return ret;
+#else
+    float rounded;
+    if (value < 0) {
+        rounded = value - 0.5f;
+    } else {
+        rounded = value + 0.5f;
+    }
+
+    int int_part = (int)rounded;
+    if (fabsf(rounded - int_part) < 1e-6) {
+        if ((int_part & 1) != 0) {
+            if (value < 0)
+                int_part++;
+            else
+                int_part--;
+        }
+    }
+    return int_part;
+#endif
+}
+
+int round_half_up(double value);
+
+int round_half_even(double value);
+
+/**
  * @brief Encapsulate the round strategies for different platforms.
  * esp32p4:rounding half to even
  * esp32s3:rounding half up
@@ -85,7 +144,14 @@ namespace tool {
  * @return int
  */
 template <typename T>
-int round(T value);
+inline int round(T value)
+{
+#if CONFIG_ROUND_HALF_EVEN_ENABLED
+    return round_half_even(value);
+#else
+    return round_half_up(value);
+#endif
+}
 
 /**
  * @brief round(shift(x)). Round strategies is same as round().

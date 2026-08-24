@@ -10,9 +10,10 @@ namespace base {
  * @tparam feature_t
  * @tparam bias_t
  * @tparam buffer_t
+ * @tparam filter_t  filter element type, only differs from feature_t for mixed precision (W8A16)
  * @param args_ptr
  */
-template <typename feature_t, typename bias_t, typename buffer_t>
+template <typename feature_t, typename bias_t, typename buffer_t, typename filter_t = feature_t>
 void conv2d(void *const args_ptr);
 } // namespace base
 } // namespace dl

@@ -21,6 +21,43 @@ from torch.utils.data import DataLoader
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 torch.manual_seed(42)
 
+_VALID_QUANT_TYPES = ("w8a8", "w8a16", "w16a16", "none")
+_QUANT_TYPE_ACT_BITS = {"w8a8": 8, "w8a16": 16, "w16a16": 16, "none": 8}
+_CFG_TO_QUANT_TYPE = {
+    "int8": "w8a8",
+    "int16": "w16a16",
+    "float32": "none",
+    "w8a8": "w8a8",
+    "w8a16": "w8a16",
+    "w16a16": "w16a16",
+    "none": "none",
+}
+_QUANT_TYPE_EXPORT_SUFFIX = {
+    "w8a8": "_s8",
+    "w8a16": "_w8a16",
+    "w16a16": "_s16",
+    "none": "_f32",
+}
+
+
+def resolve_quant_type(quant_type, num_of_bits, use_float):
+    if quant_type is not None:
+        resolved = quant_type.lower()
+        if resolved not in _VALID_QUANT_TYPES:
+            raise ValueError(
+                "Unsupported quant_type '{}'. Expected one of {}.".format(
+                    quant_type, list(_VALID_QUANT_TYPES)
+                )
+            )
+        return resolved
+    if use_float:
+        return "none"
+    if num_of_bits == 8:
+        return "w8a8"
+    if num_of_bits == 16:
+        return "w16a16"
+    raise ValueError("Unsupported bits: {}".format(num_of_bits))
+
 
 class BaseInferencer:
     def __init__(
@@ -33,6 +70,7 @@ class BaseInferencer:
         model_version="1.0",
         meta_cfg=None,
         use_float=False,
+        quant_type=None,
     ):
         if not os.path.exists(export_path):
             os.makedirs(export_path)
@@ -41,7 +79,6 @@ class BaseInferencer:
         self.model = model
         self.model_cfg = model_cfg
         self.onnx_file = None
-        self.use_float = use_float
 
         if isinstance(model, onnx.ModelProto):
             self.model_cfg = model_cfg
@@ -71,19 +108,19 @@ class BaseInferencer:
         )
 
         # get quantization config.
-        self.num_of_bits = num_of_bits
+        self.quant_type = resolve_quant_type(quant_type, num_of_bits, use_float)
+        self.use_float = self.quant_type == "none"
+        self.num_of_bits = _QUANT_TYPE_ACT_BITS[self.quant_type]
         self.model_version = model_version
         self.target = target
         self.input_dtype = torch.float
 
     def __call__(self):
         # get the export files path
-        if self.use_float:
-            name_prefix = self.model_cfg["export_name_prefix"] + "_f32"
-        else:
-            name_prefix = (
-                self.model_cfg["export_name_prefix"] + "_s" + str(self.num_of_bits)
-            )
+        name_prefix = (
+            self.model_cfg["export_name_prefix"]
+            + _QUANT_TYPE_EXPORT_SUFFIX[self.quant_type]
+        )
         espdl_export_file = os.path.join(self.export_path, name_prefix + ".espdl")
 
         collate_fn = (
@@ -121,7 +158,7 @@ class BaseInferencer:
                 verbose=1,
                 int16_lut_step=1,
                 metadata_props={"target": self.target},
-                float=self.use_float,
+                quant_type=self.quant_type,
             )
 
         else:
@@ -143,7 +180,7 @@ class BaseInferencer:
                 verbose=1,
                 int16_lut_step=1,
                 metadata_props={"target": self.target},
-                float=self.use_float,
+                quant_type=self.quant_type,
             )
 
     def load_calibration_dataset(self) -> Iterable:
@@ -216,6 +253,15 @@ if __name__ == "__main__":
         help="the number of bits, support 8 or 16, (defaults: 8).",
     )
     parser.add_argument(
+        "-q",
+        "--quant-type",
+        type=str,
+        default=None,
+        choices=list(_VALID_QUANT_TYPES),
+        help="quantization scheme: w8a8, w8a16, w16a16, or none (FP32). "
+        "Overrides --bits/--float when set.",
+    )
+    parser.add_argument(
         "-v",
         "--version",
         type=str,
@@ -238,6 +284,7 @@ if __name__ == "__main__":
     config = toml.load(args.config)
 
     use_float = args.float or args.bits > 16
+    quant_type = resolve_quant_type(args.quant_type, args.bits, use_float)
 
     if not args.models:
         op_test_config = config["ops_test"]
@@ -249,7 +296,10 @@ if __name__ == "__main__":
             pkg = importlib.import_module(op_test_config[op_type]["package"])
             op_configs = op_test_config[op_type]["cfg"]
             op_test_func = op_test_config[op_type]["test_func"]
-            quant_bits = op_test_config[op_type].get("quant_bits", [])
+            op_quant_types = {
+                _CFG_TO_QUANT_TYPE.get(item, item)
+                for item in op_test_config[op_type].get("quant_type", [])
+            }
 
             # Add for per channel testing, only for conv, convtranspose and gemm op on esp32p4/esp32s31 platform.
             per_channel_enable = False
@@ -260,11 +310,7 @@ if __name__ == "__main__":
             ]:
                 per_channel_enable = True
 
-            if (
-                (args.bits == 8 and "int8" in quant_bits)
-                or (args.bits == 16 and "int16" in quant_bits)
-                or (use_float and "float32" in quant_bits)
-            ):
+            if quant_type in op_quant_types:
                 export_path = os.path.join(args.output_path, op_type)
                 for cfg in op_configs:
                     cfg["per_channel_enable"] = per_channel_enable
@@ -279,8 +325,8 @@ if __name__ == "__main__":
                         pkg.__name__,
                         "Output Path: ",
                         export_path,
-                        "float: ",
-                        use_float,
+                        "quant_type: ",
+                        quant_type,
                     )
                     op = getattr(pkg, op_test_func)(cfg)
                     BaseInferencer(
@@ -292,24 +338,23 @@ if __name__ == "__main__":
                         model_version=args.version,
                         meta_cfg=config["meta"],
                         use_float=use_float,
+                        quant_type=quant_type,
                     )()
             else:
                 print(
-                    f"Skip op: {op_type}, do not support quantization with {args.bits} bits."
+                    f"Skip op: {op_type}, do not support quantization with {quant_type}."
                 )
     else:
         model_config = config["models_test"][args.models]
-        if args.bits == 8 or args.bits == 16:
-            model = onnx.load(model_config["onnx_model_path"])
-            BaseInferencer(
-                model,
-                export_path=args.output_path,
-                model_cfg=model_config,
-                target=args.target,
-                num_of_bits=args.bits,
-                model_version=args.version,
-                meta_cfg=config["meta"],
-                use_float=use_float,
-            )()
-        else:
-            print(f"Do not support quantization with {args.bits} bits.")
+        model = onnx.load(model_config["onnx_model_path"])
+        BaseInferencer(
+            model,
+            export_path=args.output_path,
+            model_cfg=model_config,
+            target=args.target,
+            num_of_bits=args.bits,
+            model_version=args.version,
+            meta_cfg=config["meta"],
+            use_float=use_float,
+            quant_type=quant_type,
+        )()

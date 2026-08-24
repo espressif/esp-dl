@@ -43,6 +43,36 @@ void dl_tie728_s16_conv2d_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *ar
 void dl_tie728_s16_conv2d_hwcn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_tie728_s16_conv2d_hwcn_prelu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 
+void dl_tie728_w8a16_conv2d_11cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_11cn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_11cn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_11cn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_tie728_w8a16_conv2d_33cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_33cn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_33cn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_33cn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_tie728_w8a16_conv2d_hwcn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_hwcn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_conv2d_hwcn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_tie728_w8a16_unaligned_conv2d_11cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_unaligned_conv2d_11cn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_unaligned_conv2d_11cn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_unaligned_conv2d_11cn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_tie728_w8a16_unaligned_conv2d_33cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_unaligned_conv2d_33cn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_unaligned_conv2d_33cn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_unaligned_conv2d_33cn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_tie728_w8a16_unaligned_conv2d_hwcn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_unaligned_conv2d_hwcn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_unaligned_conv2d_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+void dl_tie728_w8a16_unaligned_conv2d_hwcn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
 void dl_tie728_s16_unaligned_conv2d_hwcn(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_tie728_s16_unaligned_conv2d_hwcn_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_tie728_s16_unaligned_conv2d_hwcn_leakyrelu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
@@ -89,6 +119,8 @@ void dl_tie728_s16_avg_pool2d_hwc1(int16_t *output_ptr, int16_t *input_ptr, void
 void dl_tie728_s16_avg_pool2d_22c1(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_tie728_s16_unaligned_avg_pool2d_hwc1(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_tie728_s16_unaligned_avg_pool2d_22c1(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
+
+void dl_tie728_s16_avg_pool2d_hwc_sum(uint32_t *scratch_ptr, int16_t *input_ptr, void *args_ptr);
 
 void dl_tie728_s16_add2d_11c(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
 void dl_tie728_s16_add2d_11c_relu(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
@@ -244,6 +276,8 @@ void dl_tie728_s8_unaligned_avg_pool2d_22c1(int8_t *output_ptr, int8_t *input_pt
 
 void dl_tie728_s8_avg_pool2d_hwc1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
 void dl_tie728_s8_unaligned_avg_pool2d_hwc1(int8_t *output_ptr, int8_t *input_ptr, void *args_ptr);
+
+void dl_tie728_s8_avg_pool2d_hwc_sum(int32_t *buffer_ptr, int8_t *input_ptr, void *args_ptr);
 
 void dl_tie728_s8_add2d_11c(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
 void dl_tie728_s8_add2d_11c_relu(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
