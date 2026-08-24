@@ -153,7 +153,9 @@
 .patterns-tool_ops_test: &patterns-tool_ops_test
   - "tools/ops_test/config/op_cfg.toml"
   - "tools/ops_test/gen_test_cases.py"
-  - "tools/ops_test/ops_cases.py"
+  - "tools/ops_test/manage_case_package.py"
+  - "tools/ops_test/torch_ops_test.py"
+  - "tools/ops_test/onnx_ops_test.py"
 
 .patterns-test_dl_fft: &patterns-test_dl_fft
   - "tools/dl_fft/**/*"

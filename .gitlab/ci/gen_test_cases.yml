@@ -4,6 +4,8 @@
   tags: ["build", "amd64"]
   dependencies: []
   timeout: 3 hour
+  variables:
+    ESP_PPQ_VERSION: "1.3.9"
   artifacts:
     when: always
     paths:
@@ -13,7 +15,7 @@
     - pip install --upgrade pip
     - pip install toml
     - pip install ${TORCH} --index-url https://download.pytorch.org/whl/cpu
-    - pip install esp-ppq
+    - pip install esp-ppq==${ESP_PPQ_VERSION}
     - python tools/ops_test/gen_test_cases.py -t ${TARGET} -q ${QUANT_TYPE} -o ${MODEL_PATH}/${TARGET} -c ${CONFIG_FILE} --ops ${OPS}
 
 install_esp_ppq:
@@ -50,3 +52,86 @@ gen_espdl_ops_cases:
     MODEL_PATH: test_apps/esp-dl/models
     CONFIG_FILE: tools/ops_test/config/op_cfg.toml
     OPS: ALL
+  script:
+    - |
+      set -eu
+      CASE_MANAGER="tools/ops_test/manage_case_package.py"
+      CASE_FINGERPRINT="$(
+        python "${CASE_MANAGER}" fingerprint \
+          --esp-ppq-version "${ESP_PPQ_VERSION}" \
+          --torch-spec "${TORCH}" \
+          --generator-options="--ops=${OPS}" \
+          "${CONFIG_FILE}" \
+          tools/ops_test/gen_test_cases.py \
+          tools/ops_test/torch_ops_test.py \
+          tools/ops_test/onnx_ops_test.py
+      )"
+      echo "Operator case package fingerprint: ${CASE_FINGERPRINT}"
+
+      CASE_STATUS="$(
+        python "${CASE_MANAGER}" restore \
+          --api-url "${CI_API_V4_URL}" \
+          --project-id "${CI_PROJECT_ID}" \
+          --token "${CI_JOB_TOKEN}" \
+          --fingerprint "${CASE_FINGERPRINT}" \
+          --target "${TARGET}" \
+          --quant-type "${QUANT_TYPE}" \
+          --project-root "${CI_PROJECT_DIR}"
+      )"
+
+      if [ "${CASE_STATUS}" = "hit" ]; then
+        echo "Reused generated operator cases from GitLab Package Registry."
+      elif [ "${CASE_STATUS}" = "miss" ]; then
+        python -m pip install --upgrade pip
+        python -m pip install toml
+        python -m pip install "${TORCH}" --index-url https://download.pytorch.org/whl/cpu
+        python -m pip install "esp-ppq==${ESP_PPQ_VERSION}"
+        python tools/ops_test/gen_test_cases.py \
+          -t "${TARGET}" \
+          -q "${QUANT_TYPE}" \
+          -o "${MODEL_PATH}/${TARGET}" \
+          -c "${CONFIG_FILE}" \
+          --ops "${OPS}"
+        python "${CASE_MANAGER}" publish \
+          --api-url "${CI_API_V4_URL}" \
+          --project-id "${CI_PROJECT_ID}" \
+          --token "${CI_JOB_TOKEN}" \
+          --fingerprint "${CASE_FINGERPRINT}" \
+          --target "${TARGET}" \
+          --quant-type "${QUANT_TYPE}" \
+          --project-root "${CI_PROJECT_DIR}" \
+          --output-root "${MODEL_PATH}" \
+          --esp-ppq-version "${ESP_PPQ_VERSION}" \
+          --torch-spec "${TORCH}"
+      else
+        echo "Unexpected package restore status: ${CASE_STATUS}" >&2
+        exit 1
+      fi
+
+cleanup_espdl_case_packages:
+  stage: gen_test_cases
+  image: "python:3.11"
+  tags: ["build", "amd64"]
+  extends:
+    - .rules:gen:ops_test
+  needs:
+    - job: "gen_espdl_ops_cases"
+      artifacts: false
+  variables:
+    PACKAGE_VERSIONS_TO_KEEP: "15"
+  script:
+    - |
+      set -eu
+      if [ -z "${PACKAGE_CLEANUP_TOKEN:-}" ]; then
+        if [ "${CI_COMMIT_REF_PROTECTED:-false}" = "true" ]; then
+          echo "PACKAGE_CLEANUP_TOKEN is required on protected branches." >&2
+          exit 1
+        fi
+        echo "Skipping package cleanup: protected PACKAGE_CLEANUP_TOKEN is unavailable."
+        exit 0
+      fi
+      python tools/ops_test/manage_case_package.py cleanup \
+        --api-url "${CI_API_V4_URL}" \
+        --project-id "${CI_PROJECT_ID}" \
+        --token "${PACKAGE_CLEANUP_TOKEN}" \
+        --keep "${PACKAGE_VERSIONS_TO_KEEP}"
