@@ -74,7 +74,7 @@ def create_md(config_file, output_path):
 
 ## Quantization Strategy
 
-The quantization type of all operators is symmetric quantization. Now ESP-DL supports both 8-bit and 16-bit.
+The quantization type of all operators is symmetric quantization. Now ESP-DL supports both 8-bit(w8a8) and 16-bit(w16a16) quantization.
 
 Currently supported targets can be divided into three categories:
 
