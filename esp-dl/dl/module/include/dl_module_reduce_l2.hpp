@@ -31,12 +31,12 @@ public:
         // For float types, skip quantization operations
         if constexpr (std::is_same<T, float>::value && std::is_same<V_T, float>::value) {
             // Directly return the square root of sum of squares for float32
-            V_T tmp = ReduceBase::reduce<reduce_op_square_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+            V_T tmp = ReduceBase::reduce_l2<V_T>(ptr, size0, stride0, size1, stride1);
             return math::sqrt_newton(tmp);
         } else {
             // For quantized types, perform scaling and truncation
             T ret = 0;
-            V_T tmp = ReduceBase::reduce<reduce_op_square_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+            V_T tmp = ReduceBase::reduce_l2<V_T>(ptr, size0, stride0, size1, stride1);
             float input_scale = DL_SCALE(input_exponent * 2);
             float output_scale = DL_RESCALE(output_exponent);
             float output_tmp = math::sqrt_newton(tmp * input_scale);

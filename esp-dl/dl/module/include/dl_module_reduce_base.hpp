@@ -1,7 +1,10 @@
 #pragma once
 
+#include "dl_base_reduce.hpp"
 #include "dl_module_base.hpp"
+#include <array>
 #include <cmath>
+#include <limits>
 
 namespace dl {
 namespace module {
@@ -69,16 +72,6 @@ public:
         return {output_shape};
     }
 
-    template <typename V_T, typename T>
-    struct reduce_op_add {
-        V_T operator()(const V_T &x, const T &y, void *arg) const { return x + y; }
-    };
-
-    template <typename V_T, typename T>
-    struct reduce_op_square_add {
-        V_T operator()(const V_T &x, const T &y, void *arg) const { return x + y * y; }
-    };
-
     template <typename Op, typename V_T, typename T>
     static V_T reduce(V_T v0, const T *ptr, int size0, int stride0, int size1, int stride1, void *arg)
     {
@@ -95,6 +88,61 @@ public:
         }
 
         return sum;
+    }
+
+    template <typename V_T, typename T>
+    static V_T reduce_sum(const T *ptr, int size0, int stride0, int size1, int stride1)
+    {
+        V_T sum = 0;
+        for (int i = 0; i < size1; i++) {
+            sum += dl::base::reduce_sum(const_cast<T *>(ptr), size0, stride0);
+            ptr += stride1;
+        }
+        return sum;
+    }
+
+    template <typename V_T, typename T>
+    static V_T reduce_l1(const T *ptr, int size0, int stride0, int size1, int stride1)
+    {
+        V_T sum = 0;
+        for (int i = 0; i < size1; i++) {
+            sum += dl::base::reduce_l1(const_cast<T *>(ptr), size0, stride0);
+            ptr += stride1;
+        }
+        return sum;
+    }
+
+    template <typename V_T, typename T>
+    static V_T reduce_l2(const T *ptr, int size0, int stride0, int size1, int stride1)
+    {
+        V_T sum = 0;
+        for (int i = 0; i < size1; i++) {
+            sum += dl::base::reduce_l2(const_cast<T *>(ptr), size0, stride0);
+            ptr += stride1;
+        }
+        return sum;
+    }
+
+    template <typename T>
+    static T reduce_max(const T *ptr, int size0, int stride0, int size1, int stride1)
+    {
+        T value = std::numeric_limits<T>::lowest();
+        for (int i = 0; i < size1; i++) {
+            value = std::max(value, dl::base::reduce_max(const_cast<T *>(ptr), size0, stride0));
+            ptr += stride1;
+        }
+        return value;
+    }
+
+    template <typename T>
+    static T reduce_min(const T *ptr, int size0, int stride0, int size1, int stride1)
+    {
+        T value = std::numeric_limits<T>::max();
+        for (int i = 0; i < size1; i++) {
+            value = std::min(value, dl::base::reduce_min(const_cast<T *>(ptr), size0, stride0));
+            ptr += stride1;
+        }
+        return value;
     }
 
     template <typename Op, typename V_T, typename T>
@@ -122,141 +170,96 @@ public:
     {
         TensorBase *input = context->get_tensor(m_inputs_index[0]);
         TensorBase *output = context->get_tensor(m_outputs_index[0]);
-        int merged_dims = input->get_shape().size();
         int i_exp = input->get_exponent();
         int o_exp = output->get_exponent();
-        std::vector<int> new_input_shape = input->get_shape(); // NCHW
-        std::vector<bool> new_reduce_flag = m_axes_reduce_flag;
         T *input_ptr = input->get_element_ptr<T>();
         T *output_ptr = output->get_element_ptr<T>();
-        int stride0 = 1;
-        int size1 = 1;
-        int stride1 = 0;
+        const std::vector<int> input_shape = input->get_shape();
 
-        // Merge input shape and reduce flags.
-        if (new_reduce_flag.size() > 1) {
-            for (int i = 0; i < new_reduce_flag.size() - 1; ++i) {
-                if (new_reduce_flag[i] == new_reduce_flag[i + 1]) {
-                    new_input_shape[i] *= new_input_shape[i + 1];
-                    new_input_shape.erase(new_input_shape.begin() + i + 1);
-                    new_reduce_flag.erase(new_reduce_flag.begin() + i + 1);
-                    // Since an element was removed, we need to step back one position and continue checking.
-                    --i;
-                }
-            }
-            merged_dims = new_input_shape.size();
+        assert(input_shape.size() == m_axes_reduce_flag.size());
+        assert(input_shape.size() <= 4);
+
+        bool has_reduce_axis = false;
+        for (bool reduce_axis : m_axes_reduce_flag) {
+            has_reduce_axis |= reduce_axis;
         }
-        assert(new_input_shape.size() == new_reduce_flag.size());
+        if (!has_reduce_axis) {
+            assert(input->get_size() == output->get_size());
+            if (input_ptr != output_ptr) {
+                output->assign(input);
+            }
+            return;
+        }
 
+        // Merge adjacent axes with the same reduction state without allocating or erasing vectors.
+        std::array<int, 4> shape = {1, 1, 1, 1};
+        std::array<bool, 4> reduce_axis = {false, false, false, false};
+        int merged_dims = 0;
+        for (int i = 0; i < input_shape.size(); i++) {
+            if (merged_dims > 0 && reduce_axis[merged_dims - 1] == m_axes_reduce_flag[i]) {
+                shape[merged_dims - 1] *= input_shape[i];
+            } else {
+                shape[merged_dims] = input_shape[i];
+                reduce_axis[merged_dims] = m_axes_reduce_flag[i];
+                merged_dims++;
+            }
+        }
+
+        auto run_reduce = [&](T *ptr, int size0, int stride0, int size1 = 1, int stride1 = 0) {
+            return reduce_fn(m_op_type, i_exp, o_exp, v0, ptr, size0, stride0, size1, stride1, arg);
+        };
+
+        // Merged axes alternate between output and reduction runs. Keep the innermost
+        // reduction run as size0 so contiguous reductions use the longest SIMD kernel.
         if (merged_dims == 1) {
-            output_ptr[0] =
-                reduce_fn(m_op_type, i_exp, o_exp, v0, input_ptr, input->get_size(), stride0, size1, stride1, arg);
+            output_ptr[0] = run_reduce(input_ptr, shape[0], 1);
         } else if (merged_dims == 2) {
-            if (!new_reduce_flag[0] && new_reduce_flag[1]) {
-                T *input_ptr_tmp = input_ptr;
-                for (int i = 0; i < new_input_shape[0]; i++) {
-                    output_ptr[i] = reduce_fn(
-                        m_op_type, i_exp, o_exp, v0, input_ptr_tmp, new_input_shape[1], stride0, size1, stride1, arg);
-                    input_ptr_tmp += new_input_shape[1];
+            if (reduce_axis[1]) { // [output, reduce]
+                for (int i = 0; i < shape[0]; i++) {
+                    output_ptr[i] = run_reduce(input_ptr + i * shape[1], shape[1], 1);
                 }
-            } else if (new_reduce_flag[0] && !new_reduce_flag[1]) {
-                for (int i = 0; i < new_input_shape[1]; i++) {
-                    output_ptr[i] = reduce_fn(m_op_type,
-                                              i_exp,
-                                              o_exp,
-                                              v0,
-                                              input_ptr + i,
-                                              new_input_shape[0],
-                                              new_input_shape[1],
-                                              size1,
-                                              stride1,
-                                              arg);
+            } else { // [reduce, output]
+                for (int i = 0; i < shape[1]; i++) {
+                    output_ptr[i] = run_reduce(input_ptr + i, shape[0], shape[1]);
                 }
             }
         } else if (merged_dims == 3) {
-            if (new_reduce_flag[0] && !new_reduce_flag[1] && new_reduce_flag[2]) {
-                T *input_ptr_tmp = input_ptr;
-                int stride = new_input_shape[1] * new_input_shape[2];
-                for (int i = 0; i < new_input_shape[1]; i++) {
-                    output_ptr[i] = reduce_fn(m_op_type,
-                                              i_exp,
-                                              o_exp,
-                                              v0,
-                                              input_ptr_tmp,
-                                              new_input_shape[2],
-                                              1,
-                                              new_input_shape[0],
-                                              stride,
-                                              arg);
-                    input_ptr_tmp += new_input_shape[2];
+            if (reduce_axis[0]) { // [reduce, output, reduce]
+                int outer_stride = shape[1] * shape[2];
+                for (int i = 0; i < shape[1]; i++) {
+                    output_ptr[i] = run_reduce(input_ptr + i * shape[2], shape[2], 1, shape[0], outer_stride);
                 }
-            } else if (!new_reduce_flag[0] && new_reduce_flag[1] && !new_reduce_flag[2]) {
-                int offset = new_input_shape[1] * new_input_shape[2];
-                T *input_ptr_tmp = input_ptr;
-                T *output_ptr_tmp = output_ptr;
-                for (int i = 0; i < new_input_shape[0]; i++) {
-                    for (int j = 0; j < new_input_shape[2]; j++) {
-                        output_ptr_tmp[j] = reduce_fn(m_op_type,
-                                                      i_exp,
-                                                      o_exp,
-                                                      v0,
-                                                      input_ptr_tmp + j,
-                                                      new_input_shape[1],
-                                                      new_input_shape[2],
-                                                      size1,
-                                                      stride1,
-                                                      arg);
+            } else { // [output, reduce, output]
+                int input_block_size = shape[1] * shape[2];
+                for (int i = 0; i < shape[0]; i++) {
+                    T *input_block = input_ptr + i * input_block_size;
+                    T *output_block = output_ptr + i * shape[2];
+                    for (int j = 0; j < shape[2]; j++) {
+                        output_block[j] = run_reduce(input_block + j, shape[1], shape[2]);
                     }
-                    input_ptr_tmp += offset;
-                    output_ptr_tmp += new_input_shape[2];
                 }
             }
-        } else if (merged_dims == 4) {
-            if (!new_reduce_flag[0] && new_reduce_flag[1] && !new_reduce_flag[2] && new_reduce_flag[3]) {
-                int offset0 = new_input_shape[1] * new_input_shape[2] * new_input_shape[3];
-                int offset1 = new_input_shape[3];
-                int stride = new_input_shape[2] * new_input_shape[3];
-                T *input_ptr_tmp0 = input_ptr;
-                T *output_ptr_tmp = output_ptr;
-                for (int i = 0; i < new_input_shape[0]; i++) {
-                    T *input_ptr_tmp1 = input_ptr_tmp0;
-                    for (int j = 0; j < new_input_shape[2]; j++) {
-                        output_ptr_tmp[j] = reduce_fn(m_op_type,
-                                                      i_exp,
-                                                      o_exp,
-                                                      v0,
-                                                      input_ptr_tmp1,
-                                                      new_input_shape[3],
-                                                      1,
-                                                      new_input_shape[1],
-                                                      stride,
-                                                      arg);
-                        input_ptr_tmp1 += offset1;
+        } else {
+            assert(merged_dims == 4);
+            if (reduce_axis[1]) { // [output, reduce, output, reduce]
+                int input_block_size = shape[1] * shape[2] * shape[3];
+                int outer_stride = shape[2] * shape[3];
+                for (int i = 0; i < shape[0]; i++) {
+                    T *input_block = input_ptr + i * input_block_size;
+                    T *output_block = output_ptr + i * shape[2];
+                    for (int j = 0; j < shape[2]; j++) {
+                        output_block[j] = run_reduce(input_block + j * shape[3], shape[3], 1, shape[1], outer_stride);
                     }
-                    input_ptr_tmp0 += offset0;
-                    output_ptr_tmp += new_input_shape[2];
                 }
-            } else if (new_reduce_flag[0] && !new_reduce_flag[1] && new_reduce_flag[2] && !new_reduce_flag[3]) {
-                int offset = new_input_shape[2] * new_input_shape[3];
-                int stride = new_input_shape[1] * new_input_shape[2] * new_input_shape[3];
-                T *input_ptr_tmp0 = input_ptr;
-                T *output_ptr_tmp = output_ptr;
-                for (int i = 0; i < new_input_shape[1]; i++) {
-                    T *input_ptr_tmp1 = input_ptr_tmp0;
-                    for (int j = 0; j < new_input_shape[3]; j++) {
-                        output_ptr_tmp[j] = reduce_fn(m_op_type,
-                                                      i_exp,
-                                                      o_exp,
-                                                      v0,
-                                                      input_ptr_tmp1 + j,
-                                                      new_input_shape[2],
-                                                      new_input_shape[3],
-                                                      new_input_shape[0],
-                                                      stride,
-                                                      arg);
+            } else { // [reduce, output, reduce, output]
+                int middle_block_size = shape[2] * shape[3];
+                int outer_stride = shape[1] * middle_block_size;
+                for (int i = 0; i < shape[1]; i++) {
+                    T *input_block = input_ptr + i * middle_block_size;
+                    T *output_block = output_ptr + i * shape[3];
+                    for (int j = 0; j < shape[3]; j++) {
+                        output_block[j] = run_reduce(input_block + j, shape[2], shape[3], shape[0], outer_stride);
                     }
-                    input_ptr_tmp0 += offset;
-                    output_ptr_tmp += new_input_shape[3];
                 }
             }
         }
