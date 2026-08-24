@@ -7,6 +7,7 @@ import http.client
 import json
 import os
 import platform
+import re
 import shutil
 import sys
 import tarfile
@@ -40,6 +41,10 @@ def _sha256_file(path):
     return digest.hexdigest()
 
 
+def _version_component(value):
+    return re.sub(r"[^A-Za-z0-9.]+", "-", value).strip("-")
+
+
 def calculate_fingerprint(esp_ppq_version, torch_spec, generator_options, input_paths):
     digest = hashlib.sha256()
     metadata = {
@@ -63,7 +68,14 @@ def calculate_fingerprint(esp_ppq_version, torch_spec, generator_options, input_
         with path.open("rb") as file:
             for chunk in iter(lambda: file.read(1024 * 1024), b""):
                 digest.update(chunk)
-    return digest.hexdigest()
+    return "{}-{}-python-{}-{}-{}-sha256-{}".format(
+        _version_component("ppq-" + esp_ppq_version),
+        _version_component(torch_spec),
+        _version_component(metadata["python"]),
+        _version_component(metadata["python_implementation"]).lower(),
+        _version_component(generator_options),
+        digest.hexdigest(),
+    )
 
 
 def _package_coordinates(api_url, project_id, fingerprint, target, quant_type):
@@ -356,6 +368,102 @@ def publish(args):
     )
 
 
+def _list_packages(api_url, project_id, token):
+    packages = []
+    page = 1
+    while True:
+        query = urllib.parse.urlencode(
+            {
+                "order_by": "created_at",
+                "package_name": PACKAGE_NAME,
+                "package_type": "generic",
+                "page": page,
+                "per_page": 100,
+                "sort": "desc",
+            }
+        )
+        project = urllib.parse.quote(str(project_id), safe="")
+        url = "{}/projects/{}/packages?{}".format(api_url.rstrip("/"), project, query)
+        request = urllib.request.Request(url, headers={"PRIVATE-TOKEN": token})
+        try:
+            with urllib.request.urlopen(request) as response:
+                page_packages = json.load(response)
+        except urllib.error.HTTPError as error:
+            raise RuntimeError(
+                "Package list failed with HTTP {}".format(error.code)
+            ) from error
+        if not isinstance(page_packages, list):
+            raise RuntimeError("Package list response is not an array")
+        packages.extend(page_packages)
+        if len(page_packages) < 100:
+            return packages
+        page += 1
+
+
+def _delete_package(api_url, project_id, package_id, token):
+    project = urllib.parse.quote(str(project_id), safe="")
+    package = urllib.parse.quote(str(package_id), safe="")
+    url = "{}/projects/{}/packages/{}".format(api_url.rstrip("/"), project, package)
+    request = urllib.request.Request(
+        url, method="DELETE", headers={"PRIVATE-TOKEN": token}
+    )
+    try:
+        with urllib.request.urlopen(request) as response:
+            status = response.status
+    except urllib.error.HTTPError as error:
+        status = error.code
+    if status not in (204, 404):
+        raise RuntimeError(
+            "Deleting package {} failed with HTTP {}".format(package_id, status)
+        )
+
+
+def cleanup(args):
+    packages = [
+        package
+        for package in _list_packages(args.api_url, args.project_id, args.token)
+        if package.get("name") == PACKAGE_NAME
+        and package.get("package_type") == "generic"
+    ]
+
+    versions = {}
+    for package in packages:
+        version = package.get("version")
+        if not version or "id" not in package:
+            raise RuntimeError("Package list entry has no version or ID")
+        versions.setdefault(version, []).append(package)
+
+    ordered_versions = sorted(
+        versions,
+        key=lambda version: max(
+            package.get("created_at", "") for package in versions[version]
+        ),
+        reverse=True,
+    )
+    stale_versions = ordered_versions[args.keep :]
+    deleted = 0
+    for version in stale_versions:
+        for package in versions[version]:
+            _delete_package(
+                args.api_url,
+                args.project_id,
+                package["id"],
+                args.token,
+            )
+            deleted += 1
+            _log(
+                "Deleted old case package version {} (ID {})".format(
+                    version, package["id"]
+                )
+            )
+
+    _log(
+        "Package retention complete: kept {} version(s), deleted {} package record(s)".format(
+            min(len(ordered_versions), args.keep), deleted
+        )
+    )
+
+
 def _add_registry_arguments(parser):
     parser.add_argument("--api-url", required=True)
     parser.add_argument("--project-id", required=True)
@@ -385,6 +493,12 @@ def parse_args():
     publish_parser.add_argument("--esp-ppq-version", required=True)
     publish_parser.add_argument("--torch-spec", required=True)
 
+    cleanup_parser = subparsers.add_parser("cleanup")
+    cleanup_parser.add_argument("--api-url", required=True)
+    cleanup_parser.add_argument("--project-id", required=True)
+    cleanup_parser.add_argument("--token", required=True)
+    cleanup_parser.add_argument("--keep", type=int, default=15)
+
     return parser.parse_args()
 
 
@@ -403,6 +517,10 @@ def main():
         restore(args)
     elif args.command == "publish":
         publish(args)
+    elif args.command == "cleanup":
+        if args.keep < 1:
+            raise ValueError("--keep must be at least 1")
+        cleanup(args)
 
 
 if __name__ == "__main__":
