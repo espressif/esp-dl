@@ -2294,6 +2294,33 @@
         input1_is_weight = true
         input_weight_shape = [7, 1, 10, 35]
 
+        # Native-KN/Packed performance pairs for ESP32-P4 MatMul.
+        [[ops_test.MatMul.cfg]]
+        input_shape = [[1, 64, 64], [1, 64, 64]]
+        export_name_prefix = "MatMul_perf_native_m64_k64_n64"
+        activation_func = ""
+        input1_is_weight = false
+
+        [[ops_test.MatMul.cfg]]
+        input_shape = [1, 64, 64]
+        export_name_prefix = "MatMul_perf_packed_m64_k64_n64"
+        activation_func = ""
+        input1_is_weight = true
+        input_weight_shape = [64, 64]
+
+        [[ops_test.MatMul.cfg]]
+        input_shape = [[1, 63, 31], [1, 31, 65]]
+        export_name_prefix = "MatMul_perf_native_m63_k31_n65"
+        activation_func = ""
+        input1_is_weight = false
+
+        [[ops_test.MatMul.cfg]]
+        input_shape = [1, 63, 31]
+        export_name_prefix = "MatMul_perf_packed_m63_k31_n65"
+        activation_func = ""
+        input1_is_weight = true
+        input_weight_shape = [31, 65]
+
 
     [ops_test.Split]
     test_func = "SPLIT_TEST"
