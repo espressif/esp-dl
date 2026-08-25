@@ -404,7 +404,7 @@
 
     [ops_test.Gemm]
     test_func = "LINEAR_TEST"
-    quant_type = ["int8", "int16"]
+    quant_type = ["int8", "int16", "w8a16"]
     package = "torch_ops_test"
         [[ops_test.Gemm.cfg]]
         input_shape = [1, 16]
@@ -432,6 +432,7 @@
         out_features = 32
         bias = true
         activation_func = ""    # "", "ReLU"
+
 
     [ops_test.Add]
     test_func = "ADD_TEST"
