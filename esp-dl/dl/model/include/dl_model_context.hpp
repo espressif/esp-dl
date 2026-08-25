@@ -225,6 +225,17 @@ public:
     }
 
     /**
+     * @brief Drops all tensor references without deleting the tensors.
+     * Used by contexts that only borrow tensors owned by the caller.
+     */
+    void release_tensors()
+    {
+        m_variables.clear();
+        m_parameters.clear();
+        m_name2index.clear();
+    }
+
+    /**
      * @brief Clears all resources and tensors in the context.
      * This includes clearing variables, parameters, name-to-index map, and freeing memory.
      */

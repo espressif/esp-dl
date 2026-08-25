@@ -189,7 +189,6 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
             module->m_inputs_index.push_back(index); // assign input index of module
         }
 
-
         // Add LUT inputs if the module is a LUT module
         if (module->is_lut_module()) {
             std::string lut_name;

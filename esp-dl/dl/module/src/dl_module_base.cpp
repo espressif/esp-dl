@@ -125,6 +125,8 @@ void Module::run(TensorBase *input, TensorBase *output, runtime_mode_t mode)
     m_inputs_index.push_back(context.push_back_tensor(input));
     m_outputs_index.push_back(context.push_back_tensor(output));
     forward(&context, mode);
+    // The tensors belong to the caller, keep the context from deleting them.
+    context.release_tensors();
 }
 
 void Module::run(std::vector<dl::TensorBase *> inputs, std::vector<dl::TensorBase *> outputs, runtime_mode_t mode)
@@ -141,6 +143,8 @@ void Module::run(std::vector<dl::TensorBase *> inputs, std::vector<dl::TensorBas
     }
 
     forward(&context, mode);
+    // The tensors belong to the caller, keep the context from deleting them.
+    context.release_tensors();
 }
 
 void module_forward_dual_core(Module *op, void *args1, void *args2)

@@ -187,6 +187,9 @@ TEST_CASE("Test dl module API: run()", "[api]")
     TensorBase *input2 = new TensorBase({1, 1, 1, 64}, nullptr, 0, DATA_TYPE_INT8);
     TensorBase *output = new TensorBase({1, 3, 64, 64}, nullptr, 0, DATA_TYPE_INT8);
 
+    // input2 stays zero so the Add check below cannot saturate int8.
+    input1->rand();
+
     // single input and single output
     module::Module *relu_op = new module::Relu("relu", MODULE_NON_INPLACE, QUANT_TYPE_SYMM_8BIT);
     relu_op->run(input1, output);
@@ -206,7 +209,7 @@ TEST_CASE("Test dl module API: run()", "[api]")
 
     for (int i = 0; i < output->get_size(); i++) {
         int8_t in1 = input1->get_element<int8_t>(i);
-        int8_t in2 = input1->get_element<int8_t>(i % 64);
+        int8_t in2 = input2->get_element<int8_t>(i % 64);
         int8_t out = output->get_element<int8_t>(i);
         TEST_ASSERT_EQUAL(true, in1 + in2 == out);
     }

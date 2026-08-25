@@ -72,6 +72,13 @@ public:
      */
     virtual std::vector<int> get_outputs_index() { return m_outputs_index; }
 
+    /**
+     * @brief Whether this module uses a lookup table (LUT) as an extra input.
+     *
+     * LUT modules load the table from the model initializer and append it to `m_inputs_index`.
+     *
+     * @return true if the module is a LUT module, false otherwise
+     */
     virtual bool is_lut_module() const { return false; }
 
     /**
