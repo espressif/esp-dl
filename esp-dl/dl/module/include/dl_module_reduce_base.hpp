@@ -2,9 +2,10 @@
 
 #include "dl_base_reduce.hpp"
 #include "dl_module_base.hpp"
-#include <array>
+#include <algorithm>
 #include <cmath>
 #include <limits>
+#include <vector>
 
 namespace dl {
 namespace module {
@@ -177,11 +178,10 @@ public:
         const std::vector<int> input_shape = input->get_shape();
 
         assert(input_shape.size() == m_axes_reduce_flag.size());
-        assert(input_shape.size() <= 4);
 
         bool has_reduce_axis = false;
-        for (bool reduce_axis : m_axes_reduce_flag) {
-            has_reduce_axis |= reduce_axis;
+        for (bool reduce_axis_flag : m_axes_reduce_flag) {
+            has_reduce_axis |= reduce_axis_flag;
         }
         if (!has_reduce_axis) {
             assert(input->get_size() == output->get_size());
@@ -191,22 +191,99 @@ public:
             return;
         }
 
-        // Merge adjacent axes with the same reduction state without allocating or erasing vectors.
-        std::array<int, 4> shape = {1, 1, 1, 1};
-        std::array<bool, 4> reduce_axis = {false, false, false, false};
-        int merged_dims = 0;
-        for (int i = 0; i < input_shape.size(); i++) {
-            if (merged_dims > 0 && reduce_axis[merged_dims - 1] == m_axes_reduce_flag[i]) {
-                shape[merged_dims - 1] *= input_shape[i];
+        // Merge adjacent axes with the same reduction state.
+        std::vector<int> shape;
+        std::vector<char> reduce_axis;
+        shape.reserve(input_shape.size());
+        reduce_axis.reserve(input_shape.size());
+        for (size_t i = 0; i < input_shape.size(); i++) {
+            if (!shape.empty() && bool(reduce_axis.back()) == m_axes_reduce_flag[i]) {
+                shape.back() *= input_shape[i];
             } else {
-                shape[merged_dims] = input_shape[i];
-                reduce_axis[merged_dims] = m_axes_reduce_flag[i];
-                merged_dims++;
+                shape.push_back(input_shape[i]);
+                reduce_axis.push_back(m_axes_reduce_flag[i]);
             }
         }
+        const int merged_dims = static_cast<int>(shape.size());
 
         auto run_reduce = [&](T *ptr, int size0, int stride0, int size1 = 1, int stride1 = 0) {
             return reduce_fn(m_op_type, i_exp, o_exp, v0, ptr, size0, stride0, size1, stride1, arg);
+        };
+
+        auto reduce_nd = [&]() {
+            std::vector<int> in_stride(merged_dims, 1);
+            for (int i = merged_dims - 2; i >= 0; i--) {
+                in_stride[i] = in_stride[i + 1] * shape[i + 1];
+            }
+
+            std::vector<int> keep_dims;
+            std::vector<int> red_dims;
+            for (int d = 0; d < merged_dims; d++) {
+                if (reduce_axis[d]) {
+                    red_dims.push_back(d);
+                } else {
+                    keep_dims.push_back(d);
+                }
+            }
+
+            int out_size = 1;
+            for (int d : keep_dims) {
+                out_size *= shape[d];
+            }
+
+            auto keep_in_offset = [&](int oi) {
+                int in_off = 0;
+                int t = oi;
+                for (int k = static_cast<int>(keep_dims.size()) - 1; k >= 0; k--) {
+                    int d = keep_dims[k];
+                    int coord = t % shape[d];
+                    t /= shape[d];
+                    in_off += coord * in_stride[d];
+                }
+                return in_off;
+            };
+
+            if (red_dims.size() == 1) {
+                const int d = red_dims[0];
+                for (int oi = 0; oi < out_size; oi++) {
+                    output_ptr[oi] = run_reduce(input_ptr + keep_in_offset(oi), shape[d], in_stride[d]);
+                }
+                return;
+            }
+            if (red_dims.size() == 2) {
+                const int outer = red_dims[0];
+                const int inner = red_dims[1];
+                for (int oi = 0; oi < out_size; oi++) {
+                    output_ptr[oi] = run_reduce(
+                        input_ptr + keep_in_offset(oi), shape[inner], in_stride[inner], shape[outer], in_stride[outer]);
+                }
+                return;
+            }
+
+            int red_count = 1;
+            for (int d : red_dims) {
+                red_count *= shape[d];
+            }
+            std::vector<T> scratch(red_count);
+            std::vector<int> rcoord(red_dims.size(), 0);
+            for (int oi = 0; oi < out_size; oi++) {
+                const int in_base = keep_in_offset(oi);
+                std::fill(rcoord.begin(), rcoord.end(), 0);
+                for (int n = 0; n < red_count; n++) {
+                    int off = in_base;
+                    for (size_t r = 0; r < red_dims.size(); r++) {
+                        off += rcoord[r] * in_stride[red_dims[r]];
+                    }
+                    scratch[n] = input_ptr[off];
+                    for (int r = static_cast<int>(red_dims.size()) - 1; r >= 0; r--) {
+                        if (++rcoord[r] < shape[red_dims[r]]) {
+                            break;
+                        }
+                        rcoord[r] = 0;
+                    }
+                }
+                output_ptr[oi] = run_reduce(scratch.data(), red_count, 1);
+            }
         };
 
         // Merged axes alternate between output and reduction runs. Keep the innermost
@@ -239,8 +316,7 @@ public:
                     }
                 }
             }
-        } else {
-            assert(merged_dims == 4);
+        } else if (merged_dims == 4) {
             if (reduce_axis[1]) { // [output, reduce, output, reduce]
                 int input_block_size = shape[1] * shape[2] * shape[3];
                 int outer_stride = shape[2] * shape[3];
@@ -262,6 +338,8 @@ public:
                     }
                 }
             }
+        } else {
+            reduce_nd();
         }
     }
 

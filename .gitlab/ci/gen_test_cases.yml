@@ -1,5 +1,7 @@
 .gen_test_cases_template:
   stage: gen_test_cases
+  retry:
+    max: 1
   image: ${IMAGE}
   tags: ["build", "amd64"]
   dependencies: []
