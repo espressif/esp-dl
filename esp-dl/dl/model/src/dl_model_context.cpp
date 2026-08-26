@@ -32,6 +32,11 @@ int ModelContext::add_tensor(const std::string name, bool is_paramter, TensorBas
     return index;
 }
 
+bool ModelContext::has_tensor(const std::string &name) const
+{
+    return m_name2index.find(name) != m_name2index.end();
+}
+
 int ModelContext::push_back_tensor(TensorBase *tensor, bool is_paramter)
 {
     if (is_paramter) {

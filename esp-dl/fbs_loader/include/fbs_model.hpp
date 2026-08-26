@@ -215,6 +215,27 @@ public:
     dl::TensorBase *get_operation_parameter(std::string node_name, int index = 1, uint32_t caps = MALLOC_CAP_DEFAULT);
 
     /**
+     * @brief Get a parameter tensor by initializer name.
+     *
+     * @param tensor_name The initializer name.
+     * @param caps        Bitwise OR of MALLOC_CAP_* flags indicating the type of memory to be returned.
+     *
+     * @return dl::TensorBase*
+     */
+    dl::TensorBase *get_parameter(std::string tensor_name, uint32_t caps = MALLOC_CAP_DEFAULT);
+
+    /**
+     * @brief Resolve and validate the initializer name referenced by a LUT attribute.
+     *
+     * @param node_name      The name of operation.
+     * @param lut_name       The resolved LUT initializer name.
+     * @param attribute_name The name of LUT attribute.
+     *
+     * @return esp_err_t ESP_OK when the attribute references an existing initializer.
+     */
+    esp_err_t get_operation_lut_name(std::string node_name, std::string &lut_name, std::string attribute_name = "lut");
+
+    /**
      * @brief Get LUT(Look Up Table) if the operation has LUT
      *
      * @param node_name   The name of operation

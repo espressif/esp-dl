@@ -112,6 +112,14 @@ public:
     int get_tensor_index(const std::string &name);
 
     /**
+     * @brief Checks if a tensor exists by its name.
+     *
+     * @param name The name of the tensor.
+     * @return bool Returns true if the tensor exists, false otherwise.
+     */
+    bool has_tensor(const std::string &name) const;
+
+    /**
      * @brief Gets the variable tensor index by its name.
      *
      * @param name The name of the tensor.
@@ -217,21 +225,30 @@ public:
     }
 
     /**
+     * @brief Drops all tensor references without deleting the tensors.
+     * Used by contexts that only borrow tensors owned by the caller.
+     */
+    void release_tensors()
+    {
+        m_variables.clear();
+        m_parameters.clear();
+        m_name2index.clear();
+    }
+
+    /**
      * @brief Clears all resources and tensors in the context.
      * This includes clearing variables, parameters, name-to-index map, and freeing memory.
      */
     void clear()
     {
-        if (m_internal_root || m_psram_root) {
-            for (int i = 0; i < m_variables.size(); i++) {
-                delete m_variables[i];
-            }
-
-            for (int i = 0; i < m_parameters.size(); i++) {
-                delete m_parameters[i];
-            }
-            root_free();
+        for (int i = 0; i < m_variables.size(); i++) {
+            delete m_variables[i];
         }
+
+        for (int i = 0; i < m_parameters.size(); i++) {
+            delete m_parameters[i];
+        }
+        root_free();
 
         m_variables.clear();
         m_parameters.clear();

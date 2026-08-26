@@ -198,8 +198,6 @@ TensorBase::TensorBase(std::vector<int> shape,
     this->cache = nullptr;
     this->caps = caps;
     if (!this->exponent.is_valid()) {
-        // Without the exponent array the data cannot be dequantized, so leave the tensor empty
-        // instead of handing back one that silently quantizes with a wrong scale.
         ESP_LOGE(
             "TensorBase", "Failed to alloc %d per-channel exponents, the tensor is left empty.", (int)exponents.size());
         this->auto_free = false;

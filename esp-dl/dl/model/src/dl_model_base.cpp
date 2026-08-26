@@ -189,8 +189,28 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
             module->m_inputs_index.push_back(index); // assign input index of module
         }
 
-        if (ret != ESP_OK) {
-            break;
+        // Add LUT inputs if the module is a LUT module
+        if (module->is_lut_module()) {
+            std::string lut_name;
+            if (m_fbs_model->get_operation_lut_name(node_name, lut_name) != ESP_OK) {
+                ESP_LOGE(TAG, "Can not find LUT initializer for operation %s", node_name.c_str());
+                ret = ESP_FAIL;
+                break;
+            }
+
+            int lut_index;
+            if (m_model_context->has_tensor(lut_name)) {
+                lut_index = m_model_context->get_tensor_index(lut_name);
+            } else {
+                TensorBase *table = m_fbs_model->get_parameter(lut_name);
+                if (!table) {
+                    ESP_LOGE(TAG, "Can not load LUT initializer %s", lut_name.c_str());
+                    ret = ESP_FAIL;
+                    break;
+                }
+                lut_index = m_model_context->add_tensor(lut_name, true, table);
+            }
+            module->m_inputs_index.push_back(lut_index);
         }
 
         for (int j = 0; j < op_outputs.size(); j++) {

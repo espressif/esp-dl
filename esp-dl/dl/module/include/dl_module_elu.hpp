@@ -94,10 +94,9 @@ public:
         fbs_model->get_operation_attribute(node_name, "alpha", alpha);
 
         // Create module
-        if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            TensorBase *table = fbs_model->get_operation_lut(node_name);
-            if (table) {
-                op = new LUT(node_name.c_str(), table, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
+        if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
+            if (LUT::has_lut(fbs_model, node_name)) {
+                op = new LUT(node_name.c_str(), MODULE_INPLACE_CHANGED_BUFFER, quant_type);
             } else {
                 op = new Elu(node_name.c_str(), alpha, MODULE_INPLACE_CHANGED_BUFFER, quant_type);
             }
