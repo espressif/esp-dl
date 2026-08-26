@@ -45,17 +45,38 @@ variables:
     paths:
       - XUNIT_RESULT.xml
       - pytest_embedded_log/
+      - perf_baseline.json
+      - perf_results.json
+      - perf_diff.md
     reports:
       junit: XUNIT_RESULT.xml
-    expire_in: 4 days
+    expire_in: 90 days
   variables:
     TEST_TARGET: 'esp32p4'
     TEST_ENV: 'esp32p4'
     TEST_MODEL: 'conv2d'
     TEST_FOLDER: test_apps/esp-dl/pytest_espdl_ops.py
+    PERF_BASELINE_FILE: perf_baseline.json
+    PERF_RESULTS_FILE: perf_results.json
+    PERF_REPORT_FILE: perf_diff.md
+    PERF_RELATIVE_THRESHOLD_PCT: "2"
+    PERF_ABSOLUTE_FLOOR_US: "2"
+    # Set to "1", or add the MR label "update-perf-baseline", to accept a new
+    # performance baseline on an intentional optimization MR.
+    PERF_UPDATE_BASELINE: "0"
   script:
     - pip install -r test_apps/requirements.txt
     - python test_apps/esp-dl/gen_op_test.py -c ${TEST_CASE_CONFIG} --pytest_file ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV} 
+    - |
+      PERF_BASELINE_JOB="test_espdl_ops: [${IDF_TARGET}, ${IDF_VERSION}, ${TEST_MODEL}]"
+      python tools/ops_test/perf_benchmark.py fetch \
+        --api-url "${CI_API_V4_URL}" \
+        --project-id "${CI_PROJECT_ID}" \
+        --token "${CI_JOB_TOKEN}" \
+        --ref "${CI_DEFAULT_BRANCH}" \
+        --job "${PERF_BASELINE_JOB}" \
+        --output "${PERF_BASELINE_FILE}"
+    - python tools/ops_test/perf_benchmark.py init --output ${PERF_RESULTS_FILE}
     - pytest ${TEST_FOLDER} -p no:idf-ci --target ${TEST_TARGET} --env ${TEST_ENV} --model ${TEST_MODEL} --junitxml=XUNIT_RESULT.xml
 
 .pytest_api_template:

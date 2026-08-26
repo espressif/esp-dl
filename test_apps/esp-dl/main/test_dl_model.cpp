@@ -4,6 +4,7 @@
 #include "esp_timer.h"
 #include "fbs_loader.hpp"
 #include "unity.h"
+#include <algorithm>
 #include <type_traits>
 
 static const char *TAG = "TEST_ESPDL_MODEL";
@@ -25,13 +26,32 @@ TEST_CASE("Test espdl model", "[dl_model]")
     }
     int model_num = fbs_loader->get_model_num();
     ESP_LOGI(TAG, "model_num = %d\n", model_num);
-    dl::tool::Latency latency;
     for (int i = 0; i < model_num; i++) {
         fbs::FbsModel *fbs_model = fbs_loader->load(i);
         Model *model = new Model(fbs_model);
         model->print();
         TEST_ASSERT_EQUAL(ESP_OK, model->test());
-        // model->print_module_info(model->get_module_info(), true);
+        constexpr int kWarmup = 2;
+        constexpr int kIters = 8;
+        uint32_t samples[kIters];
+        uint64_t total_us = 0;
+        for (int n = 0; n < kWarmup; n++) {
+            model->run();
+        }
+        for (int n = 0; n < kIters; n++) {
+            int64_t start_us = esp_timer_get_time();
+            model->run();
+            samples[n] = static_cast<uint32_t>(esp_timer_get_time() - start_us);
+            total_us += samples[n];
+        }
+        std::sort(samples, samples + kIters);
+        float median_us = (samples[kIters / 2 - 1] + samples[kIters / 2]) / 2.0f;
+        ESP_LOGI(TAG,
+                 "BENCH name=%s iters=%d median_us=%.3f mean_us=%.3f",
+                 fbs_model->get_model_name().c_str(),
+                 kIters,
+                 median_us,
+                 total_us / static_cast<float>(kIters));
 
         delete model;
         delete fbs_model;
