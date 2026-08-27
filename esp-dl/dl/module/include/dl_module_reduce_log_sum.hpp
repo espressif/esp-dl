@@ -31,12 +31,12 @@ public:
         // For float types, skip quantization operations
         if constexpr (std::is_same<T, float>::value && std::is_same<V_T, float>::value) {
             // Directly return log(sum) for float32
-            V_T tmp = ReduceBase::reduce<reduce_op_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+            V_T tmp = ReduceBase::reduce_sum<V_T>(ptr, size0, stride0, size1, stride1);
             return std::log(tmp);
         } else {
             // For quantized types, perform scaling and truncation
             T ret = 0;
-            V_T tmp = ReduceBase::reduce<reduce_op_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+            V_T tmp = ReduceBase::reduce_sum<V_T>(ptr, size0, stride0, size1, stride1);
             float input_scale = DL_SCALE(input_exponent);
             float output_scale = DL_RESCALE(output_exponent);
             float output_tmp = std::log(static_cast<float>(tmp * input_scale));

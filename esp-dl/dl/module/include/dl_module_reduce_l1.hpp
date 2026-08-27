@@ -16,11 +16,6 @@ public:
     ~ReduceL1() {}
 
     template <typename V_T, typename T>
-    struct reduce_op_abs_add {
-        V_T operator()(const V_T &x, const T &y, void *arg) const { return x + std::abs(y); }
-    };
-
-    template <typename V_T, typename T>
     static T reduce(std::string &op_type,
                     int input_exponent,
                     int output_exponent,
@@ -35,11 +30,11 @@ public:
         // For float types, skip quantization operations
         if constexpr (std::is_same<T, float>::value && std::is_same<V_T, float>::value) {
             // Directly return the sum of absolute values for float32
-            return ReduceBase::reduce<reduce_op_abs_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+            return ReduceBase::reduce_l1<V_T>(ptr, size0, stride0, size1, stride1);
         } else {
             // For quantized types, perform shift_and_round and truncate
             T ret = 0;
-            V_T tmp = ReduceBase::reduce<reduce_op_abs_add<V_T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
+            V_T tmp = ReduceBase::reduce_l1<V_T>(ptr, size0, stride0, size1, stride1);
             tmp = tool::shift_and_round(tmp, output_exponent - input_exponent);
             tool::truncate(ret, tmp);
 

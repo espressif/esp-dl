@@ -17,11 +17,6 @@ public:
     ~ReduceMin() {}
 
     template <typename V_T, typename T>
-    struct reduce_op_min {
-        V_T operator()(const V_T &x, const T &y, void *arg) const { return std::min(x, y); }
-    };
-
-    template <typename V_T, typename T>
     static T reduce(std::string &op_type,
                     int input_exponent,
                     int output_exponent,
@@ -33,8 +28,7 @@ public:
                     int stride1,
                     void *arg)
     {
-        T ret = ReduceBase::reduce<reduce_op_min<T, T>>(v0, ptr, size0, stride0, size1, stride1, arg);
-        return ret;
+        return ReduceBase::reduce_min(ptr, size0, stride0, size1, stride1);
     }
 
     void forward(ModelContext *context, runtime_mode_t mode)
