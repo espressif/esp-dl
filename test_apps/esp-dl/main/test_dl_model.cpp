@@ -5,6 +5,7 @@
 #include "fbs_loader.hpp"
 #include "unity.h"
 #include <algorithm>
+#include <string>
 #include <type_traits>
 
 static const char *TAG = "TEST_ESPDL_MODEL";
@@ -46,9 +47,16 @@ TEST_CASE("Test espdl model", "[dl_model]")
         }
         std::sort(samples, samples + kIters);
         float median_us = (samples[kIters / 2 - 1] + samples[kIters / 2]) / 2.0f;
+        // All cases exported from ONNX share the same graph name (e.g. "main_graph"),
+        // so use the packed entry name (the per-case model file name) to keep every
+        // benchmark record distinguishable. Fall back to the graph name for non-packed models.
+        std::string bench_name = fbs_loader->get_model_name(i);
+        if (bench_name.empty()) {
+            bench_name = fbs_model->get_model_name();
+        }
         ESP_LOGI(TAG,
                  "BENCH name=%s iters=%d median_us=%.3f mean_us=%.3f",
-                 fbs_model->get_model_name().c_str(),
+                 bench_name.c_str(),
                  kIters,
                  median_us,
                  total_us / static_cast<float>(kIters));

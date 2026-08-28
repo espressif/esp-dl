@@ -187,6 +187,19 @@ public:
     void list_models();
 
     /**
+     * @brief Get the name of a packed model by its index.
+     *
+     * @note Only valid for packed multi-model formats (PDL1/PDL2/PDL3).
+     *
+     * @param model_index  The index of the model in the packed package.
+     *
+     * @return The model entry name, or an empty string when the flatbuffers is
+     *         empty, the index is out of range, or the loaded file is not a
+     *         packed multi-model format.
+     */
+    std::string get_model_name(int model_index);
+
+    /**
      * @brief Get the model location string.
      *
      * @return The model location string.

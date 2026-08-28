@@ -214,16 +214,28 @@ def record_and_compare(dut, config, target):
             "idf_version": idf_version,
             "config": config,
         }
+        key = _result_key(current)
+        if key in current_by_key:
+            # Multiple BENCH records share the same key (e.g. all cases exported
+            # with the same graph name). Never drop a case: keep every record and
+            # disambiguate the duplicates by suffixing their name.
+            suffix = 2
+            while True:
+                current["name"] = "{}#{}".format(benchmark["name"], suffix)
+                key = _result_key(current)
+                if key not in current_by_key:
+                    break
+                suffix += 1
         error = compare_result(
             current,
-            baseline_by_key.get(_result_key(current)),
+            baseline_by_key.get(key),
             relative_threshold_pct,
             absolute_floor_us,
             allow_update=allow_update,
         )
         if error:
             failures.append(error)
-        current_by_key[_result_key(current)] = current
+        current_by_key[key] = current
 
     results["results"] = sorted(current_by_key.values(), key=_result_key)
     _write_results(result_path, results)
