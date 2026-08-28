@@ -482,6 +482,12 @@ void dl_tie728_s16_lessorequal_w1_1_w2_8_unaligned(bool *output_ptr,
                                                    int16_t *input1_ptr,
                                                    void *args_ptr);
 
+/* Native row-major A[M,K] x B[K,N] MatMul kernels. */
+void dl_tie728_s8_matmul_kn(const void *args);
+void dl_tie728_s16_matmul_kn(const void *args);
+void dl_tie728_s8_unaligned_matmul_kn(const void *args);
+void dl_tie728_s16_unaligned_matmul_kn(const void *args);
+
 void dl_tie728_dotprod_i8k8o16(
     int16_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, int shift, int n, int64_t *rounding_offset);
 void dl_tie728_dotprod_i16k16o16(

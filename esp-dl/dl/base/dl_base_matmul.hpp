@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dl_define.hpp"
 #include <stdint.h>
 
 namespace dl {
@@ -8,14 +9,14 @@ namespace base {
 /**
  * @brief Arguments for a native row-major matrix multiplication.
  *
- * Computes C[m, n] = requantize(sum_k A[m, k] * B[k, n]) for rows in
- * [row_start, row_end). All strides are expressed in elements, not bytes.
+ * Computes C[m, n] = activation(requantize(sum_k A[m, k] * B[k, n])) for rows
+ * in [row_start, row_end). All strides are expressed in elements, not bytes.
  * A, B and C may point at batch/broadcast-specific matrix bases; callers can
  * split row_start/row_end between cores without changing those base pointers.
  *
  * mac_shift follows Conv: output_exp - a_exp - b_exp. Positive values shift
- * right with the target rounding rule; negative values shift left. ReLU and
- * other fused activations are intentionally not supported.
+ * right with the target rounding rule; negative values shift left. The only
+ * fused activation is ReLU; Linear leaves the requantized product unchanged.
  */
 template <typename feature_t>
 struct MatMulArgs {
@@ -34,6 +35,7 @@ struct MatMulArgs {
     int32_t row_start = 0;
     int32_t row_end = 0;
     int32_t mac_shift = 0;
+    int32_t activation = Linear;
 };
 
 template <typename feature_t>

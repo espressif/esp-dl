@@ -5,7 +5,10 @@
     .option norvc
 dl_esp32p4_s8_matmul_kn:
     # a0: const MatMulArgs<int8_t> *
-    # RV32 layout: a/b/c pointers, then 9 int32_t fields.
+    # Inner K loop: fused MAC + esp.lp.setup (zero-overhead, same as 1x1 Conv).
+    #   esp.vmulas.s8.qacc.ld.xp  MAC current B*A, prefetch next B row (stride N)
+    #   esp.vldbc.8.ip            prefetch next A scalar
+    # B ping-pongs in q0/q2 so the next 128-bit load is not used in the same MAC.
     addi sp, sp, -32
     sw s0, 28(sp)
     sw s1, 24(sp)
@@ -26,6 +29,8 @@ dl_esp32p4_s8_matmul_kn:
     lw s0, 44(a0)      # mac_shift
     lw a5, 20(a0)      # K
     sw a5, 4(sp)
+    lw a5, 48(a0)      # activation (Linear=0, ReLU=1)
+    sw a5, 0(sp)
 
     sub s11, s11, a4
     mul a5, a4, t3
@@ -44,47 +49,45 @@ dl_esp32p4_s8_matmul_kn:
     lw a2, 4(sp)
     esp.zero.qacc
 
-.Ls8_k_unroll4:
-    srli t2, a2, 2
-    beqz t2, .Ls8_k_tail
-.Ls8_k4:
-    esp.vld.128.ip q0, a0, 0
-    esp.vldbc.8.ip q1, a1, 0
-    esp.vmulas.s8.qacc q0, q1
-    add a0, a0, t4
-    addi a1, a1, 1
-    esp.vld.128.ip q0, a0, 0
-    esp.vldbc.8.ip q1, a1, 0
-    esp.vmulas.s8.qacc q0, q1
-    add a0, a0, t4
-    addi a1, a1, 1
-    esp.vld.128.ip q0, a0, 0
-    esp.vldbc.8.ip q1, a1, 0
-    esp.vmulas.s8.qacc q0, q1
-    add a0, a0, t4
-    addi a1, a1, 1
-    esp.vld.128.ip q0, a0, 0
-    esp.vldbc.8.ip q1, a1, 0
-    esp.vmulas.s8.qacc q0, q1
-    add a0, a0, t4
-    addi a1, a1, 1
-    addi t2, t2, -1
-    bnez t2, .Ls8_k4
+    # Prologue: B[0] and broadcast A[0]
+    # Inner K uses esp.lp.setup (same zero-overhead loop as 1x1 Conv).
+    # Count register must be PIE-capable (not t0-t2). Label sits on the
+    # last instruction of the body. Count 0 is skipped with beqz.
+    esp.vld.128.xp q0, a0, t4
+    esp.vldbc.8.ip q1, a1, 1
+    addi a5, a2, -1            # fused iterations = K - 1
+    beqz a5, .Ls8_last
+
+    srli a5, a5, 2             # (K - 1) / 4
+    beqz a5, .Ls8_k_tail
+    esp.lp.setup 0, a5, .Ls8_k4_end
+    esp.vmulas.s8.qacc.ld.xp q2, a0, t4, q0, q1
+    esp.vldbc.8.ip q1, a1, 1
+    esp.vmulas.s8.qacc.ld.xp q0, a0, t4, q2, q1
+    esp.vldbc.8.ip q1, a1, 1
+    esp.vmulas.s8.qacc.ld.xp q2, a0, t4, q0, q1
+    esp.vldbc.8.ip q1, a1, 1
+    esp.vmulas.s8.qacc.ld.xp q0, a0, t4, q2, q1
+.Ls8_k4_end:
+    esp.vldbc.8.ip q1, a1, 1
 
 .Ls8_k_tail:
-    andi a2, a2, 3
-    beqz a2, .Ls8_k_done
-.Ls8_k1:
-    esp.vld.128.ip q0, a0, 0
-    esp.vldbc.8.ip q1, a1, 0
-    esp.vmulas.s8.qacc q0, q1
-    add a0, a0, t4
-    addi a1, a1, 1
-    addi a2, a2, -1
-    bnez a2, .Ls8_k1
+    addi a5, a2, -1
+    andi a5, a5, 3
+    beqz a5, .Ls8_last
+    esp.lp.setup 0, a5, .Ls8_k1_end
+    esp.vmulas.s8.qacc.ld.xp q0, a0, t4, q0, q1
+.Ls8_k1_end:
+    esp.vldbc.8.ip q1, a1, 1
 
-.Ls8_k_done:
+.Ls8_last:
+    esp.vmulas.s8.qacc q0, q1
     esp.srcmb.s8.qacc q0, s0, 1
+    lw a5, 0(sp)
+    addi a2, a5, -1
+    bnez a2, .Ls8_store
+    esp.vrelu.s8 q0, a2, a2
+.Ls8_store:
     esp.vst.128.ip q0, a3, 16
     addi a4, a4, 16
     addi t6, t6, -1

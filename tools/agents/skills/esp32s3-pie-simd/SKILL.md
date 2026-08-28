@@ -161,6 +161,15 @@ EE.VMULAS.S8.QACC    qx, qy    ; QACC[i] += qx[i]*qy[i], 20-bit signed saturated
 EE.VMULAS.S16.QACC   qx, qy    ; QACC[i] += qx[i]*qy[i], 40-bit signed saturated per lane
 EE.VMULAS.U8.QACC    qx, qy    ; unsigned
 EE.VMULAS.U16.QACC   qx, qy    ; unsigned
+; Fused MAC + 128-bit load (same as P4 ESP.VMULAS.*.QACC.LD.XP):
+;   QACC += qx * qy, then qu = load128(aligned(as)), as += ad
+EE.VMULAS.S8.QACC.LD.XP  qu, as, ad, qx, qy
+EE.VMULAS.S16.QACC.LD.XP qu, as, ad, qx, qy
+EE.VMULAS.U8.QACC.LD.XP  qu, as, ad, qx, qy
+EE.VMULAS.U16.QACC.LD.XP qu, as, ad, qx, qy
+; Also .LD.IP with immediate post-increment (as += imm, typically 16)
+EE.VMULAS.S8.QACC.LD.IP  qu, as, imm, qx, qy
+EE.VMULAS.S16.QACC.LD.IP qu, as, imm, qx, qy
 ; Extract QACC→QR with right-shift+sat (shift amount from as register, NOT SAR):
 EE.SRCMB.S8.QACC     qu, as, 0 ; 16×20-bit→16×8-bit, R-shift by as[4:0], saturate to s8→qu
 EE.SRCMB.S16.QACC    qu, as, 0 ; 8×40-bit→8×16-bit, R-shift by as[5:0], saturate to s16→qu
@@ -443,13 +452,35 @@ right_shift_loop:
 ```
 
 ### Zero-Overhead Loop (preferred)
+
+Xtensa hardware loop: no per-iteration `addi`/`bnez`. Used by Conv `11cn` and native-KN MatMul (inner K). Special registers: `LBEG`, `LEND`, `LCOUNT`.
+
+| Instruction | When the body runs | When it is skipped |
+|-------------|--------------------|--------------------|
+| `loop as, label` | Always `as` times. **`as==0` runs 2^32 times** — do not use if count can be 0 | Never |
+| `loopgtz as, label` | `as > 0`, body runs `as` times (`LCOUNT ← as-1`) | `as <= 0`, jump to `label` |
+| `loopnez as, label` | `as != 0` | `as == 0` |
+
+**Assembler syntax:** `loopgtz as, label` — `label` is the **first instruction after** the body (not the last instruction of the body). Encoding is BRI8: body must fit in **256 bytes** (~56–80 instructions).
+
 ```asm
-; LOOPGTZ: enter loop body if aN > 0; decrements LCOUNT each iteration
+; Prefer LOOPGTZ: count 0 skips the body (safe for K=1 remainder)
     srai    a5, a5, 3            ; convert element count to iteration count
     loopgtz a5, 0f
-    ; ... loop body (max ~56 instructions) ...
-0:
+        ee.vld.128.ip   q0, a3, 16
+        ee.vst.128.ip   q0, a2, 16
+0:                               ; first insn AFTER the loop
 ```
+
+**Restrictions (hard):**
+- **No nesting.** One `LBEG/LEND/LCOUNT`. Put ZOL on the hottest inner loop (usually K). Outer M / N-block stay `addi`/`bnez`.
+- Sequential ZOLs are OK: the next `loopgtz` overwrites `LCOUNT`.
+- **No branches / jumps / calls inside the body.** Last insn must be a regular op (`ee.vldbc`, `ee.vmulas`, `ee.vst`, …), not `bnez`/`j`/`callx`.
+- Do not jump **into** the middle of a ZOL body.
+- `as` is sampled at setup; after `loopgtz` the AR can be reused.
+- When `as <= 0`, `loopgtz` still writes `LBEG/LEND/LCOUNT` but does not execute the body.
+
+**When to fall back to a software loop:** body > 256 bytes, need a taken branch inside, or the loop is the outer nest.
 
 ### Manual Loop (when zero-overhead loop constraints violated)
 ```asm
@@ -481,6 +512,9 @@ ee.vadds.s16   q2, q0, q1
 
 ; Optimal when loading new data for next iteration:
 ee.vadds.s16.ld.incp  q0, a3, q2, q4, q5  ; computes q2 while loading q0 for next iter
+
+; Outer-product / reduction: MAC current vectors, prefetch next B row
+ee.vmulas.s16.qacc.ld.xp q2, a2, a11, q0, q1  ; QACC += q0*q1, q2 = *a2, a2 += a11
 ```
 
 ---
@@ -491,7 +525,7 @@ ee.vadds.s16.ld.incp  q0, a3, q2, q4, q5  ; computes q2 while loading q0 for nex
 2. **Only 8 QR registers (q0-q7)** — register pressure is real. Plan allocation carefully.
 3. **VLD/VST force address alignment** — unaligned addresses silently read/write wrong data.
 4. **No 32-bit multiply** — only 8-bit and 16-bit vector multiply. Use multiple 16-bit ops for 32-bit.
-5. **Zero-overhead loop limit** — max ~56 instructions in loop body, no nested zero-overhead loops.
+5. **Zero-overhead loop** — use `loopgtz` (not `loop` if count can be 0). Body ≤ 256 bytes, no nested ZOL, no branches/calls inside. Label is the insn **after** the body. See Zero-Overhead Loop above.
 6. **ACCX is 40-bit** — saturated to [-2^39, 2^39-1]. Read with RUR ACCX_0 + ACCX_1.
 7. **QACC is per-lane** — 16 lanes of 20-bit for S8/U8, 8 lanes of 40-bit for S16/U16.
 8. **VADDS/VSUBS saturate** — use when overflow is a concern; VMUL shifts and truncates (no sat).
@@ -510,6 +544,7 @@ ee.vadds.s16.ld.incp  q0, a3, q2, q4, q5  ; computes q2 while loading q0 for nex
 | `c = a * b >> shift` | int8/int16 | EE.VMUL.S8/S16 (set SAR first) |
 | `sum += a[i] * b[i]` (scalar result) | int8/int16 | EE.VMULAS.S8/S16.ACCX |
 | `accum[i] += a[i] * b[i]` (per-lane) | int8/int16 | EE.VMULAS.S8/S16.QACC → EE.SRCMB |
+| `accum[i] += a[i] * b[i]` + prefetch next 16B | int8/int16 | EE.VMULAS.S8/S16.QACC.LD.XP / .LD.IP |
 | `c = max(a, b)` | int8/int16/int32 | EE.VMAX.S8/S16/S32 |
 | `c = min(a, b)` | int8/int16/int32 | EE.VMIN.S8/S16/S32 |
 | `c = a > 0 ? a : 0` (ReLU) | int16 | EE.VRELU.S16 qs, zero, zero |

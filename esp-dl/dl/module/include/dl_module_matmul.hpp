@@ -135,6 +135,8 @@ public:
             base::conv2d<int8_t, int32_t, int32_t>(args);
         } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
             base::conv2d<int16_t, int32_t, int64_t>(args);
+        } else if (quant_type == QUANT_TYPE_SYMM_W8A16) {
+            base::conv2d<int16_t, int32_t, int64_t, int8_t>(args);
         }
     }
 
@@ -155,6 +157,7 @@ public:
         args.row_start = 0;
         args.row_end = m;
         args.mac_shift = mac_shift;
+        args.activation = m_activation;
 
         const bool use_dual_core =
             m > 1 && (mode == RUNTIME_MODE_MULTI_CORE || (mode == RUNTIME_MODE_AUTO && m >= 100 && n >= 50));
@@ -178,7 +181,7 @@ public:
         const std::vector<int> &input0_shape = input0->get_shape();
         const std::vector<int> &input1_shape = input1->get_shape();
 
-        assert(m_activation == Linear);
+        assert(m_activation == Linear || m_activation == ReLU);
         assert(input0_shape.size() >= 1 && input0_shape.size() <= 4);
         assert(input1_shape.size() >= 1 && input1_shape.size() <= 4);
 
@@ -246,7 +249,7 @@ public:
         m_running_native_kernel = false;
     }
 
-    template <typename T>
+    template <typename T, typename filter_t = T>
     void forward_template(ModelContext *context, runtime_mode_t mode)
     {
         std::vector<int> padding(4, 0);
@@ -294,17 +297,17 @@ public:
                 output->set_shape({1, 1, origin_output_shape[0], 1});
             }
 
-            base::ConvOpArgs<T> m_args(output,
-                                       input0,
-                                       padding,
-                                       input1 /*filter*/,
-                                       {1, 1} /*strides*/,
-                                       {1, 1} /*dilations*/,
-                                       1 /*group*/,
-                                       nullptr /*bias*/,
-                                       m_activation,
-                                       nullptr,
-                                       mode); // do not support PReLU and Leaky RelU
+            base::ConvOpArgs<T, filter_t> m_args(output,
+                                                 input0,
+                                                 padding,
+                                                 input1 /*filter*/,
+                                                 {1, 1} /*strides*/,
+                                                 {1, 1} /*dilations*/,
+                                                 1 /*group*/,
+                                                 nullptr /*bias*/,
+                                                 m_activation,
+                                                 nullptr,
+                                                 mode); // do not support PReLU and Leaky RelU
             int task_size = m_args.size();
             if (task_size == 1) { // single task
                 forward_args((void *)&m_args.get_args(0));
@@ -332,7 +335,7 @@ public:
 
                 int c = origin_input1_shape[origin_input1_shape.size() - 2];
                 int n = origin_input1_shape.back();
-                int align = input1->get_dtype() == DATA_TYPE_INT8 ? 16 : 8;
+                int align = quant_type == QUANT_TYPE_SYMM_8BIT ? 16 : 8;
                 bool is_align = (c * n % align) == 0;
                 input1->set_shape({input1_batch_size, c, n});
 
@@ -370,17 +373,17 @@ public:
                                           false /*deep*/,
                                           output->caps /*caps*/);
 
-                    base::ConvOpArgs<T> m_args(&output_tmp,
-                                               input0,
-                                               padding,
-                                               &input1_tmp /*filter*/,
-                                               {1, 1} /*strides*/,
-                                               {1, 1} /*dilations*/,
-                                               1 /*group*/,
-                                               nullptr /*bias*/,
-                                               m_activation,
-                                               nullptr,
-                                               mode); // do not support PReLU and Leaky RelU
+                    base::ConvOpArgs<T, filter_t> m_args(&output_tmp,
+                                                         input0,
+                                                         padding,
+                                                         &input1_tmp /*filter*/,
+                                                         {1, 1} /*strides*/,
+                                                         {1, 1} /*dilations*/,
+                                                         1 /*group*/,
+                                                         nullptr /*bias*/,
+                                                         m_activation,
+                                                         nullptr,
+                                                         mode); // do not support PReLU and Leaky RelU
                     int task_size = m_args.size();
                     if (task_size == 1) { // single task
                         forward_args((void *)&m_args.get_args(0));
@@ -426,17 +429,17 @@ public:
                                           false /*deep*/,
                                           output->caps /*caps*/);
 
-                    base::ConvOpArgs<T> m_args(&output_tmp,
-                                               &input0_tmp,
-                                               padding,
-                                               input1 /*filter*/,
-                                               {1, 1} /*strides*/,
-                                               {1, 1} /*dilations*/,
-                                               1 /*group*/,
-                                               nullptr /*bias*/,
-                                               m_activation,
-                                               nullptr,
-                                               mode); // do not support PReLU and Leaky RelU
+                    base::ConvOpArgs<T, filter_t> m_args(&output_tmp,
+                                                         &input0_tmp,
+                                                         padding,
+                                                         input1 /*filter*/,
+                                                         {1, 1} /*strides*/,
+                                                         {1, 1} /*dilations*/,
+                                                         1 /*group*/,
+                                                         nullptr /*bias*/,
+                                                         m_activation,
+                                                         nullptr,
+                                                         mode); // do not support PReLU and Leaky RelU
                     int task_size = m_args.size();
                     if (task_size == 1) { // single task
                         forward_args((void *)&m_args.get_args(0));
@@ -454,7 +457,7 @@ public:
 
                 int c = origin_input1_shape[origin_input1_shape.size() - 2];
                 int n = origin_input1_shape.back();
-                int align = input1->get_dtype() == DATA_TYPE_INT8 ? 16 : 8;
+                int align = quant_type == QUANT_TYPE_SYMM_8BIT ? 16 : 8;
                 bool is_align = (c * n % align) == 0;
                 input0->set_shape(
                     {input0_batch, origin_input0_shape[origin_input0_shape.size() - 2], origin_input0_shape.back()});
@@ -509,17 +512,17 @@ public:
                                           false /*deep*/,
                                           output->caps /*caps*/);
 
-                    base::ConvOpArgs<T> m_args(&output_tmp,
-                                               &input0_tmp,
-                                               padding,
-                                               &input1_tmp /*filter*/,
-                                               {1, 1} /*strides*/,
-                                               {1, 1} /*dilations*/,
-                                               1 /*group*/,
-                                               nullptr /*bias*/,
-                                               m_activation,
-                                               nullptr,
-                                               mode); // do not support PReLU and Leaky RelU
+                    base::ConvOpArgs<T, filter_t> m_args(&output_tmp,
+                                                         &input0_tmp,
+                                                         padding,
+                                                         &input1_tmp /*filter*/,
+                                                         {1, 1} /*strides*/,
+                                                         {1, 1} /*dilations*/,
+                                                         1 /*group*/,
+                                                         nullptr /*bias*/,
+                                                         m_activation,
+                                                         nullptr,
+                                                         mode); // do not support PReLU and Leaky RelU
                     int task_size = m_args.size();
                     if (task_size == 1) { // single task
                         forward_args((void *)&m_args.get_args(0));
@@ -547,7 +550,7 @@ public:
 
                 int c = origin_input1_shape[origin_input1_shape.size() - 2];
                 int n = origin_input1_shape.back();
-                int align = input1->get_dtype() == DATA_TYPE_INT8 ? 16 : 8;
+                int align = quant_type == QUANT_TYPE_SYMM_8BIT ? 16 : 8;
                 bool is_align = (c * n % align) == 0;
                 input0->set_shape({input0_batch0,
                                    input0_batch1,
@@ -612,17 +615,17 @@ public:
                                               false /*deep*/,
                                               output->caps /*caps*/);
 
-                        base::ConvOpArgs<T> m_args(&output_tmp,
-                                                   &input0_tmp,
-                                                   padding,
-                                                   &input1_tmp /*filter*/,
-                                                   {1, 1} /*strides*/,
-                                                   {1, 1} /*dilations*/,
-                                                   1 /*group*/,
-                                                   nullptr /*bias*/,
-                                                   m_activation,
-                                                   nullptr,
-                                                   mode); // do not support PReLU and Leaky RelU
+                        base::ConvOpArgs<T, filter_t> m_args(&output_tmp,
+                                                             &input0_tmp,
+                                                             padding,
+                                                             &input1_tmp /*filter*/,
+                                                             {1, 1} /*strides*/,
+                                                             {1, 1} /*dilations*/,
+                                                             1 /*group*/,
+                                                             nullptr /*bias*/,
+                                                             m_activation,
+                                                             nullptr,
+                                                             mode); // do not support PReLU and Leaky RelU
                         int task_size = m_args.size();
                         if (task_size == 1) { // single task
                             forward_args((void *)&m_args.get_args(0));
@@ -663,6 +666,8 @@ public:
             } else {
                 forward_template<int16_t>(context, mode);
             }
+        } else if (quant_type == QUANT_TYPE_SYMM_W8A16) {
+            forward_template<int16_t, int8_t>(context, mode);
         }
     }
 
@@ -674,14 +679,23 @@ public:
         Module *matmul_op = nullptr;
 
         activation_type_t activation_type;
-        quant_type_t quant_type;
+        quant_type_t quant_type = QUANT_TYPE_NONE;
+        std::string quant_type_str;
         std::string input1_layout = "packed";
         fbs_model->get_operation_attribute(node_name, "activation", activation_type);
-        fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
+        // Prebuilt fbs_model only maps S8/S16/F32. Read the raw string first so
+        // W8A16 is not lost if the library treats it as unknown.
+        if (fbs_model->get_operation_attribute(node_name, "quant_type", quant_type_str) == ESP_OK &&
+            quant_type_str == "W8A16") {
+            quant_type = QUANT_TYPE_SYMM_W8A16;
+        } else {
+            fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
+        }
         fbs_model->get_operation_attribute(node_name, "input1_layout", input1_layout);
 
         // Create module
-        if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
+        if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT ||
+            quant_type == QUANT_TYPE_SYMM_W8A16) {
             matmul_op = new MatMul(activation_type, node_name.c_str(), quant_type, input1_layout == "native_kn");
         }
 
