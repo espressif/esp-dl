@@ -3,19 +3,40 @@ import os
 
 import toml
 
+# pytest-embedded's run_all_single_board_cases defaults to 30s. ESP32 C kernels
+# (especially Conv/Gemm) plus warmup/bench loops need much longer. The pytest
+# plugin default in conftest.py is 5 minutes and must stay above the Unity wait.
+UNITY_CASE_TIMEOUT_S = {
+    "esp32": 1800,
+}
+UNITY_CASE_TIMEOUT_DEFAULT_S = 600
+PYTEST_CASE_TIMEOUT_SLACK_S = 300
+
+
+def unity_timeout_for_target(target):
+    return UNITY_CASE_TIMEOUT_S.get(target, UNITY_CASE_TIMEOUT_DEFAULT_S)
+
+
+def pytest_timeout_for_target(target):
+    return unity_timeout_for_target(target) + PYTEST_CASE_TIMEOUT_SLACK_S
+
+
 PYTEST_TEMPLATE = """
 import pytest
 from pytest_embedded import Dut
+from tools.ops_test.perf_benchmark import record_and_compare
 
 
 @pytest.mark.target("{target}")
 @pytest.mark.env("{env}")
+@pytest.mark.timeout({pytest_timeout})
 @pytest.mark.parametrize(
     "config",
     {models},
 )
-def test_model_common(dut: Dut) -> None:
-    dut.run_all_single_board_cases(group="dl_model")
+def test_model_common(dut: Dut, config: str) -> None:
+    dut.run_all_single_board_cases(group="dl_model", timeout={unity_timeout})
+    record_and_compare(dut, config, "{target}")
 """
 
 
@@ -33,18 +54,26 @@ def get_model_names(model_path):
     return names
 
 
+def write_pytest_script(pytest_file, target, env, models):
+    pytest_content = PYTEST_TEMPLATE.format(
+        target=target,
+        env=env,
+        models=str(models),
+        pytest_timeout=pytest_timeout_for_target(target),
+        unity_timeout=unity_timeout_for_target(target),
+    )
+    print(pytest_content)
+    with open(pytest_file, "w") as f:
+        f.write(pytest_content)
+
+
 def gen_pytest_script(model_path, pytest_file, target="esp32p4", env="esp32p4"):
     # models = get_model_names(model_path)
     target_model_path = os.path.join(model_path, target)
     models = get_model_names(target_model_path)
     if len(models) > 0:
         print(models)
-        pytest_content = PYTEST_TEMPLATE.format(
-            target=target, env=env, models=str(models)
-        )
-        print(pytest_content)
-        with open(pytest_file, "w") as f:
-            f.write(pytest_content)
+        write_pytest_script(pytest_file, target, env, models)
     else:
         print(f"No model found in {model_path}")
 
@@ -63,12 +92,7 @@ def gen_pytest_script_by_config(
 
     if len(models) > 0:
         print(models)
-        pytest_content = PYTEST_TEMPLATE.format(
-            target=target, env=env, models=str(models)
-        )
-        print(pytest_content)
-        with open(pytest_file, "w") as f:
-            f.write(pytest_content)
+        write_pytest_script(pytest_file, target, env, models)
     else:
         print(f"No model found in {config_file}")
 
@@ -78,12 +102,7 @@ def gen_pytest_script_by_type(op_type, pytest_file, target="esp32p4", env="esp32
     models = [op_type]
     if len(models) > 0:
         print(models)
-        pytest_content = PYTEST_TEMPLATE.format(
-            target=target, env=env, models=str(models)
-        )
-        print(pytest_content)
-        with open(pytest_file, "w") as f:
-            f.write(pytest_content)
+        write_pytest_script(pytest_file, target, env, models)
     else:
         print(f"No model found in {model_path}")
 

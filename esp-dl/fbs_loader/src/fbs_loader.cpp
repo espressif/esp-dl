@@ -571,6 +571,58 @@ void FbsLoader::list_models()
     }
 }
 
+std::string FbsLoader::get_model_name(int model_index)
+{
+    if (m_format == FBS_FILE_FORMAT_UNK) {
+        ESP_LOGE(TAG, "Model's flatbuffers is empty or broken.");
+        return std::string();
+    }
+
+    fbs_file_format_t format = m_format;
+    if (!is_packed_format(format)) {
+        ESP_LOGW(TAG, "The flatbuffers is not a packed model, no model name available.");
+        return std::string();
+    }
+
+    uint32_t entry_word = pack_entry_base_word(format);
+    uint32_t entry_byte = pack_entry_base_byte(format);
+    if (m_location != MODEL_LOCATION_IN_SDCARD) {
+        const uint32_t *header = (const uint32_t *)m_fbs_buf;
+        uint32_t model_num = header[pack_model_num_word(format)];
+        if (model_index < 0 || static_cast<uint32_t>(model_index) >= model_num) {
+            ESP_LOGE(TAG, "The model index is out of range.");
+            return std::string();
+        }
+        uint32_t name_offset = header[entry_word + 3 * model_index + 1];
+        uint32_t name_length = header[entry_word + 3 * model_index + 2];
+        return std::string((const char *)m_fbs_buf + name_offset, name_length);
+    } else {
+        FILE *f = fopen((const char *)m_fbs_buf, "rb");
+        if (!f) {
+            ESP_LOGE(TAG, "Failed to open %s.", (const char *)m_fbs_buf);
+            return std::string();
+        }
+        fseek(f, pack_model_num_byte(format), SEEK_SET);
+        uint32_t model_num;
+        fread(&model_num, 4, 1, f);
+        if (model_index < 0 || static_cast<uint32_t>(model_index) >= model_num) {
+            ESP_LOGE(TAG, "The model index is out of range.");
+            fclose(f);
+            return std::string();
+        }
+        fseek(f, entry_byte + 12 * model_index + 4, SEEK_SET);
+        uint32_t name_offset;
+        uint32_t name_length;
+        fread(&name_offset, 4, 1, f);
+        fread(&name_length, 4, 1, f);
+        std::string name(name_length, '\0');
+        fseek(f, name_offset, SEEK_SET);
+        fread(name.data(), name_length, 1, f);
+        fclose(f);
+        return name;
+    }
+}
+
 esp_err_t FbsLoader::get_package_version(char *out_version, size_t out_size)
 {
     if (out_version == nullptr || out_size == 0) {
