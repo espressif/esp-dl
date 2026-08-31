@@ -24,7 +24,7 @@ def pytest_timeout_for_target(target):
 PYTEST_TEMPLATE = """
 import pytest
 from pytest_embedded import Dut
-from tools.ops_test.perf_benchmark import record_and_compare
+from tools.ops_test.benchmark.perf_benchmark import record_and_compare
 
 
 @pytest.mark.target("{target}")

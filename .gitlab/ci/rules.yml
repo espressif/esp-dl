@@ -154,8 +154,8 @@
   - "tools/ops_test/config/op_cfg.toml"
   - "tools/ops_test/gen_test_cases.py"
   - "tools/ops_test/manage_case_package.py"
-  - "tools/ops_test/perf_benchmark.py"
-  - "tools/ops_test/perf_package.py"
+  - "tools/ops_test/benchmark/perf_benchmark.py"
+  - "tools/ops_test/benchmark/perf_package.py"
   - "tools/ops_test/torch_ops_test.py"
   - "tools/ops_test/onnx_ops_test.py"
 

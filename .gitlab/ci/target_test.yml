@@ -76,14 +76,14 @@ variables:
       # Pull the latest <target>_perf_results.json baseline from the package
       # registry. On the first run no version exists for the target yet and
       # every result is recorded as "new" without a comparison.
-      python tools/ops_test/perf_package.py fetch \
+      python tools/ops_test/benchmark/perf_package.py fetch \
         --api-url "${CI_API_V4_URL}" \
         --project-id "${CI_PROJECT_ID}" \
         --token "${CI_JOB_TOKEN}" \
         --target "${IDF_TARGET}" \
         --output "${PERF_BASELINE_FILE}" \
         --list-token "${PACKAGE_CLEANUP_TOKEN:-}"
-    - python tools/ops_test/perf_benchmark.py init --output ${PERF_RESULTS_FILE}
+    - python tools/ops_test/benchmark/perf_benchmark.py init --output ${PERF_RESULTS_FILE}
     - pytest ${TEST_FOLDER} -p no:idf-ci --target ${TEST_TARGET} --env ${TEST_ENV} --model ${TEST_MODEL} --junitxml=XUNIT_RESULT.xml
 
 .pytest_api_template:
