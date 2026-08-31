@@ -6,8 +6,10 @@ import toml
 # pytest-embedded's run_all_single_board_cases defaults to 30s. ESP32 C kernels
 # (especially Conv/Gemm) plus warmup/bench loops need much longer. The pytest
 # plugin default in conftest.py is 5 minutes and must stay above the Unity wait.
+# The esp32 timeout keeps headroom for the perf benchmark's 5 warmup + 12 timed
+# runs per model (1.7x the previous runs per model).
 UNITY_CASE_TIMEOUT_S = {
-    "esp32": 1800,
+    "esp32": 3600,
 }
 UNITY_CASE_TIMEOUT_DEFAULT_S = 600
 PYTEST_CASE_TIMEOUT_SLACK_S = 300

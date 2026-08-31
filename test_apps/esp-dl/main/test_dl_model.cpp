@@ -32,8 +32,15 @@ TEST_CASE("Test espdl model", "[dl_model]")
         Model *model = new Model(fbs_model);
         model->print();
         TEST_ASSERT_EQUAL(ESP_OK, model->test());
-        constexpr int kWarmup = 2;
-        constexpr int kIters = 8;
+        // Measurement methodology: warmup runs bring the flash/PSRAM caches to a
+        // steady state, then each timed sample is a full model run. On-chip noise
+        // (cache misses, FreeRTOS tick preemption, PSRAM refresh, ...) can only
+        // ever ADD time to a sample, so the MINIMUM sample converges to the true
+        // compute time and is far more stable run-to-run than the median. The
+        // benchmark gate therefore compares min-to-min; median/mean are logged
+        // for reference only.
+        constexpr int kWarmup = 4;
+        constexpr int kIters = 12;
         uint32_t samples[kIters];
         uint64_t total_us = 0;
         for (int n = 0; n < kWarmup; n++) {
@@ -46,6 +53,7 @@ TEST_CASE("Test espdl model", "[dl_model]")
             total_us += samples[n];
         }
         std::sort(samples, samples + kIters);
+        float min_us = samples[0];
         float median_us = (samples[kIters / 2 - 1] + samples[kIters / 2]) / 2.0f;
         // All cases exported from ONNX share the same graph name (e.g. "main_graph"),
         // so use the packed entry name (the per-case model file name) to keep every
@@ -55,9 +63,10 @@ TEST_CASE("Test espdl model", "[dl_model]")
             bench_name = fbs_model->get_model_name();
         }
         ESP_LOGI(TAG,
-                 "BENCH name=%s iters=%d median_us=%.3f mean_us=%.3f",
+                 "BENCH name=%s iters=%d min_us=%.3f median_us=%.3f mean_us=%.3f",
                  bench_name.c_str(),
                  kIters,
+                 min_us,
                  median_us,
                  total_us / static_cast<float>(kIters));
 
