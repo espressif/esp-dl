@@ -10,12 +10,16 @@ void prelu_11c(feature_t *output_ptr, feature_t *input_ptr, const ArgsType<featu
     buffer_t temp;
     feature_t *alpha_ptr = (feature_t *)args.activation_alpha_ptr;
     for (size_t output_c = 0; output_c < args.output_channel; output_c++) {
-        output_ptr[output_c] = input_ptr[output_c];
-        if (output_ptr[output_c] < 0) {
-            temp =
-                DL_RIGHT_SHIFT((buffer_t)output_ptr[output_c] * (buffer_t)alpha_ptr[output_c], args.activation_shift);
-            tool::truncate(output_ptr[output_c], temp);
+        buffer_t x = (buffer_t)input_ptr[output_c];
+        if (x < 0) {
+            temp = DL_RIGHT_SHIFT(x * (buffer_t)alpha_ptr[output_c], args.activation_shift);
+        } else {
+            // Requantize the positive branch to the output exponent; previously the
+            // input was copied through unchanged, which is only correct when
+            // output->exponent == input->exponent.
+            temp = tool::shift_and_round<int32_t>(static_cast<int32_t>(x) * args.output_scale, args.output_shift);
         }
+        tool::truncate(output_ptr[output_c], temp);
     }
 }
 
