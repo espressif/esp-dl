@@ -44,7 +44,7 @@ ESP-DL 必须使用专有格式 ``.espdl`` 进行模型部署。这是一种量�
 - ``**.info``: ESPDL 模型文本文件，用于调试和确定  ``.espdl`` 模型是否被正确导出。包含了模型结构，量化完的模型权重，测试输入/输出等信息。
 - ``**.json``: 量化信息文件，用于量化信息的保存和加载。
 
-量化方案（``quant_type``）
+量化方案 (``quant_type``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 通过 ``espdl_quantize_onnx`` / ``espdl_quantize_torch`` 的 ``quant_type`` 参数选择量化方案：
@@ -57,7 +57,7 @@ ESP-DL 必须使用专有格式 ``.espdl`` 进行模型部署。这是一种量�
      - 权重
      - 激活
      - 典型用途
-   * - ``w8a8``（默认）
+   * - ``w8a8`` (默认)
      - INT8
      - INT8
      - 推理速度最快，大多数模型的默认选择
@@ -94,8 +94,8 @@ ESP-DL 必须使用专有格式 ``.espdl`` 进行模型部署。这是一种量�
 .. note::
 
    - 请优先使用 ``quant_type``。当同时传入时，它会覆盖旧的 ``num_of_bits`` 参数。``num_of_bits=8`` 等价于 ``quant_type="w8a8"``；``num_of_bits=16`` 等价于 ``quant_type="w16a16"``。
-   - ``w8a16`` 从 ESP-DL v3.3.11 开始全面支持。并非所有算子都有独立的 w8a16 kernel：带静态权重的 Conv / Gemm / MatMul 使用 INT8 权重和 INT16 激活；depthwise Conv（``group != 1``）及其它算子会回退到 INT16。详见 `operator_support_state.md <https://github.com/espressif/esp-dl/blob/master/operator_support_state.md>`__。
-   - ``debug=True`` 会在 PPQ 中启用高精度 INT16 仿真，仅对 ``w16a16`` 生效（旧参数别名：``hi_precision=True``）。
+   - ``w8a16`` 从 ESP-DL v3.3.11 开始全面支持。并非所有算子都有独立的 w8a16 kernel：带静态权重的 Conv / Gemm / MatMul 使用 INT8 权重和 INT16 激活；depthwise Conv (``group != 1``) 及其它算子会回退到 INT16。详见 `operator_support_state.md <https://github.com/espressif/esp-dl/blob/master/operator_support_state.md>`__。
+   - ``debug=True`` 会在 PPQ 中启用高精度 INT16 仿真，仅对 ``w16a16`` 生效 (旧参数别名: ``hi_precision=True``)。
 
 .. _mixed_quantization_label:
 
@@ -134,7 +134,7 @@ ESP-DL 必须使用专有格式 ``.espdl`` 进行模型部署。这是一种量�
        device="cpu",
    )
 
-推荐使用 ``get_target_platform(target, quant_type="w8a8")``。旧写法 ``get_target_platform(target, 16)``（或 ``num_of_bits=16``）仍然可用，并映射为 ``w16a16``。
+推荐使用 ``get_target_platform(target, quant_type="w8a8")``。旧写法 ``get_target_platform(target, 16)`` (或 ``num_of_bits=16``) 仍然可用，并映射为 ``w16a16``。
 
 请通过 ``setting.dispatching_table`` 配置混合精度。``espdl_quantize_*`` 的 ``dispatching_override`` 和 ``dispatching_method`` 参数已废弃，将在后续版本中移除。
 

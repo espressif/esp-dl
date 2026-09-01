@@ -130,8 +130,9 @@ publish_espdl_ops_perf_baseline:
           FAILED=1
           continue
         fi
-        # Every publication is an immutable <target>-<pipeline-id> version, so
-        # concurrent MRs never overwrite or delete each other's baselines.
+        # Every publication is an immutable <pipeline-id> version that holds
+        # every target's <target>_perf_results.json, so concurrent MRs never
+        # overwrite or delete each other's baselines.
         python tools/ops_test/benchmark/perf_package.py publish \
           --api-url "${CI_API_V4_URL}" \
           --project-id "${CI_PROJECT_ID}" \

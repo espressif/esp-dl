@@ -1,3 +1,11 @@
+#include "esp_idf_version.h"
+
+#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 5, 2))
+#define VLDBC_16_STEP 4 /* xesppie: write bytes*2 */
+#else
+#define VLDBC_16_STEP 2
+#endif
+
     .text
     .global dl_esp32p4_s16_matmul_kn
     .type dl_esp32p4_s16_matmul_kn, @function
@@ -55,7 +63,7 @@ dl_esp32p4_s16_matmul_kn:
     # Prologue: B[0] and broadcast A[0]
     # Inner K uses esp.lp.setup (same zero-overhead loop as 1x1 Conv).
     esp.vld.128.xp q0, a0, t4
-    esp.vldbc.16.ip q1, a1, 2
+    esp.vldbc.16.ip q1, a1, VLDBC_16_STEP
     addi a5, a2, -1            # fused iterations = K - 1
     beqz a5, .Ls16_last
 
@@ -63,14 +71,14 @@ dl_esp32p4_s16_matmul_kn:
     beqz a5, .Ls16_k_tail
     esp.lp.setup 0, a5, .Ls16_k4_end
     esp.vmulas.s16.qacc.ld.xp q2, a0, t4, q0, q1
-    esp.vldbc.16.ip q1, a1, 2
+    esp.vldbc.16.ip q1, a1, VLDBC_16_STEP
     esp.vmulas.s16.qacc.ld.xp q0, a0, t4, q2, q1
-    esp.vldbc.16.ip q1, a1, 2
+    esp.vldbc.16.ip q1, a1, VLDBC_16_STEP
     esp.vmulas.s16.qacc.ld.xp q2, a0, t4, q0, q1
-    esp.vldbc.16.ip q1, a1, 2
+    esp.vldbc.16.ip q1, a1, VLDBC_16_STEP
     esp.vmulas.s16.qacc.ld.xp q0, a0, t4, q2, q1
 .Ls16_k4_end:
-    esp.vldbc.16.ip q1, a1, 2
+    esp.vldbc.16.ip q1, a1, VLDBC_16_STEP
 
 .Ls16_k_tail:
     addi a5, a2, -1
@@ -79,7 +87,7 @@ dl_esp32p4_s16_matmul_kn:
     esp.lp.setup 0, a5, .Ls16_k1_end
     esp.vmulas.s16.qacc.ld.xp q0, a0, t4, q0, q1
 .Ls16_k1_end:
-    esp.vldbc.16.ip q1, a1, 2
+    esp.vldbc.16.ip q1, a1, VLDBC_16_STEP
 
 .Ls16_last:
     esp.vmulas.s16.qacc q0, q1

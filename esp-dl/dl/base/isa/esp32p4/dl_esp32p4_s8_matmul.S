@@ -1,3 +1,11 @@
+#include "esp_idf_version.h"
+
+#if (ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 5, 2))
+#define VLDBC_8_STEP 4 /* xesppie: write bytes*4 */
+#else
+#define VLDBC_8_STEP 1
+#endif
+
     .text
     .global dl_esp32p4_s8_matmul_kn
     .type dl_esp32p4_s8_matmul_kn, @function
@@ -54,7 +62,7 @@ dl_esp32p4_s8_matmul_kn:
     # Count register must be PIE-capable (not t0-t2). Label sits on the
     # last instruction of the body. Count 0 is skipped with beqz.
     esp.vld.128.xp q0, a0, t4
-    esp.vldbc.8.ip q1, a1, 1
+    esp.vldbc.8.ip q1, a1, VLDBC_8_STEP
     addi a5, a2, -1            # fused iterations = K - 1
     beqz a5, .Ls8_last
 
@@ -62,14 +70,14 @@ dl_esp32p4_s8_matmul_kn:
     beqz a5, .Ls8_k_tail
     esp.lp.setup 0, a5, .Ls8_k4_end
     esp.vmulas.s8.qacc.ld.xp q2, a0, t4, q0, q1
-    esp.vldbc.8.ip q1, a1, 1
+    esp.vldbc.8.ip q1, a1, VLDBC_8_STEP
     esp.vmulas.s8.qacc.ld.xp q0, a0, t4, q2, q1
-    esp.vldbc.8.ip q1, a1, 1
+    esp.vldbc.8.ip q1, a1, VLDBC_8_STEP
     esp.vmulas.s8.qacc.ld.xp q2, a0, t4, q0, q1
-    esp.vldbc.8.ip q1, a1, 1
+    esp.vldbc.8.ip q1, a1, VLDBC_8_STEP
     esp.vmulas.s8.qacc.ld.xp q0, a0, t4, q2, q1
 .Ls8_k4_end:
-    esp.vldbc.8.ip q1, a1, 1
+    esp.vldbc.8.ip q1, a1, VLDBC_8_STEP
 
 .Ls8_k_tail:
     addi a5, a2, -1
@@ -78,7 +86,7 @@ dl_esp32p4_s8_matmul_kn:
     esp.lp.setup 0, a5, .Ls8_k1_end
     esp.vmulas.s8.qacc.ld.xp q0, a0, t4, q0, q1
 .Ls8_k1_end:
-    esp.vldbc.8.ip q1, a1, 1
+    esp.vldbc.8.ip q1, a1, VLDBC_8_STEP
 
 .Ls8_last:
     esp.vmulas.s8.qacc q0, q1

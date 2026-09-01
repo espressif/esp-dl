@@ -4,7 +4,6 @@
 #include "dl_model_base.hpp"
 #include "dl_module_creator.hpp"
 #include "fbs_model.hpp"
-#include <format>
 
 static const char *TAG = "dl::Model";
 
@@ -646,7 +645,9 @@ static void print_memory_info(const std::map<std::string, mem_info_t> &info)
     size_t col0_width = strlen("parameter_copy");
     std::string sub_prefix = " -- ";
     auto get_fmt_size = [&sub_prefix](size_t size, bool sub_header) -> std::string {
-        std::string fmt_size = std::format("{:<.2f}KB", size / 1024.f);
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%.2fKB", size / 1024.f);
+        std::string fmt_size(buf);
         if (sub_header) {
             fmt_size = (fmt_size == "0.00KB") ? "" : sub_prefix + fmt_size;
         } else if (fmt_size == "0.00KB") {
@@ -684,16 +685,20 @@ static void print_memory_info(const std::map<std::string, mem_info_t> &info)
     for (int i = 0; i < row_headers.size(); i++) {
         std::string row_header = row_headers[i];
         bool sub_header = (row_header == "parameter");
-        std::string row = std::format("| {:<{}} | {:<{}} | {:<{}} | {:<{}} |",
-                                      sub_header ? (sub_prefix + row_header) : row_header,
-                                      col0_width,
-                                      get_fmt_size(info.at(row_header).internal, sub_header),
-                                      col1_width,
-                                      get_fmt_size(info.at(row_header).psram, sub_header),
-                                      col2_width,
-                                      get_fmt_size(info.at(row_header).flash, sub_header),
-                                      col3_width);
-        ESP_LOGI(TAG, "%s", row.c_str());
+        std::string name = sub_header ? (sub_prefix + row_header) : row_header;
+        std::string internal = get_fmt_size(info.at(row_header).internal, sub_header);
+        std::string psram = get_fmt_size(info.at(row_header).psram, sub_header);
+        std::string flash = get_fmt_size(info.at(row_header).flash, sub_header);
+        ESP_LOGI(TAG,
+                 "| %-*s | %-*s | %-*s | %-*s |",
+                 col0_width,
+                 name.c_str(),
+                 col1_width,
+                 internal.c_str(),
+                 col2_width,
+                 psram.c_str(),
+                 col3_width,
+                 flash.c_str());
         if (i == row_headers.size() - 1 || row_headers[i + 1] != "parameter") {
             ESP_LOGI(TAG, "%s", sep.c_str());
         }
