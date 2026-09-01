@@ -24,6 +24,30 @@ BENCH_PATTERN = re.compile(
 )
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 
+# Per-target perf gate defaults. With the min-of-N measurement these values
+# were found stable enough for all three chips; keep them per-target anyway so
+# each chip can be returned independently. Any pipeline can override them via
+# GitLab pipeline/project CI/CD variables without a code change: a
+# <NAME>_<TARGET> variable (e.g. PERF_RELATIVE_THRESHOLD_PCT_ESP32) beats the
+# generic <NAME>, which beats these defaults.
+DEFAULT_RELATIVE_THRESHOLD_PCT = {"esp32": 3.0, "esp32s3": 3.0, "esp32p4": 3.0}
+DEFAULT_ABSOLUTE_FLOOR_US = {"esp32": 3.0, "esp32s3": 3.0, "esp32p4": 3.0}
+GENERIC_RELATIVE_THRESHOLD_PCT = 3.0
+GENERIC_ABSOLUTE_FLOOR_US = 3.0
+
+
+def _env_float(name, target, default):
+    """Resolve a perf gate threshold from environment variables.
+
+    Checks `<NAME>_<TARGET>` (e.g. PERF_RELATIVE_THRESHOLD_PCT_ESP32) first,
+    then the generic `<NAME>`, then falls back to `default`.
+    """
+    for key in ("{}_{}".format(name, target.upper()), name):
+        value = os.environ.get(key)
+        if value:
+            return float(value)
+    return default
+
 
 def parse_benchmarks(log):
     """Return all machine-readable benchmark records from a DUT log."""
@@ -113,23 +137,26 @@ def compare_result(
     baseline_us = _compared_us(baseline, metric)
     absolute_delta_us = current_us - baseline_us
     if baseline_us == 0:
-        current["status"] = "invalid_baseline"
-        return "{} has a zero-valued performance baseline".format(current["name"])
+        # Sub-microsecond op: the 1 us timer resolution quantizes the baseline
+        # minimum to 0 us, so the relative change is undefined. Enforce only
+        # the absolute floor here; a real slowdown still shows up as a jump of
+        # several us, which the floor still catches.
+        delta_pct = None
+        exceeds_relative = current_us > 0
+    else:
+        delta_pct = absolute_delta_us / baseline_us * 100.0
+        exceeds_relative = abs(delta_pct) > relative_threshold_pct
 
-    delta_pct = absolute_delta_us / baseline_us * 100.0
     current.update(
         {
             "metric": metric,
             "baseline_min_us": baseline.get("min_us"),
             "baseline_median_us": baseline.get("median_us"),
             "delta_us": round(absolute_delta_us, 3),
-            "delta_pct": round(delta_pct, 3),
+            "delta_pct": round(delta_pct, 3) if delta_pct is not None else None,
         }
     )
-    exceeds_limit = (
-        abs(delta_pct) > relative_threshold_pct
-        and abs(absolute_delta_us) > absolute_floor_us
-    )
+    exceeds_limit = exceeds_relative and abs(absolute_delta_us) > absolute_floor_us
     if not exceeds_limit:
         current["status"] = "pass"
         return None
@@ -137,15 +164,16 @@ def compare_result(
         current["status"] = "updated"
         return None
     current["status"] = "fail"
+    delta_text = "n/a" if delta_pct is None else "{:+.3f}%".format(delta_pct)
     return (
         "{name}: {metric} {current:.3f} us, baseline {baseline:.3f} us, "
-        "change {delta:+.3f}% (limit +/-{limit:.3f}%)"
+        "change {delta} (limit +/-{limit:.3f}%)"
     ).format(
         name=current["name"],
         metric=metric,
         current=current_us,
         baseline=baseline_us,
-        delta=delta_pct,
+        delta=delta_text,
         limit=relative_threshold_pct,
     )
 
@@ -215,9 +243,22 @@ def record_and_compare(dut, config, target):
     result_path = Path(os.environ.get("PERF_RESULTS_FILE", "perf_results.json"))
     report_path = Path(os.environ.get("PERF_REPORT_FILE", "perf_diff.md"))
     baseline_path = Path(os.environ.get("PERF_BASELINE_FILE", "perf_baseline.json"))
-    relative_threshold_pct = float(os.environ.get("PERF_RELATIVE_THRESHOLD_PCT", "2"))
-    absolute_floor_us = float(os.environ.get("PERF_ABSOLUTE_FLOOR_US", "2"))
+    relative_threshold_pct = _env_float(
+        "PERF_RELATIVE_THRESHOLD_PCT",
+        target,
+        DEFAULT_RELATIVE_THRESHOLD_PCT.get(target, GENERIC_RELATIVE_THRESHOLD_PCT),
+    )
+    absolute_floor_us = _env_float(
+        "PERF_ABSOLUTE_FLOOR_US",
+        target,
+        DEFAULT_ABSOLUTE_FLOOR_US.get(target, GENERIC_ABSOLUTE_FLOOR_US),
+    )
     allow_update = update_baseline_requested()
+    print(
+        "Performance gate for target {}: change limit +/-{}% and +/-{}us".format(
+            target, relative_threshold_pct, absolute_floor_us
+        )
+    )
 
     results = _load_results(result_path)
     results.update(

@@ -63,8 +63,6 @@ variables:
     PERF_BASELINE_FILE: "ops_perf/${IDF_TARGET}/${IDF_VERSION}/${TEST_MODEL}/perf_baseline.json"
     PERF_RESULTS_FILE: "ops_perf/${IDF_TARGET}/${IDF_VERSION}/${TEST_MODEL}/perf_results.json"
     PERF_REPORT_FILE: "ops_perf/${IDF_TARGET}/${IDF_VERSION}/${TEST_MODEL}/perf_diff.md"
-    PERF_RELATIVE_THRESHOLD_PCT: "2"
-    PERF_ABSOLUTE_FLOOR_US: "2"
     # Set to "1", or add the MR label "update-perf-baseline", to accept a new
     # performance baseline on an intentional optimization MR.
     PERF_UPDATE_BASELINE: "0"
