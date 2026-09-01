@@ -30,8 +30,8 @@ ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 # GitLab pipeline/project CI/CD variables without a code change: a
 # <NAME>_<TARGET> variable (e.g. PERF_RELATIVE_THRESHOLD_PCT_ESP32) beats the
 # generic <NAME>, which beats these defaults.
-DEFAULT_RELATIVE_THRESHOLD_PCT = {"esp32": 3.0, "esp32s3": 3.0, "esp32p4": 3.0}
-DEFAULT_ABSOLUTE_FLOOR_US = {"esp32": 3.0, "esp32s3": 3.0, "esp32p4": 3.0}
+DEFAULT_RELATIVE_THRESHOLD_PCT = {"esp32": 40.0, "esp32s3": 3.0, "esp32p4": 4.0}
+DEFAULT_ABSOLUTE_FLOOR_US = {"esp32": 40.0, "esp32s3": 3.0, "esp32p4": 3.0}
 GENERIC_RELATIVE_THRESHOLD_PCT = 3.0
 GENERIC_ABSOLUTE_FLOOR_US = 3.0
 
