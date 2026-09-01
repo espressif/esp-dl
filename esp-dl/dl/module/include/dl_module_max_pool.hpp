@@ -10,6 +10,8 @@ private:
     std::vector<int> m_filter_shape; /*!< filter shape in [height, width] */
     std::vector<int> m_padding;      /*!< padding size needed in [top, bottom, left, right] of this operation */
     std::vector<int> m_strides;      /*!< stride along each spatial axis. [height, width] */
+    int m_ceil_mode;                 /*!< ONNX ceil_mode: 0 = floor, 1 = ceil */
+
 public:
     /**
      * @brief Construct a new MaxPool object.
@@ -18,16 +20,20 @@ public:
      * @param filter_shape    filter shape in [height, width]
      * @param padding         padding size needed in [top, bottom, left, right] of this operation
      * @param strides         stride along each spatial axis. [height, width]
+     * @param quant_type      quantize type
+     * @param ceil_mode       ONNX ceil_mode, 0 = floor (default), 1 = ceil
      */
     MaxPool(const char *name = NULL,
             const std::vector<int> &filter_shape = {2, 2},
             const std::vector<int> &padding = {},
             const std::vector<int> &strides = {1, 1},
-            quant_type_t quant_type = QUANT_TYPE_NONE) :
+            quant_type_t quant_type = QUANT_TYPE_NONE,
+            int ceil_mode = 0) :
         Module(name, MODULE_NON_INPLACE, quant_type),
         m_filter_shape(filter_shape),
         m_padding(padding),
-        m_strides(strides)
+        m_strides(strides),
+        m_ceil_mode(ceil_mode)
     {
     }
 
@@ -42,11 +48,13 @@ public:
         std::vector<int> input_shape = input_shapes[0];
         std::vector<int> output_shape = input_shape;
 
-        output_shape[1] = (input_shape[1] + m_padding[0] + m_padding[1] - m_filter_shape[0]) / m_strides[0] + 1;
+        output_shape[1] = base::pool_output_size(
+            input_shape[1], m_padding[0], m_padding[1], m_filter_shape[0], m_strides[0], m_ceil_mode);
         if (input_shape.size() == 3) {
             output_shape[2] = input_shape[2];
         } else if (input_shape.size() == 4) {
-            output_shape[2] = (input_shape[2] + m_padding[2] + m_padding[3] - m_filter_shape[1]) / m_strides[1] + 1;
+            output_shape[2] = base::pool_output_size(
+                input_shape[2], m_padding[2], m_padding[3], m_filter_shape[1], m_strides[1], m_ceil_mode);
             output_shape[3] = input_shape[3];
         }
 
@@ -99,10 +107,12 @@ public:
         std::vector<int> pads;
         std::vector<int> strides;
         quant_type_t quant_type;
+        int ceil_mode = 0;
         fbs_model->get_operation_attribute(node_name, "kernel_shape", kernel_shape);
         fbs_model->get_operation_attribute(node_name, "pads", pads);
         fbs_model->get_operation_attribute(node_name, "strides", strides);
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
+        fbs_model->get_operation_attribute(node_name, "ceil_mode", ceil_mode);
 
         // Create module
         if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
@@ -112,7 +122,7 @@ public:
                 pads = {0, 0, 0, 0};
             }
 
-            op = new MaxPool(node_name.c_str(), kernel_shape, pads, strides, quant_type);
+            op = new MaxPool(node_name.c_str(), kernel_shape, pads, strides, quant_type, ceil_mode);
         }
         return op;
     }
@@ -120,11 +130,12 @@ public:
     void print()
     {
         ESP_LOGI("MaxPool",
-                 "quant_type: %s, kernel size: %s, pads size: %s, strides size: %s",
+                 "quant_type: %s, kernel size: %s, pads size: %s, strides size: %s, ceil_mode: %d",
                  quant_type_to_string(quant_type),
                  vector_to_string(m_filter_shape).c_str(),
                  vector_to_string(m_padding).c_str(),
-                 vector_to_string(m_strides).c_str());
+                 vector_to_string(m_strides).c_str(),
+                 m_ceil_mode);
     }
 };
 } // namespace module
