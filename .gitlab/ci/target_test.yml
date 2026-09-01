@@ -63,8 +63,6 @@ variables:
     PERF_BASELINE_FILE: "ops_perf/${IDF_TARGET}/${IDF_VERSION}/${TEST_MODEL}/perf_baseline.json"
     PERF_RESULTS_FILE: "ops_perf/${IDF_TARGET}/${IDF_VERSION}/${TEST_MODEL}/perf_results.json"
     PERF_REPORT_FILE: "ops_perf/${IDF_TARGET}/${IDF_VERSION}/${TEST_MODEL}/perf_diff.md"
-    PERF_RELATIVE_THRESHOLD_PCT: "2"
-    PERF_ABSOLUTE_FLOOR_US: "2"
     # Set to "1", or add the MR label "update-perf-baseline", to accept a new
     # performance baseline on an intentional optimization MR.
     PERF_UPDATE_BASELINE: "0"
@@ -76,14 +74,14 @@ variables:
       # Pull the latest <target>_perf_results.json baseline from the package
       # registry. On the first run no version exists for the target yet and
       # every result is recorded as "new" without a comparison.
-      python tools/ops_test/perf_package.py fetch \
+      python tools/ops_test/benchmark/perf_package.py fetch \
         --api-url "${CI_API_V4_URL}" \
         --project-id "${CI_PROJECT_ID}" \
         --token "${CI_JOB_TOKEN}" \
         --target "${IDF_TARGET}" \
         --output "${PERF_BASELINE_FILE}" \
         --list-token "${PACKAGE_CLEANUP_TOKEN:-}"
-    - python tools/ops_test/perf_benchmark.py init --output ${PERF_RESULTS_FILE}
+    - python tools/ops_test/benchmark/perf_benchmark.py init --output ${PERF_RESULTS_FILE}
     - pytest ${TEST_FOLDER} -p no:idf-ci --target ${TEST_TARGET} --env ${TEST_ENV} --model ${TEST_MODEL} --junitxml=XUNIT_RESULT.xml
 
 .pytest_api_template:

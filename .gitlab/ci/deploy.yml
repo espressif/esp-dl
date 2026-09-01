@@ -122,7 +122,7 @@ publish_espdl_ops_perf_baseline:
       FAILED=0
       for TARGET in esp32 esp32s3 esp32p4; do
         OUTPUT="${TARGET}_perf_results.json"
-        if ! python tools/ops_test/perf_package.py aggregate \
+        if ! python tools/ops_test/benchmark/perf_package.py aggregate \
              --root "${CI_PROJECT_DIR}" \
              --target "${TARGET}" \
              --output "${OUTPUT}"; then
@@ -132,7 +132,7 @@ publish_espdl_ops_perf_baseline:
         fi
         # Every publication is an immutable <target>-<pipeline-id> version, so
         # concurrent MRs never overwrite or delete each other's baselines.
-        python tools/ops_test/perf_package.py publish \
+        python tools/ops_test/benchmark/perf_package.py publish \
           --api-url "${CI_API_V4_URL}" \
           --project-id "${CI_PROJECT_ID}" \
           --token "${CI_JOB_TOKEN}" \
@@ -146,33 +146,3 @@ publish_espdl_ops_perf_baseline:
         echo "One or more targets had no performance results." >&2
         exit 1
       fi
-
-cleanup_espdl_perf_packages:
-  stage: deploy
-  extends:
-    - .rules:deploy:perf_baseline
-  image: "python:3.11"
-  tags:
-    - build
-    - amd64
-  needs: []
-  variables:
-    GIT_DEPTH: 1
-    SUBMODULES_TO_FETCH: "none"
-    PERF_PACKAGE_VERSIONS_TO_KEEP: "10"
-  script:
-    - |
-      set -eu
-      if [ -z "${PACKAGE_CLEANUP_TOKEN:-}" ]; then
-        if [ "${CI_COMMIT_REF_PROTECTED:-false}" = "true" ]; then
-          echo "PACKAGE_CLEANUP_TOKEN is required on protected branches." >&2
-          exit 1
-        fi
-        echo "Skipping perf package cleanup: protected PACKAGE_CLEANUP_TOKEN is unavailable."
-        exit 0
-      fi
-      python tools/ops_test/perf_package.py cleanup \
-        --api-url "${CI_API_V4_URL}" \
-        --project-id "${CI_PROJECT_ID}" \
-        --token "${PACKAGE_CLEANUP_TOKEN}" \
-        --keep "${PERF_PACKAGE_VERSIONS_TO_KEEP}"

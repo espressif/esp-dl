@@ -4,6 +4,7 @@ stages:
   - build
   - target_test
   - deploy
+  - cleanup
 
 workflow:
   rules:
@@ -38,3 +39,4 @@ include:
   - '.gitlab/ci/build.yml'
   - '.gitlab/ci/target_test.yml'
   - '.gitlab/ci/deploy.yml'
+  - '.gitlab/ci/cleanup.yml'

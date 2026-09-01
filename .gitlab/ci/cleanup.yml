@@ -1,0 +1,59 @@
+cleanup_espdl_case_packages:
+  stage: cleanup
+  image: "python:3.11"
+  tags: ["build", "amd64"]
+  extends:
+    - .rules:gen:ops_test
+  needs:
+    - job: "gen_espdl_ops_cases"
+      artifacts: false
+  variables:
+    PACKAGE_VERSIONS_TO_KEEP: "15"
+  script:
+    - |
+      set -eu
+      if [ -z "${PACKAGE_CLEANUP_TOKEN:-}" ]; then
+        if [ "${CI_COMMIT_REF_PROTECTED:-false}" = "true" ]; then
+          echo "PACKAGE_CLEANUP_TOKEN is required on protected branches." >&2
+          exit 1
+        fi
+        echo "Skipping package cleanup: protected PACKAGE_CLEANUP_TOKEN is unavailable."
+        exit 0
+      fi
+      python tools/ops_test/manage_case_package.py cleanup \
+        --api-url "${CI_API_V4_URL}" \
+        --project-id "${CI_PROJECT_ID}" \
+        --token "${PACKAGE_CLEANUP_TOKEN}" \
+        --keep "${PACKAGE_VERSIONS_TO_KEEP}"
+
+cleanup_espdl_perf_packages:
+  stage: cleanup
+  extends:
+    - .rules:deploy:perf_baseline
+  image: "python:3.11"
+  tags:
+    - build
+    - amd64
+  needs:
+    - job: "publish_espdl_ops_perf_baseline"
+      artifacts: false
+  variables:
+    GIT_DEPTH: 1
+    SUBMODULES_TO_FETCH: "none"
+    PERF_PACKAGE_VERSIONS_TO_KEEP: "10"
+  script:
+    - |
+      set -eu
+      if [ -z "${PACKAGE_CLEANUP_TOKEN:-}" ]; then
+        if [ "${CI_COMMIT_REF_PROTECTED:-false}" = "true" ]; then
+          echo "PACKAGE_CLEANUP_TOKEN is required on protected branches." >&2
+          exit 1
+        fi
+        echo "Skipping perf package cleanup: protected PACKAGE_CLEANUP_TOKEN is unavailable."
+        exit 0
+      fi
+      python tools/ops_test/benchmark/perf_package.py cleanup \
+        --api-url "${CI_API_V4_URL}" \
+        --project-id "${CI_PROJECT_ID}" \
+        --token "${PACKAGE_CLEANUP_TOKEN}" \
+        --keep "${PERF_PACKAGE_VERSIONS_TO_KEEP}"

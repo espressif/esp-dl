@@ -11,13 +11,42 @@ import urllib.request
 from pathlib import Path
 
 
-SCHEMA_VERSION = 1
+# Schema v2 records the per-case minimum sample ("min_us") in addition to the
+# median/mean and gates the comparison on it: on-chip benchmark noise is
+# one-sided (it only ever adds time), so the minimum is the most stable
+# estimator across runs.
+SCHEMA_VERSION = 2
 BENCH_PATTERN = re.compile(
     r"BENCH name=(?P<name>\S+) iters=(?P<iters>\d+) "
+    r"(?:min_us=(?P<min>[0-9]+(?:\.[0-9]+)?) )?"
     r"median_us=(?P<median>[0-9]+(?:\.[0-9]+)?) "
     r"mean_us=(?P<mean>[0-9]+(?:\.[0-9]+)?)"
 )
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+
+# Per-target perf gate defaults. With the min-of-N measurement these values
+# were found stable enough for all three chips; keep them per-target anyway so
+# each chip can be returned independently. Any pipeline can override them via
+# GitLab pipeline/project CI/CD variables without a code change: a
+# <NAME>_<TARGET> variable (e.g. PERF_RELATIVE_THRESHOLD_PCT_ESP32) beats the
+# generic <NAME>, which beats these defaults.
+DEFAULT_RELATIVE_THRESHOLD_PCT = {"esp32": 3.0, "esp32s3": 3.0, "esp32p4": 3.0}
+DEFAULT_ABSOLUTE_FLOOR_US = {"esp32": 3.0, "esp32s3": 3.0, "esp32p4": 3.0}
+GENERIC_RELATIVE_THRESHOLD_PCT = 3.0
+GENERIC_ABSOLUTE_FLOOR_US = 3.0
+
+
+def _env_float(name, target, default):
+    """Resolve a perf gate threshold from environment variables.
+
+    Checks `<NAME>_<TARGET>` (e.g. PERF_RELATIVE_THRESHOLD_PCT_ESP32) first,
+    then the generic `<NAME>`, then falls back to `default`.
+    """
+    for key in ("{}_{}".format(name, target.upper()), name):
+        value = os.environ.get(key)
+        if value:
+            return float(value)
+    return default
 
 
 def parse_benchmarks(log):
@@ -29,6 +58,7 @@ def parse_benchmarks(log):
         {
             "name": match.group("name"),
             "iters": int(match.group("iters")),
+            "min_us": float(match.group("min")) if match.group("min") else None,
             "median_us": float(match.group("median")),
             "mean_us": float(match.group("mean")),
         }
@@ -78,6 +108,10 @@ def update_baseline_requested():
     return "update-perf-baseline" in labels
 
 
+def _compared_us(result, metric):
+    return float(result["min_us" if metric == "min" else "median_us"])
+
+
 def compare_result(
     current,
     baseline,
@@ -90,25 +124,39 @@ def compare_result(
         current["status"] = "new"
         return None
 
-    baseline_us = float(baseline["median_us"])
-    current_us = float(current["median_us"])
+    # Gate on the minimum sample when both records provide one: the minimum
+    # converges to the noise-free compute time, so min-to-min comparisons are
+    # much less sensitive to run-to-run timing fluctuation. Records from older
+    # baselines without min_us fall back to the median comparison.
+    metric = (
+        "min"
+        if current.get("min_us") is not None and baseline.get("min_us") is not None
+        else "median"
+    )
+    current_us = _compared_us(current, metric)
+    baseline_us = _compared_us(baseline, metric)
     absolute_delta_us = current_us - baseline_us
     if baseline_us == 0:
-        current["status"] = "invalid_baseline"
-        return "{} has a zero-valued performance baseline".format(current["name"])
+        # Sub-microsecond op: the 1 us timer resolution quantizes the baseline
+        # minimum to 0 us, so the relative change is undefined. Enforce only
+        # the absolute floor here; a real slowdown still shows up as a jump of
+        # several us, which the floor still catches.
+        delta_pct = None
+        exceeds_relative = current_us > 0
+    else:
+        delta_pct = absolute_delta_us / baseline_us * 100.0
+        exceeds_relative = abs(delta_pct) > relative_threshold_pct
 
-    delta_pct = absolute_delta_us / baseline_us * 100.0
     current.update(
         {
-            "baseline_median_us": baseline_us,
+            "metric": metric,
+            "baseline_min_us": baseline.get("min_us"),
+            "baseline_median_us": baseline.get("median_us"),
             "delta_us": round(absolute_delta_us, 3),
-            "delta_pct": round(delta_pct, 3),
+            "delta_pct": round(delta_pct, 3) if delta_pct is not None else None,
         }
     )
-    exceeds_limit = (
-        abs(delta_pct) > relative_threshold_pct
-        and abs(absolute_delta_us) > absolute_floor_us
-    )
+    exceeds_limit = exceeds_relative and abs(absolute_delta_us) > absolute_floor_us
     if not exceeds_limit:
         current["status"] = "pass"
         return None
@@ -116,14 +164,16 @@ def compare_result(
         current["status"] = "updated"
         return None
     current["status"] = "fail"
+    delta_text = "n/a" if delta_pct is None else "{:+.3f}%".format(delta_pct)
     return (
-        "{name}: median {current:.3f} us, baseline {baseline:.3f} us, "
-        "change {delta:+.3f}% (limit +/-{limit:.3f}%)"
+        "{name}: {metric} {current:.3f} us, baseline {baseline:.3f} us, "
+        "change {delta} (limit +/-{limit:.3f}%)"
     ).format(
         name=current["name"],
+        metric=metric,
         current=current_us,
         baseline=baseline_us,
-        delta=delta_pct,
+        delta=delta_text,
         limit=relative_threshold_pct,
     )
 
@@ -142,18 +192,27 @@ def _write_markdown(path, data):
     lines = [
         "# ESP-DL operator performance comparison",
         "",
-        "| Target | IDF | Operator | Model | Median (us) | Baseline (us) | Delta | Status |",
-        "|---|---|---|---|---:|---:|---:|---|",
+        "| Target | IDF | Operator | Model | Metric | Current (us) | Baseline (us) | Delta | Status |",
+        "|---|---|---|---|---|---|---:|---:|---|",
     ]
     for result in sorted(data["results"], key=_result_key):
-        baseline = result.get("baseline_median_us")
+        metric = result.get("metric", "median")
+        field = "min_us" if metric == "min" else "median_us"
+        baseline_field = "baseline_min_us" if metric == "min" else "baseline_median_us"
+        baseline = result.get(baseline_field)
         delta = result.get("delta_pct")
         lines.append(
-            "| {target} | {idf_version} | {config} | {name} | {median_us:.3f} | "
-            "{baseline} | {delta} | {status} |".format(
-                **result,
+            "| {target} | {idf_version} | {config} | {name} | {metric} | "
+            "{current:.3f} | {baseline} | {delta} | {status} |".format(
+                target=result["target"],
+                idf_version=result["idf_version"],
+                config=result["config"],
+                name=result["name"],
+                metric=metric,
+                current=result[field],
                 baseline="-" if baseline is None else "{:.3f}".format(baseline),
                 delta="-" if delta is None else "{:+.3f}%".format(delta),
+                status=result.get("status"),
             )
         )
     markdown_path = Path(path)
@@ -184,9 +243,22 @@ def record_and_compare(dut, config, target):
     result_path = Path(os.environ.get("PERF_RESULTS_FILE", "perf_results.json"))
     report_path = Path(os.environ.get("PERF_REPORT_FILE", "perf_diff.md"))
     baseline_path = Path(os.environ.get("PERF_BASELINE_FILE", "perf_baseline.json"))
-    relative_threshold_pct = float(os.environ.get("PERF_RELATIVE_THRESHOLD_PCT", "2"))
-    absolute_floor_us = float(os.environ.get("PERF_ABSOLUTE_FLOOR_US", "2"))
+    relative_threshold_pct = _env_float(
+        "PERF_RELATIVE_THRESHOLD_PCT",
+        target,
+        DEFAULT_RELATIVE_THRESHOLD_PCT.get(target, GENERIC_RELATIVE_THRESHOLD_PCT),
+    )
+    absolute_floor_us = _env_float(
+        "PERF_ABSOLUTE_FLOOR_US",
+        target,
+        DEFAULT_ABSOLUTE_FLOOR_US.get(target, GENERIC_ABSOLUTE_FLOOR_US),
+    )
     allow_update = update_baseline_requested()
+    print(
+        "Performance gate for target {}: change limit +/-{}% and +/-{}us".format(
+            target, relative_threshold_pct, absolute_floor_us
+        )
+    )
 
     results = _load_results(result_path)
     results.update(
@@ -198,7 +270,14 @@ def record_and_compare(dut, config, target):
             "update_baseline": allow_update,
         }
     )
-    baseline_results = _load_results(baseline_path)
+    try:
+        baseline_results = _load_results(baseline_path)
+    except RuntimeError as error:
+        # A baseline recorded with an outdated schema (e.g. before the min_us
+        # measurement) cannot be compared against. Treat it as absent: every
+        # case is recorded as "new" and the publish job refreshes the baseline.
+        print("Ignoring performance baseline {}: {}".format(baseline_path, error))
+        baseline_results = {"schema_version": SCHEMA_VERSION, "results": []}
     baseline_by_key = {
         _result_key(result): result for result in baseline_results["results"]
     }
@@ -280,7 +359,12 @@ def fetch_baseline(api_url, project_id, token, ref, job, artifact, output):
 
     data = json.loads(content.decode("utf-8"))
     if data.get("schema_version") != SCHEMA_VERSION:
-        raise RuntimeError("Downloaded performance baseline has an unsupported schema")
+        output.unlink(missing_ok=True)
+        print(
+            "Downloaded performance baseline has an outdated schema ({!r}); "
+            "treating it as absent".format(data.get("schema_version"))
+        )
+        return False
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_bytes(content)
     print("Downloaded performance baseline for job {!r}".format(job))

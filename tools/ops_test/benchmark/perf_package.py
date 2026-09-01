@@ -23,7 +23,12 @@ Update policy
 
   * no version exists for the target yet (first run), or
   * `--update` is passed (the MR carries the `update-perf-baseline` label, or
-    PERF_UPDATE_BASELINE is set to 1).
+    PERF_UPDATE_BASELINE is set to 1), or
+  * the latest existing version was recorded with an outdated schema and can
+    no longer be compared against the current measurement methodology
+    (e.g. after the benchmark switched from median to min). Such baselines are
+    refreshed automatically so perf gating self-heals after a methodology
+    change without requiring a label.
 
 Otherwise it prints a skip message and exits successfully without touching the
 registry.
@@ -40,7 +45,7 @@ import urllib.request
 from pathlib import Path
 
 PACKAGE_NAME = "espdl-op-perf-baseline"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 FILE_NAME_TEMPLATE = "{target}_perf_results.json"
 # Each test_espdl_ops matrix child writes artifacts under
 # ops_perf/<target>/<idf_version>/<config>/perf_results.json so they do not
@@ -175,6 +180,24 @@ def _latest_version(packages, target):
     )
 
 
+def _schema_is_outdated(api_url, project_id, target, version, token):
+    """Return True when the given baseline version has an older schema."""
+    request = urllib.request.Request(
+        _file_url(api_url, project_id, target, version),
+        headers={"JOB-TOKEN": token},
+    )
+    try:
+        with urllib.request.urlopen(request) as response:
+            data = json.load(response)
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return True
+        raise RuntimeError(
+            "Baseline probe failed with HTTP {}".format(error.code)
+        ) from error
+    return data.get("schema_version") != SCHEMA_VERSION
+
+
 def _collect_perf_result_files(root, target):
     """Return every perf_results.json that belongs to `target` under `root`."""
     root = Path(root)
@@ -283,6 +306,16 @@ def fetch(args):
         return
     if status != 200:
         raise RuntimeError("Baseline download failed with HTTP {}".format(status))
+    data = json.loads(Path(args.output).read_text(encoding="utf-8"))
+    if data.get("schema_version") != SCHEMA_VERSION:
+        Path(args.output).unlink(missing_ok=True)
+        print(
+            "Downloaded baseline for target {!r} (version {!r}) has an outdated "
+            "schema ({!r}); ignoring it, the next publish will refresh it".format(
+                args.target, version, data.get("schema_version")
+            )
+        )
+        return
     print(
         "Downloaded performance baseline for target {!r} (version {!r})".format(
             args.target, version
@@ -292,8 +325,8 @@ def fetch(args):
 
 def publish(args):
     """Upload a <target>_perf_results.json as a new immutable version. A new
-    version is only added on the first run or when an update was explicitly
-    requested."""
+    version is only added on the first run, when an update was explicitly
+    requested, or when the latest baseline has an outdated schema."""
     input_path = Path(args.input)
     data = json.loads(input_path.read_text(encoding="utf-8"))
     if data.get("schema_version") != SCHEMA_VERSION or not isinstance(
@@ -306,8 +339,11 @@ def publish(args):
     packages = _list_or_none(
         args.api_url, args.project_id, list_token, use_private_token
     )
+    latest_version = None
     if packages is not None:
-        exists = _latest_version(packages, args.target) is not None
+        latest = _latest_version(packages, args.target)
+        if latest is not None:
+            latest_version = latest["version"]
     else:
         # Listing is not permitted (pre-16.0 instance): probe the legacy stable
         # version directly.
@@ -317,19 +353,30 @@ def publish(args):
             None,
         )
         if status == 200:
-            exists = True
+            latest_version = args.target
         elif status == 404:
-            exists = False
+            pass
         else:
             raise RuntimeError("Baseline probe failed with HTTP {}".format(status))
 
     update = _truthy(args.update)
-    if exists and not update:
+    if latest_version is not None and not update:
+        # Refresh baselines recorded with an outdated schema automatically:
+        # comparing against them is meaningless after a measurement methodology
+        # change, and perf gating must not stay silently disabled until someone
+        # remembers to label the MR.
+        if not _schema_is_outdated(
+            args.api_url, args.project_id, args.target, latest_version, args.token
+        ):
+            print(
+                "Baseline for target {} already exists and update is not "
+                "requested; skipping.".format(args.target)
+            )
+            return
         print(
-            "Baseline for target {} already exists and update is not requested; "
-            "skipping.".format(args.target)
+            "Existing baseline for target {} (version {!r}) has an outdated "
+            "schema; republishing.".format(args.target, latest_version)
         )
-        return
 
     pipeline_id = args.pipeline_id or os.environ.get("CI_PIPELINE_ID")
     if not pipeline_id:
