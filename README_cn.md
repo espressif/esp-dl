@@ -10,6 +10,8 @@ ESP-DL 提供了加载、调试和运行 AI 模型的 API。该框架易于使�
 
 - **ESP-DL 标准模型格式：** 该格式类似于 ONNX，但使用 FlatBuffers 而不是 Protobuf，使其更轻量级并支持零拷贝反序列化，文件后缀为`.espdl`。
 
+- **灵活混合量化：** ESP-DL 支持 8bit (w8a8)、16bit (w16a16) 以及混合精度 (w8a16) 三种量化方式，可在模型中任意组合使用，在保持模型精度的同时最大化推理效率。
+
 - **高效算子实现：** ESP-DL 高效地实现了常见的 AI 算子，如 Conv、Pool、Gemm、Add 和 Mul等。目前[算子支持状态](./operator_support_state.md)。部分算子在 ESP32-S3 和 ESP32-P4 上的性能测试数据请参考 [benchmark_report.md](./benchmark_report.md)。
 
 - **静态内存规划器：** 内存规划器根据用户指定的内部 RAM 大小，自动将不同层分配到最佳内存位置，确保高效的整体运行速度同时最小化内存使用。
@@ -20,6 +22,7 @@ ESP-DL 提供了加载、调试和运行 AI 模型的 API。该框架易于使�
 
 
 ## 更新 
+- [2026/9/1] 从 ESP-DL v3.3.11 开始全面支持 w8a16 混合量化方法。
 - [2026/7/30] 新增 [PP-OCRv6](./models/pp_ocr_v6/) OCR 模型及 [示例](./examples/pp_ocr_v6/)，在 ESP32-P4 上端侧识别中文、英文及 46 种拉丁字母文字。
 - [2026/6/5] 添加 [esp32s3-pie-simd](./tools/agents/skills/esp32s3-pie-simd) 和 [esp32p4-pie-simd](./tools/agents/skills/esp32p4-pie-simd)两个skills, 方便code agent将代码重写为PIE指令加速版本。
 - [2026/5/13] 推出 **espdl-quantize skill**，自动迭代搜索最优 esp-ppq 量化策略，降低人工调参成本并提升量化模型精度。详见 [how_to_use_espdl_quantize_skill.rst](./docs/zh_CN/tutorials/auto_quantization/how_to_use_espdl_quantize_skill.rst)。

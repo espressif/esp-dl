@@ -10,6 +10,10 @@ The ESP-DL standard model format is a binary format used to store the model grap
 
 ESP-PPQ is a model quantization tool developed based on the open-source project PPQ. Users can select the ESP-DL target platform and directly export ESP-DL standard model files. ESP-PPQ inherits all the functionalities and documentation from the PPQ project, allowing users to conveniently choose quantization algorithms and analyze quantization errors.
 
+### Flexible Mixed Quantization
+
+ESP-DL supports multiple quantization schemes, including 8-bit (w8a8), 16-bit (w16a16), and mixed-precision (w8a16). These schemes can be freely combined within a single model, allowing you to preserve model accuracy while maximizing inference efficiency.
+
 ### Efficient Operator Implementation
 
 We have efficiently implemented common AI operators, including Conv2d, Pool2D, Gemm, Add, Mul, etc., based on AI instructions. These operators are precisely aligned with the PyTorch operator implementation, ensuring that the results obtained from the esp-ppq tool are consistent with those running on ESP-DL.
