@@ -10,19 +10,29 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-
 # Schema v2 records the per-case minimum sample ("min_us") in addition to the
 # median/mean and gates the comparison on it: on-chip benchmark noise is
 # one-sided (it only ever adds time), so the minimum is the most stable
 # estimator across runs.
-SCHEMA_VERSION = 2
+# Schema v3 adds the DUT's factory eFuse MAC ("board") to the comparison key.
+# The CI target-test runners drive several boards of the same chip from one
+# host and hand out a free USB slot per job, so a test shard runs on an
+# arbitrary board every pipeline. Board-to-board spread is a systematic offset
+# of a few percent, so a chip-wide baseline compares measurements that were
+# never taken on the same hardware; one baseline per board removes that term.
+SCHEMA_VERSION = 3
 BENCH_PATTERN = re.compile(
-    r"BENCH name=(?P<name>\S+) iters=(?P<iters>\d+) "
+    r"BENCH name=(?P<name>\S+) "
+    r"(?:board=(?P<board>\S+) )?"
+    r"iters=(?P<iters>\d+) "
     r"(?:min_us=(?P<min>[0-9]+(?:\.[0-9]+)?) )?"
     r"median_us=(?P<median>[0-9]+(?:\.[0-9]+)?) "
     r"mean_us=(?P<mean>[0-9]+(?:\.[0-9]+)?)"
 )
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+# Used when the DUT log carries no board=<mac> field (e.g. a firmware built
+# before schema v3). PERF_BOARD_ID can override it from the CI environment.
+UNKNOWN_BOARD = "unknown"
 
 # Per-target perf gate defaults. With the min-of-N measurement these values
 # were found stable enough for all three chips; keep them per-target anyway so
@@ -49,14 +59,21 @@ def _env_float(name, target, default):
     return default
 
 
+def default_board_id():
+    """Board identifier to use when the DUT log carries no board field."""
+    return os.environ.get("PERF_BOARD_ID", "").strip() or UNKNOWN_BOARD
+
+
 def parse_benchmarks(log):
     """Return all machine-readable benchmark records from a DUT log."""
     if isinstance(log, bytes):
         log = log.decode("utf-8", errors="replace")
     log = ANSI_ESCAPE_PATTERN.sub("", log)
+    fallback_board = default_board_id()
     return [
         {
             "name": match.group("name"),
+            "board": match.group("board") or fallback_board,
             "iters": int(match.group("iters")),
             "min_us": float(match.group("min")) if match.group("min") else None,
             "median_us": float(match.group("median")),
@@ -84,6 +101,17 @@ def _load_results(path):
 
 
 def _result_key(result):
+    return (
+        result["target"],
+        result["idf_version"],
+        result.get("board") or UNKNOWN_BOARD,
+        result["config"],
+        result["name"],
+    )
+
+
+def _case_key(result):
+    """Identify a test case regardless of which board measured it."""
     return (
         result["target"],
         result["idf_version"],
@@ -178,6 +206,36 @@ def compare_result(
     )
 
 
+def annotate_other_boards(current, baselines):
+    """Record how this measurement compares to the same case on other boards.
+
+    A case with no baseline for its own board cannot be gated, so it passes as
+    "new". Attaching the other boards' numbers keeps that measurement useful:
+    it is what quantifies the board-to-board spread while the per-board
+    baselines fill up over successive pipelines.
+    """
+    if not baselines:
+        return
+    metric = "min" if current.get("min_us") is not None else "median"
+    current_us = _compared_us(current, metric)
+    others = {}
+    for baseline in baselines:
+        if baseline.get("min_us") is None and metric == "min":
+            continue
+        board = baseline.get("board") or UNKNOWN_BOARD
+        others[board] = round(_compared_us(baseline, metric), 3)
+    if not others:
+        return
+    current["status"] = "new-board"
+    current["other_boards_us"] = others
+    if current_us > 0:
+        current["other_boards_delta_pct"] = {
+            board: round((current_us - value) / value * 100.0, 3)
+            for board, value in others.items()
+            if value > 0
+        }
+
+
 def _write_results(path, data):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -192,8 +250,8 @@ def _write_markdown(path, data):
     lines = [
         "# ESP-DL operator performance comparison",
         "",
-        "| Target | IDF | Operator | Model | Metric | Current (us) | Baseline (us) | Delta | Status |",
-        "|---|---|---|---|---|---|---:|---:|---|",
+        "| Target | IDF | Board | Operator | Model | Metric | Current (us) | Baseline (us) | Delta | Status |",
+        "|---|---|---|---|---|---|---|---:|---:|---|",
     ]
     for result in sorted(data["results"], key=_result_key):
         metric = result.get("metric", "median")
@@ -202,10 +260,11 @@ def _write_markdown(path, data):
         baseline = result.get(baseline_field)
         delta = result.get("delta_pct")
         lines.append(
-            "| {target} | {idf_version} | {config} | {name} | {metric} | "
+            "| {target} | {idf_version} | {board} | {config} | {name} | {metric} | "
             "{current:.3f} | {baseline} | {delta} | {status} |".format(
                 target=result["target"],
                 idf_version=result["idf_version"],
+                board=result.get("board") or UNKNOWN_BOARD,
                 config=result["config"],
                 name=result["name"],
                 metric=metric,
@@ -215,9 +274,48 @@ def _write_markdown(path, data):
                 status=result.get("status"),
             )
         )
+    lines.extend(_cross_board_section(data["results"]))
     markdown_path = Path(path)
     markdown_path.parent.mkdir(parents=True, exist_ok=True)
     markdown_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _cross_board_section(results):
+    """Markdown rows for cases whose baseline was recorded on another board."""
+    annotated = [result for result in results if result.get("other_boards_delta_pct")]
+    if not annotated:
+        return []
+    lines = [
+        "",
+        "## Same case on other boards",
+        "",
+        "These cases have no baseline for the board that measured them yet, so "
+        "they are not gated. The delta against the boards that do have a "
+        "baseline is the board-to-board spread.",
+        "",
+        "| Target | IDF | Board | Operator | Model | Current (us) | Other board | Baseline (us) | Delta |",
+        "|---|---|---|---|---|---:|---|---:|---:|",
+    ]
+    for result in sorted(annotated, key=_result_key):
+        metric = result.get("metric", "min" if result.get("min_us") else "median")
+        current_us = _compared_us(result, metric)
+        others = result["other_boards_us"]
+        for board, delta_pct in sorted(result["other_boards_delta_pct"].items()):
+            lines.append(
+                "| {target} | {idf_version} | {board} | {config} | {name} | "
+                "{current:.3f} | {other} | {other_us:.3f} | {delta:+.3f}% |".format(
+                    target=result["target"],
+                    idf_version=result["idf_version"],
+                    board=result.get("board") or UNKNOWN_BOARD,
+                    config=result["config"],
+                    name=result["name"],
+                    current=current_us,
+                    other=board,
+                    other_us=others[board],
+                    delta=delta_pct,
+                )
+            )
+    return lines
 
 
 def _read_dut_log(dut):
@@ -254,9 +352,20 @@ def record_and_compare(dut, config, target):
         DEFAULT_ABSOLUTE_FLOOR_US.get(target, GENERIC_ABSOLUTE_FLOOR_US),
     )
     allow_update = update_baseline_requested()
+    boards = sorted({benchmark["board"] for benchmark in benchmarks})
     print(
         "Performance gate for target {}: change limit +/-{}% and +/-{}us".format(
             target, relative_threshold_pct, absolute_floor_us
+        )
+    )
+    # The board this shard landed on is decided by the runner's free USB slot,
+    # so log it (together with the runner slot) to make it possible to correlate
+    # a measurement with a physical DUT afterwards.
+    print(
+        "Measured on board(s) {} (runner {!r}, concurrent id {!r})".format(
+            ", ".join(boards),
+            os.environ.get("CI_RUNNER_DESCRIPTION", ""),
+            os.environ.get("CI_CONCURRENT_ID", ""),
         )
     )
 
@@ -281,6 +390,12 @@ def record_and_compare(dut, config, target):
     baseline_by_key = {
         _result_key(result): result for result in baseline_results["results"]
     }
+    # Same case measured on the other boards of this chip. Used to annotate a
+    # case that has no baseline for *this* board yet, which is how the per-board
+    # spread becomes visible in the diff report while the baselines fill up.
+    baseline_by_case = {}
+    for result in baseline_results["results"]:
+        baseline_by_case.setdefault(_case_key(result), []).append(result)
     current_by_key = {
         _result_key(result): result for result in results.get("results", [])
     }
@@ -305,15 +420,18 @@ def record_and_compare(dut, config, target):
                 if key not in current_by_key:
                     break
                 suffix += 1
+        baseline = baseline_by_key.get(key)
         error = compare_result(
             current,
-            baseline_by_key.get(key),
+            baseline,
             relative_threshold_pct,
             absolute_floor_us,
             allow_update=allow_update,
         )
         if error:
             failures.append(error)
+        if baseline is None:
+            annotate_other_boards(current, baseline_by_case.get(_case_key(current)))
         current_by_key[key] = current
 
     results["results"] = sorted(current_by_key.values(), key=_result_key)

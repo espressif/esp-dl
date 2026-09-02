@@ -100,6 +100,10 @@ publish_espdl_ops_perf_baseline:
     when: always
     paths:
       - "*_perf_results.json"
+      # The baseline actually uploaded: this pipeline's measurements merged
+      # into the previous baseline. Kept separately so the artifact still
+      # shows what this pipeline measured on its own.
+      - "*_perf_baseline.json"
     expire_in: 90 days
   script:
     - |
@@ -116,6 +120,16 @@ publish_espdl_ops_perf_baseline:
         UPDATE="1"
       fi
       echo "Update baseline requested: ${UPDATE}"
+      # Since schema v3 the baseline is keyed by the board that measured a
+      # case, and the runners hand out an arbitrary board per job, so the
+      # baseline has to grow over several pipelines to cover every board.
+      # Only protected branches may add those entries: an MR must not turn
+      # its own measurements into the reference for an unrecorded board.
+      ADD_UNSEEN="0"
+      if [ "${CI_COMMIT_REF_PROTECTED:-false}" = "true" ]; then
+        ADD_UNSEEN="1"
+      fi
+      echo "May add unseen baseline cases: ${ADD_UNSEEN}"
       echo "Downloaded performance artifacts:"
       find "${CI_PROJECT_DIR}" -name 'perf_results.json' -print || true
 
@@ -132,14 +146,18 @@ publish_espdl_ops_perf_baseline:
         fi
         # Every publication is an immutable <pipeline-id> version that holds
         # every target's <target>_perf_results.json, so concurrent MRs never
-        # overwrite or delete each other's baselines.
+        # overwrite or delete each other's baselines. The upload is this
+        # pipeline's results merged into the previous baseline, so per-board
+        # entries accumulate instead of replacing each other.
         python tools/ops_test/benchmark/perf_package.py publish \
           --api-url "${CI_API_V4_URL}" \
           --project-id "${CI_PROJECT_ID}" \
           --token "${CI_JOB_TOKEN}" \
           --target "${TARGET}" \
           --input "${OUTPUT}" \
+          --merged-output "${TARGET}_perf_baseline.json" \
           --update "${UPDATE}" \
+          --add-unseen "${ADD_UNSEEN}" \
           --pipeline-id "${CI_PIPELINE_ID}" \
           --list-token "${PACKAGE_CLEANUP_TOKEN:-}"
       done

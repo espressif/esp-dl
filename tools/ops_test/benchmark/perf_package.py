@@ -24,19 +24,25 @@ and the last published version simply wins. Old versions are pruned by
 
 Update policy
 -------------
-``publish`` adds this target's file to the pipeline version only when:
+``publish`` merges this pipeline's measurements into the newest existing
+baseline of the target. Two independent permissions decide what it may write:
 
-  * no version exists that contains this target yet (first run), or
-  * ``--update`` is passed (the MR carries the ``update-perf-baseline`` label,
-    or PERF_UPDATE_BASELINE is set to 1), or
-  * the latest existing file for this target was recorded with an outdated
-    schema and can no longer be compared against the current measurement
-    methodology (e.g. after the benchmark switched from median to min). Such
-    baselines are refreshed automatically so perf gating self-heals after a
-    methodology change without requiring a label.
+  * ``--add-unseen`` (set from ``CI_COMMIT_REF_PROTECTED``) allows adding
+    cases the baseline does not cover yet, and replacing a baseline whose
+    schema is too old to compare against. Since schema v3 the comparison key
+    includes the board that measured the case, and the CI runners hand out an
+    arbitrary board per job, so a case is only gated once its own board has
+    been recorded. Letting protected branches add unseen keys fills the
+    per-board baselines up over a few pipelines instead of leaving those
+    combinations ungated forever, while keeping an MR from turning its own
+    measurements into the reference for a board nobody has recorded yet.
+  * ``--update`` (the MR carries the ``update-perf-baseline`` label, or
+    PERF_UPDATE_BASELINE is set to 1) additionally allows overwriting cases
+    that already have a baseline, so an unintended slowdown can never quietly
+    become the new reference.
 
-Otherwise it prints a skip message and exits successfully without touching the
-registry.
+With neither permission, or when the merge changes nothing, it prints a skip
+message and exits successfully without touching the registry.
 """
 
 import argparse
@@ -50,7 +56,8 @@ import urllib.request
 from pathlib import Path
 
 PACKAGE_NAME = "espdl-op-perf-baseline"
-SCHEMA_VERSION = 2
+# Must stay in sync with perf_benchmark.SCHEMA_VERSION.
+SCHEMA_VERSION = 3
 FILE_NAME_TEMPLATE = "{target}_perf_results.json"
 # Each test_espdl_ops matrix child writes artifacts under
 # ops_perf/<target>/<idf_version>/<config>/perf_results.json so they do not
@@ -69,6 +76,17 @@ LISTING_DENIED_CODES = (401, 403)
 
 def _truthy(value):
     return str(value).strip().lower() in ("1", "true", "yes", "on")
+
+
+def _result_key(result):
+    """Comparison key of one measurement. Must match perf_benchmark._result_key."""
+    return (
+        str(result.get("target")),
+        str(result.get("idf_version")),
+        str(result.get("board") or "unknown"),
+        str(result.get("config")),
+        str(result.get("name")),
+    )
 
 
 def _file_url(api_url, project_id, target, version):
@@ -285,26 +303,12 @@ def aggregate(args):
         if not metadata:
             metadata = {key: value for key, value in data.items() if key != "results"}
         for result in data["results"]:
-            key = (
-                result.get("target"),
-                result.get("idf_version"),
-                result.get("config"),
-                result.get("name"),
-            )
             # The opset matrix children re-run the same operator cases; keep the
             # first occurrence (the results are equivalent across children).
-            merged.setdefault(key, result)
+            merged.setdefault(_result_key(result), result)
 
     output = dict(metadata)
-    output["results"] = sorted(
-        merged.values(),
-        key=lambda result: (
-            str(result.get("target")),
-            str(result.get("idf_version")),
-            str(result.get("config")),
-            str(result.get("name")),
-        ),
-    )
+    output["results"] = sorted(merged.values(), key=_result_key)
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
@@ -352,12 +356,34 @@ def fetch(args):
     )
 
 
-def publish(args):
-    """Upload ``<target>_perf_results.json`` into the shared pipeline version.
+def merge_into_baseline(baseline, current, update):
+    """Combine a baseline with new measurements.
 
-    A new file is only added on the first run, when an update was explicitly
-    requested, or when the latest baseline for this target has an outdated
-    schema.
+    Cases the baseline does not cover yet are always added; cases it already
+    covers are only replaced when ``update`` is set. Returns the merged
+    document plus the number of added and replaced cases.
+    """
+    merged = {_result_key(result): result for result in baseline["results"]}
+    added = 0
+    replaced = 0
+    for result in current["results"]:
+        key = _result_key(result)
+        if key not in merged:
+            merged[key] = result
+            added += 1
+        elif update:
+            merged[key] = result
+            replaced += 1
+    # Carry over the newest metadata (thresholds, commit sha, ...).
+    output = {key: value for key, value in current.items() if key != "results"}
+    output["results"] = sorted(merged.values(), key=_result_key)
+    return output, added, replaced
+
+
+def publish(args):
+    """Merge this pipeline's results into the target's baseline and upload it.
+
+    See the module docstring for what ``--add-unseen`` and ``--update`` allow.
     """
     input_path = Path(args.input)
     data = json.loads(input_path.read_text(encoding="utf-8"))
@@ -365,6 +391,15 @@ def publish(args):
         data.get("results"), list
     ):
         raise RuntimeError("Invalid performance results file: {}".format(input_path))
+
+    update = _truthy(args.update)
+    add_unseen = update or _truthy(args.add_unseen)
+    if not add_unseen:
+        print(
+            "This pipeline may neither add nor replace baseline cases for "
+            "target {}; skipping.".format(args.target)
+        )
+        return
 
     use_private_token = bool(args.list_token)
     list_token = args.list_token or args.token
@@ -375,22 +410,43 @@ def publish(args):
         args.api_url, args.project_id, args.target, args.token, packages
     )
 
-    update = _truthy(args.update)
-    if latest_version is not None and not update:
-        # Refresh baselines recorded with an outdated schema automatically:
-        # comparing against them is meaningless after a measurement methodology
-        # change, and perf gating must not stay silently disabled until someone
+    if latest_version is None:
+        print("No baseline for target {} yet; publishing this run.".format(args.target))
+        payload = data
+    elif latest_data.get("schema_version") != SCHEMA_VERSION:
+        # Comparing against a baseline from an older methodology is meaningless,
+        # and perf gating must not stay silently disabled until someone
         # remembers to label the MR.
-        if latest_data.get("schema_version") == SCHEMA_VERSION:
+        print(
+            "Existing baseline for target {} (version {!r}) has an outdated "
+            "schema; replacing it.".format(args.target, latest_version)
+        )
+        payload = data
+    else:
+        payload, added, replaced = merge_into_baseline(latest_data, data, update)
+        if not added and not replaced:
             print(
-                "Baseline for target {} already exists and update is not "
-                "requested; skipping.".format(args.target)
+                "Baseline for target {} already covers every measured case and "
+                "update is not requested; skipping.".format(args.target)
             )
             return
         print(
-            "Existing baseline for target {} (version {!r}) has an outdated "
-            "schema; republishing.".format(args.target, latest_version)
+            "Merging into baseline for target {} (version {!r}): {} case(s) "
+            "added, {} replaced, {} total.".format(
+                args.target,
+                latest_version,
+                added,
+                replaced,
+                len(payload["results"]),
+            )
         )
+
+    upload_path = Path(args.merged_output) if args.merged_output else input_path
+    if upload_path != input_path:
+        upload_path.parent.mkdir(parents=True, exist_ok=True)
+    upload_path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
     pipeline_id = args.pipeline_id or os.environ.get("CI_PIPELINE_ID")
     if not pipeline_id:
@@ -399,7 +455,7 @@ def publish(args):
     upload_status = _upload(
         _file_url(args.api_url, args.project_id, args.target, version),
         args.token,
-        input_path,
+        upload_path,
     )
     if upload_status in (200, 201):
         print(
@@ -531,7 +587,21 @@ def main():
     publish_parser = subparsers.add_parser("publish")
     _add_registry_arguments(publish_parser)
     publish_parser.add_argument("--input", required=True)
+    publish_parser.add_argument(
+        "--merged-output",
+        default=None,
+        help="Where to write the merged baseline that gets uploaded. Defaults "
+        "to overwriting --input.",
+    )
     publish_parser.add_argument("--update", default="0")
+    publish_parser.add_argument(
+        "--add-unseen",
+        default="0",
+        help="Allow adding cases the baseline does not cover yet (and "
+        "replacing a baseline with an outdated schema). Set from "
+        "CI_COMMIT_REF_PROTECTED so only protected branches grow the "
+        "baseline. Implied by --update.",
+    )
     publish_parser.add_argument(
         "--pipeline-id",
         default=None,
