@@ -11,6 +11,7 @@ private:
     std::vector<int> m_kernel_shape; /*!< filter shape in [height, width] */
     std::vector<int> m_pads;         /*!< pads size needed in [top, bottom, left, right] of this operation */
     std::vector<int> m_strides;      /*!< stride along each spatial axis. [height, width] */
+    int m_ceil_mode;                 /*!< ONNX ceil_mode: 0 = floor, 1 = ceil */
 public:
     /**
      * @brief Construct a new AveragePool object.
@@ -19,13 +20,20 @@ public:
      * @param kernel_shape    filter shape in [height, width]
      * @param pads            pads size needed in [top, bottom, left, right] of this operation
      * @param strides         stride along each spatial axis. [height, width]
+     * @param quant_type      quantize type
+     * @param ceil_mode       ONNX ceil_mode, 0 = floor (default), 1 = ceil
      */
     AveragePool(const char *name = NULL,
                 const std::vector<int> &kernel_shape = {2, 2},
                 const std::vector<int> &pads = {},
                 const std::vector<int> &strides = {1, 1},
-                quant_type_t quant_type = QUANT_TYPE_NONE) :
-        Module(name, MODULE_NON_INPLACE, quant_type), m_kernel_shape(kernel_shape), m_pads(pads), m_strides(strides)
+                quant_type_t quant_type = QUANT_TYPE_NONE,
+                int ceil_mode = 0) :
+        Module(name, MODULE_NON_INPLACE, quant_type),
+        m_kernel_shape(kernel_shape),
+        m_pads(pads),
+        m_strides(strides),
+        m_ceil_mode(ceil_mode)
     {
     }
 
@@ -40,11 +48,13 @@ public:
         std::vector<int> input_shape = input_shapes[0];
         std::vector<int> output_shape = input_shape;
 
-        output_shape[1] = (input_shape[1] + m_pads[0] + m_pads[1] - m_kernel_shape[0]) / m_strides[0] + 1;
+        output_shape[1] =
+            base::pool_output_size(input_shape[1], m_pads[0], m_pads[1], m_kernel_shape[0], m_strides[0], m_ceil_mode);
         if (input_shape.size() == 3) {
             output_shape[2] = input_shape[2];
         } else if (input_shape.size() == 4) {
-            output_shape[2] = (input_shape[2] + m_pads[2] + m_pads[3] - m_kernel_shape[1]) / m_strides[1] + 1;
+            output_shape[2] = base::pool_output_size(
+                input_shape[2], m_pads[2], m_pads[3], m_kernel_shape[1], m_strides[1], m_ceil_mode);
             output_shape[3] = input_shape[3];
         }
 
@@ -101,10 +111,12 @@ public:
         std::vector<int> pads;
         std::vector<int> strides;
         quant_type_t quant_type;
+        int ceil_mode = 0;
         fbs_model->get_operation_attribute(node_name, "kernel_shape", kernel_shape);
         fbs_model->get_operation_attribute(node_name, "pads", pads);
         fbs_model->get_operation_attribute(node_name, "strides", strides);
         fbs_model->get_operation_attribute(node_name, "quant_type", quant_type);
+        fbs_model->get_operation_attribute(node_name, "ceil_mode", ceil_mode);
 
         if (pads.size() > 4) {
             ESP_LOGE("AveragePool", "pads(%s) is not supported", vector_to_string(pads).c_str());
@@ -118,18 +130,19 @@ public:
             pads = {0, 0, 0, 0};
         }
 
-        op = new AveragePool(node_name.c_str(), kernel_shape, pads, strides, quant_type);
+        op = new AveragePool(node_name.c_str(), kernel_shape, pads, strides, quant_type, ceil_mode);
         return op;
     }
 
     void print()
     {
         ESP_LOGI("AveragePool",
-                 "quant_type: %s, kernel size: %s, pads size: %s, strides size: %s",
+                 "quant_type: %s, kernel size: %s, pads size: %s, strides size: %s, ceil_mode: %d",
                  quant_type_to_string(quant_type),
                  vector_to_string(m_kernel_shape).c_str(),
                  vector_to_string(m_pads).c_str(),
-                 vector_to_string(m_strides).c_str());
+                 vector_to_string(m_strides).c_str(),
+                 m_ceil_mode);
     }
 };
 } // namespace module

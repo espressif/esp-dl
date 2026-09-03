@@ -52,6 +52,28 @@ struct PoolArgsType {
 };
 
 /**
+ * @brief ONNX MaxPool/AveragePool output size along one spatial axis.
+ *
+ * floor: (input + pad - kernel) / stride + 1
+ * ceil:  ceil formula, then drop the last window if it starts in the right pad
+ *        ("Sliding windows that would start in the right padded region are ignored.")
+ */
+inline int pool_output_size(int input, int pad_head, int pad_tail, int kernel, int stride, int ceil_mode)
+{
+    const int numerator = input + pad_head + pad_tail - kernel;
+    int out = 0;
+    if (ceil_mode) {
+        out = (numerator + stride - 1) / stride + 1;
+        if ((out - 1) * stride >= input + pad_head) {
+            out -= 1;
+        }
+    } else {
+        out = numerator / stride + 1;
+    }
+    return out > 0 ? out : 0;
+}
+
+/**
  * @brief Get the pool args object
  *
  * @tparam feature_t
