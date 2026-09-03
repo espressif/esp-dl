@@ -487,6 +487,14 @@ void dl_esp32p4_s16_mul_w1_1_w2_8_unaligned(int16_t *output_ptr,
                                             int16_t *input1_ptr,
                                             void *args_ptr);
 
+void dl_esp32p4_s8_mod_w1_16_w2_16(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s8_mod_w1_16_w2_1(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s8_mod_w1_1_w2_16(int8_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
+
+void dl_esp32p4_s16_mod_w1_8_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s16_mod_w1_8_w2_1(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+void dl_esp32p4_s16_mod_w1_1_w2_8(int16_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, void *args_ptr);
+
 void dl_esp32p4_s8_equal_w1_16_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
 void dl_esp32p4_s8_equal_w1_16_w2_1(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
 void dl_esp32p4_s8_equal_w1_1_w2_16(bool *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, void *args_ptr);
@@ -899,6 +907,10 @@ void dl_esp32p4_dotprod_i16k8o16(int16_t *output_ptr, int8_t *input0_ptr, int16_
 void dl_esp32p4_dotprod_i8k8o16(int16_t *out2_int8, int8_t *in1_int8, int8_t *in2_int8, int shift, int n);
 void dl_esp32p4_dotprod_f32(float *output_ptr, float *input0_ptr, float *input1_ptr, int length);
 
+/* Native row-major A[M,K] x B[K,N] MatMul kernels. */
+void dl_esp32p4_s8_matmul_kn(const void *args);
+void dl_esp32p4_s16_matmul_kn(const void *args);
+
 int32_t dl_esp32p4_reduce_l2_s8_aligned(int8_t *input, int32_t size);
 int64_t dl_esp32p4_reduce_l2_s16_aligned(int16_t *input, int32_t size);
 int8_t dl_esp32p4_reduce_max_s8_aligned(int8_t *input, int32_t size);
@@ -920,4 +932,18 @@ void dl_esp32p4_rmsnorm_s16(int16_t *output, int16_t *input, float *scale, float
 /* LUT API */
 void dl_esp32p4_s8_lut(int8_t *output, int8_t *input, int32_t n_8, int8_t *table);
 void dl_esp32p4_s16_lut_nearest_neighbor(int16_t *output, int16_t *input, int32_t n_8, int16_t *table, int32_t shift);
+
+/* INT8 transpose kernels.
+ *   dl_esp32p4_s8_transpose: N×M byte matrix, N%8==0, M%16==0.
+ *   dl_esp32p4_block_transpose: N×M grid of K-byte blocks, any K>=1.
+ */
+void dl_esp32p4_s8_transpose(int8_t *output, const int8_t *input, int N, int M);
+void dl_esp32p4_block_transpose(int8_t *output, const int8_t *input, int N, int M, int K);
+
+/* INT16 transpose kernels.
+ *   dl_esp32p4_s16_transpose: N×M int16 matrix, N%8==0, M%8==0.
+ *   dl_esp32p4_s16_block_transpose: N×M grid of K-element blocks, any K>=1.
+ */
+void dl_esp32p4_s16_transpose(int16_t *output, const int16_t *input, int N, int M);
+void dl_esp32p4_s16_block_transpose(int16_t *output, const int16_t *input, int N, int M, int K);
 }

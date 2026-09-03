@@ -112,6 +112,7 @@ Instructions are organized into these categories. See `references/instructions.m
 | `esp.zero.q qN` | Clear QR register |
 | `esp.movx.w.sar rs` | Write SAR register |
 | `esp.movx.r.sar.bytes rd` | Read SAR_BYTE |
+| `esp.lp.setup id, rs, label` | Hardware zero-overhead loop (id 0/1; label = last body insn) |
 
 ## Optimization Workflow
 
@@ -119,7 +120,7 @@ When converting scalar functions to SIMD:
 
 1. **Check data alignment**: Use 16-byte aligned data when possible (faster). Handle unaligned with `esp.ld.128.usar.ip` + `esp.src.q` / `esp.src.q.qup`
 2. **Set SAR before multiply instructions**: `esp.movx.w.sar rs` to configure output shift
-3. **Process in 128-bit chunks**: Loop count = total_elements / elements_per_128b (8 for 16-bit, 16 for 8-bit, 4 for 32-bit)
+3. **Process in 128-bit chunks**: Loop count = total_elements / elements_per_128b (8 for 16-bit, 16 for 8-bit, 4 for 32-bit). Prefer `esp.lp.setup` for the inner count (see Hardware Zero-Overhead Loop).
 4. **Use fused load-arithmetic instructions** where possible to reduce instruction count:
    - `esp.vadd.s16.ld.incp qz, qx, qy, rs, imm` - add and load next
    - `esp.vmul.s16.ld.incp qz, qx, qy, rs, imm` - multiply and load next
@@ -167,12 +168,13 @@ For branch/loop targets, use **local labels**: either a plain number (`0:`, `1:`
 - `.L` labels stay local to the file (not emitted into the symbol table) and clearly mark internal jump targets.
 
 ```asm
-; GOOD — numeric local label
-    loopgtz a6, 0f
+; GOOD — numeric local label (lp.setup: label is the LAST insn of the body)
+    beqz  a6, 1f
+    esp.lp.setup 0, a6, 0f
         esp.vmin.s16.ld.incp q0, a3, q2, q0, q1
         esp.vld.128.ip       q1, a4, 16
-        esp.vst.128.ip       q2, a2, 16
-    0:
+    0:  esp.vst.128.ip       q2, a2, 16
+1:
 
 ; GOOD — .L local label
     bgez  a9, .Lleft_shift
@@ -186,6 +188,58 @@ right_shift_loop:
     ; ...
     bnez a5, right_shift_loop
 ```
+
+## Hardware Zero-Overhead Loop (`esp.lp.setup`)
+
+P4 PIE hardware loop: no per-iteration `addi`/`bnez`. Same role as Xtensa `loopgtz` on S3. Used by s8 `conv2d_11cn` and native-KN MatMul (inner K).
+
+```
+esp.lp.setup lp_id, count_reg, last_label
+```
+
+| Operand | Meaning |
+|---------|---------|
+| `lp_id` | Loop level: **0 or 1**. Two levels can be **nested** (unlike S3). Put the hottest loop on 0. |
+| `count_reg` | Iteration count. Must be a **PIE-capable AR**: `a0–a5`, `s0–s1`, `s8–s11`, `t3–t6`. **Not** `t0–t2` (`x5–x7`). |
+| `last_label` | Address of the **last instruction of the body** (not the first insn after). Opposite of S3 `loopgtz`. |
+
+```asm
+    addi    a5, a2, -1           # fused iters = K - 1
+    beqz    a5, .Llast           # count 0 is not safe for lp.setup
+    srli    a5, a5, 2            # (K-1)/4
+    beqz    a5, .Ltail
+    esp.lp.setup 0, a5, 0f
+        esp.vmulas.s8.qacc.ld.xp q2, a0, t4, q0, q1
+        esp.vldbc.8.ip           q1, a1, 1
+        esp.vmulas.s8.qacc.ld.xp q0, a0, t4, q2, q1
+        esp.vldbc.8.ip           q1, a1, 1
+        esp.vmulas.s8.qacc.ld.xp q2, a0, t4, q0, q1
+        esp.vldbc.8.ip           q1, a1, 1
+        esp.vmulas.s8.qacc.ld.xp q0, a0, t4, q2, q1
+    0:  esp.vldbc.8.ip           q1, a1, 1
+.Ltail:
+.Llast:
+```
+
+**Restrictions (hard):**
+- **Skip count == 0 yourself.** `esp.lp.setup` compares `>= 0` and must not see a negative count. Conv/MatMul always `beqz count, skip` before `lp.setup`. Do not pass `as-1` if `as` can be 0 without that guard.
+- **Count register must be PIE-legal.** `t2` is fine for `addi`/`bnez`, illegal as the `lp.setup` count. Use `a5` / `t3–t6` / `s*`.
+- **`.option norvc`** on the function (already required for PIE kernels). Compressed insns break the 4-byte end-address that `lp.setup` encodes.
+- **`.balign 4`** on the entry.
+- Last insn of the body is the labeled one; it must be a real op, not a branch.
+- Two levels only (`0` and `1`). A third nest, or a body that needs a taken branch, falls back to `addi`/`bnez`.
+- Sequential `lp.setup` on the same `lp_id` is OK after the previous loop finishes.
+
+**S3 vs P4 label placement:**
+
+| | S3 `loopgtz as, lab` | P4 `esp.lp.setup id, as, lab` |
+|--|----------------------|-------------------------------|
+| `lab` | first insn **after** the body | **last** insn **of** the body |
+| Nesting | none | two levels (0, 1) |
+| Count 0 | skipped by `loopgtz` | must `beqz` yourself |
+| Count register | any AR | PIE-capable AR only |
+
+**When to fall back:** s16 `conv2d_11cn` in-tree still uses a software loop in places; MatMul s8/s16 native-KN uses `lp.setup`. If the assembler rejects the end label distance, or you need a branch in the body, use `addi`/`bnez`.
 
 ## References
 

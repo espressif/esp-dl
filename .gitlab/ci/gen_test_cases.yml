@@ -7,7 +7,7 @@
   dependencies: []
   timeout: 3 hour
   variables:
-    ESP_PPQ_VERSION: "1.3.9"
+    ESP_PPQ_VERSION: "1.3.11"
   artifacts:
     when: always
     paths:

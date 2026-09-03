@@ -1,4 +1,5 @@
 #include "dl_tensor_base.hpp"
+#include "dl_base_isa.hpp"
 #include "dl_base_pad.hpp"
 #include "dl_base_requantize_linear.hpp"
 #include "esp_random.h"
@@ -727,6 +728,273 @@ TensorBase *TensorBase::reshape(std::vector<int> shape)
     return this;
 }
 
+#if CONFIG_PIE_V1_BOOST || CONFIG_PIE_V2_BOOST
+static bool is_compact_row_major(const std::vector<int> &shape, const std::vector<int> &axis_offset)
+{
+    if (shape.empty() || axis_offset.size() != shape.size()) {
+        return false;
+    }
+    if (axis_offset.back() != 1) {
+        return false;
+    }
+    int off = 1;
+    for (int i = (int)shape.size() - 2; i >= 0; --i) {
+        off *= shape[i + 1];
+        if (axis_offset[i] != off) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Fold size-1 dims, then match leading identity + two-group swap + trailing inner block.
+// Result is `batch` independent transposes of an N×M grid of K-element blocks.
+static bool analyze_transpose_2d(
+    const std::vector<int> &shape, const std::vector<int> &perm, int &batch, int &N, int &M, int &K)
+{
+    const int dims = (int)shape.size();
+    if (dims == 0 || (int)perm.size() != dims) {
+        return false;
+    }
+
+    std::vector<int> old_to_new(dims, -1);
+    std::vector<int> sq_shape;
+    sq_shape.reserve(dims);
+    for (int i = 0; i < dims; ++i) {
+        if (shape[i] > 1) {
+            old_to_new[i] = (int)sq_shape.size();
+            sq_shape.push_back(shape[i]);
+        }
+    }
+
+    std::vector<int> sq_perm;
+    sq_perm.reserve(sq_shape.size());
+    for (int i = 0; i < dims; ++i) {
+        int mapped = old_to_new[perm[i]];
+        if (mapped >= 0) {
+            sq_perm.push_back(mapped);
+        }
+    }
+    if (sq_perm.size() != sq_shape.size()) {
+        return false;
+    }
+
+    const int nd = (int)sq_shape.size();
+    if (nd <= 1) {
+        batch = 1;
+        N = nd == 0 ? 1 : sq_shape[0];
+        M = 1;
+        K = 1;
+        return true;
+    }
+
+    int lead = 0;
+    while (lead < nd && sq_perm[lead] == lead) {
+        ++lead;
+    }
+    batch = 1;
+    for (int i = 0; i < lead; ++i) {
+        batch *= sq_shape[i];
+    }
+
+    const int rem = nd - lead;
+    int suffix = 0;
+    while (suffix < rem && sq_perm[nd - 1 - suffix] == nd - 1 - suffix) {
+        ++suffix;
+    }
+    const int inner_start = rem - suffix;
+
+    auto prod_range = [&](int begin, int end) {
+        int p = 1;
+        for (int i = begin; i < end; ++i) {
+            p *= sq_shape[i];
+        }
+        return p;
+    };
+
+    K = suffix == 0 ? 1 : prod_range(lead + inner_start, nd);
+    if (inner_start <= 1) {
+        N = inner_start == 0 ? 1 : sq_shape[lead];
+        M = 1;
+        return true;
+    }
+
+    int split = -1;
+    for (int s = 1; s < inner_start; ++s) {
+        bool ok = true;
+        int expect = s;
+        for (int i = 0; i < inner_start && ok; ++i) {
+            if (sq_perm[lead + i] - lead != expect) {
+                ok = false;
+            }
+            ++expect;
+            if (expect == inner_start) {
+                expect = 0;
+            }
+        }
+        if (ok) {
+            split = s;
+            break;
+        }
+    }
+    if (split < 0) {
+        return false;
+    }
+
+    N = prod_range(lead, lead + split);
+    M = prod_range(lead + split, lead + inner_start);
+    return N >= 1 && M >= 1 && K >= 1;
+}
+
+template <typename T>
+static bool try_simd_transpose(T *output,
+                               const T *input,
+                               const std::vector<int> &input_shape,
+                               const std::vector<int> &input_axis_offset,
+                               const std::vector<int> &perm)
+{
+    int batch = 0, N = 0, M = 0, K = 0;
+    if (!analyze_transpose_2d(input_shape, perm, batch, N, M, K)) {
+        return false;
+    }
+
+    if (!is_compact_row_major(input_shape, input_axis_offset)) {
+        return false;
+    }
+
+    const size_t plane = (size_t)N * (size_t)M * (size_t)K;
+    const size_t total_bytes = (size_t)batch * plane * sizeof(T);
+    if (N == 1 || M == 1) {
+        memcpy(output, input, total_bytes);
+        return true;
+    }
+    if ((reinterpret_cast<uintptr_t>(output) | reinterpret_cast<uintptr_t>(input)) & 0xf) {
+        return false;
+    }
+
+    if constexpr (std::is_same<T, int8_t>::value) {
+        if (K == 1 && (N % 8 == 0) && (M % 16 == 0)) {
+            for (int b = 0; b < batch; ++b) {
+#if CONFIG_PIE_V2_BOOST
+                dl_esp32p4_s8_transpose(output + b * plane, input + b * plane, N, M);
+#else
+                dl_tie728_s8_transpose(output + b * plane, input + b * plane, N, M);
+#endif
+            }
+            return true;
+        }
+        if (K > 1) {
+            for (int b = 0; b < batch; ++b) {
+#if CONFIG_PIE_V2_BOOST
+                dl_esp32p4_block_transpose(output + b * plane, input + b * plane, N, M, K);
+#else
+                dl_tie728_block_transpose(output + b * plane, input + b * plane, N, M, K);
+#endif
+            }
+            return true;
+        }
+    } else if constexpr (std::is_same<T, int16_t>::value) {
+        if (K == 1 && (N % 8 == 0) && (M % 8 == 0)) {
+            for (int b = 0; b < batch; ++b) {
+#if CONFIG_PIE_V2_BOOST
+                dl_esp32p4_s16_transpose(output + b * plane, input + b * plane, N, M);
+#else
+                dl_tie728_s16_transpose(output + b * plane, input + b * plane, N, M);
+#endif
+            }
+            return true;
+        }
+        if (K > 1) {
+            for (int b = 0; b < batch; ++b) {
+#if CONFIG_PIE_V2_BOOST
+                dl_esp32p4_s16_block_transpose(output + b * plane, input + b * plane, N, M, K);
+#else
+                dl_tie728_s16_block_transpose(output + b * plane, input + b * plane, N, M, K);
+#endif
+            }
+            return true;
+        }
+    }
+    return false;
+}
+#endif
+
+static constexpr int kTransposeMaxDims = 16;
+
+// Last-dim memcpy + pointer walking. Trailing identity axes that are packed in
+// the input are copied as one contiguous block; remaining axes step pointers.
+template <typename T>
+static void transpose_memcpy_fallback(T *output,
+                                      const T *input,
+                                      const std::vector<int> &in_shape,
+                                      const std::vector<int> &in_off,
+                                      const std::vector<int> &out_off,
+                                      const std::vector<int> &perm)
+{
+    const int dims = (int)perm.size();
+    if (dims <= 0 || dims > kTransposeMaxDims) {
+        return;
+    }
+
+    int suffix = 0;
+    int copy_elems = 1;
+    if (!in_off.empty() && in_off.back() == 1) {
+        int packed = 1;
+        for (int i = dims - 1; i >= 0; --i) {
+            if (perm[i] != i || in_off[i] != packed) {
+                break;
+            }
+            packed *= in_shape[i];
+            suffix++;
+        }
+        if (suffix > 0) {
+            copy_elems = packed;
+        }
+    }
+
+    const int outer_dims = dims - suffix;
+    const size_t copy_bytes = (size_t)copy_elems * sizeof(T);
+    if (outer_dims <= 0) {
+        memcpy(output, input, copy_bytes);
+        return;
+    }
+
+    int out_step[kTransposeMaxDims] = {};
+    for (int o = 0; o < dims; ++o) {
+        const int src_ax = perm[o];
+        if (src_ax < outer_dims) {
+            out_step[src_ax] = out_off[o];
+        }
+    }
+
+    int coords[kTransposeMaxDims] = {};
+    const T *src_ptr = input;
+    T *dst_ptr = output;
+    while (true) {
+        if (copy_elems == 1) {
+            *dst_ptr = *src_ptr;
+        } else {
+            memcpy(dst_ptr, src_ptr, copy_bytes);
+        }
+
+        int d = outer_dims - 1;
+        for (; d >= 0; --d) {
+            coords[d]++;
+            src_ptr += in_off[d];
+            dst_ptr += out_step[d];
+            if (coords[d] < in_shape[d]) {
+                break;
+            }
+            src_ptr -= in_off[d] * in_shape[d];
+            dst_ptr -= out_step[d] * in_shape[d];
+            coords[d] = 0;
+        }
+        if (d < 0) {
+            break;
+        }
+    }
+}
+
 template <typename T>
 TensorBase *TensorBase::transpose(T *input_element,
                                   std::vector<int> &input_shape,
@@ -757,53 +1025,20 @@ TensorBase *TensorBase::transpose(T *input_element,
     }
     T *output_element = (T *)this->get_element_ptr();
 
-    std::vector<int> input_axis_index(dims);
-    if (dims == 4) {
-        uint32_t input_idx = 0, output_idx = 0;
-        for (int i = 0; i < input_shape[0]; i++) {
-            for (int j = 0; j < input_shape[1]; j++) {
-                for (int k = 0; k < input_shape[2]; k++) {
-                    for (int l = 0; l < input_shape[3]; l++) {
-                        input_axis_index = {i, j, k, l};
-                        input_idx = l + k * input_axis_offset[2] + j * input_axis_offset[1] + i * input_axis_offset[0];
-                        output_idx = input_axis_index[perm[3]] * this->axis_offset[3] +
-                            input_axis_index[perm[2]] * this->axis_offset[2] +
-                            input_axis_index[perm[1]] * this->axis_offset[1] +
-                            input_axis_index[perm[0]] * this->axis_offset[0];
-                        output_element[output_idx] = input_element[input_idx];
-                    }
-                }
-            }
+#if CONFIG_PIE_V1_BOOST || CONFIG_PIE_V2_BOOST
+    if constexpr (std::is_same<T, int8_t>::value || std::is_same<T, int16_t>::value) {
+        if (try_simd_transpose(output_element, input_element, input_shape, input_axis_offset, perm)) {
+            return this;
         }
-    } else if (dims == 3) {
-        uint32_t input_idx = 0, output_idx = 0;
-        for (int i = 0; i < input_shape[0]; i++) {
-            for (int j = 0; j < input_shape[1]; j++) {
-                for (int k = 0; k < input_shape[2]; k++) {
-                    input_axis_index = {i, j, k};
-                    input_idx = k + j * input_axis_offset[1] + i * input_axis_offset[0];
-                    output_idx = input_axis_index[perm[2]] * this->axis_offset[2] +
-                        input_axis_index[perm[1]] * this->axis_offset[1] +
-                        input_axis_index[perm[0]] * this->axis_offset[0];
-                    output_element[output_idx] = input_element[input_idx];
-                }
-            }
-        }
-    } else if (dims == 2) {
-        uint32_t input_idx = 0, output_idx = 0;
-        for (int i = 0; i < input_shape[0]; i++) {
-            for (int j = 0; j < input_shape[1]; j++) {
-                input_axis_index = {i, j};
-                input_idx = j + i * input_axis_offset[0];
-                output_idx =
-                    input_axis_index[perm[1]] * this->axis_offset[1] + input_axis_index[perm[0]] * this->axis_offset[0];
-                output_element[output_idx] = input_element[input_idx];
-            }
-        }
+    }
+#endif
+
+    if (dims <= kTransposeMaxDims) {
+        transpose_memcpy_fallback(
+            output_element, input_element, input_shape, input_axis_offset, this->axis_offset, perm);
     } else {
-        // for any dims
         std::vector<int> index_old(dims, 0);
-        for (int i = 0; i < size; ++i) {
+        for (int i = 0; i < this->size; ++i) {
             int dim_div_value = i;
             int index_new = 0;
             for (int j = dims - 1; j > -1; --j) {

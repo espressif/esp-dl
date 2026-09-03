@@ -573,9 +573,10 @@
       changes: *patterns-esp-dl_version
 
 # Publish/cleanup use the same rules as test_espdl_ops so the publish job is
-# not added to pipelines that never produce perf artifacts. Updating the
-# <target>_perf_results.json is still gated inside the job: only when the MR
-# carries the `update-perf-baseline` label or when no baseline has been
-# published yet (first run).
+# not added to pipelines that never produce perf artifacts. All targets share
+# one <pipeline-id> package version; writing each <target>_perf_results.json
+# is still gated inside the job: only when the MR carries the
+# `update-perf-baseline` label or when no baseline has been published yet
+# (first run).
 .rules:deploy:perf_baseline:
   extends: .rules:build:espdl_ops

@@ -4,34 +4,45 @@ stored in GitLab's generic package registry.
 
 Registry layout
 ---------------
-Every publication creates an immutable package version:
+Every pipeline that publishes creates one immutable package version that holds
+every target's file (same idea as ``espdl-op-test-cases``):
 
     package name : espdl-op-perf-baseline
-    version      : <target>-<pipeline-id>   (e.g. esp32p4-12345)
-    file         : <target>_perf_results.json
+    version      : <pipeline-id>            (e.g. 12345)
+    files        : <target>_perf_results.json  (one per chip)
 
-The "latest" baseline of a target is the version with the newest created_at
-timestamp. Versions are never overwritten or deleted by `publish`, so
-concurrent MRs can publish at the same time without corrupting each other:
-uploads are single atomic PUTs to unique versions, and the last published
-version simply wins. Old versions are pruned by `cleanup` (run on protected
-branches only).
+``fetch`` walks versions newest-first and downloads that target's file from
+the first version that has it. Historical per-target versions (``<target>``
+and ``<target>-<pipeline-id>``) are still recognized so existing baselines
+keep working until they age out.
+
+Versions are never overwritten or deleted by ``publish``, so concurrent MRs
+can publish at the same time without corrupting each other: uploads are
+single atomic PUTs of different filenames (or of unique pipeline versions),
+and the last published version simply wins. Old versions are pruned by
+``cleanup`` (run on protected branches only).
 
 Update policy
 -------------
-`publish` adds a new version only when:
+``publish`` merges this pipeline's measurements into the newest existing
+baseline of the target. Two independent permissions decide what it may write:
 
-  * no version exists for the target yet (first run), or
-  * `--update` is passed (the MR carries the `update-perf-baseline` label, or
-    PERF_UPDATE_BASELINE is set to 1), or
-  * the latest existing version was recorded with an outdated schema and can
-    no longer be compared against the current measurement methodology
-    (e.g. after the benchmark switched from median to min). Such baselines are
-    refreshed automatically so perf gating self-heals after a methodology
-    change without requiring a label.
+  * ``--add-unseen`` (set from ``CI_COMMIT_REF_PROTECTED``) allows adding
+    cases the baseline does not cover yet, and replacing a baseline whose
+    schema is too old to compare against. Since schema v3 the comparison key
+    includes the board that measured the case, and the CI runners hand out an
+    arbitrary board per job, so a case is only gated once its own board has
+    been recorded. Letting protected branches add unseen keys fills the
+    per-board baselines up over a few pipelines instead of leaving those
+    combinations ungated forever, while keeping an MR from turning its own
+    measurements into the reference for a board nobody has recorded yet.
+  * ``--update`` (the MR carries the ``update-perf-baseline`` label, or
+    PERF_UPDATE_BASELINE is set to 1) additionally allows overwriting cases
+    that already have a baseline, so an unintended slowdown can never quietly
+    become the new reference.
 
-Otherwise it prints a skip message and exits successfully without touching the
-registry.
+With neither permission, or when the merge changes nothing, it prints a skip
+message and exits successfully without touching the registry.
 """
 
 import argparse
@@ -45,7 +56,8 @@ import urllib.request
 from pathlib import Path
 
 PACKAGE_NAME = "espdl-op-perf-baseline"
-SCHEMA_VERSION = 2
+# Must stay in sync with perf_benchmark.SCHEMA_VERSION.
+SCHEMA_VERSION = 3
 FILE_NAME_TEMPLATE = "{target}_perf_results.json"
 # Each test_espdl_ops matrix child writes artifacts under
 # ops_perf/<target>/<idf_version>/<config>/perf_results.json so they do not
@@ -66,6 +78,17 @@ def _truthy(value):
     return str(value).strip().lower() in ("1", "true", "yes", "on")
 
 
+def _result_key(result):
+    """Comparison key of one measurement. Must match perf_benchmark._result_key."""
+    return (
+        str(result.get("target")),
+        str(result.get("idf_version")),
+        str(result.get("board") or "unknown"),
+        str(result.get("config")),
+        str(result.get("name")),
+    )
+
+
 def _file_url(api_url, project_id, target, version):
     quoted_project = urllib.parse.quote(str(project_id), safe="")
     return "{}/projects/{}/packages/generic/{}/{}/{}".format(
@@ -75,21 +98,6 @@ def _file_url(api_url, project_id, target, version):
         urllib.parse.quote(version, safe=""),
         urllib.parse.quote(FILE_NAME_TEMPLATE.format(target=target), safe=""),
     )
-
-
-def _download(url, token, destination):
-    """Download a generic package file; return the HTTP status code."""
-    request = urllib.request.Request(url, headers={"JOB-TOKEN": token})
-    try:
-        with urllib.request.urlopen(request) as response:
-            content = response.read()
-    except urllib.error.HTTPError as error:
-        return error.code
-    if destination is not None:
-        path = Path(destination)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(content)
-    return 200
 
 
 def _upload(url, token, source):
@@ -160,28 +168,53 @@ def _list_or_none(api_url, project_id, token, use_private_token):
         raise
 
 
-def _latest_version(packages, target):
-    """Newest package version belonging to `target` (including the legacy
-    stable version "<target>" published before the versioned scheme)."""
-    candidates = [
-        package
-        for package in packages
-        if str(package.get("version")) == target
-        or str(package.get("version", "")).startswith(target + "-")
-    ]
-    if not candidates:
+def _legacy_owner(version):
+    """Return the chip a pre-shared version belongs to, or None.
+
+    Historical layouts used ``<target>`` or ``<target>-<pipeline-id>``. Shared
+    versions are a bare pipeline id (digits) and belong to every target.
+    """
+    version = str(version or "")
+    if not version:
         return None
-    return max(
-        candidates,
+    if "-" in version:
+        prefix, suffix = version.rsplit("-", 1)
+        if prefix and prefix[0].isalpha() and suffix.isdigit():
+            return prefix
+        return None
+    if version[0].isalpha():
+        return version
+    return None
+
+
+def _ordered_packages(packages):
+    return sorted(
+        packages,
         key=lambda package: (
             str(package.get("created_at") or ""),
             int(package.get("id") or 0),
         ),
+        reverse=True,
     )
 
 
-def _schema_is_outdated(api_url, project_id, target, version, token):
-    """Return True when the given baseline version has an older schema."""
+def _candidate_versions(packages, target):
+    """Newest-first versions that may contain ``{target}_perf_results.json``."""
+    versions = []
+    seen = set()
+    for package in _ordered_packages(packages):
+        version = package.get("version")
+        if not version or version in seen:
+            continue
+        owner = _legacy_owner(version)
+        if owner is None or owner == target:
+            seen.add(version)
+            versions.append(str(version))
+    return versions
+
+
+def _load_baseline(api_url, project_id, target, version, token):
+    """Return ``(status, data)``. ``data`` is set only on HTTP 200."""
     request = urllib.request.Request(
         _file_url(api_url, project_id, target, version),
         headers={"JOB-TOKEN": token},
@@ -190,12 +223,29 @@ def _schema_is_outdated(api_url, project_id, target, version, token):
         with urllib.request.urlopen(request) as response:
             data = json.load(response)
     except urllib.error.HTTPError as error:
-        if error.code == 404:
-            return True
+        return error.code, None
+    except json.JSONDecodeError as error:
         raise RuntimeError(
-            "Baseline probe failed with HTTP {}".format(error.code)
+            "Baseline {}/{} is not valid JSON".format(version, target)
         ) from error
-    return data.get("schema_version") != SCHEMA_VERSION
+    return 200, data
+
+
+def _find_latest_baseline(api_url, project_id, target, token, packages):
+    """Newest existing ``{target}_perf_results.json``, or ``(None, None)``.
+
+    When listing is denied the only probeable name is the legacy stable
+    version ``<target>``.
+    """
+    versions = [target] if packages is None else _candidate_versions(packages, target)
+    for version in versions:
+        status, data = _load_baseline(api_url, project_id, target, version, token)
+        if status == 404:
+            continue
+        if status != 200 or data is None:
+            raise RuntimeError("Baseline probe failed with HTTP {}".format(status))
+        return version, data
+    return None, None
 
 
 def _collect_perf_result_files(root, target):
@@ -253,26 +303,12 @@ def aggregate(args):
         if not metadata:
             metadata = {key: value for key, value in data.items() if key != "results"}
         for result in data["results"]:
-            key = (
-                result.get("target"),
-                result.get("idf_version"),
-                result.get("config"),
-                result.get("name"),
-            )
             # The opset matrix children re-run the same operator cases; keep the
             # first occurrence (the results are equivalent across children).
-            merged.setdefault(key, result)
+            merged.setdefault(_result_key(result), result)
 
     output = dict(metadata)
-    output["results"] = sorted(
-        merged.values(),
-        key=lambda result: (
-            str(result.get("target")),
-            str(result.get("idf_version")),
-            str(result.get("config")),
-            str(result.get("name")),
-        ),
-    )
+    output["results"] = sorted(merged.values(), key=_result_key)
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
@@ -286,29 +322,22 @@ def aggregate(args):
 
 
 def fetch(args):
-    """Download the latest baseline of a target from the package registry."""
+    """Download the latest baseline file of a target from the package registry."""
     use_private_token = bool(args.list_token)
     list_token = args.list_token or args.token
     packages = _list_or_none(
         args.api_url, args.project_id, list_token, use_private_token
     )
-    latest = _latest_version(packages, args.target) if packages is not None else None
-    version = latest["version"] if latest is not None else args.target
-
-    status = _download(
-        _file_url(args.api_url, args.project_id, args.target, version),
-        args.token,
-        args.output,
+    version, data = _find_latest_baseline(
+        args.api_url, args.project_id, args.target, args.token, packages
     )
-    if status == 404:
-        Path(args.output).unlink(missing_ok=True)
+    output = Path(args.output)
+    if version is None:
+        output.unlink(missing_ok=True)
         print("No performance baseline found for target {!r}".format(args.target))
         return
-    if status != 200:
-        raise RuntimeError("Baseline download failed with HTTP {}".format(status))
-    data = json.loads(Path(args.output).read_text(encoding="utf-8"))
     if data.get("schema_version") != SCHEMA_VERSION:
-        Path(args.output).unlink(missing_ok=True)
+        output.unlink(missing_ok=True)
         print(
             "Downloaded baseline for target {!r} (version {!r}) has an outdated "
             "schema ({!r}); ignoring it, the next publish will refresh it".format(
@@ -316,6 +345,10 @@ def fetch(args):
             )
         )
         return
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     print(
         "Downloaded performance baseline for target {!r} (version {!r})".format(
             args.target, version
@@ -323,10 +356,35 @@ def fetch(args):
     )
 
 
+def merge_into_baseline(baseline, current, update):
+    """Combine a baseline with new measurements.
+
+    Cases the baseline does not cover yet are always added; cases it already
+    covers are only replaced when ``update`` is set. Returns the merged
+    document plus the number of added and replaced cases.
+    """
+    merged = {_result_key(result): result for result in baseline["results"]}
+    added = 0
+    replaced = 0
+    for result in current["results"]:
+        key = _result_key(result)
+        if key not in merged:
+            merged[key] = result
+            added += 1
+        elif update:
+            merged[key] = result
+            replaced += 1
+    # Carry over the newest metadata (thresholds, commit sha, ...).
+    output = {key: value for key, value in current.items() if key != "results"}
+    output["results"] = sorted(merged.values(), key=_result_key)
+    return output, added, replaced
+
+
 def publish(args):
-    """Upload a <target>_perf_results.json as a new immutable version. A new
-    version is only added on the first run, when an update was explicitly
-    requested, or when the latest baseline has an outdated schema."""
+    """Merge this pipeline's results into the target's baseline and upload it.
+
+    See the module docstring for what ``--add-unseen`` and ``--update`` allow.
+    """
     input_path = Path(args.input)
     data = json.loads(input_path.read_text(encoding="utf-8"))
     if data.get("schema_version") != SCHEMA_VERSION or not isinstance(
@@ -334,104 +392,142 @@ def publish(args):
     ):
         raise RuntimeError("Invalid performance results file: {}".format(input_path))
 
+    update = _truthy(args.update)
+    add_unseen = update or _truthy(args.add_unseen)
+    if not add_unseen:
+        print(
+            "This pipeline may neither add nor replace baseline cases for "
+            "target {}; skipping.".format(args.target)
+        )
+        return
+
     use_private_token = bool(args.list_token)
     list_token = args.list_token or args.token
     packages = _list_or_none(
         args.api_url, args.project_id, list_token, use_private_token
     )
-    latest_version = None
-    if packages is not None:
-        latest = _latest_version(packages, args.target)
-        if latest is not None:
-            latest_version = latest["version"]
-    else:
-        # Listing is not permitted (pre-16.0 instance): probe the legacy stable
-        # version directly.
-        status = _download(
-            _file_url(args.api_url, args.project_id, args.target, args.target),
-            args.token,
-            None,
-        )
-        if status == 200:
-            latest_version = args.target
-        elif status == 404:
-            pass
-        else:
-            raise RuntimeError("Baseline probe failed with HTTP {}".format(status))
+    latest_version, latest_data = _find_latest_baseline(
+        args.api_url, args.project_id, args.target, args.token, packages
+    )
 
-    update = _truthy(args.update)
-    if latest_version is not None and not update:
-        # Refresh baselines recorded with an outdated schema automatically:
-        # comparing against them is meaningless after a measurement methodology
-        # change, and perf gating must not stay silently disabled until someone
+    if latest_version is None:
+        print("No baseline for target {} yet; publishing this run.".format(args.target))
+        payload = data
+    elif latest_data.get("schema_version") != SCHEMA_VERSION:
+        # Comparing against a baseline from an older methodology is meaningless,
+        # and perf gating must not stay silently disabled until someone
         # remembers to label the MR.
-        if not _schema_is_outdated(
-            args.api_url, args.project_id, args.target, latest_version, args.token
-        ):
+        print(
+            "Existing baseline for target {} (version {!r}) has an outdated "
+            "schema; replacing it.".format(args.target, latest_version)
+        )
+        payload = data
+    else:
+        payload, added, replaced = merge_into_baseline(latest_data, data, update)
+        if not added and not replaced:
             print(
-                "Baseline for target {} already exists and update is not "
-                "requested; skipping.".format(args.target)
+                "Baseline for target {} already covers every measured case and "
+                "update is not requested; skipping.".format(args.target)
             )
             return
         print(
-            "Existing baseline for target {} (version {!r}) has an outdated "
-            "schema; republishing.".format(args.target, latest_version)
+            "Merging into baseline for target {} (version {!r}): {} case(s) "
+            "added, {} replaced, {} total.".format(
+                args.target,
+                latest_version,
+                added,
+                replaced,
+                len(payload["results"]),
+            )
         )
+
+    upload_path = Path(args.merged_output) if args.merged_output else input_path
+    if upload_path != input_path:
+        upload_path.parent.mkdir(parents=True, exist_ok=True)
+    upload_path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
     pipeline_id = args.pipeline_id or os.environ.get("CI_PIPELINE_ID")
     if not pipeline_id:
         pipeline_id = time.strftime("%Y%m%d%H%M%S")
-    version = "{}-{}".format(args.target, pipeline_id)
+    version = str(pipeline_id)
     upload_status = _upload(
         _file_url(args.api_url, args.project_id, args.target, version),
         args.token,
-        input_path,
+        upload_path,
     )
     if upload_status in (200, 201):
         print(
-            "Published baseline for target {} as version {}".format(
-                args.target, version
+            "Published baseline for target {} as {}/{}".format(
+                args.target,
+                version,
+                FILE_NAME_TEMPLATE.format(target=args.target),
             )
         )
     elif upload_status in (400, 409):
-        # A retry of the same pipeline already uploaded this exact version.
+        # A retry of the same pipeline already uploaded this exact file.
         print(
-            "Baseline version {} already exists (idempotent retry); "
-            "treating as published.".format(version)
+            "Baseline {}/{} already exists (idempotent retry); "
+            "treating as published.".format(
+                version, FILE_NAME_TEMPLATE.format(target=args.target)
+            )
         )
     else:
         raise RuntimeError("Baseline upload failed with HTTP {}".format(upload_status))
 
 
+def _version_recency(packages):
+    return max(
+        (str(package.get("created_at") or ""), int(package.get("id") or 0))
+        for package in packages
+    )
+
+
+def _prune_versions(version_groups, keep, api_url, project_id, token):
+    ordered = sorted(
+        version_groups, key=lambda v: _version_recency(version_groups[v]), reverse=True
+    )
+    deleted = 0
+    for version in ordered[keep:]:
+        for package in version_groups[version]:
+            deleted += _delete_package(api_url, project_id, package.get("id"), token)
+    return min(len(ordered), keep), deleted
+
+
 def cleanup(args):
-    """Keep only the newest `keep` versions of every target. Requires a token
-    that may list and delete packages (PRIVATE-TOKEN)."""
+    """Keep the newest ``keep`` shared versions, plus the newest ``keep``
+    legacy per-target versions so the old layout can age out safely."""
     packages = _list_packages(
         args.api_url, args.project_id, args.token, use_private_token=True
     )
-    by_target = {}
+    shared = {}
+    legacy = {}
     for package in packages:
-        version = str(package.get("version") or "")
-        target = version.rsplit("-", 1)[0] if "-" in version else version
-        by_target.setdefault(target, []).append(package)
+        version = package.get("version")
+        if not version or "id" not in package:
+            raise RuntimeError("Package list entry has no version or ID")
+        owner = _legacy_owner(version)
+        if owner is None:
+            shared.setdefault(version, []).append(package)
+        else:
+            legacy.setdefault(owner, {}).setdefault(version, []).append(package)
 
-    deleted = 0
-    for target, target_packages in by_target.items():
-        ordered = sorted(
-            target_packages,
-            key=lambda package: (
-                str(package.get("created_at") or ""),
-                int(package.get("id") or 0),
-            ),
-            reverse=True,
+    kept_shared, deleted = _prune_versions(
+        shared, args.keep, args.api_url, args.project_id, args.token
+    )
+    kept_legacy = 0
+    for target_versions in legacy.values():
+        kept, removed = _prune_versions(
+            target_versions, args.keep, args.api_url, args.project_id, args.token
         )
-        for package in ordered[args.keep :]:
-            deleted += _delete_package(
-                args.api_url, args.project_id, package.get("id"), args.token
-            )
+        kept_legacy += kept
+        deleted += removed
     print(
-        "Perf package retention complete: kept up to {} version(s) per target, "
-        "deleted {} package record(s)".format(args.keep, deleted)
+        "Perf package retention complete: kept {} shared version(s) and "
+        "{} legacy version(s), deleted {} package record(s)".format(
+            kept_shared, kept_legacy, deleted
+        )
     )
 
 
@@ -491,11 +587,26 @@ def main():
     publish_parser = subparsers.add_parser("publish")
     _add_registry_arguments(publish_parser)
     publish_parser.add_argument("--input", required=True)
+    publish_parser.add_argument(
+        "--merged-output",
+        default=None,
+        help="Where to write the merged baseline that gets uploaded. Defaults "
+        "to overwriting --input.",
+    )
     publish_parser.add_argument("--update", default="0")
+    publish_parser.add_argument(
+        "--add-unseen",
+        default="0",
+        help="Allow adding cases the baseline does not cover yet (and "
+        "replacing a baseline with an outdated schema). Set from "
+        "CI_COMMIT_REF_PROTECTED so only protected branches grow the "
+        "baseline. Implied by --update.",
+    )
     publish_parser.add_argument(
         "--pipeline-id",
         default=None,
-        help="Unique version suffix. Defaults to $CI_PIPELINE_ID or a timestamp.",
+        help="Shared package version for every target in this pipeline. "
+        "Defaults to $CI_PIPELINE_ID or a timestamp.",
     )
     publish_parser.add_argument(
         "--list-token",

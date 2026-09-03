@@ -68,11 +68,17 @@ def load_results(path):
             mean = _to_float(e.get("median_us"))
         if mean is None:
             continue
+        # Since schema v3 a case can appear once per board that measured it.
+        # Keep the fastest sample so the cross-target speedup is a property of
+        # the chip rather than of whichever board a shard happened to land on.
+        previous = entries.get(name)
+        if previous is not None and previous["mean_us"] <= mean:
+            continue
         entries[name] = {
             "mean_us": mean,
             "op": str(e.get("config", "")),
+            "_raw": e,
         }
-        entries[name]["_raw"] = e
 
     if target is None:  # infer from file name as last resort
         stem = Path(path).name.lower()

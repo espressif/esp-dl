@@ -482,6 +482,12 @@ void dl_tie728_s16_lessorequal_w1_1_w2_8_unaligned(bool *output_ptr,
                                                    int16_t *input1_ptr,
                                                    void *args_ptr);
 
+/* Native row-major A[M,K] x B[K,N] MatMul kernels. */
+void dl_tie728_s8_matmul_kn(const void *args);
+void dl_tie728_s16_matmul_kn(const void *args);
+void dl_tie728_s8_unaligned_matmul_kn(const void *args);
+void dl_tie728_s16_unaligned_matmul_kn(const void *args);
+
 void dl_tie728_dotprod_i8k8o16(
     int16_t *output_ptr, int8_t *input0_ptr, int8_t *input1_ptr, int shift, int n, int64_t *rounding_offset);
 void dl_tie728_dotprod_i16k16o16(
@@ -511,4 +517,18 @@ void dl_tie728_rmsnorm_s16(int16_t *output, int16_t *input, float *scale, float 
 /* LUT API */
 void dl_tie728_s8_lut(int8_t *output, int8_t *input, int32_t n_16, int8_t *table);
 void dl_tie728_s16_lut_nearest_neighbor(int16_t *output, int16_t *input, int32_t n_8, int16_t *table, int32_t shift);
+
+/* INT8 transpose kernels.
+ *   dl_tie728_s8_transpose: N×M byte matrix, N%8==0, M%16==0.
+ *   dl_tie728_block_transpose: N×M grid of K-byte blocks, any K>=1.
+ */
+void dl_tie728_s8_transpose(int8_t *output, const int8_t *input, int N, int M);
+void dl_tie728_block_transpose(int8_t *output, const int8_t *input, int N, int M, int K);
+
+/* INT16 transpose kernels.
+ *   dl_tie728_s16_transpose: N×M int16 matrix, N%8==0, M%8==0.
+ *   dl_tie728_s16_block_transpose: N×M grid of K-element blocks, any K>=1.
+ */
+void dl_tie728_s16_transpose(int16_t *output, const int16_t *input, int N, int M);
+void dl_tie728_s16_block_transpose(int16_t *output, const int16_t *input, int N, int M, int K);
 }

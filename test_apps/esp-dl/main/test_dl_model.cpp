@@ -1,10 +1,12 @@
 #include "dl_model_base.hpp"
 #include "dl_module_creator.hpp"
 #include "esp_log.h"
+#include "esp_mac.h"
 #include "esp_timer.h"
 #include "fbs_loader.hpp"
 #include "unity.h"
 #include <algorithm>
+#include <cstdio>
 #include <string>
 #include <type_traits>
 
@@ -12,6 +14,27 @@ static const char *TAG = "TEST_ESPDL_MODEL";
 
 // using namespace fbs;
 using namespace dl;
+
+// The CI target-test runners are multi-concurrent: one host drives several
+// boards of the same chip and hands out a free USB slot per job, so a given
+// test shard is measured on an arbitrary board every pipeline. Board-to-board
+// spread (flash/PSRAM part, chip revision) is a systematic offset of a few
+// percent, which is enough to trip the perf gate on its own. Stamping the
+// factory eFuse MAC into every BENCH record lets the host side keep one
+// baseline per physical board instead of one per chip family.
+static std::string bench_board_id()
+{
+    // 8 bytes: esp_efuse_mac_get_default() writes an EUI-64 on targets with
+    // 802.15.4 support. Only the 48-bit MAC-48 prefix is needed to tell the
+    // boards apart.
+    uint8_t mac[8] = {0};
+    if (esp_efuse_mac_get_default(mac) != ESP_OK) {
+        return "unknown";
+    }
+    char buffer[13];
+    snprintf(buffer, sizeof(buffer), "%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    return std::string(buffer);
+}
 
 TEST_CASE("Test espdl model", "[dl_model]")
 {
@@ -27,6 +50,7 @@ TEST_CASE("Test espdl model", "[dl_model]")
     }
     int model_num = fbs_loader->get_model_num();
     ESP_LOGI(TAG, "model_num = %d\n", model_num);
+    std::string board_id = bench_board_id();
     for (int i = 0; i < model_num; i++) {
         fbs::FbsModel *fbs_model = fbs_loader->load(i);
         Model *model = new Model(fbs_model);
@@ -63,8 +87,9 @@ TEST_CASE("Test espdl model", "[dl_model]")
             bench_name = fbs_model->get_model_name();
         }
         ESP_LOGI(TAG,
-                 "BENCH name=%s iters=%d min_us=%.3f median_us=%.3f mean_us=%.3f",
+                 "BENCH name=%s board=%s iters=%d min_us=%.3f median_us=%.3f mean_us=%.3f",
                  bench_name.c_str(),
+                 board_id.c_str(),
                  kIters,
                  min_us,
                  median_us,

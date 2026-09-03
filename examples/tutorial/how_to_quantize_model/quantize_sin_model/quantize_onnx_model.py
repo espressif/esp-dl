@@ -14,8 +14,8 @@ if __name__ == "__main__":
     ONNX_MODEL_PATH = "sin_model.onnx"
     ESPDL_MODEL_PATH = "sin_model.espdl"
     INPUT_SHAPE = [1, 1]  # 1 个输入特征
-    TARGET = "esp32s3"  # 量化目标类型，可选 'c', 'esp32s3' or 'esp32p4'
-    NUM_OF_BITS = 8  # 量化位数
+    TARGET = "esp32s3"  # 量化目标，可选 'esp32p4', 'esp32s31', 'esp32s3' or 'c'
+    QUANT_TYPE = "w8a8"  # 量化方案，可选 'w8a8', 'w8a16', 'w16a16' or 'none'
     DEVICE = "cpu"  # 'cuda' or 'cpu', if you use cuda, please make sure that cuda is available
 
     x, y = generate_data()
@@ -32,9 +32,8 @@ if __name__ == "__main__":
         input_shape=INPUT_SHAPE,  # 输入形状，批次为 1
         inputs=None,
         target=TARGET,  # 量化目标类型
-        num_of_bits=NUM_OF_BITS,  # 量化位数
+        quant_type=QUANT_TYPE,  # 量化方案
         collate_fn=collate_fn,
-        dispatching_override=None,
         device=DEVICE,
         error_report=True,
         skip_export=False,
