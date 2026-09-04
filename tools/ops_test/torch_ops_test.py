@@ -429,28 +429,39 @@ class LAYERNORMALIZATION_TEST(nn.Module):
         input_shape = config["input_shape"]
         axis = config.get("axis", -1)
         epsilon = config.get("epsilon", 1e-5)
+        self.input_gain = float(config.get("input_gain", 1.0))
+        self.input_offset = float(config.get("input_offset", 0.0))
 
-        # For simplicity, we only support axis=-1 (normalize last dimension)
-        # which is the most common case for LayerNorm
         if axis < 0:
             axis = len(input_shape) + axis
+        if axis < 0 or axis >= len(input_shape):
+            raise ValueError(
+                f"LayerNormalization axis {config.get('axis', -1)} is out of "
+                f"range for input rank {len(input_shape)}"
+            )
 
-        # PyTorch's LayerNorm normalizes over the last len(normalized_shape) dimensions
-        # So we normalize from the specified axis to the end
+        # PyTorch expresses ONNX shape[axis:] through normalized_shape.
         normalized_shape = input_shape[axis:]
 
         self.layer_norm = nn.LayerNorm(
             normalized_shape=normalized_shape,
             eps=epsilon,
-            elementwise_affine=True,  # Has learnable scale and bias
+            elementwise_affine=True,
         )
+        if not bool(config.get("bias", True)):
+            # Compatible with PyTorch versions without the bias keyword.
+            self.layer_norm.bias = None
 
-        torch.nn.init.normal_(
-            self.layer_norm.weight, mean=1.0, std=0.02
-        )  # scale 随机初始化
-        torch.nn.init.uniform_(self.layer_norm.bias, a=-0.1, b=0.1)
+        torch.nn.init.normal_(self.layer_norm.weight, mean=1.0, std=0.02)
+        if self.layer_norm.bias is not None:
+            torch.nn.init.uniform_(self.layer_norm.bias, a=-0.1, b=0.1)
 
     def forward(self, input):
+        # Create large-mean, small-variance inputs when requested.
+        if self.input_gain != 1.0:
+            input = input * self.input_gain
+        if self.input_offset != 0.0:
+            input = input + self.input_offset
         return self.layer_norm(input)
 
 

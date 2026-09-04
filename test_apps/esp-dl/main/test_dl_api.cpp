@@ -1,6 +1,7 @@
 #include "dl_model_base.hpp"
 #include "dl_module_add.hpp"
 #include "dl_module_creator.hpp"
+#include "dl_module_layer_normalization.hpp"
 #include "dl_module_relu.hpp"
 #include "esp_log.h"
 #include "esp_timer.h"
@@ -219,6 +220,233 @@ TEST_CASE("Test dl module API: run()", "[api]")
     delete output;
     delete relu_op;
     delete add_op;
+
+    int total_ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);
+}
+
+/**
+ * @brief Fill a tensor with finite, deterministic values.
+ *
+ * TensorBase::rand() may produce NaN or Inf bit patterns for float tensors.
+ */
+static void fill_test_pattern(TensorBase *tensor, uint32_t seed)
+{
+    uint32_t state = seed;
+    auto next = [&state]() {
+        state = state * 1664525u + 1013904223u;
+        return state;
+    };
+
+    const int n = tensor->get_size();
+    if (tensor->dtype == DATA_TYPE_FLOAT) {
+        float *ptr = static_cast<float *>(tensor->get_element_ptr());
+        for (int i = 0; i < n; i++) {
+            ptr[i] = static_cast<float>(static_cast<int32_t>(next() >> 21) - 1024) / 256.0f;
+        }
+    } else if (tensor->dtype == DATA_TYPE_INT16) {
+        int16_t *ptr = static_cast<int16_t *>(tensor->get_element_ptr());
+        for (int i = 0; i < n; i++) {
+            ptr[i] = static_cast<int16_t>(next() >> 16);
+        }
+    } else {
+        int8_t *ptr = static_cast<int8_t *>(tensor->get_element_ptr());
+        for (int i = 0; i < n; i++) {
+            ptr[i] = static_cast<int8_t>(next() >> 24);
+        }
+    }
+}
+
+/**
+ * @brief True when every element of the tensor holds the same value.
+ *
+ * This rejects comparisons made meaningless by constant or saturated output.
+ */
+static bool tensor_is_uniform(TensorBase *tensor)
+{
+    const uint8_t *ptr = static_cast<const uint8_t *>(tensor->get_element_ptr());
+    const int elem_bytes = tensor->get_bytes() / tensor->get_size();
+    for (int i = 1; i < tensor->get_size(); i++) {
+        if (memcmp(ptr, ptr + i * elem_bytes, elem_bytes) != 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Compare single-core and dual-core LayerNormalization outputs.
+ *
+ * Also covers even and odd row splits, unaligned rows, in-place mode, and
+ * aliased input/output buffers. Model::test() itself only runs single-core.
+ */
+TEST_CASE("Test dl module API: LayerNormalization dual core", "[api]")
+{
+    ESP_LOGI(TAG, "Test dl module API: LayerNormalization dual core");
+
+    struct LNShape {
+        int outer; ///< rows, i.e. the dimension the split divides
+        int inner; ///< normalized length
+    };
+    // Covers even and odd splits, an unaligned row, and an unsplittable row.
+    const LNShape shapes[] = {{8, 64}, {7, 64}, {5, 193}, {1, 64}};
+
+    struct LNDtype {
+        quant_type_t quant;
+        dtype_t dtype;
+        int act_exponent;    ///< X and Y scale
+        int affine_exponent; ///< gamma and beta scale
+    };
+    // Keep results inside the output range so saturation cannot hide errors.
+    const LNDtype dtypes[] = {
+        {QUANT_TYPE_SYMM_8BIT, DATA_TYPE_INT8, -5, -7},
+        {QUANT_TYPE_SYMM_16BIT, DATA_TYPE_INT16, -13, -15},
+        {QUANT_TYPE_FLOAT32, DATA_TYPE_FLOAT, 0, 0},
+    };
+
+    // Exclude persistent worker-task allocation from the heap check.
+    {
+        TensorBase *warmup_x = new TensorBase({4, 16}, nullptr, -5, DATA_TYPE_INT8);
+        TensorBase *warmup_affine = new TensorBase({16}, nullptr, -7, DATA_TYPE_INT8);
+        TensorBase *warmup_y = new TensorBase({4, 16}, nullptr, -5, DATA_TYPE_INT8);
+        module::Module *warmup_ln =
+            new module::LayerNormalization(-1, 1e-5f, 0, "ln_warmup", MODULE_NON_INPLACE, QUANT_TYPE_SYMM_8BIT);
+        warmup_ln->run({warmup_x, warmup_affine, warmup_affine}, {warmup_y}, RUNTIME_MODE_MULTI_CORE);
+        delete warmup_ln;
+        delete warmup_x;
+        delete warmup_affine;
+        delete warmup_y;
+    }
+
+    int total_ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+
+    // Test both module allocation modes and actual x/y buffer aliasing.
+    const module_inplace_t inplace_modes[] = {MODULE_NON_INPLACE, MODULE_INPLACE_CHANGED_BUFFER};
+
+    for (const LNShape &shape : shapes) {
+        for (const LNDtype &dt : dtypes) {
+            for (module_inplace_t inplace : inplace_modes) {
+                for (bool alias_output : {false, true}) {
+                    const std::vector<int> x_shape = {shape.outer, shape.inner};
+                    const std::vector<int> affine_shape = {shape.inner};
+
+                    TensorBase *x_source = new TensorBase(x_shape, nullptr, dt.act_exponent, dt.dtype);
+                    TensorBase *gamma = new TensorBase(affine_shape, nullptr, dt.affine_exponent, dt.dtype);
+                    TensorBase *beta = new TensorBase(affine_shape, nullptr, dt.affine_exponent, dt.dtype);
+                    fill_test_pattern(x_source, 0x12345678);
+                    fill_test_pattern(gamma, 0x9e3779b9);
+                    fill_test_pattern(beta, 0x85ebca6b);
+
+                    // Start both runs from identical, independent inputs.
+                    TensorBase *in_serial = new TensorBase(x_shape, nullptr, dt.act_exponent, dt.dtype);
+                    TensorBase *in_dual = new TensorBase(x_shape, nullptr, dt.act_exponent, dt.dtype);
+                    memcpy(in_serial->get_element_ptr(), x_source->get_element_ptr(), x_source->get_bytes());
+                    memcpy(in_dual->get_element_ptr(), x_source->get_element_ptr(), x_source->get_bytes());
+
+                    TensorBase *y_serial =
+                        alias_output ? in_serial : new TensorBase(x_shape, nullptr, dt.act_exponent, dt.dtype);
+                    TensorBase *y_dual =
+                        alias_output ? in_dual : new TensorBase(x_shape, nullptr, dt.act_exponent, dt.dtype);
+
+                    module::Module *ln = new module::LayerNormalization(-1, 1e-5f, 0, "ln", inplace, dt.quant);
+                    ln->run({in_serial, gamma, beta}, {y_serial}, RUNTIME_MODE_SINGLE_CORE);
+                    ln->run({in_dual, gamma, beta}, {y_dual}, RUNTIME_MODE_MULTI_CORE);
+
+                    TEST_ASSERT_EQUAL(false, tensor_is_uniform(y_serial));
+                    TEST_ASSERT_EQUAL_MEMORY(
+                        y_serial->get_element_ptr(), y_dual->get_element_ptr(), y_serial->get_bytes());
+
+                    delete ln;
+                    delete x_source;
+                    delete gamma;
+                    delete beta;
+                    if (!alias_output) {
+                        delete y_serial;
+                        delete y_dual;
+                    }
+                    delete in_serial;
+                    delete in_dual;
+                }
+            }
+        }
+    }
+
+    int total_ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);
+}
+
+/**
+ * @brief Verify normalization over shape[axis:].
+ *
+ * A positive axis on a rank-4 tensor must match an equivalent 2D fold.
+ * esp-ppq only exports last-axis LayerNormalization, so this is tested through
+ * the module API.
+ */
+TEST_CASE("Test dl module API: LayerNormalization multi-axis", "[api]")
+{
+    ESP_LOGI(TAG, "Test dl module API: LayerNormalization multi-axis");
+    int total_ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+
+    // POD avoids allocations that would outlive the heap check.
+    struct AxisCase {
+        int shape[4]; ///< rank-4 input
+        int axis;     ///< positive axis into that shape
+        int outer;    ///< prod(shape[:axis]), the rows it has to fold to
+        int inner;    ///< prod(shape[axis:]), the length it has to reduce
+    };
+    const AxisCase cases[] = {
+        {{2, 3, 4, 16}, 2, 6, 64},  ///< reduce the last two axes
+        {{2, 3, 4, 16}, 1, 2, 192}, ///< reduce the last three
+        {{2, 3, 4, 16}, 3, 24, 16}, ///< last axis only, spelled positively
+    };
+    const struct {
+        quant_type_t quant;
+        dtype_t dtype;
+        int act_exponent;
+        int affine_exponent;
+    } dtypes[] = {
+        {QUANT_TYPE_SYMM_8BIT, DATA_TYPE_INT8, -5, -7},
+        {QUANT_TYPE_SYMM_16BIT, DATA_TYPE_INT16, -13, -15},
+        {QUANT_TYPE_FLOAT32, DATA_TYPE_FLOAT, 0, 0},
+    };
+
+    for (const AxisCase &ac : cases) {
+        for (const auto &dt : dtypes) {
+            const std::vector<int> nd_shape(ac.shape, ac.shape + 4);
+            const std::vector<int> folded = {ac.outer, ac.inner};
+            const std::vector<int> affine_shape = {ac.inner};
+
+            TensorBase *x_nd = new TensorBase(nd_shape, nullptr, dt.act_exponent, dt.dtype);
+            TensorBase *x_2d = new TensorBase(folded, nullptr, dt.act_exponent, dt.dtype);
+            TensorBase *gamma = new TensorBase(affine_shape, nullptr, dt.affine_exponent, dt.dtype);
+            TensorBase *beta = new TensorBase(affine_shape, nullptr, dt.affine_exponent, dt.dtype);
+            TensorBase *y_nd = new TensorBase(nd_shape, nullptr, dt.act_exponent, dt.dtype);
+            TensorBase *y_2d = new TensorBase(folded, nullptr, dt.act_exponent, dt.dtype);
+
+            fill_test_pattern(x_nd, 0x2545f491);
+            memcpy(x_2d->get_element_ptr(), x_nd->get_element_ptr(), x_nd->get_bytes());
+            fill_test_pattern(gamma, 0x9e3779b9);
+            fill_test_pattern(beta, 0x85ebca6b);
+
+            module::Module *ln_nd =
+                new module::LayerNormalization(ac.axis, 1e-5f, 0, "ln_nd", MODULE_NON_INPLACE, dt.quant);
+            module::Module *ln_2d = new module::LayerNormalization(-1, 1e-5f, 0, "ln_2d", MODULE_NON_INPLACE, dt.quant);
+            ln_nd->run({x_nd, gamma, beta}, {y_nd}, RUNTIME_MODE_SINGLE_CORE);
+            ln_2d->run({x_2d, gamma, beta}, {y_2d}, RUNTIME_MODE_SINGLE_CORE);
+
+            TEST_ASSERT_EQUAL(false, tensor_is_uniform(y_nd));
+            TEST_ASSERT_EQUAL_MEMORY(y_2d->get_element_ptr(), y_nd->get_element_ptr(), y_nd->get_bytes());
+
+            delete ln_nd;
+            delete ln_2d;
+            delete x_nd;
+            delete x_2d;
+            delete gamma;
+            delete beta;
+            delete y_nd;
+            delete y_2d;
+        }
+    }
 
     int total_ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);
