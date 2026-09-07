@@ -14,6 +14,14 @@ typedef struct dl_fft_table_node {
 static _lock_t s_lock;
 static dl_fft_table_node_t *s_list = NULL;
 
+// newlib _lock_t is lazily turned into a FreeRTOS mutex on first _lock_acquire
+// (xQueueCreateMutex). That heap object lives for the process lifetime, so the
+// first FFT after boot looks like a leak. Create it at load time instead.
+static void __attribute__((constructor)) dl_fft_table_lock_init(void)
+{
+    _lock_init(&s_lock);
+}
+
 static void *generate_table(dl_fft_table_kind_t kind, int fft_point, uint32_t caps, int *extra)
 {
     switch (kind) {
