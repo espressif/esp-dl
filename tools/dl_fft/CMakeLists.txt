@@ -10,6 +10,7 @@ set(srcs        "dl_fft_f32.c"
                 "base/dl_fft2r_sc16_ansi.c"
                 "base/dl_fft2r_sc16_dif_ansi.c"
                 "base/dl_fft_base.c"
+                "base/dl_fft_table.c"
                 )
 
 set(include_dirs    "."

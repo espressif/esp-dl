@@ -51,6 +51,21 @@ int16_t *dl_gen_fft_table_sc16(int fft_point, uint32_t caps);
 int16_t *dl_gen_rfft_table_s16(int fft_point, uint32_t caps);
 int16_t *dl_gen_dif_fft_table(int N, uint32_t caps);
 int16_t *dl_gen_dif_rfft_table(int fft_point, uint32_t caps);
+
+// Shared FFT table cache. Same (kind, fft_point, caps) is reused; last release frees it.
+typedef enum {
+    DL_FFT_TBL_F32_FFT2R = 0,
+    DL_FFT_TBL_F32_FFT4R,
+    DL_FFT_TBL_F32_RFFT,
+    DL_FFT_TBL_F32_BITREV2R,
+    DL_FFT_TBL_F32_BITREV4R,
+    DL_FFT_TBL_S16_DIF_FFT,
+    DL_FFT_TBL_S16_DIF_RFFT,
+} dl_fft_table_kind_t;
+
+void *dl_fft_table_acquire(dl_fft_table_kind_t kind, int fft_point, uint32_t caps, int *extra);
+void dl_fft_table_release(void *data);
+
 esp_err_t dl_bitrev2r_sc16_ansi(int16_t *data, int N, int log2N);
 esp_err_t dl_bitrev2r_sc16(int16_t *data, int N, int log2N);
 
