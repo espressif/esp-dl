@@ -103,8 +103,34 @@ typedef void (*n_wise_func_s16_t)(int16_t *, DL_S16_BUFFER_TYPE *, const ArgsTyp
 typedef void (*c_impl_func_s8_t)(int32_t *, int8_t *, const ArgsType<int8_t> &);
 typedef void (*n_wise_func_s8_t)(int8_t *, int32_t *, const ArgsType<int8_t> &);
 
+/**
+ * @brief Handle to a kernel implementation.
+ *
+ * A wrapper rather than a bare function pointer alias so that default construction is null: load_*() leaves it unset
+ * when no kernel matches the shape, and callers test `if (!i_impl_func)`.
+ */
 template <typename out_feature_t, typename in_feature_t, typename... feature_t>
-using ImplFunc_t = std::function<void(out_feature_t *, in_feature_t *, feature_t *..., void *)>;
+struct ImplFunc_t {
+    using func_t = void (*)(out_feature_t *, in_feature_t *, feature_t *..., void *);
+
+    func_t func = nullptr;
+
+    ImplFunc_t() = default;
+    ImplFunc_t(func_t f) : func(f) {}
+
+    ImplFunc_t &operator=(func_t f)
+    {
+        func = f;
+        return *this;
+    }
+
+    explicit operator bool() const { return func != nullptr; }
+
+    void operator()(out_feature_t *output, in_feature_t *input, feature_t *...inputs, void *args) const
+    {
+        func(output, input, inputs..., args);
+    }
+};
 
 // TODO:剥离出多核时 input output 的指针分配
 template <typename feature_t>
