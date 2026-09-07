@@ -24,7 +24,7 @@ dl_fft_s16_t *dl_fft_s16_init(int fft_point, uint32_t caps)
     handle->fft_point = fft_point;
     handle->log2n = dl_power_of_two(fft_point);
 
-    handle->fft_table = dl_gen_dif_fft_table(fft_point, caps);
+    handle->fft_table = dl_fft_table_acquire(DL_FFT_TBL_S16_DIF_FFT, fft_point, caps, NULL);
     if (!handle->fft_table) {
         ESP_LOGE(TAG, "Failed to generate DIF FFT table");
         dl_fft_s16_deinit(handle);
@@ -40,9 +40,7 @@ dl_fft_s16_t *dl_fft_s16_init(int fft_point, uint32_t caps)
 void dl_fft_s16_deinit(dl_fft_s16_t *handle)
 {
     if (handle) {
-        if (handle->fft_table) {
-            heap_caps_free(handle->fft_table);
-        }
+        dl_fft_table_release(handle->fft_table);
         heap_caps_free(handle);
     }
 }

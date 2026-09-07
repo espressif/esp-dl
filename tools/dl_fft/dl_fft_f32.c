@@ -25,14 +25,13 @@ dl_fft_f32_t *dl_fft_f32_init(int fft_point, uint32_t caps)
     handle->fft_point = fft_point;
     handle->log2n = dl_power_of_two(fft_point);
 
-    // Allocate and generate FFT table
-    handle->fft_table = dl_gen_fft2r_table_f32(fft_point, caps);
+    handle->fft_table = dl_fft_table_acquire(DL_FFT_TBL_F32_FFT2R, fft_point, caps, NULL);
     if (!handle->fft_table) {
         ESP_LOGE(TAG, "Failed to generate FFT table");
         dl_fft_f32_deinit(handle);
         return NULL;
     }
-    handle->bitrev_table = dl_gen_bitrev2r_table(fft_point, caps, &handle->bitrev_size);
+    handle->bitrev_table = dl_fft_table_acquire(DL_FFT_TBL_F32_BITREV2R, fft_point, caps, &handle->bitrev_size);
 
     return handle;
 }
@@ -41,15 +40,9 @@ dl_fft_f32_t *dl_fft_f32_init(int fft_point, uint32_t caps)
 void dl_fft_f32_deinit(dl_fft_f32_t *handle)
 {
     if (handle) {
-        if (handle->fft_table) {
-            heap_caps_free(handle->fft_table);
-        }
-        if (handle->rfft_table) {
-            heap_caps_free(handle->rfft_table);
-        }
-        if (handle->bitrev_table) {
-            heap_caps_free(handle->bitrev_table);
-        }
+        dl_fft_table_release(handle->fft_table);
+        dl_fft_table_release(handle->rfft_table);
+        dl_fft_table_release(handle->bitrev_table);
         heap_caps_free(handle);
     }
 }
