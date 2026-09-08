@@ -1527,6 +1527,24 @@
         mode = "linear"
         align_corners = true
 
+        # bilinear downsample
+        [[ops_test.Resize.cfg]]
+        input_shape = [1, 96, 16, 16]
+        export_name_prefix = "resize_ishap_1_96_16_16_scale_0p5_linear"
+        conv = false
+        scale_factor = 0.5
+        mode = "bilinear"
+        align_corners = false
+
+        # bilinear, narrowest channel count the vector kernel takes
+        [[ops_test.Resize.cfg]]
+        input_shape = [1, 16, 8, 8]
+        export_name_prefix = "resize_ishap_1_16_8_8_scale_2_linear"
+        conv = false
+        scale_factor = 2.0
+        mode = "bilinear"
+        align_corners = false
+
     [ops_test.Sigmoid]
     test_func = "SIGMOID_TEST"
     quant_type = ["int8", "int16", "float32"]
