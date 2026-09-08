@@ -1,6 +1,7 @@
 #include "dl_model_base.hpp"
 #include "dl_module_add.hpp"
 #include "dl_module_creator.hpp"
+#include "dl_module_lut.hpp"
 #include "dl_module_relu.hpp"
 #include "esp_log.h"
 #include "esp_timer.h"
@@ -278,6 +279,94 @@ TEST_CASE("Test dl module API: StreamingCache reset()", "[api]")
 
     int total_ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     TEST_ASSERT_EQUAL(true, total_ram_size_before == total_ram_size_end);
+}
+
+TEST_CASE("Test dl module API: LUT runtime modes", "[api]")
+{
+    struct LutCase {
+        const char *name;
+        quant_type_t quant;
+        dtype_t dtype;
+        int table_size;
+    };
+    const LutCase cases[] = {
+        {"int8", QUANT_TYPE_SYMM_8BIT, DATA_TYPE_INT8, 256},
+        {"int16_step16", QUANT_TYPE_SYMM_16BIT, DATA_TYPE_INT16, 4097},
+        {"int16_step1", QUANT_TYPE_SYMM_16BIT, DATA_TYPE_INT16, 65537},
+    };
+    // Sizes cover:
+    //   - tiny inputs that cannot be split at all (1..15)
+    //   - the first size at which INT16 / INT8 splits succeed (16 / 32)
+    //   - odd sizes whose dual-core tail is not a multiple of the SIMD chunk
+    //     (17, 33, 65, 129, 4097, 8193)
+    //   - INT16 step=1 AUTO threshold crossing (< 2048 vs >= 2048)
+    //   - INT8 / INT16 step>=2 AUTO threshold crossing (< 8192 vs >= 8192)
+    const int sizes[] = {1, 15, 16, 17, 31, 32, 33, 63, 64, 65, 129, 1011, 1024, 2048, 4097, 8192, 8193};
+
+    for (const LutCase &cfg : cases) {
+        TensorBase *table = new TensorBase({cfg.table_size}, nullptr, 0, cfg.dtype);
+        if (cfg.dtype == DATA_TYPE_INT8) {
+            int8_t *ptr = static_cast<int8_t *>(table->get_element_ptr());
+            for (int i = 0; i < cfg.table_size; i++) {
+                ptr[i] = static_cast<int8_t>(i * 109 + 37);
+            }
+        } else {
+            int16_t *ptr = static_cast<int16_t *>(table->get_element_ptr());
+            for (int i = 0; i < cfg.table_size; i++) {
+                ptr[i] = static_cast<int16_t>(i * 109 + 37);
+            }
+        }
+        const int step_val = cfg.dtype == DATA_TYPE_INT16 ? 65536 / (cfg.table_size - 1) : 0;
+
+        for (int size : sizes) {
+            TensorBase *input = new TensorBase({size}, nullptr, 0, cfg.dtype);
+            TensorBase *single = new TensorBase({size}, nullptr, 0, cfg.dtype);
+            TensorBase *multi = new TensorBase({size}, nullptr, 0, cfg.dtype);
+            TensorBase *automatic = new TensorBase({size}, nullptr, 0, cfg.dtype);
+            TensorBase *reference = new TensorBase({size}, nullptr, 0, cfg.dtype);
+
+            if (cfg.dtype == DATA_TYPE_INT8) {
+                int8_t *ptr = static_cast<int8_t *>(input->get_element_ptr());
+                for (int i = 0; i < size; i++) {
+                    ptr[i] = static_cast<int8_t>(i * 73 + 19);
+                }
+                // Independent reference: call the base kernel directly on the
+                // raw buffers. If the module were to mis-wire size/step/table,
+                // this reference would still be correct.
+                dl::base::lut_s8(static_cast<int8_t *>(reference->get_element_ptr()),
+                                 ptr,
+                                 size,
+                                 static_cast<int8_t *>(table->get_element_ptr()));
+            } else {
+                int16_t *ptr = static_cast<int16_t *>(input->get_element_ptr());
+                for (int i = 0; i < size; i++) {
+                    ptr[i] = static_cast<int16_t>(i * 1009 + 313);
+                }
+                dl::base::lut_s16_nearest_neighbor(static_cast<int16_t *>(reference->get_element_ptr()),
+                                                   ptr,
+                                                   size,
+                                                   static_cast<int16_t *>(table->get_element_ptr()),
+                                                   step_val);
+            }
+
+            module::LUT lut("lut", MODULE_NON_INPLACE, cfg.quant);
+            lut.run({input, table}, {single}, RUNTIME_MODE_SINGLE_CORE);
+            lut.run({input, table}, {multi}, RUNTIME_MODE_MULTI_CORE);
+            lut.run({input, table}, {automatic}, RUNTIME_MODE_AUTO);
+
+            const int bytes = single->get_bytes();
+            TEST_ASSERT_EQUAL_MEMORY(reference->get_element_ptr(), single->get_element_ptr(), bytes);
+            TEST_ASSERT_EQUAL_MEMORY(reference->get_element_ptr(), multi->get_element_ptr(), bytes);
+            TEST_ASSERT_EQUAL_MEMORY(reference->get_element_ptr(), automatic->get_element_ptr(), bytes);
+
+            delete input;
+            delete single;
+            delete multi;
+            delete automatic;
+            delete reference;
+        }
+        delete table;
+    }
 }
 
 TEST_CASE("Test PDL3 package: verify integrity", "[api]")
