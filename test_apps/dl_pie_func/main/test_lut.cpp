@@ -15,6 +15,9 @@ static const char *TAG = "TEST DL LUT";
 static inline uint16_t rounded_index(int16_t input, int shift)
 {
     uint32_t value = (uint16_t)input ^ 0x8000u;
+    if (shift == 0) {
+        return static_cast<uint16_t>(value);
+    }
     uint32_t index = value >> shift;
     uint32_t remainder = value & ((1u << shift) - 1u);
     uint32_t half = 1u << (shift - 1);
@@ -227,12 +230,51 @@ TEST_CASE("Test base s8 LUT: speed", "[pie][lut]")
     (void)sink;
     heap_caps_free(table);
 }
+
+TEST_CASE("Test base s8 LUT: unaligned buffers", "[pie][lut]")
+{
+    // Force the C fallback by using a 1-byte-offset (=misaligned) input and
+    // output. The SIMD kernel would corrupt data if the alignment gate ever
+    // regressed.
+    const int size = 128;
+
+    int8_t *table = (int8_t *)heap_caps_aligned_alloc(16, 256, MALLOC_CAP_DEFAULT);
+    uint8_t *raw_in = (uint8_t *)heap_caps_aligned_alloc(16, size + 1, MALLOC_CAP_DEFAULT);
+    uint8_t *raw_out = (uint8_t *)heap_caps_aligned_alloc(16, size + 1, MALLOC_CAP_DEFAULT);
+    int8_t *expected = (int8_t *)heap_caps_aligned_alloc(16, size, MALLOC_CAP_DEFAULT);
+    TEST_ASSERT_NOT_NULL(table);
+    TEST_ASSERT_NOT_NULL(raw_in);
+    TEST_ASSERT_NOT_NULL(raw_out);
+    TEST_ASSERT_NOT_NULL(expected);
+
+    for (int i = 0; i < 256; i++) {
+        table[i] = (int8_t)((i * 109 + 37) & 0xff);
+    }
+
+    int8_t *input = (int8_t *)(raw_in + 1);
+    int8_t *output = (int8_t *)(raw_out + 1);
+    TEST_ASSERT_TRUE(((uintptr_t)input & 0xf) != 0);
+    TEST_ASSERT_TRUE(((uintptr_t)output & 0xf) != 0);
+
+    fill_s8_input(input, size, 0xdeadu);
+    lut_s8_scalar(expected, input, size, table);
+    memset(output, 0xa5, size);
+    dl::base::lut_s8(output, input, size, table);
+    assert_equal_s8_buffers(expected, output, size);
+
+    heap_caps_free(table);
+    heap_caps_free(raw_in);
+    heap_caps_free(raw_out);
+    heap_caps_free(expected);
+}
 #endif
 
 TEST_CASE("Test base s16 LUT nearest-neighbor: precision", "[pie][lut]")
 {
-    const int shifts[] = {1, 2, 3, 4, 8, 15};
-    const int sizes[] = {8, 16, 64, 1024};
+    const int shifts[] = {0, 1, 2, 3, 4, 8, 15};
+    // Include sizes not divisible by 8 so the SIMD chunk + C-tail split is
+    // exercised (P4 SIMD processes 8 int16 per iteration).
+    const int sizes[] = {7, 8, 15, 16, 17, 23, 55, 64, 1015, 1024};
 
     for (int shift : shifts) {
         int16_t *table = allocate_table(shift);
@@ -257,6 +299,40 @@ TEST_CASE("Test base s16 LUT nearest-neighbor: precision", "[pie][lut]")
         }
         heap_caps_free(table);
     }
+}
+
+TEST_CASE("Test base s16 LUT nearest-neighbor: unaligned buffers", "[pie][lut]")
+{
+    // The base kernel gates the SIMD path on 16-byte alignment of input, output
+    // and table. Offsetting a pointer by 2 bytes must force the C fallback and
+    // still produce identical results.
+    const int shift = 4;
+    const int step = 1 << shift;
+    const int size = 128;
+
+    int16_t *table = allocate_table(shift);
+    uint8_t *raw_in = (uint8_t *)heap_caps_aligned_alloc(16, size * sizeof(int16_t) + 2, MALLOC_CAP_DEFAULT);
+    uint8_t *raw_out = (uint8_t *)heap_caps_aligned_alloc(16, size * sizeof(int16_t) + 2, MALLOC_CAP_DEFAULT);
+    int16_t *expected = (int16_t *)heap_caps_aligned_alloc(16, size * sizeof(int16_t), MALLOC_CAP_DEFAULT);
+    TEST_ASSERT_NOT_NULL(raw_in);
+    TEST_ASSERT_NOT_NULL(raw_out);
+    TEST_ASSERT_NOT_NULL(expected);
+
+    int16_t *input = (int16_t *)(raw_in + 2);
+    int16_t *output = (int16_t *)(raw_out + 2);
+    TEST_ASSERT_TRUE(((uintptr_t)input & 0xf) != 0);
+    TEST_ASSERT_TRUE(((uintptr_t)output & 0xf) != 0);
+
+    fill_input(input, size, 0xcafeu);
+    lut_s16_scalar(expected, input, size, table, shift);
+    memset(output, 0xa5, size * sizeof(int16_t));
+    dl::base::lut_s16_nearest_neighbor(output, input, size, table, step);
+    assert_equal_buffers(expected, output, size, shift);
+
+    heap_caps_free(raw_in);
+    heap_caps_free(raw_out);
+    heap_caps_free(expected);
+    heap_caps_free(table);
 }
 
 TEST_CASE("Test base s16 LUT nearest-neighbor: speed", "[pie][lut]")
