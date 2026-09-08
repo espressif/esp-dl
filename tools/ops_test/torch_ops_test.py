@@ -586,8 +586,16 @@ class SOFTMAX_TEST(nn.Module):
 
         self.op = nn.Softmax(config["dim"])
         self.config = config
+        self.input_gain = float(config.get("input_gain", 1.0))
 
     def forward(self, inputs):
+        # Widen the input range when requested, so calibration lands on a
+        # coarser activation exponent. Only a gain is offered: softmax is
+        # shift-invariant, and an offset would raise the exponent without
+        # changing max - x, which is the quantity that decides how far the
+        # exponent table is indexed.
+        if self.input_gain != 1.0:
+            inputs = inputs * self.input_gain
         if self.config["relu"]:
             inputs = nn.ReLU()(inputs)
         output = self.op(inputs)
