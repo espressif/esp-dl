@@ -154,8 +154,9 @@ check_espdl_ops_perf:
           # The reviewed decision of whether these numbers become the new
           # reference, or whether this pipeline stands as a real failure.
           echo "If every flagged change is expected, play accept_espdl_ops_perf" >&2
-          echo "with PERF_ACCEPT_OPS set to the operators you reviewed, then" >&2
-          echo "retry this job. Otherwise this is a genuine regression." >&2
+          echo "and retry this job; it accepts exactly what was flagged here." >&2
+          echo "To accept only some of it, set PERF_ACCEPT_OPS on that job's" >&2
+          echo "page. Otherwise this is a genuine regression." >&2
         else
           echo "If every flagged change is expected, add one MR label" >&2
           echo "\"update-perf-baseline:<Op>\" per operator and re-run the" >&2
@@ -170,27 +171,29 @@ accept_espdl_ops_perf:
     - .espdl_ops_perf
     - .rules:perf_gate:accept
   variables:
-    # Set in the "run job" form when playing this job. Comma-separated
-    # operator names, or "*" for every operator measured in this pipeline.
+    # Optional narrowing. Left empty, this job accepts exactly the operators
+    # the gate rejects, which is the whole decision in the common case.
+    # Narrow it to a comma-separated list (or "*") only when you reviewed some
+    # of the flagged operators and want the rest to keep failing. Note that
+    # the play button in the pipeline graph starts the job immediately with no
+    # prompt; the form for entering variables is on the job's own page.
     PERF_ACCEPT_OPS: ""
   artifacts:
-    when: always
+    # Deliberately not "when: always": a job that accepted nothing produces no
+    # baseline, and asking for one would only add a confusing upload error on
+    # top of the real message.
     paths:
       - "*_perf_baseline.json"
     expire_in: 90 days
   script:
     - |
       set -eu
-      # Only reachable by a human pressing play, so this is the reviewed
-      # decision that the measured numbers are the new truth. It republishes
-      # the baseline for the named operators; retrying check_espdl_ops_perf
-      # afterwards then compares against it and passes, without spending a
-      # board on a re-measurement.
-      if [ -z "${PERF_ACCEPT_OPS}" ]; then
-        echo "Set PERF_ACCEPT_OPS to the operators you reviewed (or \"*\")." >&2
-        exit 1
-      fi
-      echo "Accepting measured performance for: ${PERF_ACCEPT_OPS}"
+      # Only reachable by a human pressing play, so reaching here is the
+      # reviewed decision that the measured numbers are the new truth. It
+      # republishes the baseline for those operators; retrying
+      # check_espdl_ops_perf afterwards then compares against it and passes,
+      # without spending a board on a re-measurement.
+      ACCEPTED=""
       for TARGET in esp32 esp32s3 esp32p4; do
         RESULTS="${TARGET}_perf_results.json"
         if ! python tools/ops_test/benchmark/perf_package.py aggregate \
@@ -200,6 +203,30 @@ accept_espdl_ops_perf:
           echo "No performance results for ${TARGET}; nothing to accept." >&2
           continue
         fi
+        python tools/ops_test/benchmark/perf_package.py fetch \
+          --api-url "${CI_API_V4_URL}" \
+          --project-id "${CI_PROJECT_ID}" \
+          --token "${CI_JOB_TOKEN}" \
+          --target "${TARGET}" \
+          --output "${TARGET}_perf_baseline_before.json" \
+          --list-token "${PACKAGE_CLEANUP_TOKEN:-}"
+        # Re-derived here rather than read from check_espdl_ops_perf, because
+        # depending on that job would make this one unplayable in exactly the
+        # case it exists for: when the gate failed.
+        OPS="${PERF_ACCEPT_OPS}"
+        if [ -z "${OPS}" ]; then
+          OPS=$(python tools/ops_test/benchmark/perf_benchmark.py failing-ops \
+            --target "${TARGET}" \
+            --results "${RESULTS}" \
+            --baseline "${TARGET}_perf_baseline_before.json" \
+            --report "${TARGET}_perf_diff.md")
+        fi
+        if [ -z "${OPS}" ]; then
+          echo "Nothing rejected for ${TARGET}; leaving its baseline alone."
+          continue
+        fi
+        echo "Accepting measured performance for ${TARGET}: ${OPS}"
+        ACCEPTED="${ACCEPTED}${ACCEPTED:+; }${TARGET}: ${OPS}"
         python tools/ops_test/benchmark/perf_package.py publish \
           --api-url "${CI_API_V4_URL}" \
           --project-id "${CI_PROJECT_ID}" \
@@ -207,11 +234,17 @@ accept_espdl_ops_perf:
           --target "${TARGET}" \
           --input "${RESULTS}" \
           --merged-output "${TARGET}_perf_baseline.json" \
-          --update-ops "${PERF_ACCEPT_OPS}" \
+          --update-ops "${OPS}" \
           --trigger "accept" \
           --pipeline-id "${CI_PIPELINE_ID}" \
           --list-token "${PACKAGE_CLEANUP_TOKEN:-}"
       done
+      if [ -z "${ACCEPTED}" ]; then
+        echo "Nothing to accept: the gate rejects no operator on any target."
+      else
+        echo "Accepted ${ACCEPTED}"
+        echo "Retry check_espdl_ops_perf to turn the pipeline green."
+      fi
 
 publish_espdl_ops_perf_baseline:
   stage: deploy
