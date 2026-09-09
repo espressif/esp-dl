@@ -26,7 +26,7 @@ def pytest_timeout_for_target(target):
 PYTEST_TEMPLATE = """
 import pytest
 from pytest_embedded import Dut
-from tools.ops_test.benchmark.perf_benchmark import record_and_compare
+from tools.ops_test.benchmark.perf_benchmark import record_benchmarks
 
 
 @pytest.mark.target("{target}")
@@ -38,7 +38,7 @@ from tools.ops_test.benchmark.perf_benchmark import record_and_compare
 )
 def test_model_common(dut: Dut, config: str) -> None:
     dut.run_all_single_board_cases(group="dl_model", timeout={unity_timeout})
-    record_and_compare(dut, config, "{target}")
+    record_benchmarks(dut, config, "{target}")
 """
 
 

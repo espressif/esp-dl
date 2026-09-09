@@ -1,10 +1,22 @@
 #!/usr/bin/env python3
-"""Collect operator benchmarks and compare them with the previous CI result."""
+"""Collect operator benchmarks and compare them with the previous CI result.
+
+Measuring and gating are separate steps, run by separate CI jobs.
+``record_benchmarks()`` runs inside pytest on a board and only writes down
+what it measured. ``check_baseline()`` (the ``check`` subcommand) compares
+those numbers against the published baseline and is the only thing that fails.
+
+The split exists so a reviewed change can be accepted quickly: the
+accept_espdl_ops_perf job republishes the baseline for the named operators,
+and re-running the gate is then a seconds-long job on a shared runner instead
+of a full re-measurement on hardware.
+"""
 
 import argparse
 import json
 import os
 import re
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -33,6 +45,12 @@ ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 # Used when the DUT log carries no board=<mac> field (e.g. a firmware built
 # before schema v3). PERF_BOARD_ID can override it from the CI environment.
 UNKNOWN_BOARD = "unknown"
+
+# Update scope sentinel meaning "every operator", as opposed to a set of
+# operator names. Must stay in sync with perf_package.UPDATE_ALL_OPS.
+UPDATE_ALL_OPS = "*"
+LABEL_UPDATE = "update-perf-baseline"
+LABEL_UPDATE_SCOPED = LABEL_UPDATE + ":"
 
 # Per-target perf gate defaults. With the min-of-N measurement these values
 # were found stable enough for all three chips; keep them per-target anyway so
@@ -124,16 +142,46 @@ def _truthy(value):
     return str(value).strip().lower() in ("1", "true", "yes", "on")
 
 
-def update_baseline_requested():
-    """Return True when this MR is allowed to accept a new performance baseline."""
-    if _truthy(os.environ.get("PERF_UPDATE_BASELINE", "")):
-        return True
+def update_baseline_scope():
+    """Operators whose baseline this pipeline may replace.
+
+    On a branch this only waives the gate; the baseline is written on master
+    alone. An MR normally speeds up a single operator, so a blanket waiver
+    would also cover whatever unrelated regression happens to share the
+    pipeline. Scope it with PERF_UPDATE_OPS=Conv,MatMul or with the MR label
+    "update-perf-baseline:Conv". The bare "update-perf-baseline" label (and
+    PERF_UPDATE_BASELINE=1) still means every operator.
+
+    Returns UPDATE_ALL_OPS, or a set of lower-cased operator names which is
+    empty when nothing may be updated.
+    """
     labels = {
         item.strip().lower()
         for item in os.environ.get("CI_MERGE_REQUEST_LABELS", "").split(",")
         if item.strip()
     }
-    return "update-perf-baseline" in labels
+    ops = {
+        item.strip().lower()
+        for item in os.environ.get("PERF_UPDATE_OPS", "").split(",")
+        if item.strip()
+    }
+    for label in labels:
+        if label.startswith(LABEL_UPDATE_SCOPED):
+            # A GitLab label list is itself comma separated, so one label can
+            # only name one operator; add several labels to cover several.
+            name = label[len(LABEL_UPDATE_SCOPED) :].strip()
+            if name:
+                ops.add(name)
+    if ops:
+        return ops
+    if _truthy(os.environ.get("PERF_UPDATE_BASELINE", "")) or LABEL_UPDATE in labels:
+        return UPDATE_ALL_OPS
+    return set()
+
+
+def update_allowed(scope, config):
+    """Whether an update scope from update_baseline_scope() covers `config`."""
+    return scope == UPDATE_ALL_OPS or str(config).lower() in scope
 
 
 def _compared_us(result, metric):
@@ -329,8 +377,14 @@ def _read_dut_log(dut):
     return getattr(dut.pexpect_proc, "before", b"")
 
 
-def record_and_compare(dut, config, target):
-    """Record one operator test's benchmarks and enforce the configured threshold."""
+def record_benchmarks(dut, config, target):
+    """Record one operator test's benchmarks.
+
+    Measuring and gating are deliberately separate steps. This one needs a
+    board and takes minutes; the gate is pure arithmetic over the recorded
+    numbers and runs in the check_espdl_ops_perf job. Accepting a reviewed
+    change therefore only has to re-run the cheap half.
+    """
     benchmarks = parse_benchmarks(_read_dut_log(dut))
     if not benchmarks:
         raise AssertionError(
@@ -339,31 +393,12 @@ def record_and_compare(dut, config, target):
 
     idf_version = os.environ.get("IDF_VERSION", "unknown")
     result_path = Path(os.environ.get("PERF_RESULTS_FILE", "perf_results.json"))
-    report_path = Path(os.environ.get("PERF_REPORT_FILE", "perf_diff.md"))
-    baseline_path = Path(os.environ.get("PERF_BASELINE_FILE", "perf_baseline.json"))
-    relative_threshold_pct = _env_float(
-        "PERF_RELATIVE_THRESHOLD_PCT",
-        target,
-        DEFAULT_RELATIVE_THRESHOLD_PCT.get(target, GENERIC_RELATIVE_THRESHOLD_PCT),
-    )
-    absolute_floor_us = _env_float(
-        "PERF_ABSOLUTE_FLOOR_US",
-        target,
-        DEFAULT_ABSOLUTE_FLOOR_US.get(target, GENERIC_ABSOLUTE_FLOOR_US),
-    )
-    allow_update = update_baseline_requested()
-    boards = sorted({benchmark["board"] for benchmark in benchmarks})
-    print(
-        "Performance gate for target {}: change limit +/-{}% and +/-{}us".format(
-            target, relative_threshold_pct, absolute_floor_us
-        )
-    )
     # The board this shard landed on is decided by the runner's free USB slot,
     # so log it (together with the runner slot) to make it possible to correlate
     # a measurement with a physical DUT afterwards.
     print(
         "Measured on board(s) {} (runner {!r}, concurrent id {!r})".format(
-            ", ".join(boards),
+            ", ".join(sorted({benchmark["board"] for benchmark in benchmarks})),
             os.environ.get("CI_RUNNER_DESCRIPTION", ""),
             os.environ.get("CI_CONCURRENT_ID", ""),
         )
@@ -374,33 +409,11 @@ def record_and_compare(dut, config, target):
         {
             "schema_version": SCHEMA_VERSION,
             "commit_sha": os.environ.get("PIPELINE_COMMIT_SHA", ""),
-            "relative_threshold_pct": relative_threshold_pct,
-            "absolute_floor_us": absolute_floor_us,
-            "update_baseline": allow_update,
         }
     )
-    try:
-        baseline_results = _load_results(baseline_path)
-    except RuntimeError as error:
-        # A baseline recorded with an outdated schema (e.g. before the min_us
-        # measurement) cannot be compared against. Treat it as absent: every
-        # case is recorded as "new" and the publish job refreshes the baseline.
-        print("Ignoring performance baseline {}: {}".format(baseline_path, error))
-        baseline_results = {"schema_version": SCHEMA_VERSION, "results": []}
-    baseline_by_key = {
-        _result_key(result): result for result in baseline_results["results"]
-    }
-    # Same case measured on the other boards of this chip. Used to annotate a
-    # case that has no baseline for *this* board yet, which is how the per-board
-    # spread becomes visible in the diff report while the baselines fill up.
-    baseline_by_case = {}
-    for result in baseline_results["results"]:
-        baseline_by_case.setdefault(_case_key(result), []).append(result)
     current_by_key = {
         _result_key(result): result for result in results.get("results", [])
     }
-
-    failures = []
     for benchmark in benchmarks:
         current = {
             **benchmark,
@@ -420,28 +433,99 @@ def record_and_compare(dut, config, target):
                 if key not in current_by_key:
                     break
                 suffix += 1
+        current_by_key[key] = current
+
+    results["results"] = sorted(current_by_key.values(), key=_result_key)
+    _write_results(result_path, results)
+    print(
+        "Recorded {} benchmark(s) for {} into {}".format(
+            len(benchmarks), config, result_path
+        )
+    )
+
+
+def check_baseline(results_path, baseline_path, target, report_path):
+    """Gate one target's recorded measurements against its baseline.
+
+    Annotates every result in `results_path` in place with its delta and
+    status, writes the Markdown report, and returns the failure messages.
+    """
+    results = _load_results(results_path)
+    relative_threshold_pct = _env_float(
+        "PERF_RELATIVE_THRESHOLD_PCT",
+        target,
+        DEFAULT_RELATIVE_THRESHOLD_PCT.get(target, GENERIC_RELATIVE_THRESHOLD_PCT),
+    )
+    absolute_floor_us = _env_float(
+        "PERF_ABSOLUTE_FLOOR_US",
+        target,
+        DEFAULT_ABSOLUTE_FLOOR_US.get(target, GENERIC_ABSOLUTE_FLOOR_US),
+    )
+    update_scope = update_baseline_scope()
+    print(
+        "Performance gate for target {}: change limit +/-{}% and +/-{}us".format(
+            target, relative_threshold_pct, absolute_floor_us
+        )
+    )
+    print(
+        "Gate waived for: {} (a waiver only settles this check; the baseline "
+        "itself is only ever written on master)".format(
+            "every operator"
+            if update_scope == UPDATE_ALL_OPS
+            else ", ".join(sorted(update_scope)) or "<none>"
+        )
+    )
+    results.update(
+        {
+            "relative_threshold_pct": relative_threshold_pct,
+            "absolute_floor_us": absolute_floor_us,
+            # What publish is allowed to replace. Recorded so the uploaded
+            # baseline says why an entry changed.
+            "update_baseline_ops": (
+                UPDATE_ALL_OPS
+                if update_scope == UPDATE_ALL_OPS
+                else sorted(update_scope)
+            ),
+        }
+    )
+
+    try:
+        baseline_results = _load_results(baseline_path)
+    except RuntimeError as error:
+        # A baseline recorded with an outdated schema (e.g. before the min_us
+        # measurement) cannot be compared against. Treat it as absent: every
+        # case is recorded as "new" and the publish job refreshes the baseline.
+        print("Ignoring performance baseline {}: {}".format(baseline_path, error))
+        baseline_results = {"schema_version": SCHEMA_VERSION, "results": []}
+    baseline_by_key = {
+        _result_key(result): result for result in baseline_results["results"]
+    }
+    # Same case measured on the other boards of this chip. Used to annotate a
+    # case that has no baseline for *this* board yet, which is how the per-board
+    # spread becomes visible in the diff report while the baselines fill up.
+    baseline_by_case = {}
+    for result in baseline_results["results"]:
+        baseline_by_case.setdefault(_case_key(result), []).append(result)
+
+    failures = []
+    for current in results["results"]:
+        key = _result_key(current)
         baseline = baseline_by_key.get(key)
         error = compare_result(
             current,
             baseline,
             relative_threshold_pct,
             absolute_floor_us,
-            allow_update=allow_update,
+            allow_update=update_allowed(update_scope, current["config"]),
         )
         if error:
             failures.append(error)
         if baseline is None:
             annotate_other_boards(current, baseline_by_case.get(_case_key(current)))
-        current_by_key[key] = current
 
-    results["results"] = sorted(current_by_key.values(), key=_result_key)
-    _write_results(result_path, results)
+    _write_results(results_path, results)
     _write_markdown(report_path, results)
-    if failures:
-        raise AssertionError(
-            "Operator performance changed beyond the allowed range:\n"
-            + "\n".join(failures)
-        )
+    return failures
 
 
 def fetch_baseline(api_url, project_id, token, ref, job, artifact, output):
@@ -505,8 +589,33 @@ def _main():
     init_parser = subparsers.add_parser("init")
     init_parser.add_argument("--output", default="perf_results.json")
 
+    check_parser = subparsers.add_parser(
+        "check", help="Gate one target's aggregated measurements against its baseline."
+    )
+    check_parser.add_argument("--results", required=True)
+    check_parser.add_argument("--baseline", required=True)
+    check_parser.add_argument("--target", required=True)
+    check_parser.add_argument("--report", required=True)
+
+    # Lets the publish job resolve the same scope the test job used, instead of
+    # reimplementing the label syntax in shell.
+    subparsers.add_parser("update-scope")
+
     args = parser.parse_args()
-    if args.command == "fetch":
+    if args.command == "check":
+        failures = check_baseline(args.results, args.baseline, args.target, args.report)
+        if failures:
+            print(
+                "Operator performance for {} changed beyond the allowed "
+                "range:\n{}".format(args.target, "\n".join(failures)),
+                file=sys.stderr,
+            )
+            raise SystemExit(1)
+        print("Operator performance for {} is within range.".format(args.target))
+    elif args.command == "update-scope":
+        scope = update_baseline_scope()
+        print(UPDATE_ALL_OPS if scope == UPDATE_ALL_OPS else ",".join(sorted(scope)))
+    elif args.command == "fetch":
         fetch_baseline(
             args.api_url,
             args.project_id,

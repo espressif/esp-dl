@@ -3,6 +3,10 @@ stages:
   - gen_test_cases
   - build
   - target_test
+  # Gating the perf numbers is pure arithmetic, so it is its own stage: the
+  # boards are already free by then, and accepting a reviewed change only has
+  # to re-run this stage instead of the measurement.
+  - perf_gate
   - deploy
   - cleanup
 

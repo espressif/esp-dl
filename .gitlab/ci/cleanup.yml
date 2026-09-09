@@ -29,7 +29,7 @@ cleanup_espdl_case_packages:
 cleanup_espdl_perf_packages:
   stage: cleanup
   extends:
-    - .rules:deploy:perf_baseline
+    - .rules:perf_gate:write
   image: "python:3.11"
   tags:
     - build
