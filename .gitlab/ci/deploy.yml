@@ -80,10 +80,7 @@ create_version_tag:
     - VERSION=$(python -c "import yaml; print(yaml.safe_load(open('${CI_PROJECT_DIR}/esp-dl/idf_component.yml'))['version'])")
     - source ${CI_PROJECT_DIR}/.gitlab/tool/create_version_tag.sh
 
-publish_espdl_ops_perf_baseline:
-  stage: deploy
-  extends:
-    - .rules:deploy:perf_baseline
+.espdl_ops_perf:
   image: "python:3.11"
   tags:
     - build
@@ -96,6 +93,137 @@ publish_espdl_ops_perf_baseline:
   variables:
     GIT_DEPTH: 1
     SUBMODULES_TO_FETCH: "none"
+    # Waive the gate for operators whose change is intentional, so an
+    # optimization MR is not blocked by its own speedup. On a branch this is
+    # all it does -- the baseline itself only ever moves on master. Name the
+    # operators (PERF_UPDATE_OPS, or one "update-perf-baseline:<Op>" MR label
+    # each) so the waiver cannot also hide an unrelated regression from the
+    # same pipeline; PERF_UPDATE_BASELINE="1" or the bare
+    # "update-perf-baseline" label waives every operator.
+    PERF_UPDATE_BASELINE: "0"
+    PERF_UPDATE_OPS: ""
+
+check_espdl_ops_perf:
+  stage: perf_gate
+  extends:
+    - .espdl_ops_perf
+    - .rules:perf_gate:check
+  artifacts:
+    when: always
+    paths:
+      # The aggregated measurements, annotated in place with each case's delta
+      # and status. publish consumes these instead of aggregating again.
+      - "*_perf_results.json"
+      - "*_perf_diff.md"
+    expire_in: 90 days
+  script:
+    - |
+      set -eu
+      FAILED=0
+      for TARGET in esp32 esp32s3 esp32p4; do
+        RESULTS="${TARGET}_perf_results.json"
+        if ! python tools/ops_test/benchmark/perf_package.py aggregate \
+             --root "${CI_PROJECT_DIR}" \
+             --target "${TARGET}" \
+             --output "${RESULTS}"; then
+          echo "Failed to aggregate performance results for ${TARGET}." >&2
+          FAILED=1
+          continue
+        fi
+        # Fetched here rather than in the measurement job so that replaying
+        # this job after accept_espdl_ops_perf compares against the baseline
+        # that was just accepted.
+        python tools/ops_test/benchmark/perf_package.py fetch \
+          --api-url "${CI_API_V4_URL}" \
+          --project-id "${CI_PROJECT_ID}" \
+          --token "${CI_JOB_TOKEN}" \
+          --target "${TARGET}" \
+          --output "${TARGET}_perf_baseline_before.json" \
+          --list-token "${PACKAGE_CLEANUP_TOKEN:-}"
+        if ! python tools/ops_test/benchmark/perf_benchmark.py check \
+             --target "${TARGET}" \
+             --results "${RESULTS}" \
+             --baseline "${TARGET}_perf_baseline_before.json" \
+             --report "${TARGET}_perf_diff.md"; then
+          FAILED=1
+        fi
+      done
+      if [ "${FAILED}" -ne 0 ]; then
+        echo "Read the *_perf_diff.md artifacts." >&2
+        if [ "${CI_COMMIT_REF_PROTECTED:-false}" = "true" ]; then
+          # The reviewed decision of whether these numbers become the new
+          # reference, or whether this pipeline stands as a real failure.
+          echo "If every flagged change is expected, play accept_espdl_ops_perf" >&2
+          echo "with PERF_ACCEPT_OPS set to the operators you reviewed, then" >&2
+          echo "retry this job. Otherwise this is a genuine regression." >&2
+        else
+          echo "If every flagged change is expected, add one MR label" >&2
+          echo "\"update-perf-baseline:<Op>\" per operator and re-run the" >&2
+          echo "pipeline; the baseline itself is only ever written on master." >&2
+        fi
+        exit 1
+      fi
+
+accept_espdl_ops_perf:
+  stage: perf_gate
+  extends:
+    - .espdl_ops_perf
+    - .rules:perf_gate:accept
+  variables:
+    # Set in the "run job" form when playing this job. Comma-separated
+    # operator names, or "*" for every operator measured in this pipeline.
+    PERF_ACCEPT_OPS: ""
+  artifacts:
+    when: always
+    paths:
+      - "*_perf_baseline.json"
+    expire_in: 90 days
+  script:
+    - |
+      set -eu
+      # Only reachable by a human pressing play, so this is the reviewed
+      # decision that the measured numbers are the new truth. It republishes
+      # the baseline for the named operators; retrying check_espdl_ops_perf
+      # afterwards then compares against it and passes, without spending a
+      # board on a re-measurement.
+      if [ -z "${PERF_ACCEPT_OPS}" ]; then
+        echo "Set PERF_ACCEPT_OPS to the operators you reviewed (or \"*\")." >&2
+        exit 1
+      fi
+      echo "Accepting measured performance for: ${PERF_ACCEPT_OPS}"
+      for TARGET in esp32 esp32s3 esp32p4; do
+        RESULTS="${TARGET}_perf_results.json"
+        if ! python tools/ops_test/benchmark/perf_package.py aggregate \
+             --root "${CI_PROJECT_DIR}" \
+             --target "${TARGET}" \
+             --output "${RESULTS}"; then
+          echo "No performance results for ${TARGET}; nothing to accept." >&2
+          continue
+        fi
+        python tools/ops_test/benchmark/perf_package.py publish \
+          --api-url "${CI_API_V4_URL}" \
+          --project-id "${CI_PROJECT_ID}" \
+          --token "${CI_JOB_TOKEN}" \
+          --target "${TARGET}" \
+          --input "${RESULTS}" \
+          --merged-output "${TARGET}_perf_baseline.json" \
+          --update-ops "${PERF_ACCEPT_OPS}" \
+          --trigger "accept" \
+          --pipeline-id "${CI_PIPELINE_ID}" \
+          --list-token "${PACKAGE_CLEANUP_TOKEN:-}"
+      done
+
+publish_espdl_ops_perf_baseline:
+  stage: deploy
+  extends:
+    - .espdl_ops_perf
+    - .rules:perf_gate:write
+  needs:
+    # The aggregated, gated results. Depending on the gate rather than on the
+    # measurement keeps a rejected regression from being published, and lets
+    # an accepted one through as soon as the gate is replayed green.
+    - job: "check_espdl_ops_perf"
+      artifacts: true
   artifacts:
     when: always
     paths:
@@ -108,39 +236,29 @@ publish_espdl_ops_perf_baseline:
   script:
     - |
       set -eu
-      # Update the <target>_perf_results.json only when the MR carries the
-      # `update-perf-baseline` label (or PERF_UPDATE_BASELINE=1), or when no
-      # baseline has been published yet (first run). perf_package.py enforces
-      # the first-run part itself.
-      UPDATE="0"
-      if [ "${PERF_UPDATE_BASELINE:-0}" = "1" ]; then
-        UPDATE="1"
-      fi
-      if echo "${CI_MERGE_REQUEST_LABELS:-}" | grep -qiE '(^|,)[[:space:]]*update-perf-baseline([[:space:]]*(,|$))'; then
-        UPDATE="1"
-      fi
-      echo "Update baseline requested: ${UPDATE}"
-      # Since schema v3 the baseline is keyed by the board that measured a
-      # case, and the runners hand out an arbitrary board per job, so the
-      # baseline has to grow over several pipelines to cover every board.
-      # Only protected branches may add those entries: an MR must not turn
-      # its own measurements into the reference for an unrecorded board.
-      ADD_UNSEEN="0"
-      if [ "${CI_COMMIT_REF_PROTECTED:-false}" = "true" ]; then
-        ADD_UNSEEN="1"
-      fi
-      echo "May add unseen baseline cases: ${ADD_UNSEEN}"
-      echo "Downloaded performance artifacts:"
-      find "${CI_PROJECT_DIR}" -name 'perf_results.json' -print || true
+      # This job only exists on master (.rules:perf_gate:write) and only runs
+      # once check_espdl_ops_perf is green, so reaching here already means the
+      # numbers were either within range or explicitly accepted. Since schema
+      # v3 the baseline is keyed by the board that measured a case and the
+      # runners hand out an arbitrary board per job, so it takes several
+      # pipelines to cover every board: record whatever this one saw.
+      #
+      # Replacing an entry that already exists still needs an explicit scope.
+      # Resolved by the same code the gate used so the PERF_UPDATE_OPS syntax
+      # is defined in one place; normally empty here, because on master the
+      # reviewed path is accept_espdl_ops_perf.
+      UPDATE_OPS=$(python tools/ops_test/benchmark/perf_benchmark.py update-scope)
+      echo "Baseline update scope: ${UPDATE_OPS:-<none>}"
+      ADD_UNSEEN="1"
 
       FAILED=0
       for TARGET in esp32 esp32s3 esp32p4; do
-        OUTPUT="${TARGET}_perf_results.json"
-        if ! python tools/ops_test/benchmark/perf_package.py aggregate \
-             --root "${CI_PROJECT_DIR}" \
-             --target "${TARGET}" \
-             --output "${OUTPUT}"; then
-          echo "Failed to aggregate performance results for ${TARGET}." >&2
+        # Aggregated and gated by check_espdl_ops_perf; inherited as an
+        # artifact so a target that produced no measurements is visible here
+        # as a missing file rather than being silently skipped.
+        INPUT="${TARGET}_perf_results.json"
+        if [ ! -f "${INPUT}" ]; then
+          echo "No gated performance results for ${TARGET}." >&2
           FAILED=1
           continue
         fi
@@ -154,10 +272,11 @@ publish_espdl_ops_perf_baseline:
           --project-id "${CI_PROJECT_ID}" \
           --token "${CI_JOB_TOKEN}" \
           --target "${TARGET}" \
-          --input "${OUTPUT}" \
+          --input "${INPUT}" \
           --merged-output "${TARGET}_perf_baseline.json" \
-          --update "${UPDATE}" \
+          --update-ops "${UPDATE_OPS}" \
           --add-unseen "${ADD_UNSEEN}" \
+          --trigger "automatic" \
           --pipeline-id "${CI_PIPELINE_ID}" \
           --list-token "${PACKAGE_CLEANUP_TOKEN:-}"
       done

@@ -24,22 +24,43 @@ and the last published version simply wins. Old versions are pruned by
 
 Update policy
 -------------
-``publish`` merges this pipeline's measurements into the newest existing
-baseline of the target. Two independent permissions decide what it may write:
+Only master writes. A branch pipeline is a proposal: the gate tells it whether
+its numbers are acceptable, and the ``update-perf-baseline[:<Op>]`` label can
+waive that verdict for named operators, but nothing a branch measures reaches
+the registry. The reference only moves on the branch everyone builds on.
 
-  * ``--add-unseen`` (set from ``CI_COMMIT_REF_PROTECTED``) allows adding
-    cases the baseline does not cover yet, and replacing a baseline whose
-    schema is too old to compare against. Since schema v3 the comparison key
-    includes the board that measured the case, and the CI runners hand out an
-    arbitrary board per job, so a case is only gated once its own board has
-    been recorded. Letting protected branches add unseen keys fills the
+``publish`` merges master's measurements into the newest existing baseline of
+the target. Two independent permissions decide what it may write:
+
+  * ``--add-unseen`` allows adding cases the baseline does not cover yet, and
+    replacing a baseline whose schema is too old to compare against. Since
+    schema v3 the comparison key includes the board that measured the case,
+    and the CI runners hand out an arbitrary board per job, so a case is only
+    gated once its own board has been recorded; adding unseen keys fills the
     per-board baselines up over a few pipelines instead of leaving those
-    combinations ungated forever, while keeping an MR from turning its own
-    measurements into the reference for a board nobody has recorded yet.
-  * ``--update`` (the MR carries the ``update-perf-baseline`` label, or
-    PERF_UPDATE_BASELINE is set to 1) additionally allows overwriting cases
-    that already have a baseline, so an unintended slowdown can never quietly
-    become the new reference.
+    combinations ungated forever.
+  * ``--update-ops`` names the operators this pipeline may rewrite outright:
+    their entries are dropped and re-recorded from the current measurements.
+    On master that comes from a human playing accept_espdl_ops_perf after
+    reading the diff report of a failed gate. It is scoped to named operators
+    because a change normally affects one of them, and a blanket update would
+    also swallow whatever unrelated regression shares the pipeline.
+
+Outside ``--add-unseen``, the operators in ``--update-ops`` are also the only
+ones whose *unseen* entries may be added, so accepting one operator cannot
+turn this pipeline into the reference for the others.
+
+Every publish that moves anything appends a record to ``baseline_updates`` in
+the file itself: what triggered it, who, which commit, and each entry's
+before/after timing. Reading the baseline therefore also tells you how it got
+its current values.
+
+An in-scope operator has *every* board's entries dropped, not only those of
+the boards this pipeline's shards landed on. Leaving the other boards at the
+pre-optimization value fails the next pipeline that lands on one of them --
+the gate is two-sided, so a speedup trips it too -- and because that failure
+blocks this job, the stale entries could never be refreshed. Dropping them
+instead lets each board re-record the case as it measures it again.
 
 With neither permission, or when the merge changes nothing, it prints a skip
 message and exits successfully without touching the registry.
@@ -58,6 +79,15 @@ from pathlib import Path
 PACKAGE_NAME = "espdl-op-perf-baseline"
 # Must stay in sync with perf_benchmark.SCHEMA_VERSION.
 SCHEMA_VERSION = 3
+# Must stay in sync with perf_benchmark.UPDATE_ALL_OPS.
+UPDATE_ALL_OPS = "*"
+# Audit trail of every publish that moved the baseline, carried along inside
+# the baseline file itself so that reading the reference also tells you where
+# it came from.
+HISTORY_KEY = "baseline_updates"
+# Bounded because the file is downloaded by every pipeline. Older records stay
+# recoverable from the package versions they were published in.
+HISTORY_LIMIT = 50
 FILE_NAME_TEMPLATE = "{target}_perf_results.json"
 # Each test_espdl_ops matrix child writes artifacts under
 # ops_perf/<target>/<idf_version>/<config>/perf_results.json so they do not
@@ -87,6 +117,73 @@ def _result_key(result):
         str(result.get("config")),
         str(result.get("name")),
     )
+
+
+def parse_update_ops(value):
+    """Parse an --update-ops argument into an update scope.
+
+    Accepts "*" for every operator, a comma-separated operator list, or an
+    empty string for "replace nothing".
+    """
+    value = (value or "").strip()
+    if not value:
+        return set()
+    if value == UPDATE_ALL_OPS:
+        return UPDATE_ALL_OPS
+    return {item.strip().lower() for item in value.split(",") if item.strip()}
+
+
+def _update_allows(update_ops, result):
+    """Whether this pipeline may replace `result`'s baseline entry."""
+    if update_ops == UPDATE_ALL_OPS:
+        return True
+    return str(result.get("config", "")).lower() in update_ops
+
+
+def _gate_us(result):
+    """The timing the perf gate compares. Mirrors perf_benchmark._compared_us."""
+    value = result.get("min_us")
+    return float(value if value is not None else result["median_us"])
+
+
+def _entry_label(result):
+    """The part of an entry's identity worth reading in an audit record."""
+    return {
+        "board": result.get("board") or "unknown",
+        "config": result.get("config"),
+        "name": result.get("name"),
+    }
+
+
+def _sorted_labels(labels):
+    return sorted(
+        labels, key=lambda item: (item["config"], item["name"], item["board"])
+    )
+
+
+def _history_entry(trigger, update_ops, summary):
+    """Record of who moved the baseline, and to what."""
+    return {
+        "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        # "accept" means a human read the diff report and pressed play;
+        # "automatic" means the gate passed and the numbers were merely
+        # recorded. That distinction is the point of this record.
+        "trigger": trigger,
+        "actor": os.environ.get("GITLAB_USER_LOGIN", ""),
+        "commit_sha": os.environ.get("CI_COMMIT_SHA", ""),
+        "commit_title": os.environ.get("CI_COMMIT_TITLE", ""),
+        "ref": os.environ.get("CI_COMMIT_REF_NAME", ""),
+        "pipeline_url": os.environ.get("CI_PIPELINE_URL", ""),
+        "job_url": os.environ.get("CI_JOB_URL", ""),
+        "update_ops": (
+            UPDATE_ALL_OPS if update_ops == UPDATE_ALL_OPS else sorted(update_ops)
+        ),
+        # Entries that had no baseline before. A count, because the first
+        # publish of a chip adds thousands of them at once.
+        "added": summary["added"],
+        "replaced": summary["replaced"],
+        "dropped": summary["dropped"],
+    }
 
 
 def _file_url(api_url, project_id, target, version):
@@ -356,28 +453,69 @@ def fetch(args):
     )
 
 
-def merge_into_baseline(baseline, current, update):
+def merge_into_baseline(baseline, current, update_ops, add_unseen):
     """Combine a baseline with new measurements.
 
-    Cases the baseline does not cover yet are always added; cases it already
-    covers are only replaced when ``update`` is set. Returns the merged
-    document plus the number of added and replaced cases.
+    Entries for the operators in ``update_ops`` are dropped from the baseline
+    on every board. Entries the resulting baseline does not cover are then
+    added from ``current``: all of them when ``add_unseen`` is set, otherwise
+    only the ones ``update_ops`` covers, so that accepting one operator cannot
+    quietly turn this pipeline into the reference for unrelated ones.
+
+    Returns the merged document plus a summary of what moved, for the audit
+    record in the published file.
     """
-    merged = {_result_key(result): result for result in baseline["results"]}
+    prior = {_result_key(result): result for result in baseline["results"]}
+    # An in-scope operator is dropped on every board, not only on the boards
+    # this pipeline's shards happened to land on. Keeping the other boards at
+    # the pre-optimization value fails the next pipeline that lands on one of
+    # them -- the gate is two-sided, so a speedup trips it too -- and that
+    # failure blocks this job, so the stale entries could never be refreshed.
+    # Each board re-records the case as it is measured again.
+    merged = {
+        key: value
+        for key, value in prior.items()
+        if not _update_allows(update_ops, value)
+    }
+    voided = {key: value for key, value in prior.items() if key not in merged}
+
     added = 0
-    replaced = 0
+    replaced = []
     for result in current["results"]:
         key = _result_key(result)
-        if key not in merged:
-            merged[key] = result
+        if key in merged:
+            continue
+        if not add_unseen and not _update_allows(update_ops, result):
+            continue
+        merged[key] = result
+        was = voided.pop(key, None)
+        if was is None:
             added += 1
-        elif update:
-            merged[key] = result
-            replaced += 1
+            continue
+        before, after = _gate_us(was), _gate_us(result)
+        replaced.append(
+            {
+                **_entry_label(result),
+                "before_us": round(before, 3),
+                "after_us": round(after, 3),
+                "delta_pct": (
+                    None if before == 0 else round((after - before) / before * 100.0, 3)
+                ),
+            }
+        )
+
     # Carry over the newest metadata (thresholds, commit sha, ...).
     output = {key: value for key, value in current.items() if key != "results"}
     output["results"] = sorted(merged.values(), key=_result_key)
-    return output, added, replaced
+    summary = {
+        "added": added,
+        "replaced": _sorted_labels(replaced),
+        # In scope but not measured by this pipeline, so there is nothing to
+        # put in their place. The next pipeline that lands on the board
+        # records them afresh.
+        "dropped": _sorted_labels(_entry_label(value) for value in voided.values()),
+    }
+    return output, summary
 
 
 def publish(args):
@@ -392,9 +530,9 @@ def publish(args):
     ):
         raise RuntimeError("Invalid performance results file: {}".format(input_path))
 
-    update = _truthy(args.update)
-    add_unseen = update or _truthy(args.add_unseen)
-    if not add_unseen:
+    update_ops = parse_update_ops(args.update_ops)
+    add_unseen = _truthy(args.add_unseen)
+    if not (update_ops or add_unseen):
         print(
             "This pipeline may neither add nor replace baseline cases for "
             "target {}; skipping.".format(args.target)
@@ -410,9 +548,14 @@ def publish(args):
         args.api_url, args.project_id, args.target, args.token, packages
     )
 
+    # The audit trail belongs to the baseline, not to this pipeline's
+    # measurements, so it has to be carried across explicitly.
+    history = list((latest_data or {}).get(HISTORY_KEY) or [])
+    wholesale = {"added": len(data["results"]), "replaced": [], "dropped": []}
+
     if latest_version is None:
         print("No baseline for target {} yet; publishing this run.".format(args.target))
-        payload = data
+        payload, summary = data, wholesale
     elif latest_data.get("schema_version") != SCHEMA_VERSION:
         # Comparing against a baseline from an older methodology is meaningless,
         # and perf gating must not stay silently disabled until someone
@@ -421,25 +564,44 @@ def publish(args):
             "Existing baseline for target {} (version {!r}) has an outdated "
             "schema; replacing it.".format(args.target, latest_version)
         )
-        payload = data
+        payload, summary = data, wholesale
     else:
-        payload, added, replaced = merge_into_baseline(latest_data, data, update)
-        if not added and not replaced:
+        payload, summary = merge_into_baseline(
+            latest_data, data, update_ops, add_unseen
+        )
+        if not (summary["added"] or summary["replaced"] or summary["dropped"]):
             print(
                 "Baseline for target {} already covers every measured case and "
                 "update is not requested; skipping.".format(args.target)
             )
             return
         print(
-            "Merging into baseline for target {} (version {!r}): {} case(s) "
-            "added, {} replaced, {} total.".format(
+            "Merging into baseline for target {} (version {!r}): {} entry(s) "
+            "added, {} replaced, {} voided without a replacement, {} total.".format(
                 args.target,
                 latest_version,
-                added,
-                replaced,
+                summary["added"],
+                len(summary["replaced"]),
+                len(summary["dropped"]),
                 len(payload["results"]),
             )
         )
+        for change in summary["replaced"]:
+            print(
+                "  {config}/{name} on {board}: {before_us} -> {after_us} us "
+                "({delta})".format(
+                    delta=(
+                        "n/a"
+                        if change["delta_pct"] is None
+                        else "{:+.3f}%".format(change["delta_pct"])
+                    ),
+                    **change,
+                )
+            )
+
+    payload[HISTORY_KEY] = (
+        history + [_history_entry(args.trigger, update_ops, summary)]
+    )[-HISTORY_LIMIT:]
 
     upload_path = Path(args.merged_output) if args.merged_output else input_path
     if upload_path != input_path:
@@ -593,14 +755,28 @@ def main():
         help="Where to write the merged baseline that gets uploaded. Defaults "
         "to overwriting --input.",
     )
-    publish_parser.add_argument("--update", default="0")
+    publish_parser.add_argument(
+        "--update-ops",
+        default="",
+        help='Operators whose baseline entries may be replaced: "*" for every '
+        "operator, a comma-separated operator list, or empty to replace "
+        "nothing. Derived from perf_benchmark.update_baseline_scope(), or "
+        "from PERF_ACCEPT_OPS when a human plays accept_espdl_ops_perf.",
+    )
     publish_parser.add_argument(
         "--add-unseen",
         default="0",
         help="Allow adding cases the baseline does not cover yet (and "
         "replacing a baseline with an outdated schema). Set from "
         "CI_COMMIT_REF_PROTECTED so only protected branches grow the "
-        "baseline. Implied by --update.",
+        "baseline. Without it, only --update-ops operators may be added.",
+    )
+    publish_parser.add_argument(
+        "--trigger",
+        default="automatic",
+        help="What caused this publish, recorded in the baseline's audit "
+        'trail. "accept" for a human playing accept_espdl_ops_perf, '
+        '"automatic" for a gate that simply passed.',
     )
     publish_parser.add_argument(
         "--pipeline-id",

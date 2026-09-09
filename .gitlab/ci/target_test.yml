@@ -45,9 +45,9 @@ variables:
     paths:
       - XUNIT_RESULT.xml
       - pytest_embedded_log/
-      # Unique per matrix child so publish_espdl_ops_perf_baseline can download
-      # every child's results. Same-name files (perf_results.json at the repo
-      # root) overwrite each other when GitLab extracts matrix artifacts.
+      # Unique per matrix child so check_espdl_ops_perf can aggregate every
+      # child's results. Same-name files (perf_results.json at the repo root)
+      # overwrite each other when GitLab extracts matrix artifacts.
       - ops_perf/
     reports:
       junit: XUNIT_RESULT.xml
@@ -60,28 +60,14 @@ variables:
     # Unique per matrix child. GitLab extracts every child's artifacts into
     # $CI_PROJECT_DIR; identical filenames overwrite each other.
     PERF_RESULTS_DIR: "ops_perf/${IDF_TARGET}/${IDF_VERSION}/${TEST_MODEL}"
-    PERF_BASELINE_FILE: "ops_perf/${IDF_TARGET}/${IDF_VERSION}/${TEST_MODEL}/perf_baseline.json"
     PERF_RESULTS_FILE: "ops_perf/${IDF_TARGET}/${IDF_VERSION}/${TEST_MODEL}/perf_results.json"
-    PERF_REPORT_FILE: "ops_perf/${IDF_TARGET}/${IDF_VERSION}/${TEST_MODEL}/perf_diff.md"
-    # Set to "1", or add the MR label "update-perf-baseline", to accept a new
-    # performance baseline on an intentional optimization MR.
-    PERF_UPDATE_BASELINE: "0"
   script:
     - pip install -r test_apps/requirements.txt
     - python test_apps/esp-dl/gen_op_test.py -c ${TEST_CASE_CONFIG} --pytest_file ${TEST_FOLDER} --target ${TEST_TARGET} --env ${TEST_ENV}
     - mkdir -p "${PERF_RESULTS_DIR}"
-    - |
-      # Pull this target's file from the newest package version that has it.
-      # All targets share one <pipeline-id> version; older per-target versions
-      # are still accepted. On the first run no file exists yet and every
-      # result is recorded as "new" without a comparison.
-      python tools/ops_test/benchmark/perf_package.py fetch \
-        --api-url "${CI_API_V4_URL}" \
-        --project-id "${CI_PROJECT_ID}" \
-        --token "${CI_JOB_TOKEN}" \
-        --target "${IDF_TARGET}" \
-        --output "${PERF_BASELINE_FILE}" \
-        --list-token "${PACKAGE_CLEANUP_TOKEN:-}"
+    # This job only measures. check_espdl_ops_perf fetches the baseline and
+    # decides whether the numbers are acceptable, so a rejected result can be
+    # re-judged without occupying a board again.
     - python tools/ops_test/benchmark/perf_benchmark.py init --output ${PERF_RESULTS_FILE}
     - pytest ${TEST_FOLDER} -p no:idf-ci --target ${TEST_TARGET} --env ${TEST_ENV} --model ${TEST_MODEL} --junitxml=XUNIT_RESULT.xml
 
