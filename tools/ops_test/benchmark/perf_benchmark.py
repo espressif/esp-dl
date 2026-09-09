@@ -462,10 +462,13 @@ def check_baseline(results_path, baseline_path, target, report_path):
         DEFAULT_ABSOLUTE_FLOOR_US.get(target, GENERIC_ABSOLUTE_FLOOR_US),
     )
     update_scope = update_baseline_scope()
+    # Diagnostics go to stderr so that stdout stays usable as the machine
+    # readable answer, which is what the failing-ops subcommand returns.
     print(
         "Performance gate for target {}: change limit +/-{}% and +/-{}us".format(
             target, relative_threshold_pct, absolute_floor_us
-        )
+        ),
+        file=sys.stderr,
     )
     print(
         "Gate waived for: {} (a waiver only settles this check; the baseline "
@@ -473,7 +476,8 @@ def check_baseline(results_path, baseline_path, target, report_path):
             "every operator"
             if update_scope == UPDATE_ALL_OPS
             else ", ".join(sorted(update_scope)) or "<none>"
-        )
+        ),
+        file=sys.stderr,
     )
     results.update(
         {
@@ -495,7 +499,10 @@ def check_baseline(results_path, baseline_path, target, report_path):
         # A baseline recorded with an outdated schema (e.g. before the min_us
         # measurement) cannot be compared against. Treat it as absent: every
         # case is recorded as "new" and the publish job refreshes the baseline.
-        print("Ignoring performance baseline {}: {}".format(baseline_path, error))
+        print(
+            "Ignoring performance baseline {}: {}".format(baseline_path, error),
+            file=sys.stderr,
+        )
         baseline_results = {"schema_version": SCHEMA_VERSION, "results": []}
     baseline_by_key = {
         _result_key(result): result for result in baseline_results["results"]
@@ -589,13 +596,20 @@ def _main():
     init_parser = subparsers.add_parser("init")
     init_parser.add_argument("--output", default="perf_results.json")
 
-    check_parser = subparsers.add_parser(
-        "check", help="Gate one target's aggregated measurements against its baseline."
-    )
-    check_parser.add_argument("--results", required=True)
-    check_parser.add_argument("--baseline", required=True)
-    check_parser.add_argument("--target", required=True)
-    check_parser.add_argument("--report", required=True)
+    for name, help_text in (
+        ("check", "Gate one target's aggregated measurements against its baseline."),
+        (
+            "failing-ops",
+            "Print the operators the gate rejects, as accept_espdl_ops_perf's "
+            "default scope. Always exits 0; the rejection itself is check's job "
+            "to report.",
+        ),
+    ):
+        gate_parser = subparsers.add_parser(name, help=help_text)
+        gate_parser.add_argument("--results", required=True)
+        gate_parser.add_argument("--baseline", required=True)
+        gate_parser.add_argument("--target", required=True)
+        gate_parser.add_argument("--report", required=True)
 
     # Lets the publish job resolve the same scope the test job used, instead of
     # reimplementing the label syntax in shell.
@@ -612,6 +626,14 @@ def _main():
             )
             raise SystemExit(1)
         print("Operator performance for {} is within range.".format(args.target))
+    elif args.command == "failing-ops":
+        check_baseline(args.results, args.baseline, args.target, args.report)
+        rejected = {
+            result["config"]
+            for result in _load_results(args.results)["results"]
+            if result.get("status") == "fail"
+        }
+        print(",".join(sorted(rejected)))
     elif args.command == "update-scope":
         scope = update_baseline_scope()
         print(UPDATE_ALL_OPS if scope == UPDATE_ALL_OPS else ",".join(sorted(scope)))
