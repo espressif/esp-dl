@@ -3,6 +3,7 @@
 #include "dl_base_activate_buffer.hpp"
 #include "dl_base_activate_output.hpp"
 #include "dl_base_isa.hpp"
+#include <algorithm>
 #include <cstring>
 
 namespace dl {
@@ -910,6 +911,58 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
 #endif
 }
 
+#if CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST
+// Reuse a bounded filter slice across several spatial positions instead of
+// streaming the complete filter matrix from PSRAM for every output pixel.
+// Keep the existing vector kernel's MAC order, bias layout and rounding.
+static bool conv2d_11cn_s16_tiled(ArgsType<int16_t> &args, const ImplFunc_t<int16_t, int16_t> &kernel)
+{
+    constexpr int filter_bytes = 32 * 1024;
+    constexpr int spatial_tile = 32;
+    if (!kernel || args.input_channel < 8 || args.input_channel % 8 || args.output_channel < 8 ||
+        args.output_channel % 8 || args.stride_x != 1 || args.stride_y != 1 || args.padding_h_head ||
+        args.padding_h_tail || args.padding_w_head || args.padding_w_tail || args.output_width != args.input_width ||
+        args.output_x_offset != args.output_channel ||
+        args.output_y_offset != args.output_width * args.output_channel ||
+        args.input_stride_x_offset != args.input_channel ||
+        args.input_stride_y_offset != args.input_width * args.input_channel ||
+        (reinterpret_cast<uintptr_t>(args.input_element) & 15) ||
+        (reinterpret_cast<uintptr_t>(args.output_element) & 15) ||
+        (args.activation_type != Linear && args.activation_type != ReLU)) {
+        return false;
+    }
+
+    const int channel_tile = (filter_bytes / sizeof(int16_t) / args.input_channel) & ~7;
+    const int pixels = args.output_height * args.output_width;
+    if (channel_tile < 8 || channel_tile >= args.output_channel || pixels < spatial_tile) {
+        return false;
+    }
+    const bool per_channel = args.mac_shift == INT_MIN;
+    for (int begin = 0; begin < pixels; begin += spatial_tile) {
+        const int end = std::min(pixels, begin + spatial_tile);
+        for (int channel = 0; channel < args.output_channel; channel += channel_tile) {
+            auto tile = args;
+            tile.output_channel = std::min(channel_tile, args.output_channel - channel);
+            tile.n_div_x = tile.output_channel / 8;
+            // P4 filters interleave eight output channels: (N/8)HWC8.
+            tile.filter_element = static_cast<const int16_t *>(args.filter_element) + channel * args.input_channel;
+            if (args.bias_element) {
+                tile.bias_element = static_cast<const int64_t *>(args.bias_element) + channel;
+            }
+            if (per_channel) {
+                tile.tie_filter_channel_factor = args.tie_filter_channel_factor + channel;
+            }
+            for (int pixel = begin; pixel < end; ++pixel) {
+                kernel(args.output_element + pixel * args.output_channel + channel,
+                       args.input_element + pixel * args.input_channel,
+                       &tile);
+            }
+        }
+    }
+    return true;
+}
+#endif
+
 template <>
 void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
 {
@@ -928,6 +981,11 @@ void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
     if (args.filter_height == 1 && args.filter_width == 1) // Filter shape = [1, 1, C, N]
     {
         load_conv2d_11cn_s16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
+#if CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST
+        if (conv2d_11cn_s16_tiled(args, i_impl_func_sp)) {
+            return;
+        }
+#endif
     } else if (args.filter_height == 3 && args.filter_width == 3) // Filter shape = [3, 3, C, N]
     {
         load_conv2d_33cn_s16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
