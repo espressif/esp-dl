@@ -4,6 +4,9 @@
     calib_steps = 2         # The minimum value for calib_steps is 8.
     model_version = 1
     opset = 13
+    max_error = 5e-4        # Default test tolerance. Each op / case can override.
+                            # A single number is shared by all quant_types; a list
+                            # is per-quant_type in the same order as quant_type.
 
 [ops_test]
     [ops_test.Conv]
@@ -1852,6 +1855,8 @@
     package = "torch_ops_test"
     targets = ["esp32s3", "esp32p4"]
     restrictions = "Supports normalization over specified axis with scale weight"
+    # per quant_type: int8, int16, float32
+    max_error = [0.01, 1.01, 5e-4]
         [[ops_test.RMSNormalization.cfg]]
         # RMSNormalization - 2D input, axis=-1 (default)
         input_shape = [3, 43]
@@ -1892,6 +1897,8 @@
     quant_type = ["int8", "int16", "float32"]
     package = "onnx_ops_test"
     targets = ["esp32s3", "esp32p4"]
+    # per quant_type: int8, int16, float32
+    max_error = [0.01, 1.01, 5e-4]
         [[ops_test.LpNormalization.cfg]]
         input_shape = [1, 10, 20, 40]
         export_name_prefix = "lpnorm_ishape_1_10_20_40_axis_-1_p_2"
@@ -3983,6 +3990,8 @@
     package = "torch_ops_test"
     targets = ["esp32s3", "esp32p4"]
     restrictions = "Supports normalization over specified axis with scale and bias"
+    # per quant_type: int8, int16, float32
+    max_error = [0.01, 1.01, 5e-4]
         [[ops_test.LayerNormalization.cfg]]
         # LayerNormalization - 2D input, axis=-1 (default)
         input_shape = [3, 4]

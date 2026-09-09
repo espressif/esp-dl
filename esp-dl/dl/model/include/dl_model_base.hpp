@@ -318,6 +318,7 @@ public:
      * @brief Test whether the model inference result is correct.
      * The model should contain test_inputs and test_outputs.
      * Enable export_test_values option in esp-ppq to use this api.
+     * The comparison epsilon is read from model metadata ``test_max_error`` (default 5e-4).
      *
      * @return esp_err_t
      */
