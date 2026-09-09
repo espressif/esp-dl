@@ -1,7 +1,6 @@
 set(srcs app_main.cpp
          test_dl_model.cpp
-         test_dl_api.cpp
-         test_pointwise.cpp)
+         test_dl_api.cpp)
 
 set(requires    unity
                 esp-dl)
