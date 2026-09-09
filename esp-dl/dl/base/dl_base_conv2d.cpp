@@ -944,7 +944,9 @@ static bool conv2d_11cn_tiled(ArgsType<feature_t> &args, const ImplFunc_t<featur
 
     const int channel_tile = (filter_bytes / sizeof(filter_t) / args.input_channel) / lanes * lanes;
     const int pixels = args.output_height * args.output_width;
-    if (channel_tile < lanes || channel_tile >= args.output_channel || pixels < spatial_tile) {
+    // Require two full channel tiles: splitting one tile and a small remainder
+    // can cost more in extra kernel calls than it saves in filter cache misses.
+    if (channel_tile < lanes || args.output_channel < 2 * channel_tile || pixels < spatial_tile) {
         return false;
     }
     const bool per_channel = args.mac_shift == INT_MIN;
