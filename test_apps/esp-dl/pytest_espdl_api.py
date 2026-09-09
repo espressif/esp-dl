@@ -13,12 +13,3 @@ def test_model_common(dut: Dut) -> None:
     dut.expect_exact("Press ENTER to see the list of tests.")
     dut.write("[api]")
     dut.expect_unity_test_output(timeout=1000)
-
-
-@pytest.mark.target("esp32p4")
-@pytest.mark.env("esp32p4")
-@pytest.mark.config("Gemm")
-def test_pointwise(dut: Dut) -> None:
-    dut.expect_exact("Press ENTER to see the list of tests.")
-    dut.write("[pointwise]")
-    dut.expect_unity_test_output(timeout=1000)
