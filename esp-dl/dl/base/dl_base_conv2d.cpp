@@ -918,7 +918,11 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
 template <typename feature_t, typename filter_t = feature_t>
 static bool conv2d_11cn_tiled(ArgsType<feature_t> &args, const ImplFunc_t<feature_t, feature_t> &kernel)
 {
+#if CONFIG_IDF_TARGET_ESP32S3
+    constexpr int filter_bytes = 16 * 1024;
+#else
     constexpr int filter_bytes = 32 * 1024;
+#endif
     constexpr int spatial_tile = 32;
     constexpr int lanes = 16 / sizeof(feature_t);
     constexpr int bias_bytes = sizeof(feature_t) == 1 ? sizeof(int32_t) : sizeof(int64_t);
@@ -946,7 +950,9 @@ static bool conv2d_11cn_tiled(ArgsType<feature_t> &args, const ImplFunc_t<featur
     const int pixels = args.output_height * args.output_width;
     // Require two full channel tiles: splitting one tile and a small remainder
     // can cost more in extra kernel calls than it saves in filter cache misses.
-    if (channel_tile < lanes || args.output_channel < 2 * channel_tile || pixels < spatial_tile) {
+    // A partial spatial tile still reuses weights, including after a dual-core
+    // row split leaves fewer than spatial_tile positions in each task.
+    if (channel_tile < lanes || args.output_channel < 2 * channel_tile || pixels < 2) {
         return false;
     }
     const bool per_channel = args.mac_shift == INT_MIN;
