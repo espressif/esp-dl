@@ -3,6 +3,7 @@
 #include "dl_base_activate_buffer.hpp"
 #include "dl_base_activate_output.hpp"
 #include "dl_base_isa.hpp"
+#include <algorithm>
 #include <cstring>
 
 namespace dl {
@@ -910,6 +911,80 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
 #endif
 }
 
+#if (CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST) || (CONFIG_IDF_TARGET_ESP32S3 && CONFIG_PIE_V1_BOOST)
+// Reuse a bounded filter slice across several spatial positions instead of
+// streaming the complete filter matrix from PSRAM for every output pixel.
+// Keep the existing vector kernel's MAC order, bias layout and rounding.
+template <typename feature_t, typename filter_t = feature_t>
+static bool conv2d_11cn_tiled(ArgsType<feature_t> &args, const ImplFunc_t<feature_t, feature_t> &kernel)
+{
+#if CONFIG_IDF_TARGET_ESP32S3
+    constexpr int filter_bytes = 16 * 1024;
+#else
+    constexpr int filter_bytes = 32 * 1024;
+#endif
+    constexpr int spatial_tile = 32;
+    constexpr int lanes = 16 / sizeof(feature_t);
+    constexpr int bias_bytes = sizeof(feature_t) == 1 ? sizeof(int32_t) : sizeof(int64_t);
+    if (!kernel || args.filter_height != 1 || args.filter_width != 1 || args.input_channel < lanes ||
+        args.input_channel % lanes || args.output_channel < lanes || args.output_channel % lanes ||
+        args.stride_x != 1 || args.stride_y != 1 || args.padding_h_head || args.padding_h_tail || args.padding_w_head ||
+        args.padding_w_tail || args.output_width != args.input_width || args.output_x_offset != args.output_channel ||
+        args.output_y_offset != args.output_width * args.output_channel ||
+        args.input_stride_x_offset != args.input_channel ||
+        args.input_stride_y_offset != args.input_width * args.input_channel ||
+        (reinterpret_cast<uintptr_t>(args.input_element) & 15) ||
+        (reinterpret_cast<uintptr_t>(args.output_element) & 15) ||
+        (args.activation_type != Linear && args.activation_type != ReLU)) {
+        return false;
+    }
+#if CONFIG_IDF_TARGET_ESP32S3
+    // S3's aligned INT8 kernels use negative mac_shift values to select the
+    // legacy per-channel format; retain its original dispatch unchanged.
+    if (args.mac_shift < 0) {
+        return false;
+    }
+#endif
+
+    const int channel_tile = (filter_bytes / sizeof(filter_t) / args.input_channel) / lanes * lanes;
+    const int pixels = args.output_height * args.output_width;
+    // Require two full channel tiles: splitting one tile and a small remainder
+    // can cost more in extra kernel calls than it saves in filter cache misses.
+    // A partial spatial tile still reuses weights, including after a dual-core
+    // row split leaves fewer than spatial_tile positions in each task.
+    if (channel_tile < lanes || args.output_channel < 2 * channel_tile || pixels < 2) {
+        return false;
+    }
+    const bool per_channel = args.mac_shift == INT_MIN;
+    for (int begin = 0; begin < pixels; begin += spatial_tile) {
+        const int end = std::min(pixels, begin + spatial_tile);
+        for (int channel = 0; channel < args.output_channel; channel += channel_tile) {
+            auto tile = args;
+            tile.output_channel = std::min(channel_tile, args.output_channel - channel);
+            tile.n_div_x = tile.output_channel / lanes;
+            // Both targets pack complete groups of 16 W8A8 or 8 W16A16/W8A16
+            // output channels. Weight storage width differs for W8A16.
+            tile.filter_element = static_cast<const filter_t *>(args.filter_element) + channel * args.input_channel;
+            if (args.bias_element) {
+                // P4 uses ordinary int32/int64 bias values. S3 packs 20/40-bit
+                // values with padding, using the same byte stride at complete
+                // vector-group boundaries (64 bytes per group in both cases).
+                tile.bias_element = static_cast<const uint8_t *>(args.bias_element) + channel * bias_bytes;
+            }
+            if (per_channel) {
+                tile.tie_filter_channel_factor = args.tie_filter_channel_factor + channel;
+            }
+            for (int pixel = begin; pixel < end; ++pixel) {
+                kernel(args.output_element + pixel * args.output_channel + channel,
+                       args.input_element + pixel * args.input_channel,
+                       &tile);
+            }
+        }
+    }
+    return true;
+}
+#endif
+
 template <>
 void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
 {
@@ -928,6 +1003,11 @@ void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
     if (args.filter_height == 1 && args.filter_width == 1) // Filter shape = [1, 1, C, N]
     {
         load_conv2d_11cn_s16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
+#if (CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST) || (CONFIG_IDF_TARGET_ESP32S3 && CONFIG_PIE_V1_BOOST)
+        if (conv2d_11cn_tiled(args, i_impl_func_sp)) {
+            return;
+        }
+#endif
     } else if (args.filter_height == 3 && args.filter_width == 3) // Filter shape = [3, 3, C, N]
     {
         load_conv2d_33cn_s16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
@@ -1357,6 +1437,12 @@ void conv2d<int16_t, int32_t, int64_t, int8_t>(void *args_ptr)
 #endif
 
     load_conv2d_w8a16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
+
+#if (CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST) || (CONFIG_IDF_TARGET_ESP32S3 && CONFIG_PIE_V1_BOOST)
+    if (conv2d_11cn_tiled<int16_t, int8_t>(args, i_impl_func_sp)) {
+        return;
+    }
+#endif
 
     conv_operation_shell<int16_t, int64_t, int8_t>(
         args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
@@ -1821,6 +1907,11 @@ void conv2d<int8_t, int32_t, int32_t>(void *args_ptr)
 
     if (args.filter_height == 1 && args.filter_width == 1) {
         load_conv2d_11cn_s8(i_impl_func, i_impl_func_sp, args); // Filter shape = [1, 1, C, N]
+#if (CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST) || (CONFIG_IDF_TARGET_ESP32S3 && CONFIG_PIE_V1_BOOST)
+        if (conv2d_11cn_tiled(args, i_impl_func_sp)) {
+            return;
+        }
+#endif
     } else if (args.filter_height == 3 && args.filter_width == 3) {
         load_conv2d_33cn_s8(i_impl_func, i_impl_func_sp, args); // Filter shape = [3, 3, C, N]
     } else {
