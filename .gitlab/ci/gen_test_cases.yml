@@ -7,7 +7,7 @@
   dependencies: []
   timeout: 3 hour
   variables:
-    ESP_PPQ_VERSION: "1.3.11"
+    ESP_PPQ_VERSION: "1.3.12"
   artifacts:
     when: always
     paths:
@@ -18,6 +18,7 @@
     - pip install toml
     - pip install ${TORCH} --index-url https://download.pytorch.org/whl/cpu
     - pip install esp-ppq==${ESP_PPQ_VERSION}
+    - pip install "onnx>=1.18.0,<1.20.0"
     - python tools/ops_test/gen_test_cases.py -t ${TARGET} -q ${QUANT_TYPE} -o ${MODEL_PATH}/${TARGET} -c ${CONFIG_FILE} --ops ${OPS}
 
 install_esp_ppq:
@@ -26,8 +27,8 @@ install_esp_ppq:
     - .rules:gen:ops_test
   parallel:
     matrix:
-      - IMAGE: [python:3.8]
-        TORCH: ["torch==2.0.0"]
+      - IMAGE: [python:3.10]
+        TORCH: ["torch==2.1.0"]
         TARGET: [esp32p4]
       - IMAGE: [python:3.11]
         TORCH: ["torch==2.7.1"]
@@ -88,6 +89,7 @@ gen_espdl_ops_cases:
         python -m pip install toml
         python -m pip install "${TORCH}" --index-url https://download.pytorch.org/whl/cpu
         python -m pip install "esp-ppq==${ESP_PPQ_VERSION}"
+        python -m pip install "onnx>=1.18.0,<1.20.0"
         python tools/ops_test/gen_test_cases.py \
           -t "${TARGET}" \
           -q "${QUANT_TYPE}" \

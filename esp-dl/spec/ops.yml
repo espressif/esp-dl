@@ -85,6 +85,22 @@ ops:
         - dl/base/isa/tie728/dl_tie728_s16_unaligned_matmul.S
         - dl/base/isa/tie728/dl_tie728_s8_matmul.S
         - dl/base/isa/tie728/dl_tie728_s8_unaligned_matmul.S
+  # ONNX opset-23 Attention. Covers 4-D self/cross attention,
+  # MHA/GQA/MQA, an optional additive/bool mask and optional causal masking.
+  # KV cache, softcap and packed QKV are rejected in Attention::deserialize.
+  Attention:
+    module:
+      header: dl_module_attention.hpp
+      class: Attention
+    srcs:
+      - dl/base/dl_base_attention.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_attention.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_attention.S
+        # P4/S31 QK fallback calls these symbols. GRU/LSTM list the same file;
+        # compile_finalize.py keeps one copy when more than one op is selected.
+        - dl/base/isa/esp32p4/dl_esp32p4_dotprod.S
 
   Add:
     module:

@@ -24,27 +24,29 @@ private:
      * @param execution_plan Topologically sorted list of computation modules
      * @param context Runtime context containing device-specific configurations
      * @param tensor_info Output vector to store TensorInfo objects for all tensors
+     * @param workspace_info Output vector to store native WorkspaceInfo objects
      * @param input_shapes Optional map to override graph input shapes
      */
     void get_tensor_info_from_fbs(fbs::FbsModel *fbs_model,
                                   std::vector<dl::module::Module *> execution_plan,
                                   ModelContext *context,
                                   std::vector<TensorInfo *> &tensor_info,
+                                  std::vector<WorkspaceInfo *> &workspace_info,
                                   const std::map<std::string, std::vector<int>> &input_shapes = {});
 
     /**
      * @brief Simulates memory allocation process for given tensor information
-     * @param tensor_info Vector containing metadata for all tensors in the network
+     * @param memory_info Vector containing metadata for tensors and workspaces
      * @param node_num Total number of nodes in the execution plan
      */
-    void simulate(std::vector<TensorInfo *> &tensor_info, int node_num);
+    void simulate(std::vector<MemoryInfo *> &memory_info, int node_num);
 
     /**
      * @brief Simulates memory allocation with priority to internal RAM
-     * @param tensor_info Vector containing tensor metadata
+     * @param memory_info Vector containing tensor and workspace metadata
      * @param node_num Total computation nodes in the network
      */
-    void simulate_with_internal_memory(std::vector<TensorInfo *> &tensor_info, int node_num);
+    void simulate_with_internal_memory(std::vector<MemoryInfo *> &memory_info, int node_num);
 
     /**
      * @brief Releases memory occupied by a specific tensor and returns it to free list
@@ -53,7 +55,7 @@ private:
      * @param free_list List to which freed memory blocks should be added
      * @return MemoryChunk* Pointer to the freed memory block
      */
-    MemoryChunk *free_tensor(TensorInfo *tensor,
+    MemoryChunk *free_memory(MemoryInfo *memory,
                              std::list<MemoryChunk *> &memory_list,
                              std::list<MemoryChunk *> &free_list);
 
@@ -63,7 +65,7 @@ private:
      * @param mode Allocation mode (0=standard, other values reserved for future use)
      * @return MemoryChunk* Pointer to newly allocated memory block or nullptr on failure
      */
-    MemoryChunk *alloc_tensor(TensorInfo *tensor, int mode = 0);
+    MemoryChunk *alloc_memory(MemoryInfo *memory, int mode = 0);
 
     /**
      * @brief Allocates memory for a tensor from internal RAM with priority
@@ -71,7 +73,7 @@ private:
      * @param mode Allocation mode (0=standard, other values reserved)
      * @return MemoryChunk* Pointer to allocated internal memory block or nullptr
      */
-    MemoryChunk *alloc_internal_tensor(TensorInfo *tensor, int mode = 0);
+    MemoryChunk *alloc_internal_memory(MemoryInfo *memory, int mode = 0);
 
     /**
      * @brief Releases all allocated memory blocks in both PSRAM and internal memory pools
@@ -85,14 +87,12 @@ public:
      * @param alignment Memory address alignment requirement (default: 16 bytes)
      */
     MemoryManagerGreedy(int max_internal_size, int alignment = 16) :
-        MemoryManagerBase(alignment), max_internal_size(max_internal_size)
+        MemoryManagerBase(alignment),
+        max_internal_size(max_internal_size > 0 ? static_cast<size_t>(max_internal_size) : 0)
     {
-        if (max_internal_size < 0) {
-            max_internal_size = 0;
-        }
-        int largest_internal_size = heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL);
-        if (max_internal_size > largest_internal_size) {
-            max_internal_size = largest_internal_size;
+        size_t largest_internal_size = heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL);
+        if (this->max_internal_size > largest_internal_size) {
+            this->max_internal_size = largest_internal_size;
         }
     }
 

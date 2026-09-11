@@ -18,12 +18,13 @@ Currently supported targets can be divided into three categories:
 ## Support Operators
 
 The ESP-DL operator interface is aligned with ONNX. The opset 18 is recommended to export ONNX.
-Currently, the following 64 operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases](./tools/ops_test/config/op_cfg.toml) for details.
+Currently, the following 65 operators have been implemented and tested. Some operators do not implement all functionalities and attributes. Please refer to the restrictions of each operator or [test cases](./tools/ops_test/config/op_cfg.toml) for details.
 
 Most operators maintain the same input/output data layout as ONNX or PyTorch. However, to fully leverage instruction-level acceleration, certain operators such as Conv, GlobalAveragePool, AveragePool, MaxPool, and Resize adopt NHWC or NWC data layouts for their inputs/outputs.
 | Operator                                                                                                                                                       | int8     | int16    | w8a16    | float32   | Restrictions                                                                                             |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|----------|----------|-----------|----------------------------------------------------------------------------------------------------------|
 | Add[(ESP-DL)](esp-dl/dl/module/include/dl_module_add.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Add.html)                                               | &#10004; | &#10004; | &#10006; | &#10004;  | Support up to 4D                                                                                         |
+| Attention[(ESP-DL)](esp-dl/dl/module/include/dl_module_attention.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Attention.html)                             | &#10004; | &#10004; | &#10004; | &#10004;  | Support 4D self-/cross-attention; KV cache and advanced attributes (e.g., softcap/window) are not supported. |
 | AveragePool[(ESP-DL)](esp-dl/dl/module/include/dl_module_average_pool.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__AveragePool.html)                      | &#10004; | &#10004; | &#10006; | &#10004;  | Support 1d/2d, don't support dilation                                                                    |
 | Clip[(ESP-DL)](esp-dl/dl/module/include/dl_module_clip.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Clip.html)                                            | &#10004; | &#10004; | &#10006; | &#10004;  |                                                                                                          |
 | Concat[(ESP-DL)](esp-dl/dl/module/include/dl_module_concat.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Concat.html)                                      | &#10004; | &#10004; | &#10006; | &#10004;  |                                                                                                          |
@@ -88,4 +89,4 @@ Most operators maintain the same input/output data layout as ONNX or PyTorch. Ho
 | Transpose[(ESP-DL)](esp-dl/dl/module/include/dl_module_transpose.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Transpose.html)                             | &#10004; | &#10004; | &#10006; | &#10004;  |                                                                                                          |
 | Unsqueeze[(ESP-DL)](esp-dl/dl/module/include/dl_module_unsqueeze.hpp)[(ONNX)](https://onnx.ai/onnx/operators/onnx__Unsqueeze.html)                             | &#10004; | &#10004; | &#10006; | &#10004;  |                                                                                                          |
 
-Generation Time: 2026-09-01 16:15:15
+Generation Time: 2026-09-10 15:16:57

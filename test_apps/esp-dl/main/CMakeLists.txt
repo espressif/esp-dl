@@ -3,12 +3,12 @@ set(srcs app_main.cpp
          test_dl_api.cpp)
 
 set(requires    unity
-                esp-dl)
+                esp-dl
+                esp_timer)
 
 idf_component_register(SRCS ${srcs}
                        REQUIRES ${requires}
                        WHOLE_ARCHIVE)
-
 
 if(CONFIG_MODEL_FILE_PATH)
     set(model_path ${CONFIG_MODEL_FILE_PATH})

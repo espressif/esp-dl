@@ -63,6 +63,32 @@ void ModelContext::update_tensor(int index, TensorBase *tensor)
     }
 }
 
+WorkspaceBindingId ModelContext::create_workspace_binding(const std::string &name)
+{
+    m_workspace_bindings.push_back({name, nullptr, 0});
+    return static_cast<WorkspaceBindingId>(m_workspace_bindings.size() - 1);
+}
+
+void ModelContext::bind_workspace(WorkspaceBindingId binding_id, void *data, size_t size)
+{
+    if (binding_id >= 0 && binding_id < static_cast<WorkspaceBindingId>(m_workspace_bindings.size())) {
+        m_workspace_bindings[binding_id].data = data;
+        m_workspace_bindings[binding_id].size = size;
+    } else {
+        ESP_LOGE(TAG, "Workspace binding ID %d not found", binding_id);
+    }
+}
+
+void *ModelContext::get_bound_workspace(WorkspaceBindingId binding_id, size_t &size)
+{
+    if (binding_id >= 0 && binding_id < static_cast<WorkspaceBindingId>(m_workspace_bindings.size())) {
+        size = m_workspace_bindings[binding_id].size;
+        return m_workspace_bindings[binding_id].data;
+    }
+    size = 0;
+    return nullptr;
+}
+
 TensorBase *ModelContext::get_tensor(int index)
 {
     if (index >= 0 && index < m_variables.size())
@@ -154,30 +180,39 @@ size_t ModelContext::get_variable_memory_size(mem_info_t &mem_info)
 
 bool ModelContext::root_alloc(size_t internal_size, size_t psram_size, int alignment)
 {
-    m_internal_size = internal_size;
-    m_psram_size = psram_size;
-    if (m_psram_size > 0) {
-        m_psram_root = tool::calloc_aligned(m_psram_size, 1, MALLOC_CAP_SPIRAM);
-        if (!m_psram_root) {
+    void *new_psram_root = nullptr;
+    void *new_internal_root = nullptr;
+    if (psram_size > 0) {
+        new_psram_root = tool::calloc_aligned(psram_size, 1, MALLOC_CAP_SPIRAM);
+        if (!new_psram_root) {
             ESP_LOGE(TAG,
                      "Failed to alloc %.2fKB PSRAM, largest available PSRAM block size %.2fKB",
-                     m_psram_size / 1024.f,
+                     psram_size / 1024.f,
                      heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM) / 1024.f);
             return false;
         }
     }
 
-    if (m_internal_size > 0) {
-        m_internal_root = tool::calloc_aligned(m_internal_size, 1, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
-
-        if (!m_internal_root) {
+    if (internal_size > 0) {
+        new_internal_root = tool::calloc_aligned(internal_size, 1, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+        if (!new_internal_root) {
             ESP_LOGE(TAG,
                      "Failed to alloc %.2fKB internal RAM, largest available internal RAM block size %.2fKB",
-                     m_internal_size / 1024.f,
+                     internal_size / 1024.f,
                      heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL) / 1024.f);
+            heap_caps_free(new_psram_root);
             return false;
         }
     }
+
+    // Commit only after both roots exist. This keeps an existing context
+    // intact if either allocation failed; a successful replacement invalidates
+    // old views, so callers rebuild them immediately after this point.
+    root_free();
+    m_psram_root = new_psram_root;
+    m_internal_root = new_internal_root;
+    m_psram_size = psram_size;
+    m_internal_size = internal_size;
     return true;
 }
 

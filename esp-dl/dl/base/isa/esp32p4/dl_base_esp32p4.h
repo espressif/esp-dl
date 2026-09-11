@@ -908,6 +908,106 @@ void dl_esp32p4_dotprod_i16k8o16(int16_t *output_ptr, int8_t *input0_ptr, int16_
 void dl_esp32p4_dotprod_i8k8o16(int16_t *out2_int8, int8_t *in1_int8, int8_t *in2_int8, int shift, int n);
 void dl_esp32p4_dotprod_f32(float *output_ptr, float *input0_ptr, float *input1_ptr, int length);
 
+/* Attention batched kernels: one call covers nq×tile_n (QK) or nq×D (P·V).
+ * This specialized QK kernel keeps a complete D=64 Q row in PIE registers. */
+void dl_esp32p4_s8_attention_qk_qacc_d64(int32_t *dots,
+                                         const int8_t *q,
+                                         const int8_t *k_blk,
+                                         int nq,
+                                         int tile_n,
+                                         int score_stride,
+                                         int32_t *row_max,
+                                         int32_t *tmp16);
+/* Outer-product Q·K for D=32: 16 t-lanes in QACC, d is the reduction.
+ * k_blk must be t-block-major (see build_k_head_tblk_s8); tmp16 is scratch. */
+void dl_esp32p4_s8_attention_qk_qacc_d32(int32_t *dots,
+                                         const int8_t *q,
+                                         const int8_t *k_blk,
+                                         int nq,
+                                         int tile_n,
+                                         int score_stride,
+                                         int32_t *row_max,
+                                         int32_t *tmp16);
+/* Generic D_pad (multiple of 16, <= 128) with the same K layout and contract. */
+void dl_esp32p4_s8_attention_qk_qacc_generic(int32_t *dots,
+                                             const int8_t *q,
+                                             const int8_t *k_blk,
+                                             int nq,
+                                             int tile_n,
+                                             int score_stride,
+                                             int32_t *row_max,
+                                             int32_t *tmp16,
+                                             int D_pad);
+/* Outer-product P·V: 16 d-lanes live in QACC, reduction runs along t, so
+ * accumulator setup/readout is amortized over 16 outputs instead of 1.
+ * v_blk must be d-block-major (see load_v_tile_dblk_s8). Walks D/16 d-groups,
+ * so callers pass D_pad and rely on the packer zero-filling the tail group;
+ * acc must have room for D_pad lanes. tmp16 is 16 int32 of 16-byte-aligned
+ * scratch. */
+void dl_esp32p4_s8_attention_pv_qacc(
+    float *acc, const int8_t *e, const int8_t *v_blk, const float *deq, int nq, int D, int acc_stride, int32_t *tmp16);
+void dl_esp32p4_s8_attention_pv_qacc_i32(
+    int32_t *acc, const int8_t *e, const int8_t *v_blk, int nq, int D, int acc_stride, int32_t *tmp16);
+/* e[t] = table[min(m_new - dots[t], sat) >> shift]. The index is a shift
+ * rather than a multiply, so the clamp/index chain runs 4 lanes wide (PIE has
+ * no 32-bit vector multiply). ``table`` must be the 512-entry shift table built for the same scale, with
+ * each int8 entry in its own int32 slot: ESP.LDXQ.32 scales its index by 4,
+ * so a word-wide table is gathered with idx directly (an int8 table would
+ * need idx>>2 plus a byte select). ``e`` is a 16-byte-aligned 64-byte row,
+ * ``dots`` a 64-int32 row; e[n..63] is zero-filled and the return value is
+ * sum(e[0:64]). ``scratch`` is 272 bytes, 16-byte aligned. */
+int32_t dl_esp32p4_s8_attention_exp_lut_shift(int8_t *e,
+                                              const int32_t *dots,
+                                              int n,
+                                              int32_t m_new,
+                                              int32_t sat,
+                                              int32_t shift,
+                                              const int32_t *table,
+                                              int32_t *scratch);
+
+/* int16 QACC batched QK for D=32.
+ * Layout of k_blk matches build_k_head_tblk_s16 (8-token t-block groups).
+ * tmp16 must be a 16 B-aligned scratch of >= 16 int32 (64 B): the kernel
+ * dumps all four st.qacc halves (8 sign-extended s64) into it.
+ * scores[t] = float(round_half_even((Q.K)[t] / 2^INT16_QACC_QK_D32_SHIFT)) *
+ * dot_scale: the integer step equals the per-row dot under CFG HALF_EVEN, and
+ * is needed because a D=32 int16 dot takes up to 36 bits. Pass
+ * dot_scale = logit_scale * 2^INT16_QACC_QK_D32_SHIFT. Each scores row must
+ * hold tile_n rounded up to 8. */
+void dl_esp32p4_s16_attention_qk_qacc_d32(float *scores,
+                                          const int16_t *q,
+                                          const int16_t *k_blk,
+                                          int nq,
+                                          int tile_n,
+                                          int score_stride,
+                                          float dot_scale,
+                                          int32_t *tmp16);
+/* Generic logical D (1..128) form of the kernel above. Q and K rows are
+ * physically padded to D_pad=round_up(D, 8); rounding still uses
+ * int16_dot_shift(D), so pass dot_scale = logit_scale * 2^int16_dot_shift(D). */
+void dl_esp32p4_s16_attention_qk_qacc_generic(float *scores,
+                                              const int16_t *q,
+                                              const int16_t *k_blk,
+                                              int nq,
+                                              int tile_n,
+                                              int score_stride,
+                                              int32_t *tmp16,
+                                              int D_real,
+                                              float dot_scale);
+/* int16 QACC P·V on split weights (see load_v_tile_dblk_s16 / softmax_exp_row_split_s16):
+ * acc[iq][d] += scale * sum_t (e_hi[t] * 2^15 + e_lo[t]) V[t][d].
+ * n_tok and D multiples of 8; e rows are [e_hi[n_tok], e_lo[n_tok]];
+ * tmp32 is 16 B aligned with >= 32 int32. */
+void dl_esp32p4_s16_attention_pv_qacc(float *acc,
+                                      const int16_t *e,
+                                      const int16_t *v_dblk,
+                                      int nq,
+                                      int n_tok,
+                                      int D,
+                                      int acc_stride,
+                                      int32_t *tmp32,
+                                      float scale);
+
 /* Native row-major A[M,K] x B[K,N] MatMul kernels. */
 void dl_esp32p4_s8_matmul_kn(const void *args);
 void dl_esp32p4_s16_matmul_kn(const void *args);

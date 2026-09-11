@@ -6,6 +6,7 @@
 #include "dl_model_base.hpp"
 #include "dl_module_creator.hpp"
 #include "fbs_model.hpp"
+#include <algorithm>
 
 static const char *TAG = "dl::Model";
 
@@ -135,13 +136,20 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
         ret = ESP_FAIL;
         return ret;
     }
+    m_built = false;
+    m_inputs.clear();
+    m_outputs.clear();
     m_fbs_model = fbs_model; // fbs_model is created by fbs_loader, so we don't need to delete it.
     m_fbs_model->load_map();
     m_name = m_fbs_model->get_model_name();
     m_version = m_fbs_model->get_model_version();
     m_doc_string = m_fbs_model->get_model_doc_string();
 
-    // Construct the execution plan.
+    // Construct a replacement execution plan. Modules may own persistent
+    // caches/fallback buffers, so clearing the vector alone would leak them.
+    for (dl::module::Module *module : m_execution_plan) {
+        delete module;
+    }
     m_execution_plan.clear();
     dl::module::ModuleCreator *module_creator = dl::module::ModuleCreator::get_instance();
     m_model_context->clear();
@@ -228,7 +236,14 @@ void Model::build(size_t max_internal_size,
                   bool preload,
                   const std::map<std::string, std::vector<int>> &input_shapes)
 {
-    // If memory manager has been created, delete it and reset all modules
+    m_built = false;
+    m_inputs.clear();
+    m_outputs.clear();
+    if (m_fbs_model == nullptr || m_model_context == nullptr) {
+        ESP_LOGE(TAG, "Cannot build an unloaded model.");
+        return;
+    }
+
     m_fbs_model->load_map();
     MemoryManagerBase *memory_manager = nullptr;
 
@@ -238,7 +253,13 @@ void Model::build(size_t max_internal_size,
         ESP_LOGW(TAG, "Memory manager(%d) is not supported yet. Use MemoryManagerGreedy instead.", mm_type);
         memory_manager = new MemoryManagerGreedy(max_internal_size);
     }
-    memory_manager->alloc(m_fbs_model, m_execution_plan, m_model_context, input_shapes);
+    const bool allocated = memory_manager->alloc(m_fbs_model, m_execution_plan, m_model_context, input_shapes);
+    if (!allocated) {
+        ESP_LOGE(TAG, "Failed to allocate model variable arenas; the model is not runnable.");
+        m_fbs_model->clear_map();
+        delete memory_manager;
+        return;
+    }
 
     // get the TensorBase* of inputs and outputs
     std::vector<std::string> inputs_tmp = m_fbs_model->get_graph_inputs();
@@ -254,12 +275,17 @@ void Model::build(size_t max_internal_size,
         m_outputs.emplace(outputs_tmp[i], output_tensor);
     }
 
+    m_built = true;
     m_fbs_model->clear_map();
     delete memory_manager;
 }
 
 void Model::run(runtime_mode_t mode)
 {
+    if (!m_built) {
+        ESP_LOGE(TAG, "Model is not built; inference is unavailable.");
+        return;
+    }
     // execute each module.
     for (int i = 0; i < m_execution_plan.size(); i++) {
         dl::module::Module *module = m_execution_plan[i];
@@ -273,6 +299,10 @@ void Model::run(runtime_mode_t mode)
 
 void Model::run(int stage_num, int stage_index, runtime_mode_t mode)
 {
+    if (!m_built) {
+        ESP_LOGE(TAG, "Model is not built; inference is unavailable.");
+        return;
+    }
     int plan_size = m_execution_plan.size();
     if (stage_num < 1) {
         stage_num = 1;
@@ -295,6 +325,10 @@ void Model::run(int stage_num, int stage_index, runtime_mode_t mode)
 
 void Model::run(TensorBase *input, runtime_mode_t mode)
 {
+    if (!m_built) {
+        ESP_LOGE(TAG, "Model is not built; inference is unavailable.");
+        return;
+    }
     if (m_inputs.size() != 1) {
         ESP_LOGW(TAG, "The inputs of model is not just one! This API will assign data to first input");
     }
@@ -315,6 +349,10 @@ void Model::run(std::map<std::string, TensorBase *> &user_inputs,
                 runtime_mode_t mode,
                 std::map<std::string, TensorBase *> user_outputs)
 {
+    if (!m_built) {
+        ESP_LOGE(TAG, "Model is not built; inference is unavailable.");
+        return;
+    }
     if (user_inputs.size() != m_inputs.size()) {
         ESP_LOGE(TAG,
                  "The size of user_inputs(%d) don't equal with the size of model inputs(%d).",
@@ -475,6 +513,10 @@ void Model::minimize()
 
 esp_err_t Model::test()
 {
+    if (!m_built) {
+        ESP_LOGE(TAG, "Model is not built; test is unavailable.");
+        return ESP_FAIL;
+    }
     printf("\n");
     float max_error = 5e-4f;
     std::string max_error_str = get_metadata_prop("test_max_error");
@@ -791,6 +833,30 @@ void Model::print_module_info(const std::map<std::string, module_info> &info, bo
     }
 }
 
+// Workspace bytes are already inside "variable"; this breaks them out per node.
+static void print_workspace_binding_info(const std::vector<ModelContext::WorkspaceBinding> &workspace_bindings)
+{
+    std::map<std::string, size_t> node_bytes;
+    for (const ModelContext::WorkspaceBinding &ws : workspace_bindings) {
+        if (ws.data != nullptr) {
+            node_bytes[ws.name.substr(0, ws.name.rfind(":workspace"))] += ws.size;
+        }
+    }
+    if (node_bytes.empty()) {
+        return;
+    }
+    ESP_LOGI(TAG, "workspace (included in variable, each live only while its node runs):");
+    for (const ModelContext::WorkspaceBinding &ws : workspace_bindings) {
+        if (ws.data != nullptr) {
+            const bool internal = tool::memory_addr_type(ws.data) == MEMORY_ADDR_INTERNAL;
+            ESP_LOGI(TAG, "  %s: %.2fKB, %s", ws.name.c_str(), ws.size / 1024.f, internal ? "internal RAM" : "PSRAM");
+        }
+    }
+    auto largest = std::max_element(
+        node_bytes.begin(), node_bytes.end(), [](const auto &a, const auto &b) { return a.second < b.second; });
+    ESP_LOGI(TAG, "  largest node: %s, %.2fKB", largest->first.c_str(), largest->second / 1024.f);
+}
+
 void Model::profile_memory()
 {
     printf("\n");
@@ -805,6 +871,7 @@ void Model::profile_memory()
         ESP_LOGI(TAG, "%s", m_fbs_loader->get_model_location_string());
     }
     print_memory_info(info);
+    print_workspace_binding_info(m_model_context->get_workspace_bindings());
     printf("\n");
 }
 
@@ -834,6 +901,7 @@ void Model::profile(bool sort_module_by_latency)
     }
     auto mem_info = get_memory_info();
     print_memory_info(mem_info);
+    print_workspace_binding_info(m_model_context->get_workspace_bindings());
     printf("\n");
     auto module_info = get_module_info();
     print_module_info(module_info, sort_module_by_latency);

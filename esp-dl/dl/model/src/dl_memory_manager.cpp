@@ -1,6 +1,34 @@
 #include "dl_memory_manager.hpp"
 
 namespace dl {
+/*oooooooooooooooooo00000000000000000000 MemoryInfo 00000000000000000000ooooooooooooooooo*/
+
+MemoryInfo::MemoryInfo(const std::string &name, int time_begin, int time_end, size_t size, bool is_internal) :
+    name(name),
+    time_begin(time_begin),
+    time_end(time_end),
+    size(size),
+    call_times(0),
+    offset(0),
+    internal_offset(0),
+    is_internal(is_internal),
+    m_leader(nullptr)
+{
+}
+
+void MemoryInfo::update_time(int new_time)
+{
+    if (m_leader) {
+        m_leader->update_time(new_time);
+        time_end = m_leader->get_time_end();
+    } else if (new_time == -1) {
+        time_end = -1;
+    } else if (new_time > time_end) {
+        time_end = new_time;
+    }
+    call_times++;
+}
+
 /*oooooooooooooooooo00000000000000000000 TensorInfo 00000000000000000000ooooooooooooooooo*/
 
 TensorInfo::TensorInfo(std::string &name,
@@ -10,68 +38,43 @@ TensorInfo::TensorInfo(std::string &name,
                        dtype_t dtype,
                        int exponent,
                        bool is_internal) :
-    name(name),
-    time_begin(time_begin),
-    time_end(time_end),
+    MemoryInfo(name, time_begin, time_end, 0, is_internal),
     dtype(dtype),
     exponent(exponent),
-    is_internal(is_internal),
-    m_leader_tensor(nullptr),
     m_follower_dirty_tensor(nullptr),
     m_follower_clean_tensor(nullptr)
 {
+    size_t bytes = 1;
     if (shape.size() > 0) {
         this->shape.push_back(shape[0]);
-        this->size = shape[0];
+        bytes = shape[0];
         for (int i = 1; i < shape.size(); i++) {
             this->shape.push_back(shape[i]);
-            this->size *= shape[i];
+            bytes *= shape[i];
         }
-    } else if (shape.size() == 0) {
-        this->size = 1;
     }
 
     if (dtype == DATA_TYPE_FLOAT || dtype == DATA_TYPE_INT32 || dtype == DATA_TYPE_UINT32) {
-        this->size = this->size * 4;
+        bytes *= 4;
     } else if (dtype == DATA_TYPE_UINT8 || dtype == DATA_TYPE_INT8) {
-        this->size = this->size * 1;
+        bytes *= 1;
     } else if (dtype == DATA_TYPE_UINT16 || dtype == DATA_TYPE_INT16) {
-        this->size = this->size * 2;
+        bytes *= 2;
     } else if (dtype == DATA_TYPE_DOUBLE || dtype == DATA_TYPE_INT64 || dtype == DATA_TYPE_UINT64) {
-        this->size = this->size * 8;
+        bytes *= 8;
     }
-
-    this->call_times = 0;
-    this->offset = 0;
-    this->internal_offset = 0;
+    set_size(bytes);
 }
 
 void TensorInfo::set_inplace_leader_tensor(TensorInfo *tensor)
 {
-    this->m_leader_tensor = tensor;
+    int follower_time_end = get_time_end();
+    set_leader(tensor);
     if (tensor) {
-        if (tensor->time_end < this->time_end || this->time_end == -1) {
-            tensor->update_time(this->time_end);
+        if (tensor->get_time_end() < follower_time_end || follower_time_end == -1) {
+            tensor->update_time(follower_time_end);
         }
     }
-}
-
-void TensorInfo::update_time(int new_time)
-{
-    if (m_leader_tensor) { // if inplace tensor is not null, update end time of inplace tensor
-        m_leader_tensor->update_time(new_time);
-        this->time_end = m_leader_tensor->time_end;
-    } else {
-        if (new_time == -1) {
-            this->time_end = -1;
-        } else {
-            if (new_time > this->time_end) {
-                this->time_end = new_time;
-            }
-        }
-    }
-
-    this->call_times++;
 }
 
 TensorBase *TensorInfo::create_tensor(void *internal_root, void *psram_root)
@@ -93,20 +96,32 @@ TensorBase *TensorInfo::create_tensor(void *internal_root, void *psram_root)
     return tensor;
 }
 
+void *WorkspaceInfo::get_data(void *internal_root, void *psram_root)
+{
+#if CONFIG_SPIRAM
+    if (get_internal_state()) {
+        return static_cast<uint8_t *>(internal_root) + get_internal_offset();
+    }
+    return static_cast<uint8_t *>(psram_root) + get_offset();
+#else
+    return static_cast<uint8_t *>(internal_root) + get_internal_offset();
+#endif
+}
+
 /*oooooooooooooooooo00000000000000000000 MemoryChunk 00000000000000000000ooooooooooooooooo*/
 
 MemoryChunk::MemoryChunk(size_t size, int is_free, int alignment) : size(size), is_free(is_free), alignment(alignment)
 {
-    this->tensor = nullptr;
+    this->memory = nullptr;
     this->offset = 0;
 }
 
-MemoryChunk::MemoryChunk(TensorInfo *tensor, int alignment)
+MemoryChunk::MemoryChunk(MemoryInfo *memory, int alignment)
 {
     this->alignment = alignment;
-    this->size = dl::tool::get_aligned_size(tensor->get_size(), this->alignment);
+    this->size = dl::tool::get_aligned_size(memory->get_size(), this->alignment);
     this->is_free = false;
-    this->tensor = tensor;
+    this->memory = memory;
     this->offset = 0;
 }
 
@@ -124,12 +139,12 @@ MemoryChunk *MemoryChunk::merge_free_chunk(MemoryChunk *chunk)
     return nullptr;
 }
 
-MemoryChunk *MemoryChunk::insert(TensorInfo *tensor)
+MemoryChunk *MemoryChunk::insert(MemoryInfo *memory)
 {
-    int aligned_size = dl::tool::get_aligned_size(tensor->get_size(), this->alignment);
+    int aligned_size = dl::tool::get_aligned_size(memory->get_size(), this->alignment);
 
     if (this->is_free && this->size >= aligned_size) {
-        this->tensor = tensor;
+        this->memory = memory;
         this->is_free = false;
         if (this->size > aligned_size) {
             MemoryChunk *chunk = new MemoryChunk(this->size - aligned_size, true, this->alignment);
@@ -141,13 +156,13 @@ MemoryChunk *MemoryChunk::insert(TensorInfo *tensor)
     return nullptr;
 }
 
-MemoryChunk *MemoryChunk::extend(TensorInfo *tensor)
+MemoryChunk *MemoryChunk::extend(MemoryInfo *memory)
 {
-    int aligned_size = dl::tool::get_aligned_size(tensor->get_size(), this->alignment);
+    int aligned_size = dl::tool::get_aligned_size(memory->get_size(), this->alignment);
 
     // only extend the size of memory chunk
     if (this->is_free && this->size < aligned_size) {
-        this->tensor = tensor;
+        this->memory = memory;
         this->is_free = false;
         this->size = aligned_size;
         return this;
@@ -160,8 +175,8 @@ void print_memory_list(const char *tag, std::list<MemoryChunk *> &memory_list)
     for (auto it = memory_list.begin(); it != memory_list.end(); ++it) {
         std::string name = "";
         std::string state = "false";
-        if ((*it)->tensor) {
-            name = (*it)->tensor->get_name();
+        if ((*it)->memory) {
+            name = (*it)->memory->get_name();
         }
         if ((*it)->is_free) {
             state = "true";

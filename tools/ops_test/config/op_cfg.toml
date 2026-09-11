@@ -4288,3 +4288,290 @@
         input_shape = [1, 3, 224, 224]
         onnx_model_path = "mobilenet_v2.onnx"
         export_name_prefix = "mobilenet_v2"
+
+    [ops_test.Attention]
+    test_func = "ATTENTION_TEST"
+    quant_type = ["int8", "int16", "w8a16", "float32"]
+    package = "onnx_ops_test"
+    targets = ["esp32s3", "esp32p4"]
+    restrictions = "Support 4D self-/cross-attention; KV cache and advanced attributes (e.g., softcap/window) are not supported."
+
+        [[ops_test.Attention.cfg]]
+        # Small self-attention smoke test. Lq = Lk = 16, aligned D.
+        input_shape = [
+            [1, 4, 16, 32],
+            [1, 4, 16, 32],
+            [1, 4, 16, 32],
+        ]
+        export_name_prefix = "attention_self_small_H4_L16_D32"
+
+        [[ops_test.Attention.cfg]]
+        # BNHD [B, L, H, D] of the same geometry. Device gathers adjacent
+        # heads into the existing K/V/Q scratch; inner QACC stays BHND.
+        input_shape = [
+            [1, 16, 4, 32],
+            [1, 16, 4, 32],
+            [1, 16, 4, 32],
+        ]
+        layout = "BNHD"
+        export_name_prefix = "attention_self_small_BNHD_L16_H4_D32"
+
+        [[ops_test.Attention.cfg]]
+        # BNHD, L not a multiple of TILE_Q=32 or TILE_K=64. D=32 so the
+        # device can pack two adjacent heads into one scratch fill.
+        input_shape = [
+            [1, 65, 8, 32],
+            [1, 65, 8, 32],
+            [1, 65, 8, 32],
+        ]
+        layout = "BNHD"
+        export_name_prefix = "attention_self_BNHD_L65_H8_D32"
+
+        [[ops_test.Attention.cfg]]
+        # BNHD D=64: one head fills the K scratch, so head-chunk is 1.
+        input_shape = [
+            [1, 16, 4, 64],
+            [1, 16, 4, 64],
+            [1, 16, 4, 64],
+        ]
+        layout = "BNHD"
+        export_name_prefix = "attention_self_small_BNHD_L16_H4_D64"
+
+        [[ops_test.Attention.cfg]]
+        # Long self-attention shape (Lq = Lk = 300, H=8, D=32).
+        # Verifies TILE_K stitching over Lk > 1 tile (ceil(300/64) = 5 tiles).
+        input_shape = [
+            [1, 8, 300, 32],
+            [1, 8, 300, 32],
+            [1, 8, 300, 32],
+        ]
+        export_name_prefix = "attention_self_ltdetrv2_H8_L300_D32"
+
+        [[ops_test.Attention.cfg]]
+        # Cross-attention: Lq != Lk. Also exercises an explicit scale attr.
+        input_shape = [
+            [1, 8, 300, 32],
+            [1, 8, 100, 32],
+            [1, 8, 100, 32],
+        ]
+        scale = 0.176776695  # 1/sqrt(32); explicit to verify the attr path
+        export_name_prefix = "attention_cross_H8_Lq300_Lk100_D32_explicit_scale"
+
+        [[ops_test.Attention.cfg]]
+        # Unaligned head_dim (24) and a partial last K-tile (Lk % TILE_K != 0).
+        input_shape = [
+            [1, 2, 20, 24],
+            [1, 2, 33, 24],
+            [1, 2, 33, 24],
+        ]
+        export_name_prefix = "attention_unaligned_D24_Lk33"
+
+        # -- v2 additions --------------------------------------------------
+
+        [[ops_test.Attention.cfg]]
+        # Additive attn_mask, broadcastable [1, 1, Lq, Lk], fed as a graph
+        # input. The mask stays fp32 at every bit width, so int8 runs too.
+        input_shape = [
+            [1, 4, 16, 32],
+            [1, 4, 16, 32],
+            [1, 4, 16, 32],
+            [1, 1, 16, 16],
+        ]
+        export_name_prefix = "attention_self_H4_L16_D32_mask"
+
+        [[ops_test.Attention.cfg]]
+        # is_causal=1, square Q/K. Verifies the lower-triangular frontier
+        # composes correctly with online softmax.
+        input_shape = [
+            [1, 4, 16, 32],
+            [1, 4, 16, 32],
+            [1, 4, 16, 32],
+        ]
+        is_causal = true
+        quant_bits = ["int16", "w8a16", "float32"]
+        export_name_prefix = "attention_self_H4_L16_D32_causal"
+
+        [[ops_test.Attention.cfg]]
+        # GQA: Hq=8, Hkv=2 (group=4). Aligned D=32.
+        input_shape = [
+            [1, 8, 32, 32],
+            [1, 2, 32, 32],
+            [1, 2, 32, 32],
+        ]
+        export_name_prefix = "attention_gqa_Hq8_Hkv2_D32"
+
+        [[ops_test.Attention.cfg]]
+        # MQA: Hq=8, Hkv=1 (extreme GQA).
+        input_shape = [
+            [1, 8, 16, 32],
+            [1, 1, 16, 32],
+            [1, 1, 16, 32],
+        ]
+        export_name_prefix = "attention_mqa_Hq8_Hkv1_D32"
+
+        # -- coverage gaps: boundaries + attribute combinations -----------
+
+        [[ops_test.Attention.cfg]]
+        # head_dim = MAX_HEAD_DIM = 64. Exercises the D_pad=64 Q·K kernel,
+        # which no other cfg touches — every other case runs the D_pad=32
+        # grid with zero-pad. P·V is the QACC outer-product kernel on every
+        # head dim (see dl_base_attention.cpp attention_pv_kernel).
+        # Also the default upper bound accepted by Attention::deserialize
+        # and attention_check_shapes (see dl_base_attention.hpp).
+        input_shape = [
+            [1, 4, 16, 64],
+            [1, 4, 16, 64],
+            [1, 4, 16, 64],
+        ]
+        export_name_prefix = "attention_self_H4_L16_D64_boundary"
+
+        [[ops_test.Attention.cfg]]
+        # Lk = TILE_K exactly (64). Verifies the K-tile loop when the
+        # trailing partial tile is empty — a distinct code path from
+        # Lk=33 (only partial tile) and Lk=100 (main tiles + partial).
+        input_shape = [
+            [1, 4, 16, 32],
+            [1, 4, 64, 32],
+            [1, 4, 64, 32],
+        ]
+        export_name_prefix = "attention_cross_H4_Lq16_Lk64_tile_boundary"
+
+        [[ops_test.Attention.cfg]]
+        # Lk = 2 * TILE_K (128). Two full K-tiles, no partial. Confirms
+        # the tile stitching for Lk > TILE_K without the trailing
+        # partial-tile mask.
+        input_shape = [
+            [1, 4, 32, 32],
+            [1, 4, 128, 32],
+            [1, 4, 128, 32],
+        ]
+        export_name_prefix = "attention_cross_H4_Lq32_Lk128_two_tiles"
+
+        [[ops_test.Attention.cfg]]
+        # B=2 self-attention. Every existing cfg is B=1; the forward
+        # loops on ``for b < B``, so multi-batch is untested despite
+        # being on the supported surface. Keeps other dims small so
+        # the calibration + inference budget stays modest.
+        input_shape = [
+            [2, 4, 16, 32],
+            [2, 4, 16, 32],
+            [2, 4, 16, 32],
+        ]
+        export_name_prefix = "attention_batch2_self_H4_L16_D32"
+
+        [[ops_test.Attention.cfg]]
+        # is_causal + additive attn_mask. The hpp contract says the two
+        # compose additively; the individual paths are tested but the
+        # combination is not. int8 skipped like the other causal cfgs.
+        input_shape = [
+            [1, 4, 16, 32],
+            [1, 4, 16, 32],
+            [1, 4, 16, 32],
+            [1, 1, 16, 16],
+        ]
+        is_causal = true
+        quant_bits = ["int16", "w8a16", "float32"]
+        export_name_prefix = "attention_self_H4_L16_D32_causal_and_mask"
+
+        [[ops_test.Attention.cfg]]
+        # GQA + is_causal. Exercises the group head remap composed with
+        # the upper-left lower-triangular frontier (key j is visible only
+        # when j <= query i).
+        input_shape = [
+            [1, 8, 32, 32],
+            [1, 2, 32, 32],
+            [1, 2, 32, 32],
+        ]
+        is_causal = true
+        quant_bits = ["int16", "w8a16", "float32"]
+        export_name_prefix = "attention_gqa_Hq8_Hkv2_L32_D32_causal"
+
+        [[ops_test.Attention.cfg]]
+        # Rectangular causal, Lq < Lk. The ONNX upper-left rule makes every
+        # key j >= Lq invisible; Lk=101 also supplies a fully droppable
+        # later K tile. Uses all deployment paths, including the int8
+        # emulator that must now agree with the device.
+        input_shape = [
+            [1, 4, 19, 24],
+            [1, 4, 101, 24],
+            [1, 4, 101, 24],
+        ]
+        is_causal = true
+        quant_bits = ["int8", "int16", "w8a16", "float32"]
+        export_name_prefix = "attention_causal_upper_left_H4_Lq19_Lk101_D24"
+
+        [[ops_test.Attention.cfg]]
+        # Rectangular causal, Lq > Lk, in BNHD layout. Query rows at and
+        # after Lk-1 can see every key; this complements the preceding
+        # K-tile-drop case and verifies the layout gather path.
+        input_shape = [
+            [1, 101, 4, 32],
+            [1, 19, 4, 32],
+            [1, 19, 4, 32],
+        ]
+        layout = "BNHD"
+        is_causal = true
+        quant_bits = ["int8", "int16", "w8a16", "float32"]
+        export_name_prefix = "attention_causal_upper_left_BNHD_Lq101_Lk19_H4_D32"
+
+        [[ops_test.Attention.cfg]]
+        # GQA + additive attn_mask. Verifies the per-query-head remap
+        # (Hq=8 <- Hkv=2) does not interfere with mask indexing
+        # (which is layout- and Hkv-agnostic in the runtime).
+        input_shape = [
+            [1, 8, 32, 32],
+            [1, 2, 32, 32],
+            [1, 2, 32, 32],
+            [1, 1, 32, 32],
+        ]
+        export_name_prefix = "attention_gqa_Hq8_Hkv2_L32_D32_mask"
+
+        [[ops_test.Attention.cfg]]
+        # Constant key-padding mask: keys >= 96 are -inf, the rest carry a
+        # finite bias. D=64 (D_pad=64 QK kernel), Lk=128 so the second K-tile
+        # is half masked. Covers the int8 dot-domain mask and -inf slots.
+        input_shape = [
+            [1, 4, 32, 64],
+            [1, 4, 128, 64],
+            [1, 4, 128, 64],
+        ]
+        const_mask_shape = [1, 1, 32, 128]
+        export_name_prefix = "attention_cross_H4_Lq32_Lk128_D64_const_mask"
+
+        [[ops_test.Attention.cfg]]
+        # BNHD + per-head constant mask on a partial tile (Lk=65, keys >= 48
+        # are -inf). H=8, D=32 lets the device chunk two heads per K/V fill,
+        # so the mask head index must follow h0 + h_local.
+        input_shape = [
+            [1, 65, 8, 32],
+            [1, 65, 8, 32],
+            [1, 65, 8, 32],
+        ]
+        layout = "BNHD"
+        const_mask_shape = [1, 8, 65, 65]
+        export_name_prefix = "attention_self_BNHD_L65_H8_D32_const_mask"
+
+        [[ops_test.Attention.cfg]]
+        # Per-head constant mask whose 32x64 blocks cycle through all-zero /
+        # finite / mixed -inf / all -inf, so every tile class of the device
+        # mask precompute is hit, including skipped tiles.
+        input_shape = [
+            [1, 4, 64, 32],
+            [1, 4, 256, 32],
+            [1, 4, 256, 32],
+        ]
+        const_mask_shape = [1, 4, 64, 256]
+        const_mask_pattern = "tiles"
+        export_name_prefix = "attention_cross_H4_Lq64_Lk256_D32_const_mask_tiles"
+
+        [[ops_test.Attention.cfg]]
+        # GQA + D=64 + a query-broadcast [1,1,1,Lk] tiles mask (one skipped
+        # K tile) on a partial last Q block (Lq=48).
+        input_shape = [
+            [1, 8, 48, 64],
+            [1, 2, 256, 64],
+            [1, 2, 256, 64],
+        ]
+        const_mask_shape = [1, 1, 1, 256]
+        const_mask_pattern = "tiles"
+        export_name_prefix = "attention_gqa_Hq8_Hkv2_Lq48_Lk256_D64_const_mask_keys"

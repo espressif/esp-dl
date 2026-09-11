@@ -2,6 +2,26 @@ import onnx
 import numpy as np
 from onnx import ModelProto, TensorProto, helper, OperatorSetIdProto
 
+# Largest head_dim / Lk the esp-dl Attention kernels accept. Mirror
+# ``ATTENTION_MAX_HEAD_DIM`` and ``ATTENTION_MAX_KV_TOKENS`` on the device side
+# and ``ESPDL_ATTENTION_MAX_HEAD_DIM`` / ``ESPDL_ATTENTION_MAX_KV_TOKENS`` in
+# esp-ppq's espdl_attention.py. Kept here so a test config that exceeds a bound
+# fails at generation rather than on device. Delegate to esp-ppq's env-driven
+# bounds so ``ESPDL_ATTENTION_MAX_HEAD_DIM`` / ``ESPDL_ATTENTION_MAX_KV_TOKENS``
+# opt test generation in as well; fall back to the defaults when esp-ppq is not
+# installed (dev machine without the quantizer wheel).
+try:
+    from esp_ppq.executor.op.torch.espdl_attention import (
+        ESPDL_ATTENTION_MAX_HEAD_DIM as _ESP_PPQ_MAX_ATTENTION_HEAD_DIM,
+        ESPDL_ATTENTION_MAX_KV_TOKENS as _ESP_PPQ_MAX_ATTENTION_KV_TOKENS,
+    )
+
+    MAX_ATTENTION_HEAD_DIM = _ESP_PPQ_MAX_ATTENTION_HEAD_DIM
+    MAX_ATTENTION_KV_TOKENS = _ESP_PPQ_MAX_ATTENTION_KV_TOKENS
+except Exception:
+    MAX_ATTENTION_HEAD_DIM = 64
+    MAX_ATTENTION_KV_TOKENS = 2048
+
 
 def IDENTITY_TEST(config) -> ModelProto:
     """
@@ -824,5 +844,168 @@ def RMSNORMALIZATION_TEST(config) -> ModelProto:
         print("The model is checked!")
     except Exception as e:
         print(f"ONNX checker warning (expected for custom ops): {e}")
+
+    return model_def
+
+
+def ATTENTION_TEST(config) -> ModelProto:
+    """Attention (v2) — fused Q · K^T -> scale -> [+mask/causal] -> softmax -> · V.
+
+    Inputs
+        q          : ``[B, Hq,  Lq, D]`` (BHND) or ``[B, Lq, Hq, D]`` (BNHD)
+        k          : ``[B, Hkv, Lk, D]`` (BHND) or ``[B, Lk, Hkv, D]`` (BNHD)
+        v          : ``[B, Hkv, Lk, D]`` (BHND) or ``[B, Lk, Hkv, D]`` (BNHD)
+        attn_mask  : broadcastable to ``[B, Hq, Lq, Lk]``, optional. Either a
+                     graph input (``input_shape[3]``) or, with
+                     ``const_mask_shape``, a constant with -inf key padding.
+                     ``const_mask_pattern = "tiles"`` instead cycles each
+                     32x64 (query x key) block through all-zero / finite /
+                     mixed -inf / all -inf, shifted per query block and head.
+
+    ``head_dim`` must be in ``[1, MAX_ATTENTION_HEAD_DIM]`` and ``Lk`` in
+    ``[1, MAX_ATTENTION_KV_TOKENS]`` — the device kernels size their scratch
+    on those bounds and refuse anything larger.
+
+    Attributes
+        scale     : FLOAT, optional. Defaults to ``1 / sqrt(D)`` at runtime.
+        is_causal : INT,   optional (0 by default).
+        layout    : ESP-DL extension; ``BHND`` (default) or ``BNHD``.
+
+    Output
+        out : ``[B, Hq, Lq, D]``, same axis convention as Q.
+
+    Matching esp-dl module:
+    ``esp-dl/esp-dl/dl/module/include/dl_module_attention.hpp``.
+    """
+    input_shapes = config["input_shape"]
+    export_name_prefix = config.get("export_name_prefix", "onnx-model-attention")
+    layout = str(config.get("layout", "BHND")).upper()
+    if layout not in ("BHND", "BNHD"):
+        raise ValueError(
+            f"Attention test config: layout must be 'BHND' or 'BNHD', got {layout!r}."
+        )
+    if onnx.defs.onnx_opset_version() < 23:
+        raise RuntimeError("Attention ops tests require onnx>=1.18.0 (opset 23).")
+
+    if len(input_shapes) < 3:
+        raise ValueError("Attention needs at least 3 input shapes (Q, K, V)")
+    q_shape, k_shape, v_shape = input_shapes[0], input_shapes[1], input_shapes[2]
+    mask_shape = input_shapes[3] if len(input_shapes) > 3 else None
+
+    assert (
+        len(q_shape) == 4 and len(k_shape) == 4 and len(v_shape) == 4
+    ), "Q/K/V must all be 4D"
+    assert q_shape[0] == k_shape[0] == v_shape[0], "B mismatch across Q/K/V"
+    head_axis, seq_axis = (2, 1) if layout == "BNHD" else (1, 2)
+    assert k_shape[head_axis] == v_shape[head_axis], "K.Hkv and V.Hkv must match"
+    assert (
+        k_shape[head_axis] > 0 and q_shape[head_axis] % k_shape[head_axis] == 0
+    ), "GQA/MQA requires Hq % Hkv == 0"
+    assert k_shape[seq_axis] == v_shape[seq_axis], "K.Lk and V.Lk must match"
+    assert 1 <= k_shape[seq_axis] <= MAX_ATTENTION_KV_TOKENS, (
+        f"Lk={k_shape[seq_axis]} outside [1, {MAX_ATTENTION_KV_TOKENS}]; the device "
+        "sizes the shared K-head scratch on that bound"
+    )
+    D = q_shape[3]
+    assert q_shape[3] == k_shape[3] == v_shape[3], "head_dim mismatch across Q/K/V"
+    assert 1 <= D <= MAX_ATTENTION_HEAD_DIM, (
+        f"head_dim={D} outside [1, {MAX_ATTENTION_HEAD_DIM}]; the device "
+        "kernels size their scratch on that bound"
+    )
+
+    out_shape = list(q_shape)
+
+    q_in = helper.make_tensor_value_info("q", TensorProto.FLOAT, q_shape)
+    k_in = helper.make_tensor_value_info("k", TensorProto.FLOAT, k_shape)
+    v_in = helper.make_tensor_value_info("v", TensorProto.FLOAT, v_shape)
+    inputs = [q_in, k_in, v_in]
+    node_inputs = ["q", "k", "v"]
+    initializers = []
+    const_mask_shape = config.get("const_mask_shape")
+    if mask_shape is not None and const_mask_shape is not None:
+        raise ValueError(
+            "Attention test config: use input_shape[3] or const_mask_shape, not both"
+        )
+    if mask_shape is not None:
+        mask_in = helper.make_tensor_value_info(
+            "attn_mask", TensorProto.FLOAT, mask_shape
+        )
+        inputs.append(mask_in)
+        node_inputs.append("attn_mask")
+    elif const_mask_shape is not None:
+        # Random calibration never produces -inf, so a constant mask is the
+        # only way to cover key padding: keys past 3/4 of Lk are -inf and the
+        # rest carry a finite relative bias.
+        lk = const_mask_shape[-1]
+        rng = np.random.default_rng(config.get("const_mask_seed", 0))
+        mask_np = rng.uniform(-2.0, 2.0, const_mask_shape).astype(np.float32)
+        pattern = config.get("const_mask_pattern", "key_padding")
+        if pattern == "key_padding":
+            mask_np[..., (3 * lk) // 4 :] = -np.inf
+        elif pattern == "tiles":
+            # Matches the device TILE_Q x TILE_K grid of the mask precompute.
+            shape4 = [1] * (4 - len(const_mask_shape)) + list(const_mask_shape)
+            m4 = mask_np.reshape(shape4)
+            for h in range(shape4[1]):
+                for i0 in range(0, shape4[2], 32):
+                    for j0 in range(0, shape4[3], 64):
+                        blk = m4[:, h, i0 : i0 + 32, j0 : j0 + 64]
+                        kind = (h + i0 // 32 + j0 // 64) % 4
+                        if kind == 0:
+                            blk[...] = 0.0
+                        elif kind == 2:
+                            blk[..., 1::2] = -np.inf
+                        elif kind == 3:
+                            blk[...] = -np.inf
+            mask_np = m4.reshape(const_mask_shape)
+        else:
+            raise ValueError(
+                f"Attention test config: unknown const_mask_pattern {pattern!r}"
+            )
+        initializers.append(
+            helper.make_tensor(
+                "attn_mask",
+                TensorProto.FLOAT,
+                const_mask_shape,
+                mask_np.flatten().tolist(),
+            )
+        )
+        node_inputs.append("attn_mask")
+
+    out_info = helper.make_tensor_value_info("out", TensorProto.FLOAT, out_shape)
+
+    node_kwargs = {}
+    if "scale" in config:
+        node_kwargs["scale"] = float(config["scale"])
+    if bool(config.get("is_causal", False)):
+        node_kwargs["is_causal"] = 1
+    node_domain = ""
+    opsets = [helper.make_opsetid("", 23)]
+    if layout != "BHND":
+        node_kwargs["layout"] = layout
+        node_domain = "com.espressif"
+        opsets.append(helper.make_opsetid(node_domain, 1))
+    node = helper.make_node(
+        "Attention",
+        inputs=node_inputs,
+        outputs=["out"],
+        domain=node_domain,
+        **node_kwargs,
+    )
+
+    graph_def = helper.make_graph(
+        [node],
+        "attention_model",
+        inputs,
+        [out_info],
+        initializer=initializers,
+    )
+
+    model_def = helper.make_model(
+        graph_def, opset_imports=opsets, producer_name=export_name_prefix
+    )
+
+    onnx.checker.check_model(model_def)
+    print("The model is checked!")
 
     return model_def

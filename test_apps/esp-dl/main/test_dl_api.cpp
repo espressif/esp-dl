@@ -1,5 +1,7 @@
 #include "dl_model_base.hpp"
+#include "dl_model_context.hpp"
 #include "dl_module_add.hpp"
+#include "dl_module_attention.hpp"
 #include "dl_module_creator.hpp"
 #include "dl_module_lut.hpp"
 #include "dl_module_relu.hpp"
@@ -178,6 +180,34 @@ TEST_CASE("Test dl model API: reset()", "[api]")
     }
     saved_input_data.clear();
     delete model;
+}
+
+TEST_CASE("Test dl model context: root allocation rollback and arena reset", "[api]")
+{
+    ModelContext context;
+    constexpr size_t root_bytes = 256;
+#if CONFIG_SPIRAM
+    TEST_ASSERT_TRUE(context.root_alloc(0, root_bytes));
+    void *const old_root = context.get_psram_root();
+    const size_t largest_free = heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM);
+    TEST_ASSERT_FALSE(context.root_alloc(0, largest_free + 16));
+    TEST_ASSERT_EQUAL_PTR(old_root, context.get_psram_root());
+#else
+    TEST_ASSERT_TRUE(context.root_alloc(root_bytes, 0));
+    void *const old_root = context.get_internal_root();
+    const size_t largest_free = heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL);
+    TEST_ASSERT_FALSE(context.root_alloc(largest_free + 16, 0));
+    TEST_ASSERT_EQUAL_PTR(old_root, context.get_internal_root());
+#endif
+
+    context.m_variables.push_back(new TensorBase({1}, old_root, 0, DATA_TYPE_INT8, false));
+    const WorkspaceBindingId binding_id = context.create_workspace_binding("reset-check");
+    context.bind_workspace(binding_id, old_root, root_bytes);
+    context.reset_variable_arena();
+    TEST_ASSERT_NULL(context.m_variables[0]);
+    TEST_ASSERT_EQUAL_INT(0, context.get_workspace_binding_count());
+    TEST_ASSERT_NULL(context.get_psram_root());
+    TEST_ASSERT_NULL(context.get_internal_root());
 }
 
 TEST_CASE("Test dl module API: run()", "[api]")
@@ -368,6 +398,45 @@ TEST_CASE("Test dl module API: LUT runtime modes", "[api]")
         }
         delete table;
     }
+}
+
+TEST_CASE("Test dl module API: Attention runtime modes", "[api]")
+{
+    constexpr int H = 4;
+    constexpr int Lq = 17;
+    constexpr int Lk = 19;
+    constexpr int D = 16;
+    const std::vector<int> q_shape = {1, H, Lq, D};
+    const std::vector<int> kv_shape = {1, H, Lk, D};
+    std::vector<int8_t> q_data(static_cast<size_t>(H * Lq * D));
+    std::vector<int8_t> k_data(static_cast<size_t>(H * Lk * D));
+    std::vector<int8_t> v_data(static_cast<size_t>(H * Lk * D));
+    for (size_t i = 0; i < q_data.size(); ++i) {
+        q_data[i] = static_cast<int8_t>(static_cast<int>((i * 13 + 7) % 31) - 15);
+    }
+    for (size_t i = 0; i < k_data.size(); ++i) {
+        k_data[i] = static_cast<int8_t>(static_cast<int>((i * 17 + 3) % 29) - 14);
+        v_data[i] = static_cast<int8_t>(static_cast<int>((i * 19 + 11) % 63) - 31);
+    }
+
+    const auto run = [&](runtime_mode_t mode) {
+        TensorBase q(q_shape, q_data.data(), -6, DATA_TYPE_INT8);
+        TensorBase k(kv_shape, k_data.data(), -6, DATA_TYPE_INT8);
+        TensorBase v(kv_shape, v_data.data(), -5, DATA_TYPE_INT8);
+        TensorBase output(q_shape, nullptr, -5, DATA_TYPE_INT8);
+        TEST_ASSERT_NOT_NULL(output.data);
+        module::Attention attention(
+            "attention", false, 0.f, false, AttentionLayout::BHND, MODULE_NON_INPLACE, QUANT_TYPE_SYMM_8BIT);
+        attention.run({&q, &k, &v}, {&output}, mode);
+        const int8_t *data = static_cast<const int8_t *>(output.data);
+        return std::vector<int8_t>(data, data + output.get_size());
+    };
+
+    const std::vector<int8_t> single = run(RUNTIME_MODE_SINGLE_CORE);
+    const std::vector<int8_t> multi = run(RUNTIME_MODE_MULTI_CORE);
+    const std::vector<int8_t> automatic = run(RUNTIME_MODE_AUTO);
+    TEST_ASSERT_EQUAL_INT8_ARRAY(single.data(), multi.data(), static_cast<int>(single.size()));
+    TEST_ASSERT_EQUAL_INT8_ARRAY(single.data(), automatic.data(), static_cast<int>(single.size()));
 }
 
 TEST_CASE("Test PDL3 package: verify integrity", "[api]")
