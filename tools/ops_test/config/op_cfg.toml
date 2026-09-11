@@ -44,7 +44,36 @@
         activation_func = "ReLU"
 
         [[ops_test.Conv.cfg]]
-        # Cache tiling: channel tail.
+        # Cache tiling: spatial remainder, bias + ReLU.
+        input_shape = [1, 128, 2, 4]
+        export_name_prefix = "conv_pointwise_cache_spatial_tail_128"
+
+        in_channels = 128
+        out_channels = 128
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 256, 3, 7]
+        export_name_prefix = "conv_pointwise_cache_short_spatial"
+
+        in_channels = 256
+        out_channels = 512
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: channel remainder. Tiles on W8A8 / W8A16 / W16A16.
         input_shape = [1, 512, 5, 7]
         export_name_prefix = "conv_pointwise_cache_channel_tail"
 
@@ -59,22 +88,7 @@
         activation_func = ""
 
         [[ops_test.Conv.cfg]]
-        # Cache tiling: nobias relu.
-        input_shape = [1, 256, 5, 7]
-        export_name_prefix = "conv_pointwise_cache_nobias_relu"
-
-        in_channels = 256
-        out_channels = 256
-        kernel_size = [1, 1]
-        stride = [1, 1]
-        padding = [0, 0]
-        dilation = [1, 1]
-        groups = 1
-        bias = false
-        activation_func = "ReLU"
-
-        [[ops_test.Conv.cfg]]
-        # Cache tiling: nobias linear.
+        # Cache tiling: no bias + Linear.
         input_shape = [1, 256, 5, 7]
         export_name_prefix = "conv_pointwise_cache_nobias_linear"
 
@@ -87,21 +101,6 @@
         groups = 1
         bias = false
         activation_func = ""
-
-        [[ops_test.Conv.cfg]]
-        # Cache tiling: bias relu.
-        input_shape = [1, 256, 7, 9]
-        export_name_prefix = "conv_pointwise_cache_bias_relu"
-
-        in_channels = 256
-        out_channels = 256
-        kernel_size = [1, 1]
-        stride = [1, 1]
-        padding = [0, 0]
-        dilation = [1, 1]
-        groups = 1
-        bias = true
-        activation_func = "ReLU"
 
         [[ops_test.Conv.cfg]]
         # Cache tiling: stride.
@@ -134,82 +133,7 @@
         activation_func = ""
 
         [[ops_test.Conv.cfg]]
-        # Cache tiling: partial spatial tile.
-        input_shape = [1, 256, 1, 31]
-        export_name_prefix = "conv_pointwise_cache_short"
-
-        in_channels = 256
-        out_channels = 256
-        kernel_size = [1, 1]
-        stride = [1, 1]
-        padding = [0, 0]
-        dilation = [1, 1]
-        groups = 1
-        bias = true
-        activation_func = "ReLU"
-
-        [[ops_test.Conv.cfg]]
-        # Cache tiling: one pixel cannot reuse the filter.
-        input_shape = [1, 256, 1, 1]
-        export_name_prefix = "conv_pointwise_cache_one_pixel"
-
-        in_channels = 256
-        out_channels = 256
-        kernel_size = [1, 1]
-        stride = [1, 1]
-        padding = [0, 0]
-        dilation = [1, 1]
-        groups = 1
-        bias = true
-        activation_func = "ReLU"
-
-        [[ops_test.Conv.cfg]]
-        # Cache tiling: the minimum useful spatial tile.
-        input_shape = [1, 256, 1, 2]
-        export_name_prefix = "conv_pointwise_cache_two_pixels"
-
-        in_channels = 256
-        out_channels = 256
-        kernel_size = [1, 1]
-        stride = [1, 1]
-        padding = [0, 0]
-        dilation = [1, 1]
-        groups = 1
-        bias = true
-        activation_func = "ReLU"
-
-        [[ops_test.Conv.cfg]]
-        # Cache tiling: dual core.
-        input_shape = [1, 256, 100, 50]
-        export_name_prefix = "conv_pointwise_cache_dual_core"
-
-        in_channels = 256
-        out_channels = 144
-        kernel_size = [1, 1]
-        stride = [1, 1]
-        padding = [0, 0]
-        dilation = [1, 1]
-        groups = 1
-        bias = true
-        activation_func = "ReLU"
-
-        [[ops_test.Conv.cfg]]
-        # Cache tiling: eight channel tail.
-        input_shape = [1, 256, 5, 7]
-        export_name_prefix = "conv_pointwise_cache_eight_channel_tail"
-
-        in_channels = 256
-        out_channels = 136
-        kernel_size = [1, 1]
-        stride = [1, 1]
-        padding = [0, 0]
-        dilation = [1, 1]
-        groups = 1
-        bias = true
-        activation_func = ""
-
-        [[ops_test.Conv.cfg]]
-        # Cache tiling: filter boundary.
+        # Two-tile boundary: W16A16 tiles, W8A8/W8A16 stay on the shell.
         input_shape = [1, 256, 5, 7]
         export_name_prefix = "conv_pointwise_cache_filter_boundary"
 

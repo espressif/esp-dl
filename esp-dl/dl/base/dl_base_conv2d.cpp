@@ -911,7 +911,7 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
 #endif
 }
 
-#if (CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST) || (CONFIG_IDF_TARGET_ESP32S3 && CONFIG_PIE_V1_BOOST)
+#if CONFIG_PIE_V2_BOOST || CONFIG_PIE_V1_BOOST
 // Reuse a bounded filter slice across several spatial positions instead of
 // streaming the complete filter matrix from PSRAM for every output pixel.
 // Keep the existing vector kernel's MAC order, bias layout and rounding.
@@ -927,12 +927,8 @@ static bool conv2d_11cn_tiled(ArgsType<feature_t> &args, const ImplFunc_t<featur
     constexpr int lanes = 16 / sizeof(feature_t);
     constexpr int bias_bytes = sizeof(feature_t) == 1 ? sizeof(int32_t) : sizeof(int64_t);
     if (!kernel || args.filter_height != 1 || args.filter_width != 1 || args.input_channel < lanes ||
-        args.input_channel % lanes || args.output_channel < lanes || args.output_channel % lanes ||
-        args.stride_x != 1 || args.stride_y != 1 || args.padding_h_head || args.padding_h_tail || args.padding_w_head ||
-        args.padding_w_tail || args.output_width != args.input_width || args.output_x_offset != args.output_channel ||
-        args.output_y_offset != args.output_width * args.output_channel ||
-        args.input_stride_x_offset != args.input_channel ||
-        args.input_stride_y_offset != args.input_width * args.input_channel ||
+        args.input_channel % lanes || args.output_channel % lanes || args.stride_x != 1 || args.stride_y != 1 ||
+        args.padding_h_head || args.padding_h_tail || args.padding_w_head || args.padding_w_tail ||
         (reinterpret_cast<uintptr_t>(args.input_element) & 15) ||
         (reinterpret_cast<uintptr_t>(args.output_element) & 15) ||
         (args.activation_type != Linear && args.activation_type != ReLU)) {
@@ -1003,7 +999,7 @@ void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
     if (args.filter_height == 1 && args.filter_width == 1) // Filter shape = [1, 1, C, N]
     {
         load_conv2d_11cn_s16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
-#if (CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST) || (CONFIG_IDF_TARGET_ESP32S3 && CONFIG_PIE_V1_BOOST)
+#if CONFIG_PIE_V2_BOOST || CONFIG_PIE_V1_BOOST
         if (conv2d_11cn_tiled(args, i_impl_func_sp)) {
             return;
         }
@@ -1438,7 +1434,7 @@ void conv2d<int16_t, int32_t, int64_t, int8_t>(void *args_ptr)
 
     load_conv2d_w8a16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
 
-#if (CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST) || (CONFIG_IDF_TARGET_ESP32S3 && CONFIG_PIE_V1_BOOST)
+#if CONFIG_PIE_V2_BOOST || CONFIG_PIE_V1_BOOST
     if (conv2d_11cn_tiled<int16_t, int8_t>(args, i_impl_func_sp)) {
         return;
     }
@@ -1907,7 +1903,7 @@ void conv2d<int8_t, int32_t, int32_t>(void *args_ptr)
 
     if (args.filter_height == 1 && args.filter_width == 1) {
         load_conv2d_11cn_s8(i_impl_func, i_impl_func_sp, args); // Filter shape = [1, 1, C, N]
-#if (CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST) || (CONFIG_IDF_TARGET_ESP32S3 && CONFIG_PIE_V1_BOOST)
+#if CONFIG_PIE_V2_BOOST || CONFIG_PIE_V1_BOOST
         if (conv2d_11cn_tiled(args, i_impl_func_sp)) {
             return;
         }

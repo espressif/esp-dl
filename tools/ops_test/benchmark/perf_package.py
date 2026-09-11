@@ -137,7 +137,11 @@ def _update_allows(update_ops, result):
     """Whether this pipeline may replace `result`'s baseline entry."""
     if update_ops == UPDATE_ALL_OPS:
         return True
-    return str(result.get("config", "")).lower() in update_ops
+    name = str(result.get("config", "")).lower()
+    if name in update_ops:
+        return True
+    # Conv_s8 / Conv_s16 / Conv_w8a16 inherit a bare "Conv" update scope.
+    return name.split("_", 1)[0] in update_ops
 
 
 def _gate_us(result):

@@ -3,6 +3,36 @@ import os
 
 import toml
 
+# Must match tools/ops_test/gen_test_cases.py: Conv is packed per quantization.
+_SPLIT_BY_QUANT_OPS = ("Conv",)
+_CFG_TO_PACKAGE_SUFFIX = {
+    "int8": "_s8",
+    "w8a8": "_s8",
+    "int16": "_s16",
+    "w16a16": "_s16",
+    "w8a16": "_w8a16",
+    "float32": "_f32",
+    "none": "_f32",
+}
+
+
+def package_names_for_op(op_type, op_cfg=None):
+    if op_type not in _SPLIT_BY_QUANT_OPS:
+        return [op_type]
+    quant_types = (op_cfg or {}).get("quant_type") or ["int8", "int16", "w8a16"]
+    names = []
+    seen = set()
+    for item in quant_types:
+        suffix = _CFG_TO_PACKAGE_SUFFIX.get(item)
+        if not suffix:
+            continue
+        name = op_type + suffix
+        if name not in seen:
+            seen.add(name)
+            names.append(name)
+    return names or [op_type]
+
+
 # pytest-embedded's run_all_single_board_cases defaults to 30s. ESP32 C kernels
 # (especially Conv/Gemm) plus warmup/bench loops need much longer. The pytest
 # plugin default in conftest.py is 5 minutes and must stay above the Unity wait.
@@ -90,7 +120,7 @@ def gen_pytest_script_by_config(
     for op_type in op_test_config:
         if op_type == "class_package":
             continue
-        models.append(op_type)
+        models.extend(package_names_for_op(op_type, op_test_config[op_type]))
 
     if len(models) > 0:
         print(models)
@@ -101,7 +131,7 @@ def gen_pytest_script_by_config(
 
 def gen_pytest_script_by_type(op_type, pytest_file, target="esp32p4", env="esp32p4"):
     # models = get_model_names(model_path)
-    models = [op_type]
+    models = package_names_for_op(op_type)
     if len(models) > 0:
         print(models)
         write_pytest_script(pytest_file, target, env, models)
