@@ -134,9 +134,39 @@
         activation_func = ""
 
         [[ops_test.Conv.cfg]]
-        # Cache tiling: short.
+        # Cache tiling: partial spatial tile.
         input_shape = [1, 256, 1, 31]
         export_name_prefix = "conv_pointwise_cache_short"
+
+        in_channels = 256
+        out_channels = 256
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: one pixel cannot reuse the filter.
+        input_shape = [1, 256, 1, 1]
+        export_name_prefix = "conv_pointwise_cache_one_pixel"
+
+        in_channels = 256
+        out_channels = 256
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: the minimum useful spatial tile.
+        input_shape = [1, 256, 1, 2]
+        export_name_prefix = "conv_pointwise_cache_two_pixels"
 
         in_channels = 256
         out_channels = 256
