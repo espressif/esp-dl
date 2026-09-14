@@ -21,6 +21,9 @@ private:
         m_activation; /*!< activation of MatMul, if you don't specify anything, no activation is applied */
     bool m_input1_native_kn;
     bool m_running_native_kernel;
+#if CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST
+    bool m_running_packed_kernel = false;
+#endif
 
 public:
     /**
@@ -122,6 +125,18 @@ public:
 
     void forward_args(void *args)
     {
+#if CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST
+        if (m_running_packed_kernel) {
+            if (quant_type == QUANT_TYPE_SYMM_8BIT) {
+                base::packed_matmul_tiled<int8_t>(*static_cast<base::ArgsType<int8_t> *>(args));
+            } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
+                base::packed_matmul_tiled<int16_t>(*static_cast<base::ArgsType<int16_t> *>(args));
+            } else {
+                base::packed_matmul_tiled<int16_t, int8_t>(*static_cast<base::ArgsType<int16_t> *>(args));
+            }
+            return;
+        }
+#endif
         if (m_running_native_kernel) {
             if (quant_type == QUANT_TYPE_SYMM_8BIT) {
                 base::matmul<int8_t>(*static_cast<base::MatMulArgs<int8_t> *>(args));
@@ -652,8 +667,68 @@ public:
         output->set_shape(origin_output_shape);
     }
 
+    template <typename T, typename W = T>
+    bool packed_forward(ModelContext *context, runtime_mode_t mode)
+    {
+#if CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST
+        if (m_input1_native_kn || (m_activation != Linear && m_activation != ReLU))
+            return false;
+        auto *a = context->get_tensor(m_inputs_index[0]);
+        auto *b = context->get_tensor(m_inputs_index[1]);
+        auto *c = context->get_tensor(m_outputs_index[0]);
+        constexpr int lanes = 16 / sizeof(T);
+        // Use one packed weight matrix for all input rows.
+        if (a->shape.size() < 2 || a->shape.size() > 4 || b->shape.size() != 2 || a->shape.back() != b->shape[0] ||
+            b->shape[0] < lanes || b->shape[0] % lanes || b->shape[1] < lanes || b->exponent.is_per_channel() ||
+            a->exponent.is_per_channel() || c->exponent.is_per_channel() ||
+            (reinterpret_cast<uintptr_t>(b->get_element_ptr()) & 15))
+            return false;
+        int k = b->shape[0], n = b->shape[1], m = a->get_size() / k;
+        if (m < 2 || c->get_size() != m * n || c->shape.back() != n)
+            return false;
+        int shift = c->exponent - b->exponent - a->exponent;
+        if (shift < 0 || shift > 31)
+            return false;
+        // Use the original path below the measured P4 work limit.
+        if (static_cast<int64_t>(m) * n * k < (1024 * 1024))
+            return false;
+        TensorBase av({1, 1, m, k}, a->get_element_ptr(), a->exponent, a->dtype, false, a->caps);
+        TensorBase bv({1, 1, k, n}, b->get_element_ptr(), b->exponent, b->dtype, false, b->caps);
+        TensorBase cv({1, 1, m, n}, c->get_element_ptr(), c->exponent, c->dtype, false, c->caps);
+        std::vector<int> padding(4, 0);
+        base::ConvOpArgs<T, W> owner(
+            &cv, &av, padding, &bv, {1, 1}, {1, 1}, 1, nullptr, m_activation, nullptr, RUNTIME_MODE_SINGLE_CORE);
+        auto first = owner.get_args(0);
+        auto second = first;
+        int split = 0;
+        const bool multi = mode == RUNTIME_MODE_MULTI_CORE || mode == RUNTIME_MODE_AUTO;
+        if (multi) {
+            int left = (m + 1) / 2;
+            first.output_width = left;
+            second.input_element += left * k;
+            second.output_element += left * n;
+            second.output_width = m - left;
+            split = 2;
+        }
+        m_running_packed_kernel = true;
+        if (split)
+            module_forward_dual_core(this, &first, &second);
+        else
+            forward_args(&first);
+        m_running_packed_kernel = false;
+        return true;
+#else
+        return false;
+#endif
+    }
+
     void forward(ModelContext *context, runtime_mode_t mode = RUNTIME_MODE_AUTO)
     {
+        if ((quant_type == QUANT_TYPE_SYMM_8BIT && packed_forward<int8_t>(context, mode)) ||
+            (quant_type == QUANT_TYPE_SYMM_16BIT && packed_forward<int16_t>(context, mode)) ||
+            (quant_type == QUANT_TYPE_SYMM_W8A16 && packed_forward<int16_t, int8_t>(context, mode))) {
+            return;
+        }
         if (quant_type == QUANT_TYPE_SYMM_8BIT) {
             if (m_input1_native_kn) {
                 forward_native_template<int8_t>(context, mode);

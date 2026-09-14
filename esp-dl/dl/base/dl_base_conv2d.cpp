@@ -981,6 +981,55 @@ static bool conv2d_11cn_tiled(ArgsType<feature_t> &args, const ImplFunc_t<featur
 }
 #endif
 
+// Reuse each filter tile across output positions. Keep the original kernel.
+template <typename T, typename W = T>
+static bool conv2d_hwcn_tiled(ArgsType<T> &a, const ImplFunc_t<T, T> &kernel)
+{
+#if CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST
+    constexpr int lanes = 16 / sizeof(T);
+    constexpr int spatial_tile = 128;
+    if (!kernel || a.filter_height < 1 || a.filter_width < 1 || (a.filter_height == 1 && a.filter_width == 1) ||
+        a.filter_c != a.input_channel || a.padding_h_head || a.padding_h_tail || a.padding_w_head || a.padding_w_tail ||
+        a.stride_x != 1 || a.stride_y != 1 || a.dilation_h < 1 || a.dilation_w < 1 || a.output_height < 1 ||
+        a.output_width < 2 || a.input_channel < lanes || a.input_channel % lanes || a.output_channel % lanes ||
+        a.filter_y_offset || a.filter_n_offset || a.input_channel_with_padding != a.input_channel ||
+        a.output_x_offset != a.output_channel || a.input_stride_x_offset != a.input_channel ||
+        (reinterpret_cast<uintptr_t>(a.input_element) & 15) || (reinterpret_cast<uintptr_t>(a.output_element) & 15) ||
+        (a.activation_type != Linear && a.activation_type != ReLU))
+        return false;
+    const int filter_per_channel = a.filter_height * a.filter_width * a.input_channel;
+    constexpr int filter_bytes = 32 * 1024;
+    const int channels = (filter_bytes / sizeof(W) / filter_per_channel) / lanes * lanes;
+    if (channels < lanes || a.output_channel < 2 * channels)
+        return false;
+    for (int y = 0; y < a.output_height; ++y) {
+        for (int begin = 0; begin < a.output_width; begin += spatial_tile) {
+            const int end = std::min(begin + spatial_tile, a.output_width);
+            for (int channel = 0; channel < a.output_channel; channel += channels) {
+                auto tile = a;
+                tile.output_channel = std::min(channels, a.output_channel - channel);
+                tile.n_div_x = tile.output_channel / lanes;
+                tile.filter_element = static_cast<const W *>(a.filter_element) + channel * filter_per_channel;
+                if (a.bias_element) {
+                    constexpr int bias_bytes = sizeof(T) == 1 ? 4 : 8;
+                    tile.bias_element = static_cast<const uint8_t *>(a.bias_element) + channel * bias_bytes;
+                }
+                if (a.mac_shift == INT_MIN)
+                    tile.tie_filter_channel_factor = a.tie_filter_channel_factor + channel;
+                for (int x = begin; x < end; ++x) {
+                    kernel(a.output_element + y * a.output_y_offset + x * a.output_x_offset + channel,
+                           a.input_element + y * a.input_stride_y_offset + x * a.input_stride_x_offset,
+                           &tile);
+                }
+            }
+        }
+    }
+    return true;
+#else
+    return false;
+#endif
+}
+
 template <>
 void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
 {
@@ -1012,6 +1061,9 @@ void conv2d<int16_t, int32_t, int64_t>(void *args_ptr)
         load_conv2d_hwcn_s16(i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func, args);
     }
 
+    if (!n_wise_func && conv2d_hwcn_tiled<int16_t, int16_t>(args, i_impl_func_sp)) {
+        return;
+    }
     conv_operation_shell<int16_t, int64_t>(args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
 }
 
@@ -1440,6 +1492,9 @@ void conv2d<int16_t, int32_t, int64_t, int8_t>(void *args_ptr)
     }
 #endif
 
+    if (!n_wise_func && conv2d_hwcn_tiled<int16_t, int8_t>(args, i_impl_func_sp)) {
+        return;
+    }
     conv_operation_shell<int16_t, int64_t, int8_t>(
         args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
 }
@@ -1918,7 +1973,70 @@ void conv2d<int8_t, int32_t, int32_t>(void *args_ptr)
         load_conv2d_s8_per_tensor_c_func(c_impl_func, c_impl_func_sp, n_wise_func, args);
     }
 
+    if (!n_wise_func && conv2d_hwcn_tiled<int8_t, int8_t>(args, i_impl_func_sp)) {
+        return;
+    }
     conv_operation_shell<int8_t, int32_t>(args, i_impl_func, i_impl_func_sp, c_impl_func, c_impl_func_sp, n_wise_func);
 }
 } // namespace base
 } // namespace dl
+
+#if CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST
+
+namespace dl {
+namespace base {
+template <typename T, typename W>
+void packed_matmul_columns(ArgsType<T> &a, int begin, int count)
+{
+    constexpr int lanes = 16 / sizeof(T);
+    a.output_element += begin;
+    a.output_channel = count;
+    a.n_div_x = count / lanes;
+    a.n_remainder = count % lanes;
+    a.filter_element = static_cast<const W *>(a.filter_element) + begin * a.input_channel;
+    a.filter_element_unaligned = static_cast<const W *>(a.filter_element) + a.n_div_x * lanes * a.input_channel;
+}
+
+template <typename T, typename W>
+void packed_matmul_tiled(ArgsType<T> &args)
+{
+    constexpr int lanes = 16 / sizeof(T);
+    // Select the kernel with the physical output row stride.
+    auto dispatch = args;
+    dispatch.output_channel = args.output_x_offset;
+    ImplFunc_t<T, T> kernel, general;
+    if constexpr (sizeof(T) == 1) {
+        load_conv2d_11cn_s8(general, kernel, dispatch);
+    } else {
+        c_impl_func_s16_t c = nullptr, cs = nullptr;
+        n_wise_func_s16_t tail = nullptr;
+        if constexpr (sizeof(W) == 1)
+            load_conv2d_w8a16(general, kernel, c, cs, tail, dispatch);
+        else
+            load_conv2d_11cn_s16(general, kernel, c, cs, tail, dispatch);
+    }
+    assert(kernel);
+    dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
+    int channels = ((32 * 1024) / sizeof(W) / args.input_channel) / lanes * lanes;
+    const bool tiled = channels >= lanes && args.output_channel >= 2 * channels;
+    if (!tiled)
+        channels = args.output_channel;
+    for (int row = 0; row < args.output_width; row += 128) {
+        int end = std::min(args.output_width, row + 128);
+        for (int column = 0; column < args.output_channel; column += channels) {
+            auto tile = args;
+            packed_matmul_columns<T, W>(tile, column, std::min(channels, args.output_channel - column));
+            for (int pixel = row; pixel < end; ++pixel)
+                kernel(tile.output_element + pixel * args.output_x_offset,
+                       args.input_element + pixel * args.input_stride_x_offset,
+                       &tile);
+        }
+    }
+}
+template void packed_matmul_tiled<int8_t, int8_t>(ArgsType<int8_t> &);
+template void packed_matmul_tiled<int16_t, int16_t>(ArgsType<int16_t> &);
+template void packed_matmul_tiled<int16_t, int8_t>(ArgsType<int16_t> &);
+} // namespace base
+} // namespace dl
+
+#endif

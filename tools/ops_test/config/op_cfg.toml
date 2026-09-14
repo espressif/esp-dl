@@ -14,6 +14,266 @@
     restrictions = "Support 1d/2d conv, groups only support 1 or input_channels"
 
         [[ops_test.Conv.cfg]]
+        input_shape = [1, 256, 4]
+        export_name_prefix = "conv_width_short_c256_p2"
+        in_channels = 256
+        out_channels = 256
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 36]
+        export_name_prefix = "conv_width_kernel4"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [4]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = false
+        activation_func = ""
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 45]
+        export_name_prefix = "conv_width_kernel7_d2"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [7]
+        stride = [1]
+        padding = [0]
+        dilation = [2]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 41]
+        export_name_prefix = "conv_width_kernel9"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [9]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 1, 35]
+        export_name_prefix = "conv_width_2d_height1_k3"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [1, 3]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 12, 17]
+        export_name_prefix = "conv_width_2d_k3_h12"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 13, 17]
+        export_name_prefix = "conv_width_2d_k3_h13"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 8, 33]
+        export_name_prefix = "conv_width_2d_rect_dilation"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3, 5]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [2, 2]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 32, 7, 34]
+        export_name_prefix = "conv_width_2d_rect_even_kernel"
+        in_channels = 32
+        out_channels = 64
+        kernel_size = [5, 2]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 8, 17]
+        export_name_prefix = "conv_width_2d_vertical_kernel"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 8, 4]
+        export_name_prefix = "conv_width_extra_2d_two_columns"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 8, 5]
+        export_name_prefix = "conv_width_extra_2d_three_columns"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 24, 71]
+        export_name_prefix = "conv_width_extra_eight_lane_input"
+        in_channels = 24
+        out_channels = 64
+        kernel_size = [7]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 67]
+        export_name_prefix = "conv_width_extra_eight_lane_output"
+        in_channels = 64
+        out_channels = 72
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 11]
+        export_name_prefix = "conv_width_boundary_grain_c64_p9"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 12]
+        export_name_prefix = "conv_width_extra_grain_c64_p10"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 15]
+        export_name_prefix = "conv_width_boundary_grain_c64_p13"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 16]
+        export_name_prefix = "conv_width_boundary_grain_c64_p14"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 33]
+        export_name_prefix = "conv_width_extra_grain_c64_p31"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 64, 34]
+        export_name_prefix = "conv_width_grain_c64_p32"
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
         # Cache tiling: small.
         input_shape = [1, 64, 5, 7]
         export_name_prefix = "conv_pointwise_cache_small"
@@ -2379,6 +2639,48 @@
     quant_type = ["int8", "int16", "w8a16"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D. w8a16 applies to static input1 only."
+        [[ops_test.MatMul.cfg]]
+        input_shape = [1, 17, 128]
+        input_weight_shape = [128, 1024]
+        export_name_prefix = "matmul_p4_tiles_rows"
+        activation_func = ""
+        input1_is_weight = true
+
+        [[ops_test.MatMul.cfg]]
+        input_shape = [1, 17, 128]
+        input_weight_shape = [128, 1030]
+        export_name_prefix = "matmul_p4_tiles_tail"
+        activation_func = "ReLU"
+        input1_is_weight = true
+
+        [[ops_test.MatMul.cfg]]
+        input_shape = [1, 2, 9, 128]
+        input_weight_shape = [128, 1023]
+        export_name_prefix = "matmul_p4_tiles_batch"
+        activation_func = ""
+        input1_is_weight = true
+
+        [[ops_test.MatMul.cfg]]
+        input_shape = [1, 2, 2, 5, 128]
+        input_weight_shape = [128, 1040]
+        export_name_prefix = "matmul_p4_tiles_rank4"
+        activation_func = "ReLU"
+        input1_is_weight = true
+
+        [[ops_test.MatMul.cfg]]
+        input_shape = [1, 3, 16]
+        input_weight_shape = [16, 17]
+        export_name_prefix = "matmul_p4_tiles_small"
+        activation_func = ""
+        input1_is_weight = true
+
+        [[ops_test.MatMul.cfg]]
+        input_shape = [1, 17, 127]
+        input_weight_shape = [127, 1030]
+        export_name_prefix = "matmul_p4_tiles_unaligned_k"
+        activation_func = ""
+        input1_is_weight = true
+
         [[ops_test.MatMul.cfg]]
         input_shape = [[1, 10], [1, 10]]
         export_name_prefix = "MatMul_ishape0_10_ishape1_10"

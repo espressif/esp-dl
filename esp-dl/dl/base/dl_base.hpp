@@ -1172,8 +1172,8 @@ void conv_operation_shell(ArgsType<feature_t> &args,
         if (i_impl_func_sp) {
             if (n_wise_tail) {
                 for (size_t output_y = 0; output_y < args.output_height; output_y++) {
-                    feature_t *input_syx = input_ptr;
-                    feature_t *output_yx = output_ptr;
+                    feature_t *input_syx = input_ptr + output_y * args.input_stride_y_offset;
+                    feature_t *output_yx = output_ptr + output_y * args.output_y_offset;
 
                     for (size_t output_x = 0; output_x < args.output_width; output_x++) {
                         i_impl_func_sp(output_yx, input_syx, (void *const)&args);
@@ -1182,21 +1182,17 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                         input_syx += args.input_stride_x_offset;
                         output_yx += args.output_x_offset;
                     }
-                    input_ptr += args.input_stride_y_offset;
-                    output_ptr += args.output_y_offset;
                 }
             } else {
                 for (size_t output_y = 0; output_y < args.output_height; output_y++) {
-                    feature_t *input_syx = input_ptr;
-                    feature_t *output_yx = output_ptr;
+                    feature_t *input_syx = input_ptr + output_y * args.input_stride_y_offset;
+                    feature_t *output_yx = output_ptr + output_y * args.output_y_offset;
 
                     for (size_t output_x = 0; output_x < args.output_width; output_x++) {
                         i_impl_func_sp(output_yx, input_syx, (void *const)&args);
                         input_syx += args.input_stride_x_offset;
                         output_yx += args.output_x_offset;
                     }
-                    input_ptr += args.input_stride_y_offset;
-                    output_ptr += args.output_y_offset;
                 }
             }
         } else // run c_impl_func
@@ -1204,8 +1200,8 @@ void conv_operation_shell(ArgsType<feature_t> &args,
             buffer_t *buffer =
                 (buffer_t *)tool::calloc_aligned(args.output_channel, sizeof(buffer_t), MALLOC_CAP_DEFAULT);
             for (size_t output_y = 0; output_y < args.output_height; output_y++) {
-                feature_t *input_syx = input_ptr;
-                feature_t *output_yx = output_ptr;
+                feature_t *input_syx = input_ptr + output_y * args.input_stride_y_offset;
+                feature_t *output_yx = output_ptr + output_y * args.output_y_offset;
 
                 for (size_t output_x = 0; output_x < args.output_width; output_x++) {
                     c_impl_func_sp(buffer, input_syx, args);
@@ -1214,8 +1210,6 @@ void conv_operation_shell(ArgsType<feature_t> &args,
                     input_syx += args.input_stride_x_offset;
                     output_yx += args.output_x_offset;
                 }
-                input_ptr += args.input_stride_y_offset;
-                output_ptr += args.output_y_offset;
             }
             heap_caps_free(buffer);
         }
