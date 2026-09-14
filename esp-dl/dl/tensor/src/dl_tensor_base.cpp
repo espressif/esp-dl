@@ -450,10 +450,10 @@ TensorBase &TensorBase::set_shape(const std::vector<int> shape)
 
 size_t TensorBase::set_preload_addr(void *addr, size_t size)
 {
-    size_t aligned_size = this->get_aligned_size();
-    if (addr && size >= aligned_size) {
+    size_t aligned_bytes = this->get_aligned_bytes();
+    if (addr && size >= aligned_bytes) {
         this->cache = addr;
-        return aligned_size;
+        return aligned_bytes;
     }
     this->cache = nullptr;
     return 0;

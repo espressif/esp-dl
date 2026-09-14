@@ -509,9 +509,12 @@ public:
     /**
      * @brief Get the shape of Tensor.
      *
+     * Returned by reference: operators query the shape several times per
+     * forward and the copies were costing more than the work they guarded.
+     *
      * @return std::vector<int> the shape of Tensor
      */
-    std::vector<int> get_shape() { return this->shape; }
+    const std::vector<int> &get_shape() const { return this->shape; }
 
     /**
      * @brief Set the shape of Tensor.
@@ -737,21 +740,23 @@ public:
     /**
      * @brief Set preload address of Tensor
      *
-     * @param addr  The address of preload data
-     * @param size  Size of preload data
+     * @param addr  The address of preload data, should be aligned to 16 bytes
+     * @param size  Size of the preload buffer, in bytes
      *
-     * @return The size of preload data
+     * @return The number of bytes claimed at addr, or 0 if the buffer is too small
      */
     size_t set_preload_addr(void *addr, size_t size);
 
     /**
-     * @brief Preload the data of Tensor
+     * @brief Copy the data of Tensor into its preload buffer.
      *
+     * Call after any in-place layout rewrite (reset_bias_layout,
+     * reset_param_layout) so the buffer holds the layout the kernels expect.
      */
     virtual void preload()
     {
-        if (this->cache) {
-            tool::copy_memory(this->cache, this->cache, this->get_bytes());
+        if (this->cache && this->cache != this->data) {
+            tool::copy_memory(this->cache, this->data, this->get_bytes());
         }
     }
 
