@@ -89,6 +89,26 @@ public:
         T *output_ptr = (T *)output->get_element_ptr();
         int n_inputs = m_inputs_index.size();
 
+#if CONFIG_IDF_TARGET_ESP32P4
+        const int loop_count = this->loop_times;
+        int output_step = 0;
+        for (int n : this->copy_nums) {
+            output_step += n;
+        }
+        for (size_t i = 0; i < n_inputs; i++) {
+            TensorBase *input = context->get_tensor(m_inputs_index[i]);
+            T *input_ptr = (T *)input->get_element_ptr();
+            T *dst = output_ptr;
+            const int copy_num = this->copy_nums[i];
+            for (size_t j = 0; j < loop_count; j++) {
+                tool::copy_memory(dst, input_ptr, sizeof(T) * copy_num);
+                if (j + 1 < loop_count)
+                    dst += output_step;
+                input_ptr += copy_num;
+            }
+            output_ptr += copy_num;
+        }
+#else
         std::vector<T *> inputs_ptr(n_inputs);
         for (size_t i = 0; i < n_inputs; i++) {
             TensorBase *input = context->get_tensor(m_inputs_index[i]);
@@ -102,6 +122,7 @@ public:
                 inputs_ptr[j] += copy_nums[j];
             }
         }
+#endif
     }
 
     /**
