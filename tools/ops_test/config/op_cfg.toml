@@ -3325,6 +3325,8 @@
     package = "torch_ops_test"
         # case: reduceall
         [[ops_test.ReduceMean.cfg]]
+        # The generator removes dimension 0. ReduceMean receives [4, 16].
+        # The reduction count is 4. Aligned INT16 input uses the P4 QACC kernel.
         input_shape = [1, 4, 16]
         dim = [0]
         keepdim = true
