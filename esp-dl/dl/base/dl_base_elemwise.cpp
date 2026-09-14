@@ -4,7 +4,7 @@
 namespace dl {
 namespace base {
 
-int calculate_elemwise_stride(std::vector<int> shape, int dim)
+int calculate_elemwise_stride(const int *shape, int rank, int dim)
 {
     int offset = 0;
     if (shape[dim] > 1) {
@@ -14,7 +14,7 @@ int calculate_elemwise_stride(std::vector<int> shape, int dim)
         } else {
             // case1: (n, 1)
             offset = 1;
-            for (int i = dim + 1; i < shape.size(); i++) {
+            for (int i = dim + 1; i < rank; i++) {
                 offset *= shape[i];
             }
             return offset;
@@ -23,7 +23,7 @@ int calculate_elemwise_stride(std::vector<int> shape, int dim)
         if (shape[dim + 1] > 1) {
             // case1: (1, n)
             offset = -1;
-            for (int i = dim + 1; i < shape.size(); i++) {
+            for (int i = dim + 1; i < rank; i++) {
                 offset *= shape[i];
             }
             return offset;
@@ -41,19 +41,31 @@ std::vector<elemwiseArgsType<in_feature_t, out_feature_t>> get_elemwise_operatio
 {
     elemwiseArgsType<in_feature_t, out_feature_t> args;
 
-    // Align the shape of input1 and input0 with output
-    std::vector<int> output_shape = output->get_shape();
-    int dims = output_shape.size();
-    std::vector<int> input0_shape = input0->get_shape();
-    std::vector<int> input1_shape = input1->get_shape();
-    int input0_dims = input0_shape.size();
-    int input1_dims = input1_shape.size();
-
-    if (input0_dims < dims) {
-        input0_shape.insert(input0_shape.begin(), dims - input0_dims, 1);
+    // Align the shape of input1 and input0 with output.
+    //
+    // This runs on every forward, so the working shapes are kept in fixed-size
+    // stack arrays. Going through std::vector here cost four heap round trips
+    // per call, which dominated the run time of small element-wise tensors.
+    constexpr int kMaxDims = 4;
+    const std::vector<int> &output_shape_ref = output->get_shape();
+    const std::vector<int> &input0_shape_ref = input0->get_shape();
+    const std::vector<int> &input1_shape_ref = input1->get_shape();
+    int dims = static_cast<int>(output_shape_ref.size());
+    if (dims > kMaxDims) {
+        ESP_LOGE("Element-wise", "Do not support dim=%d", dims);
+        return std::vector<elemwiseArgsType<in_feature_t, out_feature_t>>();
     }
-    if (input1_dims < dims) {
-        input1_shape.insert(input1_shape.begin(), dims - input1_dims, 1);
+
+    int output_shape[kMaxDims];
+    int input0_shape[kMaxDims];
+    int input1_shape[kMaxDims];
+    // Right-align the inputs against the output, padding the leading axes with 1.
+    const int input0_pad = dims - static_cast<int>(input0_shape_ref.size());
+    const int input1_pad = dims - static_cast<int>(input1_shape_ref.size());
+    for (int i = 0; i < dims; i++) {
+        output_shape[i] = output_shape_ref[i];
+        input0_shape[i] = i < input0_pad ? 1 : input0_shape_ref[i - input0_pad];
+        input1_shape[i] = i < input1_pad ? 1 : input1_shape_ref[i - input1_pad];
     }
 
     // Merge input0 and input1 shape
@@ -132,8 +144,8 @@ std::vector<elemwiseArgsType<in_feature_t, out_feature_t>> get_elemwise_operatio
         args.input1_d0 = input1_shape[2];
         args.input0_d1_stride = input0_shape[1] == 1 ? 0 : input0_shape[2];
         args.input1_d1_stride = input1_shape[1] == 1 ? 0 : input1_shape[2];
-        args.input0_d2_stride = calculate_elemwise_stride(input0_shape, 0);
-        args.input1_d2_stride = calculate_elemwise_stride(input1_shape, 0);
+        args.input0_d2_stride = calculate_elemwise_stride(input0_shape, dims, 0);
+        args.input1_d2_stride = calculate_elemwise_stride(input1_shape, dims, 0);
         break;
     case 4:
         args.dims = 4;
@@ -146,10 +158,10 @@ std::vector<elemwiseArgsType<in_feature_t, out_feature_t>> get_elemwise_operatio
         args.input1_d0 = input1_shape[3];
         args.input0_d1_stride = input0_shape[2] == 1 ? 0 : input0_shape[3];
         args.input1_d1_stride = input1_shape[2] == 1 ? 0 : input1_shape[3];
-        args.input0_d2_stride = calculate_elemwise_stride(input0_shape, 1);
-        args.input1_d2_stride = calculate_elemwise_stride(input1_shape, 1);
-        args.input0_d3_stride = calculate_elemwise_stride(input0_shape, 0);
-        args.input1_d3_stride = calculate_elemwise_stride(input1_shape, 0);
+        args.input0_d2_stride = calculate_elemwise_stride(input0_shape, dims, 1);
+        args.input1_d2_stride = calculate_elemwise_stride(input1_shape, dims, 1);
+        args.input0_d3_stride = calculate_elemwise_stride(input0_shape, dims, 0);
+        args.input1_d3_stride = calculate_elemwise_stride(input1_shape, dims, 0);
         break;
     default:
         ESP_LOGE("Element-wise", "Do not support dim=%d", merged_dims);
