@@ -181,7 +181,13 @@ def update_baseline_scope():
 
 def update_allowed(scope, config):
     """Whether an update scope from update_baseline_scope() covers `config`."""
-    return scope == UPDATE_ALL_OPS or str(config).lower() in scope
+    if scope == UPDATE_ALL_OPS:
+        return True
+    name = str(config).lower()
+    if name in scope:
+        return True
+    # Conv_s8 / Conv_s16 / Conv_w8a16 inherit a bare "Conv" update scope.
+    return name.split("_", 1)[0] in scope
 
 
 def _compared_us(result, metric):

@@ -12,6 +12,156 @@
     package = "torch_ops_test"
     targets = ["esp32s3", "esp32p4"]
     restrictions = "Support 1d/2d conv, groups only support 1 or input_channels"
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: small.
+        input_shape = [1, 64, 5, 7]
+        export_name_prefix = "conv_pointwise_cache_small"
+
+        in_channels = 64
+        out_channels = 64
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: spatial tail.
+        input_shape = [1, 256, 1, 49]
+        export_name_prefix = "conv_pointwise_cache_spatial_tail"
+
+        in_channels = 256
+        out_channels = 256
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: spatial remainder, bias + ReLU.
+        input_shape = [1, 128, 2, 4]
+        export_name_prefix = "conv_pointwise_cache_spatial_tail_128"
+
+        in_channels = 128
+        out_channels = 128
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 256, 3, 7]
+        export_name_prefix = "conv_pointwise_cache_short_spatial"
+
+        in_channels = 256
+        out_channels = 512
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: channel remainder. Tiles on W8A8 / W8A16 / W16A16.
+        input_shape = [1, 512, 5, 7]
+        export_name_prefix = "conv_pointwise_cache_channel_tail"
+
+        in_channels = 512
+        out_channels = 144
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: no bias + Linear.
+        input_shape = [1, 256, 5, 7]
+        export_name_prefix = "conv_pointwise_cache_nobias_linear"
+
+        in_channels = 256
+        out_channels = 256
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = false
+        activation_func = ""
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: stride.
+        input_shape = [1, 256, 13, 13]
+        export_name_prefix = "conv_pointwise_cache_stride"
+
+        in_channels = 256
+        out_channels = 256
+        kernel_size = [1, 1]
+        stride = [2, 2]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: unaligned.
+        input_shape = [1, 255, 5, 7]
+        export_name_prefix = "conv_pointwise_cache_unaligned"
+
+        in_channels = 255
+        out_channels = 257
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""
+
+        [[ops_test.Conv.cfg]]
+        # Two-tile boundary: W16A16 tiles, W8A8/W8A16 stay on the shell.
+        input_shape = [1, 256, 5, 7]
+        export_name_prefix = "conv_pointwise_cache_filter_boundary"
+
+        in_channels = 256
+        out_channels = 128
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""
+
+        [[ops_test.Conv.cfg]]
+        # Cache tiling: conv1d.
+        input_shape = [1, 256, 49]
+        export_name_prefix = "conv_pointwise_cache_conv1d"
+
+        in_channels = 256
+        out_channels = 144
+        kernel_size = [1]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
         [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned
         input_shape = [1, 3, 100, 50]

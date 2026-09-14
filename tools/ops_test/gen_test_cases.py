@@ -38,6 +38,15 @@ _QUANT_TYPE_EXPORT_SUFFIX = {
     "w16a16": "_s16",
     "none": "_f32",
 }
+# Conv fixtures are large enough that packing every quantization into one
+# models.espdl overflows the ESP32 8MB / 3800K model partition.
+_SPLIT_BY_QUANT_OPS = ("Conv",)
+
+
+def op_export_dirname(op_type, quant_type):
+    if op_type in _SPLIT_BY_QUANT_OPS:
+        return op_type + _QUANT_TYPE_EXPORT_SUFFIX[quant_type]
+    return op_type
 
 
 def resolve_quant_type(quant_type, num_of_bits, use_float):
@@ -311,7 +320,9 @@ if __name__ == "__main__":
                 per_channel_enable = True
 
             if quant_type in op_quant_types:
-                export_path = os.path.join(args.output_path, op_type)
+                export_path = os.path.join(
+                    args.output_path, op_export_dirname(op_type, quant_type)
+                )
                 for cfg in op_configs:
                     cfg["per_channel_enable"] = per_channel_enable
                     print(
