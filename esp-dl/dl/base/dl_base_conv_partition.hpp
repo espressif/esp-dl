@@ -10,7 +10,7 @@ namespace base {
 template <typename T, typename filter_t = T>
 constexpr int64_t conv_width_minimum_macs()
 {
-    return sizeof(T) == 1 ? 384 * 1024 : (sizeof(filter_t) == 1 ? 112 * 1024 : 160 * 1024);
+    return sizeof(T) == 1 ? 512 * 1024 : (sizeof(filter_t) == 1 ? 112 * 1024 : 160 * 1024);
 }
 
 // Use only with batch 1, group 1 and MULTI_CORE mode.
