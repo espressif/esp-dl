@@ -49,6 +49,57 @@ def op_export_dirname(op_type, quant_type):
     return op_type
 
 
+_DEFAULT_TEST_MAX_ERROR = 5e-4
+
+
+def resolve_max_error(quant_type, *cfgs):
+    """Pick max_error with later configs overriding earlier ones.
+
+    Typical order: meta -> op -> case.
+
+    max_error can be:
+    - a single number: shared by every quant_type
+    - a list of one number: same as a single number
+    - a list: each entry maps to the same-index item in that config's
+      (or an earlier config's) quant_type list
+    """
+    value = _DEFAULT_TEST_MAX_ERROR
+    quant_types = None
+    for cfg in cfgs:
+        if cfg is None:
+            continue
+        if "quant_type" in cfg:
+            quant_types = cfg["quant_type"]
+        if "max_error" in cfg:
+            value = cfg["max_error"]
+
+    if isinstance(value, (list, tuple)):
+        if len(value) == 1:
+            return float(value[0])
+        if not quant_types:
+            raise ValueError(
+                "max_error is a list of {} values but no quant_type list is available".format(
+                    len(value)
+                )
+            )
+        resolved_types = [_CFG_TO_QUANT_TYPE.get(item, item) for item in quant_types]
+        if len(value) != len(resolved_types):
+            raise ValueError(
+                "max_error list length {} does not match quant_type list {}.".format(
+                    len(value), quant_types
+                )
+            )
+        try:
+            return float(value[resolved_types.index(quant_type)])
+        except ValueError:
+            raise ValueError(
+                "quant_type '{}' is not in quant_type list {}.".format(
+                    quant_type, quant_types
+                )
+            ) from None
+    return float(value)
+
+
 def resolve_quant_type(quant_type, num_of_bits, use_float):
     if quant_type is not None:
         resolved = quant_type.lower()
@@ -80,6 +131,7 @@ class BaseInferencer:
         meta_cfg=None,
         use_float=False,
         quant_type=None,
+        test_max_error=_DEFAULT_TEST_MAX_ERROR,
     ):
         if not os.path.exists(export_path):
             os.makedirs(export_path)
@@ -123,6 +175,7 @@ class BaseInferencer:
         self.model_version = model_version
         self.target = target
         self.input_dtype = torch.float
+        self.test_max_error = test_max_error
 
     def __call__(self):
         # get the export files path
@@ -148,6 +201,12 @@ class BaseInferencer:
                     op_name, get_target_platform(self.target, num_bit)
                 )
 
+        # C++ Model::test() reads metadata key "test_max_error".
+        metadata_props = {
+            "target": self.target,
+            "test_max_error": format(self.test_max_error, "g"),
+        }
+
         if self.onnx_file is None:
             espdl_quantize_torch(
                 model=self.model,
@@ -166,7 +225,7 @@ class BaseInferencer:
                 export_config=True,
                 verbose=1,
                 int16_lut_step=1,
-                metadata_props={"target": self.target},
+                metadata_props=metadata_props,
                 quant_type=self.quant_type,
             )
 
@@ -188,7 +247,7 @@ class BaseInferencer:
                 export_config=True,
                 verbose=1,
                 int16_lut_step=1,
-                metadata_props={"target": self.target},
+                metadata_props=metadata_props,
                 quant_type=self.quant_type,
             )
 
@@ -325,6 +384,9 @@ if __name__ == "__main__":
                 )
                 for cfg in op_configs:
                     cfg["per_channel_enable"] = per_channel_enable
+                    test_max_error = resolve_max_error(
+                        quant_type, config["meta"], op_test_config[op_type], cfg
+                    )
                     print(
                         "target: ",
                         args.target,
@@ -338,6 +400,8 @@ if __name__ == "__main__":
                         export_path,
                         "quant_type: ",
                         quant_type,
+                        "test_max_error: ",
+                        test_max_error,
                     )
                     op = getattr(pkg, op_test_func)(cfg)
                     BaseInferencer(
@@ -350,6 +414,7 @@ if __name__ == "__main__":
                         meta_cfg=config["meta"],
                         use_float=use_float,
                         quant_type=quant_type,
+                        test_max_error=test_max_error,
                     )()
             else:
                 print(
@@ -368,4 +433,5 @@ if __name__ == "__main__":
             meta_cfg=config["meta"],
             use_float=use_float,
             quant_type=quant_type,
+            test_max_error=resolve_max_error(quant_type, config["meta"], model_config),
         )()

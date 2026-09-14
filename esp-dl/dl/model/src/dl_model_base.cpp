@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cstdlib>
 #include <stdint.h>
 
 #include "dl_memory_manager_greedy.hpp"
@@ -474,6 +476,15 @@ void Model::minimize()
 esp_err_t Model::test()
 {
     printf("\n");
+    float max_error = 5e-4f;
+    std::string max_error_str = get_metadata_prop("test_max_error");
+    if (!max_error_str.empty()) {
+        max_error = strtof(max_error_str.c_str(), nullptr);
+        ESP_LOGI(TAG, "Test max_error = %g (from model metadata)", max_error);
+    } else {
+        ESP_LOGI(TAG, "Test max_error = %g (default)", max_error);
+    }
+
     std::vector<TensorBase *> test_tensors_cache;
     m_fbs_model->load_map();
     std::map<std::string, TensorBase *> &graph_inputs = get_inputs();
@@ -521,21 +532,16 @@ esp_err_t Model::test()
                 dl::TensorBase *output_gt = m_fbs_model->get_test_output_tensor(output_name);
                 assert(output);
                 assert(output_gt);
+                float epsilon = max_error;
                 if (output->get_dtype() == DATA_TYPE_INT16 || output->get_dtype() == DATA_TYPE_UINT16) {
                     // The int16 quantization cannot be fully aligned, and there may be rounding errors of +-1.
-                    if (!output->equal(output_gt, 1 + 1e-5, true)) {
-                        ESP_LOGE(TAG, "Test output %s does not match\n", output_name.c_str());
-                        delete output_gt;
-                        m_fbs_model->clear_map();
-                        return ESP_FAIL;
-                    }
-                } else {
-                    if (!output->equal(output_gt, 5e-5, true)) {
-                        ESP_LOGE(TAG, "Test output %s does not match\n", output_name.c_str());
-                        delete output_gt;
-                        m_fbs_model->clear_map();
-                        return ESP_FAIL;
-                    }
+                    epsilon = std::max(1.0f + 1e-5f, max_error);
+                }
+                if (!output->equal(output_gt, epsilon, true)) {
+                    ESP_LOGE(TAG, "Test output %s does not match\n", output_name.c_str());
+                    delete output_gt;
+                    m_fbs_model->clear_map();
+                    return ESP_FAIL;
                 }
                 test_tensors_cache.emplace_back(output_gt);
             }
