@@ -2015,7 +2015,12 @@ void packed_matmul_tiled(ArgsType<T> &args)
         else
             load_conv2d_11cn_s16(general, kernel, c, cs, tail, dispatch);
     }
-    assert(kernel);
+    if (!kernel) {
+        // Use the original Conv path if kernel selection fails.
+        using accumulator_t = typename std::conditional<sizeof(T) == 1, int32_t, int64_t>::type;
+        conv2d<T, int32_t, accumulator_t, W>(&args);
+        return;
+    }
     dl_esp32p4_cfg_round(ROUND_MODE_HALF_EVEN);
     int channels = ((32 * 1024) / sizeof(W) / args.input_channel) / lanes * lanes;
     const bool tiled = channels >= lanes && args.output_channel >= 2 * channels;

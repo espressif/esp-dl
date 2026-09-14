@@ -2661,6 +2661,7 @@
         input1_is_weight = true
 
         [[ops_test.MatMul.cfg]]
+        # The generator removes dimension 0 before MatMul. The operator input has rank 4.
         input_shape = [1, 2, 2, 5, 128]
         input_weight_shape = [128, 1040]
         export_name_prefix = "matmul_p4_tiles_rank4"
