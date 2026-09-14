@@ -121,6 +121,7 @@ public:
     {
 #if CONFIG_IDF_TARGET_ESP32P4
         // RTC RAM can be part of the default heap. Use a fast SRAM stack for the copy.
+        // &args is the address of the pointer on the current task stack.
         if (esp_ptr_in_rtc_dram_fast(args) && esp_ptr_in_dram(&args)) {
             if (quant_type == QUANT_TYPE_SYMM_8BIT) {
                 const auto *typed = static_cast<const base::ArgsType<int8_t> *>(args);
