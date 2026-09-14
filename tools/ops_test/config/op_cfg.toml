@@ -552,6 +552,33 @@
         bias = true
         activation_func = "ReLU"    # "", "ReLU"
 
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 32, 1, 3]
+        export_name_prefix = "conv_p4_args_3_pixels"
+        in_channels = 32
+        out_channels = 32
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        input_shape = [1, 32, 1, 4]
+        export_name_prefix = "conv_p4_args_4_pixels"
+        in_channels = 32
+        out_channels = 32
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+
     [ops_test.Gemm]
     test_func = "LINEAR_TEST"
     quant_type = ["int8", "int16", "w8a16"]

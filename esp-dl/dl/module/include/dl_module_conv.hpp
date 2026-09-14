@@ -3,6 +3,10 @@
 #include "dl_base_conv2d.hpp"
 #include "dl_base_depthwise_conv2d.hpp"
 #include "dl_module_base.hpp"
+#include <type_traits>
+#if CONFIG_IDF_TARGET_ESP32P4
+#include "esp_memory_utils.h"
+#endif
 #include <string>
 #include <typeinfo>
 #include "freertos/FreeRTOS.h"
@@ -102,7 +106,41 @@ public:
         return {output_shape};
     }
 
+#if CONFIG_IDF_TARGET_ESP32P4
+    // Keep the copy frame out of the path that uses the original arguments.
+    template <typename T>
+    __attribute__((noinline)) void forward_local_args(const base::ArgsType<T> *args)
+    {
+        static_assert(std::is_trivially_copyable<base::ArgsType<T>>::value, "Conv arguments must permit a value copy");
+        alignas(16) base::ArgsType<T> local = *args;
+        forward_args_impl(&local);
+    }
+#endif
+
     void forward_args(void *args)
+    {
+#if CONFIG_IDF_TARGET_ESP32P4
+        // RTC RAM can be part of the default heap. Use a fast SRAM stack for the copy.
+        if (esp_ptr_in_rtc_dram_fast(args) && esp_ptr_in_dram(&args)) {
+            if (quant_type == QUANT_TYPE_SYMM_8BIT) {
+                const auto *typed = static_cast<const base::ArgsType<int8_t> *>(args);
+                if (static_cast<int64_t>(typed->output_height) * typed->output_width >= 4) {
+                    forward_local_args(typed);
+                    return;
+                }
+            } else if (quant_type == QUANT_TYPE_SYMM_16BIT || quant_type == QUANT_TYPE_SYMM_W8A16) {
+                const auto *typed = static_cast<const base::ArgsType<int16_t> *>(args);
+                if (static_cast<int64_t>(typed->output_height) * typed->output_width >= 4) {
+                    forward_local_args(typed);
+                    return;
+                }
+            }
+        }
+#endif
+        forward_args_impl(args);
+    }
+
+    void forward_args_impl(void *args)
     {
         if (m_group == 1) {
             if (quant_type == QUANT_TYPE_SYMM_8BIT) {
