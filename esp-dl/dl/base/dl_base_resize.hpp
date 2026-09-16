@@ -70,8 +70,14 @@ std::vector<resizeArgsType<feature_t>> get_resize_operation_args(TensorBase *out
             // in_x dequantize
             len = args.input_channel * 2;
         } else if (args.dims == 4) {
-            // in_x coordinates + in_x ratio + x linear
-            len = args.output_width + args.output_width * 2 + args.output_width * args.input_channel * 2;
+            // in_x coordinates + in_x ratio
+            len = args.output_width + args.output_width * 2;
+            if constexpr (sizeof(feature_t) != 1) {
+                // The float kernel additionally caches the two horizontally
+                // interpolated rows. That is what makes this allocation large
+                // (~121KB at 80x192); the int8 Q14 kernel needs none of it.
+                len += args.output_width * args.input_channel * 2;
+            }
         }
         cache = static_cast<float *>(tool::calloc_aligned(len, sizeof(float), MALLOC_CAP_DEFAULT));
     }

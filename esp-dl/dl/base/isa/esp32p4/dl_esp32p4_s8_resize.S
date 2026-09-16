@@ -284,3 +284,103 @@ dl_esp32p4_s8_unaligned_resize_nearest_c1:
 
     dl_esp32p4_s8_unaligned_resize_nearest_c1_end:
         ret
+
+
+############################################################################################################################################################
+####
+#### esp32p4_s8_resize_linear_taps
+####
+#### One output pixel of a 2d bilinear resize, all channels. The four bilinear
+#### taps are folded into a single Q14 dot product by the caller, so this is a
+#### 4-term MAC per channel with one shift at the end.
+####
+#### The taps have to be int16 (Q14) rather than int8 (Q7): a Q7 tap carries a
+#### 2^-8 relative error, which reaches 9 LSB on int8 features and fails the
+#### .espdl +-1 LSB gate, while Q14 measures 0 LSB. That forces the s16 MAC,
+#### hence the vldext.s8 widening of every source vector.
+####
+#### Channels are done 16 at a time, in two groups of 8, because four sources
+#### widened into pairs would need 8 qregs and the taps need a ninth. The
+#### second group reloads the same four 16-byte lines, which are L1 hot.
+####
+############################################################################################################################################################
+
+    .align 2
+    .text
+    .global dl_esp32p4_s8_resize_linear_taps
+    .type   dl_esp32p4_s8_resize_linear_taps, @function
+dl_esp32p4_s8_resize_linear_taps:
+    .align 2
+
+    # a0: int8_t *output_ptr, 16-byte aligned
+    # a1: resizeLinearTapsType *, 16-byte aligned
+    #     0(a1)  : int16_t w[8], Q14 taps at halfword 0..3, 127 at 4, -128 at 5
+    #     16(a1) : const int8_t *p00, p10, p01, p11
+    #     32(a1) : int32_t c_div_16   (channel / 16, >= 1)
+    #     36(a1) : int32_t shift
+
+    # srcmb rounds according to CFG.vxrm, and the scalar kernel this has to
+    # agree with rounds half to even. Neighbouring PIE kernels leave vxrm in
+    # whatever state suited them, so set it here and put it back on the way out.
+    esp.movx.r.cfg  t6
+    li   t0, 0xffffff0f
+    and  t5, t6, t0
+    ori  t5, t5, 0x60                   # vxrm = 6, round half to even
+    esp.movx.w.cfg  t5
+
+    esp.vld.128.ip  q7, a1, 0           # q7 = taps (and the two clamp bounds)
+    lw   a2, 16(a1)
+    lw   a3, 20(a1)
+    lw   a4, 24(a1)
+    lw   a5, 28(a1)
+    lw   t3, 32(a1)
+    lw   t4, 36(a1)
+
+    # Both broadcasts use offset 0 and the pointer is bumped with addi. A
+    # non-zero esp.vldbc.16.ip offset is not portable: before IDF 5.5.2 the
+    # assembler encodes it as bytes*2 (so 2 is rejected outright, and 4 would
+    # silently advance 4 bytes on newer toolchains). Offset 0 means the same
+    # thing either way.
+    addi t5, a1, 8
+    esp.vldbc.16.ip q6, t5, 0           # q6 = 127 broadcast
+    addi t5, t5, 2
+    esp.vldbc.16.ip q5, t5, 0           # q5 = -128 broadcast
+
+    0:
+        # channels [0, 8): read the four sources without advancing
+        esp.zero.qacc
+        esp.vldext.s8.ip      q0, q1, a2, 0
+        esp.vsmulas.s16.qacc  q0, q7, 0
+        esp.vldext.s8.ip      q0, q1, a3, 0
+        esp.vsmulas.s16.qacc  q0, q7, 1
+        esp.vldext.s8.ip      q0, q1, a4, 0
+        esp.vsmulas.s16.qacc  q0, q7, 2
+        esp.vldext.s8.ip      q0, q1, a5, 0
+        esp.vsmulas.s16.qacc  q0, q7, 3
+        esp.srcmb.s16.qacc    q2, t4, 1
+        esp.vmin.s16          q2, q2, q6
+        esp.vmax.s16          q2, q2, q5
+
+        # channels [8, 16): same four lines, this time advance past them
+        esp.zero.qacc
+        esp.vldext.s8.ip      q0, q1, a2, 16
+        esp.vsmulas.s16.qacc  q1, q7, 0
+        esp.vldext.s8.ip      q0, q1, a3, 16
+        esp.vsmulas.s16.qacc  q1, q7, 1
+        esp.vldext.s8.ip      q0, q1, a4, 16
+        esp.vsmulas.s16.qacc  q1, q7, 2
+        esp.vldext.s8.ip      q0, q1, a5, 16
+        esp.vsmulas.s16.qacc  q1, q7, 3
+        esp.srcmb.s16.qacc    q3, t4, 1
+        esp.vmin.s16          q3, q3, q6
+        esp.vmax.s16          q3, q3, q5
+
+        # q2 collects the low byte of all 16 results, which is the int8 output
+        esp.vunzip.8          q2, q3
+        esp.vst.128.ip        q2, a0, 16
+
+        addi t3, t3, -1
+        bgtz t3, 0b
+
+    esp.movx.w.cfg  t6
+    ret

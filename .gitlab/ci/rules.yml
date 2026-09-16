@@ -178,6 +178,11 @@
 .if-dev-push: &if-dev-push
   if: '$CI_COMMIT_REF_NAME != "master" && $CI_COMMIT_BRANCH !~ /^release\/v/ && $CI_COMMIT_TAG !~ /^v\d+\.\d+(\.\d+)?($|-)/ && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event")'
 
+# Merged into an if-anchor to turn a rule into an optional manual button.
+.manual-accept: &manual-accept
+  when: manual
+  allow_failure: true
+
 ##################
 # Auto Generated #
 ##################
@@ -572,11 +577,25 @@
     - <<: *if-protected
       changes: *patterns-esp-dl_version
 
-# Publish/cleanup use the same rules as test_espdl_ops so the publish job is
-# not added to pipelines that never produce perf artifacts. All targets share
-# one <pipeline-id> package version; writing each <target>_perf_results.json
-# is still gated inside the job: only when the MR carries the
-# `update-perf-baseline` label or when no baseline has been published yet
-# (first run).
-.rules:deploy:perf_baseline:
+# The perf gate runs wherever test_espdl_ops does, so a branch learns whether
+# it changed operator performance. Same rules so the job is not added to
+# pipelines that produce no perf artifacts for it to read.
+.rules:perf_gate:check:
   extends: .rules:build:espdl_ops
+
+# Writing the baseline is master-only. A branch is a proposal: it may be told
+# that its numbers are acceptable (the `update-perf-baseline[:<Op>]` label
+# waives the gate for those operators), but it must not make its own
+# measurements the reference for everyone else. The reference only moves on
+# the branch that everyone builds on.
+.rules:perf_gate:write:
+  rules:
+    - <<: *if-protected
+
+# accept_espdl_ops_perf: the same master-only permission, held back until
+# someone reads the diff report and presses play. rules:when overrides a
+# job-level `when`, and rules:when: manual flips allow_failure's default to
+# false, which would make an unplayed button block the pipeline on its own.
+.rules:perf_gate:accept:
+  rules:
+    - <<: [*if-protected, *manual-accept]
