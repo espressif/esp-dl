@@ -1998,6 +1998,21 @@
     quant_type = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Concat.cfg]]
+        input_shape = [[1, 16, 9, 11], [1, 16, 9, 11], [1, 16, 9, 11]]
+        axis = 1
+        export_name_prefix = "concat_p4_small_copies"
+
+        [[ops_test.Concat.cfg]]
+        input_shape = [[1, 3, 5, 7], [1, 5, 5, 7], [1, 7, 5, 7]]
+        axis = 1
+        export_name_prefix = "concat_p4_channel_tails"
+
+        [[ops_test.Concat.cfg]]
+        input_shape = [[1, 2, 5], [1, 2, 7]]
+        axis = -1
+        export_name_prefix = "concat_p4_negative_axis"
+
+        [[ops_test.Concat.cfg]]
         input_shape = [[1, 80, 20, 20], [1, 48, 20, 20]]
         export_name_prefix = "concat_ishape_1_80_20_20_1_48_20_20"
         axis = 1
@@ -2081,6 +2096,31 @@
     test_func = "TRANSPOSE_TEST"
     quant_type = ["int8", "int16", "float32"]
     package = "torch_ops_test"
+        [[ops_test.Transpose.cfg]]
+        input_shape = [1, 9, 129]
+        perm = [0, 2, 1]
+        export_name_prefix = "transpose_p4_tail_9_129"
+
+        [[ops_test.Transpose.cfg]]
+        input_shape = [1, 16, 129]
+        perm = [0, 2, 1]
+        export_name_prefix = "transpose_p4_tail_16_129"
+
+        [[ops_test.Transpose.cfg]]
+        input_shape = [1, 17, 128]
+        perm = [0, 2, 1]
+        export_name_prefix = "transpose_p4_tail_17_128"
+
+        [[ops_test.Transpose.cfg]]
+        input_shape = [1, 7, 129]
+        perm = [0, 2, 1]
+        export_name_prefix = "transpose_p4_tail_7_129"
+
+        [[ops_test.Transpose.cfg]]
+        input_shape = [1, 8, 16]
+        perm = [0, 2, 1]
+        export_name_prefix = "transpose_p4_tail_8_16"
+
         [[ops_test.Transpose.cfg]]
         input_shape = [1, 5, 20, 40]
         export_name_prefix = "transpose_ishape_1_5_20_40_perm_0_2_1_3"
@@ -3291,6 +3331,32 @@
     quant_type = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         # case: reduceall
+        [[ops_test.ReduceMean.cfg]]
+        # The generator removes dimension 0. ReduceMean receives [4, 16].
+        # The reduction count is 4. Aligned INT16 input uses the P4 QACC kernel.
+        input_shape = [1, 4, 16]
+        dim = [0]
+        keepdim = true
+        export_name_prefix = "mean_p4_inner_aligned"
+
+        [[ops_test.ReduceMean.cfg]]
+        input_shape = [1, 3, 17, 9]
+        dim = [1]
+        keepdim = false
+        export_name_prefix = "mean_p4_inner_tail"
+
+        [[ops_test.ReduceMean.cfg]]
+        input_shape = [1, 2, 5, 7, 11]
+        dim = [1, 2]
+        keepdim = true
+        export_name_prefix = "mean_p4_two_axes"
+
+        [[ops_test.ReduceMean.cfg]]
+        input_shape = [1, 3, 16]
+        dim = [0]
+        keepdim = false
+        export_name_prefix = "mean_p4_small_count"
+
         [[ops_test.ReduceMean.cfg]]
         input_shape = [1, 10]
         export_name_prefix = "ReduceMean_ishap_10_reduceall"

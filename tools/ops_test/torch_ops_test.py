@@ -519,9 +519,8 @@ class CONCAT_TEST(nn.Module):
         super().__init__()
         self.config = config
 
-    def forward(self, input1, input2):
-
-        inputs = [input1, input2]
+    def forward(self, *inputs):
+        inputs = list(inputs)
         if self.config.get("relu", False):
             relu_inputs = [nn.ReLU()(i) for i in inputs]
             inputs += relu_inputs
