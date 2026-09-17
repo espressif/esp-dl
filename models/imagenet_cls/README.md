@@ -6,19 +6,25 @@
 | Chip     | MOBILENETV2_S8_V1      |
 |----------|------------------------|
 | ESP32-S3 | ![alt text][supported] |
+| ESP32-S31 | ![alt text][supported] |
 | ESP32-P4 | ![alt text][supported] |
 
 ## Model Latency
 
 | name                                             | input(h*w*c)  | preprocess(ms) | model(ms) | postprocess(ms)  | Prec@1 on imagenet_val |
 | ------------------------------------------------ | ------------- | -------------- | --------- | ---------------- | ---------------------- |
-| mobilenetv2_s8_v1_s3 (RUNTIME_MODE_SINGLE_CORE)  | 224 * 224 * 3 | 8.5            | 1309.5    | 1.1              | 70.543                 |
-| mobilenetv2_s8_v1_s3 (RUNTIME_MODE_MULTI_CORE)   | 224 * 224 * 3 | 8.5            | 867.0     | 1.1              | 70.543                 |
-| mobilenetv2_s8_v1_p4 (RUNTIME_MODE_SINGLE_CORE)  | 224 * 224 * 3 | 2.8            | 326.6     | 0.6              | 70.441                 |
-| mobilenetv2_s8_v1_p4 (RUNTIME_MODE_MULTI_CORE)   | 224 * 224 * 3 | 2.7            | 223.0     | 0.4              | 70.441                 |
+| mobilenetv2_s8_v1_s3 (RUNTIME_MODE_SINGLE_CORE)  | 224 * 224 * 3 | 8.2            | 423.3     | 0.7              | 70.543                 |
+| mobilenetv2_s8_v1_s3 (RUNTIME_MODE_MULTI_CORE)   | 224 * 224 * 3 | 8.2            | 353.5     | 0.7              | 70.543                 |
+| mobilenetv2_s8_v1_s31 (RUNTIME_MODE_SINGLE_CORE) | 224 * 224 * 3 | 4.1            | 278.1     | 0.5              | 70.441                 |
+| mobilenetv2_s8_v1_s31 (RUNTIME_MODE_MULTI_CORE)  | 224 * 224 * 3 | 4.1            | 281.2     | 0.5              | 70.441                 |
+| mobilenetv2_s8_v1_p4 (RUNTIME_MODE_SINGLE_CORE)  | 224 * 224 * 3 | 2.7            | 173.5     | 0.4              | 70.441                 |
+| mobilenetv2_s8_v1_p4 (RUNTIME_MODE_MULTI_CORE)   | 224 * 224 * 3 | 2.7            | 118.4     | 0.4              | 70.441                 |
 
-> Multi-core mode only accelerates inference on dual-core targets (ESP32-S3 / ESP32-P4).
+> Multi-core mode only accelerates inference on dual-core targets with SIMD on both cores (ESP32-S3 / ESP32-P4).
+> ESP32-S31 has SIMD on one core only, so `RUNTIME_MODE_MULTI_CORE` is slower than single-core.
 > On a single-core target, `RUNTIME_MODE_MULTI_CORE` falls back to single-core execution.
+>
+> The ESP32-S31 latency data above was tested with CPU frequency at 320 MHz, PSRAM at 250 MHz, and `CONFIG_COMPILER_OPTIMIZATION_PERF`.
 
 ## Model Usage
 
