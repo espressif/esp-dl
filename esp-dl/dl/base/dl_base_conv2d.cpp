@@ -918,7 +918,7 @@ inline void load_conv2d_hwcn_s16(ImplFunc_t<int16_t, int16_t> &i_impl_func,
 template <typename feature_t, typename filter_t = feature_t>
 static bool conv2d_11cn_tiled(ArgsType<feature_t> &args, const ImplFunc_t<feature_t, feature_t> &kernel)
 {
-#if CONFIG_IDF_TARGET_ESP32S3
+#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32S31
     constexpr int filter_bytes = 16 * 1024;
 #else
     constexpr int filter_bytes = 32 * 1024;
