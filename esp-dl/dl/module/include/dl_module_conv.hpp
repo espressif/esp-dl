@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dl_base_conv2d.hpp"
+#include "dl_base_conv_partition.hpp"
 #include "dl_base_depthwise_conv2d.hpp"
 #include "dl_module_base.hpp"
 #include <string>
@@ -157,6 +158,20 @@ public:
                                              nullptr,
                                              mode); // do not support RReLU and Leaky RelU
         int task_size = m_args.size();
+#if CONFIG_IDF_TARGET_ESP32P4 && CONFIG_PIE_V2_BOOST
+        if (task_size == 1 && mode == RUNTIME_MODE_MULTI_CORE && m_group == 1 &&
+            (input->shape.size() == 3 || input->shape.size() == 4) && input->shape[0] == 1 &&
+            base::can_split_conv_width<T, filter_t>(m_args.get_args(0))) {
+            auto &first = m_args.get_args(0);
+            auto second = first;
+            const int pixels = first.output_width;
+            const int left = (pixels + 1) / 2;
+            base::set_conv_width_interval(first, 0, left);
+            base::set_conv_width_interval(second, left, pixels - left);
+            module_forward_dual_core(this, &first, &second);
+            return;
+        }
+#endif
         if (task_size == 1) { // single task
             forward_args((void *)&m_args.get_args(0));
         } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
