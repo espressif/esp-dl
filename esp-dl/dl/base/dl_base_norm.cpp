@@ -12,9 +12,9 @@ void rms_norm(int8_t *output, int8_t *input, float *scale, float *rms, int n)
 #elif CONFIG_PIE_V2_BOOST
     dl_esp32p4_rmsnorm_s8(output, input, scale, rms, n);
 #else
+    float inv_rms = *rms;
     for (int j = 0; j < n; j++) {
-        float result = input[j] * (*rms);
-        result *= scale[j];
+        float result = input[j] * inv_rms * scale[j];
         tool::truncate(output[j], tool::round(result));
     }
 #endif
@@ -27,9 +27,9 @@ void rms_norm(int16_t *output, int16_t *input, float *scale, float *rms, int n)
 #elif CONFIG_PIE_V2_BOOST
     dl_esp32p4_rmsnorm_s16(output, input, scale, rms, n);
 #else
+    float inv_rms = *rms;
     for (int j = 0; j < n; j++) {
-        float result = input[j] * (*rms);
-        result *= scale[j];
+        float result = input[j] * inv_rms * scale[j];
         tool::truncate(output[j], tool::round(result));
     }
 #endif

@@ -91,22 +91,22 @@ int64_t reduce_l2(int16_t *input, int32_t size, int32_t stride)
         }
 #else
         for (; i + 3 < size; i += 4) {
-            int64_t v0 = input[i];
-            int64_t v1 = input[i + 1];
-            int64_t v2 = input[i + 2];
-            int64_t v3 = input[i + 3];
-            sum += v0 * v0 + v1 * v1 + v2 * v2 + v3 * v3;
+            int32_t v0 = input[i];
+            int32_t v1 = input[i + 1];
+            int32_t v2 = input[i + 2];
+            int32_t v3 = input[i + 3];
+            sum += (int64_t)(v0 * v0) + (int64_t)(v1 * v1) + (int64_t)(v2 * v2) + (int64_t)(v3 * v3);
         }
 #endif
         for (; i < size; i++) {
-            int64_t v = input[i];
-            sum += v * v;
+            int32_t v = input[i];
+            sum += (int64_t)(v * v);
         }
     } else {
         int16_t *ptr = input;
         for (int32_t i = 0; i < size; i++) {
-            int64_t v = *ptr;
-            sum += v * v;
+            int32_t v = *ptr;
+            sum += (int64_t)(v * v);
             ptr += stride;
         }
     }

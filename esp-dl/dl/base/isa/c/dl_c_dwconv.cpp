@@ -19,9 +19,12 @@ void depthwise_conv2d_33c1(buffer_t *buffer_ptr, feature_t *input_ptr, const Con
         feature_t *input_row_2 = input_row_1 + args.input_dilation_y_offset; //
         for (size_t input_c = 0; input_c < args.input_channel; input_c++)    // C
         {                                                                    //
-            buffer_ptr[input_c] += input_row_0[input_c] * filter_r0[input_c];
-            buffer_ptr[input_c] += input_row_1[input_c] * filter_r1[input_c];
-            buffer_ptr[input_c] += input_row_2[input_c] * filter_r2[input_c];
+            auto mac = [](buffer_t acc, feature_t in, feature_t w) -> buffer_t {
+                return acc + static_cast<buffer_t>(static_cast<int32_t>(in) * static_cast<int32_t>(w));
+            };
+            buffer_ptr[input_c] = mac(buffer_ptr[input_c], input_row_0[input_c], filter_r0[input_c]);
+            buffer_ptr[input_c] = mac(buffer_ptr[input_c], input_row_1[input_c], filter_r1[input_c]);
+            buffer_ptr[input_c] = mac(buffer_ptr[input_c], input_row_2[input_c], filter_r2[input_c]);
         }
         filter_r0 += args.input_channel;
         filter_r1 += args.input_channel;
@@ -42,7 +45,8 @@ void depthwise_conv2d_hwc1(buffer_t *buffer_ptr, feature_t *input_ptr, const Con
         {                                                                     //
             for (size_t input_c = 0; input_c < args.input_channel; input_c++) // C
             {                                                                 //
-                buffer_ptr[input_c] += input_yx[input_c] * (*filter_element);
+                buffer_ptr[input_c] += static_cast<buffer_t>(static_cast<int32_t>(input_yx[input_c]) *
+                                                             static_cast<int32_t>(*filter_element));
                 filter_element++;
             }
             input_yx += args.input_dilation_x_offset;
