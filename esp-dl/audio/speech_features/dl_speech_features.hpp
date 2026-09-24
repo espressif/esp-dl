@@ -110,6 +110,22 @@ public:
     virtual esp_err_t process_frame(const int16_t *input, int win_len, float *output, int16_t input_prev = 0) = 0;
 
     /**
+     * @brief Process one int16 frame into quantized features.
+     *
+     * value = output[i] * 2^output_exponent. The default implementation is not
+     * supported; FbankS16 provides the int16 FFT implementation.
+     *
+     * @param input Input PCM samples
+     * @param win_len Number of input samples
+     * @param output Quantized features
+     * @param prev Previous sample for pre-emphasis
+     * @param output_exponent Exponent of output
+     * @return esp_err_t ESP_OK on success, error code otherwise
+     */
+    virtual esp_err_t process_frame_int16(
+        const int16_t *input, int win_len, int16_t *output, int16_t prev, int output_exponent);
+
+    /**
      * @brief Process entire float audio data
      *
      * @param input Input audio data
