@@ -58,7 +58,6 @@ public:
         const int32_t align = (base.bits == 16) ? 8 : 16;
         int32_t half = base.size / 2;
         half -= half % align;
-        const bool can_split = half > 0 && half < base.size;
 #if CONFIG_FREERTOS_NUMBER_OF_CORES > 1
 #if CONFIG_IDF_TARGET_ESP32P4
         const int32_t auto_min_size = (base.bits == 8)
@@ -68,6 +67,8 @@ public:
 #else
         const bool auto_dual = false;
 #endif
+        const bool can_split =
+            (half > 0 && half < base.size) || (mode == RUNTIME_MODE_AUTO && base.size >= auto_min_size);
         const bool dual = can_split && (mode == RUNTIME_MODE_MULTI_CORE || auto_dual);
 #else
         (void)mode;
