@@ -168,7 +168,7 @@ bool ModelContext::root_alloc(size_t internal_size, size_t psram_size, int align
     }
 
     if (m_internal_size > 0) {
-        m_internal_root = tool::calloc_aligned(m_internal_size, 1, MALLOC_CAP_INTERNAL);
+        m_internal_root = tool::calloc_aligned(m_internal_size, 1, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
 
         if (!m_internal_root) {
             ESP_LOGE(TAG,

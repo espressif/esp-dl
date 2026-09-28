@@ -17,6 +17,27 @@ void depthwise_conv2d_33c1(buffer_t *buffer, feature_t *input, const ConvArgsTyp
 template <typename feature_t, typename buffer_t>
 void depthwise_conv2d_hwc1(buffer_t *buffer, feature_t *input, const ConvArgsType &args);
 
+/**
+ * @brief Whole-layer int16 depthwise conv without padding, including bias, requantization and
+ * Linear/ReLU.
+ *
+ * @return false if the layer is not supported; nothing has been written then.
+ */
+bool depthwise_conv2d_s16_fast(const ConvArgsType &args, void *input_ptr, void *output_ptr, int height, int width);
+
+/**
+ * @brief Whole-layer int8 depthwise conv without padding. The MACs run here; bias,
+ * requantization and activation are left to tail, called once per output pixel.
+ *
+ * @return false if the layer is not supported; nothing has been written then.
+ */
+bool depthwise_conv2d_s8_fast(const ConvArgsType &args,
+                              void (*tail)(void *output, void *buffer, const ConvArgsType &args),
+                              void *input_ptr,
+                              void *output_ptr,
+                              int height,
+                              int width);
+
 } // namespace base
 } // namespace dl
 

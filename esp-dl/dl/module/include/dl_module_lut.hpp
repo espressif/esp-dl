@@ -65,6 +65,7 @@ public:
             : (base.step == 1 ? AUTO_DUAL_CORE_MIN_SIZE_S16_STEP1 : AUTO_DUAL_CORE_MIN_SIZE_S16_REDUCED);
         const bool auto_dual = mode == RUNTIME_MODE_AUTO && base.size >= auto_min_size;
 #else
+        const int32_t auto_min_size = INT32_MAX;
         const bool auto_dual = false;
 #endif
         const bool can_split =
