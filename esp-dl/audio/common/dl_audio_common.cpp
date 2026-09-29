@@ -233,7 +233,7 @@ void mel_filter_deinit(mel_filter_t *mel_filter)
     }
 }
 
-mel_filter_s16_t *mel_filter_s16_init(
+mel_filter_q30_t *mel_filter_q30_init(
     int nfft, int nfilter, int low_freq, int high_freq, int sample_rate, uint32_t caps)
 {
     mel_filter_t *src = mel_filter_init(nfft, nfilter, low_freq, high_freq, sample_rate, caps);
@@ -246,34 +246,38 @@ mel_filter_s16_t *mel_filter_s16_init(
         ncoeff += src->bank_pos[i * 2 + 1] - src->bank_pos[i * 2] + 1;
     }
 
-    mel_filter_s16_t *dst = (mel_filter_s16_t *)heap_caps_malloc(sizeof(mel_filter_s16_t), caps);
+    mel_filter_q30_t *dst = (mel_filter_q30_t *)heap_caps_calloc(1, sizeof(mel_filter_q30_t), caps);
     if (!dst) {
         mel_filter_deinit(src);
         return nullptr;
     }
     dst->nfilter = src->nfilter;
     dst->bank_pos = (int *)heap_caps_malloc(sizeof(int) * nfilter * 2, caps);
-    dst->coeff = (int16_t *)heap_caps_malloc(sizeof(int16_t) * ncoeff, caps);
+    dst->coeff = (uint32_t *)heap_caps_malloc(sizeof(uint32_t) * ncoeff, caps);
     if (!dst->bank_pos || !dst->coeff) {
-        mel_filter_s16_deinit(dst);
+        mel_filter_q30_deinit(dst);
         mel_filter_deinit(src);
         return nullptr;
     }
 
     memcpy(dst->bank_pos, src->bank_pos, sizeof(int) * nfilter * 2);
-    for (int i = 0; i < ncoeff; i++) {
-        int32_t q = (int32_t)(src->coeff[i] * 32768.0f + 0.5f);
-        if (q > 32767) {
-            q = 32767;
+    uint64_t max_sum = 0;
+    for (int i = 0, idx = 0; i < src->nfilter; i++) {
+        int len = src->bank_pos[i * 2 + 1] - src->bank_pos[i * 2] + 1;
+        uint64_t sum = 0;
+        for (int k = 0; k < len; k++, idx++) {
+            dst->coeff[idx] = (uint32_t)lrint(src->coeff[idx] * 1073741824.0);
+            sum += dst->coeff[idx];
         }
-        dst->coeff[i] = (int16_t)q;
+        max_sum = DL_MAX(max_sum, sum);
     }
+    dst->sum_bits = max_sum ? 64 - __builtin_clzll(max_sum) : 0;
 
     mel_filter_deinit(src);
     return dst;
 }
 
-void mel_filter_s16_deinit(mel_filter_s16_t *mel_filter)
+void mel_filter_q30_deinit(mel_filter_q30_t *mel_filter)
 {
     if (mel_filter) {
         free(mel_filter->bank_pos);

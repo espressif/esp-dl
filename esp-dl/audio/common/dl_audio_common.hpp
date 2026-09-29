@@ -34,14 +34,15 @@ typedef struct {
 } mel_filter_t;
 
 /**
- * @brief Mel filter structure with Q15 coefficients.
- *        coeff is coeff_float * 32768, rounded and saturated to int16.
+ * @brief Mel filter structure with Q30 coefficients.
+ *        coeff is round(coeff_float * 2^30).
  */
 typedef struct {
-    int16_t *coeff; /*!< Filter coefficients in Q15 */
-    int *bank_pos;  /*!< Filter bank positions */
-    int nfilter;    /*!< Number of filters */
-} mel_filter_s16_t;
+    uint32_t *coeff; /*!< Filter coefficients in Q30 */
+    int *bank_pos;   /*!< Filter bank positions */
+    int nfilter;     /*!< Number of filters */
+    int sum_bits;    /*!< Bit length of the largest per-filter coefficient sum */
+} mel_filter_q30_t;
 
 /**
  * @brief Initialize window function data of the specified type.
@@ -132,10 +133,10 @@ mel_filter_t *mel_filter_init(int nfft, int nfilter, int low_freq, int high_freq
 void mel_filter_deinit(mel_filter_t *mel_filter);
 
 /**
- * @brief Initialize mel filter data with Q15 coefficients.
+ * @brief Initialize mel filter data with Q30 coefficients.
  *
  * The triangle weights match mel_filter_init(). Each stored coefficient is
- * round(weight * 32768), saturated to int16.
+ * round(weight * 2^30).
  *
  * @param nfft          FFT size.
  * @param nfilter       Number of mel filterbanks.
@@ -144,17 +145,17 @@ void mel_filter_deinit(mel_filter_t *mel_filter);
  * @param sample_rate   Sample rate.
  * @param caps          Memory allocation capabilities.
  *
- * @return mel_filter_s16_t* Caller must free it with mel_filter_s16_deinit(). Returns nullptr on failure.
+ * @return mel_filter_q30_t* Caller must free it with mel_filter_q30_deinit(). Returns nullptr on failure.
  */
-mel_filter_s16_t *mel_filter_s16_init(
+mel_filter_q30_t *mel_filter_q30_init(
     int nfft, int nfilter, int low_freq, int high_freq, int sample_rate, uint32_t caps);
 
 /**
- * @brief Deinitialize Q15 mel filter data.
+ * @brief Deinitialize Q30 mel filter data.
  *
  * @param mel_filter Pointer to mel filter data to deinitialize.
  */
-void mel_filter_s16_deinit(mel_filter_s16_t *mel_filter);
+void mel_filter_q30_deinit(mel_filter_q30_t *mel_filter);
 
 /**
  * @brief Apply window function and preemphasis to input signal.

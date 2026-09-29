@@ -251,8 +251,7 @@ TEST_CASE("3. test dl mfcc", "[dl_audio]")
     printf("ram size after: %d\n", ram_size_after);
 }
 
-// FbankS16 misses the accuracy bounds on near-silent frames, excluded from [dl_audio] until it is replaced.
-TEST_CASE("4. test dl fbank int16", "[ignore]")
+TEST_CASE("4. test dl fbank int16", "[dl_audio]")
 {
     dl_audio_t *input = decode_wav(test_wav_start, test_wav_end - test_wav_start);
     print_audio_info(input);
@@ -272,7 +271,7 @@ TEST_CASE("4. test dl fbank int16", "[ignore]")
 
     const int output_exponent = -10;
     Fbank *handle = new Fbank(cfg);
-    FbankS16 *handle_i16 = new FbankS16(cfg);
+    FbankS32 *handle_s32 = new FbankS32(cfg);
     std::vector<int> shape = handle->get_output_shape(input->length);
     int frames = shape[0];
     int dim = shape[1];
@@ -293,7 +292,7 @@ TEST_CASE("4. test dl fbank int16", "[ignore]")
     const int16_t *pcm = input->data;
     t0 = esp_timer_get_time();
     for (int i = 0; i < frames; i++) {
-        esp_err_t ret = handle_i16->process_frame_int16(pcm, win_len, out + i * dim, pcm[0], output_exponent);
+        esp_err_t ret = handle_s32->process_frame_int16(pcm, win_len, out + i * dim, pcm[0], output_exponent);
         TEST_ASSERT_EQUAL(ESP_OK, ret);
         pcm += win_step;
     }
@@ -400,17 +399,18 @@ TEST_CASE("4. test dl fbank int16", "[ignore]")
            (unsigned long)t_int16,
            t_int16 > 0 ? (double)t_float / (double)t_int16 : 0.0);
 
-    TEST_ASSERT_TRUE(avg_err < 0.05f);
-    TEST_ASSERT_TRUE(max_err < 1.5f);
+    // s32 rFFT residual stays inside one output code. scale is 2^output_exponent.
+    TEST_ASSERT_TRUE(avg_err < scale);
+    TEST_ASSERT_TRUE(max_err <= scale);
     free(err_q);
 
     free(ref);
     free(out);
     delete handle;
-    delete handle_i16;
+    delete handle_s32;
 }
 
-static void run_constant_fbank_s16(const char *name, int16_t sample, bool remove_dc)
+static void run_constant_fbank_s32(const char *name, int16_t sample, bool remove_dc)
 {
     const int output_exponent = -10;
     const int win_len = 400;
@@ -441,9 +441,9 @@ static void run_constant_fbank_s16(const char *name, int16_t sample, bool remove
     cfg.remove_dc_offset = remove_dc;
 
     Fbank *f32 = new Fbank(cfg);
-    FbankS16 *s16 = new FbankS16(cfg);
+    FbankS32 *s32 = new FbankS32(cfg);
     esp_err_t ret_f = f32->process_frame(input_f, win_len, ref, input_f[0]);
-    esp_err_t ret_i = s16->process_frame_int16(input, win_len, out, sample, output_exponent);
+    esp_err_t ret_i = s32->process_frame_int16(input, win_len, out, sample, output_exponent);
 
     float scale = ldexpf(1.0f, output_exponent);
     float max_err = 0.0f;
@@ -461,7 +461,7 @@ static void run_constant_fbank_s16(const char *name, int16_t sample, bool remove
             out_max = out[i];
         }
     }
-    printf("%s dc=%d ret_f=%d ret_i=%d out=[%d,%d] ref0=%.4f s16_0=%.4f max_err=%.4f\n",
+    printf("%s dc=%d ret_f=%d ret_i=%d out=[%d,%d] ref0=%.4f s32_0=%.4f max_err=%.4f\n",
            name,
            (int)remove_dc,
            (int)ret_f,
@@ -474,17 +474,17 @@ static void run_constant_fbank_s16(const char *name, int16_t sample, bool remove
     TEST_ASSERT_EQUAL(ESP_OK, ret_f);
     TEST_ASSERT_EQUAL(ESP_OK, ret_i);
     delete f32;
-    delete s16;
+    delete s32;
     free(input);
     free(input_f);
     free(ref);
     free(out);
 }
 
-TEST_CASE("5. test fbank s16 constant 0 and 1", "[dl_audio]")
+TEST_CASE("5. test fbank s32 constant 0 and 1", "[dl_audio]")
 {
-    run_constant_fbank_s16("all0", 0, true);
-    run_constant_fbank_s16("all0", 0, false);
-    run_constant_fbank_s16("all1", 1, true);
-    run_constant_fbank_s16("all1", 1, false);
+    run_constant_fbank_s32("all0", 0, true);
+    run_constant_fbank_s32("all0", 0, false);
+    run_constant_fbank_s32("all1", 1, true);
+    run_constant_fbank_s32("all1", 1, false);
 }

@@ -113,7 +113,7 @@ public:
      * @brief Process one int16 frame into quantized features.
      *
      * value = output[i] * 2^output_exponent. The default implementation is not
-     * supported; FbankS16 provides the int16 FFT implementation.
+     * supported; FbankS32 provides the int32 FFT implementation.
      *
      * @param input Input PCM samples
      * @param win_len Number of input samples
