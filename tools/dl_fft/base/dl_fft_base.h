@@ -61,6 +61,7 @@ typedef enum {
     DL_FFT_TBL_F32_BITREV4R,
     DL_FFT_TBL_S16_DIF_FFT,
     DL_FFT_TBL_S16_DIF_RFFT,
+    DL_FFT_TBL_S32_FFT,
 } dl_fft_table_kind_t;
 
 void *dl_fft_table_acquire(dl_fft_table_kind_t kind, int fft_point, uint32_t caps, int *extra);
@@ -94,6 +95,12 @@ void dl_fft_cfg_round(int32_t round_mode);
  * Returns the number of right shifts applied (0 or 1) so the caller can
  * adjust the output exponent. */
 int dl_rfft_post_proc_sc16(int16_t *data, int cpx_points, int16_t *table);
+
+// int32 fft and rfft
+int32_t *dl_gen_fft_table_sc32(int fft_point, uint32_t caps);
+void dl_fft2r_sc32_dif_ansi(int32_t *data, const int32_t *table, int N);
+void dl_bitrev2r_sc32_ansi(int32_t *data, int N);
+void dl_rfft_post_proc_sc32_ansi(int32_t *data, int N, const int32_t *table);
 
 // int16_t *dl_gen_dif_rfft_table(int N, uint32_t caps);
 // int16_t *dl_gen_dif_rfft_table2(int N, uint32_t caps);
