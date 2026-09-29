@@ -644,22 +644,33 @@ static void conv_loop_c(ConvArgsType &args,
                         int filt_bytes,
                         int buf_bytes)
 {
-    void *input_ptr = args.input_element;
-    void *output_ptr = args.output_element;
-    void *buffer = tool::calloc_aligned(args.output_channel, buf_bytes, MALLOC_CAP_DEFAULT);
+    bool is_1x1 = conv_is_1x1(args);
+    bool has_padding = conv_has_padding(args);
 
-    if (conv_is_1x1(args) || !conv_has_padding(args)) {
+    if (is_1x1 || !has_padding) {
+        void *input_ptr = args.input_element;
+        void *output_ptr = args.output_element;
         int height = args.output_height;
         int width = args.output_width;
-        if (conv_is_1x1(args) && conv_has_padding(args)) {
+
+        if (is_1x1 && has_padding) {
             ConvRegions r = conv_regions(args);
-            conv_each_1x1_pad(args, r, feat_bytes, [&](void *out) { tail(out, buffer, args); });
+            void *zeros = tool::calloc_aligned(args.output_channel, buf_bytes, MALLOC_CAP_DEFAULT);
+            conv_each_1x1_pad(args, r, feat_bytes, [&](void *out) { tail(out, zeros, args); });
+            heap_caps_free(zeros);
             conv_1x1_body_view(args, r, feat_bytes, &input_ptr, &output_ptr, &height, &width);
         }
-        conv_loop_c_body(args, mac_body, tail, buffer, feat_bytes, input_ptr, output_ptr, height, width);
-        heap_caps_free(buffer);
+        const bool fast = is_1x1 &&
+            (feat_bytes == 2 ? conv2d_1x1_s16_fast(args, filt_bytes, input_ptr, output_ptr, height, width)
+                             : conv2d_1x1_s8_fast(args, tail, input_ptr, output_ptr, height, width));
+        if (!fast) {
+            void *buffer = tool::calloc_aligned(args.output_channel, buf_bytes, MALLOC_CAP_DEFAULT);
+            conv_loop_c_body(args, mac_body, tail, buffer, feat_bytes, input_ptr, output_ptr, height, width);
+            heap_caps_free(buffer);
+        }
         return;
     }
+    void *buffer = tool::calloc_aligned(args.output_channel, buf_bytes, MALLOC_CAP_DEFAULT);
     conv_loop_c_grid(args, mac_border, mac_body, tail, buffer, feat_bytes, filt_bytes);
     heap_caps_free(buffer);
 }

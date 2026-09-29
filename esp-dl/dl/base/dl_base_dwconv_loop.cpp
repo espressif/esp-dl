@@ -562,6 +562,12 @@ static void dwconv_loop_c(ConvArgsType &args,
 {
     void *input_ptr = args.input_element;
     void *output_ptr = args.output_element;
+    if (!conv_has_padding(args) &&
+        (feat_bytes == 2
+             ? depthwise_conv2d_s16_fast(args, input_ptr, output_ptr, args.output_height, args.output_width)
+             : depthwise_conv2d_s8_fast(args, tail, input_ptr, output_ptr, args.output_height, args.output_width))) {
+        return;
+    }
     void *buffer = tool::calloc_aligned(args.output_channel, buf_bytes, MALLOC_CAP_DEFAULT);
 
     if (conv_is_1x1(args) || !conv_has_padding(args)) {

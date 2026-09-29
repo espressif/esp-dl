@@ -38,6 +38,10 @@ set(include_dirs    ./dl
 
 file(GLOB exclude_srcs RELATIVE ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_LIST_DIR}/vision/image/dl_image_pixel_cvt_dispatch_*.cpp)
 
+if(CONFIG_IDF_TARGET_ARCH_RISCV)
+    list(APPEND include_dirs    dl/base/isa/riscv)
+endif()
+
 if(CONFIG_IDF_TARGET_ESP32)
     list(APPEND src_dirs        dl/tool/isa/xtensa)
     list(APPEND include_dirs    dl/base/isa/xtensa)

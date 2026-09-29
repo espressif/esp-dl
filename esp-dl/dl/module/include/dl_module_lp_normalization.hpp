@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dl_base_norm.hpp"
 #include "dl_base_reduce.hpp"
 #include "dl_math.hpp"
 #include "dl_module_base.hpp"
@@ -154,10 +155,7 @@ public:
                 inv_norm *= output_scale;
 
                 if (inv_norm > 0.0f) {
-                    for (int i = 0; i < len; i++) {
-                        float result = output_ptr[i] * inv_norm;
-                        tool::truncate(output_ptr[i], tool::round(result));
-                    }
+                    base::scale_round(output_ptr, output_ptr, inv_norm, len);
                 } else {
                     for (int i = 0; i < len; i++) {
                         output_ptr[i] = 0;
@@ -225,10 +223,7 @@ public:
                 inv_norm *= output_scale;
 
                 if (inv_norm > 0.0f) {
-                    for (int i = 0; i < len; i++) {
-                        float result = output_ptr[i] * inv_norm;
-                        tool::truncate(output_ptr[i], tool::round(result));
-                    }
+                    base::scale_round(output_ptr, output_ptr, inv_norm, len);
                 } else {
                     for (int i = 0; i < len; i++) {
                         output_ptr[i] = 0;

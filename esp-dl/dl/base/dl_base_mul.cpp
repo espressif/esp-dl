@@ -1,9 +1,62 @@
 #include "dl_base.hpp"
 #include "dl_base_elemwise.hpp"
 #include "dl_base_isa.hpp"
+#include <cstring>
+
+// The integer paths below replace soft-float code; with an FPU the float path is faster.
+#if defined(__riscv) && !defined(__riscv_flen) && !CONFIG_ROUND_HALF_EVEN_ENABLED
+#define DL_MUL_SOFT_FLOAT_INT_PATH 1
+#else
+#define DL_MUL_SOFT_FLOAT_INT_PATH 0
+#endif
 
 namespace dl {
 namespace base {
+
+#if DL_MUL_SOFT_FLOAT_INT_PATH
+// Integer versions of round_half_up(float(a * b) * scale) for a power-of-two scale = 2^-shift,
+// bit-exact with IEEE single precision: both the int->float conversion and the "+ 0.5f" round
+// the exact integer value to 24 significant bits (nearest even).
+static inline bool mul_pow2_shift(float scale, int &shift)
+{
+    uint32_t b;
+    memcpy(&b, &scale, sizeof(b));
+    const int be = b >> 23;
+    if ((b & 0x807fffff) || be == 0 || be == 255) {
+        return false;
+    }
+    shift = 127 - be;
+    return shift >= -30 && shift <= 30;
+}
+
+static inline int32_t mul_rne24(int32_t v)
+{
+    uint32_t a = v < 0 ? -(uint32_t)v : (uint32_t)v;
+    if (a < (1u << 24)) {
+        return v;
+    }
+    const uint32_t h = a >> 24;
+    const int d =
+        h >= 16 ? (h >= 64 ? (h >= 128 ? 8 : 7) : (h >= 32 ? 6 : 5)) : (h >= 4 ? (h >= 8 ? 4 : 3) : (h >= 2 ? 2 : 1));
+    const uint32_t half = 1u << (d - 1);
+    uint32_t q = a >> d;
+    const uint32_t rem = a & ((half << 1) - 1);
+    q += rem > half || (rem == half && (q & 1));
+    a = q << d;
+    return v < 0 ? -(int32_t)a : (int32_t)a;
+}
+
+// t is the exact integer product, |t| <= 2^30.
+static inline int32_t mul_requant_pow2(int32_t t, int shift)
+{
+    if (shift > 0) {
+        return mul_rne24(mul_rne24(t) + (1 << (shift - 1))) >> shift;
+    }
+    // Values that need rounding here are far outside the int16 range and saturate either way.
+    const int64_t v = (int64_t)t << -shift;
+    return (int32_t)DL_CLIP(v, INT32_MIN, INT32_MAX);
+}
+#endif
 
 // input0_ptr:vector, input1_ptr:scalar
 template <typename feature_t>
@@ -11,6 +64,16 @@ void c_impl_mul_n_1(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
 {
     elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
     int32_t length = elem_args->output_d0;
+#if DL_MUL_SOFT_FLOAT_INT_PATH
+    int shift;
+    if (mul_pow2_shift(elem_args->output_rescale, shift)) {
+        const int32_t b = input1_ptr[0];
+        for (int i = 0; i < length; i++) {
+            tool::truncate<int32_t>(output_ptr[i], mul_requant_pow2(input0_ptr[i] * b, shift));
+        }
+        return;
+    }
+#endif
     float scale = input1_ptr[0] * elem_args->output_rescale;
     for (int i = 0; i < length; i++) {
         float out = input0_ptr[i] * scale;
@@ -24,6 +87,16 @@ void c_impl_mul_1_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
 {
     elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
     int32_t length = elem_args->output_d0;
+#if DL_MUL_SOFT_FLOAT_INT_PATH
+    int shift;
+    if (mul_pow2_shift(elem_args->output_rescale, shift)) {
+        const int32_t a = input0_ptr[0];
+        for (int i = 0; i < length; i++) {
+            tool::truncate<int32_t>(output_ptr[i], mul_requant_pow2(a * input1_ptr[i], shift));
+        }
+        return;
+    }
+#endif
     float scale = input0_ptr[0] * elem_args->output_rescale;
     for (int i = 0; i < length; i++) {
         float out = input1_ptr[i] * scale;
@@ -37,6 +110,15 @@ void c_impl_mul_n_n(feature_t *output_ptr, feature_t *input0_ptr, feature_t *inp
 {
     elemwiseArgsType<feature_t> *elem_args = static_cast<elemwiseArgsType<feature_t> *>(args);
     int32_t length = elem_args->output_d0;
+#if DL_MUL_SOFT_FLOAT_INT_PATH
+    int shift;
+    if (mul_pow2_shift(elem_args->output_rescale, shift)) {
+        for (int i = 0; i < length; i++) {
+            tool::truncate<int32_t>(output_ptr[i], mul_requant_pow2(input0_ptr[i] * input1_ptr[i], shift));
+        }
+        return;
+    }
+#endif
     float scale = elem_args->output_rescale;
     for (int i = 0; i < length; i++) {
         int temp = input0_ptr[i] * input1_ptr[i];

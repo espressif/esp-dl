@@ -1,0 +1,13 @@
+# This file was generated using idf.py save-defconfig or menuconfig [D] key. It can be edited manually.
+# Espressif IoT Development Framework (ESP-IDF) 6.1.0 Project Minimal Configuration
+#
+# default:
+CONFIG_IDF_TARGET="esp32c5"
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_120M=y
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+CONFIG_PARTITION_TABLE_OFFSET=0x9000
+CONFIG_MODEL_FILE_PATH="/home/sunxiangyu/workspace/esp-dl-gitlab/test_apps/esp-dl/models/wn10_c5"
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_SPEED_120M=y

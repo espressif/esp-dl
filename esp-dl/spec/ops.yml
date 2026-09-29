@@ -53,6 +53,10 @@ groups:
         - dl/base/isa/c/dl_c_conv.cpp
         - dl/base/isa/c/dl_c_dwconv.cpp
         - dl/base/isa/c/dl_c_conv_tail.cpp
+        - dl/base/isa/riscv/dl_riscv_conv2d_mac.S
+        - dl/base/isa/xtensa/dl_xtensa_conv.cpp
+        - dl/base/isa/xtensa/dl_xtensa_s16_conv2d_1x1.S
+        - dl/base/isa/xtensa/dl_xtensa_s16_depthwise_conv2d.S
 
 ops:
   Conv:
