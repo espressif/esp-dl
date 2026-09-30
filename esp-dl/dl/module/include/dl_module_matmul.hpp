@@ -146,7 +146,6 @@ public:
         if (task_size == 1) {
             forward_args((void *)&m_args.get_args(0));
         } else if (task_size == 2) {
-            ESP_LOGI("MatMul", "two task...");
             module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
         } else {
             ESP_LOGE("MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
@@ -273,41 +272,15 @@ public:
         std::vector<int> origin_output_shape = output->get_shape();
 
         // input: MK -> NHWC; filter: KN -> HWIO; output: MN -> NHWC
-        if (origin_input0_shape.size() <= 2 && origin_input1_shape.size() <= 2) {
-            if (origin_input0_shape.size() == 1 && origin_input1_shape.size() == 1) {
-                // dot product
-                // input: NHWC
-                input0->set_shape({1, 1, 1, origin_input0_shape[0]});
-                // filter: HWIO
-                input1->set_shape({1, 1, origin_input1_shape[0], 1});
-                // output: NHWC
-                output->set_shape({1, 1, 1, 1});
-
-            } else if (origin_input0_shape.size() == 2 && origin_input1_shape.size() == 2) {
-                // matrix multiply
-                // input: NHWC
-                input0->set_shape({1, 1, origin_input0_shape[0], origin_input0_shape[1]});
-                // filter: HWIO
-                input1->set_shape({1, 1, origin_input1_shape[0], origin_input1_shape[1]});
-                // output: NHWC
-                output->set_shape({1, 1, origin_output_shape[0], origin_output_shape[1]});
-
-            } else if (origin_input0_shape.size() == 1 && origin_input1_shape.size() == 2) {
-                // input: NHWC
-                input0->set_shape({1, 1, 1, origin_input0_shape[0]});
-                // filter: HWIO
-                input1->set_shape({1, 1, origin_input1_shape[0], origin_input1_shape[1]});
-                // output: NHWC
-                output->set_shape({1, 1, 1, origin_output_shape[0]});
-
-            } else if (origin_input0_shape.size() == 2 && origin_input1_shape.size() == 1) {
-                // input: NHWC
-                input0->set_shape({1, 1, origin_input0_shape[0], origin_input0_shape[1]});
-                // filter: HWIO
-                input1->set_shape({1, 1, origin_input1_shape[0], 1});
-                // output: NHWC
-                output->set_shape({1, 1, origin_output_shape[0], 1});
-            }
+        if (origin_input1_shape.size() <= 2) {
+            // A shared rank-1/2 weight: every leading dim of input0 folds into M, so the
+            // whole batch is one Conv that reuses the filter and splits rows across cores.
+            const int k = origin_input0_shape.back();
+            const int m = input0->get_size() / k;
+            const int n = origin_input1_shape.size() == 1 ? 1 : origin_input1_shape.back();
+            input0->set_shape({1, 1, m, k});
+            input1->set_shape({1, 1, k, n});
+            output->set_shape({1, 1, m, n});
 
             base::ConvOpArgs m_args(output,
                                     input0,
@@ -382,55 +355,6 @@ public:
                                             input0,
                                             padding,
                                             &input1_tmp /*filter*/,
-                                            {1, 1} /*strides*/,
-                                            {1, 1} /*dilations*/,
-                                            1 /*group*/,
-                                            nullptr /*bias*/,
-                                            m_activation,
-                                            nullptr,
-                                            mode,
-                                            quant_type); // do not support PReLU and Leaky RelU
-                    run_conv_args(m_args);
-                }
-
-            } else if (origin_input0_shape.size() > 2 && origin_input1_shape.size() == 1) {
-                int input0_batch_size = 1;
-                for (int i = 0; i < origin_input0_shape.size() - 2; i++) {
-                    input0_batch_size *= origin_input0_shape[i];
-                }
-                input0->set_shape({input0_batch_size,
-                                   origin_input0_shape[origin_input0_shape.size() - 2],
-                                   origin_input0_shape.back()});
-                // filter: HWIO
-                input1->set_shape({1, 1, origin_input1_shape.back(), 1});
-                // output: NHWC
-                output->set_shape({input0_batch_size, origin_output_shape.back()});
-
-                for (int i = 0; i < input0_batch_size; i++) {
-                    // input: NHWC
-                    TensorBase input0_tmp({1,
-                                           1,
-                                           origin_input0_shape[origin_input0_shape.size() - 2],
-                                           origin_input0_shape.back()} /*shape*/,
-                                          static_cast<char *>(input0_element) +
-                                              input0_dtype_bytes * input0->get_element_index({i, 0, 0}) /*element*/,
-                                          input0->exponent /*exponent*/,
-                                          input0->dtype /*dtype*/,
-                                          false /*deep*/,
-                                          input0->caps /*caps*/);
-                    // output: NHWC
-                    TensorBase output_tmp({1, 1, origin_output_shape.back(), 1} /*shape*/,
-                                          static_cast<char *>(output_element) +
-                                              output_dtype_bytes * output->get_element_index({i, 0}) /*element*/,
-                                          output->exponent /*exponent*/,
-                                          output->dtype /*dtype*/,
-                                          false /*deep*/,
-                                          output->caps /*caps*/);
-
-                    base::ConvOpArgs m_args(&output_tmp,
-                                            &input0_tmp,
-                                            padding,
-                                            input1 /*filter*/,
                                             {1, 1} /*strides*/,
                                             {1, 1} /*dilations*/,
                                             1 /*group*/,

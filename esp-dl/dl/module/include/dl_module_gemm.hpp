@@ -117,7 +117,6 @@ public:
         if (task_size == 1) { // single task
             forward_args((void *)&m_args.get_args(0));
         } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
-            ESP_LOGI("Gemm", "two task...");
             module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
         } else {
             ESP_LOGE("Gemm", "Only support task size is 1 or 2, currently task size is %d", task_size);
