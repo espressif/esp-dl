@@ -134,6 +134,14 @@ struct ConvRegions {
     int n_w_tail;
 };
 
+// Outputs [0, end) whose whole window fits before the input's far edge. A
+// negative reach must give 0: C division truncates it up to an extra column.
+inline int conv_full_window_end(int input_size, int padding_head, int dilation, int filter_size, int stride)
+{
+    const int reach = input_size + padding_head - dilation * (filter_size - 1) - 1;
+    return reach < 0 ? 0 : reach / stride + 1;
+}
+
 inline ConvRegions conv_regions(const ConvArgsType &args)
 {
     ConvRegions r;
@@ -144,14 +152,13 @@ inline ConvRegions conv_regions(const ConvArgsType &args)
     if (r.n_w_head > args.output_width)
         r.n_w_head = args.output_width;
 
-    r.n_h_body =
-        ((args.input_height + args.padding_h_head - args.dilation_h * (args.filter_height - 1) - 1) / args.stride_y +
-         1) -
+    r.n_h_body = conv_full_window_end(
+                     args.input_height, args.padding_h_head, args.dilation_h, args.filter_height, args.stride_y) -
         r.n_h_head;
     if (r.n_h_body < 0)
         r.n_h_body = 0;
     r.n_w_body =
-        ((args.input_width + args.padding_w_head - args.dilation_w * (args.filter_width - 1) - 1) / args.stride_x + 1) -
+        conv_full_window_end(args.input_width, args.padding_w_head, args.dilation_w, args.filter_width, args.stride_x) -
         r.n_w_head;
     if (r.n_w_body < 0)
         r.n_w_body = 0;
