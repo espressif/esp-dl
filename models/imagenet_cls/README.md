@@ -17,8 +17,8 @@
 | mobilenetv2_s8_v1_s3 (RUNTIME_MODE_MULTI_CORE)   | 224 * 224 * 3 | 8.2            | 353.5     | 0.7              | 70.543                 |
 | mobilenetv2_s8_v1_s31 (RUNTIME_MODE_SINGLE_CORE) | 224 * 224 * 3 | 4.1            | 278.1     | 0.5              | 70.441                 |
 | mobilenetv2_s8_v1_s31 (RUNTIME_MODE_MULTI_CORE)  | 224 * 224 * 3 | 4.1            | 281.2     | 0.5              | 70.441                 |
-| mobilenetv2_s8_v1_p4 (RUNTIME_MODE_SINGLE_CORE)  | 224 * 224 * 3 | 2.7            | 173.5     | 0.4              | 70.441                 |
-| mobilenetv2_s8_v1_p4 (RUNTIME_MODE_MULTI_CORE)   | 224 * 224 * 3 | 2.7            | 118.4     | 0.4              | 70.441                 |
+| mobilenetv2_s8_v1_p4 (RUNTIME_MODE_SINGLE_CORE)  | 224 * 224 * 3 | 2.7            | 166.1     | 0.4              | 70.441                 |
+| mobilenetv2_s8_v1_p4 (RUNTIME_MODE_MULTI_CORE)   | 224 * 224 * 3 | 2.7            | 128.3     | 0.4              | 70.441                 |
 
 > Multi-core mode only accelerates inference on dual-core targets with SIMD on both cores (ESP32-S3 / ESP32-P4).
 > ESP32-S31 has SIMD on one core only, so `RUNTIME_MODE_MULTI_CORE` is slower than single-core.

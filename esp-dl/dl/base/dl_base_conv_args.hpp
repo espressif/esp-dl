@@ -134,6 +134,14 @@ struct ConvRegions {
     int n_w_tail;
 };
 
+// Outputs [0, end) whose whole window fits before the input's far edge. A
+// negative reach must give 0: C division truncates it up to an extra column.
+inline int conv_full_window_end(int input_size, int padding_head, int dilation, int filter_size, int stride)
+{
+    const int reach = input_size + padding_head - dilation * (filter_size - 1) - 1;
+    return reach < 0 ? 0 : reach / stride + 1;
+}
+
 inline ConvRegions conv_regions(const ConvArgsType &args)
 {
     ConvRegions r;
@@ -144,14 +152,13 @@ inline ConvRegions conv_regions(const ConvArgsType &args)
     if (r.n_w_head > args.output_width)
         r.n_w_head = args.output_width;
 
-    r.n_h_body =
-        ((args.input_height + args.padding_h_head - args.dilation_h * (args.filter_height - 1) - 1) / args.stride_y +
-         1) -
+    r.n_h_body = conv_full_window_end(
+                     args.input_height, args.padding_h_head, args.dilation_h, args.filter_height, args.stride_y) -
         r.n_h_head;
     if (r.n_h_body < 0)
         r.n_h_body = 0;
     r.n_w_body =
-        ((args.input_width + args.padding_w_head - args.dilation_w * (args.filter_width - 1) - 1) / args.stride_x + 1) -
+        conv_full_window_end(args.input_width, args.padding_w_head, args.dilation_w, args.filter_width, args.stride_x) -
         r.n_w_head;
     if (r.n_w_body < 0)
         r.n_w_body = 0;
@@ -175,30 +182,58 @@ inline bool conv_is_1x1(const ConvArgsType &args)
     return args.filter_height == 1 && args.filter_width == 1;
 }
 
+// Small convolutions stay on the original path. The limits come from P4
+// measurements of W8A8, W8A16, and W16A16.
+inline int64_t conv_width_minimum_macs(quant_type_t quant)
+{
+    if (quant == QUANT_TYPE_SYMM_8BIT) {
+        return 512 * 1024;
+    }
+    if (quant == QUANT_TYPE_SYMM_W8A16) {
+        return 112 * 1024;
+    }
+    return 160 * 1024;
+}
+
+// Width split after the height split returned one task. Each half must keep at
+// least two columns so a width-1 slice does not leave the filter-tile loop.
+inline bool can_split_conv_width(const ConvArgsType &a, quant_type_t quant)
+{
+    if (a.output_width < 4 || a.output_height < 1) {
+        return false;
+    }
+    const int64_t macs = static_cast<int64_t>(a.output_height) * a.output_width * a.input_channel * a.output_channel *
+        a.filter_height * a.filter_width;
+    return macs >= conv_width_minimum_macs(quant);
+}
+
+// Output columns [begin, begin + count) as a narrower Conv, like the height
+// split: input_width and the w padding describe only the columns this slice
+// reads, while the precomputed row strides keep the original width.
+inline void set_conv_width_interval(ConvArgsType &a, int begin, int count, int feat_bytes)
+{
+    const int first = begin * a.stride_x - a.padding_w_head;
+    const int last = (begin + count - 1) * a.stride_x - a.padding_w_head + a.dilation_w * (a.filter_width - 1) + 1;
+    const int input_begin = first > 0 ? first : 0;
+    const int input_end = last < a.input_width ? last : a.input_width;
+    a.input_element = conv_ptr_add(a.input_element, input_begin * a.input_channel, feat_bytes);
+    a.padding_w_head = input_begin - first;
+    a.padding_w_tail = last - input_end;
+    a.input_width = input_end - input_begin;
+    a.output_element = conv_ptr_add(a.output_element, begin * a.output_x_offset, feat_bytes);
+    a.output_width = count;
+}
+
 template <typename Fn>
 inline void conv_each_1x1_pad(const ConvArgsType &args, const ConvRegions &r, int feat_bytes, Fn &&fn)
 {
-    void *out = args.output_element;
-    for (int y = 0; y < r.n_h_head; ++y) {
+    for (int y = 0; y < args.output_height; ++y) {
+        const bool full_row = y < r.n_h_head || y >= r.n_h_head + r.n_h_body;
+        void *out = conv_ptr_add(args.output_element, y * args.output_y_offset, feat_bytes);
         for (int x = 0; x < args.output_width; ++x) {
-            fn(out);
-            out = conv_ptr_add(out, args.output_x_offset, feat_bytes);
-        }
-    }
-    for (int y = 0; y < r.n_h_body; ++y) {
-        for (int x = 0; x < r.n_w_head; ++x) {
-            fn(out);
-            out = conv_ptr_add(out, args.output_x_offset, feat_bytes);
-        }
-        out = conv_ptr_add(out, r.n_w_body * args.output_x_offset, feat_bytes);
-        for (int x = 0; x < r.n_w_tail; ++x) {
-            fn(out);
-            out = conv_ptr_add(out, args.output_x_offset, feat_bytes);
-        }
-    }
-    for (int y = 0; y < r.n_h_tail; ++y) {
-        for (int x = 0; x < args.output_width; ++x) {
-            fn(out);
+            if (full_row || x < r.n_w_head || x >= r.n_w_head + r.n_w_body) {
+                fn(out);
+            }
             out = conv_ptr_add(out, args.output_x_offset, feat_bytes);
         }
     }
@@ -469,6 +504,14 @@ public:
                                                             args.output_width * args.output_channel,
                                                         act_bytes);
             }
+        }
+        // Maps too short for the height split are divided by output columns instead.
+        if (m_args.size() == 1 && runtime_mode == RUNTIME_MODE_MULTI_CORE && group == 1 && input->shape[0] == 1 &&
+            can_split_conv_width(args, quant)) {
+            const int left = (args.output_width + 1) / 2;
+            m_args.push_back(args);
+            set_conv_width_interval(m_args[0], 0, left, act_bytes);
+            set_conv_width_interval(m_args[1], left, args.output_width - left, act_bytes);
         }
     }
 
