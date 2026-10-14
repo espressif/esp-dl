@@ -116,8 +116,6 @@ static std::vector<pix_cvt_t> pix_cvts = {DL_IMAGE_PIX_CVT_RGB8882RGB888,
                                           DL_IMAGE_PIX_CVT_YUYV2BGR565BE,
                                           DL_IMAGE_PIX_CVT_YUYV2HSV,
                                           DL_IMAGE_PIX_CVT_YUYV2HSV_MASK,
-                                          DL_IMAGE_PIX_CVT_YUYV2YUYV,
-                                          DL_IMAGE_PIX_CVT_YUYV2UYVY,
                                           DL_IMAGE_PIX_CVT_UYVY2RGB888,
                                           DL_IMAGE_PIX_CVT_UYVY2RGB888_QINT8,
                                           DL_IMAGE_PIX_CVT_UYVY2RGB888_QINT16,
@@ -132,9 +130,7 @@ static std::vector<pix_cvt_t> pix_cvts = {DL_IMAGE_PIX_CVT_RGB8882RGB888,
                                           DL_IMAGE_PIX_CVT_UYVY2BGR565LE,
                                           DL_IMAGE_PIX_CVT_UYVY2BGR565BE,
                                           DL_IMAGE_PIX_CVT_UYVY2HSV,
-                                          DL_IMAGE_PIX_CVT_UYVY2HSV_MASK,
-                                          DL_IMAGE_PIX_CVT_UYVY2YUYV,
-                                          DL_IMAGE_PIX_CVT_UYVY2UYVY};
+                                          DL_IMAGE_PIX_CVT_UYVY2HSV_MASK};
 
 void test_cvt_perf(pix_cvt_t pix_cvt, uint16_t w, uint16_t h, int times)
 {
@@ -173,7 +169,7 @@ void test_cvt_perf(pix_cvt_t pix_cvt, uint16_t w, uint16_t h, int times)
     int64_t max = 0, min = std::numeric_limits<int64_t>::max(), avg = 0;
     for (int i = 0; i < times; i++) {
         int64_t start = esp_timer_get_time();
-        T.transform<false>();
+        T.transform(false);
         int64_t end = esp_timer_get_time();
         int64_t interval = end - start;
         if (interval > max) {
@@ -228,7 +224,7 @@ void test_resize_perf(pix_cvt_t pix_cvt, uint16_t w, uint16_t h, uint16_t resize
     int64_t max = 0, min = std::numeric_limits<int64_t>::max(), avg = 0;
     for (int i = 0; i < times; i++) {
         int64_t start = esp_timer_get_time();
-        T.transform<false>();
+        T.transform(false);
         int64_t end = esp_timer_get_time();
         int64_t interval = end - start;
         if (interval > max) {

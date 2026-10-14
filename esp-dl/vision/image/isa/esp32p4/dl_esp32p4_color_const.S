@@ -209,3 +209,25 @@ vsr_u8_6_mask:
     .type   vsr_u8_7_mask, @object
 vsr_u8_7_mask:
     .byte 0b00000001
+
+    .section .rodata
+    .balign 16
+    .global  yuv2rgb888_const_tab
+    .type   yuv2rgb888_const_tab, @object
+# round at 0. Each later group starts 16-byte aligned so ldqa.ip can land on it.
+#   0: 8192 x 8
+#  16: -128, 22987, pad
+#  32: -5636, -11698, pad
+#  48: 29049, 255
+yuv2rgb888_const_tab:
+    .rept 8
+    .half 8192
+    .endr
+    .half -128
+    .half 22987
+    .zero 12
+    .half -5636
+    .half -11698
+    .zero 12
+    .half 29049
+    .half 255

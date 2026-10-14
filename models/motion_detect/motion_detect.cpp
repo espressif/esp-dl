@@ -68,9 +68,9 @@ uint32_t get_moving_point_number(const img_t &img1, const img_t &img2, int strid
     case DL_IMAGE_PIX_TYPE_BGR565BE:
         return pix_compare(RGB5652Gray<true, true>());
     case DL_IMAGE_PIX_TYPE_YUYV:
-        return pix_compare(YUV2Gray<true>());
+        return pix_compare(YUYV2Gray<true>());
     case DL_IMAGE_PIX_TYPE_UYVY:
-        return pix_compare(YUV2Gray<false>());
+        return pix_compare(YUYV2Gray<false>());
     case DL_IMAGE_PIX_TYPE_GRAY: {
         int n_moving_pts = 0;
         for (int i = 0; i < height; i += stride) {

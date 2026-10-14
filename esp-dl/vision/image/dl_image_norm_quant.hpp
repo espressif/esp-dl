@@ -12,6 +12,7 @@ template <typename QuantType>
     requires std::same_as<QuantType, int8_t> || std::same_as<QuantType, int16_t>
 struct NormQuant<QuantType, 3> {
     using QT = QuantType;
+    static constexpr int channels = 3;
     NormQuant(const std::array<float, 3> &mean, const std::array<float, 3> &std, int exp)
     {
         m_lut1 = (QuantType *)heap_caps_malloc(3 * 256 * sizeof(QuantType), MALLOC_CAP_DEFAULT);
@@ -52,6 +53,7 @@ template <typename QuantType>
     requires std::same_as<QuantType, int8_t> || std::same_as<QuantType, int16_t>
 struct NormQuant<QuantType, 1> {
     using QT = QuantType;
+    static constexpr int channels = 1;
     NormQuant(float mean, float std, int exp)
     {
         m_lut1 = (QuantType *)heap_caps_malloc(256 * sizeof(QuantType), MALLOC_CAP_DEFAULT);

@@ -11,6 +11,9 @@ struct RGB5652HSV;
 
 template <bool RGB565BE, bool RGBSwap>
 struct RGB5652HSV<RGB565BE, RGBSwap, void> {
+    static constexpr int src_bpp = 2;
+    static constexpr int dst_bpp = 3;
+
     const HSVTablesSingleton &m_hsv_tables;
 
     RGB5652HSV() : m_hsv_tables(HSVTablesSingleton::get_instance()) {}
@@ -87,6 +90,9 @@ struct RGB5652HSV<RGB565BE, RGBSwap, void> {
 template <bool RGB565BE, bool RGBSwap, typename ExtraProcess>
     requires std::same_as<ExtraProcess, HSV2HSVMask<false>> || std::same_as<ExtraProcess, HSV2HSVMask<true>>
 struct RGB5652HSV<RGB565BE, RGBSwap, ExtraProcess> {
+    static constexpr int src_bpp = 2;
+    static constexpr int dst_bpp = ExtraProcess::dst_bpp;
+
     const HSVTablesSingleton &m_hsv_tables;
     const ExtraProcess &m_extra_process;
 
