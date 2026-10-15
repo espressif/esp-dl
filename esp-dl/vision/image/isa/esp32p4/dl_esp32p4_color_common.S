@@ -781,7 +781,8 @@
     rgb8882hsv_mask1 \qd, \a_sdiv_lut, \a_hdiv_lut, \a_hsv_min_addr, \a_hsv_max_addr, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \a_tmp1, \a_tmp2, \a_tmp3, \q_tmp3, \q_tmp4, \qs0, \qs1
 .endm
 
-.macro resize_nn_load_1chn_128 qd, base_addr, offsets, q_tmp0, q_tmp1, q_tmp2, a_tmp0, a_tmp1, a_tmp2, a_tmp3
+# byte_off is 0 for the pixel address, 1 for the next byte (UYVY Y).
+.macro resize_nn_load_1chn_128 qd, base_addr, offsets, q_tmp0, q_tmp1, q_tmp2, a_tmp0, a_tmp1, a_tmp2, a_tmp3, byte_off
     esp.vldbc.32.ip \q_tmp0, \base_addr, 0
     esp.vld.128.ip \q_tmp1, \offsets, 16
     esp.vadd.u32.ld.incp \q_tmp2, \offsets, \q_tmp1, \q_tmp0, \q_tmp1
@@ -789,10 +790,10 @@
     esp.movi.32.a \q_tmp1, \a_tmp1, 1
     esp.movi.32.a \q_tmp1, \a_tmp2, 2
     esp.movi.32.a \q_tmp1, \a_tmp3, 3
-    lb \a_tmp0, 0(\a_tmp0)
-    lb \a_tmp1, 0(\a_tmp1)
-    lb \a_tmp2, 0(\a_tmp2)
-    lb \a_tmp3, 0(\a_tmp3)
+    lb \a_tmp0, \byte_off(\a_tmp0)
+    lb \a_tmp1, \byte_off(\a_tmp1)
+    lb \a_tmp2, \byte_off(\a_tmp2)
+    lb \a_tmp3, \byte_off(\a_tmp3)
     esp.movi.8.q \qd, \a_tmp0, 0
     esp.movi.8.q \qd, \a_tmp1, 1
     esp.movi.8.q \qd, \a_tmp2, 2
@@ -803,10 +804,10 @@
     esp.movi.32.a \q_tmp2, \a_tmp1, 1
     esp.movi.32.a \q_tmp2, \a_tmp2, 2
     esp.movi.32.a \q_tmp2, \a_tmp3, 3
-    lb \a_tmp0, 0(\a_tmp0)
-    lb \a_tmp1, 0(\a_tmp1)
-    lb \a_tmp2, 0(\a_tmp2)
-    lb \a_tmp3, 0(\a_tmp3)
+    lb \a_tmp0, \byte_off(\a_tmp0)
+    lb \a_tmp1, \byte_off(\a_tmp1)
+    lb \a_tmp2, \byte_off(\a_tmp2)
+    lb \a_tmp3, \byte_off(\a_tmp3)
     esp.movi.8.q \qd, \a_tmp0, 4
     esp.movi.8.q \qd, \a_tmp1, 5
     esp.movi.8.q \qd, \a_tmp2, 6
@@ -817,10 +818,10 @@
     esp.movi.32.a \q_tmp1, \a_tmp1, 1
     esp.movi.32.a \q_tmp1, \a_tmp2, 2
     esp.movi.32.a \q_tmp1, \a_tmp3, 3
-    lb \a_tmp0, 0(\a_tmp0)
-    lb \a_tmp1, 0(\a_tmp1)
-    lb \a_tmp2, 0(\a_tmp2)
-    lb \a_tmp3, 0(\a_tmp3)
+    lb \a_tmp0, \byte_off(\a_tmp0)
+    lb \a_tmp1, \byte_off(\a_tmp1)
+    lb \a_tmp2, \byte_off(\a_tmp2)
+    lb \a_tmp3, \byte_off(\a_tmp3)
     esp.movi.8.q \qd, \a_tmp0, 8
     esp.movi.8.q \qd, \a_tmp1, 9
     esp.movi.8.q \qd, \a_tmp2, 10
@@ -831,17 +832,17 @@
     esp.movi.32.a \q_tmp2, \a_tmp1, 1
     esp.movi.32.a \q_tmp2, \a_tmp2, 2
     esp.movi.32.a \q_tmp2, \a_tmp3, 3
-    lb \a_tmp0, 0(\a_tmp0)
-    lb \a_tmp1, 0(\a_tmp1)
-    lb \a_tmp2, 0(\a_tmp2)
-    lb \a_tmp3, 0(\a_tmp3)
+    lb \a_tmp0, \byte_off(\a_tmp0)
+    lb \a_tmp1, \byte_off(\a_tmp1)
+    lb \a_tmp2, \byte_off(\a_tmp2)
+    lb \a_tmp3, \byte_off(\a_tmp3)
     esp.movi.8.q \qd, \a_tmp0, 12
     esp.movi.8.q \qd, \a_tmp1, 13
     esp.movi.8.q \qd, \a_tmp2, 14
     esp.movi.8.q \qd, \a_tmp3, 15
 .endm
 
-.macro resize_nn_load_store_1chn_128 dst_addr, base_addr, offsets, q_tmp0, q_tmp1, q_tmp2, a_tmp0, a_tmp1, a_tmp2, a_tmp3
+.macro resize_nn_load_store_1chn_128 dst_addr, base_addr, offsets, q_tmp0, q_tmp1, q_tmp2, a_tmp0, a_tmp1, a_tmp2, a_tmp3, byte_off
     esp.vldbc.32.ip \q_tmp0, \base_addr, 0
     esp.vld.128.ip \q_tmp1, \offsets, 16
     esp.vadd.u32.ld.incp \q_tmp2, \offsets, \q_tmp1, \q_tmp0, \q_tmp1
@@ -849,10 +850,10 @@
     esp.movi.32.a \q_tmp1, \a_tmp1, 1
     esp.movi.32.a \q_tmp1, \a_tmp2, 2
     esp.movi.32.a \q_tmp1, \a_tmp3, 3
-    lb \a_tmp0, 0(\a_tmp0)
-    lb \a_tmp1, 0(\a_tmp1)
-    lb \a_tmp2, 0(\a_tmp2)
-    lb \a_tmp3, 0(\a_tmp3)
+    lb \a_tmp0, \byte_off(\a_tmp0)
+    lb \a_tmp1, \byte_off(\a_tmp1)
+    lb \a_tmp2, \byte_off(\a_tmp2)
+    lb \a_tmp3, \byte_off(\a_tmp3)
     sb \a_tmp0, 0(\dst_addr)
     sb \a_tmp1, 1(\dst_addr)
     sb \a_tmp2, 2(\dst_addr)
@@ -863,10 +864,10 @@
     esp.movi.32.a \q_tmp2, \a_tmp1, 1
     esp.movi.32.a \q_tmp2, \a_tmp2, 2
     esp.movi.32.a \q_tmp2, \a_tmp3, 3
-    lb \a_tmp0, 0(\a_tmp0)
-    lb \a_tmp1, 0(\a_tmp1)
-    lb \a_tmp2, 0(\a_tmp2)
-    lb \a_tmp3, 0(\a_tmp3)
+    lb \a_tmp0, \byte_off(\a_tmp0)
+    lb \a_tmp1, \byte_off(\a_tmp1)
+    lb \a_tmp2, \byte_off(\a_tmp2)
+    lb \a_tmp3, \byte_off(\a_tmp3)
     sb \a_tmp0, 4(\dst_addr)
     sb \a_tmp1, 5(\dst_addr)
     sb \a_tmp2, 6(\dst_addr)
@@ -877,10 +878,10 @@
     esp.movi.32.a \q_tmp1, \a_tmp1, 1
     esp.movi.32.a \q_tmp1, \a_tmp2, 2
     esp.movi.32.a \q_tmp1, \a_tmp3, 3
-    lb \a_tmp0, 0(\a_tmp0)
-    lb \a_tmp1, 0(\a_tmp1)
-    lb \a_tmp2, 0(\a_tmp2)
-    lb \a_tmp3, 0(\a_tmp3)
+    lb \a_tmp0, \byte_off(\a_tmp0)
+    lb \a_tmp1, \byte_off(\a_tmp1)
+    lb \a_tmp2, \byte_off(\a_tmp2)
+    lb \a_tmp3, \byte_off(\a_tmp3)
     sb \a_tmp0, 8(\dst_addr)
     sb \a_tmp1, 9(\dst_addr)
     sb \a_tmp2, 10(\dst_addr)
@@ -891,10 +892,10 @@
     esp.movi.32.a \q_tmp2, \a_tmp1, 1
     esp.movi.32.a \q_tmp2, \a_tmp2, 2
     esp.movi.32.a \q_tmp2, \a_tmp3, 3
-    lb \a_tmp0, 0(\a_tmp0)
-    lb \a_tmp1, 0(\a_tmp1)
-    lb \a_tmp2, 0(\a_tmp2)
-    lb \a_tmp3, 0(\a_tmp3)
+    lb \a_tmp0, \byte_off(\a_tmp0)
+    lb \a_tmp1, \byte_off(\a_tmp1)
+    lb \a_tmp2, \byte_off(\a_tmp2)
+    lb \a_tmp3, \byte_off(\a_tmp3)
     sb \a_tmp0, 12(\dst_addr)
     sb \a_tmp1, 13(\dst_addr)
     sb \a_tmp2, 14(\dst_addr)
@@ -960,6 +961,62 @@
     esp.movi.16.q \qd1, \a_tmp1, 5
     esp.movi.16.q \qd1, \a_tmp2, 6
     esp.movi.16.q \qd1, \a_tmp3, 7
+.endm
+
+# One output pixel. a_addr is the pixel byte address. a_base is the row pointer.
+# Parity is (a_addr - a_base) & 2. Y is read before a_addr is aligned to the pair.
+# lbu zero-extends into an s16 lane. YUYV memory is Y0 U Y1 V. Y is at the pixel address.
+.macro resize_nn_yuyv_lane q_y, q_u, q_v, a_addr, a_scratch, a_base, lane
+    lbu \a_scratch, 0(\a_addr)
+    esp.movi.16.q \q_y, \a_scratch, \lane
+    sub \a_scratch, \a_addr, \a_base
+    andi \a_scratch, \a_scratch, 2
+    sub \a_addr, \a_addr, \a_scratch
+    lbu \a_scratch, 1(\a_addr)
+    esp.movi.16.q \q_u, \a_scratch, \lane
+    lbu \a_scratch, 3(\a_addr)
+    esp.movi.16.q \q_v, \a_scratch, \lane
+.endm
+
+# UYVY memory is U Y0 V Y1. Y is at the pixel address + 1.
+.macro resize_nn_uyvy_lane q_y, q_u, q_v, a_addr, a_scratch, a_base, lane
+    lbu \a_scratch, 1(\a_addr)
+    esp.movi.16.q \q_y, \a_scratch, \lane
+    sub \a_scratch, \a_addr, \a_base
+    andi \a_scratch, \a_scratch, 2
+    sub \a_addr, \a_addr, \a_scratch
+    lbu \a_scratch, 0(\a_addr)
+    esp.movi.16.q \q_u, \a_scratch, \lane
+    lbu \a_scratch, 2(\a_addr)
+    esp.movi.16.q \q_v, \a_scratch, \lane
+.endm
+
+# 8 pixels. yuv_lane is resize_nn_yuyv_lane or resize_nn_uyvy_lane.
+# offsets advances 32 bytes. q_y/q_u/q_v hold 8 zero-extended s16 values.
+# a_base receives the row pointer from q_tmp0 and stays live across the lanes.
+.macro resize_nn_load_yuv_8 q_y, q_u, q_v, base_addr, offsets, q_tmp0, q_tmp1, q_tmp2, a_tmp0, a_tmp1, a_tmp2, a_tmp3, a_scratch, a_base, yuv_lane
+    esp.vldbc.32.ip \q_tmp0, \base_addr, 0
+    esp.movi.32.a \q_tmp0, \a_base, 0
+    esp.vld.128.ip \q_tmp1, \offsets, 16
+    esp.vadd.u32.ld.incp \q_tmp2, \offsets, \q_tmp1, \q_tmp0, \q_tmp1
+    esp.movi.32.a \q_tmp1, \a_tmp0, 0
+    esp.movi.32.a \q_tmp1, \a_tmp1, 1
+    esp.movi.32.a \q_tmp1, \a_tmp2, 2
+    esp.movi.32.a \q_tmp1, \a_tmp3, 3
+    \yuv_lane \q_y, \q_u, \q_v, \a_tmp0, \a_scratch, \a_base, 0
+    \yuv_lane \q_y, \q_u, \q_v, \a_tmp1, \a_scratch, \a_base, 1
+    \yuv_lane \q_y, \q_u, \q_v, \a_tmp2, \a_scratch, \a_base, 2
+    \yuv_lane \q_y, \q_u, \q_v, \a_tmp3, \a_scratch, \a_base, 3
+
+    esp.vadd.u32 \q_tmp2, \q_tmp0, \q_tmp2
+    esp.movi.32.a \q_tmp2, \a_tmp0, 0
+    esp.movi.32.a \q_tmp2, \a_tmp1, 1
+    esp.movi.32.a \q_tmp2, \a_tmp2, 2
+    esp.movi.32.a \q_tmp2, \a_tmp3, 3
+    \yuv_lane \q_y, \q_u, \q_v, \a_tmp0, \a_scratch, \a_base, 4
+    \yuv_lane \q_y, \q_u, \q_v, \a_tmp1, \a_scratch, \a_base, 5
+    \yuv_lane \q_y, \q_u, \q_v, \a_tmp2, \a_scratch, \a_base, 6
+    \yuv_lane \q_y, \q_u, \q_v, \a_tmp3, \a_scratch, \a_base, 7
 .endm
 
 .macro resize_nn_load_store_2chn_128 dst_addr, base_addr, offsets, q_tmp0, q_tmp1, q_tmp2, a_tmp0, a_tmp1, a_tmp2, a_tmp3
@@ -1206,4 +1263,380 @@
     sb \a_tmp6, 45(\dst_addr)
     sh \a_tmp7, 46(\dst_addr)
     addi \dst_addr, \dst_addr, 48
+.endm
+
+# 8 deltas from one U and one V. q_tmp receives dR, q_v receives dG, q_u receives dB.
+# q_cof is a coefficient scratch and is dead on exit. a_shift holds 14.
+# a_tmp points at the 255 half in yuv2rgb888_const_tab.
+.macro yuv2rgb888_delta q_u, q_v, q_tmp, q_cof, a_tmp, a_shift
+    la \a_tmp, yuv2rgb888_const_tab
+    esp.ldqa.s16.128.ip \a_tmp, 16
+    vldbc_16_ip \q_tmp, \a_tmp, 2
+    esp.vadd.s16 \q_u, \q_u, \q_tmp
+    esp.vadd.s16 \q_v, \q_v, \q_tmp
+    vldbc_16_ip \q_tmp, \a_tmp, -18
+    esp.vmulas.s16.qacc \q_v, \q_tmp
+    esp.srcmb.s16.qacc \q_tmp, \a_shift, 0
+
+    esp.ldqa.s16.128.ip \a_tmp, 32
+    vldbc_16_ip \q_cof, \a_tmp, 2
+    esp.vmulas.s16.qacc \q_u, \q_cof
+    vldbc_16_ip \q_cof, \a_tmp, -34
+    esp.vmulas.s16.qacc \q_v, \q_cof
+    esp.srcmb.s16.qacc \q_v, \a_shift, 0
+
+    esp.ldqa.s16.128.ip \a_tmp, 48
+    vldbc_16_ip \q_cof, \a_tmp, 2
+    esp.vmulas.s16.qacc \q_u, \q_cof
+    esp.srcmb.s16.qacc \q_u, \a_shift, 0
+.endm
+
+# Clamp six s16 QRs to 0..255. q_zero and q_255 are free and receive the bounds.
+# a_255 already points at the 255 half in yuv2rgb888_const_tab.
+.macro yuv2rgb888_clamp6 q0, q1, q2, q3, q4, q5, q_zero, q_255, a_255
+    esp.zero.q \q_zero
+    vldbc_16_ip \q_255, \a_255, 0
+    esp.vmax.s16 \q0, \q0, \q_zero
+    esp.vmax.s16 \q1, \q1, \q_zero
+    esp.vmax.s16 \q2, \q2, \q_zero
+    esp.vmax.s16 \q3, \q3, \q_zero
+    esp.vmax.s16 \q4, \q4, \q_zero
+    esp.vmax.s16 \q5, \q5, \q_zero
+    esp.vmin.s16 \q0, \q0, \q_255
+    esp.vmin.s16 \q1, \q1, \q_255
+    esp.vmin.s16 \q2, \q2, \q_255
+    esp.vmin.s16 \q3, \q3, \q_255
+    esp.vmin.s16 \q4, \q4, \q_255
+    esp.vmin.s16 \q5, \q5, \q_255
+.endm
+
+# 16 output pixels, no stack spill. The eight QRs are distinct.
+# q_r/q_g/q_b end as planar packed R/G/B. q_y is both groups' Y and then zero.
+# q_r1/q_g1/q_b1 are the high halves. q_255 is the address temp and then 255.
+# Group 1 gather aliases its q_tmp1 with q_y.
+# The gather borrows a_shift as the row base, then puts 14 back before each delta.
+.macro resize_nn_yuv2rgb888_16 q_r, q_g, q_b, base_addr, offsets, yuv_lane, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, q_y, q_r1, q_g1, q_b1, q_255
+    resize_nn_load_yuv_8 \q_y, \q_b, \q_g, \base_addr, \offsets, \q_r, \q_r1, \q_255, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \a_shift, \yuv_lane
+    li \a_shift, 14
+    yuv2rgb888_delta \q_b, \q_g, \q_r, \q_r1, \a_scratch, \a_shift
+    esp.vadd.s16 \q_r, \q_y, \q_r
+    esp.vadd.s16 \q_g, \q_y, \q_g
+    esp.vadd.s16 \q_b, \q_y, \q_b
+
+    resize_nn_load_yuv_8 \q_y, \q_b1, \q_g1, \base_addr, \offsets, \q_r1, \q_y, \q_255, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \a_shift, \yuv_lane
+    li \a_shift, 14
+    yuv2rgb888_delta \q_b1, \q_g1, \q_r1, \q_255, \a_scratch, \a_shift
+    esp.vadd.s16 \q_r1, \q_y, \q_r1
+    esp.vadd.s16 \q_g1, \q_y, \q_g1
+    esp.vadd.s16 \q_b1, \q_y, \q_b1
+
+    yuv2rgb888_clamp6 \q_b, \q_g, \q_r, \q_r1, \q_b1, \q_g1, \q_y, \q_255, \a_scratch
+
+    esp.vunzip.8 \q_r, \q_r1
+    esp.vunzip.8 \q_g, \q_g1
+    esp.vunzip.8 \q_b, \q_b1
+.endm
+
+# qd0/qd1/qd2 are planar output-order channels. The eight QRs are distinct.
+# On exit only qd0/qd1/qd2 are live. BGR feeds qd2, qd1, qd0 in as R, G, B.
+.macro resize_nn_yuyv2rgb888 qd0, qd1, qd2, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, q_y, q_r1, q_g1, q_b1, q_255
+    resize_nn_yuv2rgb888_16 \qd0, \qd1, \qd2, \base_addr, \offsets, resize_nn_yuyv_lane, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \q_y, \q_r1, \q_g1, \q_b1, \q_255
+.endm
+
+.macro resize_nn_uyvy2rgb888 qd0, qd1, qd2, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, q_y, q_r1, q_g1, q_b1, q_255
+    resize_nn_yuv2rgb888_16 \qd0, \qd1, \qd2, \base_addr, \offsets, resize_nn_uyvy_lane, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \q_y, \q_r1, \q_g1, \q_b1, \q_255
+.endm
+
+.macro resize_nn_yuyv2bgr888 qd0, qd1, qd2, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, q_y, q_r1, q_g1, q_b1, q_255
+    resize_nn_yuv2rgb888_16 \qd2, \qd1, \qd0, \base_addr, \offsets, resize_nn_yuyv_lane, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \q_y, \q_r1, \q_g1, \q_b1, \q_255
+.endm
+
+.macro resize_nn_uyvy2bgr888 qd0, qd1, qd2, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, q_y, q_r1, q_g1, q_b1, q_255
+    resize_nn_yuv2rgb888_16 \qd2, \qd1, \qd0, \base_addr, \offsets, resize_nn_uyvy_lane, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \q_y, \q_r1, \q_g1, \q_b1, \q_255
+.endm
+
+# Quant temps are q_y, q_r1, q_255. They stay off qd0/qd1/qd2.
+.macro resize_nn_yuyv2rgb888_qint8 qd0, qd1, qd2, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_lut, q_y, q_r1, q_g1, q_b1, q_255
+    resize_nn_yuyv2rgb888 \qd0, \qd1, \qd2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \q_y, \q_r1, \q_g1, \q_b1, \q_255
+    norm_quant_3chn_8 \qd0, \qd1, \qd2, \a_lut, \q_y, \q_r1, \q_255
+.endm
+
+.macro resize_nn_uyvy2rgb888_qint8 qd0, qd1, qd2, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_lut, q_y, q_r1, q_g1, q_b1, q_255
+    resize_nn_uyvy2rgb888 \qd0, \qd1, \qd2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \q_y, \q_r1, \q_g1, \q_b1, \q_255
+    norm_quant_3chn_8 \qd0, \qd1, \qd2, \a_lut, \q_y, \q_r1, \q_255
+.endm
+
+.macro resize_nn_yuyv2bgr888_qint8 qd0, qd1, qd2, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_lut, q_y, q_r1, q_g1, q_b1, q_255
+    resize_nn_yuyv2bgr888 \qd0, \qd1, \qd2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \q_y, \q_r1, \q_g1, \q_b1, \q_255
+    norm_quant_3chn_8 \qd0, \qd1, \qd2, \a_lut, \q_y, \q_r1, \q_255
+.endm
+
+.macro resize_nn_uyvy2bgr888_qint8 qd0, qd1, qd2, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_lut, q_y, q_r1, q_g1, q_b1, q_255
+    resize_nn_uyvy2bgr888 \qd0, \qd1, \qd2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \q_y, \q_r1, \q_g1, \q_b1, \q_255
+    norm_quant_3chn_8 \qd0, \qd1, \qd2, \a_lut, \q_y, \q_r1, \q_255
+.endm
+
+# qd0/qd1, qd2/qd3, qd4/qd5 are the three channels' low/high halves.
+# Planar RGB is written into qd3/qd4/qd5, then consumed as the quant indices.
+# qd0..qd5, q_tmp0, q_tmp1 are eight distinct QRs.
+.macro resize_nn_yuyv2rgb888_qint16 qd0, qd1, qd2, qd3, qd4, qd5, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_lut, q_tmp0, q_tmp1
+    resize_nn_yuyv2rgb888 \qd3, \qd4, \qd5, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_tmp0, \q_tmp1, \qd2
+    norm_quant_3chn_16 \qd0, \qd1, \qd2, \qd3, \qd4, \qd5, \a_lut, \q_tmp0, \q_tmp1
+.endm
+
+.macro resize_nn_uyvy2rgb888_qint16 qd0, qd1, qd2, qd3, qd4, qd5, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_lut, q_tmp0, q_tmp1
+    resize_nn_uyvy2rgb888 \qd3, \qd4, \qd5, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_tmp0, \q_tmp1, \qd2
+    norm_quant_3chn_16 \qd0, \qd1, \qd2, \qd3, \qd4, \qd5, \a_lut, \q_tmp0, \q_tmp1
+.endm
+
+.macro resize_nn_yuyv2bgr888_qint16 qd0, qd1, qd2, qd3, qd4, qd5, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_lut, q_tmp0, q_tmp1
+    resize_nn_yuyv2bgr888 \qd3, \qd4, \qd5, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_tmp0, \q_tmp1, \qd2
+    norm_quant_3chn_16 \qd0, \qd1, \qd2, \qd3, \qd4, \qd5, \a_lut, \q_tmp0, \q_tmp1
+.endm
+
+.macro resize_nn_uyvy2bgr888_qint16 qd0, qd1, qd2, qd3, qd4, qd5, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_lut, q_tmp0, q_tmp1
+    resize_nn_uyvy2bgr888 \qd3, \qd4, \qd5, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_tmp0, \q_tmp1, \qd2
+    norm_quant_3chn_16 \qd0, \qd1, \qd2, \qd3, \qd4, \qd5, \a_lut, \q_tmp0, \q_tmp1
+.endm
+
+# qd0/qd1 are the 565 halves. qs0/qs1/qs2 stay planar RGB.
+# The bgr565 packer swaps R and B. q_t0..q_t2 complete the gather temps.
+# a_shift and a_g0 are the packer temps.
+.macro resize_nn_yuyv2rgb565le qd0, qd1, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, qs0, qs1, qs2, q_t0, q_t1, q_t2
+    resize_nn_yuyv2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_t0, \q_t1, \q_t2
+    rgb8882rgb565le \qd0, \qd1, \qs0, \qs1, \qs2, \a_shift, \a_g0
+.endm
+
+.macro resize_nn_yuyv2rgb565be qd0, qd1, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, qs0, qs1, qs2, q_t0, q_t1, q_t2
+    resize_nn_yuyv2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_t0, \q_t1, \q_t2
+    rgb8882rgb565be \qd0, \qd1, \qs0, \qs1, \qs2, \a_shift, \a_g0
+.endm
+
+.macro resize_nn_yuyv2bgr565le qd0, qd1, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, qs0, qs1, qs2, q_t0, q_t1, q_t2
+    resize_nn_yuyv2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_t0, \q_t1, \q_t2
+    bgr8882rgb565le \qd0, \qd1, \qs0, \qs1, \qs2, \a_shift, \a_g0
+.endm
+
+.macro resize_nn_yuyv2bgr565be qd0, qd1, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, qs0, qs1, qs2, q_t0, q_t1, q_t2
+    resize_nn_yuyv2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_t0, \q_t1, \q_t2
+    bgr8882rgb565be \qd0, \qd1, \qs0, \qs1, \qs2, \a_shift, \a_g0
+.endm
+
+.macro resize_nn_uyvy2rgb565le qd0, qd1, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, qs0, qs1, qs2, q_t0, q_t1, q_t2
+    resize_nn_uyvy2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_t0, \q_t1, \q_t2
+    rgb8882rgb565le \qd0, \qd1, \qs0, \qs1, \qs2, \a_shift, \a_g0
+.endm
+
+.macro resize_nn_uyvy2rgb565be qd0, qd1, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, qs0, qs1, qs2, q_t0, q_t1, q_t2
+    resize_nn_uyvy2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_t0, \q_t1, \q_t2
+    rgb8882rgb565be \qd0, \qd1, \qs0, \qs1, \qs2, \a_shift, \a_g0
+.endm
+
+.macro resize_nn_uyvy2bgr565le qd0, qd1, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, qs0, qs1, qs2, q_t0, q_t1, q_t2
+    resize_nn_uyvy2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_t0, \q_t1, \q_t2
+    bgr8882rgb565le \qd0, \qd1, \qs0, \qs1, \qs2, \a_shift, \a_g0
+.endm
+
+.macro resize_nn_uyvy2bgr565be qd0, qd1, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, qs0, qs1, qs2, q_t0, q_t1, q_t2
+    resize_nn_uyvy2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_t0, \q_t1, \q_t2
+    bgr8882rgb565be \qd0, \qd1, \qs0, \qs1, \qs2, \a_shift, \a_g0
+.endm
+
+# qd0/qd1/qd2 are H/S/V. qs0/qs1/qs2 are planar RGB.
+.macro resize_nn_yuyv2hsv qd0, qd1, qd2, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_sdiv, a_hdiv, a_t0, a_t1, a_t2, a_t3, qs0, qs1, qs2, q_t0, q_t1
+    resize_nn_yuyv2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_t0, \q_t1, \qd2
+    rgb8882hsv \qd0, \qd1, \qd2, \a_sdiv, \a_hdiv, \qs0, \qs1, \qs2, \a_t0, \a_t1, \a_t2, \a_t3, \q_t0, \q_t1
+.endm
+
+.macro resize_nn_uyvy2hsv qd0, qd1, qd2, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_sdiv, a_hdiv, a_t0, a_t1, a_t2, a_t3, qs0, qs1, qs2, q_t0, q_t1
+    resize_nn_uyvy2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd0, \qd1, \q_t0, \q_t1, \qd2
+    rgb8882hsv \qd0, \qd1, \qd2, \a_sdiv, \a_hdiv, \qs0, \qs1, \qs2, \a_t0, \a_t1, \a_t2, \a_t3, \q_t0, \q_t1
+.endm
+
+# qd is the mask byte. qs0/qs1/qs2 are planar RGB. q_t0..q_t2 are H/S/V and q_t3 is scratch.
+# a_t0..a_t3 may alias the gather ARs. a_min/a_max stay live across rgb8882hsv.
+.macro resize_nn_yuyv2hsv_mask0 qd, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_sdiv, a_hdiv, a_min, a_max, a_t0, a_t1, a_t2, a_t3, qs0, qs1, qs2, q_t0, q_t1, q_t2, q_t3
+    resize_nn_yuyv2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd, \q_t0, \q_t1, \q_t2, \q_t3
+    rgb8882hsv_mask0 \qd, \a_sdiv, \a_hdiv, \a_min, \a_max, \qs0, \qs1, \qs2, \a_t0, \a_t1, \a_t2, \a_t3, \q_t0, \q_t1, \q_t2, \q_t3
+.endm
+
+.macro resize_nn_uyvy2hsv_mask0 qd, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_sdiv, a_hdiv, a_min, a_max, a_t0, a_t1, a_t2, a_t3, qs0, qs1, qs2, q_t0, q_t1, q_t2, q_t3
+    resize_nn_uyvy2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd, \q_t0, \q_t1, \q_t2, \q_t3
+    rgb8882hsv_mask0 \qd, \a_sdiv, \a_hdiv, \a_min, \a_max, \qs0, \qs1, \qs2, \a_t0, \a_t1, \a_t2, \a_t3, \q_t0, \q_t1, \q_t2, \q_t3
+.endm
+
+.macro resize_nn_yuyv2hsv_mask1 qd, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_sdiv, a_hdiv, a_min, a_max, a_t0, a_t1, a_t2, a_t3, qs0, qs1, qs2, q_t0, q_t1, q_t2, q_t3
+    resize_nn_yuyv2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd, \q_t0, \q_t1, \q_t2, \q_t3
+    rgb8882hsv_mask1 \qd, \a_sdiv, \a_hdiv, \a_min, \a_max, \qs0, \qs1, \qs2, \a_t0, \a_t1, \a_t2, \a_t3, \q_t0, \q_t1, \q_t2, \q_t3
+.endm
+
+.macro resize_nn_uyvy2hsv_mask1 qd, base_addr, offsets, a_shift, a_g0, a_g1, a_g2, a_g3, a_scratch, a_sdiv, a_hdiv, a_min, a_max, a_t0, a_t1, a_t2, a_t3, qs0, qs1, qs2, q_t0, q_t1, q_t2, q_t3
+    resize_nn_uyvy2rgb888 \qs0, \qs1, \qs2, \base_addr, \offsets, \a_shift, \a_g0, \a_g1, \a_g2, \a_g3, \a_scratch, \qd, \q_t0, \q_t1, \q_t2, \q_t3
+    rgb8882hsv_mask1 \qd, \a_sdiv, \a_hdiv, \a_min, \a_max, \qs0, \qs1, \qs2, \a_t0, \a_t1, \a_t2, \a_t3, \q_t0, \q_t1, \q_t2, \q_t3
+.endm
+
+# qd0/qd1/qd2 end as planar packed R/G/B. qs0 = y1, qs1 = y2, qs2 = u, qs3 = v.
+# qd0 is the coefficient scratch, then y1+dR. a_shift already holds 14.
+.macro yuyv2rgb888 qd0, qd1, qd2, qs0, qs1, qs2, qs3, a_tmp, a_shift, q_tmp
+    yuv2rgb888_delta \qs2, \qs3, \q_tmp, \qd0, \a_tmp, \a_shift
+    esp.vadd.s16 \qd0, \qs0, \q_tmp
+    esp.vadd.s16 \q_tmp, \qs1, \q_tmp
+    esp.vadd.s16 \qd1, \qs0, \qs3
+    esp.vadd.s16 \qs3, \qs1, \qs3
+    esp.vadd.s16 \qd2, \qs0, \qs2
+    esp.vadd.s16 \qs2, \qs1, \qs2
+
+    yuv2rgb888_clamp6 \qd0, \q_tmp, \qd1, \qs3, \qd2, \qs2, \qs0, \qs1, \a_tmp
+
+    esp.vzip.16 \qd0, \q_tmp
+    esp.vunzip.8 \qd0, \q_tmp
+    esp.vzip.16 \qd1, \qs3
+    esp.vunzip.8 \qd1, \qs3
+    esp.vzip.16 \qd2, \qs2
+    esp.vunzip.8 \qd2, \qs2
+.endm
+
+
+# 16 contiguous pixels. q_y1/q_y2/q_u/q_v are YUYV byte positions and are distinct.
+# vext reads q_y1/q_y2 and writes them back as the low half.
+.macro cvt_load_yuyv16 q_y1, q_y2, q_u, q_v, a_src
+    esp.vld.128.ip \q_y1, \a_src, 16
+    esp.vld.128.ip \q_y2, \a_src, 16
+    esp.vunzip.8 \q_y1, \q_y2
+    esp.vunzip.8 \q_y1, \q_y2
+    esp.vext.u8 \q_y1, \q_u, \q_y1
+    esp.vext.u8 \q_y2, \q_v, \q_y2
+.endm
+
+.macro cvt_yuyv2rgb888 qd0, qd1, qd2, a_src, q_y1, q_y2, q_u, q_v, a_tmp, a_shift, q_tmp
+    cvt_load_yuyv16 \q_y1, \q_y2, \q_u, \q_v, \a_src
+    yuyv2rgb888 \qd0, \qd1, \qd2, \q_y1, \q_y2, \q_u, \q_v, \a_tmp, \a_shift, \q_tmp
+.endm
+
+.macro cvt_uyvy2rgb888 qd0, qd1, qd2, a_src, q_y1, q_y2, q_u, q_v, a_tmp, a_shift, q_tmp
+    cvt_load_yuyv16 \q_y1, \q_y2, \q_u, \q_v, \a_src
+    yuyv2rgb888 \qd0, \qd1, \qd2, \q_u, \q_v, \q_y1, \q_y2, \a_tmp, \a_shift, \q_tmp
+.endm
+
+.macro cvt_yuyv2bgr888 qd0, qd1, qd2, a_src, q_y1, q_y2, q_u, q_v, a_tmp, a_shift, q_tmp
+    cvt_yuyv2rgb888 \qd2, \qd1, \qd0, \a_src, \q_y1, \q_y2, \q_u, \q_v, \a_tmp, \a_shift, \q_tmp
+.endm
+
+.macro cvt_uyvy2bgr888 qd0, qd1, qd2, a_src, q_y1, q_y2, q_u, q_v, a_tmp, a_shift, q_tmp
+    cvt_uyvy2rgb888 \qd2, \qd1, \qd0, \a_src, \q_y1, \q_y2, \q_u, \q_v, \a_tmp, \a_shift, \q_tmp
+.endm
+
+# Quant temps are q_y1, q_y2, q_tmp. They are dead after the rgb888 result.
+.macro cvt_yuyv2rgb888_qint8 qd0, qd1, qd2, a_src, q_y1, q_y2, q_u, q_v, a_lut, a_tmp, a_shift, q_tmp
+    cvt_yuyv2rgb888 \qd0, \qd1, \qd2, \a_src, \q_y1, \q_y2, \q_u, \q_v, \a_tmp, \a_shift, \q_tmp
+    norm_quant_3chn_8 \qd0, \qd1, \qd2, \a_lut, \q_y1, \q_y2, \q_tmp
+.endm
+
+.macro cvt_uyvy2rgb888_qint8 qd0, qd1, qd2, a_src, q_y1, q_y2, q_u, q_v, a_lut, a_tmp, a_shift, q_tmp
+    cvt_uyvy2rgb888 \qd0, \qd1, \qd2, \a_src, \q_y1, \q_y2, \q_u, \q_v, \a_tmp, \a_shift, \q_tmp
+    norm_quant_3chn_8 \qd0, \qd1, \qd2, \a_lut, \q_y1, \q_y2, \q_tmp
+.endm
+
+.macro cvt_yuyv2bgr888_qint8 qd0, qd1, qd2, a_src, q_y1, q_y2, q_u, q_v, a_lut, a_tmp, a_shift, q_tmp
+    cvt_yuyv2bgr888 \qd0, \qd1, \qd2, \a_src, \q_y1, \q_y2, \q_u, \q_v, \a_tmp, \a_shift, \q_tmp
+    norm_quant_3chn_8 \qd0, \qd1, \qd2, \a_lut, \q_y1, \q_y2, \q_tmp
+.endm
+
+.macro cvt_uyvy2bgr888_qint8 qd0, qd1, qd2, a_src, q_y1, q_y2, q_u, q_v, a_lut, a_tmp, a_shift, q_tmp
+    cvt_uyvy2bgr888 \qd0, \qd1, \qd2, \a_src, \q_y1, \q_y2, \q_u, \q_v, \a_tmp, \a_shift, \q_tmp
+    norm_quant_3chn_8 \qd0, \qd1, \qd2, \a_lut, \q_y1, \q_y2, \q_tmp
+.endm
+
+# Planar u8 lands in qd3/qd4/qd5. Load uses qd0/qd1/qd2/q_tmp1. q_tmp0 is the yuv scratch.
+.macro cvt_yuyv2rgb888_qint16 qd0, qd1, qd2, qd3, qd4, qd5, a_src, a_lut, a_tmp, a_shift, q_tmp0, q_tmp1
+    cvt_yuyv2rgb888 \qd3, \qd4, \qd5, \a_src, \qd0, \qd1, \qd2, \q_tmp1, \a_tmp, \a_shift, \q_tmp0
+    norm_quant_3chn_16 \qd0, \qd1, \qd2, \qd3, \qd4, \qd5, \a_lut, \q_tmp0, \q_tmp1
+.endm
+
+.macro cvt_uyvy2rgb888_qint16 qd0, qd1, qd2, qd3, qd4, qd5, a_src, a_lut, a_tmp, a_shift, q_tmp0, q_tmp1
+    cvt_uyvy2rgb888 \qd3, \qd4, \qd5, \a_src, \qd0, \qd1, \qd2, \q_tmp1, \a_tmp, \a_shift, \q_tmp0
+    norm_quant_3chn_16 \qd0, \qd1, \qd2, \qd3, \qd4, \qd5, \a_lut, \q_tmp0, \q_tmp1
+.endm
+
+.macro cvt_yuyv2bgr888_qint16 qd0, qd1, qd2, qd3, qd4, qd5, a_src, a_lut, a_tmp, a_shift, q_tmp0, q_tmp1
+    cvt_yuyv2bgr888 \qd3, \qd4, \qd5, \a_src, \qd0, \qd1, \qd2, \q_tmp1, \a_tmp, \a_shift, \q_tmp0
+    norm_quant_3chn_16 \qd0, \qd1, \qd2, \qd3, \qd4, \qd5, \a_lut, \q_tmp0, \q_tmp1
+.endm
+
+.macro cvt_uyvy2bgr888_qint16 qd0, qd1, qd2, qd3, qd4, qd5, a_src, a_lut, a_tmp, a_shift, q_tmp0, q_tmp1
+    cvt_uyvy2bgr888 \qd3, \qd4, \qd5, \a_src, \qd0, \qd1, \qd2, \q_tmp1, \a_tmp, \a_shift, \q_tmp0
+    norm_quant_3chn_16 \qd0, \qd1, \qd2, \qd3, \qd4, \qd5, \a_lut, \q_tmp0, \q_tmp1
+.endm
+
+# qd0 is the yuv scratch and the low 565 half. qd1 is q_v, then the high 565 half.
+.macro cvt_yuyv2rgb565le qd0, qd1, a_src, q_y1, q_y2, q_u, qr, qg, qb, a_const, a_shift, a_extra
+    cvt_yuyv2rgb888 \qr, \qg, \qb, \a_src, \q_y1, \q_y2, \q_u, \qd1, \a_const, \a_shift, \qd0
+    rgb8882rgb565le \qd0, \qd1, \qr, \qg, \qb, \a_const, \a_extra
+.endm
+
+.macro cvt_yuyv2rgb565be qd0, qd1, a_src, q_y1, q_y2, q_u, qr, qg, qb, a_const, a_shift, a_extra
+    cvt_yuyv2rgb888 \qr, \qg, \qb, \a_src, \q_y1, \q_y2, \q_u, \qd1, \a_const, \a_shift, \qd0
+    rgb8882rgb565be \qd0, \qd1, \qr, \qg, \qb, \a_const, \a_extra
+.endm
+
+.macro cvt_yuyv2bgr565le qd0, qd1, a_src, q_y1, q_y2, q_u, qr, qg, qb, a_const, a_shift, a_extra
+    cvt_yuyv2rgb888 \qr, \qg, \qb, \a_src, \q_y1, \q_y2, \q_u, \qd1, \a_const, \a_shift, \qd0
+    bgr8882rgb565le \qd0, \qd1, \qr, \qg, \qb, \a_const, \a_extra
+.endm
+
+.macro cvt_yuyv2bgr565be qd0, qd1, a_src, q_y1, q_y2, q_u, qr, qg, qb, a_const, a_shift, a_extra
+    cvt_yuyv2rgb888 \qr, \qg, \qb, \a_src, \q_y1, \q_y2, \q_u, \qd1, \a_const, \a_shift, \qd0
+    bgr8882rgb565be \qd0, \qd1, \qr, \qg, \qb, \a_const, \a_extra
+.endm
+
+.macro cvt_uyvy2rgb565le qd0, qd1, a_src, q_y1, q_y2, q_u, qr, qg, qb, a_const, a_shift, a_extra
+    cvt_uyvy2rgb888 \qr, \qg, \qb, \a_src, \q_y1, \q_y2, \q_u, \qd1, \a_const, \a_shift, \qd0
+    rgb8882rgb565le \qd0, \qd1, \qr, \qg, \qb, \a_const, \a_extra
+.endm
+
+.macro cvt_uyvy2rgb565be qd0, qd1, a_src, q_y1, q_y2, q_u, qr, qg, qb, a_const, a_shift, a_extra
+    cvt_uyvy2rgb888 \qr, \qg, \qb, \a_src, \q_y1, \q_y2, \q_u, \qd1, \a_const, \a_shift, \qd0
+    rgb8882rgb565be \qd0, \qd1, \qr, \qg, \qb, \a_const, \a_extra
+.endm
+
+.macro cvt_uyvy2bgr565le qd0, qd1, a_src, q_y1, q_y2, q_u, qr, qg, qb, a_const, a_shift, a_extra
+    cvt_uyvy2rgb888 \qr, \qg, \qb, \a_src, \q_y1, \q_y2, \q_u, \qd1, \a_const, \a_shift, \qd0
+    bgr8882rgb565le \qd0, \qd1, \qr, \qg, \qb, \a_const, \a_extra
+.endm
+
+.macro cvt_uyvy2bgr565be qd0, qd1, a_src, q_y1, q_y2, q_u, qr, qg, qb, a_const, a_shift, a_extra
+    cvt_uyvy2rgb888 \qr, \qg, \qb, \a_src, \q_y1, \q_y2, \q_u, \qd1, \a_const, \a_shift, \qd0
+    bgr8882rgb565be \qd0, \qd1, \qr, \qg, \qb, \a_const, \a_extra
+.endm
+
+# qd0/qd1/qd2 are H/S/V and also q_y1/q_y2/q_u. q_tmp0 is q_v.
+.macro cvt_yuyv2hsv qd0, qd1, qd2, a_src, a_sdiv, a_hdiv, a_const, a_shift, a_t0, a_t1, a_t2, qr, qg, qb, q_tmp0, q_tmp1
+    cvt_yuyv2rgb888 \qr, \qg, \qb, \a_src, \qd0, \qd1, \qd2, \q_tmp0, \a_const, \a_shift, \q_tmp1
+    rgb8882hsv \qd0, \qd1, \qd2, \a_sdiv, \a_hdiv, \qr, \qg, \qb, \a_const, \a_t0, \a_t1, \a_t2, \q_tmp0, \q_tmp1
+.endm
+
+.macro cvt_uyvy2hsv qd0, qd1, qd2, a_src, a_sdiv, a_hdiv, a_const, a_shift, a_t0, a_t1, a_t2, qr, qg, qb, q_tmp0, q_tmp1
+    cvt_uyvy2rgb888 \qr, \qg, \qb, \a_src, \qd0, \qd1, \qd2, \q_tmp0, \a_const, \a_shift, \q_tmp1
+    rgb8882hsv \qd0, \qd1, \qd2, \a_sdiv, \a_hdiv, \qr, \qg, \qb, \a_const, \a_t0, \a_t1, \a_t2, \q_tmp0, \q_tmp1
+.endm
+
+# qd is the mask byte and the yuv scratch. q_h/q_s/q_v/q_scratch are the YUV lanes, then H/S/V/scratch.
+.macro cvt_yuyv2hsv_mask0 qd, a_src, a_sdiv, a_hdiv, a_min, a_max, a_const, a_shift, a_t0, a_t1, a_t2, qs0, qs1, qs2, q_h, q_s, q_v, q_scratch
+    cvt_yuyv2rgb888 \qs0, \qs1, \qs2, \a_src, \q_h, \q_s, \q_v, \q_scratch, \a_const, \a_shift, \qd
+    rgb8882hsv_mask0 \qd, \a_sdiv, \a_hdiv, \a_min, \a_max, \qs0, \qs1, \qs2, \a_t0, \a_t1, \a_t2, \a_const, \q_h, \q_s, \q_v, \q_scratch
+.endm
+
+.macro cvt_uyvy2hsv_mask0 qd, a_src, a_sdiv, a_hdiv, a_min, a_max, a_const, a_shift, a_t0, a_t1, a_t2, qs0, qs1, qs2, q_h, q_s, q_v, q_scratch
+    cvt_uyvy2rgb888 \qs0, \qs1, \qs2, \a_src, \q_h, \q_s, \q_v, \q_scratch, \a_const, \a_shift, \qd
+    rgb8882hsv_mask0 \qd, \a_sdiv, \a_hdiv, \a_min, \a_max, \qs0, \qs1, \qs2, \a_t0, \a_t1, \a_t2, \a_const, \q_h, \q_s, \q_v, \q_scratch
+.endm
+
+.macro cvt_yuyv2hsv_mask1 qd, a_src, a_sdiv, a_hdiv, a_min, a_max, a_const, a_shift, a_t0, a_t1, a_t2, qs0, qs1, qs2, q_h, q_s, q_v, q_scratch
+    cvt_yuyv2rgb888 \qs0, \qs1, \qs2, \a_src, \q_h, \q_s, \q_v, \q_scratch, \a_const, \a_shift, \qd
+    rgb8882hsv_mask1 \qd, \a_sdiv, \a_hdiv, \a_min, \a_max, \qs0, \qs1, \qs2, \a_t0, \a_t1, \a_t2, \a_const, \q_h, \q_s, \q_v, \q_scratch
+.endm
+
+.macro cvt_uyvy2hsv_mask1 qd, a_src, a_sdiv, a_hdiv, a_min, a_max, a_const, a_shift, a_t0, a_t1, a_t2, qs0, qs1, qs2, q_h, q_s, q_v, q_scratch
+    cvt_uyvy2rgb888 \qs0, \qs1, \qs2, \a_src, \q_h, \q_s, \q_v, \q_scratch, \a_const, \a_shift, \qd
+    rgb8882hsv_mask1 \qd, \a_sdiv, \a_hdiv, \a_min, \a_max, \qs0, \qs1, \qs2, \a_t0, \a_t1, \a_t2, \a_const, \q_h, \q_s, \q_v, \q_scratch
 .endm

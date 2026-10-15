@@ -10,6 +10,9 @@ struct RGB5652RGB888;
 
 template <bool RGB565BE, bool RGBSwap>
 struct RGB5652RGB888<RGB565BE, RGBSwap, void> {
+    static constexpr int src_bpp = 2;
+    static constexpr int dst_bpp = 3;
+
     void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint16_t src_data = *(reinterpret_cast<const uint16_t *>(src));
@@ -63,6 +66,8 @@ template <bool RGB565BE, bool RGBSwap, typename ExtraProcess>
     requires std::same_as<ExtraProcess, NormQuant<int8_t, 3>> || std::same_as<ExtraProcess, NormQuant<int16_t, 3>>
 struct RGB5652RGB888<RGB565BE, RGBSwap, ExtraProcess> {
     using QuantType = ExtraProcess::QT;
+    static constexpr int src_bpp = 2;
+    static constexpr int dst_bpp = ExtraProcess::channels * static_cast<int>(sizeof(QuantType));
     const ExtraProcess &m_extra_process;
 
     RGB5652RGB888(const ExtraProcess &extra_process) : m_extra_process(extra_process) {}

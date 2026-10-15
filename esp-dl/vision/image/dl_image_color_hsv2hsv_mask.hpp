@@ -8,6 +8,8 @@ namespace image {
 template <bool HAcrossZero>
 struct HSV2HSVMask {
     static constexpr bool h_across_zero = HAcrossZero;
+    static constexpr int src_bpp = 3;
+    static constexpr int dst_bpp = 1;
     std::array<uint8_t, 3> m_hsv_min;
     std::array<uint8_t, 3> m_hsv_max;
 
