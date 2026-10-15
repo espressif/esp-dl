@@ -135,7 +135,7 @@ build_espdl_ops:
   parallel:
     matrix:
       - IMAGE: [espressif/idf:release-v5.3, espressif/idf:release-v5.5, espressif/idf:release-v6.0]
-        TARGET: [esp32p4, esp32s3, esp32]
+        TARGET: [esp32p4, esp32s3, esp32, esp32c5, esp32s31]
   variables:
     EXAMPLE_DIR: test_apps/esp-dl
     MODEL_PATH: test_apps/esp-dl/models
@@ -389,7 +389,7 @@ build_dl_fft:
   parallel:
     matrix:
       - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
-        TARGET: [esp32p4, esp32s3, esp32c3, esp32]
+        TARGET: [esp32p4, esp32s3, esp32, esp32c5, esp32s31]
   variables:
     EXAMPLE_DIR: test_apps/dl_fft
 
@@ -400,7 +400,7 @@ build_dl_audio:
   parallel:
     matrix:
       - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
-        TARGET: [esp32p4, esp32s3, esp32]
+        TARGET: [esp32p4, esp32s3, esp32, esp32c5, esp32s31]
   variables:
     EXAMPLE_DIR: test_apps/dl_audio
 
@@ -411,6 +411,6 @@ build_dl_pie_func:
   parallel:
     matrix:
       - IMAGE: [espressif/idf:release-v6.0, espressif/idf:release-v5.5]
-        TARGET: [esp32p4, esp32s3, esp32]
+        TARGET: [esp32p4, esp32s3, esp32, esp32c5, esp32s31]
   variables:
     EXAMPLE_DIR: test_apps/dl_pie_func

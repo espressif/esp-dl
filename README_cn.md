@@ -22,6 +22,7 @@ ESP-DL 提供了加载、调试和运行 AI 模型的 API。该框架易于使�
 
 
 ## 更新 
+- [2026/10/15] 近期对 Conv、Gemm、MatMul、Resize、Reduce、LUT、Transpose、Pooling 等大量算子进行了优化。MobileNetV2、YOLO11 等模型在 ESP32-S3 上获得 3 倍以上加速，在 ESP32-P4 上获得 1.9 倍以上加速。感谢 [Hosi121](https://github.com/Hosi121)、[BoumedineBillal](https://github.com/BoumedineBillal) 等的贡献。
 - [2026/9/1] 从 ESP-DL v3.3.11 开始全面支持 w8a16 混合量化方法。
 - [2026/7/30] 新增 [PP-OCRv6](./models/pp_ocr_v6/) OCR 模型及 [示例](./examples/pp_ocr_v6/)，在 ESP32-P4 上端侧识别中文、英文及 46 种拉丁字母文字。
 - [2026/6/5] 添加 [esp32s3-pie-simd](./tools/agents/skills/esp32s3-pie-simd) 和 [esp32p4-pie-simd](./tools/agents/skills/esp32p4-pie-simd)两个skills, 方便code agent将代码重写为PIE指令加速版本。
@@ -31,13 +32,19 @@ ESP-DL 提供了加载、调试和运行 AI 模型的 API。该框架易于使�
 - [2026/3/12] 新增 [YOLO26](./models/yolo26/) 模型，感谢 [BoumedineBillal](https://github.com/BoumedineBillal) 的贡献。[开始训练和部署您的 YOLO26 模型](./examples/tutorial/how_to_quantize_model/quantize_yolo26)。
 - [2026/3/11] ESP-DL Agent Tool 已更新为 **espdl-operator skill**，让 AI Agent 实现算子更加便捷。参见 [how_to_implement_operators_with_ai_agent.rst](./docs/zh_CN/tutorials/how_to_implement_operators_with_ai_agent.rst)。
 - [2026/2/27] 支持使用TrainedQuantizedThresholdPass量化模型。参见 [quantize_model_with_TQT.rst](./docs/zh_CN/tutorials/quantize_model_with_TQT.rst).
-- [2026/1/14] 在[netron](https://netron.app/)中支持可视化`.espdl`模型，方便模型调试. 
-- [2025/10/20] 发布 ESP-DL v3.2.0, 进一步增强了模型量化和部署的能力。   
+- [2026/1/14] 在[netron](https://netron.app/)中支持可视化`.espdl`模型，方便模型调试.
+
+<details>
+<summary>2026 年之前</summary>
+
+- [2025/10/20] 发布 ESP-DL v3.2.0, 进一步增强了模型量化和部署的能力。
 - [2025/07/22] 将 ESP-PPQ 的包名从 ppq 改为 esp-ppq，以避免与 ppq 冲突，同时将 ESP-PPQ 依赖包全部升级到最新版。**注意: 量化脚本中需注意修改包名为esp-ppq**。
-- [2025/04/30] 我们发布了全新的 [esp-detection](https://github.com/espressif/esp-detection) 项目和 `ESPDet-Pico` 模型，可轻松训练并部署目标检测模型。[espdet_pico_224_224_cat 模型](./models/cat_detect/) 和 [示例](./examples/cat_detect/) 是基于 esp-detection 训练的猫咪检测模型，欢迎试用并反馈意见！    
-- [2025/02/18] 新增支持 YOLO11n 模型，提供 [espdl 模型](https://github.com/espressif/esp-dl/tree/master/models/coco_detect) 及 [示例](https://github.com/espressif/esp-dl/tree/master/examples/yolo11_detect)。    
-- [2025/01/09] 更新了 espdl 模型架构，发布 ESP-DL v3.1.0。注意：旧版模型可被新架构加载，但新版模型不兼容旧版本。   
-- [2024/12/20] 发布 ESP-DL v3.0.0。   
+- [2025/04/30] 我们发布了全新的 [esp-detection](https://github.com/espressif/esp-detection) 项目和 `ESPDet-Pico` 模型，可轻松训练并部署目标检测模型。[espdet_pico_224_224_cat 模型](./models/cat_detect/) 和 [示例](./examples/cat_detect/) 是基于 esp-detection 训练的猫咪检测模型，欢迎试用并反馈意见！
+- [2025/02/18] 新增支持 YOLO11n 模型，提供 [espdl 模型](https://github.com/espressif/esp-dl/tree/master/models/coco_detect) 及 [示例](https://github.com/espressif/esp-dl/tree/master/examples/yolo11_detect)。
+- [2025/01/09] 更新了 espdl 模型架构，发布 ESP-DL v3.1.0。注意：旧版模型可被新架构加载，但新版模型不兼容旧版本。
+- [2024/12/20] 发布 ESP-DL v3.0.0。
+
+</details>   
 
 
 ## Getting Started
