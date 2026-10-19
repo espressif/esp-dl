@@ -52,14 +52,26 @@ UPDATE_ALL_OPS = "*"
 LABEL_UPDATE = "update-perf-baseline"
 LABEL_UPDATE_SCOPED = LABEL_UPDATE + ":"
 
-# Per-target perf gate defaults. With the min-of-N measurement these values
-# were found stable enough for all three chips; keep them per-target anyway so
-# each chip can be returned independently. Any pipeline can override them via
-# GitLab pipeline/project CI/CD variables without a code change: a
-# <NAME>_<TARGET> variable (e.g. PERF_RELATIVE_THRESHOLD_PCT_ESP32) beats the
-# generic <NAME>, which beats these defaults.
-DEFAULT_RELATIVE_THRESHOLD_PCT = {"esp32": 40.0, "esp32s3": 9.0, "esp32p4": 6.0}
-DEFAULT_ABSOLUTE_FLOOR_US = {"esp32": 40.0, "esp32s3": 3.0, "esp32p4": 3.0}
+# Per-target perf gate defaults. A case fails only when the relative change
+# exceeds the percentage and the absolute change exceeds the floor. ESP32-C5
+# is temporarily wider (+/-20%, 10 us) until its board-to-board spread is
+# characterized. Keep them per-target so each chip can be tightened
+# independently. Any pipeline can override them via GitLab pipeline/project
+# CI/CD variables without a code change: a <NAME>_<TARGET> variable
+# (e.g. PERF_RELATIVE_THRESHOLD_PCT_ESP32) beats the generic <NAME>, which
+# beats these defaults.
+DEFAULT_RELATIVE_THRESHOLD_PCT = {
+    "esp32": 40.0,
+    "esp32s3": 9.0,
+    "esp32p4": 6.0,
+    "esp32c5": 20.0,
+}
+DEFAULT_ABSOLUTE_FLOOR_US = {
+    "esp32": 40.0,
+    "esp32s3": 3.0,
+    "esp32p4": 3.0,
+    "esp32c5": 10.0,
+}
 GENERIC_RELATIVE_THRESHOLD_PCT = 3.0
 GENERIC_ABSOLUTE_FLOOR_US = 3.0
 

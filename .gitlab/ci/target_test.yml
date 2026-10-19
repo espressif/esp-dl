@@ -99,7 +99,7 @@ test_espdl_ops:
       optional: true
   parallel:
     matrix:
-      - IDF_TARGET: [esp32p4, esp32s3, esp32]
+      - IDF_TARGET: [esp32p4, esp32s3, esp32, esp32c5]
         IDF_VERSION: "5.5"
         TEST_MODEL: ["opset_5_0", "opset_5_1", "opset_5_2", "opset_5_3", "opset_5_4"]
   tags:
@@ -123,10 +123,10 @@ test_espdl_api:
       - IDF_TARGET: [esp32s3, esp32]
         IDF_VERSION: "5.3"
         TEST_IMAGE: $DOCKER_TARGET_TEST_v5_3_ENV_IMAGE
-      - IDF_TARGET: [esp32p4, esp32s3, esp32]
+      - IDF_TARGET: [esp32p4, esp32s3, esp32, esp32c5]
         IDF_VERSION: "5.5"
         TEST_IMAGE: $DOCKER_TARGET_TEST_v5_5_ENV_IMAGE
-      - IDF_TARGET: [esp32p4, esp32s3, esp32]
+      - IDF_TARGET: [esp32p4, esp32s3, esp32, esp32c5]
         IDF_VERSION: "6.0"
         TEST_IMAGE: $DOCKER_TARGET_TEST_v6_0_ENV_IMAGE
   tags:
@@ -147,7 +147,7 @@ test_dl_fft:
       optional: true
   parallel:
     matrix:
-      - IDF_TARGET: [esp32p4, esp32s3, esp32]
+      - IDF_TARGET: [esp32p4, esp32s3, esp32, esp32c5]
         IDF_VERSION: "5.5"
   tags:
     - ${IDF_TARGET}
@@ -206,7 +206,7 @@ test_dl_audio:
       optional: true
   parallel:
     matrix:
-      - IDF_TARGET: [esp32p4, esp32s3, esp32]
+      - IDF_TARGET: [esp32p4, esp32s3, esp32, esp32c5]
         IDF_VERSION: "5.5"
   tags:
     - ${IDF_TARGET}
@@ -226,7 +226,7 @@ test_dl_pie_func:
       optional: true
   parallel:
     matrix:
-      - IDF_TARGET: [esp32p4, esp32s3, esp32]
+      - IDF_TARGET: [esp32p4, esp32s3, esp32, esp32c5]
         IDF_VERSION: "5.5"
   tags:
     - ${IDF_TARGET}

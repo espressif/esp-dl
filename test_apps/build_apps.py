@@ -94,6 +94,9 @@ def build_and_copy(apps_to_build, model_path):
         basedir = build_path.parent
         if target in ["esp32s3", "esp32p4"]:
             target_model_path = model_path / target
+        elif target == "esp32s31":
+            # Same PIE-v2 kernels as esp32p4; operator cases are generated there.
+            target_model_path = model_path / "esp32p4"
         else:
             target_model_path = model_path / "c"
         opset = [subdir for subdir in target_model_path.iterdir() if subdir.is_dir()]
@@ -178,7 +181,8 @@ def main(args):  # type: (argparse.Namespace) -> None
     if args.model_path and os.path.exists(args.model_path):
         build_and_copy(apps_to_build, args.model_path)
     elif args.op_type:
-        op_path = PROJECT_ROOT / "test_apps/esp-dl/models" / args.target / args.op_type
+        model_target = "esp32p4" if args.target == "esp32s31" else args.target
+        op_path = PROJECT_ROOT / "test_apps/esp-dl/models" / model_target / args.op_type
         print(op_path)
         if os.path.exists(op_path):
             build_single_op(apps_to_build, op_path)

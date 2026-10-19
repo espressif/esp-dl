@@ -16,6 +16,7 @@ ESP-DL offers APIs to load, debug, and run AI models. The framework is easy to u
 - **8bit LUT Activation**: All activation functions except for ReLU and PReLU are implemented using an 8-bit LUT (Look Up Table) method in ESP-DL to accelerate inference. You can use any activation function, and their computational complexity remains the same.
 
 ## News
+- [2026/10/15] Optimized a wide range of operators, including Conv, Gemm, MatMul, Resize, Reduce, LUT, Transpose, and Pooling. Models such as MobileNetV2 and YOLO11 achieve more than 3× speedup on ESP32-S3 and more than 1.9× speedup on ESP32-P4. Thanks to [Hosi121](https://github.com/Hosi121), [BoumedineBillal](https://github.com/BoumedineBillal), and other contributors.
 - [2026/9/1] Starting from ESP-DL v3.3.11, w8a16 mixed quantization is fully supported.
 - [2026/7/30] Added [PP-OCRv6](./models/pp_ocr_v6/) OCR model and [example](./examples/pp_ocr_v6/), recognizing Chinese, English and 46 Latin-script languages on-device on ESP32-P4.
 - [2026/6/5] Introduce two skills, [esp32s3-pie-simd](./tools/agents/skills/esp32s3-pie-simd) and [esp32p4-pie-simd](./tools/agents/skills/esp32p4-pie-simd), to help the code agent rewrite the code into a PIE-accelerated version.
@@ -26,13 +27,19 @@ ESP-DL offers APIs to load, debug, and run AI models. The framework is easy to u
 - [2026/3/11] The ESP-DL Agent Tool has been evolved into **espdl-operator skill**, making it easier for AI Agents to automatically implement operators. See [how_to_implement_operators_with_ai_agent.rst](./docs/en/tutorials/how_to_implement_operators_with_ai_agent.rst).
 - [2026/2/27] Support quantizing models with TrainedQuantizedThresholdPass. See [quantize_model_with_TQT.rst](./docs/en/tutorials/quantize_model_with_TQT.rst).
 - [2026/1/14] Support visualizing `.espdl` models in [netron](https://netron.app/) to facilitate model debugging.
-- [2025/11/4] Release [ESP-DL Agent Tool v1.0](./tools/agents/skills/espdl-operator/). This tool is designed for code agent system to assist with implementing and optimizing operators for the ESP-DL framework. 
+
+<details>
+<summary>Before 2026</summary>
+
+- [2025/11/4] Release [ESP-DL Agent Tool v1.0](./tools/agents/skills/espdl-operator/). This tool is designed for code agent system to assist with implementing and optimizing operators for the ESP-DL framework.
 - [2025/10/20] We released ESP-DL v3.2.0 with improved model quantization and deployment capabilities.
 - [2025/07/22] Rename the ESP-PPQ package from ppq to esp-ppq to avoid conflicts with ppq, and upgrade all ESP-PPQ dependencies to the latest versions. **Note: In the quantization script, pay attention to modifying the package name.**
 - [2025/04/30] We released a new [esp-detection](https://github.com/espressif/esp-detection) project and the `ESPDet-Pico` model, which can easily train and deploy object detection models. [espdet_pico_224_224_cat espdl model](./models/cat_detect/) and [example](./examples/cat_detect/) is a cat detection model trained by esp-detection. Feel free to try it and share your feedback!
 - [2025/02/18] We supported yolo11n [espdl model](https://github.com/espressif/esp-dl/tree/master/models/coco_detect) and [example](https://github.com/espressif/esp-dl/tree/master/examples/yolo11_detect).
-- [2025/01/09] We updated the schema of espdl model and released ESP-DL v3.1.0. Note: previous models can be load by new schema, but new model is not compatible with previous version. 
+- [2025/01/09] We updated the schema of espdl model and released ESP-DL v3.1.0. Note: previous models can be load by new schema, but new model is not compatible with previous version.
 - [2024/12/20] We released ESP-DL v3.0.0.
+
+</details>
 
 ## Getting Started
 
