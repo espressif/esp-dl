@@ -306,14 +306,14 @@
     rgb8882rgb565 \qd1, \qd0, \qs2, \qs1, \qs0, \a_tmp0, \a_tmp1
 .endm
 
-.macro rgb8882gray qd, qs0, qs1, qs2, a_tmp, q_tmp0, q_tmp1, q_tmp2, q_tmp3
-    la \a_tmp, rgb8882gray_const_tab
-    esp.ldqa.u16.128.ip \a_tmp, 16
+.macro rgb8882gray qd, qs0, qs1, qs2, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2
+    la \a_tmp0, rgb8882gray_const_tab
+    esp.ldqa.u16.128.ip \a_tmp0, 16
 
-    vldbc_16_ip \q_tmp0, \a_tmp, 2
-    vldbc_16_ip \q_tmp1, \a_tmp, 2
-    vldbc_16_ip \q_tmp2, \a_tmp, 2
-    vldbc_16_ip \q_tmp3, \a_tmp, -22
+    vldbc_16_ip \q_tmp0, \a_tmp0, 2
+    vldbc_16_ip \q_tmp1, \a_tmp0, 2
+    vldbc_16_ip \q_tmp2, \a_tmp0, -20
+    li \a_tmp1, 15
 
     esp.vext.u8 \qd, \qs0, \qs0
     esp.vmulas.u16.qacc \qd, \q_tmp0
@@ -321,96 +321,96 @@
     esp.vmulas.u16.qacc \qd, \q_tmp1
     esp.vext.u8 \qd, \qs2, \qs2
     esp.vmulas.u16.qacc \qd, \q_tmp2
-    esp.srcmb.u16.q.qacc \qd, \q_tmp3, 0
+    esp.srcmb.u16.qacc \qd, \a_tmp1, 0
 
-    esp.ldqa.u16.128.ip \a_tmp, 0
+    esp.ldqa.u16.128.ip \a_tmp0, 0
     esp.vmulas.u16.qacc \qs0, \q_tmp0
     esp.vmulas.u16.qacc \qs1, \q_tmp1
     esp.vmulas.u16.qacc \qs2, \q_tmp2
-    esp.srcmb.u16.q.qacc \qs0, \q_tmp3, 0
+    esp.srcmb.u16.qacc \qs0, \a_tmp1, 0
 
     esp.vunzip.8 \qd, \qs0
 .endm
 
-.macro bgr8882gray qd, qs0, qs1, qs2, a_tmp, q_tmp0, q_tmp1, q_tmp2, q_tmp3
-    rgb8882gray \qd, \qs2, \qs1, \qs0, \a_tmp, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.macro bgr8882gray qd, qs0, qs1, qs2, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2
+    rgb8882gray \qd, \qs2, \qs1, \qs0, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2
 .endm
 
-.macro rgb8882gray_qint8 qd, a_lut, qs0, qs1, qs2, a_tmp, q_tmp0, q_tmp1, q_tmp2, q_tmp3
-    rgb8882gray \qd, \qs0, \qs1, \qs2, \a_tmp, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.macro rgb8882gray_qint8 qd, a_lut, qs0, qs1, qs2, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2
+    rgb8882gray \qd, \qs0, \qs1, \qs2, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2
     norm_quant_1chn_8 \qd, \a_lut, \q_tmp0, \q_tmp1, \q_tmp2
 .endm
 
-.macro bgr8882gray_qint8 qd, a_lut, qs0, qs1, qs2, a_tmp, q_tmp0, q_tmp1, q_tmp2, q_tmp3
-    bgr8882gray \qd, \qs0, \qs1, \qs2, \a_tmp, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.macro bgr8882gray_qint8 qd, a_lut, qs0, qs1, qs2, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2
+    bgr8882gray \qd, \qs0, \qs1, \qs2, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2
     norm_quant_1chn_8 \qd, \a_lut, \q_tmp0, \q_tmp1, \q_tmp2
 .endm
 
-.macro rgb8882gray_qint16 qd0, qd1, a_lut, qs0, qs1, qs2, a_tmp, q_tmp0, q_tmp1, q_tmp2
-    rgb8882gray \qd1, \qs0, \qs1, \qs2, \a_tmp, \qd0, \q_tmp0, \q_tmp1, \q_tmp2
+.macro rgb8882gray_qint16 qd0, qd1, a_lut, qs0, qs1, qs2, a_tmp0, a_tmp1, q_tmp0, q_tmp1
+    rgb8882gray \qd1, \qs0, \qs1, \qs2, \a_tmp0, \a_tmp1, \qd0, \q_tmp0, \q_tmp1
     norm_quant_1chn_16 \qd0, \qd1, \a_lut, \q_tmp0, \q_tmp1
 .endm
 
-.macro bgr8882gray_qint16 qd0, qd1, a_lut, qs0, qs1, qs2, a_tmp, q_tmp0, q_tmp1, q_tmp2
-    bgr8882gray \qd1, \qs0, \qs1, \qs2, \a_tmp, \qd0, \q_tmp0, \q_tmp1, \q_tmp2
+.macro bgr8882gray_qint16 qd0, qd1, a_lut, qs0, qs1, qs2, a_tmp0, a_tmp1, q_tmp0, q_tmp1
+    bgr8882gray \qd1, \qs0, \qs1, \qs2, \a_tmp0, \a_tmp1, \qd0, \q_tmp0, \q_tmp1
     norm_quant_1chn_16 \qd0, \qd1, \a_lut, \q_tmp0, \q_tmp1
 .endm
 
-.macro rgb565le2gray qd, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
+.macro rgb565le2gray qd, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
     rgb5652rgb888 \q_tmp0, \q_tmp1, \q_tmp2, \qs0, \qs1, \a_tmp0, \a_tmp1
-    rgb8882gray \qd, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \q_tmp3, \q_tmp4, \qs0, \qs1
+    rgb8882gray \qd, \q_tmp0, \q_tmp1, \q_tmp2, \a_tmp0, \a_tmp1, \q_tmp3, \qs0, \qs1
 .endm
 
-.macro rgb565be2gray qd, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
-    rgb565le2gray \qd, \qs1, \qs0, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3, \q_tmp4
+.macro rgb565be2gray qd, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
+    rgb565le2gray \qd, \qs1, \qs0, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
 .endm
 
-.macro bgr565le2gray qd, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
+.macro bgr565le2gray qd, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
     rgb5652rgb888 \q_tmp0, \q_tmp1, \q_tmp2, \qs0, \qs1, \a_tmp0, \a_tmp1
-    rgb8882gray \qd, \q_tmp2, \q_tmp1, \q_tmp0, \a_tmp0, \q_tmp3, \q_tmp4, \qs0, \qs1
+    rgb8882gray \qd, \q_tmp2, \q_tmp1, \q_tmp0, \a_tmp0, \a_tmp1, \q_tmp3, \qs0, \qs1
 .endm
 
-.macro bgr565be2gray qd, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
-    bgr565le2gray \qd, \qs1, \qs0, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3, \q_tmp4
+.macro bgr565be2gray qd, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
+    bgr565le2gray \qd, \qs1, \qs0, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
 .endm
 
-.macro rgb565le2gray_qint8 qd, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
-    rgb565le2gray \qd, \qs0, \qs1, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3, \q_tmp4
+.macro rgb565le2gray_qint8 qd, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
+    rgb565le2gray \qd, \qs0, \qs1, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
     norm_quant_1chn_8 \qd, \a_lut, \q_tmp0, \q_tmp1, \q_tmp2
 .endm
 
-.macro rgb565be2gray_qint8 qd, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
-    rgb565be2gray \qd, \qs0, \qs1, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3, \q_tmp4
+.macro rgb565be2gray_qint8 qd, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
+    rgb565be2gray \qd, \qs0, \qs1, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
     norm_quant_1chn_8 \qd, \a_lut, \q_tmp0, \q_tmp1, \q_tmp2
 .endm
 
-.macro bgr565le2gray_qint8 qd, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
-    bgr565le2gray \qd, \qs0, \qs1, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3, \q_tmp4
+.macro bgr565le2gray_qint8 qd, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
+    bgr565le2gray \qd, \qs0, \qs1, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
     norm_quant_1chn_8 \qd, \a_lut, \q_tmp0, \q_tmp1, \q_tmp2
 .endm
 
-.macro bgr565be2gray_qint8 qd, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3, q_tmp4
-    bgr565be2gray \qd, \qs0, \qs1, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3, \q_tmp4
+.macro bgr565be2gray_qint8 qd, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
+    bgr565be2gray \qd, \qs0, \qs1, \a_tmp0, \a_tmp1, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
     norm_quant_1chn_8 \qd, \a_lut, \q_tmp0, \q_tmp1, \q_tmp2
 .endm
 
-.macro rgb565le2gray_qint16 qd0, qd1, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
-    rgb565le2gray \qd1, \qs0, \qs1, \a_tmp0, \a_tmp1, \qd0, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.macro rgb565le2gray_qint16 qd0, qd1, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2
+    rgb565le2gray \qd1, \qs0, \qs1, \a_tmp0, \a_tmp1, \qd0, \q_tmp0, \q_tmp1, \q_tmp2
     norm_quant_1chn_16 \qd0, \qd1, \a_lut, \q_tmp0, \q_tmp1
 .endm
 
-.macro rgb565be2gray_qint16 qd0, qd1, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
-    rgb565be2gray \qd1, \qs0, \qs1, \a_tmp0, \a_tmp1, \qd0, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.macro rgb565be2gray_qint16 qd0, qd1, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2
+    rgb565be2gray \qd1, \qs0, \qs1, \a_tmp0, \a_tmp1, \qd0, \q_tmp0, \q_tmp1, \q_tmp2
     norm_quant_1chn_16 \qd0, \qd1, \a_lut, \q_tmp0, \q_tmp1
 .endm
 
-.macro bgr565le2gray_qint16 qd0, qd1, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
-    bgr565le2gray \qd1, \qs0, \qs1, \a_tmp0, \a_tmp1, \qd0, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.macro bgr565le2gray_qint16 qd0, qd1, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2
+    bgr565le2gray \qd1, \qs0, \qs1, \a_tmp0, \a_tmp1, \qd0, \q_tmp0, \q_tmp1, \q_tmp2
     norm_quant_1chn_16 \qd0, \qd1, \a_lut, \q_tmp0, \q_tmp1
 .endm
 
-.macro bgr565be2gray_qint16 qd0, qd1, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2, q_tmp3
-    bgr565be2gray \qd1, \qs0, \qs1, \a_tmp0, \a_tmp1, \qd0, \q_tmp0, \q_tmp1, \q_tmp2, \q_tmp3
+.macro bgr565be2gray_qint16 qd0, qd1, a_lut, qs0, qs1, a_tmp0, a_tmp1, q_tmp0, q_tmp1, q_tmp2
+    bgr565be2gray \qd1, \qs0, \qs1, \a_tmp0, \a_tmp1, \qd0, \q_tmp0, \q_tmp1, \q_tmp2
     norm_quant_1chn_16 \qd0, \qd1, \a_lut, \q_tmp0, \q_tmp1
 .endm
 

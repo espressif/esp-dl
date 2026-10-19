@@ -16,7 +16,7 @@ cvt_color_simd_helper_\pix_cvt:
     esp.vld.128.ip q0, a0, 16
     esp.vld.128.ip q1, a0, 16
     esp.vunzip.8 q0, q1
-    \pix_cvt q2, q0, q1, a4, a5, q3, q4, q5, q6, q7
+    \pix_cvt q2, q0, q1, a4, a5, q3, q4, q5, q6
     esp.vst.128.ip q2, a1, 16
     addi a2, a2, -1
     bnez a2, .Lloop\@
@@ -46,7 +46,7 @@ cvt_color_simd_helper_\pix_cvt:
     esp.vld.128.ip q0, a0, 16
     esp.vld.128.ip q1, a0, 16
     esp.vunzip.8 q0, q1
-    \pix_cvt q2, a3, q0, q1, a4, a5, q3, q4, q5, q6, q7
+    \pix_cvt q2, a3, q0, q1, a4, a5, q3, q4, q5, q6
     esp.vst.128.ip q2, a1, 16
     addi a2, a2, -1
     bnez a2, .Lloop\@
@@ -76,7 +76,7 @@ cvt_color_simd_helper_\pix_cvt:
     esp.vld.128.ip q0, a0, 16
     esp.vld.128.ip q1, a0, 16
     esp.vunzip.8 q0, q1
-    \pix_cvt q2, q3, a3, q0, q1, a4, a5, q4, q5, q6, q7
+    \pix_cvt q2, q3, a3, q0, q1, a4, a5, q4, q5, q6
     esp.vst.128.ip q2, a1, 16
     esp.vst.128.ip q3, a1, 16
     addi a2, a2, -1
