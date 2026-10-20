@@ -51,6 +51,7 @@ elseif(CONFIG_IDF_TARGET_ESP32S3)
     list(APPEND src_dirs        dl/tool/isa/tie728)
     list(APPEND include_dirs    dl/base/isa/tie728)
     list(APPEND include_dirs    dl/base/isa/xtensa)
+    list(APPEND src_dirs        ./vision/image/isa/tie728)
 
 elseif(CONFIG_IDF_TARGET_ESP32C3)
 

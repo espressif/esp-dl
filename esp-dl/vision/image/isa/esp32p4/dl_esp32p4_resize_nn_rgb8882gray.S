@@ -19,7 +19,7 @@ resize_nn_simd_helper_\pix_cvt:
 .Lloop\@:
     resize_nn_load_3chn_128 q0, q1, q2, a0, a1, q3, q4, q5, a4, a5, t3, t4, t5, t6, s0, s1
     esp.vunzipt.8 q0, q1, q2
-    \pix_cvt q3, q0, q1, q2, a4, q4, q5, q6, q7
+    \pix_cvt q3, q0, q1, q2, a4, a5, q4, q5, q6
     esp.vst.128.ip q3, a2, 16
     addi a3, a3, -1
     bnez a3, .Lloop\@
@@ -53,7 +53,7 @@ resize_nn_simd_helper_\pix_cvt:
 .Lloop\@:
     resize_nn_load_3chn_128 q0, q1, q2, a0, a1, q3, q4, q5, a5, t3, t4, t5, t6, s0, s1, s8
     esp.vunzipt.8 q0, q1, q2
-    \pix_cvt q3, a4, q0, q1, q2, a5, q4, q5, q6, q7
+    \pix_cvt q3, a4, q0, q1, q2, a5, t3, q4, q5, q6
     esp.vst.128.ip q3, a2, 16
     addi a3, a3, -1
     bnez a3, .Lloop\@
@@ -88,7 +88,7 @@ resize_nn_simd_helper_\pix_cvt:
 .Lloop\@:
     resize_nn_load_3chn_128 q0, q1, q2, a0, a1, q3, q4, q5, a5, t3, t4, t5, t6, s0, s1, s8
     esp.vunzipt.8 q0, q1, q2
-    \pix_cvt q3, q4, a4, q0, q1, q2, a5, q5, q6, q7
+    \pix_cvt q3, q4, a4, q0, q1, q2, a5, t3, q5, q6
     esp.vst.128.ip q3, a2, 16
     esp.vst.128.ip q4, a2, 16
     addi a3, a3, -1
