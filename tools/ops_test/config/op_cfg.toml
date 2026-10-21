@@ -275,6 +275,25 @@
         activation_func = "ReLU"
 
         [[ops_test.Conv.cfg]]
+        # Single-group fallback: kh * kw * Cin = 2304 makes one lane group (36KB in S8,
+        # 18KB in W8A16) exceed the fast budget (32KB / 16KB) while still fitting inside
+        # filter_bytes_limit, so S8 and W8A16 take the single-group tile path on S3 and P4.
+        # Skip int16 so Conv_s16 stays within the ESP32 3800K model partition.
+        input_shape = [1, 256, 6, 6]
+        export_name_prefix = "conv_reuse_2d_k3_large_pad"
+        quant_type = ["int8", "w8a16"]
+
+        in_channels = 256
+        out_channels = 64
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
         # 1D, kernel 5, same padding. S16 tiles on S3 / P4.
         input_shape = [1, 216, 12]
         export_name_prefix = "conv_reuse_1d_k5_pad"

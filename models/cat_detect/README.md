@@ -7,16 +7,21 @@
 | Chip     | ESPDET_PICO_224_224_CAT | ESPDET_PICO_416_416_CAT | 
 |----------|-------------------------|-------------------------|
 | ESP32-S3 | ![alt text][supported]  | ![alt text][supported]  | 
+| ESP32-S31 | ![alt text][supported]  | ![alt text][supported]  | 
 | ESP32-P4 | ![alt text][supported]  | ![alt text][supported]  | 
 
 ## Model Latency
 
 | name                          | input(h*w*c)  | preprocess(ms) | model(ms) | postprocess(ms) | mAP50-95 on COCO2017 cat |
 | ------------------------------- | --------------- | ---------------- | ----------- | ----------------- | -------------------------- |
-|  espdet_pico_224_224_cat_s8_s3 |  224 * 224 * 3 | 8.8 | 123.9 | 0.8 |  0.656 |
-|  espdet_pico_416_416_cat_s8_s3 |  416 * 416 * 3 | 25.0 | 434.5 | 0.9 |  0.73 |
-|  espdet_pico_224_224_cat_s8_p4 |  224 * 224 * 3 | 3.1 | 47.5 | 0.3 |  0.663 |
-|  espdet_pico_416_416_cat_s8_p4 |  416 * 416 * 3 | 8.1 | 182.7 | 0.3 |  0.724 |
+|  espdet_pico_224_224_cat_s8_s3 |  224 * 224 * 3 | 8.8 | 120.3 | 0.8 |  0.656 |
+|  espdet_pico_416_416_cat_s8_s3 |  416 * 416 * 3 | 24.9 | 418.4 | 0.9 |  0.73 |
+|  espdet_pico_224_224_cat_s8_s31 |  224 * 224 * 3 | 4.4 | 79.4 | 0.5 |  0.663 |
+|  espdet_pico_416_416_cat_s8_s31 |  416 * 416 * 3 | 12.1 | 277.0 | 0.4 |  0.724 |
+|  espdet_pico_224_224_cat_s8_p4 |  224 * 224 * 3 | 2.9 | 45.4 | 0.3 |  0.663 |
+|  espdet_pico_416_416_cat_s8_p4 |  416 * 416 * 3 | 7.7 | 174.1 | 0.3 |  0.724 |
+
+> ESP32-S3: CPU 240 MHz, data cache 64 KB, octal PSRAM 80 MHz. ESP32-S31: CPU 320 MHz, PSRAM 250 MHz. ESP32-P4: CPU 400 MHz, L2 cache 256 KB, PSRAM 32 MB at 250 MHz. int8, `CONFIG_COMPILER_OPTIMIZATION_PERF`.
 
 ## Model Usage
 

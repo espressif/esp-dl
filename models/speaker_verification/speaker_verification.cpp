@@ -135,7 +135,10 @@ void SpeakerVerification::extract_features()
 
 float *SpeakerVerification::run_model()
 {
+    DL_LOG_INFER_LATENCY_INIT();
+    DL_LOG_INFER_LATENCY_START();
     model->run();
+    DL_LOG_INFER_LATENCY_END_PRINT("sv", "model");
 
     dl::TensorBase *output_tensor = model->get_outputs().begin()->second;
 
@@ -145,15 +148,21 @@ float *SpeakerVerification::run_model()
         return nullptr;
     }
 
+    DL_LOG_INFER_LATENCY_START();
     int8_t *ptr = (int8_t *)output_tensor->data;
     for (int i = 0; i < embedding_dim; i++) embedding[i] = dl::dequantize(ptr[i], DL_SCALE(output_tensor->exponent));
+    DL_LOG_INFER_LATENCY_END_PRINT("sv", "post");
 
     return embedding;
 }
 
 float *SpeakerVerification::run(const uint8_t *wav_start, size_t wav_len)
 {
-    if (!preprocess(wav_start, wav_len))
+    DL_LOG_INFER_LATENCY_INIT();
+    DL_LOG_INFER_LATENCY_START();
+    bool ok = preprocess(wav_start, wav_len);
+    DL_LOG_INFER_LATENCY_END_PRINT("sv", "pre");
+    if (!ok)
         return nullptr;
     return run_model();
 }

@@ -7,6 +7,7 @@
 | Chip     |   YOLO11N_SEG_S8_V1   | 
 |----------|------------------------|
 | ESP32-S3 | ![alt text][supported] | 
+| ESP32-S31 | ![alt text][supported] |
 | ESP32-P4 | ![alt text][supported] | 
 
 - `yolo11n_seg_s8_v1_s3` and `yolo11n_seg_s8_v1_p4` use 8bit quantization.
@@ -16,8 +17,11 @@
 
 | name                  | input(h*w*c)   | Flash(MB) | PSRAM(MB) | preprocess(ms) | model(ms) | postprocess(ms) | Box mAP50-95 on COCO | Mask mAP50-95 on COCO |
 | --------------------- | -------------- | ----------- | ----------- | ---------------- | ----------- | ----------------- | ------------------ | ------------------ |
-|  yolo11n_seg_s8_v1_s3 |  640 * 640 * 3 |  8 |  8 | 51.2 | 7121.5 | 138.5 |  0.363 |  0.302 |
-|  yolo11n_seg_s8_v1_p4 |  640 * 640 * 3 |  16 |  32 | 15.9 | 1877.2 | 39.7|  0.37 |  0.307 |
+|  yolo11n_seg_s8_v1_s3 |  640 * 640 * 3 |  8 |  8 | 51.2 | 4993.4 | 139.0 |  0.363 |  0.302 |
+|  yolo11n_seg_s8_v1_s31 |  640 * 640 * 3 |  16 |  16 | 24.3 | 2875.0 | 53.1 |  0.37 |  0.307 |
+|  yolo11n_seg_s8_v1_p4 |  640 * 640 * 3 |  16 |  32 | 15.3 | 1815.1 | 39.5|  0.37 |  0.307 |
+
+> ESP32-S3: CPU 240 MHz, data cache 64 KB, octal PSRAM 80 MHz. ESP32-S31: CPU 320 MHz, PSRAM 250 MHz. ESP32-P4: CPU 400 MHz, L2 cache 256 KB, PSRAM 32 MB at 250 MHz. int8, `CONFIG_COMPILER_OPTIMIZATION_PERF`.
 
 ## Model Usage
 

@@ -60,19 +60,20 @@ static bool conv_loop_pie_tiled(
     ConvArgsType &args, conv_pie_fn_t body, conv_pie_fn_t border, int feat_bytes, int filt_bytes)
 {
 #if CONFIG_IDF_TARGET_ESP32S3
-    // Data cache is 32KB or 64KB. A tile around half of it stays on the fast
-    // plateau and leaves the rest for activations. One lane group that misses
-    // that half but still fits in the data cache (rounding may go slightly
-    // over) is still much faster than re-reading the whole filter from PSRAM.
-    constexpr int filter_bytes = CONFIG_ESP32S3_DATA_CACHE_SIZE / 2;
+    // Data cache is 32KB or 64KB. int8 activations fit alongside a half-cache
+    // filter slice; int16 activations (s16 and w8a16) stream 2 * Cin bytes per
+    // pixel across the spatial tile and keep the quarter-cache filter budget.
+    // One lane group that misses the fast budget but still fits in the data
+    // cache is still faster than re-reading the whole filter from PSRAM.
+    const int filter_bytes =
+        (feat_bytes == 1) ? (CONFIG_ESP32S3_DATA_CACHE_SIZE / 2) : (CONFIG_ESP32S3_DATA_CACHE_SIZE / 4);
     constexpr int filter_bytes_limit = CONFIG_ESP32S3_DATA_CACHE_SIZE;
     constexpr bool round_nearest = true;
 #elif CONFIG_IDF_TARGET_ESP32S31
-    // Data cache is fixed at 64KB. A tile around half of it stays on the fast
-    // plateau and leaves the rest for activations. One lane group that misses
-    // that half but still fits in the data cache (rounding may go slightly
-    // over) is still much faster than re-reading the whole filter from PSRAM.
-    constexpr int filter_bytes = CONFIG_CACHE_L1_DCACHE_SIZE / 2;
+    // Data cache is fixed at 64KB. Same rule as ESP32-S3: int8 uses half of
+    // the cache, while int16 activations keep the filter slice within a quarter
+    // of the cache.
+    const int filter_bytes = (feat_bytes == 1) ? (CONFIG_CACHE_L1_DCACHE_SIZE / 2) : (CONFIG_CACHE_L1_DCACHE_SIZE / 4);
     constexpr int filter_bytes_limit = CONFIG_CACHE_L1_DCACHE_SIZE;
     constexpr bool round_nearest = true;
 #else

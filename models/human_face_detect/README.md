@@ -6,6 +6,7 @@
 | Chip     | MSR_S8_V1 + <br>MNP_S8_V1 | ESPDET_PICO_224_224_FACE | ESPDET_PICO_416_416_FACE | 
 |----------|---------------------------|--------------------------|--------------------------|
 | ESP32-S3 | ![alt text][supported]    |  ![alt text][supported]  |  ![alt text][supported]  | 
+| ESP32-S31 | ![alt text][supported]    |  ![alt text][supported]  |  ![alt text][supported]  | 
 | ESP32-P4 | ![alt text][supported]    |  ![alt text][supported]  |  ![alt text][supported]  | 
 
 MSR_S8_V1 + MNP_S8_V1 is a two stage model. First stage model MSR_S8_V1 predicts some candidates, then every candidate go through the next stage model MNP_S8_V1.
@@ -16,14 +17,20 @@ Both ESPDET_PICO_224_224_FACE and ESPDET_PICO_416_416_FACE are one-stage models.
 
 | name                           | input(h*w*c)  | preprocess(ms) | model(ms) | postprocess(ms) | mAP50-95 on custom val set  |
 | -------------------------------- | --------------- | ---------------- | ----------- | ----------------- | ----------------------------- |
-|  msr_s8_v1_s3 |  120 * 160 * 3 | 3.6 | 31.0 | 0.2 |  / |
-|  msr_s8_v1_p4 |  120 * 160 * 3 | 1.2 | 12.2 | 0.1 |  / |
-|  mnp_s8_v1_s3 |  48 * 48 * 3 | 0.6 | 5.3 | 0.1 |  0.367(msr + mnp) |
+|  msr_s8_v1_s3 |  120 * 160 * 3 | 3.7 | 32.5 | 0.3 |  / |
+|  msr_s8_v1_s31 |  120 * 160 * 3 | 1.9 | 19.0 | 0.2 |  / |
+|  msr_s8_v1_p4 |  120 * 160 * 3 | 1.2 | 12.4 | 0.1 |  / |
+|  mnp_s8_v1_s3 |  48 * 48 * 3 | 0.6 | 5.9 | 0.1 |  0.367(msr + mnp) |
+|  mnp_s8_v1_s31 |  48 * 48 * 3 | 0.4 | 3.5 | 0.1 |  0.366(msr + mnp) |
 |  mnp_s8_v1_p4 |  48 * 48 * 3 | 0.2 | 2.3 | 0.0 |  0.366(msr + mnp) |
-|  espdet_pico_224_224_face_s8_s3 |  224 * 224 * 3 | 6.8 | 123.9 | 0.5 |  0.504 |
-|  espdet_pico_416_416_face_s8_s3 |  416 * 416 * 3 | 21.0 | 413.9 | 1.0 |  0.598 |
-|  espdet_pico_224_224_face_s8_p4 |  224 * 224 * 3 | 2.1 | 47.0 | 0.3 |  0.504 |
-|  espdet_pico_416_416_face_s8_p4 |  416 * 416 * 3 | 6.2 | 181.4 | 0.4 |  0.597 |
+|  espdet_pico_224_224_face_s8_s3 |  224 * 224 * 3 | 7.3 | 129.4 | 0.7 |  0.504 |
+|  espdet_pico_416_416_face_s8_s3 |  416 * 416 * 3 | 21.8 | 422.1 | 1.1 |  0.598 |
+|  espdet_pico_224_224_face_s8_s31 |  224 * 224 * 3 | 3.5 | 85.0 | 0.4 |  0.504 |
+|  espdet_pico_416_416_face_s8_s31 |  416 * 416 * 3 | 9.7 | 281.2 | 0.6 |  0.597 |
+|  espdet_pico_224_224_face_s8_p4 |  224 * 224 * 3 | 2.3 | 47.2 | 0.3 |  0.504 |
+|  espdet_pico_416_416_face_s8_p4 |  416 * 416 * 3 | 6.3 | 176.9 | 0.4 |  0.597 |
+
+> ESP32-S3: CPU 240 MHz, data cache 64 KB, octal PSRAM 80 MHz. ESP32-S31: CPU 320 MHz, PSRAM 250 MHz. ESP32-P4: CPU 400 MHz, L2 cache 256 KB, PSRAM 32 MB at 250 MHz. int8, `CONFIG_COMPILER_OPTIMIZATION_PERF`.
 
 ## Model Usage
 
