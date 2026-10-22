@@ -17,6 +17,9 @@ constexpr WorkspaceBindingId kInvalidWorkspaceBindingId = -1;
  */
 class ModelContext {
 public:
+    /**
+     * @brief Non-owning view of a planner-managed native workspace.
+     */
     struct WorkspaceBinding {
         std::string name; /*!< "<node>:workspace<j>" */
         void *data;       /*!< Pointer into a planner-owned root arena */
@@ -112,6 +115,10 @@ public:
 
     /**
      * @brief Binds a workspace ID to a region in a planner-owned root arena.
+     *
+     * @param binding_id Workspace binding ID.
+     * @param data Workspace data pointer.
+     * @param size Workspace capacity in bytes.
      */
     void bind_workspace(WorkspaceBindingId binding_id, void *data, size_t size);
 
@@ -126,11 +133,15 @@ public:
 
     /**
      * @brief Gets the number of native workspace bindings.
+     *
+     * @return Number of workspace bindings.
      */
     int get_workspace_binding_count() const { return m_workspace_bindings.size(); }
 
     /**
      * @brief Gets all native workspace bindings. Bytes are already part of the variable arena.
+     *
+     * @return Read-only workspace binding list.
      */
     const std::vector<WorkspaceBinding> &get_workspace_bindings() const { return m_workspace_bindings; }
 
@@ -180,6 +191,20 @@ public:
      * @return int Returns index if the name is found, else -1
      */
     int get_tensor_index(const std::string &name);
+
+    /**
+     * @brief Silent variant of ``get_tensor_index``: returns -1 without
+     * logging an error when the tensor name is not yet registered. Use
+     * this on hot paths (e.g. per-op input loop) where a miss is expected.
+     *
+     * @param name The name of the tensor.
+     * @return int Returns index if the name is found, else -1
+     */
+    int find_tensor_index(const std::string &name) const
+    {
+        auto iter = m_name2index.find(name);
+        return iter == m_name2index.end() ? -1 : iter->second;
+    }
 
     /**
      * @brief Checks if a tensor exists by its name.

@@ -65,6 +65,8 @@ public:
     /**
      * @brief Whether the current execution plan has successfully bound its
      * variable arenas. A failed rebuild leaves the model safely non-runnable.
+     *
+     * @return true when the model is ready to run, otherwise false.
      */
     bool is_built() const { return m_built; }
 

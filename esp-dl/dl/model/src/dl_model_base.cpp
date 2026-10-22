@@ -1,6 +1,8 @@
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <stdint.h>
+#include <type_traits>
 
 #include "dl_memory_manager_greedy.hpp"
 #include "dl_model_base.hpp"
@@ -9,6 +11,164 @@
 #include <algorithm>
 
 static const char *TAG = "dl::Model";
+
+namespace {
+
+template <typename T>
+bool topk_value_equal(
+    dl::TensorBase *output, dl::TensorBase *output_gt, int output_index, int output_gt_index, float epsilon)
+{
+    const T *output_data = static_cast<const T *>(output->get_element_ptr());
+    const T *output_gt_data = static_cast<const T *>(output_gt->get_element_ptr());
+    if constexpr (std::is_floating_point_v<T>) {
+        const bool output_nan = std::isnan(output_data[output_index]);
+        const bool output_gt_nan = std::isnan(output_gt_data[output_gt_index]);
+        if (output_nan || output_gt_nan) {
+            return output_nan && output_gt_nan;
+        }
+    }
+    return std::fabs(static_cast<double>(output_data[output_index]) - output_gt_data[output_gt_index]) <= epsilon;
+}
+
+bool topk_value_equal(
+    dl::TensorBase *output, dl::TensorBase *output_gt, int output_index, int output_gt_index, float epsilon)
+{
+    switch (output->get_dtype()) {
+    case dl::DATA_TYPE_INT8:
+        return topk_value_equal<int8_t>(output, output_gt, output_index, output_gt_index, epsilon);
+    case dl::DATA_TYPE_INT16:
+        return topk_value_equal<int16_t>(output, output_gt, output_index, output_gt_index, epsilon);
+    case dl::DATA_TYPE_FLOAT:
+        return topk_value_equal<float>(output, output_gt, output_index, output_gt_index, epsilon);
+    case dl::DATA_TYPE_DOUBLE:
+        return topk_value_equal<double>(output, output_gt, output_index, output_gt_index, epsilon);
+    default:
+        ESP_LOGE(TAG, "Unsupported TopK value dtype %d", static_cast<int>(output->get_dtype()));
+        return false;
+    }
+}
+
+bool topk_index_at(dl::TensorBase *tensor, int offset, int64_t *index)
+{
+    switch (tensor->get_dtype()) {
+    case dl::DATA_TYPE_INT8:
+        *index = static_cast<const int8_t *>(tensor->get_element_ptr())[offset];
+        return true;
+    case dl::DATA_TYPE_INT16:
+        *index = static_cast<const int16_t *>(tensor->get_element_ptr())[offset];
+        return true;
+    case dl::DATA_TYPE_INT32:
+        *index = static_cast<const int32_t *>(tensor->get_element_ptr())[offset];
+        return true;
+    case dl::DATA_TYPE_INT64:
+        *index = static_cast<const int64_t *>(tensor->get_element_ptr())[offset];
+        return true;
+    default:
+        ESP_LOGE(TAG, "Unsupported TopK index dtype %d", static_cast<int>(tensor->get_dtype()));
+        return false;
+    }
+}
+
+// Multiset comparison for the two TopK outputs when sorted=0 makes their order
+// unspecified. Both output pairs are normally provided, in which case an
+// (index, value) pair must match. When only one pair is provided — the other
+// TopK output is not a graph test output — that component alone is matched as
+// a per-slice multiset.
+bool topk_unordered_outputs_equal(dl::TensorBase *values,
+                                  dl::TensorBase *values_gt,
+                                  dl::TensorBase *indices,
+                                  dl::TensorBase *indices_gt,
+                                  int axis,
+                                  float epsilon)
+{
+    if ((values == nullptr) != (values_gt == nullptr) || (indices == nullptr) != (indices_gt == nullptr)) {
+        ESP_LOGE(TAG, "TopK unordered outputs must be passed in output/ground-truth pairs");
+        return false;
+    }
+    const bool compare_values = values != nullptr;
+    const bool compare_indices = indices != nullptr;
+    if (!compare_values && !compare_indices) {
+        ESP_LOGE(TAG, "TopK unordered outputs have no test output to compare");
+        return false;
+    }
+    if ((compare_values && (!values->get_element_ptr() || !values_gt->get_element_ptr())) ||
+        (compare_indices && (!indices->get_element_ptr() || !indices_gt->get_element_ptr()))) {
+        ESP_LOGE(TAG, "TopK unordered output tensor or buffer is null");
+        return false;
+    }
+    if ((compare_values &&
+         (values->get_dtype() != values_gt->get_dtype() || values->exponent != values_gt->exponent ||
+          !values->is_same_shape(values_gt))) ||
+        (compare_indices && (indices->get_dtype() != indices_gt->get_dtype() || !indices->is_same_shape(indices_gt)))) {
+        ESP_LOGE(TAG, "TopK unordered output metadata does not match");
+        return false;
+    }
+    if (compare_values && compare_indices && !values->is_same_shape(indices)) {
+        ESP_LOGE(TAG, "TopK unordered output metadata does not match");
+        return false;
+    }
+
+    const std::vector<int> &shape = (compare_values ? values : indices)->get_shape();
+    const int rank = static_cast<int>(shape.size());
+    axis = axis < 0 ? axis + rank : axis;
+    if (axis < 0 || axis >= rank || shape[axis] <= 0) {
+        ESP_LOGE(TAG, "TopK unordered output has invalid axis %d", axis);
+        return false;
+    }
+
+    int outer = 1;
+    int inner = 1;
+    for (int i = 0; i < axis; i++) {
+        outer *= shape[i];
+    }
+    for (int i = axis + 1; i < rank; i++) {
+        inner *= shape[i];
+    }
+    const int k = shape[axis];
+    std::vector<bool> matched(k, false);
+    for (int o = 0; o < outer; o++) {
+        for (int i = 0; i < inner; i++) {
+            std::fill(matched.begin(), matched.end(), false);
+            for (int t = 0; t < k; t++) {
+                const int output_offset = (o * k + t) * inner + i;
+
+                bool found = false;
+                for (int gt_t = 0; gt_t < k; gt_t++) {
+                    if (matched[gt_t]) {
+                        continue;
+                    }
+                    const int output_gt_offset = (o * k + gt_t) * inner + i;
+
+                    if (compare_indices) {
+                        int64_t output_index = 0;
+                        int64_t output_gt_index = 0;
+                        if (!topk_index_at(indices, output_offset, &output_index) ||
+                            !topk_index_at(indices_gt, output_gt_offset, &output_gt_index)) {
+                            return false;
+                        }
+                        if (output_index != output_gt_index) {
+                            continue;
+                        }
+                    }
+                    if (compare_values &&
+                        !topk_value_equal(values, values_gt, output_offset, output_gt_offset, epsilon)) {
+                        continue;
+                    }
+                    matched[gt_t] = true;
+                    found = true;
+                    break;
+                }
+                if (!found) {
+                    ESP_LOGE(TAG, "TopK unordered output element does not match at slice %d, position %d", o, t);
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+} // namespace
 
 namespace dl {
 
@@ -181,21 +341,37 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
         for (int j = 0; j < op_inputs.size(); j++) {
             bool is_parameter = m_fbs_model->is_parameter(op_inputs[j]);
             if (is_parameter || op_inputs[j].empty()) {
-                TensorBase *parameter = m_fbs_model->get_operation_parameter(node_name, j);
-                // An empty input name is an omitted optional input, but a named parameter that comes
-                // back missing, or without the exponents its data is quantized with, would leave the
-                // operator computing on a weight it cannot interpret.
-                if (is_parameter && (!parameter || !parameter->exponent.is_valid())) {
-                    ESP_LOGE(TAG, "Fail to load the parameter %s of node %s", op_inputs[j].c_str(), node_name.c_str());
-                    delete parameter;
-                    ret = ESP_FAIL;
-                    break;
+                // Parameters may legitimately be shared across ops (e.g. RotaryEmbedding cos/sin caches
+                // that are identical across every decoder layer). When the exporter emits a single
+                // named initializer referenced by N nodes, ``add_tensor`` would otherwise be called
+                // N times with newly-materialized TensorBase copies — every one after the first
+                // leaks because ``add_tensor`` merely swaps the pointer in-place. Short-circuit:
+                // if the parameter name is already registered, reuse its index directly.
+                int existing = op_inputs[j].empty() ? -1 : m_model_context->find_tensor_index(op_inputs[j]);
+                if (existing >= 0) {
+                    index = existing;
+                } else {
+                    TensorBase *parameter = m_fbs_model->get_operation_parameter(node_name, j);
+                    // An empty input name is an omitted optional input, but a named parameter that
+                    // comes back missing, or without the exponents its data is quantized with,
+                    // would leave the operator computing on a weight it cannot interpret.
+                    if (is_parameter && (!parameter || !parameter->exponent.is_valid())) {
+                        ESP_LOGE(
+                            TAG, "Fail to load the parameter %s of node %s", op_inputs[j].c_str(), node_name.c_str());
+                        delete parameter;
+                        ret = ESP_FAIL;
+                        break;
+                    }
+                    index = m_model_context->add_tensor(op_inputs[j], true, parameter);
                 }
-                index = m_model_context->add_tensor(op_inputs[j], true, parameter);
             } else {
                 index = m_model_context->add_tensor(op_inputs[j], false, nullptr);
             }
             module->m_inputs_index.push_back(index); // assign input index of module
+        }
+
+        if (ret != ESP_OK) {
+            break;
         }
 
         // Add LUT inputs if the module is a LUT module
@@ -560,10 +736,105 @@ esp_err_t Model::test()
         }
         test_outputs_index.emplace_back(index);
     }
+    std::vector<std::string> sorted_nodes = m_fbs_model->topological_sort();
+    assert(sorted_nodes.size() == m_execution_plan.size());
     for (int i = 0; i < m_execution_plan.size(); i++) {
         dl::module::Module *module = m_execution_plan[i];
         module->forward(m_model_context, RUNTIME_MODE_SINGLE_CORE);
         std::vector<int> module_outputs_index = module->get_outputs_index();
+
+        int topk_axis = -1;
+        int topk_sorted = 1;
+        const std::string &node_name = sorted_nodes[i];
+        const bool unordered_topk = m_fbs_model->get_operation_type(node_name) == "TopK" &&
+            m_fbs_model->get_operation_attribute(node_name, "sorted", topk_sorted) == ESP_OK && topk_sorted == 0;
+        if (unordered_topk) {
+            m_fbs_model->get_operation_attribute(node_name, "axis", topk_axis);
+        }
+        if (unordered_topk && module_outputs_index.size() == 2) {
+            auto values_iter = std::find(test_outputs_index.begin(), test_outputs_index.end(), module_outputs_index[0]);
+            auto indices_iter =
+                std::find(test_outputs_index.begin(), test_outputs_index.end(), module_outputs_index[1]);
+            if (values_iter != test_outputs_index.end() && indices_iter != test_outputs_index.end()) {
+                const size_t values_iter_index = std::distance(test_outputs_index.begin(), values_iter);
+                const size_t indices_iter_index = std::distance(test_outputs_index.begin(), indices_iter);
+                const std::string &values_name = test_outputs_name[values_iter_index];
+                const std::string &indices_name = test_outputs_name[indices_iter_index];
+                ESP_LOGI(TAG, "Testing unordered TopK outputs %s and %s.", values_name.c_str(), indices_name.c_str());
+                dl::TensorBase *values = m_model_context->m_variables[module_outputs_index[0]];
+                dl::TensorBase *indices = m_model_context->m_variables[module_outputs_index[1]];
+                dl::TensorBase *values_gt = m_fbs_model->get_test_output_tensor(values_name);
+                dl::TensorBase *indices_gt = m_fbs_model->get_test_output_tensor(indices_name);
+                if (!values || !indices || !values_gt || !indices_gt) {
+                    ESP_LOGE(TAG, "Missing unordered TopK output or ground-truth tensor");
+                    delete values_gt;
+                    delete indices_gt;
+                    for (auto &test_tensor : test_tensors_cache) {
+                        delete test_tensor;
+                    }
+                    m_fbs_model->clear_map();
+                    return ESP_FAIL;
+                }
+                float epsilon = max_error;
+                if (values->get_dtype() == DATA_TYPE_INT16 || values->get_dtype() == DATA_TYPE_UINT16) {
+                    epsilon = std::max(1.0f + 1e-5f, max_error);
+                }
+                if (!topk_unordered_outputs_equal(values, values_gt, indices, indices_gt, topk_axis, epsilon)) {
+                    ESP_LOGE(TAG, "Unordered TopK outputs do not match\n");
+                    delete values_gt;
+                    delete indices_gt;
+                    for (auto &test_tensor : test_tensors_cache) {
+                        delete test_tensor;
+                    }
+                    m_fbs_model->clear_map();
+                    return ESP_FAIL;
+                }
+                test_tensors_cache.emplace_back(values_gt);
+                test_tensors_cache.emplace_back(indices_gt);
+                continue;
+            }
+            // sorted=0 makes the per-slice order unspecified, so a lone TopK test
+            // output must also be compared as a multiset, not element-wise in order.
+            if (values_iter != test_outputs_index.end() || indices_iter != test_outputs_index.end()) {
+                const bool compare_values = values_iter != test_outputs_index.end();
+                auto output_iter = compare_values ? values_iter : indices_iter;
+                const size_t output_iter_index = std::distance(test_outputs_index.begin(), output_iter);
+                const std::string &output_name = test_outputs_name[output_iter_index];
+                ESP_LOGI(TAG, "Testing unordered TopK output %s.", output_name.c_str());
+                dl::TensorBase *output =
+                    m_model_context->m_variables[compare_values ? module_outputs_index[0] : module_outputs_index[1]];
+                dl::TensorBase *output_gt = m_fbs_model->get_test_output_tensor(output_name);
+                if (!output || !output_gt) {
+                    ESP_LOGE(TAG, "Missing unordered TopK output or ground-truth tensor");
+                    delete output_gt;
+                    for (auto &test_tensor : test_tensors_cache) {
+                        delete test_tensor;
+                    }
+                    m_fbs_model->clear_map();
+                    return ESP_FAIL;
+                }
+                float epsilon = max_error;
+                if (output->get_dtype() == DATA_TYPE_INT16 || output->get_dtype() == DATA_TYPE_UINT16) {
+                    epsilon = std::max(1.0f + 1e-5f, max_error);
+                }
+                dl::TensorBase *values_arg = compare_values ? output : nullptr;
+                dl::TensorBase *values_gt_arg = compare_values ? output_gt : nullptr;
+                dl::TensorBase *indices_arg = compare_values ? nullptr : output;
+                dl::TensorBase *indices_gt_arg = compare_values ? nullptr : output_gt;
+                if (!topk_unordered_outputs_equal(
+                        values_arg, values_gt_arg, indices_arg, indices_gt_arg, topk_axis, epsilon)) {
+                    ESP_LOGE(TAG, "Unordered TopK output %s does not match\n", output_name.c_str());
+                    delete output_gt;
+                    for (auto &test_tensor : test_tensors_cache) {
+                        delete test_tensor;
+                    }
+                    m_fbs_model->clear_map();
+                    return ESP_FAIL;
+                }
+                test_tensors_cache.emplace_back(output_gt);
+                continue;
+            }
+        }
         for (int index : module_outputs_index) {
             auto iter = std::find(test_outputs_index.begin(), test_outputs_index.end(), index);
             if (iter != test_outputs_index.end()) {

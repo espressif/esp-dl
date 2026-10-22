@@ -1,4 +1,4 @@
-    .section .data
+    .section .rodata
     .global  rgb5652rgb888_mask_tab
     .type   rgb5652rgb888_mask_tab, @object
 rgb5652rgb888_mask_tab:
@@ -38,8 +38,6 @@ rgb8882gray_const_tab:
     .half 19235
     # coeff_b
     .half 3735
-    # shift
-    .half 15
 
     .balign 4
     .global  rgb8882hsv_const_tab
@@ -210,7 +208,6 @@ vsr_u8_6_mask:
 vsr_u8_7_mask:
     .byte 0b00000001
 
-    .section .rodata
     .balign 16
     .global  yuv2rgb888_const_tab
     .type   yuv2rgb888_const_tab, @object

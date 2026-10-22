@@ -990,7 +990,7 @@ inline float attention_logit_scale(const TensorBase *q_t, const TensorBase *k_t,
     if constexpr (qkv_dtype == DATA_TYPE_FLOAT) {
         return softmax_scale;
     } else {
-        return softmax_scale * dequant_scale_from_exponent(q_t->exponent) * dequant_scale_from_exponent(k_t->exponent);
+        return softmax_scale * DL_SCALE(q_t->exponent) * DL_SCALE(k_t->exponent);
     }
 }
 

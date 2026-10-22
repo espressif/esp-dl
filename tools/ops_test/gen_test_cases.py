@@ -159,12 +159,20 @@ class BaseInferencer:
             self.multi_input = False
         else:
             self.multi_input = True
+        # Most historical operator cases describe a graph batch of one and
+        # rely on DataLoader to restore the stripped leading dimension.
+        # Multi-input operators can have semantically different leading axes
+        # (for example RoPE X has B while a 2-D cache starts with L). Those
+        # cases opt into preserving every declared ONNX input shape exactly.
+        self.preserve_input_shapes = bool(
+            self.model_cfg.get("preserve_input_shapes", False)
+        )
 
         # get calibration dataset.
         calibration_dataset = self.load_calibration_dataset()
         self.calib_dataloader = DataLoader(
             dataset=calibration_dataset,
-            batch_size=self.batch_size,
+            batch_size=None if self.preserve_input_shapes else self.batch_size,
             shuffle=False,
         )
 
@@ -252,6 +260,16 @@ class BaseInferencer:
             )
 
     def load_calibration_dataset(self) -> Iterable:
+        if self.preserve_input_shapes:
+            if not self.multi_input:
+                return [
+                    torch.randn(size=self.input_shape[0])
+                    for _ in range(self.batch_size)
+                ]
+            return [
+                [torch.randn(size=shape) for shape in self.input_shape]
+                for _ in range(self.batch_size)
+            ]
         if not self.multi_input:
             return [
                 torch.randn(size=self.input_shape[0][1:])
@@ -383,20 +401,12 @@ if __name__ == "__main__":
                     args.output_path, op_export_dirname(op_type, quant_type)
                 )
                 for cfg in op_configs:
-                    # A config may restrict the operator-level quantization list.
-                    # Names use the op_cfg.toml vocabulary.
-                    cfg_quant_bits = cfg.get("quant_bits")
-                    if cfg_quant_bits:
-                        allowed = {
+                    if "quant_type" in cfg:
+                        cfg_quant_types = {
                             _CFG_TO_QUANT_TYPE.get(item, item)
-                            for item in cfg_quant_bits
+                            for item in cfg["quant_type"]
                         }
-                        if quant_type not in allowed:
-                            print(
-                                f"Skip cfg {cfg.get('export_name_prefix', '?')} "
-                                f"at {quant_type} due to "
-                                f"per-cfg quant_bits={cfg_quant_bits}"
-                            )
+                        if quant_type not in cfg_quant_types:
                             continue
                     cfg["per_channel_enable"] = per_channel_enable
                     test_max_error = resolve_max_error(

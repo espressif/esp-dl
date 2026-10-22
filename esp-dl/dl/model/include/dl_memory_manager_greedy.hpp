@@ -49,8 +49,8 @@ private:
     void simulate_with_internal_memory(std::vector<MemoryInfo *> &memory_info, int node_num);
 
     /**
-     * @brief Releases memory occupied by a specific tensor and returns it to free list
-     * @param tensor Tensor whose memory needs to be freed
+     * @brief Releases a planner allocation and returns its chunk to the free list
+     * @param memory Planner allocation whose memory needs to be freed
      * @param memory_list List containing all memory blocks of the memory type
      * @param free_list List to which freed memory blocks should be added
      * @return MemoryChunk* Pointer to the freed memory block
@@ -60,16 +60,16 @@ private:
                              std::list<MemoryChunk *> &free_list);
 
     /**
-     * @brief Allocates memory for a tensor from specified memory pool
-     * @param tensor Tensor information containing size and alignment requirements
+     * @brief Allocates storage for a planner allocation from the selected memory pool
+     * @param memory Planner allocation containing size and placement requirements
      * @param mode Allocation mode (0=standard, other values reserved for future use)
      * @return MemoryChunk* Pointer to newly allocated memory block or nullptr on failure
      */
     MemoryChunk *alloc_memory(MemoryInfo *memory, int mode = 0);
 
     /**
-     * @brief Allocates memory for a tensor from internal RAM with priority
-     * @param tensor Tensor information specifying memory requirements
+     * @brief Allocates storage for a planner allocation from internal RAM
+     * @param memory Planner allocation specifying memory requirements
      * @param mode Allocation mode (0=standard, other values reserved)
      * @return MemoryChunk* Pointer to allocated internal memory block or nullptr
      */

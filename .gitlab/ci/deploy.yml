@@ -135,7 +135,7 @@ check_espdl_ops_perf:
         echo "cannot fail this job."
       fi
       FAILED=0
-      for TARGET in esp32 esp32s3 esp32p4; do
+      for TARGET in esp32 esp32s3 esp32p4 esp32c5; do
         RESULTS="${TARGET}_perf_results.json"
         if ! python tools/ops_test/benchmark/perf_package.py aggregate \
              --root "${CI_PROJECT_DIR}" \
@@ -219,7 +219,7 @@ accept_espdl_ops_perf:
       # check_espdl_ops_perf afterwards then compares against it and passes,
       # without spending a board on a re-measurement.
       ACCEPTED=""
-      for TARGET in esp32 esp32s3 esp32p4; do
+      for TARGET in esp32 esp32s3 esp32p4 esp32c5; do
         RESULTS="${TARGET}_perf_results.json"
         if ! python tools/ops_test/benchmark/perf_package.py aggregate \
              --root "${CI_PROJECT_DIR}" \
@@ -352,7 +352,7 @@ publish_espdl_ops_perf_baseline:
       ADD_UNSEEN="1"
 
       FAILED=0
-      for TARGET in esp32 esp32s3 esp32p4; do
+      for TARGET in esp32 esp32s3 esp32p4 esp32c5; do
         # Aggregated and gated by check_espdl_ops_perf; inherited as an
         # artifact so a target that produced no measurements is visible here
         # as a missing file rather than being silently skipped.

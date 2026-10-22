@@ -52,7 +52,7 @@ void bind_thunk(PixelKernel *k)
             }
         }
     };
-#if CONFIG_PIE_V2_BOOST
+#if CONFIG_PIE_V2_BOOST || CONFIG_PIE_V1_BOOST
     k->cvt_2pix_simd_fn = [](const PixelKernel *s, uint8_t *src, uint8_t *dst, int n, bool odd) {
         const Cvt &c = *static_cast<const Cvt *>(s->cvt);
         constexpr int src_bpp = Cvt::src_bpp;
@@ -130,7 +130,7 @@ void bind_thunk(PixelKernel *k)
             }
         }
     };
-#if CONFIG_PIE_V2_BOOST
+#if CONFIG_PIE_V2_BOOST || CONFIG_PIE_V1_BOOST
     k->cvt_simd_fn = [](const PixelKernel *s, uint8_t *src, uint8_t *dst, int n) {
         const Cvt &c = *static_cast<const Cvt *>(s->cvt);
         constexpr int src_bpp = Cvt::src_bpp;

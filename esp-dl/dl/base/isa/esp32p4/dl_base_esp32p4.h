@@ -1047,4 +1047,38 @@ void dl_esp32p4_block_transpose(int8_t *output, const int8_t *input, int N, int 
  */
 void dl_esp32p4_s16_transpose(int16_t *output, const int16_t *input, int N, int M);
 void dl_esp32p4_s16_block_transpose(int16_t *output, const int16_t *input, int N, int M, int K);
+
+/* Non-interleaved RotaryEmbedding (RoPE) kernels. */
+void dl_esp32p4_s8_rope_neox_simd(int8_t *y_first,
+                                  int8_t *y_second,
+                                  const int8_t *x_first,
+                                  const int8_t *x_second,
+                                  const int8_t *cos_row,
+                                  const int8_t *sin_row,
+                                  int iters,
+                                  int mac_shift);
+void dl_esp32p4_s16_rope_neox_simd(int16_t *y_first,
+                                   int16_t *y_second,
+                                   const int16_t *x_first,
+                                   const int16_t *x_second,
+                                   const int16_t *cos_row,
+                                   const int16_t *sin_row,
+                                   int iters,
+                                   int mac_shift);
+void dl_esp32p4_s8_s16c_rope_neox_simd(int8_t *y_first,
+                                       int8_t *y_second,
+                                       const int8_t *x_first,
+                                       const int8_t *x_second,
+                                       const int16_t *cos_row,
+                                       const int16_t *sin_row,
+                                       int iters,
+                                       int mac_shift);
+void dl_esp32p4_s8_s16c8_rope_neox_simd(int8_t *y_first,
+                                        int8_t *y_second,
+                                        const int8_t *x_first,
+                                        const int8_t *x_second,
+                                        const int16_t *cos_row,
+                                        const int16_t *sin_row,
+                                        int iters,
+                                        int mac_shift);
 }

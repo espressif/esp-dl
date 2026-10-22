@@ -6,14 +6,19 @@
 
 | Chip     | SPEAKER_VERIFICATION    | 
 |----------|-------------------------| 
+| ESP32-S31 | ![alt text][supported]  |
 | ESP32-P4 | ![alt text][supported]  | 
 
 ## Model Latency
 
-| name             | preprocess(us) | model(us) | postprocess(us) |
+| name             | preprocess(ms) | model(ms) | postprocess(ms) |
 | ---------------- | ---------------- | ----------- | ----------------- |
-|  sv_tdnn_tiny_3s | 61593  | 228370 | 171 |
-|  sv_tdnn_tiny_6s | 119947 | 441884 | 171 |
+|  sv_tdnn_tiny_3s_s31 | 84.1  | 202.5 | 0.0 |
+|  sv_tdnn_tiny_6s_s31 | 159.1 | 388.6 | 0.0 |
+|  sv_tdnn_tiny_3s_p4 | 57.6  | 93.9 | 0.0 |
+|  sv_tdnn_tiny_6s_p4 | 112.9 | 180.3 | 0.0 |
+
+> ESP32-S31: CPU 320 MHz, PSRAM 250 MHz. ESP32-P4: CPU 400 MHz, L2 cache 256 KB, PSRAM 32 MB at 250 MHz. int8, `CONFIG_COMPILER_OPTIMIZATION_PERF`.
 
 ## Model Metrics (after quantization)
 

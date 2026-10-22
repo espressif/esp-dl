@@ -344,10 +344,10 @@ __attribute__((noinline)) void attention_forward_impl(const TensorBase *q_t,
     assert(task_id >= 0 && task_id < task_count);
     assert(execution_context.task_barrier != nullptr && "Attention: task barrier must be supplied per forward");
 
-    const float q_scale = dequant_scale_from_exponent(q_t->exponent);
-    const float k_scale = dequant_scale_from_exponent(k_t->exponent);
-    const float v_scale = dequant_scale_from_exponent(v_t->exponent);
-    const float o_inv_scale = (qkv_dtype == DATA_TYPE_FLOAT) ? 1.0f : rescale_to_int_from_exponent(o_t->exponent);
+    const float q_scale = DL_SCALE(q_t->exponent);
+    const float k_scale = DL_SCALE(k_t->exponent);
+    const float v_scale = DL_SCALE(v_t->exponent);
+    const float o_inv_scale = (qkv_dtype == DATA_TYPE_FLOAT) ? 1.0f : DL_RESCALE(o_t->exponent);
 
     const float softmax_scale = has_scale ? scale_attr : (1.0f / std::sqrt(static_cast<float>(D)));
     const float logit_scale = attention_logit_scale<qkv_dtype>(q_t, k_t, has_scale, scale_attr);
@@ -1332,6 +1332,17 @@ bool attention_check_inputs(const TensorBase *q,
                  dtype_to_string(v->dtype),
                  dtype_to_string(o->dtype));
         return false;
+    }
+    if (expected_qkv_dtype != DATA_TYPE_FLOAT) {
+        const TensorBase *const tensors[4] = {q, k, v, o};
+        const char *const roles[4] = {"Q", "K", "V", "O"};
+        for (int i = 0; i < 4; ++i) {
+            const int exp = tensors[i]->exponent;
+            if (exp <= -31 || exp >= 31) {
+                ESP_LOGE("Attention", "%s: %s exponent=%d is out of range (-31, 31).", who, roles[i], exp);
+                return false;
+            }
+        }
     }
     // Q/K exponents can still push the product out of the normal range.
     const float logit_scale = (expected_qkv_dtype == DATA_TYPE_FLOAT)

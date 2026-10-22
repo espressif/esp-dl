@@ -37,8 +37,8 @@ public:
     quant_type_t quant_type;          ///< Quantization type
     std::vector<int> m_inputs_index;  ///< Tensor index of model's tensors that used for inputs
     std::vector<int> m_outputs_index; ///< Tensor index of model's tensors that used for outputs
-    // Native workspace binding IDs assigned by the memory planner.
-    std::vector<WorkspaceBindingId> m_workspace_binding_ids;
+    std::vector<WorkspaceBindingId>
+        m_workspace_binding_ids; ///< Native workspace binding IDs assigned by the memory planner
 
     /**
      * @brief Construct a new Module object.

@@ -7,6 +7,7 @@
 | Chip     |   YOLO11N_POSE_S8_V1   |   YOLO11N_POSE_S8_V2    |
 |----------|------------------------|-------------------------|
 | ESP32-S3 | ![alt text][supported] | ![alt text][supported]  |
+| ESP32-S31 | ![alt text][supported] | ![alt text][supported]  |
 | ESP32-P4 | ![alt text][supported] | ![alt text][supported]  |
 
 - `yolo11n_pose_s8_v1_s3` and `yolo11n_pose_s8_v1_p4` use 8bit default configuration quantization.
@@ -16,10 +17,14 @@
 
 | name                      | input(h*w*c)  | Flash(MB) | PSRAM(MB) | preprocess(ms) | model(ms) | postprocess(ms) | mAP50-95 on COCO |
 | --------------------------- | --------------- | ----------- | ----------- | ---------------- | ----------- | ----------------- | ------------------ |
-|  yolo11n_pose_s8_v1_s3 |  640 * 640 * 3 |  8 |  8 | 51.1 | 7179.3 | 7.3 |  0.432 |
-|  yolo11n_pose_s8_v2_s3 |  640 * 640 * 3 |  8 |  8 | 51.3 | 7193.9 | 7.5 |  0.443 |
-|  yolo11n_pose_s8_v1_p4 |  640 * 640 * 3 |  16 |  32 | 15.8 | 1601.2 | 4.0 |  0.439 |
-|  yolo11n_pose_s8_v2_p4 |  640 * 640 * 3 |  16 |  32 | 15.8 | 1593.0 | 4.1 |  0.442 |
+|  yolo11n_pose_s8_v1_s3 |  640 * 640 * 3 |  8 |  8 | 51.3 | 4422.9 | 7.4 |  0.432 |
+|  yolo11n_pose_s8_v2_s3 |  640 * 640 * 3 |  8 |  8 | 51.3 | 4371.2 | 7.7 |  0.443 |
+|  yolo11n_pose_s8_v1_s31 |  640 * 640 * 3 |  16 |  16 | 23.9 | 2455.0 | 4.9 |  0.439 |
+|  yolo11n_pose_s8_v2_s31 |  640 * 640 * 3 |  16 |  16 | 23.7 | 2433.9 | 5.1 |  0.442 |
+|  yolo11n_pose_s8_v1_p4 |  640 * 640 * 3 |  16 |  32 | 15.3 | 1541.0 | 4.0 |  0.439 |
+|  yolo11n_pose_s8_v2_p4 |  640 * 640 * 3 |  16 |  32 | 15.2 | 1528.9 | 4.1 |  0.442 |
+
+> ESP32-S3: CPU 240 MHz, data cache 64 KB, octal PSRAM 80 MHz. ESP32-S31: CPU 320 MHz, PSRAM 250 MHz. ESP32-P4: CPU 400 MHz, L2 cache 256 KB, PSRAM 32 MB at 250 MHz. int8, `CONFIG_COMPILER_OPTIMIZATION_PERF`.
 
 ## Model Usage
 

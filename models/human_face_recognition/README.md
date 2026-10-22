@@ -6,16 +6,21 @@
 | Chip     | MFN_S8_V1              | MBF_S8_V1              |
 |----------|------------------------|------------------------|
 | ESP32-S3 | ![alt text][supported] | ![alt text][supported] |
+| ESP32-S31 | ![alt text][supported] | ![alt text][supported] |
 | ESP32-P4 | ![alt text][supported] | ![alt text][supported] |
 
 ## Model Latency
 
 | name         | input(h*w*c)  | preprocess(ms) | model(ms) | postprocess(ms) |
 | -------------- | --------------- | ---------------- | ----------- | ----------------- |
-|  mfn_s8_v1_s3 |  112 * 112 * 3 | 4.1 | 246.7 | 0.1 |
-|  mfn_s8_v1_p4 |  112 * 112 * 3 | 2.3 | 82.1 | 0.0 |
-|  mbf_s8_v1_s3 |  112 * 112 * 3 | 4.1 | 454.3 | 0.1 |
-|  mbf_s8_v1_p4 |  112 * 112 * 3 | 2.3 | 148.3 | 0.0 |
+|  mfn_s8_v1_s3 |  112 * 112 * 3 | 3.9 | 252.1 | 0.1 |
+|  mfn_s8_v1_s31 |  112 * 112 * 3 | 2.6 | 155.0 | 0.1 |
+|  mfn_s8_v1_p4 |  112 * 112 * 3 | 2.1 | 81.5 | 0.0 |
+|  mbf_s8_v1_s3 |  112 * 112 * 3 | 3.9 | 464.7 | 0.1 |
+|  mbf_s8_v1_s31 |  112 * 112 * 3 | 2.6 | 277.1 | 0.1 |
+|  mbf_s8_v1_p4 |  112 * 112 * 3 | 2.1 | 146.2 | 0.0 |
+
+> ESP32-S3: CPU 240 MHz, data cache 64 KB, octal PSRAM 80 MHz. ESP32-S31: CPU 320 MHz, PSRAM 250 MHz. ESP32-P4: CPU 400 MHz, L2 cache 256 KB, PSRAM 32 MB at 250 MHz. int8, `CONFIG_COMPILER_OPTIMIZATION_PERF`.
 
 ## Model Metrics
 

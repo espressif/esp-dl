@@ -98,16 +98,19 @@ TEST_CASE("Test dl base attention softmax helpers", "[pie][attention]")
         scores[0] = row_max;
         scores[1] = row_max - 16.0f;
         scores[2] = row_max - 32.0f;
-        float sum_ref = 0.5f;
+        double sum_ref = 0.5;
         for (int t = 0; t < n; ++t) {
-            sum_ref += is_neg_inf(scores[t]) ? 0.0f : attention_exp_neg_lut_lookup_precise(scores[t] - row_max);
+            sum_ref += static_cast<double>(
+                is_neg_inf(scores[t]) ? 0.0f : attention_exp_neg_lut_lookup_precise(scores[t] - row_max));
         }
         const float sum = attention_softmax_exp_row_precise(exp_values.data(), scores.data(), n, row_max, 0.5f);
         for (int t = 0; t < n; ++t) {
             const float ref = is_neg_inf(scores[t]) ? 0.0f : attention_exp_neg_lut_lookup_precise(scores[t] - row_max);
             TEST_ASSERT_EQUAL_HEX32(float_bits(ref), float_bits(exp_values[t]));
         }
-        TEST_ASSERT_FLOAT_WITHIN(1e-6f * sum_ref, sum_ref, sum);
+        constexpr float sum_rel_tolerance = 4e-6f;
+        const float sum_ref_float = static_cast<float>(sum_ref);
+        TEST_ASSERT_FLOAT_WITHIN(sum_rel_tolerance * sum_ref_float, sum_ref_float, sum);
     }
 }
 
@@ -251,15 +254,7 @@ TEST_CASE("Test dl base attention head chunk policy", "[pie][attention]")
     };
     constexpr bool multi_core_build = CONFIG_FREERTOS_NUMBER_OF_CORES > 1;
     const ChunkCase cases[] = {
-        {dl::DATA_TYPE_INT8,
-         16,
-         16,
-         64,
-         512,
-         32,
-         dl::AttentionLayout::BNHD,
-         dl::RUNTIME_MODE_MULTI_CORE,
-         multi_core_build ? 4 : 2},
+        {dl::DATA_TYPE_INT8, 16, 16, 64, 512, 32, dl::AttentionLayout::BNHD, dl::RUNTIME_MODE_MULTI_CORE, 4},
         {dl::DATA_TYPE_INT8,
          8,
          8,

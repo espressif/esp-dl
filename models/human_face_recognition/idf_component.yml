@@ -1,4 +1,4 @@
-version: "0.3.2"
+version: "0.3.3"
 license: "MIT"
 description: human face recognition model.
 url: https://github.com/espressif/esp-dl/tree/master/models/human_face_recognition

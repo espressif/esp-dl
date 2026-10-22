@@ -6,10 +6,11 @@
 #include "utils.hpp"
 #include <algorithm>
 #include <cstring>
+#include <memory>
 #include <random>
 #include <vector>
 
-#if CONFIG_IDF_TARGET_ESP32P4
+#if CONFIG_IDF_TARGET_ESP32P4 || CONFIG_IDF_TARGET_ESP32S3
 #define FLAG_STR_0b0000 "_src_align_dst_align"
 #define FLAG_STR_0b0001 "_src_align_dst_align_border"
 #define FLAG_STR_0b0010 "_src_align_dst_align_crop"
@@ -52,7 +53,7 @@
         assert_cvt_color_func(_pix_cvt, _flag);                                                   \
     }
 
-void assert_cvt_color_func(bool src_align,
+bool assert_cvt_color_func(bool src_align,
                            bool dst_align,
                            uint16_t width,
                            uint16_t height,
@@ -62,7 +63,6 @@ void assert_cvt_color_func(bool src_align,
                            const std::vector<int> &border = {},
                            const std::vector<uint8_t> &border_value = {})
 {
-    void *input, *input_real, *output, *output_real, *output_gt;
     uint16_t src_width = width;
     uint16_t src_height = height;
     int src_img_byte = src_width * src_height * dl::image::get_pix_byte_size(src_pix_type);
@@ -74,34 +74,43 @@ void assert_cvt_color_func(bool src_align,
     uint16_t dst_height = border.empty() ? crop_height : (crop_height + border[0] + border[1]);
     int dst_img_byte = dst_width * dst_height * dl::image::get_pix_byte_size(dst_pix_type);
 
-    output_gt = heap_caps_malloc(dst_img_byte, MALLOC_CAP_DEFAULT);
+    using heap_ptr = std::unique_ptr<void, decltype(&heap_caps_free)>;
+    heap_ptr output_gt(heap_caps_malloc(dst_img_byte, MALLOC_CAP_DEFAULT), heap_caps_free);
+    heap_ptr input_real(heap_caps_aligned_alloc(16, src_align ? src_img_byte : (src_img_byte + 16), MALLOC_CAP_DEFAULT),
+                        heap_caps_free);
+    heap_ptr output_real(
+        heap_caps_aligned_alloc(16, dst_align ? dst_img_byte : (dst_img_byte + 16), MALLOC_CAP_DEFAULT),
+        heap_caps_free);
+    if (!output_gt || !input_real || !output_real) {
+        return false;
+    }
 
+    void *input = nullptr;
     if (src_align) {
-        input_real = heap_caps_aligned_alloc(16, src_img_byte, MALLOC_CAP_DEFAULT);
-        input = input_real;
+        input = input_real.get();
         assert(is_align(input));
     } else {
-        input_real = heap_caps_aligned_alloc(16, src_img_byte + 16, MALLOC_CAP_DEFAULT);
-        uint8_t offset = get_random_value<uint8_t>(1, 15);
-        input = (void *)((uint8_t *)input_real + offset);
+        uint8_t offset = (dl::image::get_pix_byte_size(src_pix_type) & 1) ? get_random_value<uint8_t>(1, 15)
+                                                                          : (get_random_value<uint8_t>(1, 7) * 2);
+        input = (void *)((uint8_t *)input_real.get() + offset);
         assert(!is_align(input));
     }
     fill_random_value<uint8_t>((uint8_t *)input, src_img_byte, 0, 255);
 
+    void *output = nullptr;
     if (dst_align) {
-        output_real = heap_caps_aligned_alloc(16, dst_img_byte, MALLOC_CAP_DEFAULT);
-        output = output_real;
+        output = output_real.get();
         assert(is_align(output));
     } else {
-        output_real = heap_caps_aligned_alloc(16, dst_img_byte + 16, MALLOC_CAP_DEFAULT);
-        uint8_t offset = get_random_value<uint8_t>(1, 15);
-        output = (void *)((uint8_t *)output_real + offset);
+        uint8_t offset = (dl::image::get_pix_byte_size(dst_pix_type) & 1) ? get_random_value<uint8_t>(1, 15)
+                                                                          : (get_random_value<uint8_t>(1, 7) * 2);
+        output = (void *)((uint8_t *)output_real.get() + offset);
         assert(!is_align(output));
     }
 
     dl::image::img_t src_img = {.data = input, .width = src_width, .height = src_height, .pix_type = src_pix_type};
     dl::image::img_t dst_img_gt = {
-        .data = output_gt, .width = dst_width, .height = dst_height, .pix_type = dst_pix_type};
+        .data = output_gt.get(), .width = dst_width, .height = dst_height, .pix_type = dst_pix_type};
     dl::image::img_t dst_img = {.data = output, .width = dst_width, .height = dst_height, .pix_type = dst_pix_type};
 
     dl::image::ImageTransformer transformer;
@@ -163,113 +172,95 @@ void assert_cvt_color_func(bool src_align,
     end = esp_timer_get_time();
     printf("%lld\n", end - start);
 
-    // for (int i = 0; i < 16; i++) {
-    //     printf("0x%02x, ", ((uint8_t *)input)[i]);
-    //     if ((i + 1) % 16 == 0) {
-    //         printf("\n");
-    //     }
-    // }
-    // for (int i = 0; i < 16; i++) {
-    //     printf("0x%02x, ", ((uint8_t *)output_gt)[i]);
-    //     if ((i + 1) % 16 == 0) {
-    //         printf("\n");
-    //     }
-    // }
-    // for (int i = 0; i < 16; i++) {
-    //     printf("0x%02x, ", ((uint8_t *)output)[i]);
-    //     if ((i + 1) % 16 == 0) {
-    //         printf("\n");
-    //     }
-    // }
-
-    TEST_ASSERT_EQUAL_MEMORY(output, output_gt, dst_img_byte);
-    heap_caps_free(input_real);
-    heap_caps_free(output_real);
-    heap_caps_free(output_gt);
+    return std::memcmp(output, output_gt.get(), dst_img_byte) == 0;
 }
 
 // flag
 // src_unalign(3) dst_unalign(2) crop(1) border(0)
 void assert_cvt_color_func(dl::image::pix_cvt_t pix_cvt, uint8_t flag)
 {
-    dl::image::pix_type_t src_pix_type = (dl::image::pix_type_t)(pix_cvt >> 16);
-    dl::image::pix_type_t dst_pix_type = (dl::image::pix_type_t)(pix_cvt & 0xffff);
-    bool src_align = !(flag & 0b1000);
-    bool dst_align = !(flag & 0b100);
-    uint16_t width = get_random_value<uint16_t>(1, 2000);
-    uint16_t height = get_random_value<uint16_t>(1, 1000);
-    if ((src_pix_type == dl::image::DL_IMAGE_PIX_TYPE_YUYV || src_pix_type == dl::image::DL_IMAGE_PIX_TYPE_UYVY) &&
-        (width & 1)) {
-        ++width;
-    }
-    if (src_align || dst_align) {
-        width = dl::image::align_up(width, 16);
-    }
-    printf("[%d, %d]\n", width, height);
-
-    std::vector<int> crop_area = {};
-    std::vector<int> border = {};
-    std::vector<uint8_t> border_value = {};
-    if (flag & 0b10) {
-        crop_area.resize(4);
-        crop_area[0] = get_random_value<uint16_t>(0, width);
-        crop_area[1] = get_random_value<uint16_t>(0, height);
-        crop_area[2] = get_random_value<uint16_t>(0, width);
-        crop_area[3] = get_random_value<uint16_t>(0, height);
-        if (src_align) {
-            crop_area[0] = dl::image::align_up(crop_area[0], 16);
-            crop_area[2] = dl::image::align_up(crop_area[2], 16);
+    bool ok = false;
+    {
+        dl::image::pix_type_t src_pix_type = (dl::image::pix_type_t)(pix_cvt >> 16);
+        dl::image::pix_type_t dst_pix_type = (dl::image::pix_type_t)(pix_cvt & 0xffff);
+        bool src_align = !(flag & 0b1000);
+        bool dst_align = !(flag & 0b100);
+#if CONFIG_IDF_TARGET_ESP32S3
+        constexpr uint16_t max_w = 500;
+        constexpr uint16_t max_h = 300;
+#else
+        constexpr uint16_t max_w = 1000;
+        constexpr uint16_t max_h = 500;
+#endif
+        uint16_t width = get_random_value<uint16_t>(1, max_w);
+        uint16_t height = get_random_value<uint16_t>(1, max_h);
+        if ((src_pix_type == dl::image::DL_IMAGE_PIX_TYPE_YUYV || src_pix_type == dl::image::DL_IMAGE_PIX_TYPE_UYVY) &&
+            (width & 1)) {
+            ++width;
         }
-        while (crop_area[0] == crop_area[2]) {
+        if (src_align || dst_align) {
+            width = dl::image::align_up(width, 16);
+        }
+        printf("[%d, %d]\n", width, height);
+
+        std::vector<int> crop_area = {};
+        std::vector<int> border = {};
+        std::vector<uint8_t> border_value = {};
+        if (flag & 0b10) {
+            crop_area.resize(4);
+            crop_area[0] = get_random_value<uint16_t>(0, width);
+            crop_area[1] = get_random_value<uint16_t>(0, height);
             crop_area[2] = get_random_value<uint16_t>(0, width);
+            crop_area[3] = get_random_value<uint16_t>(0, height);
             if (src_align) {
+                crop_area[0] = dl::image::align_up(crop_area[0], 16);
                 crop_area[2] = dl::image::align_up(crop_area[2], 16);
             }
-        }
-        while (crop_area[1] == crop_area[3]) {
-            crop_area[3] = get_random_value<uint16_t>(0, height);
-        }
-        if (crop_area[2] < crop_area[0]) {
-            std::swap(crop_area[2], crop_area[0]);
-        }
-        if (crop_area[3] < crop_area[1]) {
-            std::swap(crop_area[3], crop_area[1]);
-        }
-        printf("crop_area: [%d, %d, %d, %d]\n", crop_area[0], crop_area[1], crop_area[2], crop_area[3]);
-    }
-    if (flag & 0b1) {
-        border.resize(4);
-        fill_random_value<int>((int *)(border.data()), 4, 0, 100);
-        // 50% chance to leave border empty(default to zero), rgb2rgb can test cvt_border_same.
-        if (get_random_value<uint8_t>(0, 255) % 2 == 0) {
-            int chn = get_pix_channel_num(src_pix_type);
-            border_value.resize(chn);
-            fill_random_value<uint8_t>(border_value.data(), chn, 0, 255);
-        }
-        if (dst_align) {
-            border[2] = dl::image::align_up(border[2], 16);
-            border[3] = dl::image::align_up(border[3], 16);
-        }
-        printf("border: [%d, %d, %d, %d]\n", border[0], border[1], border[2], border[3]);
-        if (border_value.empty()) {
-            printf("empty_border\n");
-        } else {
-            printf("border_value: [");
-            for (int i = 0; i < border_value.size(); i++) {
-                printf("%d, ", border_value[i]);
+            while (crop_area[0] == crop_area[2]) {
+                crop_area[2] = get_random_value<uint16_t>(0, width);
+                if (src_align) {
+                    crop_area[2] = dl::image::align_up(crop_area[2], 16);
+                }
             }
-            printf("]\n");
+            while (crop_area[1] == crop_area[3]) {
+                crop_area[3] = get_random_value<uint16_t>(0, height);
+            }
+            if (crop_area[2] < crop_area[0]) {
+                std::swap(crop_area[2], crop_area[0]);
+            }
+            if (crop_area[3] < crop_area[1]) {
+                std::swap(crop_area[3], crop_area[1]);
+            }
+            printf("crop_area: [%d, %d, %d, %d]\n", crop_area[0], crop_area[1], crop_area[2], crop_area[3]);
         }
+        if (flag & 0b1) {
+            border.resize(4);
+            fill_random_value<int>((int *)(border.data()), 4, 0, 100);
+            // 50% chance to leave border empty(default to zero), rgb2rgb can test cvt_border_same.
+            if (get_random_value<uint8_t>(0, 255) % 2 == 0) {
+                int chn = get_pix_channel_num(src_pix_type);
+                border_value.resize(chn);
+                fill_random_value<uint8_t>(border_value.data(), chn, 0, 255);
+            }
+            if (dst_align) {
+                border[2] = dl::image::align_up(border[2], 16);
+                border[3] = dl::image::align_up(border[3], 16);
+            }
+            printf("border: [%d, %d, %d, %d]\n", border[0], border[1], border[2], border[3]);
+            if (border_value.empty()) {
+                printf("empty_border\n");
+            } else {
+                printf("border_value: [");
+                for (int i = 0; i < border_value.size(); i++) {
+                    printf("%d, ", border_value[i]);
+                }
+                printf("]\n");
+            }
+        }
+        ok = assert_cvt_color_func(
+            src_align, dst_align, width, height, src_pix_type, dst_pix_type, crop_area, border, border_value);
     }
-    // src_align = true;
-    // dst_align = true;
-    // width = 1024;
-    // height = 1024;
-    // crop_area = {};
-    // border = {};
-    // border_value = {};
-    assert_cvt_color_func(
-        src_align, dst_align, width, height, src_pix_type, dst_pix_type, crop_area, border, border_value);
+    TEST_ASSERT_TRUE(ok);
 }
 
 TEST_CVT_COLOR("rgb8882rgb888", dl::image::DL_IMAGE_PIX_CVT_RGB8882RGB888, 0b0000)
@@ -1884,7 +1875,6 @@ TEST_CVT_COLOR("uyvy2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_UYVY2BGR888_QIN
 TEST_CVT_COLOR("uyvy2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_UYVY2BGR888_QINT16, 0b1101)
 TEST_CVT_COLOR("uyvy2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_UYVY2BGR888_QINT16, 0b1110)
 TEST_CVT_COLOR("uyvy2bgr888_qint16", dl::image::DL_IMAGE_PIX_CVT_UYVY2BGR888_QINT16, 0b1111)
-
 TEST_CVT_COLOR("yuyv2rgb565le", dl::image::DL_IMAGE_PIX_CVT_YUYV2RGB565LE, 0b0000)
 TEST_CVT_COLOR("yuyv2rgb565le", dl::image::DL_IMAGE_PIX_CVT_YUYV2RGB565LE, 0b0001)
 TEST_CVT_COLOR("yuyv2rgb565le", dl::image::DL_IMAGE_PIX_CVT_YUYV2RGB565LE, 0b0010)

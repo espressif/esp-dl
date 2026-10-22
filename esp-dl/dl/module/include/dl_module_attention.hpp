@@ -51,10 +51,10 @@ public:
      * @param inplace         inplace operation mode
      * @param quant_type      quantization type
      */
-    Attention(const char *name,
-              bool has_scale,
-              float scale,
-              bool is_causal,
+    Attention(const char *name = NULL,
+              bool has_scale = false,
+              float scale = 0.f,
+              bool is_causal = false,
               AttentionLayout layout = AttentionLayout::BHND,
               module_inplace_t inplace = MODULE_NON_INPLACE,
               quant_type_t quant_type = QUANT_TYPE_NONE);

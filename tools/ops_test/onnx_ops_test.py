@@ -1009,3 +1009,287 @@ def ATTENTION_TEST(config) -> ModelProto:
     print("The model is checked!")
 
     return model_def
+
+
+def ROTARY_EMBEDDING_TEST(config) -> ModelProto:
+    """Build one ONNX RoPE node for the ESP-DL vision subset.
+
+    The three floating-point graph inputs are ``X``, ``cos_cache`` and
+    ``sin_cache``. The generic ops_test pipeline calibrates them, exports
+    reference values into ``.espdl``, and the common device test executes
+    ``Model::test()`` followed by the normal benchmark loop.
+
+    Supported here deliberately matches the device module: 4-D
+    ``X=[B,H,L,D]``, even ``D``, half-split full rotation, 2-D/3-D caches
+    with last dimension ``D/2``, and no ``position_ids``.
+    """
+    input_shapes = config["input_shape"]
+    export_name_prefix = config.get("export_name_prefix", "onnx-model-rotary-embedding")
+
+    if len(input_shapes) != 3:
+        raise ValueError(
+            "RotaryEmbedding needs exactly 3 input shapes: [X, cos_cache, sin_cache]"
+        )
+    x_shape, cos_shape, sin_shape = (list(shape) for shape in input_shapes)
+    if cos_shape != sin_shape:
+        raise ValueError(
+            f"cos_cache and sin_cache must have the same shape, got {cos_shape} vs {sin_shape}"
+        )
+
+    if any(
+        isinstance(dim, bool) or not isinstance(dim, (int, np.integer)) or int(dim) <= 0
+        for shape in (x_shape, cos_shape, sin_shape)
+        for dim in shape
+    ):
+        raise ValueError(
+            f"all RotaryEmbedding dimensions must be positive integers: {input_shapes}"
+        )
+    x_shape = [int(dim) for dim in x_shape]
+    cos_shape = [int(dim) for dim in cos_shape]
+    sin_shape = [int(dim) for dim in sin_shape]
+
+    if len(x_shape) != 4:
+        raise ValueError(
+            f"ESP-DL RotaryEmbedding requires 4-D X [B,H,L,D], got {x_shape}"
+        )
+    B, H, L, D = x_shape
+    if D % 2 != 0:
+        raise ValueError(f"head_dim D must be even, got {D}")
+
+    try:
+        interleaved = int(config.get("interleaved", 0))
+        rotary_embedding_dim = int(config.get("rotary_embedding_dim", 0))
+        num_heads = int(config.get("num_heads", 0))
+    except (TypeError, ValueError, OverflowError) as error:
+        raise ValueError("RotaryEmbedding attributes must be integers") from error
+    if interleaved != 0:
+        raise ValueError(
+            "ESP-DL RotaryEmbedding supports only half-split layout (interleaved=0)"
+        )
+    if rotary_embedding_dim not in (0, D):
+        raise ValueError(
+            f"partial rotation is unsupported: rotary_embedding_dim={rotary_embedding_dim}, "
+            f"head_dim D={D}"
+        )
+    if num_heads not in (0, H):
+        raise ValueError(f"num_heads={num_heads} contradicts X's H axis {H}")
+    if config.get("position_ids") is not None:
+        raise ValueError("position_ids is not supported by ESP-DL RotaryEmbedding")
+
+    D_half = D // 2
+    if len(cos_shape) == 2:
+        expected_cache_shape = [L, D_half]
+        if cos_shape != expected_cache_shape:
+            raise ValueError(
+                f"2-D cache must be {expected_cache_shape}, got {cos_shape}"
+            )
+    elif len(cos_shape) == 3:
+        if cos_shape[0] not in (1, B) or cos_shape[1:] != [L, D_half]:
+            raise ValueError(
+                f"3-D cache must be [1|B,L,D/2] for X={x_shape}, got {cos_shape}"
+            )
+    else:
+        raise ValueError(f"cache must be 2-D or 3-D, got {cos_shape}")
+
+    x_in = helper.make_tensor_value_info("x", TensorProto.FLOAT, x_shape)
+    cos_in = helper.make_tensor_value_info("cos_cache", TensorProto.FLOAT, cos_shape)
+    sin_in = helper.make_tensor_value_info("sin_cache", TensorProto.FLOAT, sin_shape)
+    out_info = helper.make_tensor_value_info("out", TensorProto.FLOAT, x_shape)
+
+    node_kwargs = {"interleaved": interleaved}
+    if rotary_embedding_dim:
+        node_kwargs["rotary_embedding_dim"] = rotary_embedding_dim
+    if num_heads:
+        node_kwargs["num_heads"] = num_heads
+    node = helper.make_node(
+        "RotaryEmbedding",
+        inputs=["x", "cos_cache", "sin_cache"],
+        outputs=["out"],
+        **node_kwargs,
+    )
+
+    graph_def = helper.make_graph(
+        [node],
+        "rotary_embedding_model",
+        [x_in, cos_in, sin_in],
+        [out_info],
+    )
+
+    opset = OperatorSetIdProto()
+    opset.domain = ""
+    # RotaryEmbedding is standardized in opset 23; onnx < 1.18 has no schema
+    # for it, so check_model below reports it as unregistered. The protobuf
+    # itself is well-formed either way, and esp-ppq only reads the version.
+    opset.version = 23
+    model_def = helper.make_model(
+        graph_def, opset_imports=[opset], producer_name=export_name_prefix
+    )
+
+    try:
+        onnx.checker.check_model(model_def)
+        print("The model is checked!")
+    except Exception as e:
+        print(f"ONNX checker warning (needs onnx>=1.18 for the opset-23 schema): {e}")
+
+    return model_def
+
+
+def TOPK_TEST(config) -> ModelProto:
+    """
+    TopK operator
+
+    Inputs
+    X (heterogeneous) - T:
+        Tensor of shape [a_1, a_2, ..., a_n, r]
+    K (heterogeneous) - tensor(int64):
+        A 1-D tensor containing a single positive value corresponding to the number of top elements to retrieve
+
+    Outputs
+    Values (heterogeneous) - T:
+        Tensor of shape [a_1, a_2, ..., a_{axis-1}, k, a_{axis+1}, ... a_n] containing top K values
+    Indices (heterogeneous) - I:
+        Tensor of shape [a_1, a_2, ..., a_{axis-1}, k, a_{axis+1}, ... a_n] containing the corresponding indices
+    """
+    input_shape = config["input_shape"]
+    k = int(config["k"])
+    axis = int(config.get("axis", -1))
+    largest = 1 if config.get("largest", True) else 0
+    sorted_attr = 1 if config.get("sorted", True) else 0
+    force_ties = bool(config.get("force_ties", False))
+    export_name_prefix = config.get("export_name_prefix", "onnx-model-topk")
+
+    rank = len(input_shape)
+    if not -rank <= axis < rank:
+        raise ValueError(
+            f"axis={axis} is outside [-{rank}, {rank - 1}] for shape {input_shape}"
+        )
+    if not 0 < k <= input_shape[axis]:
+        raise ValueError(
+            f"k={k} must be in (0, input_shape[{axis}]={input_shape[axis]}]"
+        )
+
+    out_shape = list(input_shape)
+    out_shape[axis] = k
+
+    input_tensor = helper.make_tensor_value_info(
+        "input", TensorProto.FLOAT, input_shape
+    )
+    values_tensor = helper.make_tensor_value_info(
+        "values", TensorProto.FLOAT, out_shape
+    )
+    indices_tensor = helper.make_tensor_value_info(
+        "indices", TensorProto.INT64, out_shape
+    )
+    k_init = helper.make_tensor("k", TensorProto.INT64, [1], [k])
+    initializers = [k_init]
+    nodes = []
+    topk_input = "input"
+    if force_ties:
+        initializers += [
+            helper.make_tensor("clip_min", TensorProto.FLOAT, [], [1.0]),
+            helper.make_tensor("clip_max", TensorProto.FLOAT, [], [1.0]),
+        ]
+        nodes.append(
+            helper.make_node("Clip", ["input", "clip_min", "clip_max"], ["clipped"])
+        )
+        topk_input = "clipped"
+
+    nodes.append(
+        helper.make_node(
+            "TopK",
+            inputs=[topk_input, "k"],
+            outputs=["values", "indices"],
+            axis=axis,
+            largest=largest,
+            sorted=sorted_attr,
+        )
+    )
+
+    graph_def = helper.make_graph(
+        nodes,
+        "topk_model",
+        [input_tensor],
+        [values_tensor, indices_tensor],
+        initializer=initializers,
+    )
+
+    opset = OperatorSetIdProto()
+    opset.domain = ""
+    opset.version = 13
+
+    model_def = helper.make_model(
+        graph_def, opset_imports=[opset], producer_name=export_name_prefix
+    )
+    onnx.checker.check_model(model_def)
+    print("The model is checked!")
+    return model_def
+
+
+def _inverse_sigmoid_const(name, value):
+    return helper.make_tensor(name, TensorProto.FLOAT, [], [float(value)])
+
+
+def INVERSE_SIGMOID_TEST(config) -> ModelProto:
+    """InverseSigmoid — fused inverse-sigmoid."""
+    input_shape = config["input_shape"]
+    eps = float(config.get("eps", 1e-5))
+    emit = config.get("emit", "node")
+    export_name_prefix = config.get("export_name_prefix", "onnx-model-inverse-sigmoid")
+
+    if not 0.0 < eps < 1.0:
+        raise ValueError(f"eps={eps} must lie in (0, 1)")
+    if emit not in ("node", "subgraph"):
+        raise ValueError(f"emit must be 'node' or 'subgraph', got {emit!r}")
+
+    input_tensor = helper.make_tensor_value_info(
+        "input", TensorProto.FLOAT, input_shape
+    )
+    output_tensor = helper.make_tensor_value_info(
+        "output", TensorProto.FLOAT, input_shape
+    )
+
+    if emit == "node":
+        node = helper.make_node(
+            "InverseSigmoid", inputs=["input"], outputs=["output"], eps=eps
+        )
+        graph_def = helper.make_graph(
+            [node], "inverse_sigmoid_model", [input_tensor], [output_tensor]
+        )
+    else:
+        inits = [
+            _inverse_sigmoid_const("c0", 0.0),
+            _inverse_sigmoid_const("c1", 1.0),
+            _inverse_sigmoid_const("ceps_n", eps),
+            _inverse_sigmoid_const("ceps_d", eps),
+            _inverse_sigmoid_const("one", 1.0),
+        ]
+        nodes = [
+            helper.make_node("Clip", ["input", "c0", "c1"], ["xc"]),
+            helper.make_node("Clip", ["xc", "ceps_n"], ["num"]),
+            helper.make_node("Sub", ["one", "xc"], ["one_minus"]),
+            helper.make_node("Clip", ["one_minus", "ceps_d"], ["den"]),
+            helper.make_node("Div", ["num", "den"], ["ratio"]),
+            helper.make_node("Log", ["ratio"], ["output"]),
+        ]
+        graph_def = helper.make_graph(
+            nodes,
+            "inverse_sigmoid_fusion_model",
+            [input_tensor],
+            [output_tensor],
+            initializer=inits,
+        )
+
+    opset = OperatorSetIdProto()
+    opset.domain = ""
+    opset.version = 13
+    model_def = helper.make_model(
+        graph_def, opset_imports=[opset], producer_name=export_name_prefix
+    )
+
+    try:
+        onnx.checker.check_model(model_def)
+        print("The model is checked!")
+    except Exception as e:
+        print(f"ONNX checker warning (expected for custom InverseSigmoid): {e}")
+
+    return model_def

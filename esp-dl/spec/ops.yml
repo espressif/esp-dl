@@ -577,6 +577,18 @@ ops:
       pie_v1:
         - dl/base/isa/tie728/dl_tie728_reduce.S
 
+  RotaryEmbedding:
+    module:
+      header: dl_module_rotary_embedding.hpp
+      class: RotaryEmbedding
+    srcs:
+      - dl/base/dl_base_rotary_embedding.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_rope.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_rope.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_s16c_rope.S
+
   GRU:
     module:
       header: dl_module_gru.hpp
@@ -715,6 +727,14 @@ ops:
     module:
       header: dl_module_insert_zeros.hpp
       class: InsertZeros
+  InverseSigmoid:
+    module:
+      header: dl_module_inverse_sigmoid.hpp
+      class: InverseSigmoid
+  TopK:
+    module:
+      header: dl_module_top_k.hpp
+      class: TopK
 
   # Present as base kernels / headers but not registered in ModuleCreator.
   And:

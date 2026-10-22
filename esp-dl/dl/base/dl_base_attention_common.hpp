@@ -110,36 +110,6 @@ inline AttentionDims attention_dims(AttentionLayout layout, const std::vector<in
 }
 
 /**
- * @brief Convert a tensor exponent to its dequantization scale 2^exponent.
- *
- * @param exponent   tensor exponent
- *
- * @return 2^exponent
- */
-inline float dequant_scale_from_exponent(int exponent)
-{
-    // ldexp is defined for the full int range; a later is_positive_normal()
-    // check rejects inf / 0 / subnormals. Do not use `1u << exponent`:
-    // shift counts outside [0, 31] are undefined on this target.
-    return std::ldexp(1.0f, exponent);
-}
-
-/**
- * @brief Convert an output exponent to the inverse scale used when storing integers.
- *
- * @param exponent   output tensor exponent
- *
- * @return 2^(-exponent), or 0 when exponent is INT_MIN
- */
-inline float rescale_to_int_from_exponent(int exponent)
-{
-    if (exponent == INT_MIN) {
-        return 0.0f;
-    }
-    return std::ldexp(1.0f, -exponent);
-}
-
-/**
  * @brief exp(x) for x in [-16, 0], 1025 entries + linear interp (<= 3.1e-5 relative err).
  */
 constexpr int FLOAT_EXP_LUT_ENTRIES = 1025;

@@ -59,14 +59,35 @@ static inline ConvTaps conv_taps(int out, int stride, int pad, int dilation, int
 static bool conv_loop_pie_tiled(
     ConvArgsType &args, conv_pie_fn_t body, conv_pie_fn_t border, int feat_bytes, int filt_bytes)
 {
-#if CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32S31
-    // Per-core L1: a tile may overshoot the budget by up to half a lane group.
-    constexpr int filter_bytes = 16 * 1024;
+#if CONFIG_IDF_TARGET_ESP32S3
+    // Data cache is 32KB or 64KB. int8 activations fit alongside a half-cache
+    // filter slice; int16 activations (s16 and w8a16) stream 2 * Cin bytes per
+    // pixel across the spatial tile and keep the quarter-cache filter budget.
+    // One lane group that misses the fast budget but still fits in the data
+    // cache is still faster than re-reading the whole filter from PSRAM.
+    const int filter_bytes =
+        (feat_bytes == 1) ? (CONFIG_ESP32S3_DATA_CACHE_SIZE / 2) : (CONFIG_ESP32S3_DATA_CACHE_SIZE / 4);
+    constexpr int filter_bytes_limit = CONFIG_ESP32S3_DATA_CACHE_SIZE;
+    constexpr bool round_nearest = true;
+#elif CONFIG_IDF_TARGET_ESP32S31
+    // Data cache is fixed at 64KB. Same rule as ESP32-S3: int8 uses half of
+    // the cache, while int16 activations keep the filter slice within a quarter
+    // of the cache.
+    const int filter_bytes = (feat_bytes == 1) ? (CONFIG_CACHE_L1_DCACHE_SIZE / 2) : (CONFIG_CACHE_L1_DCACHE_SIZE / 4);
+    constexpr int filter_bytes_limit = CONFIG_CACHE_L1_DCACHE_SIZE;
     constexpr bool round_nearest = true;
 #else
-    // L1 is shared by both cores, so a tile must stay within the budget.
-    constexpr int filter_bytes = 32 * 1024;
+    // A 32KB slice stays on the fastest plateau; a 64KB slice is already a little
+    // slower. One lane group that misses 32KB is still worth using while it fits
+    // in L2. Measured on a 256KB L2, a slice past about 7/8 of L2 drops into
+    // PSRAM and catches up with reading the whole filter.
+    constexpr int filter_bytes = 32768; // 32 * 1024;
     constexpr bool round_nearest = false;
+#ifdef CONFIG_CACHE_L2_CACHE_SIZE
+    constexpr int filter_bytes_limit = CONFIG_CACHE_L2_CACHE_SIZE / 8 * 7;
+#else
+    constexpr int filter_bytes_limit = 229376; // 224 * 1024;
+#endif
 #endif
     const bool pointwise = conv_is_1x1(args);
     const bool padded = conv_has_padding(args);
@@ -89,9 +110,17 @@ static bool conv_loop_pie_tiled(
     const int filter_h = args.filter_height;
     const int filter_w = args.filter_width;
     const int filter_per_out = filter_h * filter_w * args.filter_c;
-    const int channel_tile =
-        (filter_bytes / filt_bytes / filter_per_out + (round_nearest ? lanes / 2 : 0)) / lanes * lanes;
+    auto align_tile = [&](int budget) {
+        return (budget / filt_bytes / filter_per_out + (round_nearest ? lanes / 2 : 0)) / lanes * lanes;
+    };
+    int channel_tile = align_tile(filter_bytes);
     const int aligned_channels = args.n_div_x * lanes;
+    // The fast budget cannot hold one lane group. One group is still smaller than
+    // the whole filter, and it measured faster while the group stays inside the
+    // last-level cache. Past that limit, tiling and the grid loop cost the same.
+    if (channel_tile < lanes && filter_bytes_limit > filter_bytes && align_tile(filter_bytes_limit) >= lanes) {
+        channel_tile = lanes;
+    }
     if (channel_tile < lanes || args.output_channel < 2 * channel_tile) {
         return false;
     }
