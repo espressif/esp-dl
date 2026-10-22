@@ -6,14 +6,18 @@
 | Chip     | PICO_S8_V1             |
 |----------|------------------------|
 | ESP32-S3 | ![alt text][supported] |
+| ESP32-S31 | ![alt text][supported] |
 | ESP32-P4 | ![alt text][supported] |
 
 ## Model Latency
 
 | name          | input(h*w*c)  | preprocess(ms) | model(ms) | postprocess(ms) |
 | --------------- | --------------- | ---------------- | ----------- | ----------------- |
-|  pico_s8_v1_s3 |  224 * 224 * 3 | 9.2 | 118.3 | 2.4 |
-|  pico_s8_v1_p4 |  224 * 224 * 3 | 3.5 | 55.6 | 1.4 |
+|  pico_s8_v1_s3 |  224 * 224 * 3 | 10.6 | 113.3 | 1.1 |
+|  pico_s8_v1_s31 |  224 * 224 * 3 | 5.5 | 75.8 | 0.6 |
+|  pico_s8_v1_p4 |  224 * 224 * 3 | 3.6 | 45.9 | 0.4 |
+
+> ESP32-S3: CPU 240 MHz, data cache 64 KB, octal PSRAM 80 MHz. ESP32-S31: CPU 320 MHz, PSRAM 250 MHz. ESP32-P4: CPU 400 MHz, L2 cache 256 KB, PSRAM 32 MB at 250 MHz. int8, `CONFIG_COMPILER_OPTIMIZATION_PERF`.
 
 ## Model Usage
 

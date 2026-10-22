@@ -383,6 +383,13 @@ if __name__ == "__main__":
                     args.output_path, op_export_dirname(op_type, quant_type)
                 )
                 for cfg in op_configs:
+                    if "quant_type" in cfg:
+                        cfg_quant_types = {
+                            _CFG_TO_QUANT_TYPE.get(item, item)
+                            for item in cfg["quant_type"]
+                        }
+                        if quant_type not in cfg_quant_types:
+                            continue
                     cfg["per_channel_enable"] = per_channel_enable
                     test_max_error = resolve_max_error(
                         quant_type, config["meta"], op_test_config[op_type], cfg
