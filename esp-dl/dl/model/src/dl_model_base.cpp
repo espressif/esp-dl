@@ -177,7 +177,18 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
                 // An empty input name is an omitted optional input, but a named parameter that comes
                 // back missing, or without the exponents its data is quantized with, would leave the
                 // operator computing on a weight it cannot interpret.
-                if (is_parameter && (!parameter || !parameter->exponent.is_valid())) {
+                // A parameter that is missing entirely is a different case: the exporter emitted an
+                // empty tensor for an input the operator never reads (PyTorch exports the `roi` input
+                // of ONNX Resize as a zero-element tensor, while dl::module::Resize only reads
+                // `scales` and `sizes`). Failing here aborts the whole load and leaves get_inputs()
+                // empty without telling the user which input was optional, so treat it as omitted.
+                if (is_parameter && !parameter) {
+                    ESP_LOGW(TAG,
+                             "Optional parameter %s (input %d) of node %s is missing, treating it as omitted",
+                             op_inputs[j].c_str(),
+                             j,
+                             node_name.c_str());
+                } else if (is_parameter && !parameter->exponent.is_valid()) {
                     ESP_LOGE(TAG, "Fail to load the parameter %s of node %s", op_inputs[j].c_str(), node_name.c_str());
                     delete parameter;
                     ret = ESP_FAIL;
