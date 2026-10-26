@@ -906,6 +906,8 @@ void dl_esp32p4_dotprod_i16k16o16(int16_t *output_ptr, int16_t *input0_ptr, int1
 void dl_esp32p4_dotprod_i16k16o32(int32_t *output_ptr, int16_t *input0_ptr, int16_t *input1_ptr, int shift, int n);
 void dl_esp32p4_dotprod_i16k8o16(int16_t *output_ptr, int8_t *input0_ptr, int16_t *input1_ptr, int shift, int n);
 void dl_esp32p4_dotprod_i8k8o16(int16_t *out2_int8, int8_t *in1_int8, int8_t *in2_int8, int shift, int n);
+void dl_esp32p4_mat_vecs_i8k8o16(
+    int16_t *output_ptr, int8_t *matrix, int8_t *vectors, int shift, int cols, int rows, int vectors_num);
 void dl_esp32p4_dotprod_f32(float *output_ptr, float *input0_ptr, float *input1_ptr, int length);
 
 /* Native row-major A[M,K] x B[K,N] MatMul kernels. */
