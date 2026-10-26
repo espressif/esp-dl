@@ -162,6 +162,10 @@ HEAP_IRAM_ATTR void *malloc_aligned(size_t size, uint32_t caps)
 {
 #if SOC_SIMD_INSTRUCTION_SUPPORTED
     void *ret = heap_caps_aligned_alloc(16, size, caps | MALLOC_CAP_SIMD);
+    // ESP-IDF 6.1 registers MALLOC_CAP_SIMD only on PSRAM for esp32s31, not on internal SRAM.
+    if (!ret) {
+        ret = heap_caps_aligned_alloc(16, size, caps);
+    }
 #else
     void *ret = heap_caps_aligned_alloc(16, size, caps);
 #endif
@@ -185,6 +189,10 @@ HEAP_IRAM_ATTR void *calloc_aligned(size_t n, size_t size, uint32_t caps)
 {
 #if SOC_SIMD_INSTRUCTION_SUPPORTED
     void *ret = heap_caps_aligned_calloc(16, n, size, caps | MALLOC_CAP_SIMD);
+    // ESP-IDF 6.1 registers MALLOC_CAP_SIMD only on PSRAM for esp32s31, not on internal SRAM.
+    if (!ret) {
+        ret = heap_caps_aligned_calloc(16, n, size, caps);
+    }
 #else
     void *ret = heap_caps_aligned_calloc(16, n, size, caps);
 #endif

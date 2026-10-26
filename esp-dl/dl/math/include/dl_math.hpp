@@ -204,7 +204,10 @@ inline float sigmoid(float x)
 
 inline float tanh(float x)
 {
-    return 2 * sigmoid(2 * x) - 1;
+    // Avoid 2 * sigmoid(2 * x) - 1: float32 rounding and cancellation near ±1
+    // cause ~1e-7 errors vs. torch.tanh, changing TanhLUT entries. After
+    // rescaling, these can flip INT8 rounding and accumulate across GRU steps.
+    return tanhf(x);
 }
 
 inline float inverse_sigmoid(float x)
