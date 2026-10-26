@@ -16,8 +16,7 @@ namespace base {
 static inline int64_t dotprod_scale_up(int32_t accumulated, int shift)
 {
     if (shift < -15) {
-        return accumulated > 0 ? INT16_MAX :
-               accumulated < 0 ? INT16_MIN : 0;
+        return accumulated > 0 ? INT16_MAX : accumulated < 0 ? INT16_MIN : 0;
     }
 
     return (int64_t)accumulated * ((int64_t)1 << (-shift));
@@ -154,8 +153,7 @@ void dotprod(int16_t *input0_ptr, int16_t *input1_ptr, int16_t *output_ptr, int 
 #endif
 }
 
-void mat_vecs_dotprod(
-    int8_t *matrix, int8_t *vectors, int16_t *result, int rows, int cols, int vectors_num, int shift)
+void mat_vecs_dotprod(int8_t *matrix, int8_t *vectors, int16_t *result, int rows, int cols, int vectors_num, int shift)
 {
 #if CONFIG_PIE_V2_BOOST
     if (cols > 0 && cols % 16 == 0 && shift >= 0 && rows > 0 && vectors_num > 0) {

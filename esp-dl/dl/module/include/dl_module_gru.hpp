@@ -5,11 +5,11 @@
 #include "dl_math.hpp"
 #include "dl_module_base.hpp"
 #include <cmath>
+#include <limits>
 #include <map>
 #include <memory>
-#include <limits>
-#include <type_traits>
 #include <tuple>
+#include <type_traits>
 
 namespace dl {
 namespace module {
@@ -74,13 +74,8 @@ public:
                      m_hidden_size);
             return false;
         }
-        const uint8_t *src =
-            (const uint8_t *)initial_h->data + offset * initial_h->get_dtype_bytes();
-        TensorBase state({m_hidden_size},
-                         src,
-                         initial_h->get_exponent(),
-                         initial_h->get_dtype(),
-                         false);
+        const uint8_t *src = (const uint8_t *)initial_h->data + offset * initial_h->get_dtype_bytes();
+        TensorBase state({m_hidden_size}, src, initial_h->get_exponent(), initial_h->get_dtype(), false);
         if (!m_h_prev->assign(&state)) {
             ESP_LOGE("GRU", "Failed to convert initial_h for direction %d", direction);
             return false;
@@ -120,8 +115,7 @@ public:
 
         if ((quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) && hidden_size > 0) {
             uint32_t caps = MALLOC_CAP_DEFAULT;
-            m_sigmoid_lut =
-                shared_lut<math::SigmoidLUT>(m_gate_exponent, m_sigmoid_lut_min, m_sigmoid_lut_max);
+            m_sigmoid_lut = shared_lut<math::SigmoidLUT>(m_gate_exponent, m_sigmoid_lut_min, m_sigmoid_lut_max);
             m_tanh_lut = shared_lut<math::TanhLUT>(m_gate_exponent, m_tanh_lut_min, m_tanh_lut_max);
             m_gates = (float *)tool::malloc_aligned(3 * hidden_size * sizeof(float), caps);
         } else if (quant_type == QUANT_TYPE_SYMM_8BIT || quant_type == QUANT_TYPE_SYMM_16BIT) {
@@ -336,8 +330,7 @@ public:
             // step for both directions. The reverse direction reads this buffer
             // in reverse temporal order below.
             if constexpr (std::is_same_v<T, int8_t>) {
-                base::mat_vecs_dotprod(
-                    w_items, x_base, m_wx_all, 3 * m_hidden_size, input_size, seq_length, w_shift);
+                base::mat_vecs_dotprod(w_items, x_base, m_wx_all, 3 * m_hidden_size, input_size, seq_length, w_shift);
             } else {
                 base::mat_vecs_dotprod(w_items,
                                        x_base,
