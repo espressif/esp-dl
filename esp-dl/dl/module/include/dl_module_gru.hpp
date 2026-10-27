@@ -251,8 +251,11 @@ public:
             m_initialized = true;
         }
 
-        // Bidirectional GRU processes the full sequence offline. Reset its
-        // initial state on every call; never carry reverse state across calls.
+        // For a forward streaming GRU, initial_h seeds the internal state only
+        // on the first call or after Model::reset(). Streaming graphs keep an
+        // initial_h tensor connected on every chunk, so consuming it on every
+        // call would erase the state carried from the preceding chunk.
+        // Bidirectional GRU is offline and starts from initial_h on every call.
         bool reset_hidden_state = m_reset_state || m_direction_num == 2;
 
         // Process the sequence. batch_size=1 and layout=0 were validated above.
@@ -279,7 +282,16 @@ public:
         int16_t *input_cache_items = m_input_cache->get_element_ptr<int16_t>();
         int16_t *hidden_cache_items = m_hidden_cache->get_element_ptr<int16_t>();
         T *x_base = x_items;
-        if (seq_length > m_wx_all_steps) {
+        // Batch input projections for unidirectional GRUs.
+        // For bidirectional GRUs, enable batching only for int8 on PIE v2,
+        // where the optimized multi-vector kernel is available.
+        bool batch_input_projection = m_direction_num == 1;
+#if CONFIG_PIE_V2_BOOST
+        if constexpr (std::is_same_v<T, int8_t>) {
+            batch_input_projection = true;
+        }
+#endif
+        if (batch_input_projection && seq_length > m_wx_all_steps) {
             if (seq_length < 0 || m_hidden_size <= 0) {
                 ESP_LOGE("GRU", "Invalid GRU cache shape: seq=%d hidden=%d", seq_length, m_hidden_size);
                 return;
@@ -326,26 +338,32 @@ public:
                 }
             }
 
-            // W*x is independent of the recurrent state, so batch every time
-            // step for both directions. The reverse direction reads this buffer
-            // in reverse temporal order below.
-            if constexpr (std::is_same_v<T, int8_t>) {
-                base::mat_vecs_dotprod(w_items, x_base, m_wx_all, 3 * m_hidden_size, input_size, seq_length, w_shift);
-            } else {
-                base::mat_vecs_dotprod(w_items,
-                                       x_base,
-                                       m_wx_all,
-                                       3 * m_hidden_size,
-                                       input_size,
-                                       seq_length,
-                                       input_size,
-                                       3 * m_hidden_size,
-                                       w_shift);
+            if (batch_input_projection) {
+                // Precompute input projections for all time steps.
+                if constexpr (std::is_same_v<T, int8_t>) {
+                    base::mat_vecs_dotprod(
+                        w_items, x_base, m_wx_all, 3 * m_hidden_size, input_size, seq_length, w_shift);
+                } else {
+                    base::mat_vecs_dotprod(w_items,
+                                           x_base,
+                                           m_wx_all,
+                                           3 * m_hidden_size,
+                                           input_size,
+                                           seq_length,
+                                           input_size,
+                                           3 * m_hidden_size,
+                                           w_shift);
+                }
             }
 
             for (int seq = 0; seq < seq_length; seq++) {
                 int t = (di == 0) ? seq : seq_length - 1 - seq;
-                input_cache_items = m_wx_all + t * 3 * m_hidden_size;
+                if (batch_input_projection) {
+                    input_cache_items = m_wx_all + t * 3 * m_hidden_size;
+                } else {
+                    input_cache_items = m_input_cache->get_element_ptr<int16_t>();
+                    base::mat_vec_dotprod(w_items, x_items, input_cache_items, 3 * m_hidden_size, input_size, w_shift);
+                }
                 // R * h_prev
                 if constexpr (std::is_same_v<T, int8_t>) {
                     base::mat_vecs_dotprod(
@@ -453,8 +471,8 @@ public:
             m_initialized = true;
         }
 
-        // Bidirectional GRU processes the full sequence offline. Reset its
-        // initial state on every call; never carry reverse state across calls.
+        // Preserve streaming state across run() calls for the forward direction.
+        // Reset the hidden state for bidirectional processing or when requested.
         bool reset_hidden_state = m_reset_state || m_direction_num == 2;
 
         // Process the sequence. batch_size=1 and layout=0 were validated above.
