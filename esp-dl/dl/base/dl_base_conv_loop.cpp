@@ -121,6 +121,13 @@ static bool conv_loop_pie_tiled(
     if (channel_tile < lanes && filter_bytes_limit > filter_bytes && align_tile(filter_bytes_limit) >= lanes) {
         channel_tile = lanes;
     }
+    // Avoid a full tile plus a short tail, which triggers the slower per-pixel
+    // path and re-reads the filter. Split the output channels evenly only when
+    // n_div_x is even, avoiding an extra one-group tile for odd group counts.
+    if (channel_tile >= lanes && args.output_channel > channel_tile && args.output_channel < 2 * channel_tile &&
+        (args.n_div_x & 1) == 0) {
+        channel_tile = (args.output_channel / 2) / lanes * lanes;
+    }
     if (channel_tile < lanes || args.output_channel < 2 * channel_tile) {
         return false;
     }

@@ -162,6 +162,12 @@ HEAP_IRAM_ATTR void *malloc_aligned(size_t size, uint32_t caps)
 {
 #if SOC_SIMD_INSTRUCTION_SUPPORTED
     void *ret = heap_caps_aligned_alloc(16, size, caps | MALLOC_CAP_SIMD);
+    // Fall back only if no heap supports the requested SIMD capabilities.
+    // If such a heap exists but is exhausted, fallback memory may not support
+    // safe 128-bit SIMD accesses.
+    if (!ret && heap_caps_get_total_size(caps | MALLOC_CAP_SIMD) == 0) {
+        ret = heap_caps_aligned_alloc(16, size, caps);
+    }
 #else
     void *ret = heap_caps_aligned_alloc(16, size, caps);
 #endif
@@ -185,6 +191,11 @@ HEAP_IRAM_ATTR void *calloc_aligned(size_t n, size_t size, uint32_t caps)
 {
 #if SOC_SIMD_INSTRUCTION_SUPPORTED
     void *ret = heap_caps_aligned_calloc(16, n, size, caps | MALLOC_CAP_SIMD);
+    // See malloc_aligned(): do not drop MALLOC_CAP_SIMD merely because a
+    // SIMD-capable heap is temporarily out of space.
+    if (!ret && heap_caps_get_total_size(caps | MALLOC_CAP_SIMD) == 0) {
+        ret = heap_caps_aligned_calloc(16, n, size, caps);
+    }
 #else
     void *ret = heap_caps_aligned_calloc(16, n, size, caps);
 #endif
