@@ -9,6 +9,21 @@
 
 static const char *TAG = "dl::Model";
 
+// A zero-element initializer is an optional input the exporter still emitted.
+// PyTorch writes the ONNX Resize `roi` input as shape [0]. TensorBase requires
+// every dimension to be positive, so get_parameter() cannot build that tensor.
+// A weight that failed for any other reason still has a positive shape.
+static bool initializer_has_no_elements(fbs::FbsModel *fbs_model, const std::string &name)
+{
+    const std::vector<int> shape = fbs_model->get_tensor_shape(name);
+    for (int dim : shape) {
+        if (dim == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 namespace dl {
 
 Model::Model(const char *rodata_address_or_partition_label_or_path,
@@ -173,26 +188,25 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
         for (int j = 0; j < op_inputs.size(); j++) {
             bool is_parameter = m_fbs_model->is_parameter(op_inputs[j]);
             if (is_parameter || op_inputs[j].empty()) {
-                TensorBase *parameter = m_fbs_model->get_operation_parameter(node_name, j);
-                // An empty input name is an omitted optional input, but a named parameter that comes
-                // back missing, or without the exponents its data is quantized with, would leave the
-                // operator computing on a weight it cannot interpret.
-                // A parameter that is missing entirely is a different case: the exporter emitted an
-                // empty tensor for an input the operator never reads (PyTorch exports the `roi` input
-                // of ONNX Resize as a zero-element tensor, while dl::module::Resize only reads
-                // `scales` and `sizes`). Failing here aborts the whole load and leaves get_inputs()
-                // empty without telling the user which input was optional, so treat it as omitted.
-                if (is_parameter && !parameter) {
+                TensorBase *parameter = nullptr;
+                // An empty input name is an omitted optional input. A named initializer with no
+                // elements is the same case. Anything else that fails to load is a weight the
+                // operator will dereference, so it is still a hard error.
+                if (is_parameter && initializer_has_no_elements(m_fbs_model, op_inputs[j])) {
                     ESP_LOGW(TAG,
-                             "Optional parameter %s (input %d) of node %s is missing, treating it as omitted",
+                             "Parameter %s (input %d) of node %s has no elements, treating it as omitted",
                              op_inputs[j].c_str(),
                              j,
                              node_name.c_str());
-                } else if (is_parameter && !parameter->exponent.is_valid()) {
-                    ESP_LOGE(TAG, "Fail to load the parameter %s of node %s", op_inputs[j].c_str(), node_name.c_str());
-                    delete parameter;
-                    ret = ESP_FAIL;
-                    break;
+                } else {
+                    parameter = m_fbs_model->get_operation_parameter(node_name, j);
+                    if (is_parameter && (!parameter || !parameter->exponent.is_valid())) {
+                        ESP_LOGE(
+                            TAG, "Fail to load the parameter %s of node %s", op_inputs[j].c_str(), node_name.c_str());
+                        delete parameter;
+                        ret = ESP_FAIL;
+                        break;
+                    }
                 }
                 index = m_model_context->add_tensor(op_inputs[j], true, parameter);
             } else {
