@@ -940,14 +940,18 @@ dl_tie728_s8_conv2d_11cn_prelu:
 
     blti \c_div_x_1, 0, 17f # input_channel < 16
 
-    EE.LD.128.USAR.IP \input_front_aligned, \input_ptr, 16
     EE.LD.128.USAR.IP \filter_front_aligned, \filter_ptr, 16
+    rur.sar_byte \filter_sar #filter sar
+    EE.LD.128.USAR.IP \input_front_aligned, \input_ptr, 16
+    rur.sar_byte \input_sar #input sar
     EE.LD.128.USAR.IP \input_back_aligned, \input_ptr, 16
 
     loopgtz \c_div_x_1, 0f
+        wur.sar_byte \input_sar
         EE.SRC.Q.QUP \input_v0, \input_front_aligned, \input_back_aligned
 
         EE.LD.128.USAR.IP \filter_back_aligned, \filter_ptr, 16
+        wur.sar_byte \filter_sar
         EE.SRC.Q.QUP \filter_v0, \filter_front_aligned, \filter_back_aligned
 
         EE.LD.128.USAR.IP \input_back_aligned, \input_ptr, 16
@@ -956,12 +960,13 @@ dl_tie728_s8_conv2d_11cn_prelu:
 
 
     # EE.LD.128.USAR.XP \input_back_aligned, \input_ptr, \remainder_c
+    wur.sar_byte \input_sar
     EE.SRC.Q.QUP \input_v0, \input_front_aligned, \input_back_aligned
-    rur.sar_byte \input_sar #input sar
     addi \input_ptr, \input_ptr, -16
 
     EE.LD.128.USAR.XP \filter_back_aligned, \filter_ptr, \remainder_c
     add \input_ptr, \input_ptr, \remainder_c #input_ptr and the end of c
+    wur.sar_byte \filter_sar
     EE.SRC.Q.QUP \filter_v0, \filter_front_aligned, \filter_back_aligned
 
     EE.VMULAS.S8.ACCX \filter_v0, \input_v0
@@ -970,15 +975,13 @@ dl_tie728_s8_conv2d_11cn_prelu:
 
 
     # filter remainder is in one 128bit then filter_back_aligned = filter_front_aligned
-    # rur.sar_byte \filter_sar #filter sar
-    # EE.LD.128.USAR.IP \filter_back_aligned, \filter_ptr, 0
-    # wur.sar_byte \filter_sar #filter sar
     EE.VLD.128.IP \filter_back_aligned, \filter_ptr, 0
+    wur.sar_byte \filter_sar #filter sar
     EE.SRC.Q \filter_v0, \filter_front_aligned, \filter_back_aligned
 
 
     # input remainder is in one 128bit then input_back_aligned = input_front_aligned
-    EE.LD.128.USAR.IP \input_back_aligned, \input_ptr, 0
+    EE.VLD.128.IP \input_back_aligned, \input_ptr, 0
     wur.sar_byte \input_sar #input sar
     EE.SRC.Q \input_v0, \input_front_aligned, \input_back_aligned #right shift delete the low sar_byte
 
@@ -997,19 +1000,17 @@ dl_tie728_s8_conv2d_11cn_prelu:
 17: # input_channel < 16
     # filter remainder is in one 128bit then filter_back_aligned = filter_front_aligned
     EE.LD.128.USAR.XP \filter_front_aligned, \filter_ptr, \remainder_c
-    # rur.sar_byte \filter_sar #filter sar
-    # EE.LD.128.USAR.IP \filter_back_aligned, \filter_ptr, 0
-    # wur.sar_byte \filter_sar #filter sar
+    rur.sar_byte \filter_sar #filter sar
     EE.VLD.128.IP \filter_back_aligned, \filter_ptr, 0
+    wur.sar_byte \filter_sar #filter sar
     EE.SRC.Q \filter_v0, \filter_front_aligned, \filter_back_aligned
 
 
     # input remainder is in one 128bit then input_back_aligned = input_front_aligned
     EE.LD.128.USAR.XP \input_front_aligned, \input_ptr, \remainder_c
-    # rur.sar_byte \input_sar #input sar
-    # EE.LD.128.USAR.IP \input_back_aligned, \input_ptr, 0
-    # wur.sar_byte \input_sar #input sar
+    rur.sar_byte \input_sar #input sar
     EE.VLD.128.IP \input_back_aligned, \input_ptr, 0
+    wur.sar_byte \input_sar #input sar
     EE.SRC.Q \input_v0, \input_front_aligned, \input_back_aligned
 
 

@@ -95,13 +95,11 @@
 
 
 #if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_DEPTHWISE_CONV2D_33C1
-    .align 4
-    .text
+    .section .iram1, "ax"
+    .balign 16
     .global dl_tie728_s8_depthwise_conv2d_33c1
     .type   dl_tie728_s8_depthwise_conv2d_33c1, @function
-    # .section .iram1
 dl_tie728_s8_depthwise_conv2d_33c1:
-    .align 4
     entry sp, 128
 
     # a2: int8_t *output_ptr
@@ -207,13 +205,11 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1:
 
 
 #if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_DEPTHWISE_CONV2D_33C1_RELU
-    .align 4
-    .text
+    .section .iram1, "ax"
+    .balign 16
     .global dl_tie728_s8_depthwise_conv2d_33c1_relu
     .type   dl_tie728_s8_depthwise_conv2d_33c1_relu, @function
-    # .section .iram1
 dl_tie728_s8_depthwise_conv2d_33c1_relu:
-    .align 4
     entry sp, 128
 
     # a2: int8_t *output_ptr
@@ -962,13 +958,11 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1_end:
 
 
 #if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_DEPTHWISE_CONV2D_HWC1
-    .align 4
-    .text
+    .section .iram1, "ax"
+    .balign 16
     .global dl_tie728_s8_depthwise_conv2d_hwc1
     .type   dl_tie728_s8_depthwise_conv2d_hwc1, @function
-    # .section .iram1
 dl_tie728_s8_depthwise_conv2d_hwc1:
-    .align 4
     entry sp, 128
 
     # a2: int8_t *output_ptr
@@ -1056,13 +1050,11 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1:
 
 
 #if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_DEPTHWISE_CONV2D_HWC1_RELU
-    .align 4
-    .text
+    .section .iram1, "ax"
+    .balign 16
     .global dl_tie728_s8_depthwise_conv2d_hwc1_relu
     .type   dl_tie728_s8_depthwise_conv2d_hwc1_relu, @function
-    # .section .iram1
 dl_tie728_s8_depthwise_conv2d_hwc1_relu:
-    .align 4
     entry sp, 128
 
     # a2: int8_t *output_ptr
