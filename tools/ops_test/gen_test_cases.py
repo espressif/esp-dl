@@ -38,9 +38,10 @@ _QUANT_TYPE_EXPORT_SUFFIX = {
     "w16a16": "_s16",
     "none": "_f32",
 }
-# Conv fixtures are large enough that packing every quantization into one
-# models.espdl overflows the ESP32 8MB / 3800K model partition.
-_SPLIT_BY_QUANT_OPS = ("Conv",)
+# Conv and Attention fixtures are large enough that packing every
+# quantization into one models.espdl overflows the model partition:
+# ESP32/C5 8MB / 3800K, and ESP32-P4 16MB / 7900K (P4 also packs float32).
+_SPLIT_BY_QUANT_OPS = ("Conv", "Attention")
 
 
 def op_export_dirname(op_type, quant_type):
@@ -410,7 +411,11 @@ if __name__ == "__main__":
                             continue
                     cfg["per_channel_enable"] = per_channel_enable
                     test_max_error = resolve_max_error(
-                        quant_type, config["meta"], op_test_config[op_type], cfg
+                        quant_type,
+                        config["meta"],
+                        op_test_config[op_type],
+                        op_test_config[op_type].get(args.target),
+                        cfg,
                     )
                     print(
                         "target: ",

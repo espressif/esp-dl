@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <stdint.h>
 #include <type_traits>
 
@@ -8,11 +9,41 @@
 #include "dl_model_base.hpp"
 #include "dl_module_creator.hpp"
 #include "fbs_model.hpp"
-#include <algorithm>
 
 static const char *TAG = "dl::Model";
 
+// A zero-element initializer is an optional input the exporter still emitted.
+// PyTorch writes the ONNX Resize `roi` input as shape [0]. TensorBase requires
+// every dimension to be positive, so get_parameter() cannot build that tensor.
+// A weight that failed for any other reason still has a positive shape.
+static bool initializer_has_no_elements(fbs::FbsModel *fbs_model, const std::string &name)
+{
+    const std::vector<int> shape = fbs_model->get_tensor_shape(name);
+    for (int dim : shape) {
+        if (dim == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 namespace {
+
+template <typename T>
+bool topk_is_nan(T value)
+{
+    if constexpr (std::is_same_v<T, float>) {
+        uint32_t bits = 0;
+        std::memcpy(&bits, &value, sizeof(bits));
+        return (bits & UINT32_C(0x7fffffff)) > UINT32_C(0x7f800000);
+    } else if constexpr (std::is_same_v<T, double>) {
+        uint64_t bits = 0;
+        std::memcpy(&bits, &value, sizeof(bits));
+        return (bits & UINT64_C(0x7fffffffffffffff)) > UINT64_C(0x7ff0000000000000);
+    } else {
+        return false;
+    }
+}
 
 template <typename T>
 bool topk_value_equal(
@@ -21,8 +52,8 @@ bool topk_value_equal(
     const T *output_data = static_cast<const T *>(output->get_element_ptr());
     const T *output_gt_data = static_cast<const T *>(output_gt->get_element_ptr());
     if constexpr (std::is_floating_point_v<T>) {
-        const bool output_nan = std::isnan(output_data[output_index]);
-        const bool output_gt_nan = std::isnan(output_gt_data[output_gt_index]);
+        const bool output_nan = topk_is_nan(output_data[output_index]);
+        const bool output_gt_nan = topk_is_nan(output_gt_data[output_gt_index]);
         if (output_nan || output_gt_nan) {
             return output_nan && output_gt_nan;
         }
@@ -44,6 +75,36 @@ bool topk_value_equal(
         return topk_value_equal<double>(output, output_gt, output_index, output_gt_index, epsilon);
     default:
         ESP_LOGE(TAG, "Unsupported TopK value dtype %d", static_cast<int>(output->get_dtype()));
+        return false;
+    }
+}
+
+template <typename T>
+bool topk_value_less(dl::TensorBase *tensor, int lhs_index, int rhs_index)
+{
+    const T *data = static_cast<const T *>(tensor->get_element_ptr());
+    if constexpr (std::is_floating_point_v<T>) {
+        const bool lhs_nan = topk_is_nan(data[lhs_index]);
+        const bool rhs_nan = topk_is_nan(data[rhs_index]);
+        if (lhs_nan || rhs_nan) {
+            return !lhs_nan && rhs_nan;
+        }
+    }
+    return data[lhs_index] < data[rhs_index];
+}
+
+bool topk_value_less(dl::TensorBase *tensor, int lhs_index, int rhs_index)
+{
+    switch (tensor->get_dtype()) {
+    case dl::DATA_TYPE_INT8:
+        return topk_value_less<int8_t>(tensor, lhs_index, rhs_index);
+    case dl::DATA_TYPE_INT16:
+        return topk_value_less<int16_t>(tensor, lhs_index, rhs_index);
+    case dl::DATA_TYPE_FLOAT:
+        return topk_value_less<float>(tensor, lhs_index, rhs_index);
+    case dl::DATA_TYPE_DOUBLE:
+        return topk_value_less<double>(tensor, lhs_index, rhs_index);
+    default:
         return false;
     }
 }
@@ -125,6 +186,43 @@ bool topk_unordered_outputs_equal(dl::TensorBase *values,
         inner *= shape[i];
     }
     const int k = shape[axis];
+    if (!compare_indices) {
+        switch (values->get_dtype()) {
+        case dl::DATA_TYPE_INT8:
+        case dl::DATA_TYPE_INT16:
+        case dl::DATA_TYPE_FLOAT:
+        case dl::DATA_TYPE_DOUBLE:
+            break;
+        default:
+            ESP_LOGE(TAG, "Unsupported TopK value dtype %d", static_cast<int>(values->get_dtype()));
+            return false;
+        }
+        std::vector<int> output_offsets(k);
+        std::vector<int> output_gt_offsets(k);
+        for (int o = 0; o < outer; o++) {
+            for (int i = 0; i < inner; i++) {
+                for (int t = 0; t < k; t++) {
+                    const int offset = (o * k + t) * inner + i;
+                    output_offsets[t] = offset;
+                    output_gt_offsets[t] = offset;
+                }
+                std::sort(output_offsets.begin(), output_offsets.end(), [values](int lhs, int rhs) {
+                    return topk_value_less(values, lhs, rhs);
+                });
+                std::sort(output_gt_offsets.begin(), output_gt_offsets.end(), [values_gt](int lhs, int rhs) {
+                    return topk_value_less(values_gt, lhs, rhs);
+                });
+                for (int t = 0; t < k; t++) {
+                    if (!topk_value_equal(values, values_gt, output_offsets[t], output_gt_offsets[t], epsilon)) {
+                        ESP_LOGE(TAG, "TopK unordered output element does not match at slice %d, position %d", o, t);
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     std::vector<bool> matched(k, false);
     for (int o = 0; o < outer; o++) {
         for (int i = 0; i < inner; i++) {
@@ -351,16 +449,27 @@ esp_err_t Model::load(fbs::FbsModel *fbs_model)
                 if (existing >= 0) {
                     index = existing;
                 } else {
-                    TensorBase *parameter = m_fbs_model->get_operation_parameter(node_name, j);
-                    // An empty input name is an omitted optional input, but a named parameter that
-                    // comes back missing, or without the exponents its data is quantized with,
-                    // would leave the operator computing on a weight it cannot interpret.
-                    if (is_parameter && (!parameter || !parameter->exponent.is_valid())) {
-                        ESP_LOGE(
-                            TAG, "Fail to load the parameter %s of node %s", op_inputs[j].c_str(), node_name.c_str());
-                        delete parameter;
-                        ret = ESP_FAIL;
-                        break;
+                    TensorBase *parameter = nullptr;
+                    // An empty input name is an omitted optional input. A named initializer with no
+                    // elements is the same case. Anything else that fails to load is a weight the
+                    // operator will dereference, so it is still a hard error.
+                    if (is_parameter && initializer_has_no_elements(m_fbs_model, op_inputs[j])) {
+                        ESP_LOGW(TAG,
+                                 "Parameter %s (input %d) of node %s has no elements, treating it as omitted",
+                                 op_inputs[j].c_str(),
+                                 j,
+                                 node_name.c_str());
+                    } else {
+                        parameter = m_fbs_model->get_operation_parameter(node_name, j);
+                        if (is_parameter && (!parameter || !parameter->exponent.is_valid())) {
+                            ESP_LOGE(TAG,
+                                     "Fail to load the parameter %s of node %s",
+                                     op_inputs[j].c_str(),
+                                     node_name.c_str());
+                            delete parameter;
+                            ret = ESP_FAIL;
+                            break;
+                        }
                     }
                     index = m_model_context->add_tensor(op_inputs[j], true, parameter);
                 }
@@ -904,6 +1013,10 @@ std::map<std::string, mem_info_t> Model::get_memory_info()
 std::map<std::string, module_info> Model::get_module_info()
 {
     std::map<std::string, module_info> module_info;
+    if (!m_built) {
+        ESP_LOGE(TAG, "Model is not built; module profiling is unavailable.");
+        return module_info;
+    }
     std::vector<std::string> sorted_nodes = m_fbs_model->topological_sort();
     assert(sorted_nodes.size() == m_execution_plan.size());
     DL_LOG_LATENCY_INIT();
@@ -1026,6 +1139,10 @@ static void print_memory_info(const std::map<std::string, mem_info_t> &info)
 
 void Model::print_module_info(const std::map<std::string, module_info> &info, bool sort_module_by_latency)
 {
+    auto total_iter = info.find("total");
+    if (info.empty() || total_iter == info.end()) {
+        return;
+    }
     std::string table_name = "module summary";
     std::vector<std::string> col_headers = {"name", "type", "latency"};
     size_t col0_width = col_headers[0].size();
@@ -1036,9 +1153,9 @@ void Model::print_module_info(const std::map<std::string, module_info> &info, bo
     }
     char latency_str[16];
 #if DL_LOG_LATENCY_UNIT
-    snprintf(latency_str, sizeof(latency_str), "%ldcycle", info.at("total").latency);
+    snprintf(latency_str, sizeof(latency_str), "%ldcycle", total_iter->second.latency);
 #else
-    snprintf(latency_str, sizeof(latency_str), "%ldus", info.at("total").latency);
+    snprintf(latency_str, sizeof(latency_str), "%ldus", total_iter->second.latency);
 #endif
     size_t col2_width = std::max(col_headers[2].size(), strlen(latency_str));
     std::string sep = gen_sep_str({col0_width, col1_width, col2_width});
@@ -1083,20 +1200,27 @@ void Model::print_module_info(const std::map<std::string, module_info> &info, bo
             ESP_LOGI(TAG, "%s", sep.c_str());
         }
     } else {
+        if (!m_fbs_model) {
+            return;
+        }
         std::vector<std::string> sorted_nodes = m_fbs_model->topological_sort();
         sorted_nodes.emplace_back("total");
         for (const auto &key : sorted_nodes) {
+            auto key_iter = info.find(key);
+            if (key_iter == info.end()) {
+                continue;
+            }
 #if DL_LOG_LATENCY_UNIT
-            snprintf(latency_str, sizeof(latency_str), "%ldcycle", info.at(key).latency);
+            snprintf(latency_str, sizeof(latency_str), "%ldcycle", key_iter->second.latency);
 #else
-            snprintf(latency_str, sizeof(latency_str), "%ldus", info.at(key).latency);
+            snprintf(latency_str, sizeof(latency_str), "%ldus", key_iter->second.latency);
 #endif
             ESP_LOGI(TAG,
                      "| %-*s | %-*s | %-*s |",
                      col0_width,
                      key.c_str(),
                      col1_width,
-                     info.at(key).type.c_str(),
+                     key_iter->second.type.c_str(),
                      col2_width,
                      latency_str);
             ESP_LOGI(TAG, "%s", sep.c_str());
@@ -1154,8 +1278,13 @@ void Model::profile_module(bool sort_module_by_latency)
     } else {
         ESP_LOGI(TAG, "model:%s, version:%lld, description:%s", m_name.c_str(), m_version, m_doc_string.c_str());
     }
+    if (!m_built) {
+        ESP_LOGE(TAG, "Model is not built; module profiling is unavailable.");
+        printf("\n");
+        return;
+    }
     auto info = get_module_info();
-    print_module_info(info);
+    print_module_info(info, sort_module_by_latency);
     printf("\n");
 }
 
@@ -1174,6 +1303,11 @@ void Model::profile(bool sort_module_by_latency)
     print_memory_info(mem_info);
     print_workspace_binding_info(m_model_context->get_workspace_bindings());
     printf("\n");
+    if (!m_built) {
+        ESP_LOGE(TAG, "Model is not built; module profiling is unavailable.");
+        printf("\n");
+        return;
+    }
     auto module_info = get_module_info();
     print_module_info(module_info, sort_module_by_latency);
     printf("\n");

@@ -28,6 +28,23 @@ private:
     void *m_scratch = nullptr;  /*!< Reusable per-module scratch buffer */
     size_t m_scratch_bytes = 0; /*!< Allocated bytes in m_scratch */
 
+    // std::isnan is not reliable under -ffast-math; inspect IEEE-754 bits.
+    template <typename T1>
+    static bool is_nan_fastmath_safe(T1 value)
+    {
+        if constexpr (std::is_same_v<T1, float>) {
+            uint32_t bits = 0;
+            std::memcpy(&bits, &value, sizeof(bits));
+            return (bits & UINT32_C(0x7fffffff)) > UINT32_C(0x7f800000);
+        } else if constexpr (std::is_same_v<T1, double>) {
+            uint64_t bits = 0;
+            std::memcpy(&bits, &value, sizeof(bits));
+            return (bits & UINT64_C(0x7fffffffffffffff)) > UINT64_C(0x7ff0000000000000);
+        } else {
+            return false;
+        }
+    }
+
     // NaN compares unequal to itself and loses every `<`/`>` test, so a plain `!=` guard would put
     // each NaN in its own rank class while ordering it identically to all others. That breaks the
     // transitivity of equivalence that std::sort / std::nth_element require.
@@ -35,7 +52,7 @@ private:
     static bool values_tie(T1 lhs, T1 rhs)
     {
         if constexpr (std::is_floating_point_v<T1>) {
-            if (std::isnan(lhs) && std::isnan(rhs)) {
+            if (is_nan_fastmath_safe(lhs) && is_nan_fastmath_safe(rhs)) {
                 return true;
             }
         }
@@ -48,8 +65,8 @@ private:
     static bool value_ranks_before(T1 lhs, T1 rhs, bool largest)
     {
         if constexpr (std::is_floating_point_v<T1>) {
-            const bool lhs_nan = std::isnan(lhs);
-            const bool rhs_nan = std::isnan(rhs);
+            const bool lhs_nan = is_nan_fastmath_safe(lhs);
+            const bool rhs_nan = is_nan_fastmath_safe(rhs);
             if (lhs_nan || rhs_nan) {
                 return lhs_nan != rhs_nan ? (largest ? lhs_nan : rhs_nan) : false;
             }

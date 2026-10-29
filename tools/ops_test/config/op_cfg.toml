@@ -4627,6 +4627,18 @@
     targets = ["esp32s3", "esp32p4"]
     restrictions = "Support 4D self-/cross-attention; KV cache and advanced attributes (e.g., softcap/window) are not supported."
 
+    [ops_test.Attention.esp32s3]
+    # per quant_type: int8, int16, w8a16, float32
+    max_error = [1.01, 5e-4, 5e-4, 5e-4]
+
+    [ops_test.Attention.c]
+    # per quant_type: int8, int16, w8a16, float32
+    max_error = [1.01, 5e-4, 5e-4, 5e-4]
+
+    [ops_test.Attention.esp32p4]
+    # per quant_type: int8, int16, w8a16, float32
+    max_error = [5e-4, 5e-4, 5e-4, 5e-4]
+
         [[ops_test.Attention.cfg]]
         # Small self-attention smoke test. Lq = Lk = 16, aligned D.
         input_shape = [
@@ -4719,7 +4731,6 @@
             [1, 4, 16, 32],
         ]
         is_causal = true
-        quant_bits = ["int16", "w8a16", "float32"]
         export_name_prefix = "attention_self_H4_L16_D32_causal"
 
         [[ops_test.Attention.cfg]]
@@ -4793,7 +4804,7 @@
         [[ops_test.Attention.cfg]]
         # is_causal + additive attn_mask. The hpp contract says the two
         # compose additively; the individual paths are tested but the
-        # combination is not. int8 skipped like the other causal cfgs.
+        # combination is not.
         input_shape = [
             [1, 4, 16, 32],
             [1, 4, 16, 32],
@@ -4801,7 +4812,6 @@
             [1, 1, 16, 16],
         ]
         is_causal = true
-        quant_bits = ["int16", "w8a16", "float32"]
         export_name_prefix = "attention_self_H4_L16_D32_causal_and_mask"
 
         [[ops_test.Attention.cfg]]
@@ -4814,7 +4824,6 @@
             [1, 2, 32, 32],
         ]
         is_causal = true
-        quant_bits = ["int16", "w8a16", "float32"]
         export_name_prefix = "attention_gqa_Hq8_Hkv2_L32_D32_causal"
 
         [[ops_test.Attention.cfg]]
@@ -4828,7 +4837,6 @@
             [1, 4, 101, 24],
         ]
         is_causal = true
-        quant_bits = ["int8", "int16", "w8a16", "float32"]
         export_name_prefix = "attention_causal_upper_left_H4_Lq19_Lk101_D24"
 
         [[ops_test.Attention.cfg]]
@@ -4842,7 +4850,6 @@
         ]
         layout = "BNHD"
         is_causal = true
-        quant_bits = ["int8", "int16", "w8a16", "float32"]
         export_name_prefix = "attention_causal_upper_left_BNHD_Lq101_Lk19_H4_D32"
 
         [[ops_test.Attention.cfg]]

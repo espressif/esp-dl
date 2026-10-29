@@ -506,7 +506,7 @@ inline void load_v_tile_dblk_s16(int16_t *dst,
 }
 
 /**
- * @brief C reference for dl_esp32p4_s16_attention_pv_qacc (same integer total).
+ * @brief C reference for dl_esp32p4_s16_attention_pv_qacc (same integer total and rh:rl float synthesis).
  */
 inline void attention_pv_s16_qacc_c(
     float *acc, const int16_t *e, const int16_t *v_dblk, int nq, int n_tok, int D, int acc_stride, float scale)
@@ -523,7 +523,11 @@ inline void attention_pv_s16_qacc_c(
                 s_hi += static_cast<int64_t>(e_hi[t]) * v[t * 8];
                 s_lo += static_cast<int64_t>(e_lo[t]) * v[t * 8];
             }
-            a[d] += static_cast<float>(s_hi * (int64_t(1) << PV_S16_LO_BITS) + s_lo) * scale;
+            const int64_t total = s_hi * (int64_t(1) << PV_S16_LO_BITS) + s_lo;
+            const int32_t rl = static_cast<int32_t>(static_cast<uint32_t>(total));
+            const int32_t rh = static_cast<int32_t>((total - static_cast<int64_t>(rl)) >> 32);
+            const float x = std::fmaf(static_cast<float>(rh), 4294967296.0f, static_cast<float>(rl));
+            a[d] = std::fmaf(x, scale, a[d]);
         }
     }
 }

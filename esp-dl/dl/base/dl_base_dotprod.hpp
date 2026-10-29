@@ -41,6 +41,37 @@ void mat_vec_dotprod(TM *matrix, TV *vector, TO *result, int rows, int cols, int
         dotprod(matrix_row, vector, result + i, cols, shift);
     }
 }
+
+/**
+ * @brief result[v * result_stride + i] = dot(matrix[i], vectors[v]).
+ *
+ * Reuses matrix rows across vectors, potentially improving cache locality.
+ */
+template <typename TM, typename TV, typename TO>
+void mat_vecs_dotprod(TM *matrix,
+                      TV *vectors,
+                      TO *result,
+                      int rows,
+                      int cols,
+                      int vectors_num,
+                      int vector_stride,
+                      int result_stride,
+                      int shift = 0)
+{
+    for (int i = 0; i < rows; i++) {
+        TM *matrix_row = matrix + i * cols;
+        for (int v = 0; v < vectors_num; v++) {
+            dotprod(matrix_row, vectors + v * vector_stride, result + v * result_stride + i, cols, shift);
+        }
+    }
+}
+
+/**
+ * @brief Computes multiple matrix-vector dot products in one PIE kernel call.
+ */
+void mat_vecs_dotprod(
+    int8_t *matrix, int8_t *vectors, int16_t *result, int rows, int cols, int vectors_num, int shift = 0);
+
 template void mat_vec_dotprod(int8_t *matrix, int8_t *vector, int16_t *result, int rows, int cols, int shift);
 template void mat_vec_dotprod(int8_t *matrix, int16_t *vector, int16_t *result, int rows, int cols, int shift);
 template void mat_vec_dotprod(int16_t *matrix, int16_t *vector, int16_t *result, int rows, int cols, int shift);
