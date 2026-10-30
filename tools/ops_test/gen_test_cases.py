@@ -65,6 +65,9 @@ def resolve_max_error(quant_type, *cfgs):
     """
     value = _DEFAULT_TEST_MAX_ERROR
     quant_types = None
+    # A later cfg may narrow quant_type without replacing max_error.
+    # Keep the quant_type list that was current when max_error was set.
+    value_quant_types = None
     for cfg in cfgs:
         if cfg is None:
             continue
@@ -72,10 +75,12 @@ def resolve_max_error(quant_type, *cfgs):
             quant_types = cfg["quant_type"]
         if "max_error" in cfg:
             value = cfg["max_error"]
+            value_quant_types = cfg.get("quant_type", quant_types)
 
     if isinstance(value, (list, tuple)):
         if len(value) == 1:
             return float(value[0])
+        quant_types = value_quant_types or quant_types
         if not quant_types:
             raise ValueError(
                 "max_error is a list of {} values but no quant_type list is available".format(

@@ -525,30 +525,13 @@ ops:
     module:
       header: dl_module_layer_normalization.hpp
       class: LayerNormalization
-    use: [elemwise]
     srcs:
-      - dl/base/dl_base_add.cpp
-      - dl/base/dl_base_mul.cpp
-      - dl/base/dl_base_sub.cpp
+      - dl/base/dl_base_reduce.cpp
     target:
       pie_v2:
-        - dl/base/isa/esp32p4/dl_esp32p4_s8_add.S
-        - dl/base/isa/esp32p4/dl_esp32p4_s16_add.S
-        - dl/base/isa/esp32p4/dl_esp32p4_s8_add2d.S
-        - dl/base/isa/esp32p4/dl_esp32p4_s16_add2d.S
-        - dl/base/isa/esp32p4/dl_esp32p4_s8_mul.S
-        - dl/base/isa/esp32p4/dl_esp32p4_s16_mul.S
-        - dl/base/isa/esp32p4/dl_esp32p4_s8_sub.S
-        - dl/base/isa/esp32p4/dl_esp32p4_s16_sub.S
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
       pie_v1:
-        - dl/base/isa/tie728/dl_tie728_s8_add.S
-        - dl/base/isa/tie728/dl_tie728_s16_add.S
-        - dl/base/isa/tie728/dl_tie728_s8_add2d.S
-        - dl/base/isa/tie728/dl_tie728_s16_add2d.S
-        - dl/base/isa/tie728/dl_tie728_s8_mul.S
-        - dl/base/isa/tie728/dl_tie728_s16_mul.S
-        - dl/base/isa/tie728/dl_tie728_s8_sub.S
-        - dl/base/isa/tie728/dl_tie728_s16_sub.S
+        - dl/base/isa/tie728/dl_tie728_reduce.S
   LpNormalization:
     module:
       header: dl_module_lp_normalization.hpp
