@@ -16,10 +16,12 @@ Measured on ESP32-P4, single crop for recognition (detection once per image):
 
 | name | input (h\*w\*c) | preprocess(ms) | model(ms) | postprocess(ms) |
 |------|-----------------|-----------------|-----------|------------------|
-| `pp_ocr_v6_det_s8_p4` | 736 \* 736 \* 3 | 225.7 | 2334.0 | 146.9 |
-| `pp_ocr_v6_rec_s8_p4` | 48 \* 320 \* 3 | 16.1 | 168.9 | 22.1 |
-| `pp_ocr_v6_rec_s16_p4` | 48 \* 320 \* 3 | 16.6 | 383.3 | 19.1 |
-| `pp_ocr_v6_rec_s16_w640_p4` | 48 \* 640 \* 3 | 38.6 | 801.9 | 48.1 |
+| `pp_ocr_v6_det_s8_p4` | 736 \* 736 \* 3 | 245.7 | 2023.1 | 69.3 |
+| `pp_ocr_v6_rec_s8_p4` | 48 \* 320 \* 3 | 16.0 | 77.6 | 17.2 |
+| `pp_ocr_v6_rec_s16_p4` | 48 \* 320 \* 3 | 16.5 | 152.3 | 19.0 |
+| `pp_ocr_v6_rec_s16_w640_p4` | 48 \* 640 \* 3 | 67.9 | 325.6 | 130.4 |
+
+> ESP32-P4: CPU 400 MHz, L2 cache 256 KB, PSRAM 32 MB at 250 MHz. int8, `CONFIG_COMPILER_OPTIMIZATION_PERF`. Short recognition rows use one text line on `pp_ocr_v6.jpg` (preprocess near 16 ms). The wide row uses the widest detected line on that image (width 415).
 
 ### OCR Configurations
 

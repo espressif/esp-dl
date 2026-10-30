@@ -80,5 +80,44 @@ public:
     esp_err_t process_frame(const int16_t *input, int win_len, float *output, int16_t prev = 0) override;
 };
 
+/**
+ * @brief Fixed-point Fbank for int16 PCM, no floating point per frame.
+ *
+ * DC removal, pre-emphasis and windowing run in int32 with per-frame block scaling. The FFT is an int32 real FFT.
+ * Mel energies are accumulated in 64 bits and the logarithm is computed in fixed point.
+ * Output samples use the caller-supplied exponent: value = output[i] * 2^output_exponent.
+ */
+class FbankS32 : public SpeechFeatureBase {
+private:
+    mel_filter_q30_t *m_mel_filter; /*!< Q30 mel filterbank */
+    int32_t *m_win_q31;             /*!< Window coefficients in Q31, nullptr if no window */
+    int32_t *m_buf;                 /*!< Working buffer of fft_size + 2 int32 */
+    dl_fft_s32_t *m_fft_s32;        /*!< int32 real FFT */
+    int32_t m_preemph_q31;          /*!< Pre-emphasis coefficient in Q31 */
+    int m_power_bits;               /*!< Max bits of a spectrum value in the mel dot-product */
+    int64_t m_log_eps_q36;          /*!< ln(log_epsilon) in Q36 */
+    uint64_t m_eps_mant;            /*!< log_epsilon = m_eps_mant * 2^m_eps_exp, m_eps_mant in [2^61, 2^62) */
+    int m_eps_exp;                  /*!< Exponent of log_epsilon */
+
+public:
+    /**
+     * @brief Construct a new FbankS32 object
+     *
+     * @param config Speech feature configuration
+     * @param caps Memory allocation capabilities
+     */
+    FbankS32(const SpeechFeatureConfig config, uint32_t caps = MALLOC_CAP_DEFAULT);
+
+    /**
+     * @brief Destroy the FbankS32 object
+     */
+    ~FbankS32();
+
+    esp_err_t process_frame(const float *input, int win_len, float *output, float prev = 0) override;
+    esp_err_t process_frame(const int16_t *input, int win_len, float *output, int16_t prev = 0) override;
+    esp_err_t process_frame_int16(
+        const int16_t *input, int win_len, int16_t *output, int16_t prev, int output_exponent) override;
+};
+
 } // namespace audio
 } // namespace dl

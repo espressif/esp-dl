@@ -6,6 +6,7 @@
 | Chip     | MOBILENETV2_0_5_S8_V1  | 
 |----------|------------------------|
 | ESP32-S3 | ![alt text][supported] | 
+| ESP32-S31 | ![alt text][supported] |
 | ESP32-P4 | ![alt text][supported] |
 
 
@@ -13,8 +14,11 @@
 
 | name                     | input(h*w*c)  | preprocess(ms) | model(ms) | postprocess(ms) |
 | -------------------------- | --------------- | ---------------- | ----------- | ----------------- |
-|  mobilenetv2_0_5_s8_v1_s3 |  128 * 128 * 3 | 2.5 | 115.4 | 0.4 |
-|  mobilenetv2_0_5_s8_v1_p4 |  128 * 128 * 3 | 0.9 | 26.5 | 0.2 |
+|  mobilenetv2_0_5_s8_v1_s3 |  128 * 128 * 3 | 4.2 | 69.2 | 0.5 |
+|  mobilenetv2_0_5_s8_v1_s31 |  128 * 128 * 3 | 2.2 | 43.0 | 0.1 |
+|  mobilenetv2_0_5_s8_v1_p4 |  128 * 128 * 3 | 1.4 | 23.8 | 0.2 |
+
+> ESP32-S3: CPU 240 MHz, data cache 64 KB, octal PSRAM 80 MHz. ESP32-S31: CPU 320 MHz, PSRAM 250 MHz. ESP32-P4: CPU 400 MHz, L2 cache 256 KB, PSRAM 32 MB at 250 MHz. int8, `CONFIG_COMPILER_OPTIMIZATION_PERF`. Preprocess is measured on the full `gesture.jpg`.
 
 ## Model Usage
 

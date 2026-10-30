@@ -59,6 +59,32 @@ static void abs_error_max_and_sum(const float *ref, const float *x, int n, float
     *max_err = mx;
     *sum_err = sum;
 }
+
+static void float_to_s32(const float *x, int len, int exponent, int32_t *y)
+{
+    for (int i = 0; i < len; i++) {
+        y[i] = (int32_t)lrintf(ldexpf(x[i], -exponent));
+    }
+}
+
+static void s32_to_float(const int32_t *x, int len, int exponent, float *y)
+{
+    for (int i = 0; i < len; i++) {
+        y[i] = ldexpf((float)x[i], exponent);
+    }
+}
+
+static float energy_snr_db(const float *x, const float *ref, int n)
+{
+    double s = 0, e = 0;
+    for (int i = 0; i < n; i++) {
+        double d = (double)ref[i] - x[i];
+        s += (double)ref[i] * ref[i];
+        e += d * d;
+    }
+    return (float)(10.0 * log10(s / (e + 1e-30)));
+}
+
 static int LOOP = 10;
 using namespace dl;
 
@@ -717,7 +743,7 @@ TEST_CASE("13. test FFT class handle caching", "[dl_fft_class]")
     // Create handles for different FFT lengths
     float *data = (float *)heap_caps_aligned_alloc(16, 2048 * sizeof(float), MALLOC_CAP_8BIT);
     int16_t *data_s16 = (int16_t *)heap_caps_aligned_alloc(16, 2048 * sizeof(int16_t), MALLOC_CAP_8BIT);
-    ;
+    int32_t *data_s32 = (int32_t *)heap_caps_aligned_alloc(16, 2048 * sizeof(int32_t), MALLOC_CAP_8BIT);
     int exponent;
 
     // Test float32 FFT handles
@@ -739,12 +765,23 @@ TEST_CASE("13. test FFT class handle caching", "[dl_fft_class]")
     TEST_ASSERT_EQUAL(ESP_OK, fft->rfft(data_s16, 128, 0, &exponent));
     TEST_ASSERT_EQUAL(5, fft->get_handle_count());
 
+    // Test int32 FFT and RFFT handles
+    memset(data_s32, 0, 2048 * sizeof(int32_t));
+    TEST_ASSERT_EQUAL(ESP_OK, fft->fft(data_s32, 128, 0, &exponent));
+    TEST_ASSERT_EQUAL(6, fft->get_handle_count());
+
+    TEST_ASSERT_EQUAL(ESP_OK, fft->rfft(data_s32, 128, 0, &exponent));
+    TEST_ASSERT_EQUAL(7, fft->get_handle_count());
+
     // Reuse existing handles (should not increase count)
     TEST_ASSERT_EQUAL(ESP_OK, fft->fft(data, 128));
-    TEST_ASSERT_EQUAL(5, fft->get_handle_count());
+    TEST_ASSERT_EQUAL(7, fft->get_handle_count());
 
     TEST_ASSERT_EQUAL(ESP_OK, fft->rfft(data, 128));
-    TEST_ASSERT_EQUAL(5, fft->get_handle_count());
+    TEST_ASSERT_EQUAL(7, fft->get_handle_count());
+
+    TEST_ASSERT_EQUAL(ESP_OK, fft->rfft(data_s32, 128, 0, &exponent));
+    TEST_ASSERT_EQUAL(7, fft->get_handle_count());
 
     // Clear all handles
     fft->clear();
@@ -752,6 +789,7 @@ TEST_CASE("13. test FFT class handle caching", "[dl_fft_class]")
 
     free(data);
     free(data_s16);
+    free(data_s32);
 
     int ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     ESP_LOGI(TAG, "ram size before: %d, end:%d", ram_size_before, ram_size_end);
@@ -1330,4 +1368,241 @@ TEST_CASE("22. test FFT class concurrent clear", "[dl_fft]")
     fft->clear();
     TEST_ASSERT_EQUAL(0, fft->get_handle_count());
     heap_caps_free(data);
+}
+
+TEST_CASE("23. test dl fft s32", "[dl_fft]")
+{
+    const float *input[5] = {fft_input_128, fft_input_256, fft_input_512, fft_input_1024, fft_input_2048};
+    const float *output[5] = {fft_output_128, fft_output_256, fft_output_512, fft_output_1024, fft_output_2048};
+    int test_nfft[5] = {128, 256, 512, 1024, 2048};
+    float target_db = 95;
+    FFT *fft = FFT::get_instance();
+    int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    int out_exponent;
+
+    for (int i = 0; i < 5; i++) {
+        int nfft = test_nfft[i];
+        printf("test fft(%d) s32: ", nfft);
+        int32_t *x = (int32_t *)heap_caps_aligned_alloc(16, nfft * sizeof(int32_t) * 2, MALLOC_CAP_8BIT);
+        float *y = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float) * 2, MALLOC_CAP_8BIT);
+        int32_t *x2 = (int32_t *)heap_caps_aligned_alloc(16, nfft * 2 * sizeof(int32_t), MALLOC_CAP_8BIT);
+        TEST_ASSERT_NOT_NULL(x);
+        TEST_ASSERT_NOT_NULL(x2);
+        TEST_ASSERT_NOT_NULL(y);
+
+        dl_fft_s32_t *fft_handle = dl_fft_s32_init(nfft, MALLOC_CAP_8BIT);
+        TEST_ASSERT_NOT_NULL(fft_handle);
+        float_to_s32(input[i], nfft * 2, -28, x); // |input| < 1, so |x| < 2^28
+        TEST_ASSERT_EQUAL(ESP_OK, dl_fft_s32_run(fft_handle, x, -28, &out_exponent));
+        float_to_s32(input[i], nfft * 2, -28, x2);
+        int out_exponent2 = 0;
+        TEST_ASSERT_EQUAL(ESP_OK, fft->fft(x2, nfft, -28, &out_exponent2));
+        TEST_ASSERT_EQUAL(out_exponent, out_exponent2);
+        TEST_ASSERT_EQUAL_INT32_ARRAY(x, x2, nfft * 2);
+        TEST_ASSERT_EQUAL(-28 + dl_power_of_two(nfft), out_exponent);
+
+        s32_to_float(x, nfft * 2, out_exponent, y);
+        TEST_ASSERT_EQUAL(true, check_fft_results(y, output[i], nfft, target_db, 1e-3));
+        float snr = energy_snr_db(y, output[i], nfft * 2);
+        printf("energy snr: %f\n", snr);
+        TEST_ASSERT_EQUAL(true, snr > 120);
+
+        uint32_t total = 0;
+        for (int k = 0; k < LOOP; k++) {
+            float_to_s32(input[i], nfft * 2, -28, x);
+            uint32_t start = esp_timer_get_time();
+            dl_fft_s32_run(fft_handle, x, -28, &out_exponent);
+            total += esp_timer_get_time() - start;
+        }
+        printf("time:%ld us\n", total / LOOP);
+        dl_fft_s32_deinit(fft_handle);
+        heap_caps_free(x);
+        heap_caps_free(x2);
+        heap_caps_free(y);
+    }
+
+    fft->clear();
+    int ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    ESP_LOGI(TAG, "ram size before: %d, end:%d", ram_size_before, ram_size_end);
+    TEST_ASSERT_EQUAL(true, ram_size_before == ram_size_end);
+}
+
+TEST_CASE("24. test dl rfft s32", "[dl_fft]")
+{
+    const float *input[5] = {rfft_input_128, rfft_input_256, rfft_input_512, rfft_input_1024, rfft_input_2048};
+    const float *output[5] = {rfft_output_128, rfft_output_256, rfft_output_512, rfft_output_1024, rfft_output_2048};
+    int test_nfft[5] = {128, 256, 512, 1024, 2048};
+    float target_db = 95;
+    FFT *fft = FFT::get_instance();
+    int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    int out_exponent;
+
+    for (int i = 0; i < 5; i++) {
+        int nfft = test_nfft[i];
+        printf("test rfft(%d) s32: ", nfft);
+        int32_t *x = (int32_t *)heap_caps_aligned_alloc(16, nfft * sizeof(int32_t), MALLOC_CAP_8BIT);
+        float *y = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float), MALLOC_CAP_8BIT);
+        float *gt = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float), MALLOC_CAP_8BIT);
+        int32_t *x2 = (int32_t *)heap_caps_aligned_alloc(16, nfft * sizeof(int32_t), MALLOC_CAP_8BIT);
+        TEST_ASSERT_NOT_NULL(x);
+        TEST_ASSERT_NOT_NULL(x2);
+        TEST_ASSERT_NOT_NULL(y);
+        TEST_ASSERT_NOT_NULL(gt);
+        memcpy(gt, output[i], nfft * sizeof(float));
+        gt[1] = output[i][nfft];
+
+        dl_fft_s32_t *fft_handle = dl_rfft_s32_init(nfft, MALLOC_CAP_8BIT);
+        TEST_ASSERT_NOT_NULL(fft_handle);
+        float_to_s32(input[i], nfft, -28, x);
+        TEST_ASSERT_EQUAL(ESP_OK, dl_rfft_s32_run(fft_handle, x, -28, &out_exponent));
+        float_to_s32(input[i], nfft, -28, x2);
+        int out_exponent2 = 0;
+        TEST_ASSERT_EQUAL(ESP_OK, fft->rfft(x2, nfft, -28, &out_exponent2));
+        TEST_ASSERT_EQUAL(out_exponent, out_exponent2);
+        TEST_ASSERT_EQUAL_INT32_ARRAY(x, x2, nfft);
+        TEST_ASSERT_EQUAL(-28 + dl_power_of_two(nfft) - 1, out_exponent);
+
+        s32_to_float(x, nfft, out_exponent, y);
+        TEST_ASSERT_EQUAL(true, check_fft_results(y, gt, nfft, target_db, 1e-3));
+        float snr = energy_snr_db(y, gt, nfft);
+        printf("energy snr: %f\n", snr);
+        TEST_ASSERT_EQUAL(true, snr > 120);
+
+        uint32_t total = 0;
+        for (int k = 0; k < LOOP; k++) {
+            float_to_s32(input[i], nfft, -28, x);
+            uint32_t start = esp_timer_get_time();
+            dl_rfft_s32_run(fft_handle, x, -28, &out_exponent);
+            total += esp_timer_get_time() - start;
+        }
+        printf("time:%ld us\n", total / LOOP);
+        dl_rfft_s32_deinit(fft_handle);
+        heap_caps_free(x);
+        heap_caps_free(x2);
+        heap_caps_free(y);
+        heap_caps_free(gt);
+    }
+
+    fft->clear();
+    int ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    ESP_LOGI(TAG, "ram size before: %d, end:%d", ram_size_before, ram_size_end);
+    TEST_ASSERT_EQUAL(true, ram_size_before == ram_size_end);
+}
+
+TEST_CASE("25. test wav rfft512 s32 vs f32", "[dl_fft]")
+{
+    const int nfft = 512;
+    dl_audio_t *wav = decode_wav(wav_embed_test_wav_start, (int)(wav_embed_test_wav_end - wav_embed_test_wav_start));
+    TEST_ASSERT_NOT_NULL(wav);
+    TEST_ASSERT_GREATER_OR_EQUAL(1, wav->channels);
+
+    int16_t *mono_s16 = (int16_t *)heap_caps_aligned_alloc(16, nfft * sizeof(int16_t), MALLOC_CAP_8BIT);
+    float *ref_f32 = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float), MALLOC_CAP_8BIT);
+    float *out_f32 = (float *)heap_caps_aligned_alloc(16, nfft * sizeof(float), MALLOC_CAP_8BIT);
+    int32_t *work_s32 = (int32_t *)heap_caps_aligned_alloc(16, nfft * sizeof(int32_t), MALLOC_CAP_8BIT);
+    TEST_ASSERT_NOT_NULL(mono_s16);
+    TEST_ASSERT_NOT_NULL(ref_f32);
+    TEST_ASSERT_NOT_NULL(out_f32);
+    TEST_ASSERT_NOT_NULL(work_s32);
+
+    dl_fft_f32_t *h_f32 = dl_rfft_f32_init(nfft, MALLOC_CAP_8BIT);
+    dl_fft_s32_t *h_s32 = dl_rfft_s32_init(nfft, MALLOC_CAP_8BIT);
+    TEST_ASSERT_NOT_NULL(h_f32);
+    TEST_ASSERT_NOT_NULL(h_s32);
+
+    const int n_blocks = ((int)wav->length + nfft - 1) / nfft;
+    float worst_snr = 1e9f;
+    for (int b = 0; b < n_blocks; ++b) {
+        wav_mono_frame_at(wav, b * nfft, nfft, mono_s16, ref_f32);
+        TEST_ASSERT_EQUAL(ESP_OK, dl_rfft_f32_run(h_f32, ref_f32));
+
+        // Block-normalize the frame to [2^28, 2^29) as the fixed rounding noise is relative to the output LSB.
+        int32_t mag = 0;
+        for (int j = 0; j < nfft; j++) {
+            mag |= abs(mono_s16[j]);
+        }
+        if (mag == 0) {
+            continue;
+        }
+        int shift = 29 - (32 - __builtin_clz(mag));
+        for (int j = 0; j < nfft; j++) {
+            work_s32[j] = (int32_t)mono_s16[j] << shift;
+        }
+        int out_exponent = 0;
+        TEST_ASSERT_EQUAL(ESP_OK, dl_rfft_s32_run(h_s32, work_s32, -15 - shift, &out_exponent));
+        s32_to_float(work_s32, nfft, out_exponent, out_f32);
+
+        float snr = energy_snr_db(out_f32, ref_f32, nfft);
+        if (snr < worst_snr) {
+            worst_snr = snr;
+        }
+        ESP_LOGI(TAG, "frame %d/%d s32 vs f32: snr=%.2f dB shift=%d", b + 1, n_blocks, snr, shift);
+    }
+    ESP_LOGI(TAG, "wav s32 vs f32 all frames: n_blocks=%d worst_snr=%.2f dB", n_blocks, worst_snr);
+    TEST_ASSERT_EQUAL(true, worst_snr > 120);
+
+    free_dl_audio(wav);
+    dl_rfft_f32_deinit(h_f32);
+    dl_rfft_s32_deinit(h_s32);
+    heap_caps_free(mono_s16);
+    heap_caps_free(ref_f32);
+    heap_caps_free(out_f32);
+    heap_caps_free(work_s32);
+}
+
+TEST_CASE("26. test s32 fft tables and invalid sizes", "[dl_fft]")
+{
+    FFT::get_instance()->clear();
+    const uint32_t caps = MALLOC_CAP_8BIT;
+    int ram_size_before = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+
+    TEST_ASSERT_NULL(dl_fft_s32_init(0, caps));
+    TEST_ASSERT_NULL(dl_fft_s32_init(1, caps));
+    TEST_ASSERT_NULL(dl_fft_s32_init(96, caps));
+    TEST_ASSERT_NULL(dl_rfft_s32_init(2, caps));
+    TEST_ASSERT_NULL(dl_rfft_s32_init(96, caps));
+
+    int out_exponent = 0;
+    int32_t dummy[4] = {0};
+    TEST_ASSERT_NOT_EQUAL(ESP_OK, dl_fft_s32_run(NULL, dummy, 0, &out_exponent));
+    TEST_ASSERT_NOT_EQUAL(ESP_OK, dl_rfft_s32_run(NULL, dummy, 0, &out_exponent));
+
+    // rfft_s32(N) uses the complex table of N/2, same as fft_s32(N/2)
+    dl_fft_s32_t *fft128 = dl_fft_s32_init(128, caps);
+    dl_fft_s32_t *fft128_b = dl_fft_s32_init(128, caps);
+    dl_fft_s32_t *rfft256 = dl_rfft_s32_init(256, caps);
+    dl_fft_s32_t *rfft512 = dl_rfft_s32_init(512, caps);
+    TEST_ASSERT_NOT_NULL(fft128);
+    TEST_ASSERT_NOT_NULL(fft128_b);
+    TEST_ASSERT_NOT_NULL(rfft256);
+    TEST_ASSERT_NOT_NULL(rfft512);
+    TEST_ASSERT_EQUAL(fft128->fft_table, fft128_b->fft_table);
+    TEST_ASSERT_EQUAL(fft128->fft_table, rfft256->fft_table);
+    TEST_ASSERT_NOT_EQUAL(rfft256->fft_table, rfft512->fft_table);
+
+    // rfft256 still works after the peers that share its table are gone
+    dl_fft_s32_deinit(fft128);
+    dl_fft_s32_deinit(fft128_b);
+    int32_t *x = (int32_t *)heap_caps_aligned_alloc(16, 256 * sizeof(int32_t), caps);
+    float *y = (float *)heap_caps_aligned_alloc(16, 256 * sizeof(float), caps);
+    float *gt = (float *)heap_caps_aligned_alloc(16, 256 * sizeof(float), caps);
+    TEST_ASSERT_NOT_NULL(x);
+    TEST_ASSERT_NOT_NULL(y);
+    TEST_ASSERT_NOT_NULL(gt);
+    memcpy(gt, rfft_output_256, 256 * sizeof(float));
+    gt[1] = rfft_output_256[256];
+    float_to_s32(rfft_input_256, 256, -28, x);
+    TEST_ASSERT_EQUAL(ESP_OK, dl_rfft_s32_run(rfft256, x, -28, &out_exponent));
+    s32_to_float(x, 256, out_exponent, y);
+    TEST_ASSERT_EQUAL(true, check_fft_results(y, gt, 256, 95, 1e-3));
+
+    dl_rfft_s32_deinit(rfft256);
+    dl_rfft_s32_deinit(rfft512);
+    heap_caps_free(x);
+    heap_caps_free(y);
+    heap_caps_free(gt);
+
+    int ram_size_end = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    ESP_LOGI(TAG, "ram size before: %d, end:%d", ram_size_before, ram_size_end);
+    TEST_ASSERT_EQUAL(true, ram_size_before == ram_size_end);
 }

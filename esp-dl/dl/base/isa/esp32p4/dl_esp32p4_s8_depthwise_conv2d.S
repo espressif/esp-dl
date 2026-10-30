@@ -1,3 +1,4 @@
+#include "dl_compile_config.h"
 #include "dl_esp32p4_s8.S"
 
 ############################################################################################################################################################
@@ -88,6 +89,7 @@
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_33C1_BIAS
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_33c1_bias
     .type   dl_esp32p4_s8_depthwise_conv2d_33c1_bias, @function
@@ -138,9 +140,11 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_bias:
         esp32p4_s8_128b_vector_shift_result  q3, t5
         esp.vst.128.ip  q3, a0, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_33C1_BIAS_RELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_33c1_bias_relu
     .type   dl_esp32p4_s8_depthwise_conv2d_33c1_bias_relu, @function
@@ -203,8 +207,10 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_bias_relu:
     lw  s1, 0(sp)        // restore s1
     addi  sp, sp, 8
     ret
+#endif
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_33C1_BIAS_PRELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_33c1_bias_prelu
     .type   dl_esp32p4_s8_depthwise_conv2d_33c1_bias_prelu, @function
@@ -267,9 +273,11 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_bias_prelu:
     lw  s1, 0(sp)        // restore s1
     addi  sp, sp, 8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_33C1
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_33c1
     .type   dl_esp32p4_s8_depthwise_conv2d_33c1, @function
@@ -317,9 +325,11 @@ dl_esp32p4_s8_depthwise_conv2d_33c1:
         esp32p4_s8_128b_vector_shift_result  q3, t5
         esp.vst.128.ip  q3, a0, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_33C1_RELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_33c1_relu
     .type   dl_esp32p4_s8_depthwise_conv2d_33c1_relu, @function
@@ -379,8 +389,10 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_relu:
     lw  s1, 0(sp)        // restore s1
     addi  sp, sp, 8
     ret
+#endif
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_33C1_PRELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_33c1_prelu
     .type   dl_esp32p4_s8_depthwise_conv2d_33c1_prelu, @function
@@ -440,6 +452,7 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_prelu:
     lw  s1, 0(sp)        // restore s1
     addi  sp, sp, 8
     ret
+#endif
 
 
 
@@ -575,6 +588,7 @@ dl_esp32p4_s8_depthwise_conv2d_33c1_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_HWC1_BIAS
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_hwc1_bias
     .type   dl_esp32p4_s8_depthwise_conv2d_hwc1_bias, @function
@@ -631,9 +645,11 @@ dl_esp32p4_s8_depthwise_conv2d_hwc1_bias:
     lw  s11, 0(sp)      // restore s11
     addi  sp, sp, 20
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_HWC1_BIAS_RELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_relu
     .type   dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_relu, @function
@@ -701,9 +717,11 @@ dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_relu:
     lw  s11, 0(sp)      // restore s11
     addi  sp, sp, 24
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_HWC1_BIAS_PRELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_prelu
     .type   dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_prelu, @function
@@ -771,9 +789,11 @@ dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_prelu:
     lw  s11, 0(sp)      // restore s11
     addi  sp, sp, 24
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_HWC1
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_hwc1
     .type   dl_esp32p4_s8_depthwise_conv2d_hwc1, @function
@@ -827,9 +847,11 @@ dl_esp32p4_s8_depthwise_conv2d_hwc1:
     lw  s11, 0(sp)      // restore s11
     addi  sp, sp, 20
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_HWC1_RELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_hwc1_relu
     .type   dl_esp32p4_s8_depthwise_conv2d_hwc1_relu, @function
@@ -894,8 +916,10 @@ dl_esp32p4_s8_depthwise_conv2d_hwc1_relu:
     lw  s11, 0(sp)      // restore s11
     addi  sp, sp, 24
     ret
+#endif
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_HWC1_PRELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_hwc1_prelu
     .type   dl_esp32p4_s8_depthwise_conv2d_hwc1_prelu, @function
@@ -960,6 +984,7 @@ dl_esp32p4_s8_depthwise_conv2d_hwc1_prelu:
     lw  s11, 0(sp)      // restore s11
     addi  sp, sp, 24
     ret
+#endif
 
 
 
@@ -984,6 +1009,7 @@ dl_esp32p4_s8_depthwise_conv2d_hwc1_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_PER_CHANNEL_33C1_BIAS
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_bias
     .type   dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_bias, @function
@@ -1036,9 +1062,11 @@ dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_bias:
         esp32p4_s8_128b_vector_per_channel_shift_result  q3, q6
         esp.vst.128.ip  q3, a0, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_PER_CHANNEL_33C1_BIAS_RELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_bias_relu
     .type   dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_bias_relu, @function
@@ -1103,9 +1131,11 @@ dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_bias_relu:
     lw  s1, 0(sp)        // restore s1
     addi  sp, sp, 8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_PER_CHANNEL_33C1
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1
     .type   dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1, @function
@@ -1155,9 +1185,11 @@ dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1:
         esp32p4_s8_128b_vector_per_channel_shift_result  q3, q6
         esp.vst.128.ip  q3, a0, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_PER_CHANNEL_33C1_RELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_relu
     .type   dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_relu, @function
@@ -1219,6 +1251,7 @@ dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_relu:
     lw  s1, 0(sp)        // restore s1
     addi  sp, sp, 8
     ret
+#endif
 
 
 
@@ -1236,6 +1269,7 @@ dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_relu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_PER_CHANNEL_HWC1_BIAS
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias
     .type   dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias, @function
@@ -1293,9 +1327,11 @@ dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias:
     lw  s11, 0(sp)      // restore s11
     addi  sp, sp, 20
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_PER_CHANNEL_HWC1_BIAS_RELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias_relu
     .type   dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias_relu, @function
@@ -1364,9 +1400,11 @@ dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias_relu:
     lw  s11, 0(sp)      // restore s11
     addi  sp, sp, 24
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_PER_CHANNEL_HWC1
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1
     .type   dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1, @function
@@ -1421,9 +1459,11 @@ dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1:
     lw  s11, 0(sp)      // restore s11
     addi  sp, sp, 20
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_DEPTHWISE_CONV2D_PER_CHANNEL_HWC1_RELU
     .text
     .global dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_relu
     .type   dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_relu, @function
@@ -1490,3 +1530,4 @@ dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_relu:
     lw  s11, 0(sp)      // restore s11
     addi  sp, sp, 24
     ret
+#endif

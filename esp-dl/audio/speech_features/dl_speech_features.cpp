@@ -26,6 +26,17 @@ void print_speech_feature_config(const SpeechFeatureConfig &config)
     ESP_LOGI(tag, "  remove_dc_offset: %s", config.remove_dc_offset ? "true" : "false");
 }
 
+esp_err_t SpeechFeatureBase::process_frame_int16(
+    const int16_t *input, int win_len, int16_t *output, int16_t prev, int output_exponent)
+{
+    (void)input;
+    (void)win_len;
+    (void)output;
+    (void)prev;
+    (void)output_exponent;
+    return ESP_ERR_NOT_SUPPORTED;
+}
+
 esp_err_t SpeechFeatureBase::process(const float *input, int input_len, float *output)
 {
     if (input == nullptr || output == nullptr) {

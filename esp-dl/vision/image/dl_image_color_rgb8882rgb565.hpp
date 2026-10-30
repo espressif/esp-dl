@@ -6,6 +6,9 @@ namespace dl {
 namespace image {
 template <bool RGB565BE, bool RGBSwap>
 struct RGB8882RGB565 {
+    static constexpr int src_bpp = 3;
+    static constexpr int dst_bpp = 2;
+
     void operator()(const uint8_t *src, uint8_t *dst) const
     {
         uint16_t *dst_data = reinterpret_cast<uint16_t *>(dst);

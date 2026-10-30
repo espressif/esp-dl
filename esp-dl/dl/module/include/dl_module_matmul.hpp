@@ -1,6 +1,8 @@
 #pragma once
 
 #include "dl_base_conv2d.hpp"
+#include "dl_base_conv_args.hpp"
+#include "dl_base_conv_select.hpp"
 #include "dl_base_depthwise_conv2d.hpp"
 #include "dl_base_matmul.hpp"
 #include "dl_module_base.hpp"
@@ -21,6 +23,7 @@ private:
         m_activation; /*!< activation of MatMul, if you don't specify anything, no activation is applied */
     bool m_input1_native_kn;
     bool m_running_native_kernel;
+    dl_kernel_erased_t m_fn[3] = {};
 
 public:
     /**
@@ -131,12 +134,21 @@ public:
             return;
         }
 
-        if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            base::conv2d<int8_t, int32_t, int32_t>(args);
-        } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            base::conv2d<int16_t, int32_t, int64_t>(args);
-        } else if (quant_type == QUANT_TYPE_SYMM_W8A16) {
-            base::conv2d<int16_t, int32_t, int64_t, int8_t>(args);
+        base::conv2d(args, quant_type, m_fn[0], m_fn[1], m_fn[2]);
+    }
+
+    void run_conv_args(base::ConvOpArgs &m_args)
+    {
+        int task_size = m_args.size();
+        if (task_size < 1 || !base::dl_conv_ensure_kernels(m_fn, m_args.get_args(0), 0, quant_type, "MatMul")) {
+            return;
+        }
+        if (task_size == 1) {
+            forward_args((void *)&m_args.get_args(0));
+        } else if (task_size == 2) {
+            module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
+        } else {
+            ESP_LOGE("MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
         }
     }
 
@@ -249,8 +261,7 @@ public:
         m_running_native_kernel = false;
     }
 
-    template <typename T, typename filter_t = T>
-    void forward_template(ModelContext *context, runtime_mode_t mode)
+    void forward_as_conv(ModelContext *context, runtime_mode_t mode)
     {
         std::vector<int> padding(4, 0);
         TensorBase *input0 = context->get_tensor(m_inputs_index[0]);
@@ -261,62 +272,29 @@ public:
         std::vector<int> origin_output_shape = output->get_shape();
 
         // input: MK -> NHWC; filter: KN -> HWIO; output: MN -> NHWC
-        if (origin_input0_shape.size() <= 2 && origin_input1_shape.size() <= 2) {
-            if (origin_input0_shape.size() == 1 && origin_input1_shape.size() == 1) {
-                // dot product
-                // input: NHWC
-                input0->set_shape({1, 1, 1, origin_input0_shape[0]});
-                // filter: HWIO
-                input1->set_shape({1, 1, origin_input1_shape[0], 1});
-                // output: NHWC
-                output->set_shape({1, 1, 1, 1});
+        if (origin_input1_shape.size() <= 2) {
+            // A shared rank-1/2 weight: every leading dim of input0 folds into M, so the
+            // whole batch is one Conv that reuses the filter and splits rows across cores.
+            const int k = origin_input0_shape.back();
+            const int m = input0->get_size() / k;
+            const int n = origin_input1_shape.size() == 1 ? 1 : origin_input1_shape.back();
+            input0->set_shape({1, 1, m, k});
+            input1->set_shape({1, 1, k, n});
+            output->set_shape({1, 1, m, n});
 
-            } else if (origin_input0_shape.size() == 2 && origin_input1_shape.size() == 2) {
-                // matrix multiply
-                // input: NHWC
-                input0->set_shape({1, 1, origin_input0_shape[0], origin_input0_shape[1]});
-                // filter: HWIO
-                input1->set_shape({1, 1, origin_input1_shape[0], origin_input1_shape[1]});
-                // output: NHWC
-                output->set_shape({1, 1, origin_output_shape[0], origin_output_shape[1]});
-
-            } else if (origin_input0_shape.size() == 1 && origin_input1_shape.size() == 2) {
-                // input: NHWC
-                input0->set_shape({1, 1, 1, origin_input0_shape[0]});
-                // filter: HWIO
-                input1->set_shape({1, 1, origin_input1_shape[0], origin_input1_shape[1]});
-                // output: NHWC
-                output->set_shape({1, 1, 1, origin_output_shape[0]});
-
-            } else if (origin_input0_shape.size() == 2 && origin_input1_shape.size() == 1) {
-                // input: NHWC
-                input0->set_shape({1, 1, origin_input0_shape[0], origin_input0_shape[1]});
-                // filter: HWIO
-                input1->set_shape({1, 1, origin_input1_shape[0], 1});
-                // output: NHWC
-                output->set_shape({1, 1, origin_output_shape[0], 1});
-            }
-
-            base::ConvOpArgs<T, filter_t> m_args(output,
-                                                 input0,
-                                                 padding,
-                                                 input1 /*filter*/,
-                                                 {1, 1} /*strides*/,
-                                                 {1, 1} /*dilations*/,
-                                                 1 /*group*/,
-                                                 nullptr /*bias*/,
-                                                 m_activation,
-                                                 nullptr,
-                                                 mode); // do not support PReLU and Leaky RelU
-            int task_size = m_args.size();
-            if (task_size == 1) { // single task
-                forward_args((void *)&m_args.get_args(0));
-            } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
-                ESP_LOGI("MatMul", "two task...");
-                module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
-            } else {
-                ESP_LOGE("MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
-            }
+            base::ConvOpArgs m_args(output,
+                                    input0,
+                                    padding,
+                                    input1 /*filter*/,
+                                    {1, 1} /*strides*/,
+                                    {1, 1} /*dilations*/,
+                                    1 /*group*/,
+                                    nullptr /*bias*/,
+                                    m_activation,
+                                    nullptr,
+                                    mode,
+                                    quant_type); // do not support PReLU and Leaky RelU
+            run_conv_args(m_args);
 
         } else {
             // batched matrix multiply
@@ -373,82 +351,19 @@ public:
                                           false /*deep*/,
                                           output->caps /*caps*/);
 
-                    base::ConvOpArgs<T, filter_t> m_args(&output_tmp,
-                                                         input0,
-                                                         padding,
-                                                         &input1_tmp /*filter*/,
-                                                         {1, 1} /*strides*/,
-                                                         {1, 1} /*dilations*/,
-                                                         1 /*group*/,
-                                                         nullptr /*bias*/,
-                                                         m_activation,
-                                                         nullptr,
-                                                         mode); // do not support PReLU and Leaky RelU
-                    int task_size = m_args.size();
-                    if (task_size == 1) { // single task
-                        forward_args((void *)&m_args.get_args(0));
-                    } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
-                        ESP_LOGI("MatMul", "two task...");
-                        module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
-                    } else {
-                        ESP_LOGE("MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
-                    }
-                }
-
-            } else if (origin_input0_shape.size() > 2 && origin_input1_shape.size() == 1) {
-                int input0_batch_size = 1;
-                for (int i = 0; i < origin_input0_shape.size() - 2; i++) {
-                    input0_batch_size *= origin_input0_shape[i];
-                }
-                input0->set_shape({input0_batch_size,
-                                   origin_input0_shape[origin_input0_shape.size() - 2],
-                                   origin_input0_shape.back()});
-                // filter: HWIO
-                input1->set_shape({1, 1, origin_input1_shape.back(), 1});
-                // output: NHWC
-                output->set_shape({input0_batch_size, origin_output_shape.back()});
-
-                for (int i = 0; i < input0_batch_size; i++) {
-                    // input: NHWC
-                    TensorBase input0_tmp({1,
-                                           1,
-                                           origin_input0_shape[origin_input0_shape.size() - 2],
-                                           origin_input0_shape.back()} /*shape*/,
-                                          static_cast<char *>(input0_element) +
-                                              input0_dtype_bytes * input0->get_element_index({i, 0, 0}) /*element*/,
-                                          input0->exponent /*exponent*/,
-                                          input0->dtype /*dtype*/,
-                                          false /*deep*/,
-                                          input0->caps /*caps*/);
-                    // output: NHWC
-                    TensorBase output_tmp({1, 1, origin_output_shape.back(), 1} /*shape*/,
-                                          static_cast<char *>(output_element) +
-                                              output_dtype_bytes * output->get_element_index({i, 0}) /*element*/,
-                                          output->exponent /*exponent*/,
-                                          output->dtype /*dtype*/,
-                                          false /*deep*/,
-                                          output->caps /*caps*/);
-
-                    base::ConvOpArgs<T, filter_t> m_args(&output_tmp,
-                                                         &input0_tmp,
-                                                         padding,
-                                                         input1 /*filter*/,
-                                                         {1, 1} /*strides*/,
-                                                         {1, 1} /*dilations*/,
-                                                         1 /*group*/,
-                                                         nullptr /*bias*/,
-                                                         m_activation,
-                                                         nullptr,
-                                                         mode); // do not support PReLU and Leaky RelU
-                    int task_size = m_args.size();
-                    if (task_size == 1) { // single task
-                        forward_args((void *)&m_args.get_args(0));
-                    } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
-                        ESP_LOGI("MatMul", "two task...");
-                        module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
-                    } else {
-                        ESP_LOGE("MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
-                    }
+                    base::ConvOpArgs m_args(&output_tmp,
+                                            input0,
+                                            padding,
+                                            &input1_tmp /*filter*/,
+                                            {1, 1} /*strides*/,
+                                            {1, 1} /*dilations*/,
+                                            1 /*group*/,
+                                            nullptr /*bias*/,
+                                            m_activation,
+                                            nullptr,
+                                            mode,
+                                            quant_type); // do not support PReLU and Leaky RelU
+                    run_conv_args(m_args);
                 }
 
             } else if (std::max(origin_input0_shape.size(), origin_input1_shape.size()) == 3) {
@@ -512,26 +427,19 @@ public:
                                           false /*deep*/,
                                           output->caps /*caps*/);
 
-                    base::ConvOpArgs<T, filter_t> m_args(&output_tmp,
-                                                         &input0_tmp,
-                                                         padding,
-                                                         &input1_tmp /*filter*/,
-                                                         {1, 1} /*strides*/,
-                                                         {1, 1} /*dilations*/,
-                                                         1 /*group*/,
-                                                         nullptr /*bias*/,
-                                                         m_activation,
-                                                         nullptr,
-                                                         mode); // do not support PReLU and Leaky RelU
-                    int task_size = m_args.size();
-                    if (task_size == 1) { // single task
-                        forward_args((void *)&m_args.get_args(0));
-                    } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
-                        ESP_LOGI("MatMul", "two task...");
-                        module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
-                    } else {
-                        ESP_LOGE("MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
-                    }
+                    base::ConvOpArgs m_args(&output_tmp,
+                                            &input0_tmp,
+                                            padding,
+                                            &input1_tmp /*filter*/,
+                                            {1, 1} /*strides*/,
+                                            {1, 1} /*dilations*/,
+                                            1 /*group*/,
+                                            nullptr /*bias*/,
+                                            m_activation,
+                                            nullptr,
+                                            mode,
+                                            quant_type); // do not support PReLU and Leaky RelU
+                    run_conv_args(m_args);
                 }
 
             } else if (std::max(origin_input0_shape.size(), origin_input1_shape.size()) == 4) {
@@ -615,27 +523,19 @@ public:
                                               false /*deep*/,
                                               output->caps /*caps*/);
 
-                        base::ConvOpArgs<T, filter_t> m_args(&output_tmp,
-                                                             &input0_tmp,
-                                                             padding,
-                                                             &input1_tmp /*filter*/,
-                                                             {1, 1} /*strides*/,
-                                                             {1, 1} /*dilations*/,
-                                                             1 /*group*/,
-                                                             nullptr /*bias*/,
-                                                             m_activation,
-                                                             nullptr,
-                                                             mode); // do not support PReLU and Leaky RelU
-                        int task_size = m_args.size();
-                        if (task_size == 1) { // single task
-                            forward_args((void *)&m_args.get_args(0));
-                        } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
-                            ESP_LOGI("MatMul", "two task...");
-                            module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
-                        } else {
-                            ESP_LOGE(
-                                "MatMul", "Only support task size is 1 or 2, currently task size is %d", task_size);
-                        }
+                        base::ConvOpArgs m_args(&output_tmp,
+                                                &input0_tmp,
+                                                padding,
+                                                &input1_tmp /*filter*/,
+                                                {1, 1} /*strides*/,
+                                                {1, 1} /*dilations*/,
+                                                1 /*group*/,
+                                                nullptr /*bias*/,
+                                                m_activation,
+                                                nullptr,
+                                                mode,
+                                                quant_type); // do not support PReLU and Leaky RelU
+                        run_conv_args(m_args);
                     }
                 }
 
@@ -654,21 +554,15 @@ public:
 
     void forward(ModelContext *context, runtime_mode_t mode = RUNTIME_MODE_AUTO)
     {
-        if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            if (m_input1_native_kn) {
-                forward_native_template<int8_t>(context, mode);
-            } else {
-                forward_template<int8_t>(context, mode);
-            }
-        } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            if (m_input1_native_kn) {
-                forward_native_template<int16_t>(context, mode);
-            } else {
-                forward_template<int16_t>(context, mode);
-            }
-        } else if (quant_type == QUANT_TYPE_SYMM_W8A16) {
-            forward_template<int16_t, int8_t>(context, mode);
+        if (m_input1_native_kn && quant_type == QUANT_TYPE_SYMM_8BIT) {
+            forward_native_template<int8_t>(context, mode);
+            return;
         }
+        if (m_input1_native_kn && quant_type == QUANT_TYPE_SYMM_16BIT) {
+            forward_native_template<int16_t>(context, mode);
+            return;
+        }
+        forward_as_conv(context, mode);
     }
 
     /**

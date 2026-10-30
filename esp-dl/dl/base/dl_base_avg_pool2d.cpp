@@ -1,6 +1,5 @@
 #include "dl_base_avg_pool2d.hpp"
 
-#include "dl_base_activate_buffer.hpp"
 #include "dl_base_activate_output.hpp"
 #include "dl_base_isa.hpp"
 

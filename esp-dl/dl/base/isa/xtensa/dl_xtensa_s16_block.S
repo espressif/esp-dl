@@ -1,3 +1,4 @@
+#include "dl_compile_config.h"
 ############################################################################################################################################################
 # xtensa general tools
 ############################################################################################################################################################
@@ -150,6 +151,7 @@
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_11CN_BIAS
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_11cn_bias
@@ -192,10 +194,12 @@ xtensa_s16_conv2d_11cn_bias_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_11cn_bias_loop
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_11CN_BIAS_RELU
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_11cn_bias_relu
@@ -238,10 +242,12 @@ xtensa_s16_conv2d_11cn_bias_relu_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_11cn_bias_relu_loop
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_11CN
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_11cn
@@ -284,10 +290,12 @@ xtensa_s16_conv2d_11cn_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_11cn_loop
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_11CN_RELU
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_11cn_relu
@@ -330,6 +338,7 @@ xtensa_s16_conv2d_11cn_relu_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_11cn_relu_loop
     retw
+#endif
 
 
 
@@ -385,6 +394,7 @@ xtensa_s16_conv2d_11cn_relu_loop:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_33CN_BIAS
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_33cn_bias
@@ -428,9 +438,11 @@ xtensa_s16_conv2d_33cn_bias_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_33cn_bias_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_33CN_BIAS_RELU
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_33cn_bias_relu
@@ -474,9 +486,11 @@ xtensa_s16_conv2d_33cn_bias_relu_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_33cn_bias_relu_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_33CN
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_33cn
@@ -520,9 +534,11 @@ xtensa_s16_conv2d_33cn_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_33cn_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_33CN_RELU
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_33cn_relu
@@ -566,6 +582,7 @@ xtensa_s16_conv2d_33cn_relu_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_33cn_relu_loop
     retw
+#endif
 
 
 
@@ -613,6 +630,7 @@ xtensa_s16_conv2d_33cn_relu_loop:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_HWCN_BIAS
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_hwcn_bias
@@ -656,9 +674,11 @@ xtensa_s16_conv2d_hwcn_bias_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_hwcn_bias_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_HWCN_BIAS_RELU
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_hwcn_bias_relu
@@ -702,9 +722,11 @@ xtensa_s16_conv2d_hwcn_bias_relu_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_hwcn_bias_relu_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_HWCN
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_hwcn
@@ -748,9 +770,11 @@ xtensa_s16_conv2d_hwcn_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_hwcn_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_XTENSA_S16_CONV2D_HWCN_RELU
     .align 4
     .text
     .global dl_xtensa_s16_conv2d_hwcn_relu
@@ -794,3 +818,4 @@ xtensa_s16_conv2d_hwcn_relu_loop:
     addi a7, a7, -1  # bump up pointer
     bnez a7, xtensa_s16_conv2d_hwcn_relu_loop
     retw
+#endif

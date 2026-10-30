@@ -27,6 +27,13 @@
 #define CONFIG_XTENSA_BOOST 0
 #endif
 
+// MAC16 kernels in dl/base/isa/xtensa, used by the plain-C conv paths.
+#if CONFIG_IDF_TARGET_ESP32
+#define CONFIG_XTENSA_MAC16_BOOST 1
+#else
+#define CONFIG_XTENSA_MAC16_BOOST 0
+#endif
+
 #if CONFIG_IDF_TARGET_ESP32S3
 #define CONFIG_PIE_V1_BOOST 1
 #else

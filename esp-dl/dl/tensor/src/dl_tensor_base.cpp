@@ -873,10 +873,31 @@ static bool try_simd_transpose(T *output,
     }
 
     if constexpr (std::is_same<T, int8_t>::value) {
-        if (K == 1 && (N % 8 == 0) && (M % 16 == 0)) {
+        bool partial = false;
+#if CONFIG_PIE_V2_BOOST && CONFIG_IDF_TARGET_ESP32P4
+        const uintptr_t src_begin = reinterpret_cast<uintptr_t>(input);
+        const uintptr_t dst_begin = reinterpret_cast<uintptr_t>(output);
+        const bool separate =
+            uint64_t(src_begin) + total_bytes <= dst_begin || uint64_t(dst_begin) + total_bytes <= src_begin;
+        partial = K == 1 && N >= 8 && M >= 16 && plane >= 1024 && ((N & 7) || (M & 15)) && separate;
+#endif
+        if (K == 1 && (((N % 8 == 0) && (M % 16 == 0)) || partial)) {
             for (int b = 0; b < batch; ++b) {
 #if CONFIG_PIE_V2_BOOST
+                if (partial)
+                    dl_esp32p4_cfg_misalign(HW_MISALIGN, HW_MISALIGN);
+                // The kernel writes complete blocks and keeps the original row strides.
                 dl_esp32p4_s8_transpose(output + b * plane, input + b * plane, N, M);
+                if (partial) {
+                    dl_esp32p4_cfg_misalign(FORCE_ALIGN, FORCE_ALIGN);
+                    const int rows = N & -8, columns = M & -16;
+                    T *dst = output + b * plane;
+                    const T *src = input + b * plane;
+                    for (int n = 0; n < rows; ++n)
+                        for (int m = columns; m < M; ++m) dst[m * N + n] = src[n * M + m];
+                    for (int n = rows; n < N; ++n)
+                        for (int m = 0; m < M; ++m) dst[m * N + n] = src[n * M + m];
+                }
 #else
                 dl_tie728_s8_transpose(output + b * plane, input + b * plane, N, M);
 #endif

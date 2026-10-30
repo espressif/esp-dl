@@ -39,6 +39,8 @@ static void *generate_table(dl_fft_table_kind_t kind, int fft_point, uint32_t ca
         return dl_gen_dif_fft_table(fft_point, caps);
     case DL_FFT_TBL_S16_DIF_RFFT:
         return dl_gen_dif_rfft_table(fft_point, caps);
+    case DL_FFT_TBL_S32_FFT:
+        return dl_gen_fft_table_sc32(fft_point, caps);
     default:
         return NULL;
     }

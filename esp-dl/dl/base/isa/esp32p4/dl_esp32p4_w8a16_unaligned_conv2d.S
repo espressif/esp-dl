@@ -1,3 +1,4 @@
+#include "dl_compile_config.h"
 #include "dl_esp32p4_s16.S"
 #include "dl_esp32p4_common.S"
 
@@ -378,6 +379,7 @@
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_11CN_BIAS
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_11cn_bias
     .type   dl_esp32p4_w8a16_unaligned_conv2d_11cn_bias, @function
@@ -492,9 +494,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_11cn_bias:
 
     esp32p4_pop_12_stacks_3r  s0, s1, s8     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_11CN_BIAS_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_11cn_bias_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_11cn_bias_relu, @function
@@ -615,9 +619,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_11cn_bias_relu:
 
     esp32p4_pop_20_stacks_5r  s0, s1, s8, s9, s10     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_11CN
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_11cn
     .type   dl_esp32p4_w8a16_unaligned_conv2d_11cn, @function
@@ -727,9 +733,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_11cn:
 
     esp32p4_pop_12_stacks_3r  s0, s1, s8     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_11CN_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_11cn_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_11cn_relu, @function
@@ -845,6 +853,7 @@ dl_esp32p4_w8a16_unaligned_conv2d_11cn_relu:
 
     esp32p4_pop_20_stacks_5r  s0, s1, s8, s9, s10     // restore registers
     ret
+#endif
 
 
 
@@ -990,6 +999,7 @@ dl_esp32p4_w8a16_unaligned_conv2d_11cn_relu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_33CN_BIAS
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_33cn_bias
     .type   dl_esp32p4_w8a16_unaligned_conv2d_33cn_bias, @function
@@ -1106,9 +1116,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_33cn_bias:
 
     esp32p4_pop_12_stacks_3r  s0, s1, s8     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_33CN_BIAS_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_33cn_bias_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_33cn_bias_relu, @function
@@ -1231,9 +1243,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_33cn_bias_relu:
 
     esp32p4_pop_20_stacks_5r  s0, s1, s8, s9, s10     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_33CN
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_33cn
     .type   dl_esp32p4_w8a16_unaligned_conv2d_33cn, @function
@@ -1345,9 +1359,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_33cn:
 
     esp32p4_pop_12_stacks_3r  s0, s1, s8     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_33CN_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_33cn_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_33cn_relu, @function
@@ -1465,6 +1481,7 @@ dl_esp32p4_w8a16_unaligned_conv2d_33cn_relu:
 
     esp32p4_pop_20_stacks_5r  s0, s1, s8, s9, s10     // restore registers
     ret
+#endif
 
 
 
@@ -1588,6 +1605,7 @@ dl_esp32p4_w8a16_unaligned_conv2d_33cn_relu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_HWCN_BIAS
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias
     .type   dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias, @function
@@ -1709,9 +1727,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias:
 
     esp32p4_pop_20_stacks_5r  s1, s2, s3, s4, s8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_HWCN_BIAS_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias_relu, @function
@@ -1839,9 +1859,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias_relu:
 
     esp32p4_pop_28_stacks_7r  s1, s2, s3, s4, s8, s9, s10
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_HWCN
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_hwcn
     .type   dl_esp32p4_w8a16_unaligned_conv2d_hwcn, @function
@@ -1958,9 +1980,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_hwcn:
 
     esp32p4_pop_20_stacks_5r  s1, s2, s3, s4, s8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_HWCN_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_hwcn_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_hwcn_relu, @function
@@ -2083,6 +2107,7 @@ dl_esp32p4_w8a16_unaligned_conv2d_hwcn_relu:
 
     esp32p4_pop_28_stacks_7r  s1, s2, s3, s4, s8, s9, s10
     ret
+#endif
 
 
 
@@ -2102,6 +2127,7 @@ dl_esp32p4_w8a16_unaligned_conv2d_hwcn_relu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_11CN_BIAS
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_bias
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_bias, @function
@@ -2221,9 +2247,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_bias:
 
     esp32p4_pop_16_stacks_4r  s0, s1, s8, s11     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_11CN_BIAS_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_bias_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_bias_relu, @function
@@ -2349,9 +2377,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_bias_relu:
 
     esp32p4_pop_24_stacks_6r  s0, s1, s8, s9, s10, s11     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_11CN
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn, @function
@@ -2466,9 +2496,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn:
 
     esp32p4_pop_16_stacks_4r  s0, s1, s8, s11     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_11CN_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_relu, @function
@@ -2589,6 +2621,7 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_relu:
 
     esp32p4_pop_24_stacks_6r  s0, s1, s8, s9, s10, s11     // restore registers
     ret
+#endif
 
 
 
@@ -2606,6 +2639,7 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_relu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_33CN_BIAS
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_bias
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_bias, @function
@@ -2727,9 +2761,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_bias:
 
     esp32p4_pop_16_stacks_4r  s0, s1, s8, s11     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_33CN_BIAS_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_bias_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_bias_relu, @function
@@ -2857,9 +2893,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_bias_relu:
 
     esp32p4_pop_24_stacks_6r  s0, s1, s8, s9, s10, s11     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_33CN
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn, @function
@@ -2976,9 +3014,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn:
 
     esp32p4_pop_16_stacks_4r  s0, s1, s8, s11     // restore registers
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_33CN_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_relu, @function
@@ -3101,6 +3141,7 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_relu:
 
     esp32p4_pop_24_stacks_6r  s0, s1, s8, s9, s10, s11     // restore registers
     ret
+#endif
 
 
 
@@ -3110,6 +3151,7 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_relu:
 ####
 ############################################################################################################################################################
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_HWCN_BIAS
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias, @function
@@ -3236,9 +3278,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias:
 
     esp32p4_pop_24_stacks_6r  s1, s2, s3, s4, s8, s11
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_HWCN_BIAS_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias_relu, @function
@@ -3371,9 +3415,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias_relu:
 
     esp32p4_pop_32_stacks_8r  s1, s2, s3, s4, s8, s9, s10, s11
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_HWCN
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn, @function
@@ -3495,9 +3541,11 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn:
 
     esp32p4_pop_24_stacks_6r  s1, s2, s3, s4, s8, s11
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_W8A16_UNALIGNED_CONV2D_PER_CHANNEL_HWCN_RELU
     .text
     .global dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_relu
     .type   dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_relu, @function
@@ -3625,3 +3673,4 @@ dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_relu:
 
     esp32p4_pop_32_stacks_8r  s1, s2, s3, s4, s8, s9, s10, s11
     ret
+#endif

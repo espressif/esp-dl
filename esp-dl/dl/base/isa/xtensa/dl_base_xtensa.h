@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 extern "C" {
 void dl_xtensa_s16_conv2d_11cn_bias(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);
 void dl_xtensa_s16_conv2d_11cn_bias_relu(int16_t *output_ptr, int16_t *input_ptr, void *args_ptr);

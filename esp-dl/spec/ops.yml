@@ -1,0 +1,740 @@
+# Legal op_type strings (EDL ops[] / Node.op_type) and CMake L1 sources.
+# Paths are relative to the esp-dl component root. YAML lives in spec/.
+#
+# Membership, not a version number: an EDL op is valid iff it is a key here
+# or listed under that key's `aliases`. Unknown ops fail configure / deserialize.
+# Rename an op_type by adding aliases: [OldName] on the new key; keep the
+# ModuleCreator registration for the old string until models are re-exported.
+#
+# `groups` / per-op `use` / `srcs` / `target` are CMake-only.
+# Macro-only .S files are pulled in by #include from real kernel .S files.
+# dl/base/dl_kernel.cpp is always compiled from compile_finalize.cmake.
+
+groups:
+  lut:
+    srcs:
+      - dl/base/dl_base_lut.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_lut.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_lut.S
+  elemwise:
+    srcs:
+      - dl/base/dl_base_elemwise.cpp
+      - dl/base/dl_base_shape.cpp
+  conv:
+    srcs:
+      - dl/base/dl_base_conv_loop.cpp
+      - dl/base/dl_base_dwconv_loop.cpp
+      - dl/base/dl_base_conv_select.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_conv2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_unaligned_conv2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_conv2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_unaligned_conv2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_w8a16_conv2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_w8a16_unaligned_conv2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_depthwise_conv2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_unaligned_depthwise_conv2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_depthwise_conv2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_unaligned_depthwise_conv2d.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s16_conv2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_unaligned_conv2d.S
+        - dl/base/isa/tie728/dl_tie728_s8_conv2d.S
+        - dl/base/isa/tie728/dl_tie728_w8a16_conv2d.S
+        - dl/base/isa/tie728/dl_tie728_w8a16_unaligned_conv2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_depthwise_conv2d_block.S
+        - dl/base/isa/tie728/dl_tie728_s8_depthwise_conv2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_unaligned_depthwise_conv2d.S
+      c:
+        - dl/base/isa/c/dl_c_conv.cpp
+        - dl/base/isa/c/dl_c_dwconv.cpp
+        - dl/base/isa/c/dl_c_conv_tail.cpp
+        - dl/base/isa/riscv/dl_riscv_conv2d_mac.S
+        - dl/base/isa/xtensa/dl_xtensa_conv.cpp
+        - dl/base/isa/xtensa/dl_xtensa_s16_conv2d_1x1.S
+        - dl/base/isa/xtensa/dl_xtensa_s16_depthwise_conv2d.S
+
+ops:
+  Conv:
+    module:
+      header: dl_module_conv.hpp
+      class: Conv
+    use: [conv]
+  Gemm:
+    module:
+      header: dl_module_gemm.hpp
+      class: Gemm
+    use: [conv]
+  MatMul:
+    module:
+      header: dl_module_matmul.hpp
+      class: MatMul
+    use: [conv]
+    srcs:
+      - dl/base/dl_base_matmul.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_matmul.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_matmul.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s16_matmul.S
+        - dl/base/isa/tie728/dl_tie728_s16_unaligned_matmul.S
+        - dl/base/isa/tie728/dl_tie728_s8_matmul.S
+        - dl/base/isa/tie728/dl_tie728_s8_unaligned_matmul.S
+
+  Add:
+    module:
+      header: dl_module_add.hpp
+      class: Add
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_add.cpp
+      - dl/base/dl_base_add2d.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_add.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_add2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_add.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_add2d.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_add.S
+        - dl/base/isa/tie728/dl_tie728_s8_add2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_add.S
+        - dl/base/isa/tie728/dl_tie728_s16_add2d.S
+  Sub:
+    module:
+      header: dl_module_sub.hpp
+      class: Sub
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_sub.cpp
+      - dl/base/dl_base_sub2d.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_sub.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_sub.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_sub.S
+        - dl/base/isa/tie728/dl_tie728_s8_sub2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_sub.S
+        - dl/base/isa/tie728/dl_tie728_s16_sub2d.S
+  Mul:
+    module:
+      header: dl_module_mul.hpp
+      class: Mul
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_mul.cpp
+      - dl/base/dl_base_mul2d.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_mul.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_mul2d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_mul.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_mul2d.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_mul.S
+        - dl/base/isa/tie728/dl_tie728_s8_mul2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_mul.S
+        - dl/base/isa/tie728/dl_tie728_s16_mul2d.S
+  Div:
+    module:
+      header: dl_module_div.hpp
+      class: Div
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_div.cpp
+  Pow:
+    module:
+      header: dl_module_pow.hpp
+      class: Pow
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_pow.cpp
+  Mod:
+    module:
+      header: dl_module_mod.hpp
+      class: Mod
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_mod.cpp
+
+  Greater:
+    module:
+      header: dl_module_greater.hpp
+      class: Greater
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_greater.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_greater.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_greater.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_greater.S
+        - dl/base/isa/tie728/dl_tie728_s16_greater.S
+  GreaterOrEqual:
+    module:
+      header: dl_module_greater_or_equal.hpp
+      class: GreaterOrEqual
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_greaterorequal.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_greaterorequal.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_greaterorequal.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_greaterorequal.S
+        - dl/base/isa/tie728/dl_tie728_s16_greaterorequal.S
+  Equal:
+    module:
+      header: dl_module_equal.hpp
+      class: Equal
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_equal.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_equal.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_equal.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_equal.S
+        - dl/base/isa/tie728/dl_tie728_s16_equal.S
+  Less:
+    module:
+      header: dl_module_less.hpp
+      class: Less
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_less.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_less.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_less.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_less.S
+        - dl/base/isa/tie728/dl_tie728_s16_less.S
+  LessOrEqual:
+    module:
+      header: dl_module_less_or_equal.hpp
+      class: LessOrEqual
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_lessorequal.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_lessorequal.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_lessorequal.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_lessorequal.S
+        - dl/base/isa/tie728/dl_tie728_s16_lessorequal.S
+
+  Relu:
+    module:
+      header: dl_module_relu.hpp
+      class: Relu
+    use: [lut]
+    srcs:
+      - dl/base/dl_base_relu.cpp
+    target:
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s16_relu.S
+        - dl/base/isa/tie728/dl_tie728_s8_relu.S
+  LeakyRelu:
+    module:
+      header: dl_module_leaky_relu.hpp
+      class: LeakyRelu
+    use: [lut]
+    srcs:
+      - dl/base/dl_base_leakyrelu.cpp
+    target:
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s16_relu.S
+        - dl/base/isa/tie728/dl_tie728_s8_relu.S
+  PRelu:
+    module:
+      header: dl_module_prelu.hpp
+      class: PRelu
+    srcs:
+      - dl/base/dl_base_prelu.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_prelu.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s16_prelu.S
+        - dl/base/isa/tie728/dl_tie728_s8_prelu.S
+  Sigmoid:
+    module:
+      header: dl_module_sigmoid.hpp
+      class: Sigmoid
+    use: [lut]
+  Tanh:
+    module:
+      header: dl_module_tanh.hpp
+      class: Tanh
+    use: [lut]
+  HardSigmoid:
+    module:
+      header: dl_module_hard_sigmoid.hpp
+      class: HardSigmoid
+    use: [lut]
+  HardSwish:
+    module:
+      header: dl_module_hard_swish.hpp
+      class: HardSwish
+    use: [lut]
+  Gelu:
+    module:
+      header: dl_module_lut.hpp
+      class: LUT
+    use: [lut]
+  LUT:
+    module:
+      header: dl_module_lut.hpp
+      class: LUT
+    use: [lut]
+  Clip:
+    module:
+      header: dl_module_clip.hpp
+      class: Clip
+    use: [lut]
+  Elu:
+    module:
+      header: dl_module_elu.hpp
+      class: Elu
+    use: [lut]
+  Swish:
+    module:
+      header: dl_module_swish.hpp
+      class: Swish
+    use: [lut]
+  Exp:
+    module:
+      header: dl_module_exp.hpp
+      class: Exp
+    use: [lut]
+  Log:
+    module:
+      header: dl_module_log.hpp
+      class: Log
+    use: [lut]
+  Sqrt:
+    module:
+      header: dl_module_sqrt.hpp
+      class: Sqrt
+    use: [lut]
+
+  Resize:
+    module:
+      header: dl_module_resize.hpp
+      class: Resize
+    srcs:
+      - dl/base/dl_base_resize.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_resize.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_resize.S
+  GlobalAveragePool:
+    module:
+      header: dl_module_global_average_pool.hpp
+      class: GlobalAveragePool
+    srcs:
+      - dl/base/dl_base_avg_pool2d.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_avg_pool2d.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_avg_pool2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_avg_pool2d.S
+  AveragePool:
+    module:
+      header: dl_module_average_pool.hpp
+      class: AveragePool
+    srcs:
+      - dl/base/dl_base_avg_pool2d.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_avg_pool2d.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_avg_pool2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_avg_pool2d.S
+  MaxPool:
+    module:
+      header: dl_module_max_pool.hpp
+      class: MaxPool
+    srcs:
+      - dl/base/dl_base_max_pool2d.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_max_pool2d.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_max_pool2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_max_pool2d.S
+  Pad:
+    module:
+      header: dl_module_pad.hpp
+      class: Pad
+    srcs:
+      - dl/base/dl_base_pad.cpp
+
+  Transpose:
+    module:
+      header: dl_module_transpose.hpp
+      class: Transpose
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_transpose.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_transpose.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s16_transpose.S
+        - dl/base/isa/tie728/dl_tie728_s8_transpose.S
+
+  ReduceL1:
+    module:
+      header: dl_module_reduce_l1.hpp
+      class: ReduceL1
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  ReduceL2:
+    module:
+      header: dl_module_reduce_l2.hpp
+      class: ReduceL2
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  ReduceMin:
+    module:
+      header: dl_module_reduce_min.hpp
+      class: ReduceMin
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  ReduceMax:
+    module:
+      header: dl_module_reduce_max.hpp
+      class: ReduceMax
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  ReduceSum:
+    module:
+      header: dl_module_reduce_sum.hpp
+      class: ReduceSum
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  ReduceProd:
+    module:
+      header: dl_module_reduce_prod.hpp
+      class: ReduceProd
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  ReduceMean:
+    module:
+      header: dl_module_reduce_mean.hpp
+      class: ReduceMean
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce_inner_s16.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  ReduceSumSquare:
+    module:
+      header: dl_module_reduce_sum_square.hpp
+      class: ReduceSumSquare
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  ReduceLogSum:
+    module:
+      header: dl_module_reduce_log_sum.hpp
+      class: ReduceLogSum
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  ReduceLogSumExp:
+    module:
+      header: dl_module_reduce_log_sum_exp.hpp
+      class: ReduceLogSumExp
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+
+  RMSNormalization:
+    module:
+      header: dl_module_rms_normalization.hpp
+      class: RMSNormalization
+    srcs:
+      - dl/base/dl_base_norm.cpp
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_rms_normalization.S
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_rms_normalization.S
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  LayerNormalization:
+    module:
+      header: dl_module_layer_normalization.hpp
+      class: LayerNormalization
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+  LpNormalization:
+    module:
+      header: dl_module_lp_normalization.hpp
+      class: LpNormalization
+    srcs:
+      - dl/base/dl_base_reduce.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_reduce.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_reduce.S
+
+  GRU:
+    module:
+      header: dl_module_gru.hpp
+      class: GRU
+    srcs:
+      - dl/base/dl_base_dotprod.cpp
+      - dl/base/dl_base_shape.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_dotprod.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_dotprod.S
+  LSTM:
+    module:
+      header: dl_module_lstm.hpp
+      class: LSTM
+    srcs:
+      - dl/base/dl_base_dotprod.cpp
+      - dl/base/dl_base_shape.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_dotprod.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_dotprod.S
+
+  QuantizeLinear:
+    module:
+      header: dl_module_requantize_linear.hpp
+      class: RequantizeLinear
+    srcs:
+      - dl/base/dl_base_requantize_linear.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_requantize_linear.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_requantize_linear.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_requantize_linear.S
+        - dl/base/isa/tie728/dl_tie728_s16_requantize_linear.S
+  DequantizeLinear:
+    module:
+      header: dl_module_requantize_linear.hpp
+      class: RequantizeLinear
+    srcs:
+      - dl/base/dl_base_requantize_linear.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_requantize_linear.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_requantize_linear.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_requantize_linear.S
+        - dl/base/isa/tie728/dl_tie728_s16_requantize_linear.S
+  RequantizeLinear:
+    module:
+      header: dl_module_requantize_linear.hpp
+      class: RequantizeLinear
+    srcs:
+      - dl/base/dl_base_requantize_linear.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_requantize_linear.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_requantize_linear.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_requantize_linear.S
+        - dl/base/isa/tie728/dl_tie728_s16_requantize_linear.S
+
+  # Header-only modules still appear so compile_req.yml can list them.
+  Concat:
+    module:
+      header: dl_module_concat.hpp
+      class: Concat
+  Flatten:
+    module:
+      header: dl_module_flatten.hpp
+      class: Flatten
+  Reshape:
+    module:
+      header: dl_module_reshape.hpp
+      class: Reshape
+  Squeeze:
+    module:
+      header: dl_module_squeeze.hpp
+      class: Squeeze
+  Unsqueeze:
+    module:
+      header: dl_module_unsqueeze.hpp
+      class: Unsqueeze
+  Softmax:
+    module:
+      header: dl_module_softmax.hpp
+      class: Softmax
+  LogSoftmax:
+    module:
+      header: dl_module_log_softmax.hpp
+      class: LogSoftmax
+  Slice:
+    module:
+      header: dl_module_slice.hpp
+      class: Slice
+  Neg:
+    module:
+      header: dl_module_neg.hpp
+      class: Neg
+  SpaceToDepth:
+    module:
+      header: dl_module_space_to_depth.hpp
+      class: SpaceToDepth
+  Split:
+    module:
+      header: dl_module_split.hpp
+      class: Split
+  Gather:
+    module:
+      header: dl_module_gather.hpp
+      class: Gather
+  ReverseSequence:
+    module:
+      header: dl_module_reverse_sequence.hpp
+      class: ReverseSequence
+  ScatterND:
+    module:
+      header: dl_module_scatter_nd.hpp
+      class: ScatterND
+  Identity:
+    module:
+      header: dl_module_identity.hpp
+      class: Identity
+  DepthToSpace:
+    module:
+      header: dl_module_depth_to_space.hpp
+      class: DepthToSpace
+  StreamingCache:
+    module:
+      header: dl_module_streaming_cache.hpp
+      class: StreamingCache
+  InsertZeros:
+    module:
+      header: dl_module_insert_zeros.hpp
+      class: InsertZeros
+
+  # Present as base kernels / headers but not registered in ModuleCreator.
+  And:
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_and.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_and4d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_and4d.S
+  Or:
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_or.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_or4d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_or4d.S
+  Xor:
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_xor.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_xor4d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_xor4d.S
+  Not:
+    use: [elemwise]
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_not4d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_not4d.S
+  Min:
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_min.cpp
+      - dl/base/dl_base_min2d.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_min4d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_min4d.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_min2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_min2d.S
+  Max:
+    use: [elemwise]
+    srcs:
+      - dl/base/dl_base_max.cpp
+      - dl/base/dl_base_max2d.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_max4d.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_max4d.S
+      pie_v1:
+        - dl/base/isa/tie728/dl_tie728_s8_max2d.S
+        - dl/base/isa/tie728/dl_tie728_s16_max2d.S

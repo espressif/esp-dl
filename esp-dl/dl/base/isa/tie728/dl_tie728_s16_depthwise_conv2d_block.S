@@ -1,3 +1,4 @@
+#include "dl_compile_config.h"
 #include "dl_tie728_s16.S"
 
 
@@ -93,6 +94,7 @@
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_33C1_BIAS
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_33c1_bias
@@ -140,10 +142,12 @@ dl_tie728_s16_depthwise_conv2d_33c1_bias:
     EE.VST.128.IP  q3, a2, 16
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_33C1_BIAS_RELU
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_33c1_bias_relu
@@ -193,10 +197,12 @@ dl_tie728_s16_depthwise_conv2d_33c1_bias_relu:
     EE.VST.128.IP  q3, a2, 16
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_33C1_BIAS_PRELU
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_33c1_bias_prelu
@@ -246,9 +252,11 @@ dl_tie728_s16_depthwise_conv2d_33c1_bias_prelu:
     EE.VST.128.IP  q3, a2, 16
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_33C1
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_33c1
@@ -294,10 +302,12 @@ dl_tie728_s16_depthwise_conv2d_33c1:
     EE.VST.128.IP  q3, a2, 16
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_33C1_RELU
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_33c1_relu
@@ -345,10 +355,12 @@ dl_tie728_s16_depthwise_conv2d_33c1_relu:
     EE.VST.128.IP  q3, a2, 16
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_33C1_PRELU
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_33c1_prelu
@@ -396,6 +408,7 @@ dl_tie728_s16_depthwise_conv2d_33c1_prelu:
     EE.VST.128.IP  q3, a2, 16
 
     retw
+#endif
 
 
 
@@ -522,6 +535,7 @@ dl_tie728_s16_depthwise_conv2d_33c1_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_HWC1_BIAS
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_hwc1_bias
@@ -567,10 +581,12 @@ dl_tie728_s16_depthwise_conv2d_hwc1_bias:
     bgez a9, .Lhwc1_bias_loop
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_HWC1_BIAS_RELU
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu
@@ -622,10 +638,12 @@ dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu:
     bgez a9, .Lhwc1_bias_relu_loop
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_HWC1_BIAS_PRELU
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_hwc1_bias_prelu
@@ -676,10 +694,12 @@ dl_tie728_s16_depthwise_conv2d_hwc1_bias_prelu:
     bgez a9, .Lhwc1_bias_prelu_loop
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_HWC1
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_hwc1
@@ -723,10 +743,12 @@ dl_tie728_s16_depthwise_conv2d_hwc1:
     bgez a9, .Lhwc1_loop
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_HWC1_RELU
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_hwc1_relu
@@ -776,10 +798,12 @@ dl_tie728_s16_depthwise_conv2d_hwc1_relu:
     bgez a9, .Lhwc1_relu_loop
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_DEPTHWISE_CONV2D_HWC1_PRELU
     .align 4
     .text
     .global dl_tie728_s16_depthwise_conv2d_hwc1_prelu
@@ -829,3 +853,4 @@ dl_tie728_s16_depthwise_conv2d_hwc1_prelu:
     bgez a9, .Lhwc1_prelu_loop
 
     retw
+#endif

@@ -1,3 +1,4 @@
+#include "dl_compile_config.h"
 #include "dl_esp32p4_s8.S"
 
 ############################################################################################################################################################
@@ -80,6 +81,7 @@
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_11CN_BIAS
     .text
     .global dl_esp32p4_s8_conv2d_11cn_bias
     .type   dl_esp32p4_s8_conv2d_11cn_bias, @function
@@ -122,9 +124,11 @@ dl_esp32p4_s8_conv2d_11cn_bias:
         addi a5, a5, -1
         bnez a5, esp32p4_s8_conv2d_11cn_bias_loop
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_11CN_BIAS_RELU
     .text
     .global dl_esp32p4_s8_conv2d_11cn_bias_relu
     .type   dl_esp32p4_s8_conv2d_11cn_bias_relu, @function
@@ -176,9 +180,11 @@ dl_esp32p4_s8_conv2d_11cn_bias_relu:
     lw s1, 0(sp)        // restore s1
     addi sp, sp, 8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_11CN_BIAS_PRELU
     .text
     .global dl_esp32p4_s8_conv2d_11cn_bias_prelu
     .type   dl_esp32p4_s8_conv2d_11cn_bias_prelu, @function
@@ -230,9 +236,11 @@ dl_esp32p4_s8_conv2d_11cn_bias_prelu:
     lw s1, 0(sp)        // restore s1
     addi sp, sp, 8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_11CN
     .text
     .global dl_esp32p4_s8_conv2d_11cn
     .type   dl_esp32p4_s8_conv2d_11cn, @function
@@ -273,9 +281,11 @@ dl_esp32p4_s8_conv2d_11cn:
         addi a5, a5, -1
         bnez a5, esp32p4_s8_conv2d_11cn_loop
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_11CN_RELU
     .text
     .global dl_esp32p4_s8_conv2d_11cn_relu
     .type   dl_esp32p4_s8_conv2d_11cn_relu, @function
@@ -325,8 +335,10 @@ dl_esp32p4_s8_conv2d_11cn_relu:
     lw s1, 0(sp)        // restore s1
     addi sp, sp, 8
     ret
+#endif
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_11CN_PRELU
     .text
     .global dl_esp32p4_s8_conv2d_11cn_prelu
     .type   dl_esp32p4_s8_conv2d_11cn_prelu, @function
@@ -376,6 +388,7 @@ dl_esp32p4_s8_conv2d_11cn_prelu:
     lw s1, 0(sp)        // restore s1
     addi sp, sp, 8
     ret
+#endif
 
 
 
@@ -426,6 +439,7 @@ dl_esp32p4_s8_conv2d_11cn_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_33CN_BIAS
     .text
     .global dl_esp32p4_s8_conv2d_33cn_bias
     .type   dl_esp32p4_s8_conv2d_33cn_bias, @function
@@ -474,9 +488,11 @@ dl_esp32p4_s8_conv2d_33cn_bias:
     lw s1, 0(sp)        // restore s1
     addi sp, sp, 8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_33CN_BIAS_RELU
     .text
     .global dl_esp32p4_s8_conv2d_33cn_bias_relu
     .type   dl_esp32p4_s8_conv2d_33cn_bias_relu, @function
@@ -532,8 +548,10 @@ dl_esp32p4_s8_conv2d_33cn_bias_relu:
     lw s9, 0(sp)        // restore s9
     addi sp, sp, 16
     ret
+#endif
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_33CN_BIAS_PRELU
     .text
     .global dl_esp32p4_s8_conv2d_33cn_bias_prelu
     .type   dl_esp32p4_s8_conv2d_33cn_bias_prelu, @function
@@ -589,9 +607,11 @@ dl_esp32p4_s8_conv2d_33cn_bias_prelu:
     lw s9, 0(sp)        // restore s9
     addi sp, sp, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_33CN
     .text
     .global dl_esp32p4_s8_conv2d_33cn
     .type   dl_esp32p4_s8_conv2d_33cn, @function
@@ -638,9 +658,11 @@ dl_esp32p4_s8_conv2d_33cn:
     lw s1, 0(sp)        // restore s1
     addi sp, sp, 8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_33CN_RELU
     .text
     .global dl_esp32p4_s8_conv2d_33cn_relu
     .type   dl_esp32p4_s8_conv2d_33cn_relu, @function
@@ -694,9 +716,11 @@ dl_esp32p4_s8_conv2d_33cn_relu:
     lw s9, 0(sp)        // restore s9
     addi sp, sp, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_33CN_PRELU
     .text
     .global dl_esp32p4_s8_conv2d_33cn_prelu
     .type   dl_esp32p4_s8_conv2d_33cn_prelu, @function
@@ -750,6 +774,7 @@ dl_esp32p4_s8_conv2d_33cn_prelu:
     lw s9, 0(sp)        // restore s9
     addi sp, sp, 16
     ret
+#endif
 
 
 
@@ -793,6 +818,7 @@ dl_esp32p4_s8_conv2d_33cn_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_HWCN_BIAS
     .text
     .global dl_esp32p4_s8_conv2d_hwcn_bias
     .type   dl_esp32p4_s8_conv2d_hwcn_bias, @function
@@ -849,9 +875,11 @@ dl_esp32p4_s8_conv2d_hwcn_bias:
     lw s9, 0(sp)        // restore s9
     addi sp, sp, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_HWCN_BIAS_RELU
     .text
     .global dl_esp32p4_s8_conv2d_hwcn_bias_relu
     .type   dl_esp32p4_s8_conv2d_hwcn_bias_relu, @function
@@ -913,9 +941,11 @@ dl_esp32p4_s8_conv2d_hwcn_bias_relu:
     lw s10, 0(sp)       // restore s10
     addi sp, sp, 20
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_HWCN_BIAS_PRELU
     .text
     .global dl_esp32p4_s8_conv2d_hwcn_bias_prelu
     .type   dl_esp32p4_s8_conv2d_hwcn_bias_prelu, @function
@@ -977,9 +1007,11 @@ dl_esp32p4_s8_conv2d_hwcn_bias_prelu:
     lw s10, 0(sp)       // restore s10
     addi sp, sp, 20
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_HWCN
     .text
     .global dl_esp32p4_s8_conv2d_hwcn
     .type   dl_esp32p4_s8_conv2d_hwcn, @function
@@ -1034,9 +1066,11 @@ dl_esp32p4_s8_conv2d_hwcn:
     lw s9, 0(sp)        // restore s9
     addi sp, sp, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_HWCN_RELU
     .text
     .global dl_esp32p4_s8_conv2d_hwcn_relu
     .type   dl_esp32p4_s8_conv2d_hwcn_relu, @function
@@ -1096,9 +1130,11 @@ dl_esp32p4_s8_conv2d_hwcn_relu:
     lw s10, 0(sp)       // restore s10
     addi sp, sp, 20
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_HWCN_PRELU
     .text
     .global dl_esp32p4_s8_conv2d_hwcn_prelu
     .type   dl_esp32p4_s8_conv2d_hwcn_prelu, @function
@@ -1158,6 +1194,7 @@ dl_esp32p4_s8_conv2d_hwcn_prelu:
     lw s10, 0(sp)       // restore s10
     addi sp, sp, 20
     ret
+#endif
 
 
 
@@ -1175,6 +1212,7 @@ dl_esp32p4_s8_conv2d_hwcn_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_11CN_BIAS
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_11cn_bias
     .type   dl_esp32p4_s8_conv2d_per_channel_11cn_bias, @function
@@ -1216,9 +1254,11 @@ dl_esp32p4_s8_conv2d_per_channel_11cn_bias:
         addi  a5, a5, -1
         bnez  a5, esp32p4_s8_conv2d_per_channel_11cn_bias_loop
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_11CN_BIAS_RELU
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_11cn_bias_relu
     .type   dl_esp32p4_s8_conv2d_per_channel_11cn_bias_relu, @function
@@ -1271,9 +1311,11 @@ dl_esp32p4_s8_conv2d_per_channel_11cn_bias_relu:
     lw  s1, 0(sp)        // restore s1
     addi  sp, sp, 8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_11CN
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_11cn
     .type   dl_esp32p4_s8_conv2d_per_channel_11cn, @function
@@ -1315,9 +1357,11 @@ dl_esp32p4_s8_conv2d_per_channel_11cn:
         addi  a5, a5, -1
         bnez  a5, esp32p4_s8_conv2d_per_channel_11cn_loop
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_11CN_RELU
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_11cn_relu
     .type   dl_esp32p4_s8_conv2d_per_channel_11cn_relu, @function
@@ -1368,6 +1412,7 @@ dl_esp32p4_s8_conv2d_per_channel_11cn_relu:
     lw  s1, 0(sp)        // restore s1
     addi  sp, sp, 8
     ret
+#endif
 
 
 
@@ -1387,6 +1432,7 @@ dl_esp32p4_s8_conv2d_per_channel_11cn_relu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_33CN_BIAS
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_33cn_bias
     .type   dl_esp32p4_s8_conv2d_per_channel_33cn_bias, @function
@@ -1436,9 +1482,11 @@ dl_esp32p4_s8_conv2d_per_channel_33cn_bias:
     lw  s1, 0(sp)        // restore s1
     addi  sp, sp, 8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_33CN_BIAS_RELU
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_33cn_bias_relu
     .type   dl_esp32p4_s8_conv2d_per_channel_33cn_bias_relu, @function
@@ -1495,9 +1543,11 @@ dl_esp32p4_s8_conv2d_per_channel_33cn_bias_relu:
     lw  s9, 0(sp)        // restore s9
     addi  sp, sp, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_33CN
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_33cn
     .type   dl_esp32p4_s8_conv2d_per_channel_33cn, @function
@@ -1545,9 +1595,11 @@ dl_esp32p4_s8_conv2d_per_channel_33cn:
     lw  s1, 0(sp)        // restore s1
     addi  sp, sp, 8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_33CN_RELU
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_33cn_relu
     .type   dl_esp32p4_s8_conv2d_per_channel_33cn_relu, @function
@@ -1602,6 +1654,7 @@ dl_esp32p4_s8_conv2d_per_channel_33cn_relu:
     lw  s9, 0(sp)        // restore s9
     addi  sp, sp, 16
     ret
+#endif
 
 
 
@@ -1613,6 +1666,7 @@ dl_esp32p4_s8_conv2d_per_channel_33cn_relu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_HWCN_BIAS
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_hwcn_bias
     .type   dl_esp32p4_s8_conv2d_per_channel_hwcn_bias, @function
@@ -1670,9 +1724,11 @@ dl_esp32p4_s8_conv2d_per_channel_hwcn_bias:
     lw  s9, 0(sp)        // restore s9
     addi  sp, sp, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_HWCN_BIAS_RELU
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_hwcn_bias_relu
     .type   dl_esp32p4_s8_conv2d_per_channel_hwcn_bias_relu, @function
@@ -1735,9 +1791,11 @@ dl_esp32p4_s8_conv2d_per_channel_hwcn_bias_relu:
     lw  s10, 0(sp)       // restore s10
     addi  sp, sp, 20
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_HWCN
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_hwcn
     .type   dl_esp32p4_s8_conv2d_per_channel_hwcn, @function
@@ -1793,9 +1851,11 @@ dl_esp32p4_s8_conv2d_per_channel_hwcn:
     lw  s9, 0(sp)        // restore s9
     addi  sp, sp, 16
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_CONV2D_PER_CHANNEL_HWCN_RELU
     .text
     .global dl_esp32p4_s8_conv2d_per_channel_hwcn_relu
     .type   dl_esp32p4_s8_conv2d_per_channel_hwcn_relu, @function
@@ -1856,3 +1916,4 @@ dl_esp32p4_s8_conv2d_per_channel_hwcn_relu:
     lw s10, 0(sp)       // restore s10
     addi sp, sp, 20
     ret
+#endif

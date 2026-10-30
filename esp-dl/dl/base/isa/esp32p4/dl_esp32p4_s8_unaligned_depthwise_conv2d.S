@@ -1,3 +1,4 @@
+#include "dl_compile_config.h"
 #include "dl_esp32p4_s8.S"
 #include "dl_esp32p4_common.S"
 
@@ -138,6 +139,7 @@
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_33C1_BIAS
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias, @function
@@ -274,9 +276,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias:
 
     esp32p4_pop_4_stacks_1r  s8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_33C1_BIAS_RELU
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu, @function
@@ -422,9 +426,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu:
 
     esp32p4_pop_12_stacks_3r  s0, s1, s8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_33C1
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1, @function
@@ -550,9 +556,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1:
         esp32p4_s8_unaligned_depthwise_conv2d_33c1_c_remainder_end:
 
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_33C1_RELU
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu, @function
@@ -690,6 +698,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
 
     esp32p4_pop_12_stacks_3r  s0, s1, s8
     ret
+#endif
 
 
 
@@ -892,6 +901,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_HWC1_BIAS
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias, @function
@@ -1002,9 +1012,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias:
 
     esp32p4_pop_12_stacks_3r  s2, s0, s8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_HWC1_BIAS_RELU
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias_relu
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias_relu, @function
@@ -1121,9 +1133,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias_relu:
 
     esp32p4_pop_20_stacks_5r  s2, s0, s1, s8, s9
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_HWC1
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1, @function
@@ -1229,9 +1243,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1:
 
     esp32p4_pop_4_stacks_1r  s2
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_HWC1_RELU
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_relu
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_relu, @function
@@ -1343,6 +1359,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_relu:
 
     esp32p4_pop_12_stacks_3r  s2, s0, s1
     ret
+#endif
 
 
 
@@ -1367,6 +1384,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_relu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_PER_CHANNEL_33C1_BIAS
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_bias
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_bias, @function
@@ -1510,9 +1528,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_bias:
 
     esp32p4_pop_4_stacks_1r  s8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_PER_CHANNEL_33C1_BIAS_RELU
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu, @function
@@ -1665,9 +1685,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu:
 
     esp32p4_pop_12_stacks_3r  s0, s1, s8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_PER_CHANNEL_33C1
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1, @function
@@ -1800,9 +1822,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1:
         esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_c_remainder_end:
 
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_PER_CHANNEL_33C1_RELU
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_relu
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_relu, @function
@@ -1947,6 +1971,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_relu:
 
     esp32p4_pop_12_stacks_3r  s0, s1, s8
     ret
+#endif
 
 
 
@@ -1964,6 +1989,7 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_relu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_PER_CHANNEL_HWC1_BIAS
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias, @function
@@ -2078,9 +2104,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias:
 
     esp32p4_pop_12_stacks_3r  s2, s0, s8
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_PER_CHANNEL_HWC1_BIAS_RELU
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu, @function
@@ -2201,9 +2229,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu:
 
     esp32p4_pop_20_stacks_5r  s2, s0, s1, s8, s9
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_PER_CHANNEL_HWC1
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1, @function
@@ -2313,9 +2343,11 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1:
 
     esp32p4_pop_4_stacks_1r  s2
     ret
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_ESP32P4_S8_UNALIGNED_DEPTHWISE_CONV2D_PER_CHANNEL_HWC1_RELU
     .text
     .global dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_relu
     .type   dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_relu, @function
@@ -2431,3 +2463,4 @@ dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_relu:
 
     esp32p4_pop_12_stacks_3r  s2, s0, s1
     ret
+#endif

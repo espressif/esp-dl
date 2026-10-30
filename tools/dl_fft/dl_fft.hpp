@@ -18,11 +18,13 @@ private:
     FFT(const FFT &) = delete;
     FFT &operator=(const FFT &) = delete;
 
-    // Four handle vectors for different FFT types
+    // Handle vectors for different FFT types
     std::vector<dl_fft_f32_t *> fft_f32_handles;
     std::vector<dl_fft_s16_t *> fft_s16_handles;
+    std::vector<dl_fft_s32_t *> fft_s32_handles;
     std::vector<dl_fft_f32_t *> rfft_f32_handles;
     std::vector<dl_fft_s16_t *> rfft_s16_handles;
+    std::vector<dl_fft_s32_t *> rfft_s32_handles;
 
     std::mutex mutex_;
     std::condition_variable cv_;
@@ -232,6 +234,32 @@ public:
             });
     }
 
+    // FFT for int32, every input part must be in (-2^29, 2^29)
+    esp_err_t fft(int32_t *data, int fft_length, int in_exponent = 0, int *out_exponent = nullptr)
+    {
+        return run_with_handle(
+            fft_length,
+            fft_s32_handles,
+            [](int len, uint32_t caps) { return dl_fft_s32_init(len, caps); },
+            [data, in_exponent, out_exponent](dl_fft_s32_t *handle) {
+                int temp_out_exp = 0;
+                return dl_fft_s32_run(handle, data, in_exponent, out_exponent ? out_exponent : &temp_out_exp);
+            });
+    }
+
+    // RFFT for int32, every input must be in (-2^29, 2^29)
+    esp_err_t rfft(int32_t *data, int fft_length, int in_exponent = 0, int *out_exponent = nullptr)
+    {
+        return run_with_handle(
+            fft_length,
+            rfft_s32_handles,
+            [](int len, uint32_t caps) { return dl_rfft_s32_init(len, caps); },
+            [data, in_exponent, out_exponent](dl_fft_s32_t *handle) {
+                int temp_out_exp = 0;
+                return dl_rfft_s32_run(handle, data, in_exponent, out_exponent ? out_exponent : &temp_out_exp);
+            });
+    }
+
     // Waits for in-flight FFT/IFFT/RFFT calls, then frees cached handles.
     // Concurrent FFT calls block until clear() finishes, then allocate new handles.
     void clear()
@@ -269,6 +297,20 @@ public:
         rfft_s16_handles.clear();
         std::vector<dl_fft_s16_t *>().swap(rfft_s16_handles);
 
+        // Clear FFT int32 handles
+        for (auto *handle : fft_s32_handles) {
+            dl_fft_s32_deinit(handle);
+        }
+        fft_s32_handles.clear();
+        std::vector<dl_fft_s32_t *>().swap(fft_s32_handles);
+
+        // Clear RFFT int32 handles
+        for (auto *handle : rfft_s32_handles) {
+            dl_rfft_s32_deinit(handle);
+        }
+        rfft_s32_handles.clear();
+        std::vector<dl_fft_s32_t *>().swap(rfft_s32_handles);
+
         clearing_ = false;
         cv_.notify_all();
     }
@@ -277,7 +319,8 @@ public:
     size_t get_handle_count()
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        return fft_f32_handles.size() + fft_s16_handles.size() + rfft_f32_handles.size() + rfft_s16_handles.size();
+        return fft_f32_handles.size() + fft_s16_handles.size() + fft_s32_handles.size() + rfft_f32_handles.size() +
+            rfft_s16_handles.size() + rfft_s32_handles.size();
     }
 };
 

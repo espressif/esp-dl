@@ -1,3 +1,4 @@
+#include "dl_compile_config.h"
 #include "dl_tie728_s16_unaligned.S"
 #include "dl_tie728_s16.S"
 
@@ -118,6 +119,7 @@
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_33C1
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_33c1
@@ -215,10 +217,12 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1:
         tie728_s16_unaligned_depthwise_conv2d_33c1_c_remainder_end:
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_33C1_RELU
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_33c1_relu
@@ -323,10 +327,12 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_relu:
         tie728_s16_unaligned_depthwise_conv2d_33c1_relu_c_remainder_end:
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_33C1_PRELU
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_33c1_prelu
@@ -431,10 +437,12 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_prelu:
         tie728_s16_unaligned_depthwise_conv2d_33c1_prelu_c_remainder_end:
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_33C1_BIAS
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias
@@ -539,11 +547,13 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias:
         tie728_s16_unaligned_depthwise_conv2d_33c1_bias_c_remainder_end:
 
     retw
+#endif
 
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_33C1_BIAS_RELU
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu
@@ -655,10 +665,12 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu:
         tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu_c_remainder_end:
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_33C1_BIAS_PRELU
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu
@@ -769,6 +781,7 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu:
         tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu_c_remainder_end:
 
     retw
+#endif
 
 
 
@@ -960,6 +973,7 @@ dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_HWC1
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_hwc1
@@ -1047,10 +1061,12 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1:
         tie728_s16_unaligned_depthwise_conv2d_hwc1_c_remainder_end:
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_HWC1_RELU
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_relu
@@ -1152,10 +1168,12 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_relu:
         tie728_s16_unaligned_depthwise_conv2d_hwc1_relu_c_remainder_end:
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_HWC1_PRELU
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu
@@ -1257,10 +1275,12 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu:
         tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu_c_remainder_end:
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_HWC1_BIAS
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias
@@ -1352,10 +1372,12 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias:
         tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_c_remainder_end:
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_HWC1_BIAS_RELU
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu
@@ -1465,10 +1487,12 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu:
         tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu_c_remainder_end:
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_UNALIGNED_DEPTHWISE_CONV2D_HWC1_BIAS_PRELU
     .align 4
     .text
     .global dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu
@@ -1577,3 +1601,4 @@ dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu:
         tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu_c_remainder_end:
 
     retw
+#endif

@@ -7,9 +7,11 @@ include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
 if(IDF_VERSION_MAJOR GREATER_EQUAL 6)
     set(EXTRA_COMPONENT_DIRS "$ENV{IDF_PATH}/tools/test_apps/components"
+                            "../../tools/dl_fft"
                             "../../esp-dl")
 else()
     set(EXTRA_COMPONENT_DIRS "$ENV{IDF_PATH}/tools/unit-test-app/components"
+                            "../../tools/dl_fft"
                             "../../esp-dl")
 endif()
 

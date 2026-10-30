@@ -34,6 +34,17 @@ typedef struct {
 } mel_filter_t;
 
 /**
+ * @brief Mel filter structure with Q30 coefficients.
+ *        coeff is round(coeff_float * 2^30).
+ */
+typedef struct {
+    uint32_t *coeff; /*!< Filter coefficients in Q30 */
+    int *bank_pos;   /*!< Filter bank positions */
+    int nfilter;     /*!< Number of filters */
+    int sum_bits;    /*!< Bit length of the largest per-filter coefficient sum */
+} mel_filter_q30_t;
+
+/**
  * @brief Initialize window function data of the specified type.
  *
  * This function allocates and initializes the window function data based on the specified type and length.
@@ -120,6 +131,31 @@ mel_filter_t *mel_filter_init(int nfft, int nfilter, int low_freq, int high_freq
  * @param mel_filter Pointer to mel filter data to deinitialize.
  */
 void mel_filter_deinit(mel_filter_t *mel_filter);
+
+/**
+ * @brief Initialize mel filter data with Q30 coefficients.
+ *
+ * The triangle weights match mel_filter_init(). Each stored coefficient is
+ * round(weight * 2^30).
+ *
+ * @param nfft          FFT size.
+ * @param nfilter       Number of mel filterbanks.
+ * @param low_freq      Lowest frequency.
+ * @param high_freq     Highest frequency.
+ * @param sample_rate   Sample rate.
+ * @param caps          Memory allocation capabilities.
+ *
+ * @return mel_filter_q30_t* Caller must free it with mel_filter_q30_deinit(). Returns nullptr on failure.
+ */
+mel_filter_q30_t *mel_filter_q30_init(
+    int nfft, int nfilter, int low_freq, int high_freq, int sample_rate, uint32_t caps);
+
+/**
+ * @brief Deinitialize Q30 mel filter data.
+ *
+ * @param mel_filter Pointer to mel filter data to deinitialize.
+ */
+void mel_filter_q30_deinit(mel_filter_q30_t *mel_filter);
 
 /**
  * @brief Apply window function and preemphasis to input signal.

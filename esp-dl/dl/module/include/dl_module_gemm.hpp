@@ -1,6 +1,8 @@
 #pragma once
 
 #include "dl_base_conv2d.hpp"
+#include "dl_base_conv_args.hpp"
+#include "dl_base_conv_select.hpp"
 #include "dl_base_depthwise_conv2d.hpp"
 #include "dl_module_base.hpp"
 #include <string>
@@ -19,6 +21,7 @@ class Gemm : public Module {
 private:
     activation_type_t activation; /*!< activation of Gemm, if you don't specify anything, no activation is applied */
     bool is_bias_reseted;
+    dl_kernel_erased_t m_fn[3] = {};
 
     void reset_bias(ModelContext *context)
     {
@@ -74,20 +77,12 @@ public:
         return {output_shape};
     }
 
-    void forward_args(void *args)
-    {
-        if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            base::conv2d<int8_t, int32_t, int32_t>(args);
-        } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            base::conv2d<int16_t, int32_t, int64_t>(args);
-        } else if (quant_type == QUANT_TYPE_SYMM_W8A16) {
-            base::conv2d<int16_t, int32_t, int64_t, int8_t>(args);
-        }
-    }
+    void forward_args(void *args) { base::conv2d(args, quant_type, m_fn[0], m_fn[1], m_fn[2]); }
 
-    template <typename T, typename filter_t = T>
-    void forward_template(ModelContext *context, runtime_mode_t mode)
+    void forward(ModelContext *context, runtime_mode_t mode = RUNTIME_MODE_AUTO)
     {
+        reset_bias(context);
+
         std::vector<int> padding(4, 0);
         TensorBase *input0 = context->get_tensor(m_inputs_index[0]);
         TensorBase *filter = context->get_tensor(m_inputs_index[1]);
@@ -101,41 +96,33 @@ public:
         input0->set_shape({1, 1, input0->get_size() / origin_input_shape.back(), origin_input_shape.back()});
         output->set_shape({1, 1, output->get_size() / origin_output_shape.back(), origin_output_shape.back()});
 
-        base::ConvOpArgs<T, filter_t> m_args(output,
-                                             input0,
-                                             padding,
-                                             filter,
-                                             {1, 1} /*strides*/,
-                                             {1, 1} /*dilations*/,
-                                             1 /*group*/,
-                                             bias,
-                                             this->activation,
-                                             nullptr,
-                                             mode); // do not support PReLU and Leaky RelU
+        base::ConvOpArgs m_args(output,
+                                input0,
+                                padding,
+                                filter,
+                                {1, 1} /*strides*/,
+                                {1, 1} /*dilations*/,
+                                1 /*group*/,
+                                bias,
+                                this->activation,
+                                nullptr,
+                                mode,
+                                quant_type); // do not support PReLU and Leaky RelU
         int task_size = m_args.size();
+        if (task_size < 1 || !base::dl_conv_ensure_kernels(m_fn, m_args.get_args(0), 0, quant_type, "Gemm")) {
+            input0->set_shape(origin_input_shape);
+            output->set_shape(origin_output_shape);
+            return;
+        }
         if (task_size == 1) { // single task
             forward_args((void *)&m_args.get_args(0));
         } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.
-            ESP_LOGI("Gemm", "two task...");
             module_forward_dual_core(this, (void *)&m_args.get_args(0), (void *)&m_args.get_args(1));
         } else {
             ESP_LOGE("Gemm", "Only support task size is 1 or 2, currently task size is %d", task_size);
         }
         input0->set_shape(origin_input_shape);
         output->set_shape(origin_output_shape);
-    }
-
-    void forward(ModelContext *context, runtime_mode_t mode = RUNTIME_MODE_AUTO)
-    {
-        reset_bias(context);
-
-        if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            forward_template<int8_t>(context, mode);
-        } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            forward_template<int16_t>(context, mode);
-        } else if (quant_type == QUANT_TYPE_SYMM_W8A16) {
-            forward_template<int16_t, int8_t>(context, mode);
-        }
     }
 
     /**

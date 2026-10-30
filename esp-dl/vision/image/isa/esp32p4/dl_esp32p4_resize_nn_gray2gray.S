@@ -13,7 +13,7 @@ resize_nn_simd_helper_gray2gray:
 
     blez a3, 1f
 0:
-    resize_nn_load_store_1chn_128 a2, a0, a1, q0, q1, q2, a4, a5, t3, t4
+    resize_nn_load_store_1chn_128 a2, a0, a1, q0, q1, q2, a4, a5, t3, t4, 0
     addi a3, a3, -1
     bnez a3, 0b
 1:
@@ -33,7 +33,7 @@ resize_nn_simd_helper_gray2gray_qint8:
 
     blez a3, 1f
 0:
-    resize_nn_load_1chn_128 q0, a0, a1, q1, q2, q3, a5, t3, t4, t5
+    resize_nn_load_1chn_128 q0, a0, a1, q1, q2, q3, a5, t3, t4, t5, 0
     norm_quant_1chn_8 q0, a4, q1, q2, q3
     esp.vst.128.ip q0, a2, 16
     addi a3, a3, -1
@@ -55,7 +55,7 @@ resize_nn_simd_helper_gray2gray_qint16:
 
     blez a3, 1f
 0:
-    resize_nn_load_1chn_128 q1, a0, a1, q0, q2, q3, a5, t3, t4, t5
+    resize_nn_load_1chn_128 q1, a0, a1, q0, q2, q3, a5, t3, t4, t5, 0
     norm_quant_1chn_16 q0, q1, a4, q2, q3
     esp.vst.128.ip q0, a2, 16
     esp.vst.128.ip q1, a2, 16

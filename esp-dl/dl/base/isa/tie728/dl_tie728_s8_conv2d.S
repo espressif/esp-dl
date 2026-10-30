@@ -1,3 +1,4 @@
+#include "dl_compile_config.h"
 #include "dl_tie728_s8.S"
 
 ############################################################################################################################################################
@@ -72,6 +73,7 @@
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_CONV2D_11CN
     .align 4
     .text
     .global dl_tie728_s8_conv2d_11cn
@@ -165,9 +167,11 @@ dl_tie728_s8_conv2d_11cn:
         addi a7, a7, -1
     bnez a7, .L11cn_per_channel_no_bias_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_CONV2D_11CN_RELU
     .align 4
     .text
     .global dl_tie728_s8_conv2d_11cn_relu
@@ -268,9 +272,11 @@ dl_tie728_s8_conv2d_11cn_relu:
         addi a7, a7, -1
     bnez a7, .L11cn_relu_per_channel_no_bias_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_CONV2D_11CN_PRELU
     .align 4
     .text
     .global dl_tie728_s8_conv2d_11cn_prelu
@@ -371,6 +377,7 @@ dl_tie728_s8_conv2d_11cn_prelu:
         addi a7, a7, -1
     bnez a7, .L11cn_prelu_per_channel_no_bias_loop
     retw
+#endif
 
 
 
@@ -1020,6 +1027,7 @@ dl_tie728_s8_conv2d_11cn_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_UNALIGNED_CONV2D_11CN
     .align 4
     .text
     .global dl_tie728_s8_unaligned_conv2d_11cn
@@ -1163,6 +1171,7 @@ dl_tie728_s8_unaligned_conv2d_11cn:
 .Lu11cn_end:
 
     retw
+#endif
 
 
 
@@ -1226,6 +1235,7 @@ dl_tie728_s8_unaligned_conv2d_11cn:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_CONV2D_33CN
     .align 4
     .text
     .global dl_tie728_s8_conv2d_33cn
@@ -1319,9 +1329,11 @@ dl_tie728_s8_conv2d_33cn:
         addi a7, a7, -1
     bnez a7, .L33cn_per_channel_no_bias_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_CONV2D_33CN_RELU
     .align 4
     .text
     .global dl_tie728_s8_conv2d_33cn_relu
@@ -1422,9 +1434,11 @@ dl_tie728_s8_conv2d_33cn_relu:
         addi a7, a7, -1
     bnez a7, .L33cn_relu_per_channel_no_bias_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_CONV2D_33CN_PRELU
     .align 4
     .text
     .global dl_tie728_s8_conv2d_33cn_prelu
@@ -1525,6 +1539,7 @@ dl_tie728_s8_conv2d_33cn_prelu:
         addi a7, a7, -1
     bnez a7, .L33cn_prelu_per_channel_no_bias_loop
     retw
+#endif
 
 
 
@@ -1603,6 +1618,7 @@ dl_tie728_s8_conv2d_33cn_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_UNALIGNED_CONV2D_33CN
     .align 4
     .text
     .global dl_tie728_s8_unaligned_conv2d_33cn
@@ -1841,6 +1857,7 @@ dl_tie728_s8_unaligned_conv2d_33cn:
 .Lu33cn_end:
 
     retw
+#endif
 
 
 
@@ -1903,6 +1920,7 @@ dl_tie728_s8_unaligned_conv2d_33cn:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_CONV2D_HWCN
     .align 4
     .text
     .global dl_tie728_s8_conv2d_hwcn
@@ -1998,9 +2016,11 @@ dl_tie728_s8_conv2d_hwcn:
         addi a7, a7, -1
     bnez a7, .Lhwcn_per_channel_no_bias_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_CONV2D_HWCN_RELU
     .align 4
     .text
     .global dl_tie728_s8_conv2d_hwcn_relu
@@ -2116,9 +2136,11 @@ dl_tie728_s8_conv2d_hwcn_relu:
         addi a7, a7, -1
     bnez a7, .Lhwcn_relu_per_channel_no_bias_loop
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_CONV2D_HWCN_PRELU
     .align 4
     .text
     .global dl_tie728_s8_conv2d_hwcn_prelu
@@ -2232,6 +2254,7 @@ dl_tie728_s8_conv2d_hwcn_prelu:
         addi a7, a7, -1
     bnez a7, .Lhwcn_prelu_per_channel_no_bias_loop
     retw
+#endif
 
 
 
@@ -2349,6 +2372,7 @@ dl_tie728_s8_conv2d_hwcn_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_UNALIGNED_CONV2D_HWCN
     .align 4
     .text
     .global dl_tie728_s8_unaligned_conv2d_hwcn
@@ -2596,3 +2620,4 @@ dl_tie728_s8_unaligned_conv2d_hwcn:
 .Luhwcn_end:
 
     retw
+#endif

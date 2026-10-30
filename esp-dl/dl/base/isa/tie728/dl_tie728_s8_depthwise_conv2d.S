@@ -1,3 +1,4 @@
+#include "dl_compile_config.h"
 #include "dl_tie728_s8.S"
 
 
@@ -93,6 +94,7 @@
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_DEPTHWISE_CONV2D_33C1
     .align 4
     .text
     .global dl_tie728_s8_depthwise_conv2d_33c1
@@ -200,9 +202,11 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1:
     tie728_s8_conv2d_per_channel_result q3, q4, a10, a15, q5
     EE.VST.128.IP q3, a2, 16
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_DEPTHWISE_CONV2D_33C1_RELU
     .align 4
     .text
     .global dl_tie728_s8_depthwise_conv2d_33c1_relu
@@ -320,9 +324,11 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_relu:
     tie728_s8_conv2d_relu q3, a12, a13
     EE.VST.128.IP q3, a2, 16
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_DEPTHWISE_CONV2D_33C1_PRELU
     .align 4
     .text
     .global dl_tie728_s8_depthwise_conv2d_33c1_prelu
@@ -440,6 +446,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
     tie728_s8_conv2d_prelu q3, q4, a12, a13
     EE.VST.128.IP q3, a2, 16
     retw
+#endif
 
 
 
@@ -616,6 +623,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_33c1_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_UNALIGNED_DEPTHWISE_CONV2D_33C1
     .align 4
     .text
     .global dl_tie728_s8_unaligned_depthwise_conv2d_33c1
@@ -819,6 +827,7 @@ tie728_s8_unaligned_depthwise_conv2d_33c1_c_loop_end:
 
 dl_tie728_s8_unaligned_depthwise_conv2d_33c1_end:
     retw
+#endif
 
 
 
@@ -952,6 +961,7 @@ dl_tie728_s8_unaligned_depthwise_conv2d_33c1_end:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_DEPTHWISE_CONV2D_HWC1
     .align 4
     .text
     .global dl_tie728_s8_depthwise_conv2d_hwc1
@@ -1039,11 +1049,13 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1:
         addi a9, a9, -1
     bgez a9, tie728_s8_depthwise_conv2d_per_channel_hwc1_no_bias
     retw
+#endif
 
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_DEPTHWISE_CONV2D_HWC1_RELU
     .align 4
     .text
     .global dl_tie728_s8_depthwise_conv2d_hwc1_relu
@@ -1154,11 +1166,13 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_relu:
         addi a9, a9, -1
     bgez a9, tie728_s8_depthwise_conv2d_per_channel_hwc1_no_bias_relu_loop
     retw
+#endif
 
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_DEPTHWISE_CONV2D_HWC1_PRELU
     .align 4
     .text
     .global dl_tie728_s8_depthwise_conv2d_hwc1_prelu
@@ -1271,6 +1285,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
         addi a9, a9, -1
     bgez a9, tie728_s8_depthwise_conv2d_per_channel_hwc1_no_bias_prelu_loop
     retw
+#endif
 
 
 
@@ -1485,6 +1500,7 @@ dl_tie728_s8_depthwise_conv2d_per_channel_hwc1_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_UNALIGNED_DEPTHWISE_CONV2D_HWC1
     .align 4
     .text
     .global dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
@@ -1635,3 +1651,4 @@ dl_tie728_s8_unaligned_depthwise_conv2d_hwc1_end:
     # addi a2, a2, -16
 
     retw
+#endif

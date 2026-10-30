@@ -1,6 +1,8 @@
 #pragma once
 
 #include "dl_base_conv2d.hpp"
+#include "dl_base_conv_args.hpp"
+#include "dl_base_conv_select.hpp"
 #include "dl_base_depthwise_conv2d.hpp"
 #include "dl_module_base.hpp"
 #include <string>
@@ -23,6 +25,7 @@ private:
     activation_type_t activation; /*!< activation of Conv, if you don't specify anything, no activation is applied */
     std::vector<int> m_pads;      /*!< pads size needed in [top, bottom, left, right] of this operation */
     bool is_bias_reseted;
+    dl_kernel_erased_t m_fn[3] = {};
 
     void reset_bias(ModelContext *context)
     {
@@ -105,19 +108,9 @@ public:
     void forward_args(void *args)
     {
         if (m_group == 1) {
-            if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-                base::conv2d<int8_t, int32_t, int32_t>(args);
-            } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-                base::conv2d<int16_t, int32_t, int64_t>(args);
-            } else if (quant_type == QUANT_TYPE_SYMM_W8A16) {
-                base::conv2d<int16_t, int32_t, int64_t, int8_t>(args);
-            }
+            base::conv2d(args, quant_type, m_fn[0], m_fn[1], m_fn[2]);
         } else {
-            if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-                base::depthwise_conv2d<int8_t, int32_t, int32_t>(args);
-            } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-                base::depthwise_conv2d<int16_t, int32_t, int64_t>(args);
-            }
+            base::depthwise_conv2d(args, quant_type, m_fn[0], m_fn[1], m_fn[2]);
         }
     }
 
@@ -125,18 +118,6 @@ public:
     {
         reset_bias(context);
 
-        if (quant_type == QUANT_TYPE_SYMM_8BIT) {
-            forward_template<int8_t>(context, mode);
-        } else if (quant_type == QUANT_TYPE_SYMM_16BIT) {
-            forward_template<int16_t>(context, mode);
-        } else if (quant_type == QUANT_TYPE_SYMM_W8A16) {
-            forward_template<int16_t, int8_t>(context, mode);
-        }
-    }
-
-    template <typename T, typename filter_t = T>
-    void forward_template(ModelContext *context, runtime_mode_t mode)
-    {
         TensorBase *input = context->get_tensor(m_inputs_index[0]);
         TensorBase *filter = context->get_tensor(m_inputs_index[1]);
         TensorBase *bias = nullptr;
@@ -145,18 +126,23 @@ public:
         }
         TensorBase *output = context->get_tensor(m_outputs_index[0]);
 
-        base::ConvOpArgs<T, filter_t> m_args(output,
-                                             input,
-                                             m_pads,
-                                             filter,
-                                             m_strides,
-                                             m_dilations,
-                                             m_group,
-                                             bias,
-                                             this->activation,
-                                             nullptr,
-                                             mode); // do not support RReLU and Leaky RelU
+        base::ConvOpArgs m_args(output,
+                                input,
+                                m_pads,
+                                filter,
+                                m_strides,
+                                m_dilations,
+                                m_group,
+                                bias,
+                                this->activation,
+                                nullptr,
+                                mode,
+                                quant_type); // do not support RReLU and Leaky RelU
         int task_size = m_args.size();
+        if (task_size < 1 ||
+            !base::dl_conv_ensure_kernels(m_fn, m_args.get_args(0), m_group != 1, quant_type, "Conv")) {
+            return;
+        }
         if (task_size == 1) { // single task
             forward_args((void *)&m_args.get_args(0));
         } else if (task_size == 2) { // multi task, use semaphore to maintain synchronization.

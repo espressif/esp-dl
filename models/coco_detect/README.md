@@ -7,16 +7,21 @@
 | Chip     | YOLO11N_S8_V1          |  YOLO11N_320_S8_V1      |
 |----------|------------------------|-------------------------|
 | ESP32-S3 | ![alt text][supported] | ![alt text][supported]  |
+| ESP32-S31 | ![alt text][supported] | ![alt text][supported]  |
 | ESP32-P4 | ![alt text][supported] | ![alt text][supported]  |
 
 ## Model Latency
 
 | name                 | input(h*w*c)  | Flash(MB) | PSRAM(MB) | preprocess(ms) | model(ms) | postprocess(ms) | mAP50-95 on COCO val2017 |
 | ---------------------- | --------------- | ----------- | ----------- | ---------------- | ----------- | ----------------- | -------------------------- |
-|  yolo11n_s8_v1_s3 |  640 * 640 * 3 |  8 |  8 | 51.5 | 26014.2 | 58.9 |  0.370 |
-|  yolo11n_s8_v1_p4 |  640 * 640 * 3 |  16 |  32 | 16.0 | 2535.3 | 14.3 |  0.373 |
-|  yolo11n_320_s8_v1_s3 |  320 * 320 * 3 |  8 |  8 | 15.2 | 6161.8 | 19.3 |  0.276 |
-|  yolo11n_320_s8_v1_p4 |  320 * 320 * 3 |  16 |  32 | 5.2 | 550.1 | 5.3 |  0.278 |
+|  yolo11n_s8_v1_s3 |  640 * 640 * 3 |  8 |  8 | 51.5 | 3906.3 | 48.0 |  0.370 |
+|  yolo11n_s8_v1_s31 |  640 * 640 * 3 |  16 |  16 | 23.7 | 2199.4 | 19.6 |  0.373 |
+|  yolo11n_s8_v1_p4 |  640 * 640 * 3 |  16 |  32 | 15.3 | 1366.0 | 14.6 |  0.373 |
+|  yolo11n_320_s8_v1_s3 |  320 * 320 * 3 |  8 |  8 | 15.1 | 961.5 | 15.2 |  0.276 |
+|  yolo11n_320_s8_v1_s31 |  320 * 320 * 3 |  16 |  16 | 7.5 | 529.9 | 6.4 |  0.278 |
+|  yolo11n_320_s8_v1_p4 |  320 * 320 * 3 |  16 |  32 | 4.6 | 312.5 | 4.8 |  0.278 |
+
+> ESP32-S3: CPU 240 MHz, data cache 64 KB, octal PSRAM 80 MHz. ESP32-S31: CPU 320 MHz, PSRAM 250 MHz. ESP32-P4: CPU 400 MHz, L2 cache 256 KB, PSRAM 32 MB at 250 MHz. int8, `CONFIG_COMPILER_OPTIMIZATION_PERF`.
 
 ## Model Usage
 

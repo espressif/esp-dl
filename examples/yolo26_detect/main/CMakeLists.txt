@@ -23,7 +23,7 @@ idf_component_register(SRCS "app_main.cpp"
 # --- Internal Logic: Path and Symbol Resolution ---
 idf_build_get_property(target IDF_TARGET)
 
-if(${target} STREQUAL "esp32p4")
+if(${target} STREQUAL "esp32p4" OR ${target} STREQUAL "esp32s31")
     set(MODEL_FILENAME "yolo26n_512_s8_p4.espdl")
 elseif(${target} STREQUAL "esp32s3")
     set(MODEL_FILENAME "yolo26n_512_s8_s3.espdl")
@@ -42,10 +42,10 @@ endif()
 get_filename_component(espdl_root "${espdl_dir}/.." ABSOLUTE)
 
 # Identify correct folder (p4 or s3)
-if(${target} STREQUAL "esp32p4")
-    set(PLATFORM "p4")
-else()
+if(${target} STREQUAL "esp32s3")
     set(PLATFORM "s3")
+else()
+    set(PLATFORM "p4")
 endif()
 
 # Define Paths

@@ -1,73 +1,5 @@
 #pragma once
-#include "dl_module_add.hpp"
-#include "dl_module_average_pool.hpp"
-#include "dl_module_clip.hpp"
-#include "dl_module_concat.hpp"
-#include "dl_module_conv.hpp"
-#include "dl_module_depth_to_space.hpp"
-#include "dl_module_div.hpp"
-#include "dl_module_elu.hpp"
-#include "dl_module_equal.hpp"
-#include "dl_module_exp.hpp"
-#include "dl_module_flatten.hpp"
-#include "dl_module_gather.hpp"
-#include "dl_module_gemm.hpp"
-#include "dl_module_global_average_pool.hpp"
-#include "dl_module_greater.hpp"
-#include "dl_module_greater_or_equal.hpp"
-#include "dl_module_gru.hpp"
-#include "dl_module_hard_sigmoid.hpp"
-#include "dl_module_hard_swish.hpp"
-#include "dl_module_identity.hpp"
-#include "dl_module_insert_zeros.hpp"
-#include "dl_module_layer_normalization.hpp"
-#include "dl_module_leaky_relu.hpp"
-#include "dl_module_less.hpp"
-#include "dl_module_less_or_equal.hpp"
-#include "dl_module_log.hpp"
-#include "dl_module_log_softmax.hpp"
-#include "dl_module_lp_normalization.hpp"
-#include "dl_module_lstm.hpp"
-#include "dl_module_lut.hpp"
-#include "dl_module_matmul.hpp"
-#include "dl_module_max_pool.hpp"
-#include "dl_module_mod.hpp"
-#include "dl_module_mul.hpp"
-#include "dl_module_neg.hpp"
-#include "dl_module_pad.hpp"
-#include "dl_module_pow.hpp"
-#include "dl_module_prelu.hpp"
-#include "dl_module_reduce_l1.hpp"
-#include "dl_module_reduce_l2.hpp"
-#include "dl_module_reduce_log_sum.hpp"
-#include "dl_module_reduce_log_sum_exp.hpp"
-#include "dl_module_reduce_max.hpp"
-#include "dl_module_reduce_mean.hpp"
-#include "dl_module_reduce_min.hpp"
-#include "dl_module_reduce_prod.hpp"
-#include "dl_module_reduce_sum.hpp"
-#include "dl_module_reduce_sum_square.hpp"
-#include "dl_module_relu.hpp"
-#include "dl_module_requantize_linear.hpp"
-#include "dl_module_reshape.hpp"
-#include "dl_module_resize.hpp"
-#include "dl_module_reverse_sequence.hpp"
-#include "dl_module_rms_normalization.hpp"
-#include "dl_module_scatter_nd.hpp"
-#include "dl_module_sigmoid.hpp"
-#include "dl_module_slice.hpp"
-#include "dl_module_softmax.hpp"
-#include "dl_module_space_to_depth.hpp"
-#include "dl_module_split.hpp"
-#include "dl_module_sqrt.hpp"
-#include "dl_module_squeeze.hpp"
-#include "dl_module_streaming_cache.hpp"
-#include "dl_module_sub.hpp"
-#include "dl_module_swish.hpp"
-#include "dl_module_tanh.hpp"
-#include "dl_module_transpose.hpp"
-#include "dl_module_unsqueeze.hpp"
-#include "fbs_loader.hpp"
+#include "dl_module_base.hpp"
 #include <functional>
 #include <iostream>
 #include <malloc.h>
@@ -127,83 +59,11 @@ public:
 
     /**
      * @brief Pre-register the already implemented modules
+     *        Defined in dl_module_creator.cpp; the gated module includes live
+     *        in dl_module_includes.inc and the registration rows in
+     *        dl_module_register.inc, both generated from spec/ops.yml.
      */
-    void register_dl_modules()
-    {
-        if (creators.empty()) {
-            this->register_module("Conv", Conv::deserialize);
-            this->register_module("Add", Add::deserialize);
-            this->register_module("Sub", Sub::deserialize);
-            this->register_module("Mul", Mul::deserialize);
-            this->register_module("Div", Div::deserialize);
-            this->register_module("Pow", Pow::deserialize);
-            this->register_module("Mod", Mod::deserialize);
-            this->register_module("Resize", Resize::deserialize);
-            this->register_module("GlobalAveragePool", GlobalAveragePool::deserialize);
-            this->register_module("AveragePool", AveragePool::deserialize);
-            this->register_module("Concat", Concat::deserialize);
-            this->register_module("Sigmoid", Sigmoid::deserialize);
-            this->register_module("Tanh", Tanh::deserialize);
-            this->register_module("Relu", Relu::deserialize);
-            this->register_module("LeakyRelu", LeakyRelu::deserialize);
-            this->register_module("HardSigmoid", HardSigmoid::deserialize);
-            this->register_module("HardSwish", HardSwish::deserialize);
-            this->register_module("Gelu", LUT::deserialize);
-            this->register_module("LUT", LUT::deserialize);
-            this->register_module("Gemm", Gemm::deserialize);
-            this->register_module("QuantizeLinear", RequantizeLinear::deserialize);
-            this->register_module("DequantizeLinear", RequantizeLinear::deserialize);
-            this->register_module("RequantizeLinear", RequantizeLinear::deserialize);
-            this->register_module("PRelu", PRelu::deserialize);
-            this->register_module("Clip", Clip::deserialize);
-            this->register_module("Flatten", Flatten::deserialize);
-            this->register_module("Reshape", Reshape::deserialize);
-            this->register_module("Transpose", Transpose::deserialize);
-            this->register_module("Exp", Exp::deserialize);
-            this->register_module("Log", Log::deserialize);
-            this->register_module("Sqrt", Sqrt::deserialize);
-            this->register_module("Squeeze", Squeeze::deserialize);
-            this->register_module("Unsqueeze", Unsqueeze::deserialize);
-            this->register_module("Softmax", Softmax::deserialize);
-            this->register_module("LogSoftmax", LogSoftmax::deserialize);
-            this->register_module("MaxPool", MaxPool::deserialize);
-            this->register_module("Slice", Slice::deserialize);
-            this->register_module("Pad", Pad::deserialize);
-            this->register_module("MatMul", MatMul::deserialize);
-            this->register_module("Neg", Neg::deserialize);
-            this->register_module("SpaceToDepth", SpaceToDepth::deserialize);
-            this->register_module("Split", Split::deserialize);
-            this->register_module("Gather", Gather::deserialize);
-            this->register_module("Elu", Elu::deserialize);
-            this->register_module("Greater", Greater::deserialize);
-            this->register_module("GreaterOrEqual", GreaterOrEqual::deserialize);
-            this->register_module("Equal", Equal::deserialize);
-            this->register_module("Less", Less::deserialize);
-            this->register_module("LessOrEqual", LessOrEqual::deserialize);
-            this->register_module("ReverseSequence", ReverseSequence::deserialize);
-            this->register_module("ScatterND", ScatterND::deserialize);
-            this->register_module("Identity", Identity::deserialize);
-            this->register_module("Swish", Swish::deserialize);
-            this->register_module("ReduceL1", ReduceL1::deserialize);
-            this->register_module("ReduceL2", ReduceL2::deserialize);
-            this->register_module("ReduceMin", ReduceMin::deserialize);
-            this->register_module("ReduceMax", ReduceMax::deserialize);
-            this->register_module("ReduceSum", ReduceSum::deserialize);
-            this->register_module("ReduceProd", ReduceProd::deserialize);
-            this->register_module("ReduceMean", ReduceMean::deserialize);
-            this->register_module("ReduceSumSquare", ReduceSumSquare::deserialize);
-            this->register_module("ReduceLogSum", ReduceLogSum::deserialize);
-            this->register_module("ReduceLogSumExp", ReduceLogSumExp::deserialize);
-            this->register_module("GRU", GRU::deserialize);
-            this->register_module("LSTM", LSTM::deserialize);
-            this->register_module("DepthToSpace", DepthToSpace::deserialize);
-            this->register_module("StreamingCache", StreamingCache::deserialize);
-            this->register_module("InsertZeros", InsertZeros::deserialize);
-            this->register_module("LayerNormalization", LayerNormalization::deserialize);
-            this->register_module("LpNormalization", LpNormalization::deserialize);
-            this->register_module("RMSNormalization", RMSNormalization::deserialize);
-        }
-    }
+    void register_dl_modules();
 
     /**
      * @brief Print all modules has been registered

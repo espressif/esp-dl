@@ -7,15 +7,15 @@ static const char *TAG = "dl_image_bmp";
 namespace dl {
 namespace image {
 #pragma pack(push, 1)
-typedef struct {
+struct bmp_file_header_t {
     uint16_t file_type{0x4D42}; // File type always BM which is 0x4D42 (stored as hex uint16_t in little endian)
     uint32_t file_size{0};      // Size of the file (in bytes)
     uint16_t reserved1{0};      // Reserved, always 0
     uint16_t reserved2{0};      // Reserved, always 0
     uint32_t offset_data{0};    // Start position of pixel data (bytes from the beginning of the file)
-} bmp_file_header_t;
+};
 
-typedef struct {
+struct bmp_info_header_t {
     uint32_t size{40};       // Size of this header (in bytes)
     int32_t width{0};        // width of bitmap in pixels
     int32_t height{0};       // width of bitmap in pixels
@@ -30,7 +30,7 @@ typedef struct {
     uint32_t colors_used{
         0}; // No. color indexes in the color table. Use 0 for the max number of colors allowed by bit_count
     uint32_t colors_important{0}; // No. of colors used for displaying the bitmap. If 0 all colors are required
-} bmp_info_header_t;
+};
 #pragma pack(pop)
 
 esp_err_t write_bmp_base(const img_t &img, const char *file_name)

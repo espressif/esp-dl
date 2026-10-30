@@ -166,6 +166,179 @@
         activation_func = "ReLU"
 
         [[ops_test.Conv.cfg]]
+        # conv_reuse_*: the filter tile loop needs Cout >= 2 tiles. kh * kw * Cin just above
+        # 1024 gives 16-channel S8 / 8-channel S16 tiles on S3 and P4 with a small filter, so
+        # Conv_s16 still fits the ESP32 3800K model partition.
+        # Non-1x1 filter reuse + width split. 1D, zero pad, stride 1. S16 tiles on S3 / P4.
+        input_shape = [1, 344, 12]
+        export_name_prefix = "conv_reuse_1d_k3"
+
+        in_channels = 344
+        out_channels = 16
+        kernel_size = [3]
+        stride = [1]
+        padding = [0]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # 2D filter reuse without padding, width split. S8 / S16 tile on S3 and P4.
+        input_shape = [1, 114, 6, 7]
+        export_name_prefix = "conv_reuse_2d_k3"
+
+        in_channels = 114
+        out_channels = 32
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Dilated kernel, still stride 1 and zero pad. S16 tiles on S3 / P4.
+        input_shape = [1, 72, 6, 14]
+        export_name_prefix = "conv_reuse_2d_dilated"
+
+        in_channels = 72
+        out_channels = 16
+        kernel_size = [3, 5]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [2, 2]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Filter reuse with same padding: border windows on the tiled path. S8 / S16 tile on S3 and P4.
+        input_shape = [1, 114, 4, 6]
+        export_name_prefix = "conv_reuse_2d_k3_pad"
+
+        in_channels = 114
+        out_channels = 32
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Stride 2 + padding, tall enough for the height split (H > 4 * kh). S8 / S16 tile on S3 and P4.
+        input_shape = [1, 114, 14, 3]
+        export_name_prefix = "conv_reuse_2d_k3_s2_pad"
+
+        in_channels = 114
+        out_channels = 32
+        kernel_size = [3, 3]
+        stride = [2, 2]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = ""
+
+        [[ops_test.Conv.cfg]]
+        # Dilation + padding on both axes. S8 / S16 tile on S3 and P4.
+        input_shape = [1, 72, 4, 6]
+        export_name_prefix = "conv_reuse_2d_dilated_pad"
+
+        in_channels = 72
+        out_channels = 32
+        kernel_size = [3, 5]
+        stride = [1, 1]
+        padding = [2, 4]
+        dilation = [2, 2]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Unaligned Cin / Cout + padding: n_remainder rides on the last tile.
+        # kh * kw * Cin in (1365, 1638] so every quant type tiles on S3 and P4.
+        input_shape = [1, 156, 4, 6]
+        export_name_prefix = "conv_reuse_2d_k3_unaligned_pad"
+
+        in_channels = 156
+        out_channels = 36
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Single-group fallback: kh * kw * Cin = 2304 makes one lane group (36KB in S8,
+        # 18KB in W8A16) exceed the fast budget (32KB / 16KB) while still fitting inside
+        # filter_bytes_limit, so S8 and W8A16 take the single-group tile path on S3 and P4.
+        # Skip int16 so Conv_s16 stays within the ESP32 3800K model partition.
+        input_shape = [1, 256, 6, 6]
+        export_name_prefix = "conv_reuse_2d_k3_large_pad"
+        quant_type = ["int8", "w8a16"]
+
+        in_channels = 256
+        out_channels = 64
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # 1D, kernel 5, same padding. S16 tiles on S3 / P4.
+        input_shape = [1, 216, 12]
+        export_name_prefix = "conv_reuse_1d_k5_pad"
+
+        in_channels = 216
+        out_channels = 16
+        kernel_size = [5]
+        stride = [1]
+        padding = [2]
+        dilation = [1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Padded 1x1: padding-only windows produce act(bias). S16 tiles on S3 / P4.
+        input_shape = [1, 1040, 1, 3]
+        export_name_prefix = "conv_pointwise_cache_pad"
+
+        in_channels = 1040
+        out_channels = 16
+        kernel_size = [1, 1]
+        stride = [1, 1]
+        padding = [1, 1]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
+        # Below every width-split MAC limit and too small to tile. Must stay on the original loop.
+        input_shape = [1, 16, 8, 4]
+        export_name_prefix = "conv_reuse_below_mac_limit"
+
+        in_channels = 16
+        out_channels = 32
+        kernel_size = [3, 3]
+        stride = [1, 1]
+        padding = [0, 0]
+        dilation = [1, 1]
+        groups = 1
+        bias = true
+        activation_func = "ReLU"
+
+        [[ops_test.Conv.cfg]]
         # Conv, pointwise, aligned
         input_shape = [1, 3, 100, 50]
         export_name_prefix = "conv2d_ishap_1_3_100_50_kshap_16_3_3_3_relu"
@@ -1998,6 +2171,21 @@
     quant_type = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         [[ops_test.Concat.cfg]]
+        input_shape = [[1, 16, 9, 11], [1, 16, 9, 11], [1, 16, 9, 11]]
+        axis = 1
+        export_name_prefix = "concat_p4_small_copies"
+
+        [[ops_test.Concat.cfg]]
+        input_shape = [[1, 3, 5, 7], [1, 5, 5, 7], [1, 7, 5, 7]]
+        axis = 1
+        export_name_prefix = "concat_p4_channel_tails"
+
+        [[ops_test.Concat.cfg]]
+        input_shape = [[1, 2, 5], [1, 2, 7]]
+        axis = -1
+        export_name_prefix = "concat_p4_negative_axis"
+
+        [[ops_test.Concat.cfg]]
         input_shape = [[1, 80, 20, 20], [1, 48, 20, 20]]
         export_name_prefix = "concat_ishape_1_80_20_20_1_48_20_20"
         axis = 1
@@ -2081,6 +2269,31 @@
     test_func = "TRANSPOSE_TEST"
     quant_type = ["int8", "int16", "float32"]
     package = "torch_ops_test"
+        [[ops_test.Transpose.cfg]]
+        input_shape = [1, 9, 129]
+        perm = [0, 2, 1]
+        export_name_prefix = "transpose_p4_tail_9_129"
+
+        [[ops_test.Transpose.cfg]]
+        input_shape = [1, 16, 129]
+        perm = [0, 2, 1]
+        export_name_prefix = "transpose_p4_tail_16_129"
+
+        [[ops_test.Transpose.cfg]]
+        input_shape = [1, 17, 128]
+        perm = [0, 2, 1]
+        export_name_prefix = "transpose_p4_tail_17_128"
+
+        [[ops_test.Transpose.cfg]]
+        input_shape = [1, 7, 129]
+        perm = [0, 2, 1]
+        export_name_prefix = "transpose_p4_tail_7_129"
+
+        [[ops_test.Transpose.cfg]]
+        input_shape = [1, 8, 16]
+        perm = [0, 2, 1]
+        export_name_prefix = "transpose_p4_tail_8_16"
+
         [[ops_test.Transpose.cfg]]
         input_shape = [1, 5, 20, 40]
         export_name_prefix = "transpose_ishape_1_5_20_40_perm_0_2_1_3"
@@ -2386,6 +2599,47 @@
     quant_type = ["int8", "int16", "w8a16"]
     package = "torch_ops_test"
     restrictions = "Support up to 4D. w8a16 applies to static input1 only."
+        [[ops_test.MatMul.cfg]]
+        # matmul_reuse_*: a shared weight runs as one 1x1 Conv over all rows. K just above 1024
+        # makes the filter tile loop run with a small weight; M * K * N passes the width-split limit.
+        # K in (1365, 1638]: every quant type tiles on S3 and P4, rows split across cores.
+        input_shape = [1, 16, 1408]
+        input_weight_shape = [1408, 32]
+        export_name_prefix = "matmul_reuse_rows"
+        activation_func = ""
+        input1_is_weight = true
+
+        [[ops_test.MatMul.cfg]]
+        # N tail on the last tile, odd row count across the two cores.
+        input_shape = [1, 17, 1040]
+        input_weight_shape = [1040, 34]
+        export_name_prefix = "matmul_reuse_tail"
+        activation_func = "ReLU"
+        input1_is_weight = true
+
+        [[ops_test.MatMul.cfg]]
+        # Leading dims fold into rows: one Conv for the whole batch.
+        input_shape = [1, 2, 8, 1040]
+        input_weight_shape = [1040, 32]
+        export_name_prefix = "matmul_reuse_batch"
+        activation_func = ""
+        input1_is_weight = true
+
+        [[ops_test.MatMul.cfg]]
+        input_shape = [1, 3, 16]
+        input_weight_shape = [16, 17]
+        export_name_prefix = "matmul_reuse_small"
+        activation_func = ""
+        input1_is_weight = true
+
+        [[ops_test.MatMul.cfg]]
+        # K not a multiple of the lane count, plus an N tail.
+        input_shape = [1, 17, 1039]
+        input_weight_shape = [1039, 34]
+        export_name_prefix = "matmul_reuse_unaligned_k"
+        activation_func = ""
+        input1_is_weight = true
+
         [[ops_test.MatMul.cfg]]
         input_shape = [[1, 10], [1, 10]]
         export_name_prefix = "MatMul_ishape0_10_ishape1_10"
@@ -3291,6 +3545,32 @@
     quant_type = ["int8", "int16", "float32"]
     package = "torch_ops_test"
         # case: reduceall
+        [[ops_test.ReduceMean.cfg]]
+        # The generator removes dimension 0. ReduceMean receives [4, 16].
+        # The reduction count is 4. Aligned INT16 input uses the P4 QACC kernel.
+        input_shape = [1, 4, 16]
+        dim = [0]
+        keepdim = true
+        export_name_prefix = "mean_p4_inner_aligned"
+
+        [[ops_test.ReduceMean.cfg]]
+        input_shape = [1, 3, 17, 9]
+        dim = [1]
+        keepdim = false
+        export_name_prefix = "mean_p4_inner_tail"
+
+        [[ops_test.ReduceMean.cfg]]
+        input_shape = [1, 2, 5, 7, 11]
+        dim = [1, 2]
+        keepdim = true
+        export_name_prefix = "mean_p4_two_axes"
+
+        [[ops_test.ReduceMean.cfg]]
+        input_shape = [1, 3, 16]
+        dim = [0]
+        keepdim = false
+        export_name_prefix = "mean_p4_small_count"
+
         [[ops_test.ReduceMean.cfg]]
         input_shape = [1, 10]
         export_name_prefix = "ReduceMean_ishap_10_reduceall"

@@ -9,6 +9,9 @@ struct Gray2Gray;
 
 template <>
 struct Gray2Gray<void> {
+    static constexpr int src_bpp = 1;
+    static constexpr int dst_bpp = 1;
+
     void operator()(const uint8_t *src, uint8_t *dst) const { *dst = *src; }
 
     void cvt_color_simd_helper(uint8_t *src, uint8_t *dst, int n) const
@@ -26,6 +29,8 @@ template <typename ExtraProcess>
     requires std::same_as<ExtraProcess, NormQuant<int8_t, 1>> || std::same_as<ExtraProcess, NormQuant<int16_t, 1>>
 struct Gray2Gray<ExtraProcess> {
     using QuantType = ExtraProcess::QT;
+    static constexpr int src_bpp = 1;
+    static constexpr int dst_bpp = ExtraProcess::channels * static_cast<int>(sizeof(QuantType));
     const ExtraProcess &m_extra_process;
 
     Gray2Gray(const ExtraProcess &extra_process) : m_extra_process(extra_process) {}

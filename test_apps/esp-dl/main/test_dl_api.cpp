@@ -4,6 +4,7 @@
 #include "dl_module_layer_normalization.hpp"
 #include "dl_module_lut.hpp"
 #include "dl_module_relu.hpp"
+#include "dl_module_streaming_cache.hpp"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "fbs_loader.hpp"

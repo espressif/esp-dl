@@ -1,3 +1,4 @@
+#include "dl_compile_config.h"
 #include "dl_tie728_s16.S"
 
 
@@ -55,6 +56,7 @@
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_11CN_BIAS
     .align 4
     .text
     .global dl_tie728_s16_conv2d_11cn_bias
@@ -98,9 +100,11 @@ dl_tie728_s16_conv2d_11cn_bias:
     bnez a7, .L11cn_bias_loop
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_11CN_BIAS_RELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_11cn_bias_relu
@@ -145,9 +149,11 @@ dl_tie728_s16_conv2d_11cn_bias_relu:
     bnez a7, .L11cn_bias_relu_loop
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_11CN_BIAS_PRELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_11cn_bias_prelu
@@ -192,9 +198,11 @@ dl_tie728_s16_conv2d_11cn_bias_prelu:
     bnez a7, .L11cn_bias_prelu_loop
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_11CN
     .align 4
     .text
     .global dl_tie728_s16_conv2d_11cn
@@ -237,9 +245,11 @@ dl_tie728_s16_conv2d_11cn:
     bnez a7, .L11cn_loop
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_11CN_RELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_11cn_relu
@@ -283,9 +293,11 @@ dl_tie728_s16_conv2d_11cn_relu:
     bnez a7, .L11cn_relu_loop
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_11CN_PRELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_11cn_prelu
@@ -329,6 +341,7 @@ dl_tie728_s16_conv2d_11cn_prelu:
     bnez a7, .L11cn_prelu_loop
 
     retw
+#endif
 
 
 
@@ -382,6 +395,7 @@ dl_tie728_s16_conv2d_11cn_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_33CN_BIAS
     .align 4
     .text
     .global dl_tie728_s16_conv2d_33cn_bias
@@ -424,9 +438,11 @@ dl_tie728_s16_conv2d_33cn_bias:
     bnez a7, .L33cn_bias_loop
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_33CN_BIAS_RELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_33cn_bias_relu
@@ -471,9 +487,11 @@ dl_tie728_s16_conv2d_33cn_bias_relu:
     bnez a7, .L33cn_bias_relu_loop
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_33CN_BIAS_PRELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_33cn_bias_prelu
@@ -518,9 +536,11 @@ dl_tie728_s16_conv2d_33cn_bias_prelu:
     bnez a7, .L33cn_bias_prelu_loop
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_33CN
     .align 4
     .text
     .global dl_tie728_s16_conv2d_33cn
@@ -563,9 +583,11 @@ dl_tie728_s16_conv2d_33cn:
     bnez a7, .L33cn_loop
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_33CN_RELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_33cn_relu
@@ -609,9 +631,11 @@ dl_tie728_s16_conv2d_33cn_relu:
     bnez a7, .L33cn_relu_loop
 
     retw
+#endif
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_33CN_PRELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_33cn_prelu
@@ -655,6 +679,7 @@ dl_tie728_s16_conv2d_33cn_prelu:
     bnez a7, .L33cn_prelu_loop
 
     retw
+#endif
 
 
 
@@ -701,6 +726,7 @@ dl_tie728_s16_conv2d_33cn_prelu:
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_HWCN_BIAS
     .align 4
     .text
     .global dl_tie728_s16_conv2d_hwcn_bias
@@ -746,10 +772,12 @@ dl_tie728_s16_conv2d_hwcn_bias:
     bnez a7, .Lhwcn_bias_loop
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_HWCN_BIAS_RELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_hwcn_bias_relu
@@ -799,10 +827,12 @@ dl_tie728_s16_conv2d_hwcn_bias_relu:
     bnez a7, .Lhwcn_bias_relu_loop
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_HWCN_BIAS_PRELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_hwcn_bias_prelu
@@ -852,10 +882,12 @@ dl_tie728_s16_conv2d_hwcn_bias_prelu:
     bnez a7, .Lhwcn_bias_prelu_loop
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_HWCN
     .align 4
     .text
     .global dl_tie728_s16_conv2d_hwcn
@@ -901,10 +933,12 @@ dl_tie728_s16_conv2d_hwcn:
     bnez a7, .Lhwcn_loop
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_HWCN_RELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_hwcn_relu
@@ -952,10 +986,12 @@ dl_tie728_s16_conv2d_hwcn_relu:
     bnez a7, .Lhwcn_relu_loop
 
     retw
+#endif
 
 
 
 
+#if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S16_CONV2D_HWCN_PRELU
     .align 4
     .text
     .global dl_tie728_s16_conv2d_hwcn_prelu
@@ -1003,3 +1039,4 @@ dl_tie728_s16_conv2d_hwcn_prelu:
     bnez a7, .Lhwcn_prelu_loop
 
     retw
+#endif

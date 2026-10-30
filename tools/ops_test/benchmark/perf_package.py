@@ -10,6 +10,7 @@ every target's file (same idea as ``espdl-op-test-cases``):
     package name : espdl-op-perf-baseline
     version      : <pipeline-id>            (e.g. 12345)
     files        : <target>_perf_results.json  (one per chip)
+                   perf_gate_skip.json         (only if the gate was waived)
 
 ``fetch`` walks versions newest-first and downloads that target's file from
 the first version that has it. Historical per-target versions (``<target>``
@@ -64,12 +65,22 @@ instead lets each board re-record the case as it measures it again.
 
 With neither permission, or when the merge changes nothing, it prints a skip
 message and exits successfully without touching the registry.
+
+Gate waivers
+------------
+``skip`` and ``skip-status`` are the other half of skip_espdl_ops_perf: the
+first records that a human waived one pipeline's gate, the second is how
+check_espdl_ops_perf finds out. A waiver is a decision about a single
+pipeline, so it never becomes a measurement and never moves the baseline: it
+only stops that pipeline's gate from failing. This is the only thing a branch
+pipeline is allowed to put in the registry.
 """
 
 import argparse
 import http.client
 import json
 import os
+import sys
 import time
 import urllib.error
 import urllib.parse
@@ -89,6 +100,14 @@ HISTORY_KEY = "baseline_updates"
 # recoverable from the package versions they were published in.
 HISTORY_LIMIT = 50
 FILE_NAME_TEMPLATE = "{target}_perf_results.json"
+# One waiver per pipeline, stored next to that pipeline's results because the
+# gate cannot read it from skip_espdl_ops_perf's artifacts: a job that `needs`
+# an unplayed manual job waits for it, which would hang the gate in every
+# pipeline where nobody presses the button. Keyed by pipeline id, so a waiver
+# can never apply to anything but the pipeline it was played in. Carries no
+# measurements, so it changes no baseline: ``fetch`` and ``publish`` only ever
+# look for <target>_perf_results.json.
+SKIP_FILE_NAME = "perf_gate_skip.json"
 # Each test_espdl_ops matrix child writes artifacts under
 # ops_perf/<target>/<idf_version>/<config>/perf_results.json so they do not
 # overwrite each other when GitLab extracts every child's artifacts into
@@ -190,14 +209,20 @@ def _history_entry(trigger, update_ops, summary):
     }
 
 
-def _file_url(api_url, project_id, target, version):
+def _package_file_url(api_url, project_id, version, file_name):
     quoted_project = urllib.parse.quote(str(project_id), safe="")
     return "{}/projects/{}/packages/generic/{}/{}/{}".format(
         api_url.rstrip("/"),
         quoted_project,
         urllib.parse.quote(PACKAGE_NAME, safe=""),
-        urllib.parse.quote(version, safe=""),
-        urllib.parse.quote(FILE_NAME_TEMPLATE.format(target=target), safe=""),
+        urllib.parse.quote(str(version), safe=""),
+        urllib.parse.quote(file_name, safe=""),
+    )
+
+
+def _file_url(api_url, project_id, target, version):
+    return _package_file_url(
+        api_url, project_id, version, FILE_NAME_TEMPLATE.format(target=target)
     )
 
 
@@ -314,10 +339,10 @@ def _candidate_versions(packages, target):
     return versions
 
 
-def _load_baseline(api_url, project_id, target, version, token):
+def _download_json(api_url, project_id, version, file_name, token):
     """Return ``(status, data)``. ``data`` is set only on HTTP 200."""
     request = urllib.request.Request(
-        _file_url(api_url, project_id, target, version),
+        _package_file_url(api_url, project_id, version, file_name),
         headers={"JOB-TOKEN": token},
     )
     try:
@@ -327,9 +352,20 @@ def _load_baseline(api_url, project_id, target, version, token):
         return error.code, None
     except json.JSONDecodeError as error:
         raise RuntimeError(
-            "Baseline {}/{} is not valid JSON".format(version, target)
+            "{}/{} is not valid JSON".format(version, file_name)
         ) from error
     return 200, data
+
+
+def _load_baseline(api_url, project_id, target, version, token):
+    """Return ``(status, data)`` of one target's file in a package version."""
+    return _download_json(
+        api_url,
+        project_id,
+        version,
+        FILE_NAME_TEMPLATE.format(target=target),
+        token,
+    )
 
 
 def _find_latest_baseline(api_url, project_id, target, token, packages):
@@ -455,6 +491,92 @@ def fetch(args):
             args.target, version
         )
     )
+
+
+def _pipeline_id(args):
+    pipeline_id = str(args.pipeline_id or os.environ.get("CI_PIPELINE_ID") or "")
+    if not pipeline_id:
+        raise RuntimeError(
+            "A pipeline id is required: pass --pipeline-id or set CI_PIPELINE_ID"
+        )
+    return pipeline_id
+
+
+def _describe_waiver(marker):
+    """One-line summary of a waiver, for the gate's log and for shell tests."""
+    description = "played by {} at {}".format(
+        marker.get("actor") or "<unknown>", marker.get("skipped_at") or "<unknown>"
+    )
+    reason = " ".join(str(marker.get("reason") or "").split())
+    return "{} ({})".format(description, reason) if reason else description
+
+
+def skip(args):
+    """Waive the performance gate of one pipeline.
+
+    Only reachable by a human playing skip_espdl_ops_perf, which is the
+    decision that this pipeline's operator timings must not gate the merge.
+    The gate still measures and reports; it just stops failing.
+    """
+    pipeline_id = _pipeline_id(args)
+    marker = {
+        "pipeline_id": pipeline_id,
+        "skipped_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "actor": os.environ.get("GITLAB_USER_LOGIN", ""),
+        "reason": " ".join((args.reason or "").split()),
+        "commit_sha": os.environ.get("CI_COMMIT_SHA", ""),
+        "commit_title": os.environ.get("CI_COMMIT_TITLE", ""),
+        "ref": os.environ.get("CI_COMMIT_REF_NAME", ""),
+        "pipeline_url": os.environ.get("CI_PIPELINE_URL", ""),
+        "job_url": os.environ.get("CI_JOB_URL", ""),
+    }
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(marker, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+
+    upload_status = _upload(
+        _package_file_url(args.api_url, args.project_id, pipeline_id, SKIP_FILE_NAME),
+        args.token,
+        output,
+    )
+    if upload_status in (200, 201):
+        print(
+            "Waived the performance gate of pipeline {}: {}".format(
+                pipeline_id, _describe_waiver(marker)
+            )
+        )
+    elif upload_status in (400, 409):
+        # This pipeline was already waived and the registry rejects the
+        # duplicate file; the waiver it already holds is the one that counts.
+        print(
+            "The performance gate of pipeline {} was already waived.".format(
+                pipeline_id
+            )
+        )
+    else:
+        raise RuntimeError("Waiver upload failed with HTTP {}".format(upload_status))
+
+
+def skip_status(args):
+    """Print this pipeline's waiver, or nothing at all when it has none.
+
+    stdout is the answer the gate reads, so nothing else may be printed on it.
+    """
+    pipeline_id = _pipeline_id(args)
+    status, data = _download_json(
+        args.api_url, args.project_id, pipeline_id, SKIP_FILE_NAME, args.token
+    )
+    if status == 404:
+        print(
+            "Pipeline {} has no performance gate waiver.".format(pipeline_id),
+            file=sys.stderr,
+        )
+        return
+    if status != 200 or data is None:
+        raise RuntimeError("Waiver probe failed with HTTP {}".format(status))
+    print(_describe_waiver(data))
 
 
 def merge_into_baseline(baseline, current, update_ops, add_unseen):
@@ -795,6 +917,40 @@ def main():
         "JOB-TOKEN is not allowed to list. Defaults to --token.",
     )
 
+    skip_parser = subparsers.add_parser(
+        "skip", help="Waive this pipeline's performance gate."
+    )
+    skip_parser.add_argument("--api-url", required=True)
+    skip_parser.add_argument("--project-id", required=True)
+    skip_parser.add_argument("--token", required=True)
+    skip_parser.add_argument(
+        "--reason",
+        default="",
+        help="Why the gate is waived, recorded in the waiver.",
+    )
+    skip_parser.add_argument(
+        "--output",
+        default=SKIP_FILE_NAME,
+        help="Where to write the waiver that gets uploaded, so the job keeps "
+        "it as an artifact too.",
+    )
+
+    status_parser = subparsers.add_parser(
+        "skip-status",
+        help="Print this pipeline's waiver on stdout, or nothing when it has "
+        "none. Machine readable: an empty answer means the gate is enforced.",
+    )
+    status_parser.add_argument("--api-url", required=True)
+    status_parser.add_argument("--project-id", required=True)
+    status_parser.add_argument("--token", required=True)
+
+    for waiver_parser in (skip_parser, status_parser):
+        waiver_parser.add_argument(
+            "--pipeline-id",
+            default=None,
+            help="Pipeline whose gate is waived. Defaults to $CI_PIPELINE_ID.",
+        )
+
     cleanup_parser = subparsers.add_parser("cleanup")
     cleanup_parser.add_argument("--api-url", required=True)
     cleanup_parser.add_argument("--project-id", required=True)
@@ -812,6 +968,10 @@ def main():
         fetch(args)
     elif args.command == "publish":
         publish(args)
+    elif args.command == "skip":
+        skip(args)
+    elif args.command == "skip-status":
+        skip_status(args)
     elif args.command == "cleanup":
         cleanup(args)
 

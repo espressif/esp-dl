@@ -383,20 +383,12 @@ if __name__ == "__main__":
                     args.output_path, op_export_dirname(op_type, quant_type)
                 )
                 for cfg in op_configs:
-                    # A config may restrict the operator-level quantization list.
-                    # Names use the op_cfg.toml vocabulary.
-                    cfg_quant_types = cfg.get("quant_type")
-                    if cfg_quant_types:
-                        allowed = {
+                    if "quant_type" in cfg:
+                        cfg_quant_types = {
                             _CFG_TO_QUANT_TYPE.get(item, item)
-                            for item in cfg_quant_types
+                            for item in cfg["quant_type"]
                         }
-                        if quant_type not in allowed:
-                            print(
-                                f"Skip cfg {cfg.get('export_name_prefix', '?')} "
-                                f"at {quant_type} due to "
-                                f"per-cfg quant_type={cfg_quant_types}"
-                            )
+                        if quant_type not in cfg_quant_types:
                             continue
                     cfg["per_channel_enable"] = per_channel_enable
                     test_max_error = resolve_max_error(

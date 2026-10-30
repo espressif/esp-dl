@@ -119,8 +119,23 @@ check_espdl_ops_perf:
   script:
     - |
       set -eu
+      # A human may waive this pipeline's gate by playing skip_espdl_ops_perf.
+      # Read from the registry rather than from that job's artifacts: a job
+      # that needs an unplayed manual job waits for it, so depending on the
+      # button would hang the gate in every pipeline where nobody presses it.
+      # Played before this job runs, the waiver applies straight away; played
+      # afterwards, retrying this job picks it up.
+      WAIVER=$(python tools/ops_test/benchmark/perf_package.py skip-status \
+        --api-url "${CI_API_V4_URL}" \
+        --project-id "${CI_PROJECT_ID}" \
+        --token "${CI_JOB_TOKEN}")
+      if [ -n "${WAIVER}" ]; then
+        echo "Performance gate waived for this pipeline: ${WAIVER}"
+        echo "The comparison below is still measured and reported, but it"
+        echo "cannot fail this job."
+      fi
       FAILED=0
-      for TARGET in esp32 esp32s3 esp32p4; do
+      for TARGET in esp32 esp32s3 esp32p4 esp32c5; do
         RESULTS="${TARGET}_perf_results.json"
         if ! python tools/ops_test/benchmark/perf_package.py aggregate \
              --root "${CI_PROJECT_DIR}" \
@@ -150,6 +165,13 @@ check_espdl_ops_perf:
       done
       if [ "${FAILED}" -ne 0 ]; then
         echo "Read the *_perf_diff.md artifacts." >&2
+        if [ -n "${WAIVER}" ]; then
+          # Reported, not enforced: the reviewed decision was that these
+          # numbers must not gate the merge. Nothing about the baseline
+          # changed, so the next pipeline is gated against it as usual.
+          echo "Not failing: the gate is waived (${WAIVER})." >&2
+          exit 0
+        fi
         if [ "${CI_COMMIT_REF_PROTECTED:-false}" = "true" ]; then
           # The reviewed decision of whether these numbers become the new
           # reference, or whether this pipeline stands as a real failure.
@@ -162,6 +184,9 @@ check_espdl_ops_perf:
           echo "\"update-perf-baseline:<Op>\" per operator and re-run the" >&2
           echo "pipeline; the baseline itself is only ever written on master." >&2
         fi
+        echo "To merge without settling it, play skip_espdl_ops_perf and" >&2
+        echo "retry this job; that waives this pipeline only and leaves the" >&2
+        echo "baseline untouched, so the next pipeline is gated again." >&2
         exit 1
       fi
 
@@ -194,7 +219,7 @@ accept_espdl_ops_perf:
       # check_espdl_ops_perf afterwards then compares against it and passes,
       # without spending a board on a re-measurement.
       ACCEPTED=""
-      for TARGET in esp32 esp32s3 esp32p4; do
+      for TARGET in esp32 esp32s3 esp32p4 esp32c5; do
         RESULTS="${TARGET}_perf_results.json"
         if ! python tools/ops_test/benchmark/perf_package.py aggregate \
              --root "${CI_PROJECT_DIR}" \
@@ -246,6 +271,46 @@ accept_espdl_ops_perf:
         echo "Retry check_espdl_ops_perf to turn the pipeline green."
       fi
 
+skip_espdl_ops_perf:
+  stage: perf_gate
+  extends:
+    - .espdl_ops_perf
+    - .rules:perf_gate:skip
+  # Playable from the moment the pipeline exists, unlike the rest of the perf
+  # jobs: the point of the button is to settle the gate without waiting for
+  # (or even having) a measurement. Played early it waives the gate before it
+  # runs; played on a gate that already failed, retrying the gate passes.
+  needs: []
+  when: manual
+  allow_failure: true
+  variables:
+    # Recorded in the waiver, so the registry says why a pipeline was let
+    # through. The play button in the pipeline graph starts the job with no
+    # prompt; the form for entering variables is on the job's own page.
+    PERF_SKIP_REASON: ""
+  artifacts:
+    paths:
+      # The same waiver that was uploaded, so the job itself shows what it
+      # recorded.
+      - "perf_gate_skip.json"
+    expire_in: 90 days
+  script:
+    - |
+      set -eu
+      # Only reachable by a human pressing play, so reaching here is the
+      # decision that this pipeline's operator timings must not gate the
+      # merge. Deliberately weaker than accept_espdl_ops_perf: it waives one
+      # pipeline's verdict and writes no measurement, so the baseline keeps
+      # its current values and the next pipeline is gated against them again.
+      python tools/ops_test/benchmark/perf_package.py skip \
+        --api-url "${CI_API_V4_URL}" \
+        --project-id "${CI_PROJECT_ID}" \
+        --token "${CI_JOB_TOKEN}" \
+        --reason "${PERF_SKIP_REASON}" \
+        --output "perf_gate_skip.json"
+      echo "check_espdl_ops_perf will report the numbers without failing."
+      echo "Retry it if it already ran; otherwise it picks this up on its own."
+
 publish_espdl_ops_perf_baseline:
   stage: deploy
   extends:
@@ -270,8 +335,10 @@ publish_espdl_ops_perf_baseline:
     - |
       set -eu
       # This job only exists on master (.rules:perf_gate:write) and only runs
-      # once check_espdl_ops_perf is green, so reaching here already means the
-      # numbers were either within range or explicitly accepted. Since schema
+      # once check_espdl_ops_perf is green, so reaching here means the numbers
+      # were within range, explicitly accepted, or waived by
+      # skip_espdl_ops_perf -- and a waiver grants no update scope, so it can
+      # still only add cases the baseline does not cover yet. Since schema
       # v3 the baseline is keyed by the board that measured a case and the
       # runners hand out an arbitrary board per job, so it takes several
       # pipelines to cover every board: record whatever this one saw.
@@ -285,7 +352,7 @@ publish_espdl_ops_perf_baseline:
       ADD_UNSEEN="1"
 
       FAILED=0
-      for TARGET in esp32 esp32s3 esp32p4; do
+      for TARGET in esp32 esp32s3 esp32p4 esp32c5; do
         # Aggregated and gated by check_espdl_ops_perf; inherited as an
         # artifact so a target that produced no measurements is visible here
         # as a missing file rather than being silently skipped.

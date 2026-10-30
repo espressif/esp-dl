@@ -163,7 +163,8 @@
   - "tools/dl_fft/**/*"
 
 .patterns-test_dl_audio: &patterns-test_dl_audio
-  - "esp-dl/dl_audio/**/*"
+  - "esp-dl/audio/**/*"
+  - "test_apps/dl_audio/**/*"
 
 .patterns-test_dl_pie_func: &patterns-test_dl_pie_func
   - "esp-dl/dl/base/**/*"
@@ -599,3 +600,12 @@
 .rules:perf_gate:accept:
   rules:
     - <<: [*if-protected, *manual-accept]
+
+# skip_espdl_ops_perf: waiving the gate is a decision about one pipeline, not
+# about the baseline, so unlike accept it is offered on a branch too. Same
+# rules as the gate, so the button exists exactly where there is a gate to
+# waive. `when: manual` stays on the job: none of these rules set `when`, so
+# a match resolves to the job-level one, which keeps allow_failure defaulting
+# to true so that an unplayed button never blocks the pipeline.
+.rules:perf_gate:skip:
+  extends: .rules:build:espdl_ops

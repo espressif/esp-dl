@@ -1,0 +1,5824 @@
+# Conv / depthwise / Gemm-1x1 slot selection. Op name is this file's stem.
+#
+# Per-target slots:
+#   pie_v1 / pie_v2: [body, border]  (SIMD; kshape 11 omits border)
+#   c:               [body, border, tail]
+# 1x1 may omit border; 33/hw must provide it. Empty border is nullptr at runtime.
+# An EDL is exported for one target. No SIMD→C fallback (old or new models).
+# c_align is PIE-only: Cin/Cout multiple of the vector lane count. C rules omit it.
+# Pointers are assumed 16-byte aligned. c_align is PIE-only channel width
+# (Cin/Cout multiple of the vector lane count); C rules omit it.
+# group: 1=Conv/Gemm, dw=depthwise (Conv with group==Cin).
+
+slots:
+  pie_v2:
+    - body
+    - border
+  pie_v1:
+    - body
+    - border
+  c:
+    - body
+    - border
+    - tail
+rules:
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_11cn
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_11cn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_33cn
+    border: dl_esp32p4_s16_conv2d_hwcn
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_33cn
+    border: dl_tie728_s16_conv2d_hwcn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_hwcn
+    border: dl_esp32p4_s16_conv2d_hwcn
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_hwcn
+    border: dl_tie728_s16_conv2d_hwcn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_11cn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_11cn_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_33cn_relu
+    border: dl_esp32p4_s16_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_33cn_relu
+    border: dl_tie728_s16_conv2d_hwcn_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_hwcn_relu
+    border: dl_esp32p4_s16_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_hwcn_relu
+    border: dl_tie728_s16_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_11cn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_33cn_relu
+    border: dl_tie728_s16_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_hwcn_relu
+    border: dl_tie728_s16_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_11cn_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_33cn_prelu
+    border: dl_tie728_s16_conv2d_hwcn_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_hwcn_prelu
+    border: dl_tie728_s16_conv2d_hwcn_prelu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_11cn_bias
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_11cn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_33cn_bias
+    border: dl_esp32p4_s16_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_33cn_bias
+    border: dl_tie728_s16_conv2d_hwcn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_hwcn_bias
+    border: dl_esp32p4_s16_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_hwcn_bias
+    border: dl_tie728_s16_conv2d_hwcn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_11cn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_11cn_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_33cn_bias_relu
+    border: dl_esp32p4_s16_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_33cn_bias_relu
+    border: dl_tie728_s16_conv2d_hwcn_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_hwcn_bias_relu
+    border: dl_esp32p4_s16_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_hwcn_bias_relu
+    border: dl_tie728_s16_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_11cn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_33cn_bias_relu
+    border: dl_tie728_s16_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_hwcn_bias_relu
+    border: dl_tie728_s16_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_11cn_bias_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_33cn_bias_prelu
+    border: dl_tie728_s16_conv2d_hwcn_bias_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_conv2d_hwcn_bias_prelu
+    border: dl_tie728_s16_conv2d_hwcn_bias_prelu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_11cn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_33cn
+    border: dl_esp32p4_s16_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_hwcn
+    border: dl_esp32p4_s16_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_11cn_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_33cn_relu
+    border: dl_esp32p4_s16_conv2d_per_channel_hwcn_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_hwcn_relu
+    border: dl_esp32p4_s16_conv2d_per_channel_hwcn_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_11cn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_33cn_bias
+    border: dl_esp32p4_s16_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_hwcn_bias
+    border: dl_esp32p4_s16_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_11cn_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_33cn_bias_relu
+    border: dl_esp32p4_s16_conv2d_per_channel_hwcn_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_conv2d_per_channel_hwcn_bias_relu
+    border: dl_esp32p4_s16_conv2d_per_channel_hwcn_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_11cn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_11cn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_33cn
+    border: dl_esp32p4_s8_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_33cn
+    border: dl_tie728_s8_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_hwcn
+    border: dl_esp32p4_s8_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_hwcn
+    border: dl_tie728_s8_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_11cn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_11cn_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_33cn_relu
+    border: dl_esp32p4_s8_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_33cn_relu
+    border: dl_tie728_s8_conv2d_hwcn_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_hwcn_relu
+    border: dl_esp32p4_s8_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_hwcn_relu
+    border: dl_tie728_s8_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_11cn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_33cn_relu
+    border: dl_tie728_s8_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_hwcn_relu
+    border: dl_tie728_s8_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_11cn_prelu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_33cn_prelu
+    border: dl_tie728_s8_conv2d_hwcn_prelu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_hwcn_prelu
+    border: dl_tie728_s8_conv2d_hwcn_prelu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_11cn_bias
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_11cn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_33cn_bias
+    border: dl_esp32p4_s8_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_33cn
+    border: dl_tie728_s8_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_hwcn_bias
+    border: dl_esp32p4_s8_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_hwcn
+    border: dl_tie728_s8_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_11cn_bias_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_11cn_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_33cn_bias_relu
+    border: dl_esp32p4_s8_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_33cn_relu
+    border: dl_tie728_s8_conv2d_hwcn_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_hwcn_bias_relu
+    border: dl_esp32p4_s8_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_hwcn_relu
+    border: dl_tie728_s8_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_11cn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_33cn_relu
+    border: dl_tie728_s8_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_hwcn_relu
+    border: dl_tie728_s8_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_11cn_prelu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_33cn_prelu
+    border: dl_tie728_s8_conv2d_hwcn_prelu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_conv2d_hwcn_prelu
+    border: dl_tie728_s8_conv2d_hwcn_prelu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_11cn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_33cn
+    border: dl_esp32p4_s8_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_hwcn
+    border: dl_esp32p4_s8_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_11cn_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_33cn_relu
+    border: dl_esp32p4_s8_conv2d_per_channel_hwcn_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_hwcn_relu
+    border: dl_esp32p4_s8_conv2d_per_channel_hwcn_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_11cn_bias
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_33cn_bias
+    border: dl_esp32p4_s8_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_hwcn_bias
+    border: dl_esp32p4_s8_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_11cn_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_33cn_bias_relu
+    border: dl_esp32p4_s8_conv2d_per_channel_hwcn_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_conv2d_per_channel_hwcn_bias_relu
+    border: dl_esp32p4_s8_conv2d_per_channel_hwcn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_11cn
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_11cn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_33cn
+    border: dl_esp32p4_w8a16_conv2d_hwcn
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_33cn
+    border: dl_tie728_w8a16_conv2d_hwcn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_hwcn
+    border: dl_esp32p4_w8a16_conv2d_hwcn
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_hwcn
+    border: dl_tie728_w8a16_conv2d_hwcn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_11cn_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_11cn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_33cn_relu
+    border: dl_esp32p4_w8a16_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_33cn_relu
+    border: dl_tie728_w8a16_conv2d_hwcn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_hwcn_relu
+    border: dl_esp32p4_w8a16_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_hwcn_relu
+    border: dl_tie728_w8a16_conv2d_hwcn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_11cn_bias
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_11cn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_33cn_bias
+    border: dl_esp32p4_w8a16_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_33cn_bias
+    border: dl_tie728_w8a16_conv2d_hwcn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_hwcn_bias
+    border: dl_esp32p4_w8a16_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_hwcn_bias
+    border: dl_tie728_w8a16_conv2d_hwcn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_11cn_bias_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_11cn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_33cn_bias_relu
+    border: dl_esp32p4_w8a16_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_33cn_bias_relu
+    border: dl_tie728_w8a16_conv2d_hwcn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_hwcn_bias_relu
+    border: dl_esp32p4_w8a16_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_w8a16_conv2d_hwcn_bias_relu
+    border: dl_tie728_w8a16_conv2d_hwcn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_11cn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_33cn
+    border: dl_esp32p4_w8a16_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_hwcn
+    border: dl_esp32p4_w8a16_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_11cn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_33cn_relu
+    border: dl_esp32p4_w8a16_conv2d_per_channel_hwcn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_hwcn_relu
+    border: dl_esp32p4_w8a16_conv2d_per_channel_hwcn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_11cn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_33cn_bias
+    border: dl_esp32p4_w8a16_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_hwcn_bias
+    border: dl_esp32p4_w8a16_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_11cn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_33cn_bias_relu
+    border: dl_esp32p4_w8a16_conv2d_per_channel_hwcn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_w8a16_conv2d_per_channel_hwcn_bias_relu
+    border: dl_esp32p4_w8a16_conv2d_per_channel_hwcn_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_11cn
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_11cn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_33cn
+    border: dl_esp32p4_s16_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_33cn
+    border: dl_tie728_s16_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_hwcn
+    border: dl_esp32p4_s16_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_hwcn
+    border: dl_tie728_s16_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_11cn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_11cn_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_33cn_relu
+    border: dl_esp32p4_s16_unaligned_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_33cn_relu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_hwcn_relu
+    border: dl_esp32p4_s16_unaligned_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_hwcn_relu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_11cn_leakyrelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_33cn_leakyrelu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_leakyrelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_hwcn_leakyrelu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_leakyrelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_11cn_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_33cn_prelu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_hwcn_prelu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_prelu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_11cn_bias
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_11cn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_33cn_bias
+    border: dl_esp32p4_s16_unaligned_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_33cn_bias
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_hwcn_bias
+    border: dl_esp32p4_s16_unaligned_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_hwcn_bias
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_11cn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_11cn_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_33cn_bias_relu
+    border: dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_33cn_bias_relu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu
+    border: dl_esp32p4_s16_unaligned_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_hwcn_bias_relu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_11cn_bias_leakyrelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_33cn_bias_leakyrelu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_bias_leakyrelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_11cn_bias_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_33cn_bias_prelu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_bias_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_conv2d_hwcn_bias_prelu
+    border: dl_tie728_s16_unaligned_conv2d_hwcn_bias_prelu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn
+    border: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn
+    border: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn_relu
+    border: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_relu
+    border: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn_bias
+    border: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias
+    border: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_11cn_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_33cn_bias_relu
+    border: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias_relu
+    border: dl_esp32p4_s16_unaligned_conv2d_per_channel_hwcn_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_11cn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_11cn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_33cn
+    border: dl_esp32p4_s8_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_33cn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_hwcn
+    border: dl_esp32p4_s8_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_hwcn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_11cn_leakyrelu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_11cn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_33cn_leakyrelu
+    border: dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_33cn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu
+    border: dl_esp32p4_s8_unaligned_conv2d_hwcn_leakyrelu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_hwcn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_11cn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_33cn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_hwcn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_11cn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_33cn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_hwcn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_11cn_bias
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_11cn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_33cn_bias
+    border: dl_esp32p4_s8_unaligned_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_33cn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_hwcn_bias
+    border: dl_esp32p4_s8_unaligned_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_hwcn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_11cn_bias_leakyrelu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_11cn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_33cn_bias_leakyrelu
+    border: dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_33cn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu
+    border: dl_esp32p4_s8_unaligned_conv2d_hwcn_bias_leakyrelu
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_hwcn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_11cn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_33cn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_hwcn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_11cn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_33cn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_conv2d_hwcn
+    border: dl_tie728_s8_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn
+    border: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn
+    border: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_leakyrelu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_leakyrelu
+    border: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu
+    border: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_leakyrelu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias
+    border: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias
+    border: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_11cn_bias_leakyrelu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_33cn_bias_leakyrelu
+    border: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu
+  - target: pie_v2
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu
+    border: dl_esp32p4_s8_unaligned_conv2d_per_channel_hwcn_bias_leakyrelu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_11cn
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_11cn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_33cn
+    border: dl_esp32p4_w8a16_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_33cn
+    border: dl_tie728_w8a16_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_hwcn
+    border: dl_esp32p4_w8a16_unaligned_conv2d_hwcn
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_hwcn
+    border: dl_tie728_w8a16_unaligned_conv2d_hwcn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_11cn_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_11cn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_33cn_relu
+    border: dl_esp32p4_w8a16_unaligned_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_33cn_relu
+    border: dl_tie728_w8a16_unaligned_conv2d_hwcn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_hwcn_relu
+    border: dl_esp32p4_w8a16_unaligned_conv2d_hwcn_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_hwcn_relu
+    border: dl_tie728_w8a16_unaligned_conv2d_hwcn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_11cn_bias
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_11cn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_33cn_bias
+    border: dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_33cn_bias
+    border: dl_tie728_w8a16_unaligned_conv2d_hwcn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias
+    border: dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_hwcn_bias
+    border: dl_tie728_w8a16_unaligned_conv2d_hwcn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_11cn_bias_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_11cn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_33cn_bias_relu
+    border: dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_33cn_bias_relu
+    border: dl_tie728_w8a16_unaligned_conv2d_hwcn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias_relu
+    border: dl_esp32p4_w8a16_unaligned_conv2d_hwcn_bias_relu
+  - target: pie_v1
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_w8a16_unaligned_conv2d_hwcn_bias_relu
+    border: dl_tie728_w8a16_unaligned_conv2d_hwcn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn
+    border: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn
+    border: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_relu
+    border: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_relu
+    border: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_bias
+    border: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias
+    border: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_11cn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_33cn_bias_relu
+    border: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias_relu
+  - target: pie_v2
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias_relu
+    border: dl_esp32p4_w8a16_unaligned_conv2d_per_channel_hwcn_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_33c1
+    border: dl_esp32p4_s16_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_33c1
+    border: dl_tie728_s16_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_hwc1
+    border: dl_esp32p4_s16_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1
+    border: dl_tie728_s16_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_33c1_relu
+    border: dl_esp32p4_s16_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_33c1_relu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_hwc1_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_hwc1_relu
+    border: dl_esp32p4_s16_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_relu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_33c1_relu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_relu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_33c1_prelu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_prelu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_prelu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_33c1_bias
+    border: dl_esp32p4_s16_depthwise_conv2d_hwc1_bias
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_33c1_bias
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_hwc1_bias
+    border: dl_esp32p4_s16_depthwise_conv2d_hwc1_bias
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_bias
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_bias
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_33c1_bias_relu
+    border: dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_33c1_bias_relu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu
+    border: dl_esp32p4_s16_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_33c1_bias_relu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_33c1_bias_prelu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_bias_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_bias_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s16_depthwise_conv2d_hwc1_bias_prelu
+    border: dl_tie728_s16_depthwise_conv2d_hwc1_bias_prelu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1
+    border: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1
+    border: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_relu
+    border: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_relu
+    border: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias
+    border: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias
+    border: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_33c1_bias_relu
+    border: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_relu
+    border: dl_esp32p4_s16_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_33c1
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_33c1
+    border: dl_tie728_s8_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1
+    border: dl_tie728_s8_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_33c1_relu
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_33c1_relu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1_relu
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_33c1_relu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_33c1_prelu
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1_prelu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_33c1_prelu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_prelu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1_prelu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1_prelu
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1_prelu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_prelu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_prelu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_prelu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_33c1_bias
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_33c1
+    border: dl_tie728_s8_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1
+    border: dl_tie728_s8_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_33c1_bias_relu
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_33c1_relu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_relu
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_33c1_relu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_33c1_bias_prelu
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_prelu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_33c1_prelu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_prelu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_prelu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_prelu
+    border: dl_esp32p4_s8_depthwise_conv2d_hwc1_bias_prelu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_prelu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: true
+    body: dl_tie728_s8_depthwise_conv2d_hwc1_prelu
+    border: dl_tie728_s8_depthwise_conv2d_hwc1_prelu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1
+    border: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1
+    border: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_relu
+    border: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_relu
+    border: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_bias
+    border: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias
+    border: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_33c1_bias_relu
+    border: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: true
+    body: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias_relu
+    border: dl_esp32p4_s8_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_33c1
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_relu
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_33c1_relu
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_relu
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_33c1_prelu
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_prelu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_33c1_bias_relu
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_relu
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_33c1_bias_prelu
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu
+  - target: pie_v1
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu
+    border: dl_tie728_s16_unaligned_depthwise_conv2d_hwc1_bias_prelu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_relu
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu
+    border: dl_esp32p4_s16_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_33c1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_relu
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_33c1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_relu
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_33c1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_33c1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_33c1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_33c1_bias_relu
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_33c1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias_relu
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_hwc1_bias_relu
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_33c1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: leakyrelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_33c1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v1
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: false
+    c_align: false
+    body: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+    border: dl_tie728_s8_unaligned_depthwise_conv2d_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_relu
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_relu
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_bias
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_33c1_bias_relu
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: pie_v2
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    c_align: false
+    body: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu
+    border: dl_esp32p4_s8_unaligned_depthwise_conv2d_per_channel_hwc1_bias_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s16_conv2d_11cn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s16_conv2d_11cn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s16_conv2d_11cn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s16_conv2d_11cn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s16_conv2d_11cn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s16_conv2d_11cn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s16_conv2d_11cn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s16_conv2d_11cn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s16_conv2d_33cn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s16_conv2d_33cn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s16_conv2d_33cn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s16_conv2d_33cn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s16_conv2d_33cn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s16_conv2d_33cn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s16_conv2d_33cn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s16_conv2d_33cn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s16_conv2d_hwcn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s16_conv2d_hwcn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s16_conv2d_hwcn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s16_conv2d_hwcn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s16_conv2d_hwcn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s16_conv2d_hwcn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s16_conv2d_hwcn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s16_conv2d_hwcn
+    border: dl_c_s16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_bias_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_bias_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_leakyrelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_prelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_bias_per_ch_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_bias_per_ch_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_bias_per_ch_leakyrelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_conv2d_11cn
+    tail: dl_c_s8_tail_bias_per_ch_prelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_leakyrelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_prelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_per_ch_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_per_ch_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_per_ch_leakyrelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_conv2d_33cn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_per_ch_prelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_leakyrelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_prelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_per_ch_linear
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_per_ch_relu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_per_ch_leakyrelu
+  - target: c
+    dtype: s8
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_conv2d_hwcn
+    border: dl_c_s8_conv2d_hwcn
+    tail: dl_c_s8_tail_bias_per_ch_prelu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_w8a16_conv2d_11cn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_w8a16_conv2d_11cn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_w8a16_conv2d_11cn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_w8a16_conv2d_11cn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_w8a16_conv2d_11cn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_w8a16_conv2d_11cn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_w8a16_conv2d_11cn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_w8a16_conv2d_11cn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_w8a16_conv2d_33cn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_w8a16_conv2d_33cn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_w8a16_conv2d_33cn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_w8a16_conv2d_33cn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_w8a16_conv2d_33cn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_w8a16_conv2d_33cn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_w8a16_conv2d_33cn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_w8a16_conv2d_33cn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_w8a16_conv2d_hwcn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_w8a16_conv2d_hwcn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_w8a16_conv2d_hwcn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_w8a16_conv2d_hwcn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_w8a16_conv2d_hwcn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_w8a16_conv2d_hwcn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_w8a16_conv2d_hwcn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: w8a16
+    group: "1"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_w8a16_conv2d_hwcn
+    border: dl_c_w8a16_conv2d_hwcn
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_33c1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_33c1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_33c1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_33c1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_33c1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_33c1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_33c1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_33c1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_linear
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s16
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s16_depthwise_conv2d_hwc1
+    border: dl_c_s16_depthwise_conv2d_hwc1
+    tail: dl_c_s16_tail_bias_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_leakyrelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: false
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_prelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_per_ch_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_per_ch_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_per_ch_leakyrelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "33"
+    bias: true
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_33c1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_dw_tail_bias_per_ch_prelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: false
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: linear
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: relu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_leakyrelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_leakyrelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: false
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_prelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: false
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_prelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_per_ch_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: linear
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_per_ch_linear
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_per_ch_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: relu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_per_ch_relu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_per_ch_leakyrelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: leakyrelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_tail_bias_per_ch_leakyrelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "11"
+    bias: true
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_dw_tail_bias_per_ch_prelu
+  - target: c
+    dtype: s8
+    group: "dw"
+    kshape: "hw"
+    bias: true
+    act: prelu
+    per_ch: true
+    body: dl_c_s8_depthwise_conv2d_hwc1
+    border: dl_c_s8_depthwise_conv2d_hwc1
+    tail: dl_c_s8_dw_tail_bias_per_ch_prelu
