@@ -210,16 +210,15 @@ public:
             base.norm_b = m_norm_b;
         }
 
-        // Split independent rows when dual-core execution is allowed.
-        const bool dual =
+        // Split independent rows when the chip has two cores.
 #if CONFIG_FREERTOS_NUMBER_OF_CORES > 1
-            outer_dim >= 2 &&
+        const bool dual = outer_dim >= 2 &&
             (mode == RUNTIME_MODE_MULTI_CORE ||
              (mode == RUNTIME_MODE_AUTO &&
               static_cast<size_t>(outer_dim) * static_cast<size_t>(inner_dim) >= AUTO_DUAL_CORE_MIN_ELEMENTS));
 #else
-                       (void)mode,
-                   false;
+        (void)mode;
+        const bool dual = false;
 #endif
         if (dual) {
             LNTask t0 = base;
