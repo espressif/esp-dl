@@ -4353,6 +4353,23 @@
         export_name_prefix = "layernorm_2d_large_mean_small_variance"
 
         [[ops_test.LayerNormalization.cfg]]
+        # sqrt_newton stops on |Δ| < 1e-5. Here var+eps is ~1e-8, so the root
+        # is ~1e-4. Quadratic convergence leaves a small residual, and the
+        # float32 Y error vs F.layer_norm peaks at 1.11e-3 over 2000 draws of
+        # this input. The default 5e-4 gate fails about 19% of them. 1.5e-3
+        # covers that max. Quantized values collapse to 0, so this is
+        # float-only. max_error is for Y; InvStd is not a graph output of
+        # nn.LayerNorm.
+        input_shape = [1, 64]
+        axis = -1
+        epsilon = 1e-8
+        stash_type = 0
+        input_gain = 1e-4
+        quant_type = ["float32"]
+        max_error = 1.5e-3
+        export_name_prefix = "layernorm_2d_sqrt_newton_small_eps"
+
+        [[ops_test.LayerNormalization.cfg]]
         # Long row with a large mean (mean/std ~227): n*sum(x^2) and sum(x)^2
         # both land at 2^48.8 while their difference is only 2^33, so the
         # variance survives in the low 16 bits of a 49-bit cancellation. A
