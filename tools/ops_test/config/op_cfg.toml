@@ -4269,7 +4269,7 @@
     quant_type = ["int8", "int16", "float32"]
     package = "torch_ops_test"
     targets = ["esp32s3", "esp32p4"]
-    restrictions = "Supports normalization over specified axis with scale and bias"
+    restrictions = "Normalizes shape[axis:] for any axis, but only the last axis (axis == -1) is deployable"
     # per quant_type: int8, int16, float32
     max_error = [0.01, 1.01, 5e-4]
         [[ops_test.LayerNormalization.cfg]]
@@ -4296,7 +4296,108 @@
         stash_type = 0
         export_name_prefix = "layernorm_4d_default_axis"
 
-    # -------------------------------------------------------------------------
+        [[ops_test.LayerNormalization.cfg]]
+        # Aligned inner_dim at a width typical of transformer encoders.
+        input_shape = [2, 192]
+        axis = -1
+        epsilon = 1e-5
+        stash_type = 0
+        export_name_prefix = "layernorm_2d_axis_neg1_d192"
+
+        [[ops_test.LayerNormalization.cfg]]
+        # Requires int64 accumulation for the int16 second moment.
+        input_shape = [1, 768]
+        axis = -1
+        epsilon = 1e-5
+        stash_type = 0
+        export_name_prefix = "layernorm_2d_axis_neg1_d768_int64_acc"
+
+        [[ops_test.LayerNormalization.cfg]]
+        # Odd, unaligned inner_dim.
+        input_shape = [1, 193]
+        axis = -1
+        epsilon = 1e-5
+        stash_type = 0
+        export_name_prefix = "layernorm_3d_axis_neg1_d193_unaligned"
+
+        [[ops_test.LayerNormalization.cfg]]
+        # Positive spelling of the last axis; export still records axis=-1.
+        input_shape = [1, 2, 2, 16]
+        axis = 3
+        epsilon = 1e-5
+        stash_type = 0
+        export_name_prefix = "layernorm_4d_axis_3"
+
+        [[ops_test.LayerNormalization.cfg]]
+        # Zero beta. Torch exports a zero tensor rather than omitting B.
+        input_shape = [1, 32]
+        axis = -1
+        epsilon = 1e-5
+        stash_type = 0
+        bias = false
+        export_name_prefix = "layernorm_2d_no_bias"
+
+        [[ops_test.LayerNormalization.cfg]]
+        # Large mean, small variance (row mean/std ~1500). Covers the epsilon
+        # guard and the cancellation that a float32 E[x^2] - E[x]^2 variance
+        # cannot survive: it loses 9.5% of the variance here, worth hundreds
+        # of output LSB.
+        # Quantized only because the fp32 reference exceeds test tolerance.
+        input_shape = [1, 64]
+        axis = -1
+        epsilon = 1e-5
+        stash_type = 0
+        input_gain = 0.01
+        input_offset = 8.0
+        quant_type = ["int8", "int16"]
+        export_name_prefix = "layernorm_2d_large_mean_small_variance"
+
+        [[ops_test.LayerNormalization.cfg]]
+        # sqrt_newton stops on |Δ| < 1e-5. Here var+eps is ~1e-8, so the root
+        # is ~1e-4. Quadratic convergence leaves a small residual, and the
+        # float32 Y error vs F.layer_norm peaks at 1.11e-3 over 2000 draws of
+        # this input. The default 5e-4 gate fails about 19% of them. 1.5e-3
+        # covers that max. Quantized values collapse to 0, so this is
+        # float-only. max_error is for Y; InvStd is not a graph output of
+        # nn.LayerNorm.
+        input_shape = [1, 64]
+        axis = -1
+        epsilon = 1e-8
+        stash_type = 0
+        input_gain = 1e-4
+        quant_type = ["float32"]
+        max_error = 1.5e-3
+        export_name_prefix = "layernorm_2d_sqrt_newton_small_eps"
+
+        [[ops_test.LayerNormalization.cfg]]
+        # Long row with a large mean (mean/std ~227): n*sum(x^2) and sum(x)^2
+        # both land at 2^48.8 while their difference is only 2^33, so the
+        # variance survives in the low 16 bits of a 49-bit cancellation. A
+        # float32 E[x^2] - E[x]^2 cannot hold that in 24 mantissa bits and
+        # ends up 30 output LSB out on 84% of the elements; this guards the
+        # integer form (n*sum(x^2) - sum(x)^2) / n^2, which stays at 1 LSB.
+        # The spread is deliberately kept wide enough that fp32 still
+        # resolves the row mean, otherwise the reference itself drifts past
+        # the int16 +-1 LSB gate and the case stops saying anything about
+        # esp-dl.
+        input_shape = [2, 768]
+        axis = -1
+        epsilon = 1e-5
+        stash_type = 0
+        input_gain = 0.03
+        input_offset = 7.0
+        quant_type = ["int16"]
+        export_name_prefix = "layernorm_2d_second_moment_cancel_d768"
+
+        [[ops_test.LayerNormalization.cfg]]
+        # 3-D input: wide inner_dim, only a couple of rows to normalize.
+        input_shape = [1, 2, 256]
+        axis = -1
+        epsilon = 1e-5
+        stash_type = 0
+        export_name_prefix = "layernorm_decoder_q2_d256"
+
+# -------------------------------------------------------------------------
     # RotaryEmbedding — ESP-DL vision subset of ONNX opset 23.
     # Shape convention:
     #   input_shape = [X_shape, cos_cache_shape, sin_cache_shape]
