@@ -28,13 +28,19 @@ def create_md(config_file, output_path):
     onnx_link = "[(ONNX)](https://onnx.ai/onnx/operators/onnx__##.html)"
     espdl_link = "[(ESP-DL)](esp-dl/dl/module/include/dl_module_##.hpp)"
 
+    # ESP-DL operators that have no page in the ONNX standard operator set
+    # (onnx.ai returns 404 for them, e.g. InverseSigmoid) get no ONNX link.
+    non_onnx_ops = {"InverseSigmoid"}
+
     for op_type in op_test_config:
         if op_type == "class_package" or op_type == "Requantize":
             continue
         quant_types = set(op_test_config[op_type].get("quant_type", []))
         restrictions = op_test_config[op_type].get("restrictions", "")
 
-        onnx_op_link = onnx_link.replace("##", op_type)
+        onnx_op_link = (
+            "" if op_type in non_onnx_ops else onnx_link.replace("##", op_type)
+        )
         espdl_op_link = espdl_link.replace("##", camel_to_snake(op_type))
 
         item = [op_type + espdl_op_link + onnx_op_link]

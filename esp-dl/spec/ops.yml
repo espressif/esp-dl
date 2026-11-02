@@ -85,6 +85,22 @@ ops:
         - dl/base/isa/tie728/dl_tie728_s16_unaligned_matmul.S
         - dl/base/isa/tie728/dl_tie728_s8_matmul.S
         - dl/base/isa/tie728/dl_tie728_s8_unaligned_matmul.S
+  # ONNX opset-23 Attention. Covers 4-D self/cross attention,
+  # MHA/GQA/MQA, an optional additive/bool mask and optional causal masking.
+  # KV cache, softcap and packed QKV are rejected in Attention::deserialize.
+  Attention:
+    module:
+      header: dl_module_attention.hpp
+      class: Attention
+    srcs:
+      - dl/base/dl_base_attention.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_attention.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_attention.S
+        # P4/S31 QK fallback calls these symbols. GRU/LSTM list the same file;
+        # compile_finalize.py keeps one copy when more than one op is selected.
+        - dl/base/isa/esp32p4/dl_esp32p4_dotprod.S
 
   Add:
     module:
@@ -544,6 +560,18 @@ ops:
       pie_v1:
         - dl/base/isa/tie728/dl_tie728_reduce.S
 
+  RotaryEmbedding:
+    module:
+      header: dl_module_rotary_embedding.hpp
+      class: RotaryEmbedding
+    srcs:
+      - dl/base/dl_base_rotary_embedding.cpp
+    target:
+      pie_v2:
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_rope.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s16_rope.S
+        - dl/base/isa/esp32p4/dl_esp32p4_s8_s16c_rope.S
+
   GRU:
     module:
       header: dl_module_gru.hpp
@@ -682,6 +710,14 @@ ops:
     module:
       header: dl_module_insert_zeros.hpp
       class: InsertZeros
+  InverseSigmoid:
+    module:
+      header: dl_module_inverse_sigmoid.hpp
+      class: InverseSigmoid
+  TopK:
+    module:
+      header: dl_module_top_k.hpp
+      class: TopK
 
   # Present as base kernels / headers but not registered in ModuleCreator.
   And:

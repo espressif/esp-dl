@@ -7,19 +7,35 @@ namespace dl {
 
 #define CONTEXT_PARAMETER_OFFSET 10000000 /*!< Offset for parameter tensors */
 
+// A module keeps this stable ID, while ModelContext owns the corresponding
+// non-owning arena binding {name, data, size}.
+using WorkspaceBindingId = int;
+constexpr WorkspaceBindingId kInvalidWorkspaceBindingId = -1;
+
 /**
  * @brief Model Context class including variable tensors and parameters.
  */
 class ModelContext {
 public:
+    /**
+     * @brief Non-owning view of a planner-managed native workspace.
+     */
+    struct WorkspaceBinding {
+        std::string name; /*!< "<node>:workspace<j>" */
+        void *data;       /*!< Pointer into a planner-owned root arena */
+        size_t size;      /*!< Workspace capacity in bytes */
+    };
+
     std::vector<TensorBase *> m_variables;  /*!< Variable tensors of model, the first one is nullptr */
     std::vector<TensorBase *> m_parameters; /*!< Parameters of model, the first one is nullptr */
 
 private:
-    void *m_psram_root;                      /*!< PSRAM root pointer */
-    void *m_internal_root;                   /*!< Internal root pointer */
-    int m_psram_size;                        /*!< In bytes. PSRAM size usage. Only take effect when there's a PSRAM */
-    int m_internal_size;                     /*!< In bytes. Internal size usage. */
+    void *m_psram_root;    /*!< PSRAM root pointer */
+    void *m_internal_root; /*!< Internal root pointer */
+    int m_psram_size;      /*!< In bytes. PSRAM size usage. Only take effect when there's a PSRAM */
+    int m_internal_size;   /*!< In bytes. Internal size usage. */
+    // Planner-owned scratch bindings, separate from model tensors.
+    std::vector<WorkspaceBinding> m_workspace_bindings;
     std::map<std::string, int> m_name2index; /*!< Tensor name to index map
                                                >=0: variable tensor
                                                <0: parameter tensor */
@@ -88,6 +104,71 @@ public:
     void update_tensor(int index, TensorBase *tensor);
 
     /**
+     * @brief Creates an empty native workspace binding.
+     *
+     * Workspace bindings are not tensors and do not affect variable tensor indices or counts.
+     *
+     * @param name Workspace name, used for memory reports.
+     * @return WorkspaceBindingId Stable ID for the binding.
+     */
+    WorkspaceBindingId create_workspace_binding(const std::string &name);
+
+    /**
+     * @brief Binds a workspace ID to a region in a planner-owned root arena.
+     *
+     * @param binding_id Workspace binding ID.
+     * @param data Workspace data pointer.
+     * @param size Workspace capacity in bytes.
+     */
+    void bind_workspace(WorkspaceBindingId binding_id, void *data, size_t size);
+
+    /**
+     * @brief Gets the arena region currently bound to a workspace ID.
+     *
+     * @param binding_id Workspace binding ID.
+     * @param size Receives the workspace capacity, or zero for an invalid or unbound binding.
+     * @return void* Workspace data pointer, or nullptr for an invalid or unbound binding.
+     */
+    void *get_bound_workspace(WorkspaceBindingId binding_id, size_t &size);
+
+    /**
+     * @brief Gets the number of native workspace bindings.
+     *
+     * @return Number of workspace bindings.
+     */
+    int get_workspace_binding_count() const { return m_workspace_bindings.size(); }
+
+    /**
+     * @brief Gets all native workspace bindings. Bytes are already part of the variable arena.
+     *
+     * @return Read-only workspace binding list.
+     */
+    const std::vector<WorkspaceBinding> &get_workspace_bindings() const { return m_workspace_bindings; }
+
+    /**
+     * @brief Drops workspace binding metadata without freeing planner root arenas.
+     */
+    void clear_workspace_bindings() { m_workspace_bindings.clear(); }
+
+    /**
+     * @brief Drops variable tensor views and their planner-owned arenas while
+     * preserving graph indices, parameter tensors, and name mappings.
+     *
+     * Used before a model is rebuilt for a new set of input shapes. Each
+     * variable slot remains in place as nullptr until the memory manager binds
+     * its replacement view.
+     */
+    void reset_variable_arena()
+    {
+        for (TensorBase *&tensor : m_variables) {
+            delete tensor;
+            tensor = nullptr;
+        }
+        root_free();
+        clear_workspace_bindings();
+    }
+
+    /**
      * @brief Gets the tensor by its index.
      *
      * @param index The index of the tensor.
@@ -110,6 +191,20 @@ public:
      * @return int Returns index if the name is found, else -1
      */
     int get_tensor_index(const std::string &name);
+
+    /**
+     * @brief Silent variant of ``get_tensor_index``: returns -1 without
+     * logging an error when the tensor name is not yet registered. Use
+     * this on hot paths (e.g. per-op input loop) where a miss is expected.
+     *
+     * @param name The name of the tensor.
+     * @return int Returns index if the name is found, else -1
+     */
+    int find_tensor_index(const std::string &name) const
+    {
+        auto iter = m_name2index.find(name);
+        return iter == m_name2index.end() ? -1 : iter->second;
+    }
 
     /**
      * @brief Checks if a tensor exists by its name.
@@ -197,6 +292,8 @@ public:
             free(m_psram_root);
             m_psram_root = nullptr;
         }
+        m_internal_size = 0;
+        m_psram_size = 0;
     }
 
     /**
@@ -232,6 +329,7 @@ public:
     {
         m_variables.clear();
         m_parameters.clear();
+        clear_workspace_bindings();
         m_name2index.clear();
     }
 
@@ -252,6 +350,7 @@ public:
 
         m_variables.clear();
         m_parameters.clear();
+        clear_workspace_bindings();
         m_name2index.clear();
     }
 };

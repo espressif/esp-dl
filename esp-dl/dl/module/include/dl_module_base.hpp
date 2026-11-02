@@ -20,6 +20,14 @@ typedef enum {
 
 namespace module {
 /**
+ * @brief One scratch buffer a module asks the memory planner for.
+ */
+struct WorkspaceRequest {
+    size_t size = 0;         ///< Size in bytes
+    bool psram_only = false; ///< Never takes the model's internal RAM budget; ignored without PSRAM
+};
+
+/**
  * @brief Base class for module.
  */
 class Module {
@@ -29,6 +37,8 @@ public:
     quant_type_t quant_type;          ///< Quantization type
     std::vector<int> m_inputs_index;  ///< Tensor index of model's tensors that used for inputs
     std::vector<int> m_outputs_index; ///< Tensor index of model's tensors that used for outputs
+    std::vector<WorkspaceBindingId>
+        m_workspace_binding_ids; ///< Native workspace binding IDs assigned by the memory planner
 
     /**
      * @brief Construct a new Module object.
@@ -89,6 +99,26 @@ public:
      * @return outputs shapes
      */
     virtual std::vector<std::vector<int>> get_output_shape(std::vector<std::vector<int>> &input_shapes) = 0;
+
+    /**
+     * @brief Scratch memory needed while this module's forward runs
+     *
+     * The memory planner places each buffer with a lifetime of this node only and records its native workspace
+     * binding ID in `m_workspace_binding_ids`. Workspace bindings are separate from model tensors. The contents
+     * are undefined on entry and are not kept between calls. A module run without the planner (e.g. through
+     * `run()`) has no workspace bound in its temporary context and must provide its own memory.
+     *
+     * When internal RAM is planned, a buffer competes for it like a tensor unless it is `psram_only`.
+     * A zero-size buffer gets a binding ID but no memory.
+     *
+     * @param input_shapes   Input shapes
+     *
+     * @return One request per workspace buffer; empty when none is needed
+     */
+    virtual std::vector<WorkspaceRequest> get_workspace_requests(std::vector<std::vector<int>> &input_shapes)
+    {
+        return {};
+    }
 
     /**
      * @brief Build the module, high-level interface for Module layer

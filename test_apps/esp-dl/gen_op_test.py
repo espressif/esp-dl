@@ -3,8 +3,11 @@ import os
 
 import toml
 
-# Must match tools/ops_test/gen_test_cases.py: Conv is packed per quantization.
-_SPLIT_BY_QUANT_OPS = ("Conv",)
+# Must match tools/ops_test/gen_test_cases.py: these ops are packed per
+# quantization so the package fits ESP32/C5 3800K and P4 7900K partitions.
+_SPLIT_BY_QUANT_OPS = ("Conv", "Attention")
+# CI only exports QUANT_TYPE=none for esp32p4; esp32s31 reuses that package.
+_FLOAT32_PACKAGE_TARGETS = ("esp32p4", "esp32s31")
 _CFG_TO_PACKAGE_SUFFIX = {
     "int8": "_s8",
     "w8a8": "_s8",
@@ -16,7 +19,11 @@ _CFG_TO_PACKAGE_SUFFIX = {
 }
 
 
-def package_names_for_op(op_type, op_cfg=None):
+def _include_float32_package(target):
+    return target in (None, "all") or target in _FLOAT32_PACKAGE_TARGETS
+
+
+def package_names_for_op(op_type, op_cfg=None, target=None):
     if op_type not in _SPLIT_BY_QUANT_OPS:
         return [op_type]
     quant_types = (op_cfg or {}).get("quant_type") or ["int8", "int16", "w8a16"]
@@ -26,6 +33,8 @@ def package_names_for_op(op_type, op_cfg=None):
         suffix = _CFG_TO_PACKAGE_SUFFIX.get(item)
         if not suffix:
             continue
+        if suffix == "_f32" and not _include_float32_package(target):
+            continue
         name = op_type + suffix
         if name not in seen:
             seen.add(name)
@@ -33,13 +42,14 @@ def package_names_for_op(op_type, op_cfg=None):
     return names or [op_type]
 
 
-# pytest-embedded's run_all_single_board_cases defaults to 30s. ESP32 C kernels
-# (especially Conv/Gemm) plus warmup/bench loops need much longer. The pytest
-# plugin default in conftest.py is 5 minutes and must stay above the Unity wait.
-# The esp32 timeout keeps headroom for the perf benchmark's 5 warmup + 12 timed
-# runs per model (1.7x the previous runs per model).
+# pytest-embedded's run_all_single_board_cases defaults to 30s. C kernels on
+# ESP32/C5 (especially Conv/Gemm/Attention) plus warmup/bench loops need much
+# longer. The pytest plugin default in conftest.py is 5 minutes and must stay
+# above the Unity wait. These timeouts keep headroom for the perf benchmark's
+# 5 warmup + 12 timed runs per model (1.7x the previous runs per model).
 UNITY_CASE_TIMEOUT_S = {
     "esp32": 3600,
+    "esp32c5": 3600,
 }
 UNITY_CASE_TIMEOUT_DEFAULT_S = 600
 PYTEST_CASE_TIMEOUT_SLACK_S = 300
@@ -120,7 +130,7 @@ def gen_pytest_script_by_config(
     for op_type in op_test_config:
         if op_type == "class_package":
             continue
-        models.extend(package_names_for_op(op_type, op_test_config[op_type]))
+        models.extend(package_names_for_op(op_type, op_test_config[op_type], target))
 
     if len(models) > 0:
         print(models)
@@ -131,7 +141,7 @@ def gen_pytest_script_by_config(
 
 def gen_pytest_script_by_type(op_type, pytest_file, target="esp32p4", env="esp32p4"):
     # models = get_model_names(model_path)
-    models = package_names_for_op(op_type)
+    models = package_names_for_op(op_type, target=target)
     if len(models) > 0:
         print(models)
         write_pytest_script(pytest_file, target, env, models)

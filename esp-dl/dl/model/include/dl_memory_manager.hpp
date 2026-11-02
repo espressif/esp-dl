@@ -45,23 +45,185 @@ public:
 };
 
 /**
- * @brief Tensor info, include tensor name, shape, dtype, size, time range
- * and call times, which is used to plan model memory
+ * @brief Common lifetime and placement metadata for planner-managed memory.
+ *
+ * Both tensors and native workspaces use this representation so they can share
+ * the same greedy arena and lifetime-reuse algorithm.
  */
-class TensorInfo {
+class MemoryInfo {
 private:
     std::string name;
     int time_begin;
     int time_end;
-    std::vector<int> shape;
-    dtype_t dtype;
-    int exponent;
     size_t size; // Size, in bytes
     uint32_t call_times;
     uint32_t offset;          // PSRAM offset
     uint32_t internal_offset; // Internal ram offset, used to allocate tensor on both PSRAM and internal ram
     bool is_internal;
-    TensorInfo *m_leader_tensor;
+    MemoryInfo *m_leader;
+
+protected:
+    /**
+     * @brief Update the number of bytes required by this planner allocation.
+     *
+     * @param size Allocation size in bytes.
+     */
+    void set_size(size_t size) { this->size = size; }
+
+    /**
+     * @brief Share placement and lifetime metadata with an in-place leader.
+     *
+     * @param leader Leader allocation, or nullptr to remove the relationship.
+     */
+    void set_leader(MemoryInfo *leader) { m_leader = leader; }
+
+public:
+    /**
+     * @brief Construct planner metadata for a tensor or native workspace.
+     *
+     * @param name Allocation name used in planner diagnostics.
+     * @param time_begin First execution step that uses the allocation.
+     * @param time_end Last execution step that uses the allocation.
+     * @param size Allocation size in bytes.
+     * @param is_internal Whether the allocation is initially assigned to internal RAM.
+     */
+    MemoryInfo(const std::string &name, int time_begin, int time_end, size_t size, bool is_internal = false);
+    virtual ~MemoryInfo() {}
+
+    /**
+     * @brief Extend the allocation lifetime to include a new execution step.
+     *
+     * @param new_time New lifetime end; -1 marks a persistent allocation.
+     */
+    void update_time(int new_time);
+
+    /**
+     * @brief Check whether this allocation shares storage with a leader.
+     *
+     * @return true when an in-place leader is assigned, otherwise false.
+     */
+    bool is_inplaced() { return m_leader != nullptr; }
+
+    /**
+     * @brief Check whether the allocation must stay in PSRAM.
+     *
+     * @return true when internal RAM placement is forbidden, otherwise false.
+     */
+    virtual bool is_psram_only() const { return false; }
+
+    /**
+     * @brief Get the offset in the planner's PSRAM arena.
+     *
+     * @return PSRAM arena offset in bytes.
+     */
+    uint32_t get_offset() { return m_leader ? m_leader->get_offset() : offset; }
+
+    /**
+     * @brief Set the offset in the planner's PSRAM arena.
+     *
+     * @param offset PSRAM arena offset in bytes.
+     */
+    void set_offset(uint32_t offset)
+    {
+        if (m_leader) {
+            m_leader->set_offset(offset);
+        }
+        this->offset = offset;
+    }
+
+    /**
+     * @brief Get the offset in the planner's internal-RAM arena.
+     *
+     * @return Internal-RAM arena offset in bytes.
+     */
+    uint32_t get_internal_offset() { return m_leader ? m_leader->get_internal_offset() : internal_offset; }
+
+    /**
+     * @brief Check whether the allocation is assigned to internal RAM.
+     *
+     * @return true for internal RAM, otherwise false.
+     */
+    bool get_internal_state() { return m_leader ? m_leader->get_internal_state() : is_internal; }
+
+    /**
+     * @brief Set whether the allocation is assigned to internal RAM.
+     *
+     * @param is_internal true for internal RAM, false for PSRAM.
+     */
+    void set_internal_state(bool is_internal)
+    {
+        if (m_leader) {
+            m_leader->set_internal_state(is_internal);
+        }
+        this->is_internal = is_internal;
+    }
+
+    /**
+     * @brief Assign an offset in the internal-RAM arena.
+     *
+     * @param offset Internal-RAM arena offset in bytes.
+     */
+    void set_internal_offset(uint32_t offset)
+    {
+        if (m_leader) {
+            m_leader->set_internal_offset(offset);
+            m_leader->set_internal_state(true);
+        }
+        is_internal = true;
+        internal_offset = offset;
+    }
+
+    /**
+     * @brief Get the last execution step in the allocation lifetime.
+     *
+     * @return Lifetime end, or -1 for a persistent allocation.
+     */
+    int get_time_end() { return m_leader ? m_leader->get_time_end() : time_end; }
+
+    /**
+     * @brief Get the first execution step in the allocation lifetime.
+     *
+     * @return Lifetime begin.
+     */
+    int get_time_begin() { return m_leader ? m_leader->get_time_begin() : time_begin; }
+
+    /**
+     * @brief Get the allocation size.
+     *
+     * @return Allocation size in bytes.
+     */
+    size_t get_size() { return size; }
+
+    /**
+     * @brief Get the planner allocation name.
+     *
+     * @return Allocation name.
+     */
+    std::string get_name() { return name; }
+
+    /**
+     * @brief Print lifetime, size, and arena offsets for diagnostics.
+     */
+    void print()
+    {
+        printf("name:%s, from %d to %d, size:%zu, offset:(%lu, %lu)\n",
+               name.c_str(),
+               time_begin,
+               time_end,
+               size,
+               static_cast<unsigned long>(offset),
+               static_cast<unsigned long>(internal_offset));
+    }
+};
+
+/**
+ * @brief Tensor-specific planner metadata.
+ */
+class TensorInfo : public MemoryInfo {
+private:
+    std::vector<int> shape;
+    dtype_t dtype;
+    int exponent;
     TensorInfo
         *m_follower_dirty_tensor; // Only reference the follower tensor which will modify the data of leader tensor.
     TensorInfo
@@ -125,147 +287,13 @@ public:
     }
 
     /**
-     * @brief Update Tensor lifetime
+     * @brief Create a TensorBase view over the planner-owned tensor storage.
      *
-     * @param new_time new tensor lifetime
-     */
-    void update_time(int new_time);
-
-    /**
-     * @brief Create a TensorBase object according to TensorInfo
-     *
-     * @param internal_root Internal RAM root pointer
-     * @param psram_root    PSRAM root pointer
-     * @return TensorBase*
+     * @param internal_root Base address of the internal-RAM arena.
+     * @param psram_root Base address of the PSRAM arena.
+     * @return TensorBase view bound to the selected planner arena.
      */
     TensorBase *create_tensor(void *internal_root, void *psram_root);
-
-    /**
-     * @brief Is inplaced or not
-     *
-     * @return true if inplaced else false
-     */
-    bool is_inplaced() { return this->m_leader_tensor != nullptr; }
-
-    /**
-     * @brief Get the tensor offset
-     *
-     * @return uint32_t
-     */
-    uint32_t get_offset()
-    {
-        if (m_leader_tensor) {
-            return m_leader_tensor->get_offset();
-        }
-        return this->offset;
-    }
-
-    /**
-     * @brief Set the tensor offset
-     *
-     * @param offset
-     */
-    void set_offset(uint32_t offset)
-    {
-        if (m_leader_tensor) {
-            m_leader_tensor->set_offset(offset);
-        }
-        this->offset = offset;
-    }
-
-    /**
-     * @brief Get the internal offset
-     *
-     * @return uint32_t
-     */
-    uint32_t get_internal_offset()
-    {
-        if (m_leader_tensor) {
-            return m_leader_tensor->get_internal_offset();
-        }
-        return this->internal_offset;
-    }
-
-    /**
-     * @brief Get the internal state
-     *
-     * @return true if is internal else false
-     */
-    bool get_internal_state()
-    {
-        if (m_leader_tensor) {
-            return m_leader_tensor->get_internal_state();
-        }
-        return this->is_internal;
-    }
-
-    /**
-     * @brief Set the internal state
-     *
-     * @param is_internal
-     */
-    void set_internal_state(bool is_internal)
-    {
-        if (m_leader_tensor) {
-            m_leader_tensor->set_internal_state(is_internal);
-        }
-        this->is_internal = is_internal;
-    }
-
-    /**
-     * @brief Set the internal offset
-     *
-     * @param offset
-     */
-    void set_internal_offset(uint32_t offset)
-    {
-        if (m_leader_tensor) {
-            m_leader_tensor->set_internal_offset(offset);
-            m_leader_tensor->set_internal_state(true);
-        }
-        this->is_internal = true;
-        this->internal_offset = offset;
-    }
-
-    /**
-     * @brief Get the liftetime end
-     *
-     * @return int
-     */
-    int get_time_end()
-    {
-        if (m_leader_tensor) {
-            return m_leader_tensor->get_time_end();
-        }
-        return this->time_end;
-    }
-
-    /**
-     * @brief Get the liftetime begin
-     *
-     * @return int
-     */
-    int get_time_begin()
-    {
-        if (m_leader_tensor) {
-            return m_leader_tensor->get_time_begin();
-        }
-        return this->time_begin;
-    }
-
-    /**
-     * @brief Get the tensor size
-     *
-     * @return size_t
-     */
-    size_t get_size() { return this->size; }
-
-    /**
-     * @brief Get the tensor name
-     *
-     * @return std::string
-     */
-    std::string get_name() { return this->name; }
 
     /**
      * @brief Get the tensor shape
@@ -273,24 +301,63 @@ public:
      * @return std::vector<int>
      */
     std::vector<int> get_shape() { return this->shape; }
-
-    /**
-     * @brief print tensor info
-     */
-    void print()
-    {
-        printf("name:%s, from %d to %d, size:%d, offset:(%ld, %ld)\n",
-               name.c_str(),
-               time_begin,
-               time_end,
-               size,
-               offset,
-               internal_offset);
-    }
 };
 
 /**
- * @brief Memory chunk, include size, is free, offset, alignment and tensor, which is used to simulate memory allocation
+ * @brief Native workspace planner metadata.
+ */
+class WorkspaceInfo : public MemoryInfo {
+private:
+    WorkspaceBindingId workspace_binding_id;
+    bool psram_only;
+
+public:
+    /**
+     * @brief Construct metadata for a module-native workspace.
+     *
+     * @param name Workspace name used in planner diagnostics.
+     * @param time_begin First execution step that uses the workspace.
+     * @param time_end Last execution step that uses the workspace.
+     * @param size Workspace size in bytes.
+     * @param workspace_binding_id Binding used to publish the planned address.
+     * @param psram_only Whether internal RAM placement is forbidden.
+     */
+    WorkspaceInfo(const std::string &name,
+                  int time_begin,
+                  int time_end,
+                  size_t size,
+                  WorkspaceBindingId workspace_binding_id,
+                  bool psram_only) :
+        MemoryInfo(name, time_begin, time_end, size), workspace_binding_id(workspace_binding_id), psram_only(psram_only)
+    {
+    }
+
+    /**
+     * @brief Get the model-context binding for this workspace.
+     *
+     * @return Workspace binding identifier.
+     */
+    WorkspaceBindingId get_workspace_binding_id() const { return workspace_binding_id; }
+
+    /**
+     * @brief Check whether the workspace must stay in PSRAM.
+     *
+     * @return true when internal RAM placement is forbidden, otherwise false.
+     */
+    bool is_psram_only() const override { return psram_only; }
+
+    /**
+     * @brief Resolve the workspace address from the planner root arenas.
+     *
+     * @param internal_root Base address of the internal-RAM arena.
+     * @param psram_root Base address of the PSRAM arena.
+     * @return Pointer to the planned workspace storage.
+     */
+    void *get_data(void *internal_root, void *psram_root);
+};
+
+/**
+ * @brief Memory chunk used to simulate allocation of tensors and workspaces.
  */
 class MemoryChunk {
 public:
@@ -298,7 +365,7 @@ public:
     bool is_free;       /*!< Whether memory chunk is free or not */
     int offset;         /*!< Offset relative to root pointer */
     int alignment;      /*!< Memory address alignment */
-    TensorInfo *tensor; /*!< Info of the tensor which occupies the memory */
+    MemoryInfo *memory; /*!< Info of the planner allocation occupying this chunk */
 
     /**
      * @brief Construct a new Memory Chunk object
@@ -312,10 +379,10 @@ public:
     /**
      * @brief Construct a new Memory Chunk object
      *
-     * @param tensor        TensorInfo
+     * @param memory        Planner allocation metadata
      * @param alignment     Memory chunk alignment
      */
-    MemoryChunk(TensorInfo *tensor, int alignment = 16);
+    MemoryChunk(MemoryInfo *memory, int alignment = 16);
 
     /**
      * @brief Destroy the Memory Chunk object
@@ -332,28 +399,28 @@ public:
     MemoryChunk *merge_free_chunk(MemoryChunk *chunk);
 
     /**
-     * @brief Insert tensor into free chunk
+     * @brief Insert a planner allocation into a free chunk
      *
-     * @param tensor
+     * @param memory
      * @return MemoryChunk*
      */
-    MemoryChunk *insert(TensorInfo *tensor);
+    MemoryChunk *insert(MemoryInfo *memory);
 
     /**
-     * @brief Extend free chunk and insert tensor
+     * @brief Extend free chunk and insert a planner allocation
      *
-     * @param tensor
+     * @param memory
      * @return MemoryChunk*
      */
-    MemoryChunk *extend(TensorInfo *tensor);
+    MemoryChunk *extend(MemoryInfo *memory);
 
     /**
-     * @brief Free memory chunk, set is_free to true and set tensor to nullptr
+     * @brief Free memory chunk.
      */
     void free()
     {
         this->is_free = true;
-        this->tensor = nullptr;
+        this->memory = nullptr;
     }
 };
 

@@ -38,9 +38,10 @@ _QUANT_TYPE_EXPORT_SUFFIX = {
     "w16a16": "_s16",
     "none": "_f32",
 }
-# Conv fixtures are large enough that packing every quantization into one
-# models.espdl overflows the ESP32 8MB / 3800K model partition.
-_SPLIT_BY_QUANT_OPS = ("Conv",)
+# Conv and Attention fixtures are large enough that packing every
+# quantization into one models.espdl overflows the model partition:
+# ESP32/C5 8MB / 3800K, and ESP32-P4 16MB / 7900K (P4 also packs float32).
+_SPLIT_BY_QUANT_OPS = ("Conv", "Attention")
 
 
 def op_export_dirname(op_type, quant_type):
@@ -164,12 +165,20 @@ class BaseInferencer:
             self.multi_input = False
         else:
             self.multi_input = True
+        # Most historical operator cases describe a graph batch of one and
+        # rely on DataLoader to restore the stripped leading dimension.
+        # Multi-input operators can have semantically different leading axes
+        # (for example RoPE X has B while a 2-D cache starts with L). Those
+        # cases opt into preserving every declared ONNX input shape exactly.
+        self.preserve_input_shapes = bool(
+            self.model_cfg.get("preserve_input_shapes", False)
+        )
 
         # get calibration dataset.
         calibration_dataset = self.load_calibration_dataset()
         self.calib_dataloader = DataLoader(
             dataset=calibration_dataset,
-            batch_size=self.batch_size,
+            batch_size=None if self.preserve_input_shapes else self.batch_size,
             shuffle=False,
         )
 
@@ -257,6 +266,16 @@ class BaseInferencer:
             )
 
     def load_calibration_dataset(self) -> Iterable:
+        if self.preserve_input_shapes:
+            if not self.multi_input:
+                return [
+                    torch.randn(size=self.input_shape[0])
+                    for _ in range(self.batch_size)
+                ]
+            return [
+                [torch.randn(size=shape) for shape in self.input_shape]
+                for _ in range(self.batch_size)
+            ]
         if not self.multi_input:
             return [
                 torch.randn(size=self.input_shape[0][1:])
@@ -397,7 +416,11 @@ if __name__ == "__main__":
                             continue
                     cfg["per_channel_enable"] = per_channel_enable
                     test_max_error = resolve_max_error(
-                        quant_type, config["meta"], op_test_config[op_type], cfg
+                        quant_type,
+                        config["meta"],
+                        op_test_config[op_type],
+                        op_test_config[op_type].get(args.target),
+                        cfg,
                     )
                     print(
                         "target: ",

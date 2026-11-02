@@ -57,9 +57,18 @@ private:
     std::string m_doc_string;                      /*!< doc string of model */
     size_t m_internal_size;                        /*!< Internal RAM usage */
     size_t m_psram_size;                           /*!< PSRAM usage */
+    bool m_built = false;                          /*!< True only after all planner arenas and views are bound */
 
 public:
     Model() {}
+
+    /**
+     * @brief Whether the current execution plan has successfully bound its
+     * variable arenas. A failed rebuild leaves the model safely non-runnable.
+     *
+     * @return true when the model is ready to run, otherwise false.
+     */
+    bool is_built() const { return m_built; }
 
     /**
      * @brief Create the Model object by rodata address or partition label.
