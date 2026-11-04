@@ -8,6 +8,7 @@
 #include "dl_module_lut.hpp"
 #include "dl_module_relu.hpp"
 #include "dl_module_rotary_embedding.hpp"
+#include "dl_module_softmax.hpp"
 #include "dl_module_streaming_cache.hpp"
 #include "dl_module_top_k.hpp"
 #include "esp_log.h"
@@ -1014,6 +1015,59 @@ TEST_CASE("Test dl module API: Attention runtime modes", "[api]")
     for (int i = 0; i < output.get_size(); ++i) {
         TEST_ASSERT_EQUAL_INT8(0, output.get_element_ptr<int8_t>()[i]);
     }
+}
+
+// Run int16 softmax on one pair. output is float.
+static void run_softmax_i16_pair(const int16_t input_data[2], int exponent, float output_data[2])
+{
+    output_data[0] = 123.f;
+    output_data[1] = 123.f;
+    TensorBase input({2}, input_data, exponent, DATA_TYPE_INT16, false);
+    TensorBase output({2}, output_data, 0, DATA_TYPE_FLOAT, false);
+    module::Softmax softmax("softmax_i16", -1, MODULE_NON_INPLACE, QUANT_TYPE_SYMM_16BIT);
+    softmax.run(&input, &output);
+}
+
+TEST_CASE("Test Softmax int16 exp table cutoff", "[api]")
+{
+    // exponent -9: hi_step = 256 * 2^-9 = 0.5, hi_len = int(88 / 0.5) + 2 = 178.
+    // A full 257-entry table would make hi >= hi_len unreachable (max hi is 255).
+    // The wide_range ops_test case only hopes calibration lands here; this case
+    // fixes the exponent and the index.
+    const int16_t beyond[] = {32767, -12801}; // n = 45568, hi = 178 >= 178
+    const int16_t inside[] = {32767, -12545}; // n = 45312, hi = 177, last stored index
+    const int16_t span[] = {32767, -32768};   // n = 65535, hi = 255
+    float output[2];
+
+    // exp(-89) is still a subnormal, so a zero here is the table cutoff, not expf.
+    TEST_ASSERT_TRUE(expf(-89.f) > 0.f);
+    run_softmax_i16_pair(beyond, -9, output);
+    TEST_ASSERT_TRUE(output[0] == 1.f);
+    TEST_ASSERT_TRUE(output[1] == 0.f);
+
+    // The previous high index is stored. 1 + exp(-88.5) rounds to 1, so the
+    // second output is exp(-88.5) itself.
+    const float kept = expf(-88.5f);
+    TEST_ASSERT_TRUE(kept > 0.f);
+    run_softmax_i16_pair(inside, -9, output);
+    TEST_ASSERT_TRUE(output[0] == 1.f);
+    TEST_ASSERT_TRUE(output[1] > 0.f);
+    TEST_ASSERT_TRUE(fabsf(output[1] - kept) / kept < 1e-5f);
+
+    // Same codes at exponent -10: hi_len stays 257, hi = 178 is in range, and
+    // the second output must not be forced to zero.
+    const float fine = expf(-44.5f);
+    TEST_ASSERT_TRUE(fine > 0.f);
+    run_softmax_i16_pair(beyond, -10, output);
+    TEST_ASSERT_TRUE(output[0] == 1.f);
+    TEST_ASSERT_TRUE(output[1] > 0.f);
+    TEST_ASSERT_TRUE(fabsf(output[1] - fine) / fine < 1e-5f);
+
+    // Full int16 span. exp(-128) is already 0, so this matches a reference
+    // softmax; the pair above is what fails if the cutoff is not applied.
+    run_softmax_i16_pair(span, -9, output);
+    TEST_ASSERT_TRUE(output[0] == 1.f);
+    TEST_ASSERT_TRUE(output[1] == 0.f);
 }
 
 TEST_CASE("Test PDL3 package: verify integrity", "[api]")

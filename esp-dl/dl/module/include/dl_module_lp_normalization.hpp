@@ -151,16 +151,7 @@ public:
         if (positive_axis == dims - 1) {
             int outer_loop = input->size / len;
             for (int o = 0; o < outer_loop; o++) {
-                float inv_norm = compute_quant_inv_norm(output_ptr, len);
-                inv_norm *= output_scale;
-
-                if (inv_norm > 0.0f) {
-                    base::scale_round(output_ptr, output_ptr, inv_norm, len);
-                } else {
-                    for (int i = 0; i < len; i++) {
-                        output_ptr[i] = 0;
-                    }
-                }
+                requant_normalize(output_ptr, len, 1, output_scale);
                 output_ptr += len;
             }
         } else {
@@ -170,17 +161,7 @@ public:
 
             for (int o = 0; o < outer_loop; o++) {
                 for (int k = 0; k < inner_loop; k++) {
-                    float inv_norm = compute_quant_inv_norm_strided(output_ptr, len, inner_loop);
-                    if (inv_norm > 0.0f) {
-                        for (int i = 0; i < len; i++) {
-                            float result = static_cast<float>(output_ptr[i * inner_loop]) * inv_norm;
-                            tool::truncate(output_ptr[i * inner_loop], tool::round(result * output_scale));
-                        }
-                    } else {
-                        for (int i = 0; i < len; i++) {
-                            output_ptr[i * inner_loop] = 0;
-                        }
-                    }
+                    requant_normalize(output_ptr, len, inner_loop, output_scale);
                     output_ptr += 1;
                 }
                 output_ptr += inner_loop * (len - 1);
@@ -219,16 +200,7 @@ public:
         if (positive_axis == dims - 1) {
             int outer_loop = input->size / len;
             for (int o = 0; o < outer_loop; o++) {
-                float inv_norm = compute_quant_inv_norm(output_ptr, len);
-                inv_norm *= output_scale;
-
-                if (inv_norm > 0.0f) {
-                    base::scale_round(output_ptr, output_ptr, inv_norm, len);
-                } else {
-                    for (int i = 0; i < len; i++) {
-                        output_ptr[i] = 0;
-                    }
-                }
+                requant_normalize(output_ptr, len, 1, output_scale);
                 output_ptr += len;
             }
         } else {
@@ -238,17 +210,7 @@ public:
 
             for (int o = 0; o < outer_loop; o++) {
                 for (int k = 0; k < inner_loop; k++) {
-                    float inv_norm = compute_quant_inv_norm_strided(output_ptr, len, inner_loop);
-                    if (inv_norm > 0.0f) {
-                        for (int i = 0; i < len; i++) {
-                            float result = static_cast<float>(output_ptr[i * inner_loop]) * inv_norm;
-                            tool::truncate(output_ptr[i * inner_loop], tool::round(result * output_scale));
-                        }
-                    } else {
-                        for (int i = 0; i < len; i++) {
-                            output_ptr[i * inner_loop] = 0;
-                        }
-                    }
+                    requant_normalize(output_ptr, len, inner_loop, output_scale);
                     output_ptr += 1;
                 }
                 output_ptr += inner_loop * (len - 1);
@@ -321,32 +283,40 @@ private:
     }
 
     template <typename U>
-    float compute_quant_inv_norm(U *data, int len)
-    {
-        if (m_p == 1) {
-            float sum_abs = 0.0f;
-            for (int i = 0; i < len; i++) {
-                sum_abs += fabsf(static_cast<float>(data[i]));
-            }
-            return sum_abs > 0.0f ? 1.0f / sum_abs : 0.0f;
-        } else {
-            float sum_sq = static_cast<float>(dl::base::reduce_l2(data, len, 1));
-            return sum_sq > 0.0f ? math::fast_inv_sqrt(sum_sq) : 0.0f;
-        }
-    }
-
-    template <typename U>
-    float compute_quant_inv_norm_strided(U *data, int len, int stride)
+    float compute_quant_norm(U *data, int len, int stride)
     {
         if (m_p == 1) {
             float sum_abs = 0.0f;
             for (int i = 0; i < len; i++) {
                 sum_abs += fabsf(static_cast<float>(data[i * stride]));
             }
-            return sum_abs > 0.0f ? 1.0f / sum_abs : 0.0f;
+            return sum_abs;
+        }
+        float sum_sq = static_cast<float>(dl::base::reduce_l2(data, len, stride));
+        return sum_sq > 0.0f ? sqrtf(sum_sq) : 0.0f;
+    }
+
+    // Host golden is round((x / ||x||_p) * output_scale). Scale is
+    // output_scale / norm, not a separate 1/sqrt, so the extra rsqrt
+    // rounding cannot push a value across a half-up boundary.
+    // Contiguous rows use base::scale_round.
+    template <typename U>
+    void requant_normalize(U *data, int len, int stride, float output_scale)
+    {
+        float norm = compute_quant_norm(data, len, stride);
+        if (norm > 0.0f) {
+            if (stride == 1) {
+                base::scale_round(data, data, output_scale / norm, len);
+            } else {
+                for (int i = 0; i < len; i++) {
+                    float result = static_cast<float>(data[i * stride]) / norm * output_scale;
+                    tool::truncate(data[i * stride], tool::round(result));
+                }
+            }
         } else {
-            float sum_sq = static_cast<float>(dl::base::reduce_l2(data, len, stride));
-            return sum_sq > 0.0f ? math::fast_inv_sqrt(sum_sq) : 0.0f;
+            for (int i = 0; i < len; i++) {
+                data[i * stride] = 0;
+            }
         }
     }
 };
