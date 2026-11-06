@@ -3,6 +3,7 @@
 | Chip     | ESP-IDF v5.3           | ESP-IDF v5.4           |
 |----------|------------------------|------------------------|
 | ESP32-S3 | ![alt text][supported] | ![alt text][supported] |
+| ESP32-S31 | ![alt text][supported] | ![alt text][supported] |
 | ESP32-P4 | ![alt text][supported] | ![alt text][supported] |
 
 

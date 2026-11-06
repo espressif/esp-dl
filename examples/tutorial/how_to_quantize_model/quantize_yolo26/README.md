@@ -1,6 +1,6 @@
 # YOLOv26n: PTQ + TQT + LUT <small>(INT16 Step-Interpolated Activation LUT)</small> Quantization Pipeline
 
-This tutorial walks through the complete workflow for quantizing a **YOLOv26n** model for deployment on **ESP32-P4** and **ESP32-S3** using **ESP-PPQ**.
+This tutorial walks through the complete workflow for quantizing a **YOLOv26n** model for deployment on **ESP32-P4**, **ESP32-S31**, and **ESP32-S3** using **ESP-PPQ**.
 
 ## Overview
 
@@ -10,7 +10,7 @@ The pipeline leverages the **YOLO26n** architecture, optimized for embedded depl
 *   **NMS-Free Inference**: One2One detection head  no post-processing NMS required on the MCU.
 *   **RegMax=1**: Eliminates the DFL layer entirely, reducing compute by ~30%.
 *   **INT8 + INT16 Hybrid**: Sensitive layers (box/class heads, neck exits) run in INT16; backbone in INT8.
-*   **INT16 Step-Interpolated LUT for Swish**: Swish activations are replaced by compact INT16 Look-Up Tables with configurable step interpolation, enabling hardware-accurate emulation on ESP32-P4/S3.
+*   **INT16 Step-Interpolated LUT for Swish**: Swish activations are replaced by compact INT16 Look-Up Tables with configurable step interpolation, enabling hardware-accurate emulation on ESP32-P4/S31/S3.
 *   **Generic**: Supports any input resolution (160–640) and any dataset (COCO, Roboflow, custom).
 
 ---

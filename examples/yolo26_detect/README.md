@@ -1,5 +1,5 @@
-| Supported Targets | ESP32-S3 | ESP32-P4 |
-|-------------------|----------|----------|
+| Supported Targets | ESP32-S3 | ESP32-S31 | ESP32-P4 |
+|-------------------|----------|-----------|----------|
 
 # YOLOv26n Detect Example
 
@@ -12,7 +12,7 @@ It features direct regression (No NMS), high performance via `esp-dl` optimizati
 
 1.  **Set Target**
     ```bash
-    idf.py set-target esp32p4  # or esp32s3
+    idf.py set-target esp32p4  # or esp32s3 / esp32s31
     ```
 
 2.  **Build and Flash**

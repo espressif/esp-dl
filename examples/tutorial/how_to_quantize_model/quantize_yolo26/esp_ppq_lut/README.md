@@ -1,7 +1,7 @@
 # esp_ppq_lut
 
 > **Bit-Exact LUT Activation Deployment for ESP32**  
-> A Python extension for [esp-ppq](https://github.com/espressif/esp-ppq) enabling hardware-accurate INT16 Look-Up Table activations on ESP32-P4 and ESP32-S3.
+> A Python extension for [esp-ppq](https://github.com/espressif/esp-ppq) enabling hardware-accurate INT16 Look-Up Table activations on ESP32-P4, ESP32-S31, and ESP32-S3.
 
 🔗 **Full documentation & source:** [github.com/BoumedineBillal/esp_ppq_lut](https://github.com/BoumedineBillal/esp_ppq_lut/tree/main)
 
