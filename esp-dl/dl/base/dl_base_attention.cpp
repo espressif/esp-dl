@@ -22,6 +22,10 @@
 namespace dl {
 namespace base {
 
+#if CONFIG_IDF_TARGET_ESP32S3
+extern "C" void dl_tie728_s8_qacc16(uint8_t *dump, const int8_t *input, const int8_t *filter);
+#endif
+
 namespace {
 /**
  * @brief Storage and gather buffers impose this absolute BNHD MHA head-chunk limit.
@@ -303,6 +307,123 @@ constexpr dtype_t attention_dtype()
         : std::is_same_v<feature_t, int16_t> ? DATA_TYPE_INT16
                                              : DATA_TYPE_FLOAT;
 }
+
+#if CONFIG_IDF_TARGET_ESP32S3
+namespace {
+
+bool pointer_aligned16(const void *ptr)
+{
+    return (reinterpret_cast<uintptr_t>(ptr) & 15u) == 0;
+}
+
+int8_t *aligned_alloc_bytes(size_t bytes)
+{
+    return static_cast<int8_t *>(heap_caps_aligned_alloc(16, bytes, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+}
+
+} // namespace
+
+namespace {
+
+void pack_kn_11cn(const int8_t *kn, int8_t *packed, int k, int n)
+{
+    const int groups = n / 16;
+    for (int group = 0; group < groups; ++group) {
+        int8_t *dst = packed + static_cast<size_t>(group) * static_cast<size_t>(k) * 16;
+        for (int ic = 0; ic < k; ++ic) {
+            std::memcpy(dst, kn + static_cast<size_t>(ic) * static_cast<size_t>(n) + group * 16, 16);
+            dst += 16;
+        }
+    }
+}
+
+int32_t sign_extend_20(uint32_t value)
+{
+    return static_cast<int32_t>(value << 12) >> 12;
+}
+
+void add_qacc8(const uint32_t *raw, int32_t *dst)
+{
+    const uint32_t w0 = raw[0];
+    const uint32_t w1 = raw[1];
+    const uint32_t w2 = raw[2];
+    const uint32_t w3 = raw[3];
+    const uint32_t w4 = raw[4];
+    dst[0] += sign_extend_20(w0);
+    dst[1] += sign_extend_20((w0 >> 20) | (w1 << 12));
+    dst[2] += sign_extend_20(w1 >> 8);
+    dst[3] += sign_extend_20((w1 >> 28) | (w2 << 4));
+    dst[4] += sign_extend_20((w2 >> 16) | (w3 << 16));
+    dst[5] += sign_extend_20(w3 >> 4);
+    dst[6] += sign_extend_20((w3 >> 24) | (w4 << 8));
+    dst[7] += sign_extend_20(w4 >> 12);
+}
+
+/**
+ * @brief Symmetric int8 query-key scores from the exact integer dot.
+ *
+ * Each dl_tie728_s8_qacc16 call is 16 input channels. The full int8 range stays inside a signed
+ * 20-bit QACC lane (16 * 128 * 128 = 262144, lane limit 2^19 - 1). Chunks sum in int32. A head
+ * width through 64 keeps that sum exactly representable in float32, and q_scale / k_scale are
+ * powers of two, so the scaled dot is the scalar score. Softmax is unchanged.
+ */
+__attribute__((noinline)) bool attention_s3_fill_qk(float *scores,
+                                                    const int8_t *q,
+                                                    const int8_t *k,
+                                                    int nq,
+                                                    int tile_n,
+                                                    int d,
+                                                    float q_scale,
+                                                    float k_scale,
+                                                    float softmax_scale)
+{
+    if (nq < 1 || d < 16 || tile_n < 16 || (d % 16) != 0 || (tile_n % 16) != 0 || tile_n > ATTENTION_KEY_TILE_SIZE ||
+        !pointer_aligned16(q) || !pointer_aligned16(k)) {
+        return false;
+    }
+    const size_t packed_bytes = static_cast<size_t>(d) * static_cast<size_t>(tile_n);
+    int8_t *kn = aligned_alloc_bytes(packed_bytes);
+    int8_t *packed = aligned_alloc_bytes(packed_bytes);
+    uint8_t *dump = reinterpret_cast<uint8_t *>(aligned_alloc_bytes(64));
+    if (!kn || !packed || !dump) {
+        heap_caps_free(kn);
+        heap_caps_free(packed);
+        heap_caps_free(dump);
+        return false;
+    }
+    for (int col = 0; col < tile_n; ++col) {
+        for (int row = 0; row < d; ++row) {
+            kn[static_cast<size_t>(row) * static_cast<size_t>(tile_n) + col] =
+                k[static_cast<size_t>(col) * static_cast<size_t>(d) + row];
+        }
+    }
+    pack_kn_11cn(kn, packed, d, tile_n);
+    const float scale = q_scale * k_scale * softmax_scale;
+    for (int iq = 0; iq < nq; ++iq) {
+        int32_t dots[ATTENTION_KEY_TILE_SIZE] = {};
+        const int8_t *q_row = q + static_cast<size_t>(iq) * static_cast<size_t>(d);
+        for (int oc = 0; oc < tile_n; oc += 16) {
+            const int8_t *filter = packed + static_cast<size_t>(oc / 16) * static_cast<size_t>(d) * 16;
+            for (int ic = 0; ic < d; ic += 16) {
+                dl_tie728_s8_qacc16(dump, q_row + ic, filter + static_cast<size_t>(ic) * 16);
+                const uint32_t *raw = reinterpret_cast<const uint32_t *>(dump);
+                add_qacc8(raw, dots + oc);
+                add_qacc8(raw + 8, dots + oc + 8);
+            }
+        }
+        float *dst = scores + iq * ATTENTION_KEY_TILE_SIZE;
+        for (int t = 0; t < tile_n; ++t) {
+            dst[t] = static_cast<float>(dots[t]) * scale;
+        }
+    }
+    heap_caps_free(kn);
+    heap_caps_free(packed);
+    heap_caps_free(dump);
+    return true;
+}
+
+} // namespace
+#endif
 
 /**
  * @brief Kept out of line: if one variant is inlined into attention<T>, its frame stays live under
@@ -715,6 +836,25 @@ __attribute__((noinline)) void attention_forward_impl(const TensorBase *q_t,
                         }
 #endif
 
+                        bool s3_qk_ready = false;
+#if CONFIG_IDF_TARGET_ESP32S3
+                        if constexpr (qkv_dtype == DATA_TYPE_INT8) {
+                            if (qk_kernel == AttentionQkKernel::Scalar && q_stride_pos == D && k_stride_pos == D &&
+                                !q_t->exponent.is_per_channel() && !k_t->exponent.is_per_channel()) {
+                                s3_qk_ready = attention_s3_fill_qk(
+                                    tile_buf.scores,
+                                    static_cast<const int8_t *>(q_data) + q_head_base + i0 * q_stride_pos,
+                                    static_cast<const int8_t *>(k_data) + k_head_base + j0 * k_stride_pos,
+                                    nq,
+                                    tile_n,
+                                    D,
+                                    q_scale,
+                                    k_scale,
+                                    softmax_scale);
+                            }
+                        }
+#endif
+
                         // QK-softmax: QK + online softmax -> exp_scores[iq, t] (the P tile).
                         for (int iq = 0; iq < nq; ++iq) {
                             float *acc = tile_buf.acc + iq * ATTENTION_MAX_HEAD_DIM;
@@ -743,6 +883,9 @@ __attribute__((noinline)) void attention_forward_impl(const TensorBase *q_t,
                                 }
                                 case AttentionQkKernel::Scalar:
                                 default: {
+                                    if (s3_qk_ready) {
+                                        break;
+                                    }
                                     const float *q_row = tile_buf.q_values + iq * ATTENTION_MAX_HEAD_DIM;
                                     for (int t = 0; t < tile_n; ++t) {
                                         const float dot = qk_scalar_dot_row<qkv_dtype>(
@@ -896,7 +1039,8 @@ __attribute__((noinline)) void attention_forward_impl(const TensorBase *q_t,
                             if constexpr (qkv_dtype != DATA_TYPE_INT8 || !CONFIG_PIE_V2_BOOST) {
                                 load_v_tile_dequant<qkv_dtype>(
                                     tile_buf.v_values, v_data, v_head_base, j0, tile_n, D, v_scale, v_stride_pos);
-                                pv_accumulate_fp32(tile_buf.acc, tile_buf.exp_scores, tile_buf.v_values, nq, tile_n, D);
+                                pv_accumulate_fp32(
+                                    tile_buf.acc, tile_buf.exp_scores, tile_buf.v_values, nq, tile_n, D);
                             }
                         }
                     }

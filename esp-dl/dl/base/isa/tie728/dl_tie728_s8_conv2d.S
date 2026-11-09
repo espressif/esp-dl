@@ -169,6 +169,25 @@ dl_tie728_s8_conv2d_11cn:
     retw
 #endif
 
+# Attention query-key dot, not a conv entry point. Kept outside the 11cn guard so an
+# Attention build links it without selecting dl_tie728_s8_conv2d_11cn. c_div_x_1 is 0:
+# 16 input channels stay inside the signed 20-bit QACC lanes.
+# a2 dump (16-byte aligned, 64 bytes), a3 input (16 bytes), a4 filter (256 bytes).
+    .text
+    .align 4
+    .global dl_tie728_s8_qacc16
+    .type   dl_tie728_s8_qacc16, @function
+dl_tie728_s8_qacc16:
+    entry sp, 128
+    movi a5, 0
+    EE.ZERO.QACC
+    tie728_s8_conv2d_11c16 q0, a3, q1, q2, a4, a5
+    EE.ST.QACC_L.L.128.IP a2, 16
+    EE.ST.QACC_L.H.32.IP  a2, 16
+    EE.ST.QACC_H.L.128.IP a2, 16
+    EE.ST.QACC_H.H.32.IP  a2, 4
+    retw
+
 
 
 #if DL_COMPILE_ALL || DL_KERNEL_DL_TIE728_S8_CONV2D_11CN_RELU

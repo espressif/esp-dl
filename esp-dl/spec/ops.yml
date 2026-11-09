@@ -101,6 +101,10 @@ ops:
         # P4/S31 QK fallback calls these symbols. GRU/LSTM list the same file;
         # compile_finalize.py keeps one copy when more than one op is selected.
         - dl/base/isa/esp32p4/dl_esp32p4_dotprod.S
+      pie_v1:
+        # S3 query-key fallback. dl_tie728_s8_qacc16 lives in this file, outside the
+        # conv kernel guards. Conv lists the same file; compile_finalize keeps one copy.
+        - dl/base/isa/tie728/dl_tie728_s8_conv2d.S
 
   Add:
     module:
