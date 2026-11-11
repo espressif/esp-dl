@@ -195,16 +195,29 @@ inline int64_t conv_width_minimum_macs(quant_type_t quant)
     return 160 * 1024;
 }
 
-// Width split after the height split returned one task. Each half must keep at
-// least two columns so a width-1 slice does not leave the filter-tile loop.
+inline bool conv_width_geometry_ok(const ConvArgsType &a)
+{
+    // Each half must keep at least two columns so a width-1 slice does not leave the filter-tile loop.
+    return a.output_width >= 4 && a.output_height >= 1;
+}
+
+inline int64_t conv_width_macs(const ConvArgsType &a)
+{
+    return static_cast<int64_t>(a.output_height) * a.output_width * a.input_channel * a.output_channel *
+        a.filter_height * a.filter_width;
+}
+
+// Width split after the height split returned one task.
 inline bool can_split_conv_width(const ConvArgsType &a, quant_type_t quant)
 {
-    if (a.output_width < 4 || a.output_height < 1) {
-        return false;
-    }
-    const int64_t macs = static_cast<int64_t>(a.output_height) * a.output_width * a.input_channel * a.output_channel *
-        a.filter_height * a.filter_width;
-    return macs >= conv_width_minimum_macs(quant);
+    return conv_width_geometry_ok(a) && conv_width_macs(a) >= conv_width_minimum_macs(quant);
+}
+
+// Same geometry gate, with a caller-supplied MAC floor. Gemm uses this for RUNTIME_MODE_AUTO.
+// A negative floor disables the path. Conv does not pass a floor, so its AUTO behavior is unchanged.
+inline bool can_split_conv_width_at(const ConvArgsType &a, int64_t min_macs)
+{
+    return min_macs >= 0 && conv_width_geometry_ok(a) && conv_width_macs(a) >= min_macs;
 }
 
 // Output columns [begin, begin + count) as a narrower Conv, like the height
@@ -284,7 +297,8 @@ public:
                TensorBase *activation_alpha,
                const runtime_mode_t runtime_mode,
                quant_type_t quant,
-               bool malloc_debug_memory = false)
+               bool malloc_debug_memory = false,
+               int64_t auto_width_min_macs = -1)
     {
         const int act_bytes = conv_feature_bytes(quant);
         const int filter_bytes = conv_filter_bytes(quant);
@@ -506,8 +520,14 @@ public:
             }
         }
         // Maps too short for the height split are divided by output columns instead.
-        if (m_args.size() == 1 && runtime_mode == RUNTIME_MODE_MULTI_CORE && group == 1 && input->shape[0] == 1 &&
-            can_split_conv_width(args, quant)) {
+        // MULTI_CORE keeps the conv MAC floor. AUTO uses a floor only when the caller supplies one
+        // (Gemm). Conv passes the default and does not width-split in AUTO.
+        const bool width_candidate = m_args.size() == 1 && group == 1 && input->shape[0] == 1;
+        const bool multi_width =
+            width_candidate && runtime_mode == RUNTIME_MODE_MULTI_CORE && can_split_conv_width(args, quant);
+        const bool auto_width = width_candidate && runtime_mode == RUNTIME_MODE_AUTO &&
+            can_split_conv_width_at(args, auto_width_min_macs);
+        if (multi_width || auto_width) {
             const int left = (args.output_width + 1) / 2;
             m_args.push_back(args);
             set_conv_width_interval(m_args[0], 0, left, act_bytes);

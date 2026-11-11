@@ -3,6 +3,7 @@
 #include "dl_module_add.hpp"
 #include "dl_module_attention.hpp"
 #include "dl_module_creator.hpp"
+#include "dl_module_gemm.hpp"
 #include "dl_module_inverse_sigmoid.hpp"
 #include "dl_module_layer_normalization.hpp"
 #include "dl_module_lut.hpp"
@@ -15,7 +16,9 @@
 #include "esp_timer.h"
 #include "fbs_loader.hpp"
 #include "unity.h"
+#include <climits>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <map>
 #include <string>
@@ -955,6 +958,140 @@ TEST_CASE("Test dl module API: LUT runtime modes", "[api]")
         }
         delete table;
     }
+}
+
+static void fill_gemm_elems(void *data, int n, int elem_bytes, int salt)
+{
+    for (int i = 0; i < n; ++i) {
+        int value = ((i * 13 + salt) % 31) - 15;
+        if (elem_bytes == 1) {
+            static_cast<int8_t *>(data)[i] = static_cast<int8_t>(value);
+        } else if (elem_bytes == 2) {
+            static_cast<int16_t *>(data)[i] = static_cast<int16_t>(value);
+        } else if (elem_bytes == 4) {
+            static_cast<int32_t *>(data)[i] = value;
+        } else {
+            static_cast<int64_t *>(data)[i] = value;
+        }
+    }
+}
+
+static bool buffer_nonzero(const void *data, int bytes)
+{
+    const uint8_t *ptr = static_cast<const uint8_t *>(data);
+    for (int i = 0; i < bytes; ++i) {
+        if (ptr[i] != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Shapes straddle the AUTO floors. Odd B is the width-split remainder. Odd N is
+// the channel tail, not the split axis. One Gemm owns the bias, because the
+// bias pack is not safe to apply twice. The task count is ConvOpArgs::size()
+// for the same floor Gemm::forward passes. There is no production probe.
+static void check_gemm_modes(quant_type_t quant, int b, int k, int n, bool with_bias, activation_type_t activation)
+{
+    const dtype_t feat = quant == QUANT_TYPE_SYMM_8BIT ? DATA_TYPE_INT8 : DATA_TYPE_INT16;
+    const dtype_t filt = quant == QUANT_TYPE_SYMM_16BIT ? DATA_TYPE_INT16 : DATA_TYPE_INT8;
+    const dtype_t bias_dt = quant == QUANT_TYPE_SYMM_8BIT ? DATA_TYPE_INT32 : DATA_TYPE_INT64;
+    TensorBase input({b, k}, nullptr, -7, feat);
+    TensorBase filter({1, 1, k, n}, nullptr, -6, filt);
+    TensorBase bias({n}, nullptr, -13, bias_dt);
+    TensorBase single({b, n}, nullptr, -7, feat);
+    TensorBase multi({b, n}, nullptr, -7, feat);
+    TensorBase automatic({b, n}, nullptr, -7, feat);
+    TensorBase repeat({b, n}, nullptr, -7, feat);
+    TEST_ASSERT_NOT_NULL(input.data);
+    TEST_ASSERT_NOT_NULL(filter.data);
+    TEST_ASSERT_NOT_NULL(bias.data);
+    TEST_ASSERT_NOT_NULL(single.data);
+    TEST_ASSERT_NOT_NULL(multi.data);
+    TEST_ASSERT_NOT_NULL(automatic.data);
+    TEST_ASSERT_NOT_NULL(repeat.data);
+
+    fill_gemm_elems(input.data, input.get_size(), input.get_dtype_bytes(), 7);
+    fill_gemm_elems(filter.data, filter.get_size(), filter.get_dtype_bytes(), 19);
+    fill_gemm_elems(bias.data, bias.get_size(), bias.get_dtype_bytes(), 3);
+
+    std::vector<int> input_shape = input.get_shape();
+    std::vector<int> output_shape = single.get_shape();
+    input.set_shape({1, 1, b, k});
+    single.set_shape({1, 1, b, n});
+    std::vector<int> padding(4, 0);
+    const int64_t floor = module::gemm_auto_width_min_macs(quant);
+    int tasks = 0;
+    {
+        base::ConvOpArgs args(&single,
+                              &input,
+                              padding,
+                              &filter,
+                              {1, 1},
+                              {1, 1},
+                              1,
+                              with_bias ? &bias : nullptr,
+                              activation,
+                              nullptr,
+                              RUNTIME_MODE_AUTO,
+                              quant,
+                              false,
+                              floor);
+        tasks = static_cast<int>(args.size());
+    }
+    input.set_shape(input_shape);
+    single.set_shape(output_shape);
+    const int64_t macs = static_cast<int64_t>(b) * k * n;
+    const int expect_tasks = (b >= 4 && macs >= floor) ? 2 : 1;
+    TEST_ASSERT_EQUAL(expect_tasks, tasks);
+
+    module::Gemm gemm(activation, "gemm", quant);
+    std::vector<TensorBase *> inputs = {&input, &filter};
+    if (with_bias) {
+        inputs.push_back(&bias);
+    }
+    gemm.run(inputs, {&single}, RUNTIME_MODE_SINGLE_CORE);
+    gemm.run(inputs, {&multi}, RUNTIME_MODE_MULTI_CORE);
+    gemm.run(inputs, {&automatic}, RUNTIME_MODE_AUTO);
+    gemm.run(inputs, {&repeat}, RUNTIME_MODE_AUTO);
+
+    const int bytes = single.get_bytes();
+    TEST_ASSERT_TRUE(buffer_nonzero(single.data, bytes));
+    TEST_ASSERT_EQUAL_MEMORY(single.data, multi.data, bytes);
+    TEST_ASSERT_EQUAL_MEMORY(single.data, automatic.data, bytes);
+    TEST_ASSERT_EQUAL_MEMORY(single.data, repeat.data, bytes);
+}
+
+TEST_CASE("Test dl module API: Gemm AUTO matches single core", "[api]")
+{
+#if CONFIG_FREERTOS_NUMBER_OF_CORES < 2
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_8BIT) == INT64_MAX);
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_16BIT) == INT64_MAX);
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_W8A16) == INT64_MAX);
+#elif CONFIG_IDF_TARGET_ESP32S3
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_8BIT) == 576 * 1024);
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_16BIT) == 256 * 1024);
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_W8A16) == 96 * 1024);
+#elif CONFIG_IDF_TARGET_ESP32P4
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_8BIT) == 768 * 1024);
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_16BIT) == 240 * 1024);
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_W8A16) == 112 * 1024);
+#else
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_8BIT) == INT64_MAX);
+#endif
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_NONE) == INT64_MAX);
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_FLOAT32) == INT64_MAX);
+    TEST_ASSERT_TRUE(module::gemm_auto_width_min_macs(QUANT_TYPE_SYMM_32BIT) == INT64_MAX);
+
+    check_gemm_modes(QUANT_TYPE_SYMM_8BIT, 1, 64, 64, false, Linear);
+    check_gemm_modes(QUANT_TYPE_SYMM_8BIT, 16, 64, 64, false, Linear);
+    check_gemm_modes(QUANT_TYPE_SYMM_8BIT, 32, 128, 31, true, ReLU);
+    check_gemm_modes(QUANT_TYPE_SYMM_8BIT, 31, 128, 256, true, Linear);
+    check_gemm_modes(QUANT_TYPE_SYMM_8BIT, 32, 128, 193, false, ReLU);
+    check_gemm_modes(QUANT_TYPE_SYMM_16BIT, 16, 64, 64, false, Linear);
+    check_gemm_modes(QUANT_TYPE_SYMM_16BIT, 16, 128, 256, true, Linear);
+    check_gemm_modes(QUANT_TYPE_SYMM_W8A16, 8, 64, 64, false, Linear);
+    check_gemm_modes(QUANT_TYPE_SYMM_W8A16, 32, 64, 128, false, ReLU);
 }
 
 TEST_CASE("Test dl module API: Attention runtime modes", "[api]")
