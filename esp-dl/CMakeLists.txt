@@ -85,7 +85,11 @@ add_prebuilt_library(fbs_model fbs_loader/lib/${IDF_TARGET}/libfbs_model.a)
 target_link_libraries(${COMPONENT_LIB} PRIVATE fbs_model)
 
 # component_compile_options(-ffast-math -frtti -O3 -Wno-error=format=-Wno-format)
+# GCC 14.4 -Wstringop-overflow false-positives on std::vector<int>'s
+# initializer-list constructor once _M_range_initialize_n is left out of line:
+# it treats operator new as a 4-byte object while the copy length stays variable.
 target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-array-bounds
                                                 -Wno-deprecated-copy
                                                 -Wno-strict-aliasing
-                                                -Wno-overloaded-virtual)
+                                                -Wno-overloaded-virtual
+                                                -Wno-stringop-overflow)

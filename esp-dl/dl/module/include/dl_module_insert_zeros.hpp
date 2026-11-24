@@ -110,7 +110,6 @@ public:
         T *output_data = output->get_element_ptr<T>();
         T *input_data = input->get_element_ptr<T>();
         const std::vector<int> &input_shape = input->get_shape();
-        const std::vector<int> &output_shape = output->get_shape();
         const std::vector<int> &input_strides = input->axis_offset;
         const std::vector<int> &output_strides = output->axis_offset;
         int batch_size = input_shape[0];
@@ -124,10 +123,6 @@ public:
         if (m_output_padding.size() == 1 && num_spatial_dims > 1) {
             m_output_padding = std::vector<int>(num_spatial_dims, m_output_padding[0]);
         }
-
-        // Calculate spatial dimensions (skip batch and channel dimensions)
-        std::vector<int> input_spatial_dims(input_shape.begin() + 1, input_shape.end() - 1);
-        std::vector<int> output_spatial_dims(output_shape.begin() + 1, output_shape.end() - 1);
 
         // Initialize output to zeros
         memset(output_data, 0, output->get_size() * sizeof(T));

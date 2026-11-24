@@ -2,6 +2,7 @@
 
 #include "dl_define_private.hpp"
 #include "sdkconfig.h"
+#include <stdint.h>
 #include <string>
 #include "soc/soc_caps.h"
 
