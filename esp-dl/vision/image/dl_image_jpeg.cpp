@@ -336,17 +336,15 @@ jpeg_img_t hw_encode_jpeg_base(const img_t &img,
         return {};
     }
 
-    // encode
-    jpeg_encode_cfg_t enc_config = {
-        .height = (uint32_t)img.height,
-        .width = (uint32_t)img.width,
-        .src_type = src_type,
-        .sub_sample = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? JPEG_DOWN_SAMPLING_GRAY : rgb_sub_sample_method,
-        .image_quality = quality,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
-        .pixel_reverse = false,
-#endif
-    };
+    // Value-initialize so jpeg_encode_cfg_t::pixel_reverse (added on IDF
+    // release/v5.5) is covered. A partial designated initializer warns with
+    // -Wmissing-field-initializers even though omitted members are zeroed.
+    jpeg_encode_cfg_t enc_config = {};
+    enc_config.height = (uint32_t)img.height;
+    enc_config.width = (uint32_t)img.width;
+    enc_config.src_type = src_type;
+    enc_config.sub_sample = (img.pix_type == DL_IMAGE_PIX_TYPE_GRAY) ? JPEG_DOWN_SAMPLING_GRAY : rgb_sub_sample_method;
+    enc_config.image_quality = quality;
 
     uint32_t out_len = 0;
     if (jpeg_encoder_process(
