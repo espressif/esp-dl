@@ -9,9 +9,59 @@
 #include <typeinfo>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <climits>
+#include <cstdint>
 
 namespace dl {
 namespace module {
+
+/**
+ * MAC floor for RUNTIME_MODE_AUTO width splitting of a batched Gemm (B*K*N).
+ *
+ * Measured with -O3 -ffast-math on ESP32-S3 rev2 at 240 MHz and ESP32-P4 rev103
+ * at 360 MHz, ESP-IDF 5.5.6. Shapes below the floor stay on one core.
+ * MULTI_CORE keeps the conv floor. A single-core build, any other target, and
+ * any quant type other than int8, int16, and w8a16 return INT64_MAX.
+ */
+inline int64_t gemm_auto_width_min_macs(quant_type_t quant)
+{
+#if CONFIG_FREERTOS_NUMBER_OF_CORES < 2
+    (void)quant;
+    return INT64_MAX;
+#elif CONFIG_IDF_TARGET_ESP32S3
+    // int8: 524288 still regresses (32x256x64, 0.957). 589824 wins (24x128x192, 1.126).
+    // int16: 245760 is still a small loss. 262144 no longer regresses.
+    // w8a16: 65536 regresses. 98304 is the first bucket whose bands all stay faster.
+    if (quant == QUANT_TYPE_SYMM_8BIT) {
+        return 576 * 1024;
+    }
+    if (quant == QUANT_TYPE_SYMM_W8A16) {
+        return 96 * 1024;
+    }
+    if (quant == QUANT_TYPE_SYMM_16BIT) {
+        return 256 * 1024;
+    }
+    return INT64_MAX;
+#elif CONFIG_IDF_TARGET_ESP32P4
+    // int8: through 655360 the split is noise or a regression (8x256x256, 0.956).
+    // 786432 is the first bucket with a separated gain on every measured shape.
+    // int16: 196608 is under 3%. 245760 is a separated 8% gain and the losses are gone.
+    // w8a16: 102400 still regresses. 126976 and above do not.
+    if (quant == QUANT_TYPE_SYMM_8BIT) {
+        return 768 * 1024;
+    }
+    if (quant == QUANT_TYPE_SYMM_W8A16) {
+        return 112 * 1024;
+    }
+    if (quant == QUANT_TYPE_SYMM_16BIT) {
+        return 240 * 1024;
+    }
+    return INT64_MAX;
+#else
+    (void)quant;
+    return INT64_MAX;
+#endif
+}
 
 /**
  * @brief Activation(Gemm(input, filter) + bias).
@@ -96,6 +146,9 @@ public:
         input0->set_shape({1, 1, input0->get_size() / origin_input_shape.back(), origin_input_shape.back()});
         output->set_shape({1, 1, output->get_size() / origin_output_shape.back(), origin_output_shape.back()});
 
+        // Only AUTO consults the Gemm floor. SINGLE_CORE never splits. MULTI_CORE keeps the conv floor.
+        const int64_t auto_width_min_macs =
+            (mode == RUNTIME_MODE_AUTO) ? gemm_auto_width_min_macs(quant_type) : static_cast<int64_t>(-1);
         base::ConvOpArgs m_args(output,
                                 input0,
                                 padding,
@@ -107,7 +160,9 @@ public:
                                 this->activation,
                                 nullptr,
                                 mode,
-                                quant_type); // do not support PReLU and Leaky RelU
+                                quant_type,
+                                false,
+                                auto_width_min_macs); // do not support PReLU and Leaky RelU
         int task_size = m_args.size();
         if (task_size < 1 || !base::dl_conv_ensure_kernels(m_fn, m_args.get_args(0), 0, quant_type, "Gemm")) {
             input0->set_shape(origin_input_shape);
